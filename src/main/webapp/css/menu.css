@@ -1,0 +1,13 @@
+@CHARSET "ISO-8859-1";
+
+.menu{  font-size: 0.8em; font-family: Arial; }
+
+.menu li{ list-style-type: none; list-style-position: outside; -bottom: ; al: ; margin-left: -15px; padding: 0pt; }
+
+.menu .ui-menu-header { font-size: 1.4em;}
+	
+.menu .ui-selecting { color: #CC4433; }
+
+.menu .ui-selected { color: #4477CC; list-style-type: disc; }
+
+
