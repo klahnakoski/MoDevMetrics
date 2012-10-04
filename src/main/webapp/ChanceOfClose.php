@@ -2,17 +2,17 @@
 	<HEAD>
 	</HEAD>
 	<BODY>
-		<script type="text/javascript" src="js/rest/RestConfig.js"></script>
+		<script type="text/javascript" src="../js/rest/RestConfig.js"></script>
 
 		<script type="text/javascript" src="../../../lib/js/jquery-1.7.js"></script>
 
-		<script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
-		<script type="text/javascript" src="js/rest/RestQuery.js"></script>
-		<script type="text/javascript" src="js/charts/Status.js"></script>
-		<script type="text/javascript" src="js/charts/DataSet.js"></script>
-		<script type="text/javascript" src="js/charts/RangeCharts.js"></script>
-		<script type="text/javascript" src="js/charts/RangeIterator.js"></script>
-		<script type="text/javascript" src="js/charts/DateRangeIterator.js"></script>
+		<script type="text/javascript" src="../js/charts/HelperFunctions.js"></script>
+		<script type="text/javascript" src="../js/rest/RestQuery.js"></script>
+		<script type="text/javascript" src="../js/charts/Status.js"></script>
+		<script type="text/javascript" src="../js/charts/DataSet.js"></script>
+		<script type="text/javascript" src="../js/charts/RangeCharts.js"></script>
+		<script type="text/javascript" src="../js/charts/RangeIterator.js"></script>
+		<script type="text/javascript" src="../js/charts/DateRangeIterator.js"></script>
 
 	    <script type="text/javascript" src="../../../lib/webdetails/cdf/Base.js"></script>
 	    <script type="text/javascript" src="../../../lib/webdetails/cdf/jquery.js"></script>
@@ -41,8 +41,8 @@
 		<link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet" />	
 		<script type="text/javascript" src="../../../lib/js/jquery-ui-1.8.16.custom.min.js"></script>
 		<script type="text/javascript" src="../../../lib/js/jquery.ba-bbq.js"></script>
-		<script type="text/javascript" src="js/charts/GUIFunctions.js"></script>
-		<script type="text/javascript" src="js/filters/GUIFilters.js"></script>
+		<script type="text/javascript" src="../js/charts/GUIFunctions.js"></script>
+		<script type="text/javascript" src="../js/filters/GUIFilters.js"></script>
 	    <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 
 		<script type="text/javascript">

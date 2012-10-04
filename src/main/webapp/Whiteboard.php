@@ -2,11 +2,11 @@
 	<HEAD>
 	</HEAD>
 	<BODY>
-		<script type="text/javascript" src="js/rest/RestConfig.js"></script>
+		<script type="text/javascript" src="../js/rest/RestConfig.js"></script>
 
 		<script type="text/javascript" src="../../../lib/js/jquery-1.7.js"></script>
 
-		<script type="text/javascript" src="js/rest/RestQuery.js"></script>
+		<script type="text/javascript" src="../js/rest/RestQuery.js"></script>
 
 	    <script type="text/javascript" src="../../../lib/webdetails/cdf/Base.js"></script>
 	    <script type="text/javascript" src="../../../lib/webdetails/cdf/jquery.js"></script>
