@@ -2,17 +2,17 @@
 	<HEAD>
 	</HEAD>
 	<BODY>
-		<script type="text/javascript" src="../js/rest/RestConfig.js"></script>
+		<script type="text/javascript" src="js/rest/RestConfig.js"></script>
 
 		<script type="text/javascript" src="../../../lib/js/jquery-1.7.js"></script>
 
-		<script type="text/javascript" src="../js/charts/HelperFunctions.js"></script>
-		<script type="text/javascript" src="../js/rest/RestQuery.js"></script>
-		<script type="text/javascript" src="../js/charts/Status.js"></script>
-		<script type="text/javascript" src="../js/charts/DataSet.js"></script>
-		<script type="text/javascript" src="../js/charts/RangeCharts.js"></script>
-		<script type="text/javascript" src="../js/charts/RangeIterator.js"></script>
-		<script type="text/javascript" src="../js/charts/DateRangeIterator.js"></script>
+		<script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
+		<script type="text/javascript" src="js/rest/RestQuery.js"></script>
+		<script type="text/javascript" src="js/charts/Status.js"></script>
+		<script type="text/javascript" src="js/charts/DataSet.js"></script>
+		<script type="text/javascript" src="js/charts/RangeCharts.js"></script>
+		<script type="text/javascript" src="js/charts/RangeIterator.js"></script>
+		<script type="text/javascript" src="js/charts/DateRangeIterator.js"></script>
 
 	    <script type="text/javascript" src="../../../lib/webdetails/cdf/Base.js"></script>
 	    <script type="text/javascript" src="../../../lib/webdetails/cdf/jquery.js"></script>
@@ -41,13 +41,13 @@
 		<link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet" />	
 		<script type="text/javascript" src="../../../lib/js/jquery-ui-1.8.16.custom.min.js"></script>
 		<script type="text/javascript" src="../../../lib/js/jquery.ba-bbq.js"></script>
-		<script type="text/javascript" src="../js/charts/GUIFunctions.js"></script>
-		<script type="text/javascript" src="../js/charts/GUIFilters.js"></script>
+		<script type="text/javascript" src="js/charts/GUIFunctions.js"></script>
+		<script type="text/javascript" src="js/filters/GUIFilters.js"></script>
 	    <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 
 		<script type="text/javascript">
 
-		GetURLState();
+		GUI.GetURLState();
 		
 		var rangeChart = null;
 
@@ -190,18 +190,18 @@
 							},
 							"from" : 0,
 							"size" : 0,
-							"sort" : [],
+							"sort" : []
 						},
-						"seriesName" : "incomplete",
+						"seriesName" : "incomplete"
 					}],
-					"evaluations" : { 
-						'Resolved Fixed' : ['', '(', 'fixed', '/', 'total', ') * 100'],
-						'Resolved Will Not Fix' : ['', '(', 'wont', '/', 'total', ') * 100'],
-						'Resolved Invalid' : ['', '(', 'invalid', '/', 'total', ') * 100'],
-						'Resolved Duplicate' : ['', '(', 'duplicate', '/', 'total', ') * 100'],
-						'Resolved Works For Me' : ['', '(', 'works', '/', 'total', ') * 100'],
-						'Resolved Incomplete' : ['', '(', 'incomplete', '/', 'total', ') * 100']
-				 	},					
+					"evaluations" : [
+                        {"seriesName":'Resolved Fixed', "code": "(fixed/total) * 100"},
+                        {"seriesName":'Resolved Will Not Fix', "code": "(wont/total) * 100"},
+                        {"seriesName":'Resolved Invalid', "code": "(invalid/total) * 100"},
+                        {"seriesName":'Resolved Duplicate', "code": "(duplicate/total) * 100"},
+                        {"seriesName":'Resolved Works For Me', "code": "(works/total) * 100"},
+                        {"seriesName":'Resolved Incomplete', "code": "(incomplete/total) * 100"}
+                    ],
 					"showSeries" : [ 'Resolved Fixed', 'Resolved Will Not Fix', 'Resolved Invalid', 'Resolved Duplicate', 'Resolved Works For Me','Resolved Incomplete' ],
 				 	"chartTitle" : "Question - When bugs are resolved, what is the percentage chance of it being fixed depending on days open?",
 					"canvas" : "chart",
@@ -214,7 +214,7 @@
 					"groupCombine" : "average"
 				};
 
-				InjectFilters( chartRequest.requests );
+				ES.InjectFilters( chartRequest.requests );
 
 				console.log("chartRequest: " + JSON.stringify(chartRequest));
 	    		
@@ -225,7 +225,7 @@
 		var filterUI = null;
 		
 		$(document).ready(function(){
-				filterUI = new FilterUI();
+				filterUI = new ProductUI();
 				UpdateTextFields();
 		    	createChart();
 		});

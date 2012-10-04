@@ -3,46 +3,81 @@
 	<HEAD>
 	</HEAD>
 	<BODY>
-		<script type="text/javascript" src="../js/rest/RestConfig.js"></script>
+		<script type="text/javascript" src="js/rest/RestConfig.js"></script>
 		<script type="text/javascript" src="../../../lib/js/jquery-1.7.js"></script>
-		<script type="text/javascript" src="../js/charts/HelperFunctions.js"></script>
-        <script type="text/javascript" src="../js/aDate.js"></script>
-        <script type="text/javascript" src="../js/CNV.js"></script>
+
+		<script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
+
+		<script type="text/javascript" src="js/Debug.js"></script>
+		<script type="text/javascript" src="js/util.js"></script>
+		<script type="text/javascript" src="js/CNV.js"></script>
+		<script type="text/javascript" src="js/aDate.js"></script>
+		<script type="text/javascript" src="js/MVEL.js"></script>
+        <script type="text/javascript" src="js/sql.js"></script>
+        <script type="text/javascript" src="../../test/js/SQL.js"></script>
+
 
 		<div id="info"></div>
 
 		<script type="text/javascript">          
-		var query = {
+//		var query = {
+//
+//            "query": {
+//					"filtered" : {
+//                        "query": {
+//                            "match_all" : {}
+//                        },
+//                        "filter" : {
+//                            "and":[
+//                                {"terms" : { "status_whiteboard.tokenized" : ["snappy:p1", "snappy:p2", "snappy:p3"]} },
+//                                {"or":[
+//                                    {"term" : {"bug_version_num" : 1}},
+//                                    {"and":[
+//                                        {"terms" : { "bug_status" : ["resolved", "verified", "closed"] }},
+////                                        {"nested": {
+////                                            "path": "changes",
+////                                            "filter" : {
+////                                                "and" : [
+//                                                    {"term" : { "changes.field_name" : ["bug_status"] }},
+//                                                    {"not": {"terms":{"changes.field_value": ["resolved", "verified", "closed"]}}}
+////                                                ]
+////                                            }
+////                                        }}
+//                                    ]}
+//                                ]}
+//                            ]
+//                        }
+//					}
+//				},
+//                "size":100
+//        };
 
-            "query": {
-					"filtered" : {
-                        "query": {
-                            "match_all" : {}
-                        },
-                        "filter" : {
-                            "and":[
-                                {"terms" : { "status_whiteboard.tokenized" : ["snappy:p1", "snappy:p2", "snappy:p3"]} },
-                                {"or":[
-                                    {"term" : {"bug_version_num" : 1}},
-                                    {"and":[
-                                        {"terms" : { "bug_status" : ["resolved", "verified", "closed"] }},
-//                                        {"nested": {
-//                                            "path": "changes",
-//                                            "filter" : {
-//                                                "and" : [
-                                                    {"term" : { "changes.field_name" : ["bug_status"] }},
-                                                    {"not": {"terms":{"changes.field_value": ["resolved", "verified", "closed"]}}}
-//                                                ]
-//                                            }
-//                                        }}
-                                    ]}
-                                ]}
-                            ]
-                        }
-					}
-				},
-                "size":100
-        };
+        var query = {
+            "query" : {
+                "filtered" : {
+                    "query": {
+                        "match_all":{}
+                    },
+                    "filter" : {
+                        "and":[
+                            { "range" : { "expires_on" : { "gt" : Date.now().getMilli() } } },
+                            {"not" : {"terms" : { "bug_status" : ["resolved", "verified", "closed"] }}}
+                        ]
+                    }
+                }
+            },
+            "from": 0,
+            "size": 0,
+            "sort": [],
+            "facets": {
+                "Products": {
+                    "terms": {
+                        "field": "product",
+                        "size": 100000
+                    }
+                }
+            }
+	    };
 
 
 

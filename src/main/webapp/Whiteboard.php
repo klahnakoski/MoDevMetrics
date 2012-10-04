@@ -2,11 +2,11 @@
 	<HEAD>
 	</HEAD>
 	<BODY>
-		<script type="text/javascript" src="../js/rest/RestConfig.js"></script>
+		<script type="text/javascript" src="js/rest/RestConfig.js"></script>
 
 		<script type="text/javascript" src="../../../lib/js/jquery-1.7.js"></script>
 
-		<script type="text/javascript" src="../js/rest/RestQuery.js"></script>
+		<script type="text/javascript" src="js/rest/RestQuery.js"></script>
 
 	    <script type="text/javascript" src="../../../lib/webdetails/cdf/Base.js"></script>
 	    <script type="text/javascript" src="../../../lib/webdetails/cdf/jquery.js"></script>
@@ -39,7 +39,7 @@
 
 		<script type="text/javascript">
 
-		//GetURLState();
+		//GUI.GetURLState();
 
 		var results = null;
 		
@@ -73,7 +73,7 @@
 				]
 			};
 
-				//InjectFilters( chartRequest.requests );
+				//ES.InjectFilters( chartRequest.requests );
 
 	    		
 				this.request = $.ajax({
@@ -112,7 +112,7 @@
 		//var filterUI = null;
 		
 		$(document).ready(function(){
-				//filterUI = new FilterUI();
+				//filterUI = new ProductUI();
 				//UpdateTextFields();
 		    	createChart();
 		});
