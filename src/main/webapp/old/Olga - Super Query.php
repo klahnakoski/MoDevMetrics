@@ -2,9 +2,9 @@
 	<HEAD>
 	</HEAD>
 	<BODY>
-		<script type="text/javascript" src="../../js/rest/RestConfig.js"></script>
-		<script type="text/javascript" src="../../../../lib/js/jquery-1.7.js"></script>
-		<script type="text/javascript" src="../../js/charts/HelperFunctions.js"></script>
+		<script type="text/javascript" src="../js/rest/RestConfig.js"></script>
+		<script type="text/javascript" src="../lib/js/jquery-1.7.js"></script>
+		<script type="text/javascript" src="../js/charts/HelperFunctions.js"></script>
 
 		<div id="info"></div>
 

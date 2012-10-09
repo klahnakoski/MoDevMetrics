@@ -4,51 +4,51 @@
 	<HEAD>
 	</HEAD>
 	<BODY>
-		<script type="text/javascript" src="../../js/rest/RestConfig.js"></script>
+		<script type="text/javascript" src="../js/rest/RestConfig.js"></script>
 
-		<script type="text/javascript" src="../../../../lib/js/jquery-1.7.js"></script>
+		<script type="text/javascript" src="../lib/js/jquery-1.7.js"></script>
 
-		<script type="text/javascript" src="../../js/charts/HelperFunctions.js"></script>
-		<script type="text/javascript" src="../../js/rest/RestQuery.js"></script>
-		<script type="text/javascript" src="../../js/charts/Status.js"></script>
-		<script type="text/javascript" src="../../js/charts/DataSet.js"></script>
-		<script type="text/javascript" src="../../js/charts/RangeCharts.js"></script>
-		<script type="text/javascript" src="../../js/charts/RangeIterator.js"></script>
-		<script type="text/javascript" src="../../js/charts/DateRangeIterator.js"></script>
+		<script type="text/javascript" src="../js/charts/HelperFunctions.js"></script>
+		<script type="text/javascript" src="../js/rest/RestQuery.js"></script>
+		<script type="text/javascript" src="../js/charts/Status.js"></script>
+		<script type="text/javascript" src="../js/charts/DataSet.js"></script>
+		<script type="text/javascript" src="../js/charts/RangeCharts.js"></script>
+		<script type="text/javascript" src="../js/charts/RangeIterator.js"></script>
+		<script type="text/javascript" src="../js/charts/DateRangeIterator.js"></script>
 
-	    <script type="text/javascript" src="../../../../lib/webdetails/cdf/Base.js"></script>
-	    <script type="text/javascript" src="../../../../lib/webdetails/cdf/jquery.js"></script>
-	    <script type="text/javascript" src="../../../../lib/webdetails/cdf/jquery.tooltip.js"></script>
-	    <script type="text/javascript" src="../../../../lib/webdetails/data/q01-01.js"></script>
-	    <script type="text/javascript" src="../../../../lib/webdetails/lib/protovis-d3.3.js"></script>
-	    <script type="text/javascript" src="../../../../lib/webdetails/lib/jquery.tipsy.js"></script>
-	    <script type="text/javascript" src="../../../../lib/webdetails/lib/tipsy.js"></script>
-	    <link type="text/css" href="../../../../lib/webdetails/lib/tipsy.css" rel="stylesheet"/>
+	    <script type="text/javascript" src="../lib/webdetails/cdf/Base.js"></script>
+	    <script type="text/javascript" src="../lib/webdetails/cdf/jquery.js"></script>
+	    <script type="text/javascript" src="../lib/webdetails/cdf/jquery.tooltip.js"></script>
+	    <script type="text/javascript" src="../lib/webdetails/data/q01-01.js"></script>
+	    <script type="text/javascript" src="../lib/webdetails/lib/protovis-d3.3.js"></script>
+	    <script type="text/javascript" src="../lib/webdetails/lib/jquery.tipsy.js"></script>
+	    <script type="text/javascript" src="../lib/webdetails/lib/tipsy.js"></script>
+	    <link type="text/css" href="../lib/webdetails/lib/tipsy.css" rel="stylesheet"/>
 	
-	    <script type="text/javascript" src="../../../../lib/webdetails/pvc/pvc.js"></script>
-	    <script type="text/javascript" src="../../../../lib/webdetails/pvc/pvcPanel.js"></script>
-	    <script type="text/javascript" src="../../../../lib/webdetails/pvc/pvcLegend.js"></script>
-	    <script type="text/javascript" src="../../../../lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
-	    <script type="text/javascript" src="../../../../lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
-	    <script type="text/javascript" src="../../../../lib/webdetails/pvc/pvcWaterfall.js"></script>
-	    <script type="text/javascript" src="../../../../lib/webdetails/pvc/pvcPie.js"></script>
-	    <script type="text/javascript" src="../../../../lib/webdetails/pvc/pvcBar.js"></script>
-	    <script type="text/javascript" src="../../../../lib/webdetails/pvc/pvcLine.js"></script>
-	    <script type="text/javascript" src="../../../../lib/webdetails/pvc/pvcData.js"></script>
-	    <link type="text/css" rel="stylesheet" href="../../../../lib/webdetails/cdf/jquery.tooltip.css"/>
-	    <link type="text/css" rel="stylesheet" href="../../../../lib/webdetails/pvcComponent.css"/>
+	    <script type="text/javascript" src="../lib/webdetails/pvc/pvc.js"></script>
+	    <script type="text/javascript" src="../lib/webdetails/pvc/pvcPanel.js"></script>
+	    <script type="text/javascript" src="../lib/webdetails/pvc/pvcLegend.js"></script>
+	    <script type="text/javascript" src="../lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
+	    <script type="text/javascript" src="../lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
+	    <script type="text/javascript" src="../lib/webdetails/pvc/pvcWaterfall.js"></script>
+	    <script type="text/javascript" src="../lib/webdetails/pvc/pvcPie.js"></script>
+	    <script type="text/javascript" src="../lib/webdetails/pvc/pvcBar.js"></script>
+	    <script type="text/javascript" src="../lib/webdetails/pvc/pvcLine.js"></script>
+	    <script type="text/javascript" src="../lib/webdetails/pvc/pvcData.js"></script>
+	    <link type="text/css" rel="stylesheet" href="../lib/webdetails/cdf/jquery.tooltip.css"/>
+	    <link type="text/css" rel="stylesheet" href="../lib/webdetails/pvcComponent.css"/>
 			
-	    <script type="text/javascript" src="../../../../lib/webdetails/pvcDocUtils.js"></script>
+	    <script type="text/javascript" src="../lib/webdetails/pvcDocUtils.js"></script>
 
 		<link type="text/css" href="../css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
-		<script type="text/javascript" src="../../../../lib/js/jquery-ui-1.8.16.custom.min.js"></script>
-		<script type="text/javascript" src="../../../../lib/js/jquery.ba-bbq.js"></script>
+		<script type="text/javascript" src="../lib/js/jquery-ui-1.8.16.custom.min.js"></script>
+		<script type="text/javascript" src="../lib/js/jquery.ba-bbq.js"></script>
 		<script type="text/javascript" src="js/charts/GUIFunctions.js"></script>
-		<script type="text/javascript" src="../../js/filters/GUIFilters.js"></script>
+		<script type="text/javascript" src="../js/filters/GUIFilters.js"></script>
 	    <link type="text/css" rel="stylesheet" href="../css/menu.css"/>
 
-		<script type="text/javascript" src="../../js/aDate.js"></script>
-        <script type="text/javascript" src="../../js/CNV.js"></script>
+		<script type="text/javascript" src="../js/aDate.js"></script>
+        <script type="text/javascript" src="../js/CNV.js"></script>
 
 		<script type="text/javascript">
 

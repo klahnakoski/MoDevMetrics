@@ -3,65 +3,104 @@
     <HEAD>
 	</HEAD>
 	<BODY>
-		<script type="text/javascript" src="../js/rest/RestConfig.js"></script>
+		<!--[if lt IE 9]>
+		<script type="text/javascript" src="lib/jqplot/excanvas.js"></script>
+		<![endif]-->
+		<script type="text/javascript" src="lib/jqplot/jquery.min.js"></script>
+		<script type="text/javascript" src="lib/jqplot/jquery.jqplot.js"></script>
+		<script type="text/javascript" src="lib/jqplot/plugins/jqplot.barRenderer.min.js"></script>
+		<script type="text/javascript" src="lib/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>
+		<script type="text/javascript" src="lib/jqplot/plugins/jqplot.pointLabels.js"></script>
+		<script type="text/javascript" src="lib/jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>
+		<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>
+		<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>
+		<script type="text/javascript" src="lib/jqplot/plugins/jqplot.logAxisRenderer.js"></script>
 
-		<script type="text/javascript" src="../../../lib/js/jquery-1.7.js"></script>
 
-	    <script type="text/javascript" src="../../../lib/webdetails/cdf/Base.js"></script>
-	    <script type="text/javascript" src="../../../lib/webdetails/cdf/jquery.js"></script>
-	    <script type="text/javascript" src="../../../lib/webdetails/cdf/jquery.tooltip.js"></script>
-	    <script type="text/javascript" src="../../../lib/webdetails/data/q01-01.js"></script>
-	    <script type="text/javascript" src="../../../lib/webdetails/lib/protovis-d3.3.js"></script>
-	    <script type="text/javascript" src="../../../lib/webdetails/lib/jquery.tipsy.js"></script>
-	    <script type="text/javascript" src="../../../lib/webdetails/lib/tipsy.js"></script>
-	    <link type="text/css" href="../../../lib/webdetails/lib/tipsy.css" rel="stylesheet"/>
+		<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css" />
 
-	    <script type="text/javascript" src="../../../lib/webdetails/pvc/pvc.js"></script>
-	    <script type="text/javascript" src="../../../lib/webdetails/pvc/pvcPanel.js"></script>
-	    <script type="text/javascript" src="../../../lib/webdetails/pvc/pvcLegend.js"></script>
-	    <script type="text/javascript" src="../../../lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
-	    <script type="text/javascript" src="../../../lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
-	    <script type="text/javascript" src="../../../lib/webdetails/pvc/pvcWaterfall.js"></script>
-	    <script type="text/javascript" src="../../../lib/webdetails/pvc/pvcPie.js"></script>
-	    <script type="text/javascript" src="../../../lib/webdetails/pvc/pvcBar.js"></script>
-	    <script type="text/javascript" src="../../../lib/webdetails/pvc/pvcLine.js"></script>
-	    <script type="text/javascript" src="../../../lib/webdetails/pvc/pvcData.js"></script>
-	    <link type="text/css" rel="stylesheet" href="../../../lib/webdetails/cdf/jquery.tooltip.css"/>
-	    <link type="text/css" rel="stylesheet" href="../../../lib/webdetails/pvcComponent.css"/>
 
-	    <script type="text/javascript" src="../../../lib/webdetails/pvcDocUtils.js"></script>
+
+		<!--<script type="text/javascript" src="lib/js/jquery-1.7.js"></script>-->
+		<!--<script type="text/javascript" src="lib/jqplot/jquery.jqplot.min.js"></script>-->
+		<!--<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css" />-->
+
 
 		<link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
-		<script type="text/javascript" src="../../../lib/js/jquery-ui-1.8.16.custom.min.js"></script>
-		<script type="text/javascript" src="../../../lib/js/jquery.ba-bbq.js"></script>
+		<script type="text/javascript" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
+		<script type="text/javascript" src="lib/js/jquery.ba-bbq.js"></script>
 
 	    <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 
 
-        <script type="text/javascript" src="../js/CNV.js"></script>
-		<script type="text/javascript" src="../js/aDate.js"></script>
-        <script type="text/javascript" src="../js/Test2.js"></script>
-        <script type="text/javascript" src="../js/MozillaPrograms.js"></script>
-        <script type="text/javascript" src="../js/util.js"></script>
-        <script type="text/javascript" src="../js/Debug.js"></script>
+		<script type="text/javascript" src="js/rest/RestConfig.js"></script>
+        <script type="text/javascript" src="js/CNV.js"></script>
+		<script type="text/javascript" src="js/aDate.js"></script>
+        <script type="text/javascript" src="js/Test2.js"></script>
+        <script type="text/javascript" src="js/MozillaPrograms.js"></script>
+        <script type="text/javascript" src="js/util.js"></script>
+		<script type="text/javascript" src="js/Debug.js"></script>
+		<script type="text/javascript" src="js/MVEL.js"></script>
+		<script type="text/javascript" src="js/sql.js"></script>
+		<script type="text/javascript" src="../../test/js/SQL.js"></script>
 
 
-        <script type="text/javascript" src="../js/charts/HelperFunctions.js"></script>
-        <script type="text/javascript" src="../js/rest/RestQuery.js"></script>
-        <script type="text/javascript" src="../js/charts/Status.js"></script>
-        <script type="text/javascript" src="../js/charts/DataSet.js"></script>
-        <script type="text/javascript" src="../js/charts/RangeCharts.js"></script>
-        <script type="text/javascript" src="../js/charts/RangeIterator.js"></script>
-        <script type="text/javascript" src="../js/charts/DateRangeIterator.js"></script>
 
-        <script type="text/javascript" src="../js/filters/Filter.js"></script>
-        <script type="text/javascript" src="../js/filters/ComponentFilter.js"></script>
-        <script type="text/javascript" src="../js/filters/ProductFilter.js"></script>
-        <script type="text/javascript" src="../js/filters/ProgramFilter.js"></script>
-        <script type="text/javascript" src="../js/filters/CustomFilters.js"></script>
-        <script type="text/javascript" src="../js/filters/GUIFilters.js"></script>
+        <script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
+        <script type="text/javascript" src="js/rest/RestQuery.js"></script>
+        <script type="text/javascript" src="js/charts/Status.js"></script>
+        <script type="text/javascript" src="js/charts/DataSet.js"></script>
+        <script type="text/javascript" src="js/charts/RangeCharts.js"></script>
+        <script type="text/javascript" src="js/charts/RangeIterator.js"></script>
+        <script type="text/javascript" src="js/charts/DateRangeIterator.js"></script>
 
+        <script type="text/javascript" src="js/filters/Filter.js"></script>
+        <script type="text/javascript" src="js/filters/ComponentFilter.js"></script>
+        <script type="text/javascript" src="js/filters/ProductFilter.js"></script>
+        <script type="text/javascript" src="js/filters/ProgramFilter.js"></script>
+        <script type="text/javascript" src="js/filters/CustomFilters.js"></script>
+        <script type="text/javascript" src="js/filters/GUIFilters.js"></script>
 
+		<table style="width: 100%;">
+		<tr>
+		<td style="width: 300px;  vertical-align:text-top;">
+				<div id="filters" class="menu"></div>
+				<div id="testMessage"></div>
+		</td>
+		<td style="vertical-align:text-top;">
+			<table style="margin-left: auto; margin-right: auto; border: 0px solid black;">
+				<tr>
+					<td style="width: 800px; height: 100px; margin-left: auto; margin-right: auto;">
+						<div style="text-align: center;font:10px arial,sans-serif;">
+							Start Date <input type="text" id="startDate">
+							<input type="text" id="endDate"> End Date
+						</div>
+					</td>
+				</tr>
+			</table>
+			<table style="margin-left: auto; margin-right: auto; border: 1px solid black;">
+				<tr>
+					<td style="width: 800px; height: 400px; margin-left: auto; margin-right: auto;">
+						<div id="chart"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div id="status" style="text-align: center; font:10px arial,sans-serif;">Chart Loading...</div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div id="progressbar" style="height: 10px; width: 200px; margin-left: auto; margin-right: auto;"></div>
+					</td>
+				</tr>
+			</table>
+			</td>
+			</tr>
+		</table>
+		<div id="info"></div>
+        <div id="description"></div>
+        <div id="report"></div>
 
 		<script type="text/javascript">
 
@@ -69,149 +108,218 @@
 
 		var rangeChart = null;
 
-		var createChart = function()
-		{
+		var chartRequest = {
+			"requests" :[
+				{"esQuery" : {
+					"query":{"filtered":{
+						"query": {
+							"match_all" : {}
+						},
+						"filter" : {
+							"and":[
+								{ "terms" : { "keywords" : ["crash", "topcrash", "regression"]}},
+								{"range":{"modified_ts": {"gt":Date.now().addMonth(-10).getMilli()}}}
+							]
+						}
+					}},
+					"from" : 0,
+					"size" : 0,
+					"sort" : [],
+					"facets":{
+						"identified" : {
+							"terms_stats" : {
+								"key_field" : 'bug_id',
+								"value_field" : "modified_ts",
+								"size":100000
+							}
+						},
+						"closed" : {
+							"terms_stats" : {
+								"key_field" : 'bug_id',
+								"value_field" : "modified_ts",
+								"size":100000
+							},
+							"facet_filter" : {
+								"terms" : {"bug_status" : ["resolved", "verified", "closed"]}
+							}
+						}
+					}
+				},
+				"seriesName" : "Open Bugs"
+				}
+			],
+			"chartTitle" : "Burndown",
+			"canvas" : "chart",
+			"originZero" : true,
+			"chartType" : "LineChart",
+			"groupSize" : 1,
+			"startDate" : state["startDate"],
+			"endDate" : state["endDate"]
+		};
+
+
+		var createChart = function(){
 			if (rangeChart != undefined ){
 				rangeChart.Kill();
 			}
+			
+			ES.InjectFilters( chartRequest.requests );
 
-			var chartRequest = {
-					"requests" :[
-					{
-						"esQuery" : {
-							"query": {
-                                "match_all" : {}
-                            },
-                           	"filter" : {
-                                "and":[
-                                    {"not" : {
-                                            "terms" : { "bug_status" : ["resolved", "verified", "closed"] }
-                                        }
-                                    }
-                                ]
-                            },
-							"from" : 0,
-							"size" : 0,
-							"sort" : []
-						},
-						"seriesName" : "Open Bugs"
-					},
-					{
-                        "esQuery" : {
-							"query": {
-                                "match_all" : {}
-                            },
-                           	"filter" : {
-                                "and":[
-                                ]
-                            },
-							"from" : 0,
-							"size" : 0,
-							"sort" : []
-						},
-						"seriesName" : "Total Bugs"
-					}],
-//					"baseline" : [{
-//						"name" : "relative scope",
-//						"data" : "close",
-//						"start" : "open blocking-basecamp+"
-//					}],
-//					"track" : true,
-//					"showSeries" : ["open Snappy bugs", "relative scope"],
-					"chartTitle" : "Burndown",
-					"canvas" : "chart",
-					"originZero" : true,
-					"chartType" : "LineChart",
-					"groupSize" : 1,
-					"startDate" : state["startDate"],
-					"endDate" : state["endDate"]
-				};
+			console.log("chartRequest: " + JSON.stringify(chartRequest));
 
-				ES.InjectFilters( chartRequest.requests );
-
-				console.log("chartRequest: " + JSON.stringify(chartRequest));
-
-	    		rangeChart = new RangeChart(chartRequest);
-	    		rangeChart.run();
+			rangeChart = new RangeChart(chartRequest);
+			rangeChart.run();
 		};
 
-		var filterUI = null;
+	status.message("Calling ES");
 
-		var Test1 = {
-    	    	"Compare" :
-    			{
-    	    		"ElasticSearch" : {
-						"query" : {
-							"bool" : {
-								"must" : [
-									{ "term" : { "_type" : "bug" } },
-									{ "term" : { "expiration_date" : "2199-12-31T08:00:00.000Z" } },
-//									{ "term" : { "major_status" : "OPEN" } },
-									{ "term" : { "flags" : "blocking-basecamp+" } }
-								]
-							}
-						},
-						"fields" : ["bug_id"],
-						"from" : 0,
-						"size" : 1000000,
-						"sort" : []
+	RestQuery.Run(
+		{
+		"success" : function(requestObj, data){
+			status.message("Formatting ES Data");
+			var identified=CNV.ESFacet2List(data.facets.identified);
+			var closed=CNV.ESFacet2List(data.facets.closed);
+
+
+			status.message("Match Identification with Close");
+			var durations=new SQL().calc({
+				"from":
+					identified,
+//					{"name":"i", "list":data.facets.identified},
+				"select":[
+					{"name":"duration", "value":"c.min-min", "operation":"average"},
+					{"name":"age", "value":"c.min-c.created_ts", "operation":"minimum"}
+				],
+				"facets":[
+					{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "list":closed}}
+				],
+				"where":"c.term!=null && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
+			});
+
+			status.message("Tally into interval buckets");
+			var time2res=new SQL().calc({
+				"from":
+					durations,
+				"select":[
+					{"name":"count", "value":"1", "operation":"count"}
+				],
+				"facets":[
+					{"name":"duration", "value":"Duration.newInstance(duration)", "domain":{"type":"duration", "min":0, "max":"4week", "interval":"day"}}
+				],
+				"where":"duration.value!=null"
+			});
+
+
+			status.message("Make chart");
+
+			var chartData=[new SQL().calc2Array({
+				"from":
+					time2res,
+				"select":[
+					{"name":"count", "value":"count"}
+				]
+			})];
+			chartData[0].splice(0,1);
+
+			var chartLabels=new SQL().calc2Array({
+				"from":
+					time2res,
+				"select":[
+//					{"name":"value", "value":"duration.floor(Duration.newInstance('hour')).milli"},
+					{"name":"duration", "value":"Util.coalesce(duration.toString(), 'null')"}
+				],
+				"where":"duration!=null"
+			});
+			chartLabels.splice(0,1);
+
+			var chartNotes=[];
+			for(var i in chartLabels) chartNotes[i]="";
+			chartNotes[0]="Not including Zero duraiton";
+
+
+			$.jqplot(
+				'chart',
+				chartData,
+				{
+					title:'Time to Resolution',
+					seriesDefaults:{
+//						renderer:$.jqplot.BarRenderer,
+						rendererOptions: {
+							barPadding: 1,      // number of pixels between adjacent bars in the same
+												// group (same category or bin).
+							barMargin: 3,      // number of pixels between adjacent groups of bars.
+							barDirection: 'vertical', // vertical or horizontal.
+							barWidth: null,     // width of the bars.  null to calculate automatically.
+							shadowOffset: 2,    // offset from the bar edge to stroke the shadow.
+							shadowDepth: 1,     // nuber of strokes to make for the shadow.
+							shadowAlpha: 0.1,   // transparency of the shadow.
+
+							fillToZero: true
+						}
 					},
-    	    		"Bugzilla" : "https://api-dev.bugzilla.mozilla.org/1.1/bug?cf_blocking_basecamp=%2B&include_fields=id"
-	    		},
-				"name" : "blocking-basecamp+ Flag Test"
-    		};
+					series:[
+						{
+						label:'Duration',
+						color:'#5FAB78',
+						pointLabels:{
+							show: true,
+							labels:chartNotes//['Not including zero duration']
+						}
+						}
+					],
+					axes: {
+						xaxis: {
+							renderer: $.jqplot.CategoryAxisRenderer,
+							label: 'Time since marked',
+							labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+							tickRenderer: $.jqplot.CanvasAxisTickRenderer,
+							ticks:chartLabels,
+							tickOptions: {
+								angle: -90,
+								labelPosition: 'end',
+//								fontFamily: 'Courier New',
+//								fontSize: '9pt',
+								showLabel: true
+         					}
+						},
+						yaxis: {
+							label: 'Count',
+							labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+//							renderer: $.jqplot.LogAxisRenderer,
+//							tickDistribution:'power'
+						}
+					},
+					highlighter: {
+						show: true,
+						sizeAdjust: 7.5
+					}
+				}
+			);
+
+			status.message("Done");
 
 
-    		var integreityTest = new IntegrityTest();
-    		integreityTest.run(Test1);
+		},
 
-		$(document).ready(function(){
-		        GUI.setup();
-		    	createChart();
-		});
+		"error": function(requestObj, errorData, errorMsg, errorThrown){
+			D.error(errorMsg)
+		}
+		},
+		0,
+		chartRequest.requests[0].esQuery
+	);
 
-		//Code for updating URL paramaters: window.location('address_goes_here');
-		</script>
+	var filterUI = null;
 
-	<table style="width: 100%;">
-	<tr>
-	<td style="width: 300px;  vertical-align:text-top;">
-			<div id="filters" class="menu"></div>
-			<div id="testMessage"></div>
-	</td>
-	<td style="vertical-align:text-top;">    
-		<table style="margin-left: auto; margin-right: auto; border: 0px solid black;">			
-			<tr>	
-				<td style="width: 800px; height: 100px; margin-left: auto; margin-right: auto;">
-					<div style="text-align: center;font:10px arial,sans-serif;">
-						Start Date <input type="text" id="startDate"><input type="text" id="endDate"> End Date
-					</div> 
-				</td>
-			</tr>
-		</table>	    
-		<table style="margin-left: auto; margin-right: auto; border: 1px solid black;">			
-			<tr>
-				<td style="width: 800px; height: 400px; margin-left: auto; margin-right: auto;">
-					<div id="chart"></div>		
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<div id="status" style="text-align: center; font:10px arial,sans-serif;">Chart Loading...</div>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<div id="progressbar" style="height: 10px; width: 200px; margin-left: auto; margin-right: auto;"></div>
-				</td>
-			</tr>
-		</table>
-		</td>
-		</tr>
-	</table>
-		<div id="info"></div>		
-        <div id="description"></div>
-        <div id="report"></div>
+//	$(document).ready(function(){
+//			GUI.setup();
+//			createChart();
+//	});
+
+	//Code for updating URL paramaters: window.location('address_goes_here');
+	</script>
+
+
 
 	</BODY>
 </HTML>
