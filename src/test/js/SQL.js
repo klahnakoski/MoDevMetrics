@@ -40,10 +40,10 @@ Test.testReviewQueueSummary=function(){
 
 	sourceData=CNV.Table2List(sourceData);
 
-	var result=new SQL().calc({
+	var result=new SQL().calc2List({
 		"from":
 			//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
-			new SQL().calc({
+			new SQL().calc2List({
 				"from":
 					sourceData,
 				"select":[
@@ -52,7 +52,7 @@ Test.testReviewQueueSummary=function(){
 					{"name":"requestee", "value":"requestee"},
 					{"name":"bug_id", "value":"bug_id"}
 				]
-			}),
+			}).list,
 		"select":[
 			{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
 			{"name":"bugs", "value":"bug_id", operation:"join", "separator":","}
@@ -63,7 +63,7 @@ Test.testReviewQueueSummary=function(){
 		"order":[
 			"numPending"
 		]
-	});
+	}).list;
 
 	var expecting={
 		header:["requestee", "numPending", "bugs"],
@@ -199,7 +199,7 @@ Test.ReviewQueuesOverTime=function(){
 	    esResult=CNV.ESFacet2List({"terms":CNV.Table2List(esResult)});
 
 
-		var range = new SQL().calc({
+		var range = new SQL().calc2List({
 			"from" :
 				esResult,
 			"select" : [
@@ -210,12 +210,12 @@ Test.ReviewQueuesOverTime=function(){
 				{"name":"interval", "value" : "'week'"},
 				{"name":"type", "value":"'time'"}
 			]
-		})[0];
+		}).list[0];
 
 
 
 
-		var result2=new SQL().calc({
+		var result2=new SQL().calc2List({
 			"from" :
 				esResult,
 			"select" : [
@@ -230,7 +230,7 @@ Test.ReviewQueuesOverTime=function(){
 			"order":[
 				"week"
 			]
-		});
+		}).list;
 
 	var htmlSummary=CNV.List2HTMLTable(result2);
 	return htmlSummary;
@@ -850,7 +850,7 @@ Test.burndown=function(){
 	var esAllBugs=CNV.ESFacet2List({"terms":esResult});
 
 
-	var result=new SQL().calc({
+	var result=new SQL().calc2List({
 		"from":
 			esAllBugs,
 		"select":[
@@ -864,7 +864,7 @@ Test.burndown=function(){
 		"order":[
 			"date"
 		]
-	});
+	}).list;
 
 	//JOIN WITH ORIGINAL BUGS TO GET OPEN/CLOSED STATE
 //	var result2=new SQL().calc({
@@ -929,7 +929,7 @@ Assert.TableEqual=function(a, b){
 
 Test.TimeToResolution=function(){
 
-		var durations=new SQL().calc({
+		var durations=new SQL().calc2List({
 			"from":
 				CNV.Table2List(Test.TimeToResolution.IndentifiedData),
 //					{"name":"i", "list":data.facets.identified},
@@ -939,9 +939,9 @@ Test.TimeToResolution=function(){
 			"facets":[
 				{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "list":CNV.Table2List(Test.TimeToResolution.ClosedData)}}
 			]
-		});
+		}).list;
 
-		var time2res=new SQL().calc({
+		var time2res=new SQL().calc2List({
 			"from":
 				durations,
 			"select":[
@@ -950,7 +950,7 @@ Test.TimeToResolution=function(){
 			"facets":[
 				{"name":"duration", "value":"Duration.newInstance(duration)", "domain":{"type":"duration", "min":0, "interval":"week"}}
 			]
-		});
+		}).list;
 
 	return time2res;
 };

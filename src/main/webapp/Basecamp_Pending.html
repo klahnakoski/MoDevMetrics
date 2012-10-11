@@ -103,10 +103,10 @@
 			success: function( data ) {
 				var esResult=CNV.ESFacet2List(data.facets.pending);
 
-                var result=new SQL().calc({
+                var result=new SQL().calc2List({
                     "from":
                         //REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
-                        new SQL().calc({
+                        new SQL().calc2List({
                             "from":
                                 esResult,
                             "select":[
@@ -115,7 +115,7 @@
                                 {"name":"requestee", "value":"requestee"},
                                 {"name":"bug_id", "value":"bug_id"}
                             ]
-                        }),
+                        }).list,
                     "select":[
                         {"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
                         {"name":"bugs", "value":"bug_id", operation:"join", "separator":","}
@@ -126,10 +126,10 @@
                     "order":[
                         "numPending"
                     ]
-                });
+                }).list;
 
                 var assigned=CNV.ESFacet2List(data.facets.assigned);
-                var result2=new SQL().calc({
+                var result2=new SQL().calc2List({
                     "from":
                         assigned,
                     "select":[
@@ -142,7 +142,7 @@
                     "order":[
                         "numPending"
                     ]
-                });
+                }).list;
 
 			    var htmlSummary="<h1>Pending Review</h1>"+CNV.List2HTMLTable(result);
                 htmlSummary+="<h1>Assigned To</h1>"+CNV.List2HTMLTable(result2);

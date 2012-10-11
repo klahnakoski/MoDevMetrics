@@ -57,13 +57,22 @@ ProductUI.prototype.Refresh = function(){
 
 ProductUI.prototype.injectHTML=function(products){
 	var html = '<ul id="productsList" class="menu ui-selectable">';
-	var item = '<li class="{class}" id="{product_name}">{product_name} ({product_count})</li>';
+	var item = '<li class="{class}" id="product_{name}">{name} ({count})</li>';
 
+	//GIVE USER OPTION TO SELECT ALL PRODUCTS
+	var total=0; for(var i = 0; i < products.length; i++) total+=products[i].count;
+	html+=item.replaceAll({
+		"class" : ((state.selectedProducts.length==0) ? "ui-selectee ui-selected" : "ui-selectee"),
+		"name" : "ALL",
+		"count" : total
+	});
+
+	//LIST SPECIFIC PRODUCTS
 	for(var i = 0; i < products.length; i++){
 		html += item.replaceAll({
 			"class" : (include(state.selectedProducts, products[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
-			"product_name" : products[i].term,
-			"product_count" : products[i].count
+			"name" : products[i].term,
+			"count" : products[i].count
 		});
 	}//for
 
@@ -76,20 +85,37 @@ ProductUI.prototype.injectHTML=function(products){
 ProductUI.prototype.success = function(resultsObj, data){
 
 	var products = data.facets.Products.terms;
+
+	//REMOVE ANY FILTERS THAT DO NOT APPLY ANYMORE (WILL START ACCUMULATING RESULTING IN NO MATCHES)
+	var terms = [];
+	for(var i = 0; i < products.length; i++) terms.push(products[i].term);
+	state.selectedProducts = List.intersect(state.selectedProducts, terms);
+
+
 	this.injectHTML(products);
 
 	$("#productsList").selectable({
 		selected: function(event, ui){
-			if (!include(state.selectedProducts, ui.selected.id)){
-				state.selectedProducts.push(ui.selected.id);
+			var didChange=false;
+			if (ui.selected.id=="product_ALL"){
+				if (state.selectedProducts/length>0) didChange=true;
+				state.selectedProducts=[];
+			}else{
+				if (!include(state.selectedProducts, ui.selected.id.rightBut("product_".length))){
+					state.selectedProducts.push(ui.selected.id.rightBut("product_".length));
+					didChange=true;
+				}//endif
+			}//endif
+
+			if (didChange){
 				GUI.UpdateURL();
 				state.programFilter.Refresh();
 				state.productFilter.Refresh();
 				state.componentFilter.Refresh();
-			}
+			}//endif
 		},
 		unselected: function(event, ui){
-			var i = state.selectedProducts.indexOf(ui.unselected.id);
+			var i = state.selectedProducts.indexOf(ui.unselected.id.rightBut("product_".length));
 			if (i != -1){
 				state.selectedProducts.splice(i, 1);
 				GUI.UpdateURL();

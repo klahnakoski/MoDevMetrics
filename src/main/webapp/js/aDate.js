@@ -13,19 +13,24 @@ Date.prototype.getMilli=Date.prototype.getTime;
 
 
 
+Date.prototype.add=function(interval){
+	var i=Duration.newInstance(interval);
 
-Date.prototype.add=function(amount, interval){
-	if (interval=="day") return this.addDay(amount);
-	if (interval=="month") return this.addMonth(amount);
-	if (interval=="week") return this.addWeek(amount);
-	if (interval=="year") return this.addYear(amount);
-	D.error("Can not add '"+interval+"'");
+	var addMilli=i.milli-(Duration.MILLI_VALUES["month"]*i.month);
+	return this.addMonth(i.month).addMilli(addMilli);
 };//method
+
 
 //CONVERT THIS GMT DATE TO LOCAL DATE
 Date.prototype.addTimezone=function(){
 	return this.addMinute(-new Date().getTimezoneOffset());
 };
+
+Date.prototype.addMilli=function(value){
+	return new Date(this.getMilli()+value);
+};//method
+
+
 
 Date.prototype.addMinute=function(value){
 	var output=new Date(this);
@@ -234,27 +239,13 @@ Date.getTimezone=function(){
 
 
 var Duration=function(){
-	this.milli=0;
+	this.milli=0;	//INCLUDES THE MONTH VALUE AS MILLISECONDS 
+	this.month=0;
 };
 
 
-Duration.parse=function(value){
-	var output=new Duration();
 
-	//EXPECTING CONCAT OF <sign><integer><type>
-	var plist=value.split("+");
-	for(var p in plist){
-		var mlist=plist[p].split("-");
-		output.milli+=Duration.text2milli(mlist[0]);
-		for(var m=1;m<mlist.length;m++){
-			output.milli-=Duration.text2milli(mlist[m]);
-		}//for
-	}//for
-	return output;
-};//method
-
-
-Duration.TYPE={
+Duration.MILLI_VALUES={
 	"year":52*7*24*60*60*1000,		//52weeks
 	"quarter":13*7*24*60*60*1000,	//13weeks
 	"month":28*24*60*60*1000,		//4weeks
@@ -265,45 +256,112 @@ Duration.TYPE={
 	"second":1000
 };
 
-Duration.text2milli=function(text){
+Duration.MONTH_VALUES={
+	"year":12,
+	"quarter":3,
+	"month":1,
+	"week":0,
+	"day":0,
+	"hour":0,
+	"minute":0,
+	"second":0
+};
+
+//A REAL MONTH IS LARGER THAN THE CANONICAL MONTH
+Duration.MONTH_SKEW=Duration.MILLI_VALUES["year"]/12-Duration.MILLI_VALUES["month"];
+Duration.MONTH_SKEW=Duration.MILLI_VALUES["year"]/12-Duration.MILLI_VALUES["month"];
+
+
+////////////////////////////////////////////////////////////////////////////////
+// CONVERT SIMPLE <float><type> TO A DURATION OBJECT
+////////////////////////////////////////////////////////////////////////////////
+Duration.String2Duration=function(text){
+	if (text=="") return new Duration();
+
 	var s=0;
-	while (text.charAt(s)<='9') s++;
+	while (s<text.length && (text.charAt(s)<='9' || text.charAt(s)==".")) s++;
 
-	if (s==0) return Duration.TYPE[text.rightBut(s)];
+	var output=new Duration();
+	var interval=text.rightBut(s);
+	var amount=(s==0 ? 1: CNV.String2Integer(text.left(s)));
 
-	return CNV.String2Integer(text.left(s))*Duration.TYPE[text.rightBut(s)];
+	if (Duration.MILLI_VALUES[interval]===undefined) D.error(interval+" is not a recognized duration type (did you use the pural form by mistake?");
+	if (Duration.MONTH_VALUES[interval]==0){
+		output.milli=amount*Duration.MILLI_VALUES[interval];
+	}else{
+		output.milli=amount*Duration.MONTH_VALUES[interval]*Duration.MILLI_VALUES["month"];
+		output.month=amount*Duration.MONTH_VALUES[interval];
+	}//endif
+
+
+	return output;
 };//method
+
+
+Duration.parse=function(value){
+	var output=new Duration();
+
+	//EXPECTING CONCAT OF <sign><integer><type>
+	var plist=value.split("+");
+	for(var p in plist){
+		var mlist=plist[p].split("-");
+		output=output.add(Duration.String2Duration(mlist[0]));
+		for(var m=1;m<mlist.length;m++){
+			output=output.subtract(Duration.String2Duration(mlist[m]));
+		}//for
+	}//for
+	return output;
+};//method
+
 
 Duration.newInstance=function(obj){
 	if (obj===undefined) return undefined;
 	if (obj==null) return null;
+	var output=null;
 	if (Math.isNumeric(obj)){
-		var output=new Duration();
+		output=new Duration();
 		output.milli=obj;
-		return output;
 	}else if (typeof(obj)=="string"){
 		return Duration.parse(obj);
 	}else if (!(obj.milli===undefined)){
-		var output=new Duration();
+		output=new Duration();
 		output.milli=obj.milli;
-		return output;
+		output.month=obj.month;
 	}else if (isNaN(obj)){
-		return null;
+		//return null;
 	}else{
 		D.error("Do not know type of object ("+CNV.Object2JSON(obj)+")of to make a Duration");
 	}//endif
+	return output;
 };//method
 
 
 Duration.prototype.add=function(duration){
-	return Duration.newInstance(this.milli+duration.milli);
+	var output=new Duration();
+	output.milli=this.milli+duration.milli;
+	output.month=this.month+duration.month;
+	return output;
 };//method
 
+
+Duration.prototype.subtract=function(duration){
+	var output=new Duration();
+	output.milli=this.milli-duration.milli;
+	output.month=this.month-duration.month;
+	return output;
+};//method
 
 Duration.prototype.floor=function(interval){
 	if (interval.milli===undefined) D.error("Expecting an interval as a Duration object");
 	var output=new Duration();
-	output.milli=Math.floor(this.milli/interval.milli)*interval.milli;
+
+	//A MONTH OF DURATION IS BIGGER THAN A CANONICAL MONTH
+	if (interval.month!=0){
+		output.month=Math.floor(this.milli*12/Duration.MILLI_VALUES["year"]/interval.month);
+		output.milli=output.month*Duration.MILLI_VALUES["month"];
+	}else{
+		output.milli=Math.floor(this.milli/(interval.milli))*(interval.milli);
+	}//endif
 	return output;
 };//method
 
@@ -313,7 +371,7 @@ Duration.prototype.toString=function(){
 
 
 	var output="";
-	var rest=Math.abs(this.milli);
+	var rest=Math.abs(this.milli-(Duration.MILLI_VALUES["month"]*this.month)); //DO NOT INCLUDE THE MONTH'S MILLIS
 	var isNegative=(this.milli<0);
 
 	//MILLI
@@ -341,8 +399,12 @@ Duration.prototype.toString=function(){
 	if (rem!=0) output="+"+rem+"day"+output;
 	rest=Math.floor(rest/7);
 
-	//DAY
+	//WEEK
 	if (rest!=0) output="+"+rest+"week"+output;
+
+	//MONTH
+	if (this.month!=0) output=(this.month>0?"+":"")+this.month+"month"+output;
+
 
 	if (isNegative) output=output.replace("+", "-");
 	return output;

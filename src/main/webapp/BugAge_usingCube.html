@@ -41,8 +41,11 @@
         <script type="text/javascript" src="js/util.js"></script>
 		<script type="text/javascript" src="js/Debug.js"></script>
 		<script type="text/javascript" src="js/MVEL.js"></script>
-		<script type="text/javascript" src="js/sql.js"></script>
-		<script type="text/javascript" src="../../test/js/SQL.js"></script>
+		<script type="text/javascript" src="js/SQL.js"></script>
+		<script type="text/javascript" src="js/SQL.aggregate.js"></script>
+		<script type="text/javascript" src="js/SQL.column.js"></script>
+		<script type="text/javascript" src="js/SQL.cube.js"></script>
+		<script type="text/javascript" src="js/SQL.domain.js"></script>
 
 
 
@@ -114,12 +117,13 @@
 							"and":[
 								{ "terms" : { "keywords" : ["crash", "topcrash", "regression"]}},
 								{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}},
-								{"range":{"modified_ts":{"gte":Date.now().add("-3month")}}}
+								{"range":{"modified_ts":{"gte":Date.now().add("-2year")}}},
+//								{"range":{"bug_id":{"gte":600000}}}
 							]
 						}
 					}},
 					"from" : 0,
-					"size" : 0,
+					"size" : 200,
 					"sort" : [],
 					"facets":{
 						"closed" : {
@@ -132,7 +136,7 @@
 										{"name":"modified_ts", value:"doc.modified_ts"}
 									]
 								}),
-								"size":10000
+								"size":100000
 							}
 						}//,
 //						"measured" : {
@@ -181,8 +185,8 @@
 			var ages=new SQL().calc2List({
 				"from":
 					closed,
-//					{"name":"i", "list":data.facets.identified},
 				"select":[
+					{"name":"closed_time", "value":"modified_ts", "operation":"minimum"},
 					{"name":"age", "value":"modified_ts-created_ts", "operation":"minimum"}
 				],
 				"facets":[
@@ -191,46 +195,31 @@
 			}).list;
 
 			status.message("Tally into interval buckets");
-			var time2res=new SQL().calc2List({
-				"from":
-					ages,
-				"select":[
-					{"name":"count", "value":"1", "operation":"count"}
-				],
+			var chartCube=new SQL().calc2Cube({
+				"name":"Bug Age For Crash",
+				"from": ages,
+				"select": {"name":"count", "value":"1", "operation":"count"},
 				"facets":[
-					{"name":"age", "value":"Duration.newInstance(age)", "domain":{"type":"duration", "min":0, "max":"6hour", "interval":"10minute"}}
-				],
-				"where":"duration.value!=null && age>0"
-			}).list;
+					{"name":"Cohort", "value":"Date.newInstance(closed_time)", "domain":{"type":"time", "min":Date.now().add("-2year"), "max":Date.now(), "interval":"6month"}},
+					{"name":"Age", "value":"Duration.newInstance(age)", "domain":{"type":"duration", "min":0, "max":"3day", "interval":"3hour"}}
+				]//,
+//				"where":"duration.value!=null && age>0"
+			});
 
 
 			status.message("Make chart");
 
-			var chartData=[new SQL().calc2Array({
-				"from":	time2res,
-				"select": {"name":"count", "value":"count"}
-			})];
-			chartData[0].splice(0,1);
-
-			var chartLabels=new SQL().calc2Array({
-				"from": time2res,
-				"select": {"name":"age", "value":"Util.coalesce(age.toString(), 'null')"},
-				"where":"age!=null"
-			});
-			chartLabels.splice(0,1);
-
-			var chartNotes=[];
-			for(var i in chartLabels) chartNotes[i]="";
-			chartNotes[0]="Not including Zero duraiton";
+			//PULL GENERAL CHART
+			chartData=chartCube.data;
 
 
 			$.jqplot(
 				'chart',
 				chartData,
 				{
-					title:'Closed Bug Age',
+					title:chartCube.name,
 					seriesDefaults:{
-						renderer:$.jqplot.BarRenderer,
+//						renderer:$.jqplot.BarRenderer,
 						rendererOptions: {
 							barPadding: 1,      // number of pixels between adjacent bars in the same
 												// group (same category or bin).
@@ -244,23 +233,35 @@
 							fillToZero: true
 						}
 					},
-					series:[
-						{
-						label:'Duration',
-						color:'#5FAB78',
-						pointLabels:{
-							show: true,
-							labels:chartNotes//['Not including zero duration']
-						}
-						}
-					],
+					series:
+						new SQL().calc2List({
+							"from":
+								chartCube.facets[0].domain.partitions,
+							"select":[
+								{"name":"label", "value":"name"},
+								{"name":"color", "value":"\"#5FAB78\""}
+							]
+						}).list,
+//					[
+//						{
+//						label:'Duration',
+//						color:'#5FAB78',
+//						pointLabels:{
+//							show: true,
+//							labels:chartNotes//['Not including zero duration']
+//						}
+//						}
+//					],
 					axes: {
 						xaxis: {
 							renderer: $.jqplot.CategoryAxisRenderer,
-							label: 'Time since marked',
+							label: chartCube.facets[1].name,
 							labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
 							tickRenderer: $.jqplot.CanvasAxisTickRenderer,
-							ticks:chartLabels,
+							ticks:new SQL().calc2Array({
+								"from":chartCube.facets[1].domain.partitions,
+								"select":{"value":"value"}
+							}),
 							tickOptions: {
 								angle: -90,
 								labelPosition: 'end',
@@ -270,8 +271,8 @@
          					}
 						},
 						yaxis: {
-							label: 'Count',
-							labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+							label: chartCube.select.name,
+							labelRenderer: $.jqplot.CanvasAxisLabelRenderer
 //							renderer: $.jqplot.LogAxisRenderer,
 //							tickDistribution:'power'
 						}

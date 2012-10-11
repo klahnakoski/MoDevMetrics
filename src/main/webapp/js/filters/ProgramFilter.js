@@ -76,14 +76,22 @@ ProgramFilter.makeQuery=function(filters){
 
 ProgramFilter.prototype.injectHTML=function(programs){
 	var html = '<ul id="programsList" class="menu ui-selectable">';
+	var item = '<li class="{class}" id="program_{name}">{name} ({count})</li>';
 
-	var item = '<li class="{class}" id="{program_name}">{program_name} ({program_count})</li>';
+
+	//GIVE USER OPTION TO SELECT ALL PRODUCTS
+	var total=0; for(var i = 0; i < programs.length; i++) total+=programs[i].count;
+	html+=item.replaceAll({
+		"class" : ((state.selectedPrograms.length==0) ? "ui-selectee ui-selected" : "ui-selectee"),
+		"name" : "ALL",
+		"count" : total
+	});
 
 	for(var i = 0; i < programs.length; i++){
 		html += item.replaceAll({
 			"class" : (include(state.selectedPrograms, programs[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
-			"program_name" : programs[i].term,
-			"program_count" : programs[i].count
+			"name" : programs[i].term,
+			"count" : programs[i].count
 		});
 	}//for
 
@@ -115,16 +123,26 @@ ProgramFilter.prototype.success = function(resultsObj, data){
 
 	$("#programsList").selectable({
 		selected: function(event, ui){
-			if (!include(state.selectedPrograms, ui.selected.id)){
-				state.selectedPrograms.push(ui.selected.id);
+			var didChange=false;
+			if (ui.selected.id=="program_ALL"){
+				if (state.selectedPrograms.length>0) didChange=true;
+				state.selectedPrograms=[];
+			}else{
+				if (!include(state.selectedPrograms, ui.selected.id.rightBut("program_".length))){
+					state.selectedPrograms.push(ui.selected.id.rightBut("program_".length));
+					didChange=true;
+				}//endif
+			}//endif
+
+			if (didChange){
 				GUI.UpdateURL();
 				state.programFilter.Refresh();
 				state.productFilter.Refresh();
 				state.componentFilter.Refresh();
-			}
+			}//endif
 		},
 		unselected: function(event, ui){
-			var i = state.selectedPrograms.indexOf(ui.unselected.id);
+			var i = state.selectedPrograms.indexOf(ui.unselected.id.rightBut("program_".length));
 			if (i != -1){
 				state.selectedPrograms.splice(i, 1);
 				GUI.UpdateURL();

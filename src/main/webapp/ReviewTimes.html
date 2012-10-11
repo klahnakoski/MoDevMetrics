@@ -120,7 +120,8 @@
 						},
 						"filter" : {
 							"and":[
-								{ "terms" : { "status_whiteboard.tokenized" : ["snappy", "snappy:p1", "snappy:p2", "snappy:p3"]}}
+								{ "terms" : { "status_whiteboard.tokenized" : ["snappy", "snappy:p1", "snappy:p2", "snappy:p3"]}},
+								{"range":{"modified_ts":{"gte":Date.now().add("-1year")}}}
 							]
 						}
 					}},
@@ -134,8 +135,8 @@
 									new MVEL().code({
 										"select" : [
 											{"name":"bug_id", "value":"doc.bug_id"},
-											{"name":"modified_ts", "value":"doc.modified_ts"}//,
-	//										{"name":"requestee", "value":"doc.attachments.flags.requestee"}
+											{"name":"modified_ts", "value":"doc.modified_ts"},
+											{"name":"requestee", "value":"doc.attachments.flags.requestee"}
 										],
 										"from":
 											"doc.attachments.flags",
@@ -159,8 +160,8 @@
 									new MVEL().code({
 										"select" : [
 											{"name":"bug_id", "value":"doc.bug_id"},
-											{"name":"modified_ts", "value":"doc.modified_ts"}//,
-	//										{"name":"requestee", "value":"doc.attachments.flags.requestee"}
+											{"name":"modified_ts", "value":"doc.modified_ts"},
+											{"name":"requestee", "value":"doc.attachments.flags.requestee"}
 										],
 										"from":
 											"doc.attachments.flags",
@@ -175,7 +176,7 @@
 												{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
 											 ]}
 									}),
-								"size": 100000
+								"size": 100
 							}
 						}
 					}
@@ -214,7 +215,7 @@
 			var inReview=CNV.ESFacet2List(data.facets.inReview);
 			var doneReview=CNV.ESFacet2List(data.facets.doneReview);
 
-			var trackedBugs=new SQL().calc({
+			var trackedBugs=new SQL().calc2List({
 				"from":
 					inReview,
 				"select":[
@@ -223,9 +224,9 @@
 				"facets":[
 					{"name":"bug_id", "value":"bug_id"}
 				]
-			});
+			}).list;
 
-			var durations=new SQL().calc({
+			var durations=new SQL().calc2List({
 				"from":
 					inReview,
 //					{"name":"i", "list":data.facets.identified},
@@ -235,19 +236,20 @@
 				"facets":[
 					{"name":"bug_id", "test":"bug_id==c.bug_id && modified_ts<c.modified_ts", "domain":{"type":"set", "name":"c", "key":"bug_id", "list":doneReview}},
 					{"name":"request_time", "value":"modified_ts"}
-				]
-			});
+				],
+				"where":"c.bug_id!=null"
+			}).list;
 
-			var time2res=new SQL().calc({
+			var time2res=new SQL().calc2List({
 				"from":
 					durations,
 				"select":[
 					{"name":"count", "value":"1", "operation":"count"}
 				],
 				"facets":[
-					{"name":"reviewTime", "value":"Duration.newInstance(reviewTime)", "domain":{"type":"duration", "min":0, "max":"7day", "interval":"6hour"}}
+					{"name":"reviewTime", "value":"Duration.newInstance(reviewTime)", "domain":{"type":"duration", "min":"-6month", "max":"6month", "interval":"week"}}
 				]
-			});
+			}).list;
 
 			$("#info").html(CNV.List2HTMLTable(time2res));
 

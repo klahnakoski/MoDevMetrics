@@ -218,3 +218,12 @@ CNV.List2Table=function(list, columnOrder){
 	}//for
 	return {"columns":columns, "data":data};
 };//method
+
+
+CNV.int2hex=function(value, numDigits){
+	return ("0000000"+value.toString(16)).right(numDigits);
+};//method
+
+CNV.hex2int=function(value){
+	return parseInt(value, 16);
+};//method

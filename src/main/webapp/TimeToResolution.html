@@ -89,11 +89,6 @@
 						<div id="status" style="text-align: center; font:10px arial,sans-serif;">Chart Loading...</div>
 					</td>
 				</tr>
-				<tr>
-					<td>
-						<div id="progressbar" style="height: 10px; width: 200px; margin-left: auto; margin-right: auto;"></div>
-					</td>
-				</tr>
 			</table>
 			</td>
 			</tr>
@@ -118,7 +113,7 @@
 						"filter" : {
 							"and":[
 								{ "terms" : { "keywords" : ["crash", "topcrash", "regression"]}},
-								{"range":{"modified_ts": {"gt":Date.now().addMonth(-10).getMilli()}}}
+								{"range":{"modified_ts": {"gt":Date.now().add("-2year").getMilli()}}}
 							]
 						}
 					}},
@@ -130,14 +125,14 @@
 							"terms_stats" : {
 								"key_field" : 'bug_id',
 								"value_field" : "modified_ts",
-								"size":100000
+								"size":10000
 							}
 						},
 						"closed" : {
 							"terms_stats" : {
 								"key_field" : 'bug_id',
 								"value_field" : "modified_ts",
-								"size":100000
+								"size":10000
 							},
 							"facet_filter" : {
 								"terms" : {"bug_status" : ["resolved", "verified", "closed"]}
@@ -182,7 +177,7 @@
 
 
 			status.message("Match Identification with Close");
-			var durations=new SQL().calc({
+			var durations=new SQL().calc2List({
 				"from":
 					identified,
 //					{"name":"i", "list":data.facets.identified},
@@ -194,41 +189,34 @@
 					{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "list":closed}}
 				],
 				"where":"c.term!=null && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
-			});
+			}).list;
 
 			status.message("Tally into interval buckets");
-			var time2res=new SQL().calc({
+			var time2res=new SQL().calc2List({
 				"from":
 					durations,
 				"select":[
 					{"name":"count", "value":"1", "operation":"count"}
 				],
 				"facets":[
-					{"name":"duration", "value":"Duration.newInstance(duration)", "domain":{"type":"duration", "min":0, "max":"4week", "interval":"day"}}
+					{"name":"duration", "value":"Duration.newInstance(duration)", "domain":{"type":"duration", "min":0, "max":"year", "interval":"month"}}
 				],
 				"where":"duration.value!=null"
-			});
+			}).list;
 
 
 			status.message("Make chart");
 
 			var chartData=[new SQL().calc2Array({
-				"from":
-					time2res,
-				"select":[
-					{"name":"count", "value":"count"}
-				]
+				"from": time2res,
+				"select": {"name":"count", "value":"count"}
 			})];
 			chartData[0].splice(0,1);
 
 			var chartLabels=new SQL().calc2Array({
-				"from":
-					time2res,
-				"select":[
-//					{"name":"value", "value":"duration.floor(Duration.newInstance('hour')).milli"},
-					{"name":"duration", "value":"Util.coalesce(duration.toString(), 'null')"}
-				],
-				"where":"duration!=null"
+				"from":	time2res,
+				"select": {"name":"duration", "value":"Util.coalesce(duration.toString(), 'null')"},
+				"where": "duration!=null"
 			});
 			chartLabels.splice(0,1);
 
@@ -243,7 +231,7 @@
 				{
 					title:'Time to Resolution',
 					seriesDefaults:{
-//						renderer:$.jqplot.BarRenderer,
+						renderer:$.jqplot.BarRenderer,
 						rendererOptions: {
 							barPadding: 1,      // number of pixels between adjacent bars in the same
 												// group (same category or bin).

@@ -47,7 +47,6 @@ ComponentUI.makeQuery=function(filters){
 ComponentUI.prototype.Refresh = function(){
 	this.query = ComponentUI.makeQuery([
 		ES.makeFilter("product", state.selectedProducts),
-		ES.makeFilter("component", state.selectedComponents),
 		ProgramFilter.makeFilter(state.selectedPrograms)
 	]);
 
@@ -59,20 +58,26 @@ ComponentUI.prototype.Refresh = function(){
 
 ComponentUI.prototype.injectHTML=function(components){
 	var html = '<ul id="componentsList" class="menu ui-selectable">';
+	var item = '<li class="{class}" id="component_{name}">{name} ({count})</li>';
+
+	//GIVE USER OPTION TO SELECT ALL PRODUCTS
+	var total=0; for(var i = 0; i < components.length; i++) total+=components[i].count;
+	html+=item.replaceAll({
+		"class" : ((state.selectedProducts.length==0) ? "ui-selectee ui-selected" : "ui-selectee"),
+		"name" : "ALL",
+		"count" : total
+	});
 
 	for(var i = 0; i < components.length; i++){
-		html += '<li class="ui-selectee';
-
-		if (include(state.selectedComponents, components[i].term))
-			html += ' ui-selected';
-
-		html += '" id="' + components[i].term +
-			'">' + components[i].term +
-			' (' + components[i].count + ')</li>';
-	}
+		html += item.replaceAll({
+			"class" : (include(state.selectedProducts, components[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
+			"name" : components[i].term,
+			"count" : components[i].count
+		});
+	}//for
 
 	html += '</ul>';
-	html += '</div>';
+
 
 	$("#components").html(html);
 };
@@ -99,17 +104,27 @@ ComponentUI.prototype.success = function(resultsObj, data){
 
 	$("#componentsList").selectable({
 		selected: function(event, ui){
-			if (!include(state.selectedComponents, ui.selected.id)){
-				state.selectedComponents.push(ui.selected.id);
+			var didChange=false;
+			if (ui.selected.id=="component_ALL"){
+				if (state.selectedComponents.length>0) didChange=true;
+				state.selectedComponents=[];
+			}else{
+				if (!include(state.selectedComponents, ui.selected.id.rightBut("component_".length))){
+					state.selectedComponents.push(ui.selected.id.rightBut("component_".length));
+					didChange=true;
+				}//endif
+			}//endif
+
+			if (didChange){
 				GUI.UpdateURL();
 				GUI.UpdateSummary();
 				state.programFilter.Refresh();
 				state.productFilter.Refresh();
 				state.componentFilter.Refresh();
-			}
+			}//endif
 		},
 		unselected: function(event, ui){
-			var i = state.selectedComponents.indexOf(ui.unselected.id);
+			var i = state.selectedComponents.indexOf(ui.unselected.id.rightBut("component_".length));
 			if (i != -1){
 				state.selectedComponents.splice(i, 1);
 				GUI.UpdateURL();
