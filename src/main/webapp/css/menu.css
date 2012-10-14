@@ -1,44 +1,68 @@
 @CHARSET "ISO-8859-1";
 
-
-
 html {
-height: 100%;
-margin: 0px;
-padding: 0px;
+    height: 100%;
+    margin: 0px;
+    padding: 0px;
 }
 
 body {
-  font-family: Tahoma, "Helvetica Neue", "Trebuchet MS", Verdana, Arial, sans-serif;
-  font-size: 62.5%;
-  color: #444444;
-  padding: 0px;
-  border-width: 0px;
-  margin: 0px;
-  background-color: #FFFFF0;
-  height: 100%;
- }
+    font-family: Tahoma, "Helvetica Neue", "Trebuchet MS", Verdana, Arial, sans-serif;
+    font-size: 62.5%;
+    color: #444444;
+    padding: 0px;
+    border-width: 0px;
+    margin: 0px;
+    background-color: #FFFFF0;
+    height: 100%;
+}
 
+.menu {
+    font-size: 0.8em;
+    font-family: Arial;
+}
 
-.menu{  font-size: 0.8em; font-family: Arial; }
+.menu li {
+    list-style-type: none;
+    list-style-position: outside;
+    -bottom:;
+    al:;
+    margin-left: -15px;
+    padding: 0pt;
+}
 
-.menu li{ list-style-type: none; list-style-position: outside; -bottom: ; al: ; margin-left: -15px; padding: 0pt; }
+.menu .ui-menu-header {
+    font-size: 1.4em;
+}
 
-.menu .ui-menu-header { font-size: 1.4em;}
-	
-.menu .ui-selecting { color: #CC4433; }
+.menu .ui-selecting {
+    color: #CC4433;
+}
 
-.menu .ui-selected { color: #4477CC; list-style-type: disc; }
+.menu .ui-selected {
+    color: #4477CC;
+    list-style-type: disc;
+}
 
+h1 {
+    font-size: 2.0em
+}
 
-h1 {font-size: 2.0em}
+h2 {
+    font-size: 1.4em
+}
 
-h2 {font-size: 1.4em}
+.items .info {
+    float: left;
+    display: block;
+    width: 70%
+}
 
+.items a {
+    float: left;
+    width: 200px;
+}
 
-.items .info {float:left; display:block; width: 70%}
-
-.items a { float: left;
-        width: 200px;}
-
-table tr {border-top: 1px solid black;}
+table tr {
+    border-top: 1px solid black;
+}

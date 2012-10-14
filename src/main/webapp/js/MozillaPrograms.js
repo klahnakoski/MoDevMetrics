@@ -1,6 +1,4 @@
-
-
-var MozillaPrograms={
+var MozillaPrograms = {
 	"columns":
 		["projectName", "attributeName", "attributeValue"],
 	"data":[

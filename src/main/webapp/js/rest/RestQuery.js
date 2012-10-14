@@ -11,11 +11,9 @@ RestQuery = function(reportBackObj, id, esQuery){
 };
 
 
-
-RestQuery.Run=function(reportBackObj, id, esQuery){
+RestQuery.Run = function(reportBackObj, id, esQuery){
 	new RestQuery(reportBackObj, id, esQuery).Run();
 };//method
-
 
 
 RestQuery.prototype.Run = function(){

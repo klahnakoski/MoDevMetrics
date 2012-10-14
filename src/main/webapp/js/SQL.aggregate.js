@@ -1,16 +1,14 @@
-
 ////////////////////////////////////////////////////////////////////////////////
 // AGGREGATION
 ////////////////////////////////////////////////////////////////////////////////
 
 
+SQL.aggregate = {};
+SQL.aggregate.compile = function(select){
+	if (select.operation === undefined) select.operation = "none";
 
-SQL.aggregate={};
-SQL.aggregate.compile=function(select){
-	if (select.operation===undefined) select.operation="none";
-
-	if (SQL.aggregate[select.operation]===undefined){
-		D.error("Do not know aggregate operation '"+select.operation+"'");
+	if (SQL.aggregate[select.operation] === undefined){
+		D.error("Do not know aggregate operation '" + select.operation + "'");
 	}//endif
 
 	return SQL.aggregate[select.operation](select);
@@ -40,52 +38,51 @@ SQL.aggregate.compile=function(select){
 //};
 
 
-
-SQL.aggregate.join=function(column){
-	if (column.separator===undefined) column.separator='';
+SQL.aggregate.join = function(column){
+	if (column.separator === undefined) column.separator = '';
 
 	column.defaultValue = function(){
 		return null;
 	};//method
 
-	column.add=function(total, v){
-		if (v===undefined || v==null) return total;
-		if (total==null) return v;
-		return total+this.separator+v;
+	column.add = function(total, v){
+		if (v === undefined || v == null) return total;
+		if (total == null) return v;
+		return total + this.separator + v;
 	};//method
 
-	column.domain=SQL.domain.value;
+	column.domain = SQL.domain.value;
 };
 
-SQL.aggregate.average=function(select){
+SQL.aggregate.average = function(select){
 	select.defaultValue = function(){
 		return {total:0.0, count:0.0};
 	};//method
 
-	select.add=function(total, v){
-		if (v===undefined || v==null) return total;
+	select.add = function(total, v){
+		if (v === undefined || v == null) return total;
 
-		total.total+=v;
+		total.total += v;
 		total.count++;
 
 		return total;
 	};//method
 
-	select.end=function(total){
-		if (total.count==0) return null;
-		return total.total/total.count;
+	select.end = function(total){
+		if (total.count == 0) return null;
+		return total.total / total.count;
 	};//method
 
-	select.domain={
+	select.domain = {
 
 		compare:function(a, b){
-			a=select.end(a);
-			b=select.end(b);
+			a = select.end(a);
+			b = select.end(b);
 
-			if (a==null){
-				if (b==null) return 0;
+			if (a == null){
+				if (b == null) return 0;
 				return -1;
-			}else if (b==null){
+			} else if (b == null){
 				return 1;
 			}//endif
 
@@ -104,72 +101,72 @@ SQL.aggregate.average=function(select){
 	};
 };
 
-SQL.aggregate.none=function(select){
+SQL.aggregate.none = function(select){
 	select.defaultValue = function(){
 		return null;
 	};//method
 
-	select.add=function(total, v){
-		if (v===undefined || v==null) return total;
-		if (total==null) return v;
+	select.add = function(total, v){
+		if (v === undefined || v == null) return total;
+		if (total == null) return v;
 		D.error("Not expecting to aggregate, only one non-null value allowed per set");
 		return null;
 	};//method
 
-	select.domain=SQL.domain.value;
+	select.domain = SQL.domain.value;
 };
 
 
-SQL.aggregate.sum=function(select){
+SQL.aggregate.sum = function(select){
 	select.defaultValue = function(){
 		return 0;
 	};//method
 
-	select.add=function(total, v){
-		if (v===undefined || v==null) return total;
-		return total+v;
+	select.add = function(total, v){
+		if (v === undefined || v == null) return total;
+		return total + v;
 	};//method
 
-	select.domain=SQL.domain.value;
+	select.domain = SQL.domain.value;
 };
 
-SQL.aggregate.count=function(select){
+SQL.aggregate.count = function(select){
 	select.defaultValue = function(){
 		return 0;
 	};//method
 
-	select.add=function(total, v){
-		if (v===undefined || v==null) return total;
-		return total+1;
+	select.add = function(total, v){
+		if (v === undefined || v == null) return total;
+		return total + 1;
 	};//method
 
-	select.domain=SQL.domain.value;
+	select.domain = SQL.domain.value;
 };
 
-SQL.aggregate.maximum=function(select){
+SQL.aggregate.maximum = function(select){
 	select.defaultValue = function(){
 		return null;
 	};//method
 
-	select.add=function(total, v){
-		if (v===undefined || v==null) return total;
-		if (total==null || v>total) return v;
+	select.add = function(total, v){
+		if (v === undefined || v == null) return total;
+		if (total == null || v > total) return v;
 		return total;
 	};//method
 
-	select.domain=SQL.domain.value;
+	select.domain = SQL.domain.value;
 };
 
-SQL.aggregate.minimum=function(select){
+SQL.aggregate.minimum = function(select){
 	select.defaultValue = function(){
 		return null;
 	};//method
 
-	select.add=function(total, v){
-		if (v===undefined || v==null) return total;
-		if (total==null || v<total) return v;
+	select.add = function(total, v){
+		if (v === undefined || v == null) return total;
+		if (total == null || v < total) return v;
 		return total;
 	};//method
 
-	select.domain=SQL.domain.value;
+	select.domain = SQL.domain.value;
 };

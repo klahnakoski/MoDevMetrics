@@ -1,5 +1,4 @@
-
-var CustomFilter={};
+var CustomFilter = {};
 
 InjectCustomFilters = function(query){
 	//console.info('ParseCustomFilters');
@@ -22,8 +21,6 @@ InjectCustomFilters = function(query){
 		}
 	}
 };
-
-
 
 
 GenerateCustomFilters = function(){

@@ -1,10 +1,9 @@
-
 var state = {};
 
 state["startDate"] = Date.now().addMonth(-3).format("yyyy-MM-dd");
 state["endDate"] = Date.now().format("yyyy-MM-dd");
 
-state.selectedPrograms=[];
+state.selectedPrograms = [];
 state.selectedProducts = [];
 state.selectedComponents = [];
 
@@ -13,13 +12,12 @@ customFilters = [];
 componentUI = null;
 
 
+GUI = {};
 
-GUI={};
-
-GUI.setup=function(){
-	state.programFilter=new ProgramFilter();
-	state.productFilter=new ProductUI();
-	state.componentFilter=new ComponentUI();
+GUI.setup = function(){
+	state.programFilter = new ProgramFilter();
+	state.productFilter = new ProductUI();
+	state.componentFilter = new ComponentUI();
 
 	GUI.makeSelectionPanel();
 	GUI.showESTime();
@@ -29,7 +27,7 @@ GUI.setup=function(){
 
 
 //SHOW THE LAST TIME ES WAS UPDATED
-GUI.showESTime=function(){
+GUI.showESTime = function(){
 	RestQuery.Run(
 		{//CALLBACK
 			"success" : function(requestObj, data){
@@ -59,49 +57,47 @@ GUI.showESTime=function(){
 };//method
 
 
+GUI.UpdateURL = function(){
+	var simplestate = {};
 
-GUI.UpdateURL = function() {
-	var simplestate={};
-
-	var keys=Object.keys(state);
+	var keys = Object.keys(state);
 	for(k in keys){
-		var t=typeof(state[keys[k]]);
+		var t = typeof(state[keys[k]]);
 		if (
 			jQuery.isArray(state[keys[k]]) ||
-			typeof(state[keys[k]])=="string" ||
-			Math.isNumeric(state[keys[k]])
-		){
-			simplestate[keys[k]]=state[keys[k]];
+				typeof(state[keys[k]]) == "string" ||
+				Math.isNumeric(state[keys[k]])
+			){
+			simplestate[keys[k]] = state[keys[k]];
 		}//endif
 
 
 	}//for
-	jQuery.bbq.pushState( simplestate );
+	jQuery.bbq.pushState(simplestate);
 };
 
-GUI.GetURLState = function() {
+GUI.GetURLState = function(){
 	var urlState = jQuery.bbq.getState();
-	for (var k in urlState)
-	{
+	for(var k in urlState){
 		state[k] = urlState[k];
 	}
 };
 
-var dateField = function(elementName) {
-	$( "#"+elementName ).datepicker({ maxDate: "-1D" });
-	$( "#"+elementName ).datepicker( "option", "dateFormat", "yy-mm-dd" );
-	$( "#"+elementName ).val( state[elementName] );
+var dateField = function(elementName){
+	$("#" + elementName).datepicker({ maxDate: "-1D" });
+	$("#" + elementName).datepicker("option", "dateFormat", "yy-mm-dd");
+	$("#" + elementName).val(state[elementName]);
 
-	$( "#"+elementName ).change( function() {
-		if( GUI.UpdateState()){
+	$("#" + elementName).change(function(){
+		if (GUI.UpdateState()){
 			GUI.UpdateURL();
-		    createChart();
+			createChart();
 		}
 	});
 };
 
-$(function() {
-	$( "#progressbar" ).progressbar({
+$(function(){
+	$("#progressbar").progressbar({
 		value: 0
 	});
 
@@ -109,8 +105,8 @@ $(function() {
 	dateField("endDate");
 });
 
-GUI.UpdateTextField = function( elementName ){
-	if( state[elementName] != $("#" + elementName).val()){
+GUI.UpdateTextField = function(elementName){
+	if (state[elementName] != $("#" + elementName).val()){
 		$("#" + elementName).val(state[elementName]);
 		return true;
 	}
@@ -119,15 +115,15 @@ GUI.UpdateTextField = function( elementName ){
 };
 
 GUI.UpdateTextFields = function (){
-    if( GUI.UpdateTextField( "startDate" ) ||
-    	GUI.UpdateTextField( "endDate" ) )
-    	return true;
+	if (GUI.UpdateTextField("startDate") ||
+		GUI.UpdateTextField("endDate"))
+		return true;
 
-    return false;
+	return false;
 };
 
-GUI.UpdateStateElement = function( elementName ){
-	if( state[elementName] != $("#" + elementName).val() ){
+GUI.UpdateStateElement = function(elementName){
+	if (state[elementName] != $("#" + elementName).val()){
 		state[elementName] = $("#" + elementName).val();
 		return true;
 	}//endif
@@ -136,16 +132,15 @@ GUI.UpdateStateElement = function( elementName ){
 };
 
 GUI.UpdateState = function(){
-    if( GUI.UpdateStateElement( "startDate" ) ||
-    	GUI.UpdateStateElement( "endDate" ) )
-    	return true;
+	if (GUI.UpdateStateElement("startDate") ||
+		GUI.UpdateStateElement("endDate"))
+		return true;
 
-    return false;
+	return false;
 };
 
 
-
-GUI.makeSelectionPanel=function (){
+GUI.makeSelectionPanel = function (){
 	var html = "";
 
 	html += '<h3><a href="#">Selection</a></h3>';
@@ -174,15 +169,15 @@ GUI.UpdateSummary = function(){
 	var html = "";
 
 	if (state["customFilters"].length > 0){
-		html += "Custom Filters: "+state["customFilters"].join(", ");
+		html += "Custom Filters: " + state["customFilters"].join(", ");
 		html += "<br><br>";
 	}//endif
 
 	html += "Programs: ";
 	if (state.selectedPrograms.length == 0){
 		html += "All";
-	}else{
-		html+=state.selectedPrograms.join(", ");
+	} else{
+		html += state.selectedPrograms.join(", ");
 	}//endif
 
 	html += "<br><br>";
@@ -190,8 +185,8 @@ GUI.UpdateSummary = function(){
 	html += "Products: ";
 	if (state.selectedProducts.length == 0){
 		html += "All";
-	}else{
-		html+=state.selectedProducts.join(", ");
+	} else{
+		html += state.selectedProducts.join(", ");
 	}//endif
 
 	html += "<br><br>";
@@ -199,7 +194,7 @@ GUI.UpdateSummary = function(){
 	html += "Components: ";
 	if (state.selectedComponents.length == 0){
 		html += "All";
-	}else{
+	} else{
 		html += state.selectedComponents.join(", ");
 	}//endif
 

@@ -1,17 +1,14 @@
-
 ComponentUI = function(){
 	this.Refresh()
 };
 
 
-
-
-ComponentUI.makeFilter=function(){
+ComponentUI.makeFilter = function(){
 	return ES.makeFilter("component", state.selectedComponents);
 };//method
 
-ComponentUI.makeQuery=function(filters){
-	var output={
+ComponentUI.makeQuery = function(filters){
+	var output = {
 		"query" : {
 			"filtered" : {
 				"query": {
@@ -38,7 +35,7 @@ ComponentUI.makeQuery=function(filters){
 		}
 	};
 
-	var and=output.query.filtered.filter.and;
+	var and = output.query.filtered.filter.and;
 	for(var f in filters) and.push(filters[f]);
 
 	return output;
@@ -56,21 +53,22 @@ ComponentUI.prototype.Refresh = function(){
 };
 
 
-ComponentUI.prototype.injectHTML=function(components){
+ComponentUI.prototype.injectHTML = function(components){
 	var html = '<ul id="componentsList" class="menu ui-selectable">';
 	var item = '<li class="{class}" id="component_{name}">{name} ({count})</li>';
 
 	//GIVE USER OPTION TO SELECT ALL PRODUCTS
-	var total=0; for(var i = 0; i < components.length; i++) total+=components[i].count;
-	html+=item.replaceAll({
-		"class" : ((state.selectedProducts.length==0) ? "ui-selectee ui-selected" : "ui-selectee"),
+	var total = 0;
+	for(var i = 0; i < components.length; i++) total += components[i].count;
+	html += item.replaceAll({
+		"class" : ((state.selectedProducts.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
 		"name" : "ALL",
 		"count" : total
 	});
 
 	for(var i = 0; i < components.length; i++){
 		html += item.replaceAll({
-			"class" : (include(state.selectedProducts, components[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
+			"class" : (state.selectedProducts.contains(components[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
 			"name" : components[i].term,
 			"count" : components[i].count
 		});
@@ -101,17 +99,16 @@ ComponentUI.prototype.success = function(resultsObj, data){
 
 	GUI.UpdateURL();
 	this.injectHTML(components);
-
 	$("#componentsList").selectable({
 		selected: function(event, ui){
-			var didChange=false;
-			if (ui.selected.id=="component_ALL"){
-				if (state.selectedComponents.length>0) didChange=true;
-				state.selectedComponents=[];
-			}else{
+			var didChange = false;
+			if (ui.selected.id == "component_ALL"){
+				if (state.selectedComponents.length > 0) didChange = true;
+				state.selectedComponents = [];
+			} else{
 				if (!include(state.selectedComponents, ui.selected.id.rightBut("component_".length))){
 					state.selectedComponents.push(ui.selected.id.rightBut("component_".length));
-					didChange=true;
+					didChange = true;
 				}//endif
 			}//endif
 

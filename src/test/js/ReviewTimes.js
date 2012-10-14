@@ -1,48 +1,48 @@
-var result={
+var result = {
 	"took"
-:
-	496, "timed_out"
-:
-	false, "_shards"
-:
+		:
+		496, "timed_out"
+		:
+		false, "_shards"
+		:
 	{
 		"total"
-	:
-		5, "successful"
-	:
+			:
+			5, "successful"
+		:
 		5, "failed"
-	:
+		:
 		0
 	}
-,
+	,
 	"hits"
-:
+		:
 	{
 		"total"
-	:
-		9780, "max_score"
-	:
+			:
+			9780, "max_score"
+		:
 		1.0, "hits"
-	:
+		:
 		[]
 	}
-,
+	,
 	"facets"
-:
+		:
 	{
 		"inReview"
-	:
+			:
 		{
 			"_type"
-		:
-			"terms", "missing"
-		:
+				:
+				"terms", "missing"
+			:
 			0, "total"
-		:
+			:
 			9780, "other"
-		:
+			:
 			0, "terms"
-		:
+			:
 			[
 				{"term":"[]","count":8186},
 				{"term":"[{\"bug_id\":793491,\"modified_ts\":1349649331000}]","count":1},
@@ -1641,20 +1641,20 @@ var result={
 				{"term":"[{\"bug_id\":198964,\"modified_ts\":1325830062000}]","count":1}
 			]
 		}
-	,
+		,
 		"doneReview"
-	:
+			:
 		{
 			"_type"
-		:
-			"terms", "missing"
-		:
+				:
+				"terms", "missing"
+			:
 			0, "total"
-		:
+			:
 			9780, "other"
-		:
+			:
 			3092, "terms"
-		:
+			:
 			[
 				{"term":"[]","count":6589},
 				{"term":"[{\"bug_id\":793491,\"modified_ts\":1349681880000}, {\"bug_id\":793491,\"modified_ts\":1349681880000}]","count":1},

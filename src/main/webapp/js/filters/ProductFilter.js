@@ -1,16 +1,15 @@
-
 ProductUI = function(){
 	this.Refresh();
 };
 
 
-ProductUI.makeFilter=function(){
+ProductUI.makeFilter = function(){
 	return ES.makeFilter("product", state.selectedProducts);
 };//method
 
 
-ProductUI.makeQuery=function(filters){
-	var output={
+ProductUI.makeQuery = function(filters){
+	var output = {
 		"query" : {
 			"filtered" : {
 				"query": {
@@ -37,7 +36,7 @@ ProductUI.makeQuery=function(filters){
 		}
 	};
 
-	var and=output.query.filtered.filter.and;
+	var and = output.query.filtered.filter.and;
 	for(var f in filters) and.push(filters[f]);
 
 	return output;
@@ -55,14 +54,15 @@ ProductUI.prototype.Refresh = function(){
 };
 
 
-ProductUI.prototype.injectHTML=function(products){
+ProductUI.prototype.injectHTML = function(products){
 	var html = '<ul id="productsList" class="menu ui-selectable">';
 	var item = '<li class="{class}" id="product_{name}">{name} ({count})</li>';
 
 	//GIVE USER OPTION TO SELECT ALL PRODUCTS
-	var total=0; for(var i = 0; i < products.length; i++) total+=products[i].count;
-	html+=item.replaceAll({
-		"class" : ((state.selectedProducts.length==0) ? "ui-selectee ui-selected" : "ui-selectee"),
+	var total = 0;
+	for(var i = 0; i < products.length; i++) total += products[i].count;
+	html += item.replaceAll({
+		"class" : ((state.selectedProducts.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
 		"name" : "ALL",
 		"count" : total
 	});
@@ -96,14 +96,14 @@ ProductUI.prototype.success = function(resultsObj, data){
 
 	$("#productsList").selectable({
 		selected: function(event, ui){
-			var didChange=false;
-			if (ui.selected.id=="product_ALL"){
-				if (state.selectedProducts/length>0) didChange=true;
-				state.selectedProducts=[];
-			}else{
+			var didChange = false;
+			if (ui.selected.id == "product_ALL"){
+				if (state.selectedProducts / length > 0) didChange = true;
+				state.selectedProducts = [];
+			} else{
 				if (!include(state.selectedProducts, ui.selected.id.rightBut("product_".length))){
 					state.selectedProducts.push(ui.selected.id.rightBut("product_".length));
-					didChange=true;
+					didChange = true;
 				}//endif
 			}//endif
 

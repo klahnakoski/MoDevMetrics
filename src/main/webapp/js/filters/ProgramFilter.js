@@ -2,19 +2,19 @@ ProgramFilter = function(){
 	this.Refresh();
 };
 
-ProgramFilter.allPrograms=CNV.Table2List(MozillaPrograms);
+ProgramFilter.allPrograms = CNV.Table2List(MozillaPrograms);
 
-ProgramFilter.makeFilter=function(selectedPrograms){
-	if (state.selectedPrograms.length==0) return ES.TrueFilter;
+ProgramFilter.makeFilter = function(selectedPrograms){
+	if (state.selectedPrograms.length == 0) return ES.TrueFilter;
 
-	var or=[];
+	var or = [];
 	for(var i in state.selectedPrograms){
-		for (j in ProgramFilter.allPrograms){
-			if (ProgramFilter.allPrograms[j].projectName==state.selectedPrograms[i]){
-				var name=ProgramFilter.allPrograms[j].attributeName;
-				var value=ProgramFilter.allPrograms[j].attributeValue;
-				var term={};
-				term[name]=value;
+		for(j in ProgramFilter.allPrograms){
+			if (ProgramFilter.allPrograms[j].projectName == state.selectedPrograms[i]){
+				var name = ProgramFilter.allPrograms[j].attributeName;
+				var value = ProgramFilter.allPrograms[j].attributeValue;
+				var term = {};
+				term[name] = value;
 				or.push({"term":term});
 			}//endif
 		}//for
@@ -24,65 +24,66 @@ ProgramFilter.makeFilter=function(selectedPrograms){
 };//method
 
 
-ProgramFilter.makeQuery=function(filters){
-	var compares="";
+ProgramFilter.makeQuery = function(filters){
+	var compares = "";
 
-	for (var j in ProgramFilter.allPrograms){
+	for(var j in ProgramFilter.allPrograms){
 //		if (ProgramFilter.allPrograms[j].projectName==state.selectedPrograms[i]){
-			var name=ProgramFilter.allPrograms[j].attributeName;
-			var value=ProgramFilter.allPrograms[j].attributeValue;
-			if (name.indexOf(".tokenized")>=0){
-				name=name.leftBut(10);
-				compares+="if (_source."+name+".indexOf("+CNV.String2Quote(value)+")>=0) return "+CNV.String2Quote(ProgramFilter.allPrograms[j].projectName)+";\n";
-			}else{
-				compares+="if (doc."+name+"=="+CNV.String2Quote(value)+") return "+CNV.String2Quote(ProgramFilter.allPrograms[j].projectName)+";\n";
-			}//enidf
+		var name = ProgramFilter.allPrograms[j].attributeName;
+		var value = ProgramFilter.allPrograms[j].attributeValue;
+		if (name.indexOf(".tokenized") >= 0){
+			name = name.leftBut(10);
+			compares += "if (_source." + name + ".indexOf(" + CNV.String2Quote(value) + ")>=0) return " + CNV.String2Quote(ProgramFilter.allPrograms[j].projectName) + ";\n";
+		} else{
+			compares += "if (doc." + name + "==" + CNV.String2Quote(value) + ") return " + CNV.String2Quote(ProgramFilter.allPrograms[j].projectName) + ";\n";
+		}//enidf
 //		}//endif
 	}//for
 
-	var output={
-			"query" : {
-				"filtered" : {
-					"query": {
-						"match_all":{}
-					},
-					"filter" : {
-						"and":[
-							{ "range" : { "expires_on" : { "gt" : Date.now().getMilli() } } },
-							{"not" : {"terms" : { "bug_status" : ["resolved", "verified", "closed"] }}}
-						]
-					}
-				}
-			},
-			"from": 0,
-			"size": 0,
-			"sort": [],
-			"facets": {
-				"Programs": {
-					"terms": {
-						"script_field": compares,
-						"size": 100000
-					}
+	var output = {
+		"query" : {
+			"filtered" : {
+				"query": {
+					"match_all":{}
+				},
+				"filter" : {
+					"and":[
+						{ "range" : { "expires_on" : { "gt" : Date.now().getMilli() } } },
+						{"not" : {"terms" : { "bug_status" : ["resolved", "verified", "closed"] }}}
+					]
 				}
 			}
-		};
+		},
+		"from": 0,
+		"size": 0,
+		"sort": [],
+		"facets": {
+			"Programs": {
+				"terms": {
+					"script_field": compares,
+					"size": 100000
+				}
+			}
+		}
+	};
 
-	var and=output.query.filtered.filter.and;
+	var and = output.query.filtered.filter.and;
 	for(var f in filters) and.push(filters[f]);
 
 	return output;
 };//method
 
 
-ProgramFilter.prototype.injectHTML=function(programs){
+ProgramFilter.prototype.injectHTML = function(programs){
 	var html = '<ul id="programsList" class="menu ui-selectable">';
 	var item = '<li class="{class}" id="program_{name}">{name} ({count})</li>';
 
 
 	//GIVE USER OPTION TO SELECT ALL PRODUCTS
-	var total=0; for(var i = 0; i < programs.length; i++) total+=programs[i].count;
-	html+=item.replaceAll({
-		"class" : ((state.selectedPrograms.length==0) ? "ui-selectee ui-selected" : "ui-selectee"),
+	var total = 0;
+	for(var i = 0; i < programs.length; i++) total += programs[i].count;
+	html += item.replaceAll({
+		"class" : ((state.selectedPrograms.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
 		"name" : "ALL",
 		"count" : total
 	});
@@ -97,11 +98,9 @@ ProgramFilter.prototype.injectHTML=function(programs){
 
 	html += '</ul>';
 
-	var p=$("#programs");
+	var p = $("#programs");
 	p.html(html);
 };
-
-
 
 
 ProgramFilter.prototype.Refresh = function(){
@@ -123,14 +122,14 @@ ProgramFilter.prototype.success = function(resultsObj, data){
 
 	$("#programsList").selectable({
 		selected: function(event, ui){
-			var didChange=false;
-			if (ui.selected.id=="program_ALL"){
-				if (state.selectedPrograms.length>0) didChange=true;
-				state.selectedPrograms=[];
-			}else{
+			var didChange = false;
+			if (ui.selected.id == "program_ALL"){
+				if (state.selectedPrograms.length > 0) didChange = true;
+				state.selectedPrograms = [];
+			} else{
 				if (!include(state.selectedPrograms, ui.selected.id.rightBut("program_".length))){
 					state.selectedPrograms.push(ui.selected.id.rightBut("program_".length));
-					didChange=true;
+					didChange = true;
 				}//endif
 			}//endif
 

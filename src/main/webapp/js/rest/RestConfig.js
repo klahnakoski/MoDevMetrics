@@ -6,7 +6,5 @@
 var ElasticSearchRestURL = "http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search";
 
 
-
-
 //var ElasticSearchRestURL = "/bugzilla-analysis-es/_search";
 //var ElasticSearchRestURL = "/bugzilla-analysis-es-new/_search";

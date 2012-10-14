@@ -1,95 +1,103 @@
-Math.isNumeric=function(n){
+Math.isNumeric = function(n){
 	return !isNaN(parseFloat(n)) && isFinite(n);
 };
 
-Math.sign=function(value){
-	return value>0.0?1.0:(value<0.0?-1.0:0.0);
+Math.sign = function(value){
+	return value > 0.0 ? 1.0 : (value < 0.0 ? -1.0 : 0.0);
 };
 
-String.join=function(list, seperator){
-	var output="";
+String.join = function(list, seperator){
+	var output = "";
 
-	for(var i in list){
-		if (output!="") output+=seperator;
-		output+=list[i];
+	for(var i = 0; i < list.length; i++){
+		if (output != "") output += seperator;
+		output += list[i];
 	}//for
 	return output;
 };
 
 
+Array.prototype.contains = function(value){
+	for(var i = this.length; i--;){
+		if (this[i] == value) return true;
+	}//for
+	return false;
+};//method
+
+Array.prototype.copy = function(){
+	return this.slice(0);
+};//method
 
 
-
-
-var Util={};
+var Util = {};
 
 //RETURN FIRST NOT NULL, AND DEFINED VALUE
-Util.coalesce=function(a, b){
-	if (a===undefined) return b;
-	if (a==null) return b;
+Util.coalesce = function(a, b){
+	if (a === undefined) return b;
+	if (a == null) return b;
 	return a;
 };//method
 
-Util.nvl=Util.coalesce;
+Util.nvl = Util.coalesce;
 
-Util.copy=function(from, to){
-	var keys=Object.keys(from);
-	for(var k in keys) to[keys[k]]=from[keys[k]];
+Util.copy = function(from, to){
+	var keys = Object.keys(from);
+	for(var k = 0; k < keys.length; k++) to[keys[k]] = from[keys[k]];
 	return to;
 };
 
-Util.jsonCopy=function( obj ) {
-	return JSON.parse(JSON.stringify(obj));;
+Util.jsonCopy = function(obj){
+	return JSON.parse(JSON.stringify(obj));
+	;
 };
 
-Util.returnNull=function(__row){
+Util.returnNull = function(__row){
 	return null;
 };//method
 
 
 ///
 /// EXPECTING AN OBJECT WITH KEY VALUE PAIRS
-String.prototype.replaceAll=function(values){
-    var output=Util.jsonCopy(this);
+String.prototype.replaceAll = function(values){
+	var output = Util.jsonCopy(this);
 
-    while(true){
-        var s=output.indexOf('{');
-        if (s<0) return output;
-        var e=output.indexOf('}', s);
-        if (e<0) return output;
-        var key=output.substring(s+1, e);
-        if (output.substring(s+1, e) in values){
-            output=output.replace(output.substring(s, e+1), values[key]);
-        }//endif
-    }//while
+	while(true){
+		var s = output.indexOf('{');
+		if (s < 0) return output;
+		var e = output.indexOf('}', s);
+		if (e < 0) return output;
+		var key = output.substring(s + 1, e);
+		if (output.substring(s + 1, e) in values){
+			output = output.replace(output.substring(s, e + 1), values[key]);
+		}//endif
+	}//while
 };//method
 
-String.prototype.left=function(amount){
+String.prototype.left = function(amount){
 	return this.substring(0, amount);
 };//method
 
-String.prototype.right=function(amount){
-	return this.substring(this.length-amount, this.length);
+String.prototype.right = function(amount){
+	return this.substring(this.length - amount, this.length);
 };//method
 
-String.prototype.leftBut=function(amount){
-	return this.substring(0, this.length-amount);
+String.prototype.leftBut = function(amount){
+	return this.substring(0, this.length - amount);
 };//method
 
-String.prototype.rightBut=function(amount){
+String.prototype.rightBut = function(amount){
 	return this.substring(amount, this.length);
 };//method
 
 
-
-var List={};
+var List = {};
 
 //RETURN LIST OF COMMON VALUES
-List.intersect=function(a, b){
-	var output=[];
-	for(var i in a){
-		for(var j in b){
-			if (a[i]==b[j]){
+List.intersect = function(a, b){
+	var output = [];
+	for(var i = 0; i < a.length; i++){
+		for(var j = 0; j < b.length; j++){
+			if (a[i] == b[j]){
 				output.push(a[i]);
 				break;
 			}//endif

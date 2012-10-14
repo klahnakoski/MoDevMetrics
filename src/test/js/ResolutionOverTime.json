@@ -1,0 +1,395 @@
+{
+  "query": {
+    "filtered": {
+      "query": {
+        "match_all": {}
+      },
+      "filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"previous_values.bug_status_change_away_ts\"].value==doc[\"modified_ts\"].value"
+            }
+          },
+          {
+            "and": [
+              {
+                "terms": {
+                  "bug_status": [
+                    "resolved",
+                    "verified",
+                    "closed"
+                  ]
+                }
+              },
+              {
+                "range": {
+                  "modified_ts": {
+                    "gte": "2012-04-14T12:58:16.000Z"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "from": 0,
+  "size": 0,
+  "sort": [],
+  "facets": {
+    "0": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=0 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<86400000"
+            }
+          }
+        ]
+      }
+    },
+    "1": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=86400000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<172800000"
+            }
+          }
+        ]
+      }
+    },
+    "2": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=172800000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<259200000"
+            }
+          }
+        ]
+      }
+    },
+    "3": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=259200000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<345600000"
+            }
+          }
+        ]
+      }
+    },
+    "4": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=345600000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<432000000"
+            }
+          }
+        ]
+      }
+    },
+    "5": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=432000000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<518400000"
+            }
+          }
+        ]
+      }
+    },
+    "6": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=518400000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<604800000"
+            }
+          }
+        ]
+      }
+    },
+    "7": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=604800000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<691200000"
+            }
+          }
+        ]
+      }
+    },
+    "8": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=691200000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<777600000"
+            }
+          }
+        ]
+      }
+    },
+    "9": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=777600000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<864000000"
+            }
+          }
+        ]
+      }
+    },
+    "10": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=864000000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<950400000"
+            }
+          }
+        ]
+      }
+    },
+    "11": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=950400000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<1036800000"
+            }
+          }
+        ]
+      }
+    },
+    "12": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=1036800000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<1123200000"
+            }
+          }
+        ]
+      }
+    },
+    "13": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=1123200000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<1209600000"
+            }
+          }
+        ]
+      }
+    },
+    "14": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=1209600000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<1296000000"
+            }
+          }
+        ]
+      }
+    },
+    "15": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=1296000000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<1382400000"
+            }
+          }
+        ]
+      }
+    },
+    "16": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=1382400000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<1468800000"
+            }
+          }
+        ]
+      }
+    },
+    "17": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=1468800000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<1555200000"
+            }
+          }
+        ]
+      }
+    },
+    "18": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=1555200000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<1641600000"
+            }
+          }
+        ]
+      }
+    },
+    "19": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=1641600000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<1728000000"
+            }
+          }
+        ]
+      }
+    },
+    "20": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=1728000000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<1814400000"
+            }
+          }
+        ]
+      }
+    },
+    "21": {
+      "terms_stats": {
+        "key_field": "resolution",
+        "value_script": "1",
+        "size": 0
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "script": {
+              "script": "doc[\"modified_ts\"].value-doc[\"created_ts\"].value>=1814400000 && doc[\"modified_ts\"].value-doc[\"created_ts\"].value<1900800000"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
