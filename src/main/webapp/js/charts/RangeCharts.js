@@ -221,7 +221,7 @@ RangeChart.prototype.Baseline = function(){
 		var startValue = this.dataSet.store[start][0].total;
 		var baseline = startValue - this.dataSet.store[data][0].total;
 
-		for(var x in this.dataSet.store[data]){
+		for(var x=0;x<this.dataSet.store[data].length;x++){
 			if (this.iterator == "date")
 				this.dataSet.addData(name, x, "date", this.dataSet.store[data][x].date);
 

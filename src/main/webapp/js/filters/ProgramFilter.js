@@ -27,10 +27,13 @@ ProgramFilter.makeFilter = function(selectedPrograms){
 ProgramFilter.makeQuery = function(filters){
 	var compares = "";
 
-	for(var j in ProgramFilter.allPrograms){
+	for(var j=0;j<ProgramFilter.allPrograms.length;j++){
 //		if (ProgramFilter.allPrograms[j].projectName==state.selectedPrograms[i]){
 		var name = ProgramFilter.allPrograms[j].attributeName;
 		var value = ProgramFilter.allPrograms[j].attributeValue;
+		if (name===undefined){
+			D.error("");
+		}//endif
 		if (name.indexOf(".tokenized") >= 0){
 			name = name.leftBut(10);
 			compares += "if (_source." + name + ".indexOf(" + CNV.String2Quote(value) + ")>=0) return " + CNV.String2Quote(ProgramFilter.allPrograms[j].projectName) + ";\n";

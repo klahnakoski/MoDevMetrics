@@ -41,11 +41,10 @@ SQL.prototype.calc2List = function(query){
 	}//endif
 
 	var sourceColumns = SQL.getColumns(query.from);
+	var select = SQL.select2Array(query.select);
+	var facets = query.facets;
 	var resultColumns = SQL.compile(query, sourceColumns);
 	var where = SQL.where.compile(query.where, sourceColumns, facets);
-
-	var facets = query.facets;
-	var select = SQL.select2Array(query.select);
 
 
 	var indexedOutput = {};
@@ -70,7 +69,7 @@ SQL.prototype.calc2List = function(query){
 				if (p == null){
 					facet.outOfDomainCount++;
 					if (facet.allowNulls){
-						for(var t = 0; t < results.length; t++){
+						for(var t = results.length; t--;){
 							results[t][facet.name] = facet.domain.NULL;
 						}//for
 					} else{
@@ -78,7 +77,7 @@ SQL.prototype.calc2List = function(query){
 						continue FROM;
 					}//endif
 				} else{
-					for(var t = 0; t < results.length; t++) results[t][facet.name] = p;
+					for(var t = results.length; t--;) results[t][facet.name] = p;
 				}//endif
 			} else{
 				//MULTIPLE MATCHES EXIST
@@ -86,7 +85,7 @@ SQL.prototype.calc2List = function(query){
 				if (partitions.length == 0){
 					facet.outOfDomainCount++;
 					if (facet.allowNulls){
-						for(var t = results.length - 1; t--;){
+						for(var t = results.length; t--;){
 							results[t][facet.name] = facet.domain.NULL;
 						}//for
 					} else{
@@ -94,7 +93,7 @@ SQL.prototype.calc2List = function(query){
 						continue FROM;
 					}//endif
 				} else{
-					for(var t = results.length - 1; t--;){
+					for(var t = results.length; t--;){
 						result = results[t];
 						result[facet.name] = partitions[0];
 						for(var p = 1; p < partitions.length; p++){
@@ -289,15 +288,16 @@ SQL.addResultToOutput = function(result, output, select, facets){
 	//output IS A TREE INDEXED BY THE PARTITION CANONICAL VALUES
 	var depth = output;
 	for(var i = 0; i < facets.length - 1; i++){
-		var v = facets[i].domain.getKey(result[facets[i].name]);
+		var part=result[facets[i].name];
+		var v = facets[i].domain.getKey(part);
 		if (depth[v] === undefined) depth[v] = {};
 		depth = depth[v];
 	}//for
-
-	if (v = result[facets[i].name] == null){
+	part=result[facets[i].name];
+	if (part == null){
 		D.println("what?");
 	}//endif
-	v = facets[i].domain.getKey(result[facets[i].name]);
+	v = facets[i].domain.getKey(part);
 	if (depth[v] !== undefined) return depth[v];
 
 	//ADD SELECT DEFAULTS

@@ -49,7 +49,16 @@
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/Debug.js"></script>
 <script type="text/javascript" src="js/MVEL.js"></script>
-<script type="text/javascript" src="js/sql.js"></script>
+<script type="text/javascript" src="js/SQL.js"></script>
+<script type="text/javascript" src="js/SQL.aggregate.js"></script>
+<script type="text/javascript" src="js/SQL.column.js"></script>
+<script type="text/javascript" src="js/SQL.cube.js"></script>
+<script type="text/javascript" src="js/SQL.domain.js"></script>
+<script type="text/javascript" src="js/ESQuery.js"></script>
+<script type="text/javascript" src="js/charts/aChart.js"></script>
+
+
+
 <script type="text/javascript" src="../../test/js/SQL.js"></script>
 
 
@@ -196,7 +205,7 @@ RestQuery.Run(
 						{"name":"age", "value":"c.min-c.created_ts", "operation":"minimum"}
 					],
 					"facets":[
-						{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "list":closed}}
+						{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "partitions":closed}}
 					],
 					"where":"c.term!=null && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
 				}).list;
@@ -221,14 +230,11 @@ RestQuery.Run(
 					"from": time2res,
 					"select": {"name":"count", "value":"count"}
 				})];
-				chartData[0].splice(0, 1);
 
 				var chartLabels = new SQL().calc2Array({
 					"from":	time2res,
-					"select": {"name":"duration", "value":"Util.coalesce(duration.toString(), 'null')"},
-					"where": "duration!=null"
+					"select": {"name":"duration", "value":"duration.name"}
 				});
-				chartLabels.splice(0, 1);
 
 				var chartNotes = [];
 				for(var i in chartLabels) chartNotes[i] = "";

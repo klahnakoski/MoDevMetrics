@@ -56,6 +56,7 @@
 <script type="text/javascript" src="js/SQL.column.js"></script>
 <script type="text/javascript" src="js/SQL.cube.js"></script>
 <script type="text/javascript" src="js/SQL.domain.js"></script>
+<script type="text/javascript" src="js/charts/aChart.js"></script>
 
 
 <script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
@@ -221,82 +222,11 @@ RestQuery.Run(
 
 
 				status.message("Make chart");
-
-				//PULL GENERAL CHART
-				chartData = chartCube.data;
-
-
-				$.jqplot(
-						'chart',
-						chartData,
-						{
-							title:chartCube.name,
-							seriesDefaults:{
-//						renderer:$.jqplot.BarRenderer,
-								rendererOptions: {
-									barPadding: 1,	  // number of pixels between adjacent bars in the same
-									// group (same category or bin).
-									barMargin: 3,	  // number of pixels between adjacent groups of bars.
-									barDirection: 'vertical', // vertical or horizontal.
-									barWidth: null,	 // width of the bars.  null to calculate automatically.
-									shadowOffset: 2,	// offset from the bar edge to stroke the shadow.
-									shadowDepth: 1,	 // nuber of strokes to make for the shadow.
-									shadowAlpha: 0.1,   // transparency of the shadow.
-
-									fillToZero: true
-								}
-							},
-							series:
-									new SQL().calc2List({
-										"from":
-												chartCube.facets[0].domain.partitions,
-										"select":[
-											{"name":"label", "value":"name"},
-											{"name":"color", "value":"\"#\"+new Colour(128, 128, 255).addSaturation(0.4*dataIndex-1.0).toHex()"}
-										]
-									}).list,
-//					[
-//						{
-//						label:'Duration',
-//						color:'#5FAB78',
-//						pointLabels:{
-//							show: true,
-//							labels:chartNotes//['Not including zero duration']
-//						}
-//						}
-//					],
-							axes: {
-								xaxis: {
-									renderer: $.jqplot.CategoryAxisRenderer,
-									label: chartCube.facets[1].name,
-									labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
-									tickRenderer: $.jqplot.CanvasAxisTickRenderer,
-									ticks:new SQL().calc2Array({
-										"from":chartCube.facets[1].domain.partitions,
-										"select":{"value":"value"}
-									}),
-									tickOptions: {
-										angle: -90,
-										labelPosition: 'end',
-//								fontFamily: 'Courier New',
-//								fontSize: '9pt',
-										showLabel: true
-									}
-								},
-								yaxis: {
-									label: chartCube.select.name,
-									labelRenderer: $.jqplot.CanvasAxisLabelRenderer
-//							renderer: $.jqplot.LogAxisRenderer,
-//							tickDistribution:'power'
-								}
-							},
-							highlighter: {
-								show: true,
-								sizeAdjust: 7.5
-							}
-						}
-				);
-
+				aChart.show({
+					"id":"chart",
+					"type":"line",
+					"cube":chartCube
+				});
 				status.message("Done");
 
 

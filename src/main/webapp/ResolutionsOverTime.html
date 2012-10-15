@@ -8,22 +8,13 @@
 <![endif]-->
 <script type="text/javascript" src="lib/jqplot/jquery.js"></script>
 <script type="text/javascript" src="lib/jqplot/jquery.jqplot.js"></script>
-<script type="text/javascript"
-		src="lib/jqplot/plugins/jqplot.barRenderer.min.js"></script>
-<script type="text/javascript"
-		src="lib/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>
-<script type="text/javascript"
-		src="lib/jqplot/plugins/jqplot.pointLabels.js"></script>
-<script type="text/javascript"
-		src="lib/jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>
-<script type="text/javascript"
-		src="lib/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>
-<script type="text/javascript"
-		src="lib/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>
-<script type="text/javascript"
-		src="lib/jqplot/plugins/jqplot.logAxisRenderer.js"></script>
-
-
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.barRenderer.min.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.pointLabels.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.logAxisRenderer.js"></script>
 <link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>
 
 
@@ -32,10 +23,8 @@
 <!--<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css" />-->
 
 
-<link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css"
-	  rel="stylesheet"/>
-<script type="text/javascript"
-		src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
+<link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
+<script type="text/javascript" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="text/javascript" src="lib/js/jquery.ba-bbq.js"></script>
 
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
@@ -57,6 +46,7 @@
 <script type="text/javascript" src="js/SQL.cube.js"></script>
 <script type="text/javascript" src="js/SQL.domain.js"></script>
 <script type="text/javascript" src="js/ESQuery.js"></script>
+<script type="text/javascript" src="js/charts/aChart.js"></script>
 
 
 <script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
@@ -141,78 +131,12 @@
 	query.run(function(chartCube){
 
 		status.message("Make Chart");
-		$.jqplot(
-				'chart',
-				chartCube.data,
-				{
-					stackSeries: true,			//STACK
-					title:chartCube.name,										//CHART NAME
-					seriesDefaults:{
-//						renderer:$.jqplot.BarRenderer,
-						fill: false,
-						showMarker: false,
-
-						markerOptions:{
-							show:false
-						},
-						rendererOptions: {
-							barPadding: 1,	  // number of pixels between adjacent bars in the same
-							// group (same category or bin).
-							barMargin: 3,	  // number of pixels between adjacent groups of bars.
-							barDirection: 'vertical', // vertical or horizontal.
-							barWidth: null,	 // width of the bars.  null to calculate automatically.
-							shadowOffset: 2,	// offset from the bar edge to stroke the shadow.
-							shadowDepth: 1,	 // nuber of strokes to make for the shadow.
-							shadowAlpha: 0.1,   // transparency of the shadow.
-
-							fillToZero: true
-						}
-					},
-					series:
-							new SQL().calc2List({
-								"from":
-										chartCube.facets[0].domain.partitions,			//EACH SERIES NAMES
-								"select":[
-									{"name":"label", "value":"value"},
-									{"name":"color", "value":"\"#\"+new Colour(255, 255, 0).addSaturation(0.4*dataIndex-1.0).toHex()"}
-								]
-							}).list,
-					axes: {
-						xaxis: {
-							renderer: $.jqplot.CategoryAxisRenderer,
-							label: chartCube.facets[1].name,					//X AXIS NAME
-							labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
-							tickRenderer: $.jqplot.CanvasAxisTickRenderer,
-							ticks:new SQL().calc2Array({
-								"from":chartCube.facets[1].domain.partitions,	//X AXIS TICK LABELS
-								"select":{"value":"name"}
-							}),
-							tickOptions: {
-								angle: -90,
-								labelPosition: 'end',
-//								fontFamily: 'Courier New',
-//								fontSize: '9pt',
-								showLabel: true
-							}
-						},
-						yaxis: {
-							label: chartCube.select.name,						//Y AXIS NAME
-							labelRenderer: $.jqplot.CanvasAxisLabelRenderer
-//							renderer: $.jqplot.LogAxisRenderer,
-//							tickDistribution:'power'
-						}
-					},
-					highlighter: {
-						show: true,
-						sizeAdjust: 7.5
-					}
-				}
-		);
-
-
+		aChart.show({
+			"id":"chart",
+			"type":"line",
+			"cube":chartCube
+		});
 		status.message("Done");
-
-
 	});
 
 </script>

@@ -357,8 +357,9 @@ Duration.prototype.toString = function(){
 
 
 	var output = "";
-	var rest = Math.abs(this.milli - (Duration.MILLI_VALUES["month"] * this.month)); //DO NOT INCLUDE THE MONTH'S MILLIS
-	var isNegative = (this.milli < 0);
+	var rest = (this.milli - (Duration.MILLI_VALUES["month"] * this.month)); //DO NOT INCLUDE THE MONTH'S MILLIS
+	var isNegative = (rest < 0);
+	rest=Math.abs(rest);
 
 	//MILLI
 	var rem = rest % 1000;

@@ -129,6 +129,7 @@ SQL.domain.time = function(column, sourceColumns){
 	//PROVIDE FORMATTING FUNCTION
 	if (d.format === undefined){
 		d.format = function(value){
+			if (value.toString===undefined) return CNV.Object2JSON(value);
 			return value.toString();
 		};//method
 	} else{
@@ -207,23 +208,23 @@ SQL.domain.duration = function(column, sourceColumns){
 
 	//DEFAULT TO "<" and ">=" LIMITS
 	if (d.max !== undefined){
-		d["<"] = Duration.newInstance(d.max).add(d.interval);
+		d["<"] = Duration.newInstance(d.max).add(d.interval).floor(d.interval);
 		d.max = undefined;
 	}//endif
 	if (d.min !== undefined){
-		d[">="] = Duration.newInstance(d.min);
+		d[">="] = Duration.newInstance(d.min).floor(d.interval);
 		d.min = undefined;
 	}//endif
 	if (d["<="] !== undefined){
-		d["<"] = Duration.newInstance(d["<="]).add(d.interval);
+		d["<"] = Duration.newInstance(d["<="]).add(d.interval).floor(d.interval);
 		d["<="] = undefined;
 	}//endif
 	if (d[">"] !== undefined){
-		d[">="] = Duration.newInstance(d[">"]).add(d.interval);
+		d[">="] = Duration.newInstance(d[">"]).add(d.interval).floor(d.interval);
 		d[">"] = undefined;
 	}//endif
-	d["<"] = Duration.newInstance(d["<"]);
-	d[">="] = Duration.newInstance(d[">="]);
+	d["<"] = Duration.newInstance(d["<"]).floor(d.interval);
+	d[">="] = Duration.newInstance(d[">="]).floor(d.interval);
 
 
 	d.compare = function(a, b){
@@ -240,6 +241,7 @@ SQL.domain.duration = function(column, sourceColumns){
 	//PROVIDE FORMATTING FUNCTION
 	if (d.format === undefined){
 		d.format = function(value){
+			if (value.toString===undefined) return CNV.Object2JSON(value);
 			return value.toString();
 		};//method
 	}//endif
@@ -327,9 +329,21 @@ SQL.domain.set = function(column, sourceColumns){
 	if (d.name === undefined) d.name = d.type;
 
 	if (d.key === undefined) d.key = "value";
-	d.getKey = function(partition){
-		return partition[this.key];
-	};//method
+	if (d.key instanceof Array){
+		d.getKey=function(partition){
+			////////////////////////////////////////////////////////////////////
+			// KEY USING CONCATENATION IS DANGEROUS
+			////////////////////////////////////////////////////////////////////
+			var key="";
+			for(var i=d.key.length;i--;){
+				key+=partition[d.key[i]]+"|";
+			}//for
+		};//method
+	}else{
+		d.getKey = function(partition){
+			return partition[this.key];
+		};//method
+	}//endif
 
 	d.NULL = {};
 	d.NULL[d.key] = null;
@@ -340,8 +354,10 @@ SQL.domain.set = function(column, sourceColumns){
 	};//method
 
 	d.format = function(partition){
+		if (partition[d.key].toString===undefined) return CNV.Object2JSON(partition[d.key]);
 		return partition[d.key].toString();
 	};//method
+	
 
 	d.getPartition = function(value){
 		if (value == null) return null;
@@ -351,7 +367,7 @@ SQL.domain.set = function(column, sourceColumns){
 		return temp;
 	};//method
 
-	if (d.partitions === undefined) D.error("Expecting domain " + d.name + " to have a 'list' attribute to define the set of partitions");
+	if (d.partitions === undefined) D.error("Expecting domain " + d.name + " to have a 'partitions' attribute to define the set of partitions that compose the domain");
 
 	//DEFINE VALUE->PARTITION MAP
 	if (column.test === undefined){
@@ -415,7 +431,6 @@ SQL.domain.set = function(column, sourceColumns){
 			}//for
 
 			SQL.domain.set.compileMappedLookup(column, d, sourceColumns, lookupVar);
-			return;
 		}//endif
 	}//endif
 
@@ -466,13 +481,14 @@ SQL.domain.set.compileMappedLookup = function(column, d, sourceColumns, lookupVa
 
 	f +=
 		"var output=[];\n" +
-			"var sublist=this.map[" + lookupVar + "];\n" +
-			"for(var i=0;i<sublist.length;i++){\n" +
+		"var sublist=this.map[" + lookupVar + "];\n" +
+		"if (sublist===undefined) return output;\n"+
+		"for(var i=0;i<sublist.length;i++){\n" +
 			"var " + d.name + "=sublist[i];\n" +
 			"if (" + column.test + ") output.push(" + d.name + ");\n " +
-			"}\n " +
-			"return output;\n " +
-			"}";
+		"}\n " +
+		"return output;\n " +
+		"}";
 	eval(f);
 };
 

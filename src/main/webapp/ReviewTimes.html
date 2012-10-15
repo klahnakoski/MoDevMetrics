@@ -3,49 +3,58 @@
 <HEAD>
 </HEAD>
 <BODY>
-<script type="text/javascript" src="js/rest/RestConfig.js"></script>
 
-<script type="text/javascript" src="lib/js/jquery-1.7.js"></script>
+<!--[if lt IE 9]>
+<script type="text/javascript" src="lib/jqplot/excanvas.js"></script>
+<![endif]-->
+<script type="text/javascript" src="lib/jqplot/jquery.js"></script>
+<script type="text/javascript" src="lib/jqplot/jquery.jqplot.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.barRenderer.min.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.pointLabels.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.logAxisRenderer.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>
 
-<script type="text/javascript" src="lib/webdetails/cdf/Base.js"></script>
-<script type="text/javascript" src="lib/webdetails/cdf/jquery.js"></script>
-<script type="text/javascript"
-		src="lib/webdetails/cdf/jquery.tooltip.js"></script>
-<script type="text/javascript" src="lib/webdetails/data/q01-01.js"></script>
-<script type="text/javascript"
-		src="lib/webdetails/lib/protovis-d3.3.js"></script>
-<script type="text/javascript"
-		src="lib/webdetails/lib/jquery.tipsy.js"></script>
-<script type="text/javascript" src="lib/webdetails/lib/tipsy.js"></script>
-<link type="text/css" href="lib/webdetails/lib/tipsy.css" rel="stylesheet"/>
 
-<script type="text/javascript" src="lib/webdetails/pvc/pvc.js"></script>
-<script type="text/javascript" src="lib/webdetails/pvc/pvcPanel.js"></script>
-<script type="text/javascript" src="lib/webdetails/pvc/pvcLegend.js"></script>
-<script type="text/javascript"
-		src="lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
-<script type="text/javascript"
-		src="lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
-<script type="text/javascript"
-		src="lib/webdetails/pvc/pvcWaterfall.js"></script>
-<script type="text/javascript" src="lib/webdetails/pvc/pvcPie.js"></script>
-<script type="text/javascript" src="lib/webdetails/pvc/pvcBar.js"></script>
-<script type="text/javascript" src="lib/webdetails/pvc/pvcLine.js"></script>
-<script type="text/javascript" src="lib/webdetails/pvc/pvcData.js"></script>
-<link type="text/css" rel="stylesheet"
-	  href="lib/webdetails/cdf/jquery.tooltip.css"/>
-<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
 
-<script type="text/javascript" src="lib/webdetails/pvcDocUtils.js"></script>
 
-<link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css"
-	  rel="stylesheet"/>
-<script type="text/javascript"
-		src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
+
+
+<!--<script type="text/javascript" src="lib/webdetails/cdf/Base.js"></script>-->
+<!--<script type="text/javascript" src="lib/webdetails/cdf/jquery.js"></script>-->
+<!--<script type="text/javascript" src="lib/webdetails/cdf/jquery.tooltip.js"></script>-->
+<!--<script type="text/javascript" src="lib/webdetails/data/q01-01.js"></script>-->
+<!--<script type="text/javascript" src="lib/webdetails/lib/protovis-d3.3.js"></script>-->
+<!--<script type="text/javascript" src="lib/webdetails/lib/jquery.tipsy.js"></script>-->
+<!--<script type="text/javascript" src="lib/webdetails/lib/tipsy.js"></script>-->
+<!--<link type="text/css" href="lib/webdetails/lib/tipsy.css" rel="stylesheet"/>-->
+
+<!--<script type="text/javascript" src="lib/webdetails/pvc/pvc.js"></script>-->
+<!--<script type="text/javascript" src="lib/webdetails/pvc/pvcPanel.js"></script>-->
+<!--<script type="text/javascript" src="lib/webdetails/pvc/pvcLegend.js"></script>-->
+<!--<script type="text/javascript" src="lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>-->
+<!--<script type="text/javascript" src="lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>-->
+<!--<script type="text/javascript" src="lib/webdetails/pvc/pvcWaterfall.js"></script>-->
+<!--<script type="text/javascript" src="lib/webdetails/pvc/pvcPie.js"></script>-->
+<!--<script type="text/javascript" src="lib/webdetails/pvc/pvcBar.js"></script>-->
+<!--<script type="text/javascript" src="lib/webdetails/pvc/pvcLine.js"></script>-->
+<!--<script type="text/javascript" src="lib/webdetails/pvc/pvcData.js"></script>-->
+<!--<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>-->
+<!--<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>-->
+
+<!--<script type="text/javascript" src="lib/webdetails/pvcDocUtils.js"></script>-->
+
+<!--<link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>-->
+<script type="text/javascript" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="text/javascript" src="lib/js/jquery.ba-bbq.js"></script>
 
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 
+
+<script type="text/javascript" src="js/rest/RestConfig.js"></script>
 
 <script type="text/javascript" src="js/CNV.js"></script>
 <script type="text/javascript" src="js/aDate.js"></script>
@@ -54,8 +63,13 @@
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/Debug.js"></script>
 <script type="text/javascript" src="js/MVEL.js"></script>
-<script type="text/javascript" src="js/sql.js"></script>
-<script type="text/javascript" src="../../test/js/SQL.js"></script>
+<script type="text/javascript" src="js/SQL.js"></script>
+<script type="text/javascript" src="js/SQL.aggregate.js"></script>
+<script type="text/javascript" src="js/SQL.column.js"></script>
+<script type="text/javascript" src="js/SQL.cube.js"></script>
+<script type="text/javascript" src="js/SQL.domain.js"></script>
+<script type="text/javascript" src="js/ESQuery.js"></script>
+<script type="text/javascript" src="js/charts/aChart.js"></script>
 
 
 <script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
@@ -93,7 +107,7 @@
 			<table style="margin-left: auto; margin-right: auto; border: 1px solid black;">
 				<tr>
 					<td style="width: 800px; height: 400px; margin-left: auto; margin-right: auto;">
-						<div id="chart"></div>
+						<div id="chart" style="width: 800px; height: 400px;"></div>
 					</td>
 				</tr>
 				<tr>
@@ -102,12 +116,6 @@
 							 style="text-align: center; font:10px arial,sans-serif;">
 							Chart Loading...
 						</div>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<div id="progressbar"
-							 style="height: 10px; width: 200px; margin-left: auto; margin-right: auto;"></div>
 					</td>
 				</tr>
 			</table>
@@ -122,11 +130,8 @@
 
 	GUI.GetURLState();
 
-	var rangeChart = null;
 
-	var chartRequest = {
-		"requests" :[
-			{"esQuery" : {
+	var esQuery = {
 				"query":{"filtered":{
 					"query": {
 						"match_all" : {}
@@ -189,54 +194,20 @@
 											{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
 										]}
 									}),
-							"size": 100
+							"size": 100000
 						}
 					}
 				}
-			},
-				"seriesName" : "Open Bugs"
-			}
-		],
-		"chartTitle" : "Burndown",
-		"canvas" : "chart",
-		"originZero" : true,
-		"chartType" : "LineChart",
-		"groupSize" : 1,
-		"startDate" : state["startDate"],
-		"endDate" : state["endDate"]
-	};
+			};
 
 
-	var createChart = function(){
-		if (rangeChart != undefined){
-			rangeChart.Kill();
-		}
-
-		ES.InjectFilters(chartRequest.requests);
-
-		console.log("chartRequest: " + JSON.stringify(chartRequest));
-
-		rangeChart = new RangeChart(chartRequest);
-		rangeChart.run();
-	};
-
-
+	status.message("Call ES");
 	RestQuery.Run(
 			{
 				"success" : function(requestObj, data){
+					status.message("processing Data");
 					var inReview = CNV.ESFacet2List(data.facets.inReview);
 					var doneReview = CNV.ESFacet2List(data.facets.doneReview);
-
-					var trackedBugs = new SQL().calc2List({
-						"from":
-								inReview,
-						"select":[
-
-						],
-						"facets":[
-							{"name":"bug_id", "value":"bug_id"}
-						]
-					}).list;
 
 					var durations = new SQL().calc2List({
 						"from":
@@ -246,25 +217,28 @@
 							{"name":"reviewTime", "value":"c.modified_ts-modified_ts", "operation":"minimum"}
 						],
 						"facets":[
-							{"name":"bug_id", "test":"bug_id==c.bug_id && modified_ts<c.modified_ts", "domain":{"type":"set", "name":"c", "key":"bug_id", "list":doneReview}},
+							{"name":"bug_id", "test":"bug_id==c.bug_id && modified_ts<c.modified_ts", "domain":{"type":"set", "name":"c", "key":["bug_id", "modified_ts"], "partitions":doneReview}},
 							{"name":"request_time", "value":"modified_ts"}
-						],
-						"where":"c.bug_id!=null"
-					}).list;
-
-					var time2res = new SQL().calc2List({
-						"from":
-								durations,
-						"select":[
-							{"name":"count", "value":"1", "operation":"count"}
-						],
-						"facets":[
-							{"name":"reviewTime", "value":"Duration.newInstance(reviewTime)", "domain":{"type":"duration", "min":"-6month", "max":"6month", "interval":"week"}}
 						]
 					}).list;
 
-					$("#info").html(CNV.List2HTMLTable(time2res));
+					var time2res = new SQL().calc2Cube({
+						"name": "Review Times",
+						"from": durations,
+						"select": {"name":"Count", "value":"1", "operation":"count"},
+						"facets":[
+							{"name":"Cohort", "value":"", "domain":{"type":"duration", "min":"0", "max":"6month", "interval":"week"}}, //DUMMY
+							{"name":"Review Time", "value":"Duration.newInstance(reviewTime)", "domain":{"type":"duration", "min":"0", "max":"6month", "interval":"week"}}
+						]
+					});
 
+					aChart.show({
+						"id":"chart",
+						"type":"line",
+						"cube":time2res
+					});
+
+					status.message("Done");
 				},
 
 				"error": function(requestObj, errorData, errorMsg, errorThrown){
@@ -272,7 +246,7 @@
 				}
 			},
 			0,
-			chartRequest.requests[0].esQuery
+			esQuery
 	);
 
 	var filterUI = null;
