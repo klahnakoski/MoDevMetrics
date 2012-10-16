@@ -26,4 +26,4 @@ var MozillaPrograms = {
 		["K9O", "status_whiteboard.tokenized", "k9o:p3"],
 		["K9O", "status_whiteboard.tokenized", "k9o:p?"]
 	]
-}
+};

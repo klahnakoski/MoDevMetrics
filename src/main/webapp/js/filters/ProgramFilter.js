@@ -8,8 +8,8 @@ ProgramFilter.makeFilter = function(selectedPrograms){
 	if (state.selectedPrograms.length == 0) return ES.TrueFilter;
 
 	var or = [];
-	for(var i in state.selectedPrograms){
-		for(j in ProgramFilter.allPrograms){
+	for(var i=0;i<state.selectedPrograms.length;i++){
+		for(var j=0;j<ProgramFilter.allPrograms.length;j++){
 			if (ProgramFilter.allPrograms[j].projectName == state.selectedPrograms[i]){
 				var name = ProgramFilter.allPrograms[j].attributeName;
 				var value = ProgramFilter.allPrograms[j].attributeValue;
@@ -71,7 +71,7 @@ ProgramFilter.makeQuery = function(filters){
 	};
 
 	var and = output.query.filtered.filter.and;
-	for(var f in filters) and.push(filters[f]);
+	for(var f=0;f<filters.length;f++) and.push(filters[f]);
 
 	return output;
 };//method
@@ -154,8 +154,4 @@ ProgramFilter.prototype.success = function(resultsObj, data){
 			}
 		}
 	});
-};
-
-ProgramFilter.prototype.error = function(requestObj, errorData, errorMsg, errorThrown){
-
 };

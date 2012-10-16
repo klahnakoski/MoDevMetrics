@@ -128,13 +128,13 @@ RangeChart.prototype.Kill = function(){
 
 //CAN NOLY HANDLE SERIES NAMES THE ARE VALID JAVASCRIPT VARIABLE NAMES
 RangeChart.prototype.compileEvaluations = function(){
-	for(var i in this.evaluations){
+	for(var i=0;i<this.evaluations.length;i++){
 		var name = this.evaluations[i].seriesName;
 		var code = this.evaluations[i].code;
 
 		var pre = "";
 		var post = "";
-		for(var q in this.queries){
+		for(var q=0;q<this.queries.length;q++){
 			var n = this.queries[q].seriesName;
 			pre += "var " + n + "=__row[\"" + n + "\"];\n";
 			post += "__row[\"" + n + "\"]=" + n + ";\n";
@@ -183,7 +183,7 @@ RangeChart.prototype.Evaluate = function(){
 		return;
 	//console.info("Evaluation Called.")
 
-	for(var e in this.evaluations){
+	for(var e=0;e<this.evaluations.length;e++){
 		if (e in this.dataSet.store) this.dataSet.store[e] = {};
 
 		var equation = this.BuildEquationString(e);
@@ -192,12 +192,12 @@ RangeChart.prototype.Evaluate = function(){
 
 		var firstSeries = null;
 
-		for(var k in this.dataSet.store){
+		for(var k=0;k<this.dataSet.store.length;k++){
 			var firstSeries = this.dataSet.store[k]
 			break;
 		}
 
-		for(var i in firstSeries){
+		for(var i=0;i<firstSeries.length;i++){
 			var value = eval(equation);
 
 			//console.info("Evaluated String: " + value);
@@ -207,11 +207,11 @@ RangeChart.prototype.Evaluate = function(){
 			this.dataSet.addData(e, i, "total", value);
 		}
 	}
-}
+};
 
 RangeChart.prototype.Baseline = function(){
-	if (this.baseline.length == 0)
-		return;
+//	if (this.baseline.length == 0)
+//		return;
 
 	for(var i = 0; i < this.baseline.length; i++){
 		var name = this.baseline[i].name;
@@ -221,21 +221,21 @@ RangeChart.prototype.Baseline = function(){
 		var startValue = this.dataSet.store[start][0].total;
 		var baseline = startValue - this.dataSet.store[data][0].total;
 
-		for(var x=0;x<this.dataSet.store[data].length;x++){
-			if (this.iterator == "date")
-				this.dataSet.addData(name, x, "date", this.dataSet.store[data][x].date);
-
+		var dataSetStoreKeys=Object.keys(this.dataSet.store[data]);
+		for(var ii=0;ii<dataSetStoreKeys.length;ii++){
+			var x=dataSetStoreKeys[ii];
+			if (this.iterator == "date") this.dataSet.addData(name, x, "date", this.dataSet.store[data][x].date);
 			this.dataSet.addData(name, x, "total", this.dataSet.store[data][x].total + baseline);
 		}
 	}
-}
+}//231
 
 RangeChart.prototype.Burndown = function(){
 	if (!this.track)
 		return;
 
 	var startValue = 0;
-	for(var k in this.dataSet.store){
+	for(var k=0;k<this.dataSet.store.length;k++){
 		if (!(this.showSeriesCheck(k)))
 			continue;
 
@@ -248,7 +248,7 @@ RangeChart.prototype.Burndown = function(){
 
 	this.dataSet.addData("track", 1, "date", convertDateToString(this.endDate));
 	this.dataSet.addData("track", 1, "total", 0);
-}
+};
 
 RangeChart.prototype.ConvertToChartData = function(){
 
@@ -277,16 +277,19 @@ RangeChart.prototype.ConvertToChartData = function(){
 		]
 	};
 
-	for(var k in this.dataSet.store){
-
-		if (!(this.showSeriesCheck(k))) continue;
+	var dataSetKeys=Object.keys(this.dataSet.store);
+	for(var kk=0;kk<dataSetKeys.length;kk++){
+		var seriesName=dataSetKeys[kk];
+		if (!(this.showSeriesCheck(seriesName))) continue;
 
 		var groupCount = 0;
 		var group = [];
 
-		for(var i in this.dataSet.store[k]){
 
-			var value = this.dataSet.store[k][i].total;
+		var dataSetStoreKeys=Object.keys(this.dataSet.store[seriesName]);
+		for(var ii=0;ii<dataSetStoreKeys.length;ii++){
+			var idName=dataSetStoreKeys[ii];
+			var value = this.dataSet.store[seriesName][idName].total;
 
 			if (this.groupSize > 1){
 				if (groupCount < this.groupSize){
@@ -312,11 +315,11 @@ RangeChart.prototype.ConvertToChartData = function(){
 				value = 0;
 
 			if (this.iterator == "date"){
-				var dateString = this.dataSet.store[k][i].date.slice(0, 10);
-				chartData.resultset.push([k , dateString, value]);
+				var dateString = this.dataSet.store[seriesName][idName].date.slice(0, 10);
+				chartData.resultset.push([seriesName , dateString, value]);
 			}
 			else if (this.iterator == "integer"){
-				chartData.resultset.push([ k , parseInt(i) + 1, value]);
+				chartData.resultset.push([ seriesName , parseInt(idName) + 1, value]);
 			}
 		}
 	}
@@ -342,14 +345,14 @@ RangeChart.prototype.success = function(requestObject, data){
 
 	//console.info( JSON.stringify( data ));
 
-	var text = '{ "date": "' + convertDateToString(requestObject.currentDate) + '", "data : [';
-
-	for(var x = 0; x < data[0].hits.hits.length; x++)
-		text += JSON.stringify(data[0].hits.hits[x].fields) + ",";
-
-	text += ']}';
-
-	report.addMessage(text);
+//	var text = '{ "date": "' + convertDateToString(requestObject.currentDate) + '", "data : [';
+//
+//	for(var x = 0; x < data[0].hits.hits.length; x++)
+//		text += JSON.stringify(data[0].hits.hits[x].fields) + ",";
+//
+//	text += ']}';
+//
+//	report.addMessage(text);
 
 	for(var i = 0; i < data.length; i++){
 		if (this.iterator == "date")

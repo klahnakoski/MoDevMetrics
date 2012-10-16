@@ -14,9 +14,13 @@ SQL.cube.newInstance = function(facets, depth, select){
 		return data;
 	}//for
 
-	for(var p = 0; p < (facets[depth].domain.partitions).length; p++){
+	var p = 0;
+	for(; p < (facets[depth].domain.partitions).length; p++){
 		data[p] = SQL.cube.newInstance(facets, depth + 1, select);
 	}//for
+	if (facets[depth].allowNulls){
+		data[p]= SQL.cube.newInstance(facets, depth + 1, select);
+	}//endif
 	return data;
 };//method
 

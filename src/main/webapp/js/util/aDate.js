@@ -493,13 +493,13 @@ var Locale = {
 
 //TRANSPOSE THE OBJECT STRUCTURE SO WE HAVE Locale.<lang>.*
 var temp = new Object();
-for(var k in Locale){
+for(var k=0;k<Locale.length;k++){
 	if (!isNaN(k)) continue;
 	//if (!Locale.hasAttribute(k)) continue;
 
 	//ALL BUT WORD ARE ONE DEEP
 	if (k != "word"){
-		for(var l in Locale[k]){
+		for(var l=0;l<Locale[k].length;l++){
 			if (!isNaN(l)) continue;
 			if (Object.isUndefined(temp[l])){
 				temp[l] = new Object();
@@ -507,10 +507,10 @@ for(var k in Locale){
 			temp[l][k] = Locale[k][l];
 		}//for
 	} else{
-		for(var w in Locale[k]){
+		for(var w=0;w<Locale[k].length;w++){
 			if (!isNaN(w)) continue;
 
-			for(var l in Locale[k][w]){
+			for(var l=0;l<Locale[k][w].length;l++){
 				if (!isNaN(l)) continue;
 
 				if (Object.isUndefined(temp[l])){
@@ -612,12 +612,12 @@ DatePicker.prototype = {
 	/* init */
 	initialize : function (args){
 		this.args = new Object();
-		for(var k in this.defaults){
+		for(var k=0;k<this.defaults.length;k++){
 			if (!isNaN(k)) continue;
 			this.args[k] = this.defaults[k];
 		}//for
 
-		for(var k in args){
+		for(var k=0;k<args.length;k++){
 			if (!isNaN(k)) continue;
 			this.args[k] = args[k];
 		}//for

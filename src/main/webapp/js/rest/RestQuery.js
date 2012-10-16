@@ -19,41 +19,46 @@ RestQuery.Run = function(reportBackObj, id, esQuery){
 RestQuery.prototype.Run = function(){
 	var localObject = this;
 
-	//console.info("URL: " + window.ElasticSearchRestURL);
+//	console.info(CNV.Object2JSON(this.query));
+
 
 	this.request = $.ajax({
 		url: window.ElasticSearchRestURL,
 		type: "POST",
-//			contentType: "application/json",
 		data: JSON.stringify(this.query),
 		dataType: "json",
-//			traditional: true,
-//			processData: false,
-//			timeout: 100000,
 
 		success: function(data){
 			localObject.success(data);
 		},
 
 		error: function (errorData, errorMsg, errorThrown){
-			localObject.error(errorData, errorMsg, errorThrown);
+			try{
+				localObject.error(errorData, errorMsg, errorThrown);
+			}catch(e){
+				D.error(errorMsg);
+			}//try
 		}
 	});
 };
 
 RestQuery.prototype.success = function(data){
-	if (this.reportBackObj != undefined)
-		this.reportBackObj.success(this, data)
-	else
-		console.warn("RestQuery - Success: report back object is undefined.");
+	try{
+		this.reportBackObj.success(this, data);
+	}catch(e){
+		D.error("RestQuery - Can not report back success!!");
+	}//try
 };
+
 
 RestQuery.prototype.error = function(errorData, errorMsg, errorThrown){
-	if (this.reportBackObj != undefined)
+	try{
 		this.reportBackObj.error(this, errorData, errorMsg, errorThrown);
-
-	console.error("RestQuery.error: " + errorMsg);
+	}catch(e){
+		D.error(errorMsg);
+	}//try
 };
+
 
 RestQuery.prototype.Kill = function(data){
 	if (this.request != undefined){
@@ -76,7 +81,7 @@ MultiRestQuery = function(reportBackObj, id, chartRequests){
 };
 
 MultiRestQuery.prototype.Run = function(){
-	for(var i in this.chartRequests){
+	for(var i=0;i<this.chartRequests.length;i++){
 		var restQuery = new RestQuery(this, i, this.chartRequests[i].esQuery);
 		this.restQueryObjs[i] = restQuery;
 		restQuery.Run();

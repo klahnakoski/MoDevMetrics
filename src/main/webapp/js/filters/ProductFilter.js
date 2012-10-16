@@ -37,7 +37,7 @@ ProductUI.makeQuery = function(filters){
 	};
 
 	var and = output.query.filtered.filter.and;
-	for(var f in filters) and.push(filters[f]);
+	for(var f=0;f<filters.length;f++) and.push(filters[f]);
 
 	return output;
 };//method

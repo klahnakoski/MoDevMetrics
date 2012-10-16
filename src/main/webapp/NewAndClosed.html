@@ -83,17 +83,15 @@
 						},
 						"filter" : {
 							"and":[
-								{"not" : {
-									"terms" : { "bug_status" : ["resolved", "verified", "closed"] }
-								}
-								}
+//								{"not" : {"terms" : { "bug_status" : ["resolved", "verified", "closed"] }}},
+								{"script":{"script":'doc["modified_ts"].value==doc["created_ts"].value'}}
 							]
 						},
 						"from" : 0,
 						"size" : 0,
 						"sort" : []
 					},
-					"seriesName" : "Open"
+					"seriesName" : "New"
 				},
 				{
 					"esQuery" : {
@@ -102,31 +100,34 @@
 						},
 						"filter" : {
 							"and":[
+								{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}},
+								{"not": {"terms":{"previous_values.bug_status_value": ["resolved", "verified", "closed"]}}},
+								{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}}
 							]
 						},
 						"from" : 0,
 						"size" : 0,
 						"sort" : []
 					},
-					"seriesName" : "Total"
+					"seriesName" : "Closed"
 				}
 			],
 //			"evaluations":[
 //				{"seriesName":"NewAndOpen", "code":"Total"
 //
 ////			]
-			"baseline" : [{
-				"name" : "New and Open",
-				"data" : "Total",
-				"start" : "Open"
-			}],
-////					"track" : true,
-			"showSeries" : ["Open", "New and Open"],
-			"chartTitle" : "Burndown",
+//			"baseline" : [{
+//				"name" : "New and Open",
+//				"data" : "Total",
+//				"start" : "Open"
+//			}],
+//////					"track" : true,
+//			"showSeries" : ["Open", "New and Open"],
+			"chartTitle" : "New Bugs and Old Bugs",
 			"canvas" : "chart",
 			"originZero" : true,
 			"chartType" : "LineChart",
-			"groupSize" : 1,
+			"groupSize" : 7,
 			"startDate" : state["startDate"],
 			"endDate" : state["endDate"]
 		};

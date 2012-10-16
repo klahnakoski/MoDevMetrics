@@ -8,13 +8,22 @@
 
 <script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
 
-<script type="text/javascript" src="js/Debug.js"></script>
-<script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/CNV.js"></script>
 <script type="text/javascript" src="js/aDate.js"></script>
+<script type="text/javascript" src="js/aColour.js"></script>
+<script type="text/javascript" src="js/Test2.js"></script>
+<script type="text/javascript" src="js/MozillaPrograms.js"></script>
+<script type="text/javascript" src="js/util.js"></script>
+<script type="text/javascript" src="js/Debug.js"></script>
+
 <script type="text/javascript" src="js/MVEL.js"></script>
-<script type="text/javascript" src="js/sql.js"></script>
-<script type="text/javascript" src="../../test/js/SQL.js"></script>
+<script type="text/javascript" src="js/SQL.js"></script>
+<script type="text/javascript" src="js/SQL.aggregate.js"></script>
+<script type="text/javascript" src="js/SQL.column.js"></script>
+<script type="text/javascript" src="js/SQL.cube.js"></script>
+<script type="text/javascript" src="js/SQL.domain.js"></script>
+<script type="text/javascript" src="js/ESQuery.js"></script>
+<script type="text/javascript" src="js/charts/aChart.js"></script>
 
 
 <div id="info"></div>
@@ -108,16 +117,16 @@
 			var result = new SQL().calc2List({
 				"from":
 					//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
-						new SQL().calc2List({
-							"from":
-									esResult,
-							"select":[
-							],
-							"facets":[
-								{"name":"requestee", "value":"requestee"},
-								{"name":"bug_id", "value":"bug_id"}
-							]
-						}).list,
+					new SQL().calc2List({
+						"from":
+								esResult,
+						"select":[
+						],
+						"facets":[
+							{"name":"requestee", "value":"requestee"},
+							{"name":"bug_id", "value":"bug_id"}
+						]
+					}).list,
 				"select":[
 					{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
 					{"name":"bugs", "value":"bug_id", operation:"join", "separator":","}
@@ -133,7 +142,7 @@
 			var assigned = CNV.ESFacet2List(data.facets.assigned);
 			var result2 = new SQL().calc2List({
 				"from":
-						assigned,
+					assigned,
 				"select":[
 					{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
 					{"name":"bugs", "value":"bug_id", operation:"join", "separator":","}

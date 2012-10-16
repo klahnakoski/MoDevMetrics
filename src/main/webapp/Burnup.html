@@ -83,17 +83,14 @@
 						},
 						"filter" : {
 							"and":[
-								{"not" : {
-									"terms" : { "bug_status" : ["resolved", "verified", "closed"] }
-								}
-								}
+								{"terms" : { "bug_status" : ["resolved", "verified", "closed"] }}
 							]
 						},
 						"from" : 0,
 						"size" : 0,
 						"sort" : []
 					},
-					"seriesName" : "Open"
+					"seriesName" : "Closed"
 				},
 				{
 					"esQuery" : {
@@ -115,16 +112,16 @@
 //				{"seriesName":"NewAndOpen", "code":"Total"
 //
 ////			]
-			"baseline" : [{
-				"name" : "New and Open",
-				"data" : "Total",
-				"start" : "Open"
-			}],
+//			"baseline" : [{
+//				"name" : "New and Open",
+//				"data" : "Total",
+//				"start" : "Open"
+//			}],
 ////					"track" : true,
-			"showSeries" : ["Open", "New and Open"],
-			"chartTitle" : "Burndown",
+//			"showSeries" : ["Open", "New and Open"],
+			"chartTitle" : "Burnup",
 			"canvas" : "chart",
-			"originZero" : true,
+//			"originZero" : true,
 			"chartType" : "LineChart",
 			"groupSize" : 1,
 			"startDate" : state["startDate"],

@@ -147,16 +147,19 @@ SQL.prototype.calc2List = function(query){
 	output = SQL.order(output, query.order, resultColumns);
 
 	//TURN AGGREGATE OBJECTS TO SINGLE NUMBER
-	for(var c = 0; c < select.length; c++){
-		var s = select[c];
-		if (s.end === undefined) continue;
+	for(var c in resultColumns){
+		var s=resultColumns[c];
+		if (s.domain===undefined){
+			D.error("expectin all columns to have a domain");
+		}//endif
+		var r = resultColumns[c].domain.end;
+		if (r === undefined) continue;
 
 		for(var i = 0; i < output.length; i++){
 			var o = output[i];
-			o[s.name] = s.end(o[s.name]);
+			o[s.name] = r(o[s.name]);
 		}//for
 	}//for
-
 
 	query.list = output;
 	return query;
@@ -186,9 +189,11 @@ SQL.prototype.calc2Cube = function(query){
 	//ASSIGN dataIndex TO ALL PARTITIONS
 	var facets = query.facets;
 	for(var f = 0; f < facets.length; f++){
-		for(var p = 0; p < (facets[f].domain.partitions).length; p++){
+		var p = 0;
+		for(; p < (facets[f].domain.partitions).length; p++){
 			facets[f].domain.partitions[p].dataIndex = p;
 		}//for
+		if (facets[f].allowNulls) facets[f].domain.NULL.dataIndex = p;
 	}//for
 
 	//MAKE THE EMPTY DATA GRID
@@ -259,8 +264,44 @@ SQL.prototype.setOP = function(query){
 };//method
 
 
+////////////////////////////////////////////////////////////////////////////////
+// TABLES ARE LIKE LISTS, ONLY ATTRIBUTES ARE INDEXED BY COLUMN NUMBER
+////////////////////////////////////////////////////////////////////////////////
+SQL.toTable=function(query){
+
+	if (query.data===undefined) D.error("Can only turn a cube into a table at this time");
+	if (query.facets.length!=2) D.error("can only handle 2D cubes right now.");
+
+	var parts0=query.facets[0].domain.partitions.copy();
+	if (query.facets[0].allowNulls) parts0.push(query.facets[0].domain.NULL);
+	var parts1=query.facets[1].domain.partitions.copy();
+	if (query.facets[1].allowNulls) parts1.push(query.facets[1].domain.NULL);
+
+	var output=[];
+	for(var p0=0;p0<parts0.length;p0++){
+		for(var p1=0;p1<parts1.length;p1++){
+			var row=[parts0[p0].name, parts1[p1].name, query.data[p0][p1]];
+			output.push(row);
+		}//for
+	}//for
+	return output;
+};//method
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// ASSUME THE FIRST DIMESION IS THE COHORT, AND NORMALIZE
+////////////////////////////////////////////////////////////////////////////////
+SQL.normalizeByCohort=function(query){
+	if (query.data===undefined) D.error("Can only normalize a cube into a table at this time");
+
+	for(var c=0;c<query.data.length;c++){
+		var total=0;
+		for(var e=0;e<query.data[c].length;e++) total+=query.data[c][e];
+		if (total==0) total=1;
+		for(var e=0;e<query.data[c].length;e++) query.data[c][e]/=total;
+	}//for
+};//method
 
 // CONVERT THE indexed OBJECT TO A FLAT LIST FOR output
 SQL.outputToList = function(output, indexed, facets, depth, order){

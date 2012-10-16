@@ -3,28 +3,48 @@
 <HEAD>
 </HEAD>
 <BODY>
-<!--[if lt IE 9]>
-<script type="text/javascript" src="lib/jqplot/excanvas.js"></script>
-<![endif]-->
-<script type="text/javascript" src="lib/jqplot/jquery.js"></script>
-<script type="text/javascript" src="lib/jqplot/jquery.jqplot.js"></script>
-<script type="text/javascript"
-		src="lib/jqplot/plugins/jqplot.barRenderer.min.js"></script>
-<script type="text/javascript"
-		src="lib/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>
-<script type="text/javascript"
-		src="lib/jqplot/plugins/jqplot.pointLabels.js"></script>
-<script type="text/javascript"
-		src="lib/jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>
-<script type="text/javascript"
-		src="lib/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>
-<script type="text/javascript"
-		src="lib/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>
-<script type="text/javascript"
-		src="lib/jqplot/plugins/jqplot.logAxisRenderer.js"></script>
+<!--&lt;!&ndash;[if lt IE 9]>-->
+<!--<script type="text/javascript" src="lib/jqplot/excanvas.js"></script>-->
+<!--<![endif]&ndash;&gt;-->
+<!--<script type="text/javascript" src="lib/jqplot/jquery.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/jquery.jqplot.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.barRenderer.min.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.pointLabels.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.logAxisRenderer.js"></script>-->
+<!--<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>-->
 
 
-<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>
+
+<script type="text/javascript" src="lib/webdetails/cdf/Base.js"></script>
+<script type="text/javascript" src="lib/webdetails/cdf/jquery.js"></script>
+<script type="text/javascript" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
+<script type="text/javascript" src="lib/webdetails/data/q01-01.js"></script>
+<script type="text/javascript" src="lib/webdetails/lib/protovis-d3.3.js"></script>
+<script type="text/javascript" src="lib/webdetails/lib/jquery.tipsy.js"></script>
+<script type="text/javascript" src="lib/webdetails/lib/tipsy.js"></script>
+<link type="text/css" href="lib/webdetails/lib/tipsy.css" rel="stylesheet"/>
+
+<script type="text/javascript" src="lib/webdetails/pvc/pvc.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcPanel.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcLegend.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcWaterfall.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcPie.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcBar.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcLine.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcData.js"></script>
+
+<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
+
+<script type="text/javascript" src="lib/webdetails/pvcDocUtils.js"></script>
+
+
 
 
 <!--<script type="text/javascript" src="lib/js/jquery-1.7.js"></script>-->
@@ -119,125 +139,135 @@ GUI.GetURLState();
 
 var rangeChart = null;
 
-var chartRequest = {
-	"requests" :[
-		{"esQuery" : {
-			"query":{"filtered":{
-				"query": {
-					"match_all" : {}
-				},
-				"filter" : {
-					"and":[
-						{"terms" : { "keywords" : ["crash", "topcrash", "regression"]}},
-						{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}},
-						{"not": {"terms":{"previous_values.bug_status_value": ["resolved", "verified", "closed"]}}},
-						{"range":{"modified_ts":{"gte":Date.now().add("-2year")}}}
-						//								{"range":{"bug_id":{"gte":600000}}}
-					]
-				}
-			}},
-			"from" : 0,
-			"size" : 10000,
-			"sort" : [],
-			"facets":{
-				"closed" : {
-					"terms" : {
-						"script_field":new MVEL().code({
-							"from":"doc",
-							"select":[
-								{"name":"bug_id", value:"doc.bug_id"},
-								{"name":"created_ts", value:"doc.created_ts"},
-								{"name":"modified_ts", value:"doc.modified_ts"}
-							]
-						}),
-						"size":10000
-					}
-				}//,
-//						"measured" : {
-//							"terms_stats" : {
-//								"key_field" : 'bug_id',
-//								"value_script" : "doc.modified_ts-doc.created_ts",
-//								"size":100000
-//							}
-//						}
-			}
+var esQuery={
+	"query":{"filtered":{
+		"query": {
+			"match_all" : {}
 		},
-			"seriesName" : "Open Bugs"
+		"filter" : {
+			"and":[
+				{"terms" : { "keywords" : ["crash", "topcrash", "regression"]}},
+				{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}},
+				{"not": {"terms":{"previous_values.bug_status_value": ["resolved", "verified", "closed"]}}},
+				{"range":{"modified_ts":{"gte":Date.now().floor("month").add("-2year")}}}
+//				,{"range":{"bug_id":{"gte":600000}}}
+			]
 		}
-	],
-	"chartTitle" : "Burndown",
-	"canvas" : "chart",
-	"originZero" : true,
-	"chartType" : "LineChart",
-	"groupSize" : 1,
-	"startDate" : state["startDate"],
-	"endDate" : state["endDate"]
-};
-
-
-var createChart = function(){
-	if (rangeChart != undefined){
-		rangeChart.Kill();
+	}},
+	"from" : 0,
+	"size" : 0,
+	"sort" : [],
+	"facets":{
+		"closed" : {
+			"terms" : {
+				"script_field":new MVEL().code({
+					"from":"doc",
+					"select":[
+						{"name":"bug_id", value:"doc.bug_id"},
+						{"name":"created_ts", value:"doc.created_ts"},
+						{"name":"modified_ts", value:"doc.modified_ts"}
+					]
+				}),
+				"size":10000
+			}
+		}
 	}
-
-	ES.InjectFilters(chartRequest.requests);
-
-	console.log("chartRequest: " + JSON.stringify(chartRequest));
-
-	rangeChart = new RangeChart(chartRequest);
-	rangeChart.run();
 };
 
 status.message("Calling ES");
 
 RestQuery.Run(
-		{
-			"success" : function(requestObj, data){
-				status.message("Formatting ES Data");
-				var closed = CNV.ESFacet2List(data.facets.closed);
+	{
+		"success" : function(requestObj, data){
+			status.message("Formatting ES Data");
+			var closed = CNV.ESFacet2List(data.facets.closed);
 
-				var ages = new SQL().calc2List({
-					"from":
-							closed,
-					"select":[
-						{"name":"closed_time", "value":"modified_ts", "operation":"minimum"},
-						{"name":"age", "value":"modified_ts-created_ts", "operation":"minimum"}
-					],
-					"facets":[
-						{"name":"bug_id", "value":"bug_id"}
-					]
-				}).list;
+			var ages = new SQL().calc2List({
+				"from":
+					closed,
+				"select":[
+					{"name":"closed_time", "value":"modified_ts", "operation":"minimum"},
+					{"name":"age", "value":"modified_ts-created_ts", "operation":"minimum"}
+				],
+				"facets":[
+					{"name":"bug_id", "value":"bug_id"}
+				]
+			}).list;
 
-				status.message("Tally into interval buckets");
-				var chartCube = new SQL().calc2Cube({
-					"name":"Bug Age For Crash",
-					"from": ages,
-					"select": {"name":"count", "value":"1", "operation":"count"},
-					"facets":[
-						{"name":"Cohort", "value":"Date.newInstance(closed_time)", "domain":{"type":"time", "min":Date.now().add("-2year"), "max":Date.now(), "interval":"6month"}},
-						{"name":"Age", "value":"Duration.newInstance(age)", "domain":{"type":"duration", "min":0, "max":"3day", "interval":"3hour"}}
-					]//,
-//				"where":"duration.value!=null && age>0"
-				});
+			status.message("Tally into interval buckets");
+			//USE AS BASIS FOR NORMALIZATION
+			var chartCube = new SQL().calc2Cube({
+				"name":"Bug Age For Crash",
+				"from": ages,
+				"select": {"name":"count", "value":"1", "operation":"count"},
+				"facets":[
+					{"name":"Cohort", "value":"Date.newInstance(closed_time)", "domain":{"type":"time", "min":Date.now().floor("month").add("-2year"), "max":Date.now().floor("month"), "interval":"6month", format:"NNN yyyy"}},
+					{"name":"Age", "value":"Duration.newInstance(age)", "allowNulls":true, "domain":{"type":"duration", "min":0, "max":"6week", "interval":"week"}}
+				]
+			});
 
-
-				status.message("Make chart");
-				aChart.show({
-					"id":"chart",
-					"type":"line",
-					"cube":chartCube
-				});
-				status.message("Done");
+			SQL.normalizeByCohort(chartCube);
 
 
-			},
 
-			"error": function(requestObj, errorData, errorMsg, errorThrown){
-				D.error(errorMsg)
-			}
-		},
-		0,
-		chartRequest.requests[0].esQuery
+//
+//			var avgCohort=new SQL().calc2List({
+//				"from":focusData.list,
+//				"select":{"name":"Average", "value":"count", "operation":"average"},
+//				"facets":[
+//					{"name":"Cohort", "value":"Cohort.value", "domain":{"type":"time", "min":Date.now().floor("month").add("-2year"), "max":Date.now().floor("month"), "interval":"6month", format:"NNN yyyy"}}
+//				]
+//			});
+//
+//			var avgAge=new SQL().calc2List({
+//				"from":focusData.list,
+//				"select":{"name":"Average", "value":"count", "operation":"average"},
+//				"facets":[
+//					{"name":"Age", "value":"Age.value", "domain":{"type":"duration", "min":0, "max":"3week", "interval":"day"}}
+//				]
+//			});
+//
+//			var normalized=new SQL().calc2List({
+//				"from":focusData.list,
+//				"select": {"name":"nCount", "value":"count/a.Average/c.Average", "operation":"none"},
+//				"facets":[
+//					{"name":"Cohort", "value":"Cohort.value", "domain":{"name":"c", "type":"set", "key":"Cohort.value", "partitions":avgCohort.list}},
+//					{"name":"Age", "value":"Age.value", "domain":{"name":"a", "type":"set", "key":"Age.value", "partitions":avgAge.list}}
+//				]
+//			});
+
+			
+
+
+
+//			var chartCube2 = new SQL().calc2Cube({
+//				"name":"Bug Age For Crash",
+//				"from": ages,
+//				"select": {"name":"count", "value":"1", "operation":"count"},
+//				"facets":[
+//					{"name":"Cohort", "value":"Date.newInstance(closed_time)", "domain":{"type":"time", "min":Date.now().add("-2year"), "max":Date.now().add("-1second"), "interval":"6month", format:"NNN yyyy"}},
+//					{"name":"Age", "value":"Duration.newInstance(age)", "domain":{"type":"duration", "min":0, "max":"3week", "interval":"day"}}
+//				]//,
+////				"where":"duration.value!=null && age>0"
+//			});
+
+
+
+
+			status.message("Make chart");
+			aChart.showCCC({
+				"id":"chart",
+				"type":"bar",
+				"cube":chartCube
+			});
+			status.message("Done");
+
+
+		}
+
+	},
+	0,
+	esQuery
 );
 
 var filterUI = null;

@@ -68,11 +68,6 @@ SQL.aggregate.average = function(select){
 		return total;
 	};//method
 
-	select.end = function(total){
-		if (total.count == 0) return null;
-		return total.total / total.count;
-	};//method
-
 	select.domain = {
 
 		compare:function(a, b){
@@ -98,6 +93,11 @@ SQL.aggregate.average = function(select){
 		getKey:function(partition){
 			return partition;
 		},
+
+		end :function(total){
+			if (total.count == 0) return null;
+			return total.total / total.count;
+		}
 	};
 };
 

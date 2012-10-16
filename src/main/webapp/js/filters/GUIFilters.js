@@ -78,7 +78,7 @@ GUI.UpdateURL = function(){
 
 GUI.GetURLState = function(){
 	var urlState = jQuery.bbq.getState();
-	for(var k in urlState){
+	for(var k=0;k<urlState.length;k++){
 		state[k] = urlState[k];
 	}
 };

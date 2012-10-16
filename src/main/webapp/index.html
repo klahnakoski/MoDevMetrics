@@ -15,15 +15,20 @@
 			<h2>Charts</h2>
 
 			<div class="items">
-				<a href="Burndown.html">Burndown.html</a><span class="info">Burndown by Program, Product, Component</span><br>
+				<a href="Burndown.html">Burndown.html</a><span class="info">Open Bug Count by Program, Product, Component</span><br>
 				<br>
-				<a href="BugAge.html">BugAge.html</a><span class="info">Work in Progress - Age of closed bugs</span><br>
+				<a href="Burnup.html">Burnup.html</a><span class="info">Closed Bug Count by Program, Product, Component</span><br>
 				<br>
-				<a href="TimeToResolution.html">TimeToResolution.html</a><span
-					class="info">Work in Progress - Same as bug age, only measurment stars when bug is marked as belonging to Program, Product or Component</span><br>
+				<a href="NewAndClosed.html">NewAndClosed.html</a><span class="info">Show total new bugs and closed bugs over each 7-day period</span><br>
 				<br>
-				<a href="ReviewTimes.html">ReviewTimes.html</a><span
-					class="info">Length of time a bug waits for a review</span><br>
+				<a href="BugAge.html">BugAge.html</a><span class="info">SLOW (about 3min) - Age of closed bugs - Pulls large amount of data from ES (?delay is due to 50meg transfer?), and processes locally </span><br>
+				<br>
+				<a href="TimeToResolution.html">TimeToResolution.html</a><span class="info">SLOW (about 30sec) - Same as bug age, only measurment stars when bug is marked as belonging to Program, Product or Component</span><br>
+				<br>
+				<a href="ReviewTimes.html">ReviewTimes.html</a><span class="info">SLOW (about 3min) - Length of time a bug waits for a review</span><br>
+				<br>
+				<a href="ResolutionsOverTime.html">ResolutionsOverTime.html</a><span class="info">SLOW (3min) - Show number of each Resolution by the age of the bug.  This query uses ES facets to gather data.  The amount of download data is small, but ES computing is slow.  Only 21 facets (for 21 days) are used here. </span><br>
+				<br>
 			</div>
 		</td>
 	</tr>

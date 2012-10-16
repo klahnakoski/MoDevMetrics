@@ -93,7 +93,8 @@ SQL.domain.time = function(column, sourceColumns){
 
 	var d = column.domain;
 	if (d.name === undefined) d.name = d.type;
-	d.NULL = {"value":null};
+	d.NULL = {"value":null, "name":"null"};
+
 	d.interval = Duration.newInstance(d.interval);
 
 
@@ -202,7 +203,7 @@ SQL.domain.duration = function(column, sourceColumns){
 
 	var d = column.domain;
 	if (d.name === undefined) d.name = d.type;
-	d.NULL = {"value":null};
+	d.NULL = {"value":null, "name":"null"};
 	d.interval = Duration.newInstance(d.interval);
 
 
@@ -347,6 +348,7 @@ SQL.domain.set = function(column, sourceColumns){
 
 	d.NULL = {};
 	d.NULL[d.key] = null;
+	d.NULL.name="null";
 
 
 	d.compare = function(a, b){
@@ -362,7 +364,7 @@ SQL.domain.set = function(column, sourceColumns){
 	d.getPartition = function(value){
 		if (value == null) return null;
 
-		var temp = d.map[value];
+		var temp = this.map[value];
 		if (temp === undefined) return null;
 		return temp;
 	};//method

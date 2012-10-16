@@ -144,14 +144,14 @@ var chartRequest = {
 					"terms_stats" : {
 						"key_field" : 'bug_id',
 						"value_field" : "modified_ts",
-						"size":10000
+						"size":1000000
 					}
 				},
 				"closed" : {
 					"terms_stats" : {
 						"key_field" : 'bug_id',
 						"value_field" : "modified_ts",
-						"size":10000
+						"size":1000000
 					},
 					"facet_filter" : {
 						"terms" : {"bug_status" : ["resolved", "verified", "closed"]}
@@ -237,7 +237,7 @@ RestQuery.Run(
 				});
 
 				var chartNotes = [];
-				for(var i in chartLabels) chartNotes[i] = "";
+				for(var i=0;i<chartLabels.length;i++) chartNotes[i] = "";
 				chartNotes[0] = "Not including Zero duraiton";
 
 
@@ -288,7 +288,7 @@ RestQuery.Run(
 								},
 								yaxis: {
 									label: 'Count',
-									labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+									labelRenderer: $.jqplot.CanvasAxisLabelRenderer
 //							renderer: $.jqplot.LogAxisRenderer,
 //							tickDistribution:'power'
 								}
