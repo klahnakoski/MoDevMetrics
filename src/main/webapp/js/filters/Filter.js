@@ -45,8 +45,4 @@ ES.InjectFilter = function(chartRequest){
 };
 
 
-ES.insertDateIntoQuery = function(esQuery, date){
-	esQuery.query.filtered.filter.and.push({ "range" : { "modified_ts" : { "lt" : date.getMilli() } } });
-	esQuery.query.filtered.filter.and.push({ "range" : { "expires_on" : { "gte" : date.getMilli()} } });
-};
 

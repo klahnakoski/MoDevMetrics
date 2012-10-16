@@ -290,16 +290,22 @@ SQL.toTable=function(query){
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// ASSUME THE FIRST DIMESION IS THE COHORT, AND NORMALIZE
+// ASSUME THE FIRST DIMESION IS THE COHORT, AND NORMALIZE (DIVIDE BY SUM(ABS(Xi))
 ////////////////////////////////////////////////////////////////////////////////
 SQL.normalizeByCohort=function(query){
 	if (query.data===undefined) D.error("Can only normalize a cube into a table at this time");
 
+//	SELECT
+//		count/sum(count over Cohort) AS nCount
+//	FROM
+//		query.cube
+
 	for(var c=0;c<query.data.length;c++){
 		var total=0;
-		for(var e=0;e<query.data[c].length;e++) total+=query.data[c][e];
-		if (total==0) total=1;
-		for(var e=0;e<query.data[c].length;e++) query.data[c][e]/=total;
+		for(var e=0;e<query.data[c].length;e++) total+=Math.abs(query.data[c][e]);
+		if (total!=0){
+			for(var e=0;e<query.data[c].length;e++) query.data[c][e]/=total;
+		}//endif
 	}//for
 };//method
 

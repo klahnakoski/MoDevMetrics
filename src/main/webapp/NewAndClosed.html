@@ -127,9 +127,11 @@
 			"canvas" : "chart",
 			"originZero" : true,
 			"chartType" : "LineChart",
-			"groupSize" : 7,
+			"interval": "7day",
+//			"groupSize" : 7,
 			"startDate" : state["startDate"],
-			"endDate" : state["endDate"]
+			"endDate" : state["endDate"],
+			"useWindow":true
 		};
 
 		ES.InjectFilters(chartRequest.requests);

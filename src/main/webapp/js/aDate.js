@@ -17,6 +17,10 @@ Date.prototype.add = function(interval){
 	return this.addMonth(i.month).addMilli(addMilli);
 };//method
 
+Date.prototype.subtract=function(time){
+	return Duration.newInstance(this.getMilli()-time.getMilli());
+};//method
+
 
 //CONVERT THIS GMT DATE TO LOCAL DATE
 Date.prototype.addTimezone = function(){
@@ -327,6 +331,25 @@ Duration.prototype.add = function(duration){
 	output.milli = this.milli + duration.milli;
 	output.month = this.month + duration.month;
 	return output;
+};//method
+
+
+Duration.prototype.multiply=function(amount){
+	var output=new Duration();
+	output.milli=this.milli*amount;
+	output.month=this.month*amount;
+	return output;
+};//method
+
+Duration.prototype.divideBy=function(amount){
+	if (amount.milli===undefined){
+		var output=new Duration();
+		output.milli=this.milli/amount;
+		output.month=this.month/amount;
+		return output;
+	}else{
+		return this.milli/amount.milli;
+	}//endif
 };//method
 
 

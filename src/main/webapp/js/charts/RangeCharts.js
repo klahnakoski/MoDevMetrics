@@ -1,27 +1,20 @@
 RangeChart = function(chartRequest){
+	this.defaults();
 	this.queries = chartRequest.requests;
-	this.canvas = chartRequest.canvas;
-	this.evaluations = ("evaluations" in chartRequest) ? chartRequest.evaluations : null;
-	this.showSeries = ("showSeries" in chartRequest) ? (chartRequest.showSeries) : [];
-	this.chartTitle = ("chartTitle" in chartRequest) ? chartRequest.chartTitle : "No chart title set.";
-	this.originZero = ("originZero" in chartRequest) ? chartRequest.originZero : false;
-	this.chartType = ("chartType" in chartRequest) ? chartRequest.chartType : "LineChart";
+	Util.copy(chartRequest, this);
+	
+	this.interval=Duration.newInstance(this.interval);
 	this.groupSize = ("groupSize" in chartRequest) ? (chartRequest.groupSize - 1) : 0;
-	this.groupCombine = ("groupCombine" in chartRequest) ? (chartRequest.groupCombine) : "none";
-	this.iterator = ("iterator" in chartRequest) ? chartRequest.iterator : "date";
-	this.track = ("track" in chartRequest) ? chartRequest.track : false;
-	this.baseline = ("baseline" in chartRequest) ? chartRequest.baseline : [];
-
 	this.request = null;
 	this.dataSet = new DataSet();
 
 	if (this.iterator == 'date'){
 		this.startDate = convertStringToDate(chartRequest.startDate + "T00:00:00.000Z");
 		this.endDate = convertStringToDate(chartRequest.endDate + "T00:00:00.000Z");
-		if (getNumberOfDays(this.endDate, Date.now()) > 0)
-			this.dataSet.maxIndex = getNumberOfDays(this.startDate, this.endDate)
+		if (Date.now().subtract(this.endDate).milli > 0)
+			this.dataSet.maxIndex = Math.floor(this.endDate.subtract(this.startDate).divideBy(this.interval))-1;
 		else
-			this.dataSet.maxIndex = getNumberOfDays(this.startDate, Date.now())
+			this.dataSet.maxIndex = Math.floor(Date.now().subtract(this.startDate).divideBy(this.interval))-1;
 
 	}
 	else if (this.iterator == "integer"){
@@ -29,12 +22,35 @@ RangeChart = function(chartRequest){
 		this.dataSet.maxIndex = chartRequest["iterations"] - 1;
 	}
 
-	//console.info("ChangeChart Called.");
+	console.info("ChangeChart Called.");
 };
+
+RangeChart.prototype.defaults=function(){
+	this.evaluations = null;
+	this.showSeries = [];
+	this.chartTitle = "No chart title set.";
+	this.originZero = false;
+	this.chartType = "LineChart";
+	this.groupSize = 0;
+	this.groupCombine = "none";
+	this.iterator = "date";
+	this.track = false;
+	this.baseline = [];
+	this.interval=Duration.newInstance("day");
+	this.useWindow=false;
+};//endif
+
 
 RangeChart.prototype.run = function(){
 	if (this.iterator == 'date'){
-		this.request = new DateRangeIterator(this, this.startDate, this.endDate, this.queries);
+		this.request = new DateRangeIterator({
+			"reportBackObj":this,
+			"startDate":this.startDate,
+			"endDate":this.endDate,
+			"useWindow":this.useWindow,
+			"interval":this.interval,
+			"queries":this.queries
+		});
 	}
 	else if (this.iterator == 'integer'){
 		this.request = new RangeIterator(this, this.queries);

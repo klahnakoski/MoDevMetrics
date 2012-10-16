@@ -195,7 +195,6 @@ RestQuery.Run(
 			}).list;
 
 			status.message("Tally into interval buckets");
-			//USE AS BASIS FOR NORMALIZATION
 			var chartCube = new SQL().calc2Cube({
 				"name":"Bug Age For Crash",
 				"from": ages,

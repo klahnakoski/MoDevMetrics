@@ -33,7 +33,24 @@ ESQuery.prototype.error = function(requestObj, errorData, errorMsg, errorThrown)
 };
 
 
+ESQuery.prototype.compileSetOp=function(){
+	//FIND FILTER ELEMENTS THAT CAN BE USED AT THE BUG LEVEL
+
+	//
+
+
+};
+
+
 ESQuery.prototype.compile = function(){
+
+	//NO FACETS IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
+	if (this.query.facets === undefined || this.query.facets.length == 0){
+		return this.compileSetOP();
+	}//endif
+
+
+
 	//ENSURE THERE IS ONLY ONE SELECT
 	this.resultColumns = SQL.compile(this.query, []);
 

@@ -20,62 +20,27 @@
 <div id="info"></div>
 
 <script type="text/javascript">
+	console.info(new Date(1347753600000).format("yyyy-NNN-dd HHmmss"));
+	console.info(new Date(1348358400000).format("yyyy-NNN-dd HHmmss"));
 
 	var esQuery=
-		{
-  "query": {
-    "filtered": {
-      "query": {
-        "match_all": {}
-      },
-      "filter": {
-        "and": [
-          {
-            "terms": {
-              "bug_status": [
-                "resolved",
-                "verified",
-                "closed"
-              ]
-            }
-          },
-          {
-            "not": {
-              "terms": {
-                "previous_values.bug_status_value": [
-                  "resolved",
-                  "verified",
-                  "closed"
-                ]
-              }
-            }
-          },
-          {
-            "script": {
-              "script": "true"
-            }
-          },
-          {
-            "script": {
-              "script": "true"
-            }
-          },
-          {
-            "script": {
-              "script": "true"
-            }
-          },
-          {"range": {"modified_ts": {"lt": 1343692800000}}},
-          {"range": {"expires_on": {"gte": 1343692800000}}}
-        ]
-      }
-    }
-  },
-  "from": 0,
-  "size": 1,
-  "sort": []
 
-//		"facets" : {
+	{"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
+		{"range":{"created_ts":{"gt":Date.now().add("-6month")}}},
+//		{"not":{"range":{"expires_on":{"gt":"2012-10-17T04:01:01.000Z"}}}},
+		{"or":[
+			{"term":{"status_whiteboard.tokenized":"sg:dos"}},
+			{"term":{"status_whiteboard.tokenized":"sg:low"}},
+			{"term":{"status_whiteboard.tokenized":"sg:mod"}},
+			{"term":{"status_whiteboard.tokenized":"sg:crit"}}
+		]},
+//		{"script":{"script":"true"}},
+//		{"script":{"script":"true"}},
+//		{"range":{"modified_ts":{"gte":1347753600000}}},
+//		{"range":{"modified_ts":{"lt":1348358400000}}}
+	]}}},"from":0,"size":100,"sort":[]
+
+	//		"facets" : {
 //			"range1" : {
 //				"range" : {
 //					"key_field" : "resolution",
