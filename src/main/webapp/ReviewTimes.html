@@ -23,31 +23,31 @@
 
 
 
-<!--<script type="text/javascript" src="lib/webdetails/cdf/Base.js"></script>-->
-<!--<script type="text/javascript" src="lib/webdetails/cdf/jquery.js"></script>-->
-<!--<script type="text/javascript" src="lib/webdetails/cdf/jquery.tooltip.js"></script>-->
-<!--<script type="text/javascript" src="lib/webdetails/data/q01-01.js"></script>-->
-<!--<script type="text/javascript" src="lib/webdetails/lib/protovis-d3.3.js"></script>-->
-<!--<script type="text/javascript" src="lib/webdetails/lib/jquery.tipsy.js"></script>-->
-<!--<script type="text/javascript" src="lib/webdetails/lib/tipsy.js"></script>-->
-<!--<link type="text/css" href="lib/webdetails/lib/tipsy.css" rel="stylesheet"/>-->
+<script type="text/javascript" src="lib/webdetails/cdf/Base.js"></script>
+<script type="text/javascript" src="lib/webdetails/cdf/jquery.js"></script>
+<script type="text/javascript" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
+<script type="text/javascript" src="lib/webdetails/data/q01-01.js"></script>
+<script type="text/javascript" src="lib/webdetails/lib/protovis-d3.3.js"></script>
+<script type="text/javascript" src="lib/webdetails/lib/jquery.tipsy.js"></script>
+<script type="text/javascript" src="lib/webdetails/lib/tipsy.js"></script>
+<link type="text/css" href="lib/webdetails/lib/tipsy.css" rel="stylesheet"/>
 
-<!--<script type="text/javascript" src="lib/webdetails/pvc/pvc.js"></script>-->
-<!--<script type="text/javascript" src="lib/webdetails/pvc/pvcPanel.js"></script>-->
-<!--<script type="text/javascript" src="lib/webdetails/pvc/pvcLegend.js"></script>-->
-<!--<script type="text/javascript" src="lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>-->
-<!--<script type="text/javascript" src="lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>-->
-<!--<script type="text/javascript" src="lib/webdetails/pvc/pvcWaterfall.js"></script>-->
-<!--<script type="text/javascript" src="lib/webdetails/pvc/pvcPie.js"></script>-->
-<!--<script type="text/javascript" src="lib/webdetails/pvc/pvcBar.js"></script>-->
-<!--<script type="text/javascript" src="lib/webdetails/pvc/pvcLine.js"></script>-->
-<!--<script type="text/javascript" src="lib/webdetails/pvc/pvcData.js"></script>-->
-<!--<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>-->
-<!--<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>-->
+<script type="text/javascript" src="lib/webdetails/pvc/pvc.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcPanel.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcLegend.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcWaterfall.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcPie.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcBar.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcLine.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcData.js"></script>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
 
-<!--<script type="text/javascript" src="lib/webdetails/pvcDocUtils.js"></script>-->
+<script type="text/javascript" src="lib/webdetails/pvcDocUtils.js"></script>
 
-<!--<link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>-->
+<link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
 <script type="text/javascript" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="text/javascript" src="lib/js/jquery.ba-bbq.js"></script>
 
@@ -106,8 +106,8 @@
 			</table>
 			<table style="margin-left: auto; margin-right: auto; border: 1px solid black;">
 				<tr>
-					<td style="width: 800px; height: 400px; margin-left: auto; margin-right: auto;">
-						<div id="chart" style="width: 800px; height: 400px;"></div>
+					<td style="margin-left: auto; margin-right: auto;">
+						<div id="chart"></div>
 					</td>
 				</tr>
 				<tr>
@@ -139,7 +139,7 @@
 					"filter" : {
 						"and":[
 							{ "terms" : { "status_whiteboard.tokenized" : ["snappy", "snappy:p1", "snappy:p2", "snappy:p3"]}},
-							{"range":{"modified_ts":{"gte":Date.now().add("-1year")}}}
+							{"range":{"modified_ts":{"gte":Date.now().add("-2year")}}}
 						]
 					}
 				}},
@@ -211,30 +211,31 @@
 
 					var durations = new SQL().calc2List({
 						"from":
-								inReview,
-//					{"name":"i", "list":data.facets.identified},
+							inReview,
 						"select":[
 							{"name":"reviewTime", "value":"c.modified_ts-modified_ts", "operation":"minimum"}
 						],
 						"facets":[
 							{"name":"bug_id", "test":"bug_id==c.bug_id && modified_ts<c.modified_ts", "domain":{"type":"set", "name":"c", "key":["bug_id", "modified_ts"], "partitions":doneReview}},
-							{"name":"request_time", "value":"modified_ts"}
+							{"name":"finished_time", "value":"modified_ts"}
 						]
 					}).list;
 
 					var time2res = new SQL().calc2Cube({
-						"name": "Review Times",
+						"name": "Review Times for Snappy",
 						"from": durations,
 						"select": {"name":"Count", "value":"1", "operation":"count"},
 						"facets":[
-							{"name":"Cohort", "value":"1", "domain":{"type":"duration", "min":"0", "max":"6month", "interval":"week"}}, //DUMMY
-							{"name":"Review Time", "value":"Duration.newInstance(reviewTime)", "domain":{"type":"duration", "min":"0", "max":"6month", "interval":"week"}}
+							{"name":"Cohort", "value":"Date.newInstance(finished_time)", "domain":{"type":"time", "min":Date.now().floor("month").add("-2year"), "max":Date.now().floor("month"), "interval":"6month", format:"NNN yyyy"}},
+							{"name":"Review Time", "value":"Duration.newInstance(reviewTime)", allowNulls:true, "domain":{"type":"duration", "min":"0", "max":"6week", "interval":"week"}}
 						]
 					});
 
-					aChart.show({
+					SQL.normalizeByCohort(time2res);
+
+					aChart.showCCC({
 						"id":"chart",
-						"type":"line",
+						"type":"bar",
 						"cube":time2res
 					});
 

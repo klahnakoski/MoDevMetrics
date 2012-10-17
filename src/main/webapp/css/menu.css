@@ -60,9 +60,27 @@ h2 {
 
 .items a {
     float: left;
-    width: 200px;
+    width: 230px;
 }
 
 table tr {
     border-top: 1px solid black;
 }
+
+.parameters {
+    width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.parameters span.parameter_name {
+    float: left;
+    width: 150px;
+    text-align: right;
+    margin-right: 10px;
+}
+
+.parameters span.parameter_error {
+    color: red;
+}
+

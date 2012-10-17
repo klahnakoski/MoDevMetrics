@@ -266,7 +266,7 @@ Duration.MONTH_SKEW = Duration.MILLI_VALUES["year"] / 12 - Duration.MILLI_VALUES
 // CONVERT SIMPLE <float><type> TO A DURATION OBJECT
 ////////////////////////////////////////////////////////////////////////////////
 Duration.String2Duration = function(text){
-	if (text == "") return new Duration();
+	if (text == "" || text=="zero") return new Duration();
 
 	var s = 0;
 	while(s < text.length && (text.charAt(s) <= '9' || text.charAt(s) == ".")) s++;

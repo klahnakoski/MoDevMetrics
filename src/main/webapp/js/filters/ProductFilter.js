@@ -61,7 +61,7 @@ ProductUI.prototype.injectHTML = function(products){
 	//GIVE USER OPTION TO SELECT ALL PRODUCTS
 	var total = 0;
 	for(var i = 0; i < products.length; i++) total += products[i].count;
-	html += item.replaceAll({
+	html += item.replaceVars({
 		"class" : ((state.selectedProducts.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
 		"name" : "ALL",
 		"count" : total
@@ -69,7 +69,7 @@ ProductUI.prototype.injectHTML = function(products){
 
 	//LIST SPECIFIC PRODUCTS
 	for(var i = 0; i < products.length; i++){
-		html += item.replaceAll({
+		html += item.replaceVars({
 			"class" : (include(state.selectedProducts, products[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
 			"name" : products[i].term,
 			"count" : products[i].count

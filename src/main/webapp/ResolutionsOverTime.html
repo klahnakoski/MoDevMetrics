@@ -3,24 +3,48 @@
 <HEAD>
 </HEAD>
 <BODY>
-<!--[if lt IE 9]>
-<script type="text/javascript" src="lib/jqplot/excanvas.js"></script>
-<![endif]-->
-<script type="text/javascript" src="lib/jqplot/jquery.js"></script>
-<script type="text/javascript" src="lib/jqplot/jquery.jqplot.js"></script>
-<script type="text/javascript" src="lib/jqplot/plugins/jqplot.barRenderer.min.js"></script>
-<script type="text/javascript" src="lib/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>
-<script type="text/javascript" src="lib/jqplot/plugins/jqplot.pointLabels.js"></script>
-<script type="text/javascript" src="lib/jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>
-<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>
-<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>
-<script type="text/javascript" src="lib/jqplot/plugins/jqplot.logAxisRenderer.js"></script>
-<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>
+<!--&lt;!&ndash;[if lt IE 9]>-->
+<!--<script type="text/javascript" src="lib/jqplot/excanvas.js"></script>-->
+<!--<![endif]&ndash;&gt;-->
+<!--<script type="text/javascript" src="lib/jqplot/jquery.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/jquery.jqplot.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.barRenderer.min.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.pointLabels.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.logAxisRenderer.js"></script>-->
+<!--<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>-->
 
 
-<!--<script type="text/javascript" src="lib/js/jquery-1.7.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/jquery.jqplot.min.js"></script>-->
-<!--<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css" />-->
+<script type="text/javascript" src="lib/webdetails/cdf/Base.js"></script>
+<script type="text/javascript" src="lib/webdetails/cdf/jquery.js"></script>
+<script type="text/javascript" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
+<script type="text/javascript" src="lib/webdetails/data/q01-01.js"></script>
+<script type="text/javascript" src="lib/webdetails/lib/protovis-d3.3.js"></script>
+<script type="text/javascript" src="lib/webdetails/lib/jquery.tipsy.js"></script>
+<script type="text/javascript" src="lib/webdetails/lib/tipsy.js"></script>
+<link type="text/css" href="lib/webdetails/lib/tipsy.css" rel="stylesheet"/>
+
+<script type="text/javascript" src="lib/webdetails/pvc/pvc.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcPanel.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcLegend.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcWaterfall.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcPie.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcBar.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcLine.js"></script>
+<script type="text/javascript" src="lib/webdetails/pvc/pvcData.js"></script>
+
+<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
+
+<script type="text/javascript" src="lib/webdetails/pvcDocUtils.js"></script>
+
+
+
 
 
 <link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
@@ -66,26 +90,20 @@
 
 <table style="width: 100%;">
 	<tr>
-		<td style="width: 300px;  vertical-align:text-top;">
+		<td style="width: 320px;  vertical-align:text-top;">
+			<div id="parameters" class="parameters">
+				<span class="parameter_name">Start Date</span><input type="text" id="startDate"><br>
+				<span class="parameter_name">End Date</span><input type="text" id="endDate">
+			</div>
 			<div id="filters" class="menu"></div>
 			<div id="testMessage"></div>
 		</td>
 		<td style="vertical-align:text-top;">
-			<table style="margin-left: auto; margin-right: auto; border: 0px solid black;">
-				<tr>
-					<td style="width: 800px; height: 100px; margin-left: auto; margin-right: auto;">
-						<div style="text-align: center;font:10px arial,sans-serif;">
-							Start Date <input type="text" id="startDate">
-							<input type="text" id="endDate"> End Date
-						</div>
-					</td>
-				</tr>
-			</table>
+
 			<table style="margin-left: auto; margin-right: auto; border: 1px solid black;">
 				<tr>
 					<td style="width: 800px; height: 400px; margin-left: auto; margin-right: auto;">
-						<div id="chart"
-							 style="width: 800px; height: 400px;"></div>
+						<div id="chart"></div>
 					</td>
 				</tr>
 				<tr>
@@ -106,37 +124,56 @@
 
 <script type="text/javascript">
 
-	GUI.GetURLState();
+	var query=undefined;
 
+	var createChart=function(){
+		if (query!==undefined) query.kill();
 
-	var query = new ESQuery({
-		"name":"Resolution by Bug Age",
-		"from":"bugs",
-		"select":{"name":"Count", "value":"1", "operation":"count"},
-		"facets":[
-			{"name":"Resolution Type", "value":'resolution'},
-			//{"name":"Cohort", "value":'modified_ts', "domain":{"type":"time", "min":Date.now().add("-6month"), "max":Date.now().add("-1second"), "interval":"6month"}},
-			{"name":"Age", "value":'doc["modified_ts"].value-doc["created_ts"].value', "domain":{"type":"duration", "min":0, "max":"3week", "interval":"day"}}
-		],
-		"where":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value',
-		"esfilter":{"and":[
-			{"terms":{"bug_status":["resolved", "verified", "closed"]}},
-			{"range":{"modified_ts":{"gte":Date.now().add("-6month")}}}
-		]}
-	});
-
-	console.info(CNV.Object2JSON(query.esQuery));
-
-	status.message("Calling ES");
-	query.run(function(chartCube){
-
-		status.message("Make Chart");
-		aChart.show({
-			"id":"chart",
-			"type":"line",
-			"cube":chartCube
+		query = new ESQuery({
+			"name":"Resolution by Bug Age",
+			"from":"bugs",
+			"select":{"name":"Count", "value":"1", "operation":"count"},
+			"facets":[
+				{"name":"Resolution Type", "value":'resolution'},
+				//{"name":"Cohort", "value":'modified_ts', "domain":{"type":"time", "min":Date.now().add("-6month"), "max":Date.now().add("-1second"), "interval":"6month"}},
+				{"name":"Age", "value":'doc["modified_ts"].value-doc["created_ts"].value', "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
+			],
+			"where":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value',
+			"esfilter":{"and":[
+				{"terms":{"bug_status":["resolved", "verified", "closed"]}},
+				{"range":{"modified_ts":{"gte":state.sampleMin}}},
+				{"range":{"modified_ts":{"lte":state.sampleMax}}}
+			]},
+			"essize":state.esSize
 		});
-		status.message("Done");
+
+		console.info(CNV.Object2JSON(query.esQuery));
+
+		status.message("Calling ES");
+		query.run(function(chartCube){
+
+			SQL.normalizeByX(chartCube);
+
+			status.message("Make Chart");
+			aChart.showCCC({
+				"id":"chart",
+				"type":"stackedline",
+				"cube":chartCube
+			});
+			status.message("Done");
+		});
+	};
+
+	$(document).ready(function(){
+		GUI.setup([
+			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
+			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
+			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
+			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-6month")},
+			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
+			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":1000000}
+		]);
+		createChart();
 	});
 
 </script>

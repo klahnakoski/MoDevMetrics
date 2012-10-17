@@ -48,7 +48,6 @@ Util.copy = function(from, to){
 
 Util.jsonCopy = function(obj){
 	return JSON.parse(JSON.stringify(obj));
-	;
 };
 
 Util.returnNull = function(__row){
@@ -56,9 +55,24 @@ Util.returnNull = function(__row){
 };//method
 
 
+
+
+/// REPLACE ALL INSTANCES OF find WITH REPLACE, ONLY ONCE
+String.prototype.replaceAll = function(find, replace){
+	var output = Util.jsonCopy(this);
+
+	var s=0;
+	while(true){
+		s = output.indexOf(find, s);
+		if (s < 0) return output;
+		output=output.replace(find, replace);
+		s=s-find.length+replace.length;
+	}//while
+};//method
+
 ///
 /// EXPECTING AN OBJECT WITH KEY VALUE PAIRS
-String.prototype.replaceAll = function(values){
+String.prototype.replaceVars = function(values){
 	var output = Util.jsonCopy(this);
 
 	while(true){

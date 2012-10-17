@@ -23,22 +23,38 @@
 	console.info(new Date(1347753600000).format("yyyy-NNN-dd HHmmss"));
 	console.info(new Date(1348358400000).format("yyyy-NNN-dd HHmmss"));
 
-	var esQuery=
+	var esQuery={
+		"query" : {
+		   "filtered" : {
+			 "query" : {
+			   "match_all" : {}
+			 },
+			 "filter" : {
+			   "and" : [
+				 { "range": { "previous_values.bug_status_change_away_ts": { "gte": "now-6M" } } },
+				 { "terms": { "bug_status" : ["resolved","verified","closed"]}},
+				 { "range": { "modified_ts" :{"gte": "now-6M"} } },
+				 { "script": {
+					 "script" : "doc['previous_values.bug_status_change_away_ts'].value == doc['modified_ts'].value"
+				   }
+				 },
+				 { "terms": { "previous_values.bug_status_value": ["unconfirmed", "new", "assigned", "reopened"] } }
+			   ]
+			 }
+		   }
+		 },
+		 "from" : 0,
+		 "size" : 10,
+		 "sort" : [],
+		 "facets" : {
+		   "bug_age" : {
+			 "terms": {
+				"script_field": "_source.resolution+'|'+Math.floor((doc['modified_ts'].value - doc['created_ts'].value) / 86400000)",
+				"size": 100
+			 }
+		   }
+		 }
 
-	{"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
-		{"range":{"created_ts":{"gt":Date.now().add("-6month")}}},
-//		{"not":{"range":{"expires_on":{"gt":"2012-10-17T04:01:01.000Z"}}}},
-		{"or":[
-			{"term":{"status_whiteboard.tokenized":"sg:dos"}},
-			{"term":{"status_whiteboard.tokenized":"sg:low"}},
-			{"term":{"status_whiteboard.tokenized":"sg:mod"}},
-			{"term":{"status_whiteboard.tokenized":"sg:crit"}}
-		]},
-//		{"script":{"script":"true"}},
-//		{"script":{"script":"true"}},
-//		{"range":{"modified_ts":{"gte":1347753600000}}},
-//		{"range":{"modified_ts":{"lt":1348358400000}}}
-	]}}},"from":0,"size":100,"sort":[]
 
 	//		"facets" : {
 //			"range1" : {

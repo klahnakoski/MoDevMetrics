@@ -85,14 +85,14 @@ ProgramFilter.prototype.injectHTML = function(programs){
 	//GIVE USER OPTION TO SELECT ALL PRODUCTS
 	var total = 0;
 	for(var i = 0; i < programs.length; i++) total += programs[i].count;
-	html += item.replaceAll({
+	html += item.replaceVars({
 		"class" : ((state.selectedPrograms.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
 		"name" : "ALL",
 		"count" : total
 	});
 
 	for(var i = 0; i < programs.length; i++){
-		html += item.replaceAll({
+		html += item.replaceVars({
 			"class" : (include(state.selectedPrograms, programs[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
 			"name" : programs[i].term,
 			"count" : programs[i].count

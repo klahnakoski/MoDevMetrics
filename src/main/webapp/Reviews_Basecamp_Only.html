@@ -139,6 +139,17 @@
 				]
 			}).list;
 
+			//ADD LINK TO BUGS
+			result=new SQL().calc2List({
+				"from":result,
+				"select":[
+					{"name":"numPending", value:"numPending"},
+					{"name":"bugs", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
+				]
+			}).list;
+
+
+
 			var assigned = CNV.ESFacet2List(data.facets.assigned);
 			var result2 = new SQL().calc2List({
 				"from":
@@ -152,6 +163,16 @@
 				],
 				"order":[
 					"numPending"
+				]
+			}).list;
+
+						//ADD LINK TO BUGS
+			result2=new SQL().calc2List({
+				"from":result2,
+				"select":[
+					{"name":"assigned_to", value:"assigned_to"},
+					{"name":"numPending", value:"numPending"},
+					{"name":"bugs", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
 				]
 			}).list;
 

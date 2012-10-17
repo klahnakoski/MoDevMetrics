@@ -15,6 +15,8 @@ ESQuery.prototype.run = function(successCallback){
 
 
 ESQuery.prototype.success = function(requestObj, data){
+	if (this.callback!==undefined) return;
+
 	status.message("Extract Cube");
 
 	if (this.esMode == "terms_stats"){
@@ -27,10 +29,16 @@ ESQuery.prototype.success = function(requestObj, data){
 	this.callback(this.query);
 };
 
-
 ESQuery.prototype.error = function(requestObj, errorData, errorMsg, errorThrown){
 	D.error(errorMsg)
 };
+
+ESQuery.prototype.kill = function(){
+	this.callack=undefined;
+};
+
+
+
 
 
 ESQuery.prototype.compileSetOp=function(){
@@ -106,7 +114,7 @@ ESQuery.prototype.buildFacetQueries = function(){
 				"terms_stats":{
 					"key_field":this.specialFacet.value,
 					"value_script":this.select.value,
-					"size":0
+					"size":this.query.essize
 				},
 				"facet_filter":{
 					"and":condition
@@ -261,7 +269,7 @@ ESQuery.prototype.terms_statsResults = function(data){
 		for(var t = 0; t < terms.length; t++){
 			var term = terms[t].term;
 			if (map[term] === undefined){
-				var part = {"value":term};
+				var part = {"value":term, "name":term};
 				partitions.push(part);
 				map[term] = part;
 			}//endif

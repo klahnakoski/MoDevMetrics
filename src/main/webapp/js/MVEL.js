@@ -151,6 +151,24 @@ MVEL.prototype.where = function(esFilter){
 			output += "(" + this.translate(variableName) + "==" + MVEL.Value2Code(valueList[i]) + ")";
 		}//for
 		return output;
+	}else if (op=="missing"){
+//		"missing" : {
+//			"field" : "requestee",
+//			"existence" : true,
+//			"null_value" : true
+//		}
+		var fieldName=this.translate(esFilter[op].field);
+		var testExistence=esFilter[op].existence;
+		var testNull=esFilter[op].null_value;
+
+		var output=[];
+		if (testExistence && !testNull){
+			output.push("("+fieldName+" == empty)");
+		}//endif
+		if (testNull){
+			output.push("("+fieldName+"==null)");
+		}//endif
+		return output.join(" || ");
 	} else if (op = "range"){
 		var pair = esFilter[op];
 		var variableName = Object.keys(pair)[0];

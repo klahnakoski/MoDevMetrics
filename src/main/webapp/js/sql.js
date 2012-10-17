@@ -205,18 +205,23 @@ SQL.prototype.calc2Cube = function(query){
 		var value = data;
 		var f = 0;
 
+		var part=undefined;
+		for(; f < facets.length - 1; f++){
+			part=result[facets[f].name];
+			if (part.dataIndex===undefined) part=facets[f].domain.getPartition(part);//DEFAULT DOMAIN DOES NOT RETURN PARTITION OBJECTS, SPECIAL DEREF REQUIRED
+			value = value[part.dataIndex];
+		}//for
+		part=result[facets[f].name];
+		if (part.dataIndex===undefined) part=facets[f].domain.getPartition(part);//DEFAULT DOMAIN DOES NOT RETURN PARTITION OBJECTS, SPECIAL DEREF REQUIRED
+
 		if (query.select instanceof Array){
-			for(; f < facets.length; f++){
-				value = value[result[facets[f].name].dataIndex];
-			}//for
+			value = value[part.dataIndex];
+
 			for(var s = 0; s < query.select.length; s++){
 				value[s] = result[query.select[s].name];
 			}//for
 		} else{
-			for(; f < facets.length - 1; f++){
-				value = value[result[facets[f].name].dataIndex];
-			}//for
-			value[result[facets[f].name].dataIndex] = result[query.select.name];
+			value[part.dataIndex] = result[query.select.name];
 		}//endif
 	}//for
 
@@ -246,11 +251,11 @@ SQL.prototype.setOP = function(query){
 		var result = {};
 		for(var s = 0; s < select.length; s++){
 			var ss = select[s];
-			if (where(query.from[t], {})){
-				result[ss.name] = ss.calc(query.from[t], null);
-			}//endif
+			result[ss.name] = ss.calc(query.from[t], null);
 		}//for
-		output.push(result);
+		if (where(query.from[t], result)){
+			output.push(result);
+		}//endif
 	}//for
 
 
@@ -308,6 +313,29 @@ SQL.normalizeByCohort=function(query){
 		}//endif
 	}//for
 };//method
+
+////////////////////////////////////////////////////////////////////////////////
+// ASSUME THE SECOND DIMESION IS THE XAXIS, AND NORMALIZE (DIVIDE BY SUM(ABS(Ci))
+////////////////////////////////////////////////////////////////////////////////
+SQL.normalizeByX=function(query){
+	if (query.data===undefined) D.error("Can only normalize a cube into a table at this time");
+
+//	SELECT
+//		count/sum(count over Cohort) AS nCount
+//	FROM
+//		query.cube
+
+	for(var e=0;e<query.data[0].length;e++){
+		var total=0;
+		for(var c=0;c<query.data.length;c++) total+=Math.abs(query.data[c][e]);
+		if (total!=0){
+			for(var c=0;c<query.data.length;c++) query.data[c][e]/=total;
+		}//endif
+	}//for
+};//method
+
+
+
 
 // CONVERT THE indexed OBJECT TO A FLAT LIST FOR output
 SQL.outputToList = function(output, indexed, facets, depth, order){

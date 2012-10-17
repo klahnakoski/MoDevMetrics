@@ -1,8 +1,5 @@
 var state = {};
 
-state["startDate"] = Date.now().addMonth(-3).format("yyyy-MM-dd");
-state["endDate"] = Date.now().format("yyyy-MM-dd");
-
 state.selectedPrograms = [];
 state.selectedProducts = [];
 state.selectedComponents = [];
@@ -14,7 +11,7 @@ componentUI = null;
 
 GUI = {};
 
-GUI.setup = function(){
+GUI.setup = function(parameters){
 	state.programFilter = new ProgramFilter();
 	state.productFilter = new ProductUI();
 	state.componentFilter = new ComponentUI();
@@ -22,7 +19,9 @@ GUI.setup = function(){
 	GUI.makeSelectionPanel();
 	GUI.showESTime();
 	GenerateCustomFilters();
-	GUI.UpdateTextFields();
+	GUI.AddParameters(parameters); //ADD PARAM AND SET DEFAULTS
+	GUI.UpdateState();			//UPDATE STATE OBJECT WITH THOSE DEFAULTS
+	GUI.GetURLState();			//OVERWRITE WITH URL PARAM
 };
 
 
@@ -65,9 +64,9 @@ GUI.UpdateURL = function(){
 		var t = typeof(state[keys[k]]);
 		if (
 			jQuery.isArray(state[keys[k]]) ||
-				typeof(state[keys[k]]) == "string" ||
-				Math.isNumeric(state[keys[k]])
-			){
+			typeof(state[keys[k]]) == "string" ||
+			Math.isNumeric(state[keys[k]])
+		){
 			simplestate[keys[k]] = state[keys[k]];
 		}//endif
 
@@ -78,65 +77,98 @@ GUI.UpdateURL = function(){
 
 GUI.GetURLState = function(){
 	var urlState = jQuery.bbq.getState();
-	for(var k=0;k<urlState.length;k++){
+	for(var k in urlState){
 		state[k] = urlState[k];
-	}
+	}//for
+	GUI.UpdateParameters();
 };
 
-var dateField = function(elementName){
-	$("#" + elementName).datepicker({ maxDate: "-1D" });
-	$("#" + elementName).datepicker("option", "dateFormat", "yy-mm-dd");
-	$("#" + elementName).val(state[elementName]);
 
-	$("#" + elementName).change(function(){
-		if (GUI.UpdateState()){
-			GUI.UpdateURL();
-			createChart();
-		}
+GUI.AddParameters=function(parameters){
+	GUI.parameters=parameters;
+
+	//INSERT HTML
+	var template='<span class="parameter_name">{NAME}</span><input type="{TYPE}" id="{ID}"><span class="parameter_error" id="{ID}_error"></span><br>\n';
+	var html="";
+	parameters.forEach(function(param){
+		html+=template.replaceVars({
+			"ID":param.id,
+			"NAME":param.name,
+			"TYPE":{"time":"text", "date":"text", "duration":"text", "text":"text"}[param.type]  //MAP PARAMETER TYPES TO HTML TYPES
+		});
 	});
-};
+	$("#parameters").html(html);
 
-$(function(){
-	$("#progressbar").progressbar({
-		value: 0
+
+	//MARKUP PARAMETERS
+	parameters.forEach(function(param){
+		var defaultValue=param["default"];
+
+		////////////////////////////////////////////////////////////////////////
+		// DATE
+		if (param.type=="date" ||param.type=="time"){
+			$("#" + param.id).datepicker({ maxDate: "-1D" });
+			$("#" + param.id).datepicker("option", "dateFormat", "yy-mm-dd");
+
+			$("#" + param.id).change(function(){
+				if (GUI.UpdateState()){
+					GUI.UpdateURL();
+					createChart();
+				}
+			});
+			defaultValue=defaultValue.format("yyyy-MM-dd");
+		////////////////////////////////////////////////////////////////////////
+		// DURATION
+		} else if (param.type=="duration"){
+			$("#" + param.id).change(function(){
+				try{
+					$("#"+$(this).id+"_error").html("");
+					var value=Duration.newInstance($(this).text());
+					$(this).text(value.toString());
+				}catch(e){
+					$("#"+$(this).id+"_error").html("&gt;- ERROR, expecting a valid duration");
+					return;
+				}//try
+
+				if (GUI.UpdateState()){
+					GUI.UpdateURL();
+					createChart();
+				}
+			});
+			defaultValue=defaultValue.toString();
+		}//endif
+
+		$("#" + param.id).val(defaultValue);
+	});//for
+
+};//method
+
+
+
+
+//RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
+GUI.UpdateParameters = function (){
+	var changeDetected = false;
+	GUI.parameters.forEach(function(param){
+		if (state[param.id] != $("#" + param.id).val()){
+			$("#" + param.id).val(state[param.id]);
+			changeDetected = true;
+		}//endif
 	});
-
-	dateField("startDate");
-	dateField("endDate");
-});
-
-GUI.UpdateTextField = function(elementName){
-	if (state[elementName] != $("#" + elementName).val()){
-		$("#" + elementName).val(state[elementName]);
-		return true;
-	}
-
-	return false;
+	return changeDetected;
 };
 
-GUI.UpdateTextFields = function (){
-	if (GUI.UpdateTextField("startDate") ||
-		GUI.UpdateTextField("endDate"))
-		return true;
 
-	return false;
-};
-
-GUI.UpdateStateElement = function(elementName){
-	if (state[elementName] != $("#" + elementName).val()){
-		state[elementName] = $("#" + elementName).val();
-		return true;
-	}//endif
-
-	return false;
-};
-
+//RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
 GUI.UpdateState = function(){
-	if (GUI.UpdateStateElement("startDate") ||
-		GUI.UpdateStateElement("endDate"))
-		return true;
-
-	return false;
+	var changeDetected = false;
+	GUI.parameters.forEach(function(param){
+		if (state[param.id]===undefined || state[param.id] != $("#" + param.id).val()){
+			state[param.id] = $("#" + param.id).val();
+			changeDetected = true;
+		}//endif
+	});
+	return changeDetected;
 };
 
 
