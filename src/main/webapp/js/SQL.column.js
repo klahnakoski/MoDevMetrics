@@ -31,12 +31,14 @@ SQL.column.compile = function(sourceColumns, resultColumn, facets){
 	}//for
 
 	f +=
+		"var output;\n"+
 		"try{ " +
-			"	return (" + resultColumn.value + "); " +
+			"	output=" + resultColumn.value + "; " +
+			"	if (output===undefined) D.error(\"" + resultColumn.name + " returns undefined\");\n"+
+			"	return output;\n" +
 			"}catch(e){ " +
-			"	D.warning(\"Problem with definition of \\\"" + resultColumn.name + "\\\" " + CNV.String2Quote(CNV.String2Quote(resultColumn.value)).leftBut(1).rightBut(1) + "\", e); " +
+			"	D.error(\"Problem with definition of name=\\\"" + resultColumn.name + "\\\" value=" + CNV.String2Quote(CNV.String2Quote(resultColumn.value)).leftBut(1).rightBut(1) + " when operating on __source=\"+CNV.Object2JSON(__source)+\" and __result=\"+CNV.Object2JSON(__result), e); " +
 			"}}";
-
 	try{
 		eval(f);
 	} catch(e){

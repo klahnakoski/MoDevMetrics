@@ -25,8 +25,6 @@ body {
 .menu li {
     list-style-type: none;
     list-style-position: outside;
-    -bottom:;
-    al:;
     margin-left: -15px;
     padding: 0pt;
 }
@@ -67,6 +65,10 @@ table tr {
     border-top: 1px solid black;
 }
 
+table tr td {
+    vertical-align: top;
+}
+
 .parameters {
     width: 320px;
     margin-left: auto;
@@ -82,5 +84,16 @@ table tr {
 
 .parameters span.parameter_error {
     color: red;
+}
+
+#status {
+    color: red;
+    text-align: center;
+    font:20px arial,sans-serif;
+}
+
+#testMessage {
+    text-align: center;
+    font: 12px arial,sans-serif;
 }
 

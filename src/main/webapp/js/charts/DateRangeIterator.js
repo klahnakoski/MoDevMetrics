@@ -8,7 +8,7 @@ DateRangeIterator = function(param){
 };
 
 DateRangeIterator.prototype.NextQuery = function(){
-	var dataSet = this.reportBackObj.dataSet;
+	var dataSet = this.callbackObject.dataSet;
 
 	if (dataSet.currentIndex <= dataSet.maxIndex){
 		this.currentDate = this.startDate.add(this.interval.multiply(dataSet.currentIndex + 1));
@@ -58,16 +58,16 @@ DateRangeIterator.prototype.insertTimeIntervalIntoQuery = function(esQuery, date
 
 DateRangeIterator.prototype.success = function(requestObj, data){
 
-	this.reportBackObj.success(this, data);
-	this.reportBackObj.dataSet.currentIndex += 1;
+	this.callbackObject.success(this, data);
+	this.callbackObject.dataSet.currentIndex += 1;
 	this.NextQuery();
 };
 
 DateRangeIterator.prototype.error = function(requestObj, errorData, errorMsg, errorThrown){
-	this.reportBackObj.error(requestObj, errorData, errorMsg, errorThrown);
+	this.callbackObject.error(requestObj, errorData, errorMsg, errorThrown);
 };
 
-DateRangeIterator.prototype.Kill = function(){
-	this.request.Kill();
+DateRangeIterator.prototype.kill = function(){
+	this.request.kill();
 	this.request = null;
 };

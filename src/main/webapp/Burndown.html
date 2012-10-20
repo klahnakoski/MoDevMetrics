@@ -39,12 +39,27 @@
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 
 
+
+
+<script type="text/javascript" src="js/rest/RestConfig.js"></script>
 <script type="text/javascript" src="js/CNV.js"></script>
 <script type="text/javascript" src="js/aDate.js"></script>
 <script type="text/javascript" src="js/Test2.js"></script>
 <script type="text/javascript" src="js/MozillaPrograms.js"></script>
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/Debug.js"></script>
+<script type="text/javascript" src="js/MVEL.js"></script>
+<script type="text/javascript" src="js/SQL.js"></script>
+<script type="text/javascript" src="js/SQL.aggregate.js"></script>
+<script type="text/javascript" src="js/SQL.column.js"></script>
+<script type="text/javascript" src="js/SQL.cube.js"></script>
+<script type="text/javascript" src="js/SQL.domain.js"></script>
+<script type="text/javascript" src="js/ESQuery.js"></script>
+<script type="text/javascript" src="js/charts/aChart.js"></script>
+
+
+
+<script type="text/javascript" src="../../test/js/SQL.js"></script>
 
 
 <script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
@@ -62,16 +77,34 @@
 <script type="text/javascript" src="js/filters/CustomFilters.js"></script>
 <script type="text/javascript" src="js/filters/GUIFilters.js"></script>
 
+<table style="width: 100%;">
+	<tr>
+		<td style="width: 320px;  vertical-align:text-top;">
+			<div id="status">Chart Loading...</div>
+			<hr>
+			<div id="testMessage"></div>
+			<hr>
+			<div id="parameters" class="parameters">
+			</div>
+			<div id="filters" class="menu"></div>
+		</td>
+		<td>
+			<div id="chart"></div>
+		</td>
+	</tr>
+</table>
+<div id="info"></div>
+<div id="description"></div>
+<div id="report"></div>
+
 
 <script type="text/javascript">
-
-	GUI.GetURLState();
 
 	var rangeChart = null;
 
 	var createChart = function(){
 		if (rangeChart != undefined){
-			rangeChart.Kill();
+			rangeChart.kill();
 		}
 
 		var chartRequest = {
@@ -126,7 +159,7 @@
 			"canvas" : "chart",
 //			"originZero" : true,
 			"chartType" : "LineChart",
-			"groupSize" : 1,
+			"interval" : state.intervalX,
 			"startDate" : state["startDate"],
 			"endDate" : state["endDate"]
 		};
@@ -140,58 +173,19 @@
 	};
 
 
+
+
 	$(document).ready(function(){
-		GUI.setup();
+		GUI.setup([
+			{"id":"startDate", "name":"Min X-axis on Chart", "type":"time", "default":Date.now().floor("day").add("-1year")},
+			{"id":"endDate", "name":"Max X-axis on Chart", "type":"time", "default":Date.now().floor("day")},
+			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
+			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
+		]);
 		createChart();
 	});
-
-	//Code for updating URL paramaters: window.location('address_goes_here');
 </script>
 
-<table style="width: 100%;">
-	<tr>
-		<td style="width: 300px;  vertical-align:text-top;">
-			<div id="filters" class="menu"></div>
-			<div id="testMessage"></div>
-		</td>
-		<td style="vertical-align:text-top;">
-			<table style="margin-left: auto; margin-right: auto; border: 0px solid black;">
-				<tr>
-					<td style="width: 800px; height: 100px; margin-left: auto; margin-right: auto;">
-						<div id="parameter" style="text-align: center;font:10px arial,sans-serif;">
-							Start Date <input type="text" id="startDate">
-							End Date <input type="text" id="endDate">
-						</div>
-					</td>
-				</tr>
-			</table>
-			<table style="margin-left: auto; margin-right: auto; border: 1px solid black;">
-				<tr>
-					<td style="width: 800px; height: 400px; margin-left: auto; margin-right: auto;">
-						<div id="chart"></div>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<div id="status"
-							 style="text-align: center; font:10px arial,sans-serif;">
-							Chart Loading...
-						</div>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<div id="progressbar"
-							 style="height: 10px; width: 200px; margin-left: auto; margin-right: auto;"></div>
-					</td>
-				</tr>
-			</table>
-		</td>
-	</tr>
-</table>
-<div id="info"></div>
-<div id="description"></div>
-<div id="report"></div>
 
 </BODY>
 </HTML>

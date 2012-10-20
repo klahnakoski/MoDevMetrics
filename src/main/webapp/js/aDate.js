@@ -10,6 +10,8 @@ Date.newInstance = function(value){
 Date.prototype.getMilli = Date.prototype.getTime;
 
 
+
+
 Date.prototype.add = function(interval){
 	var i = Duration.newInstance(interval);
 
@@ -18,8 +20,14 @@ Date.prototype.add = function(interval){
 };//method
 
 Date.prototype.subtract=function(time){
-	return Duration.newInstance(this.getMilli()-time.getMilli());
+	if (time.getMilli!==undefined){
+		return Duration.newInstance(this.getMilli()-time.getMilli());
+	}//endif
+
+	var addMilli = time.milli - (Duration.MILLI_VALUES["month"] * time.month);
+	return this.addMonth(-time.month).addMilli(-addMilli);
 };//method
+
 
 
 //CONVERT THIS GMT DATE TO LOCAL DATE
@@ -259,8 +267,6 @@ Duration.MONTH_VALUES = {
 
 //A REAL MONTH IS LARGER THAN THE CANONICAL MONTH
 Duration.MONTH_SKEW = Duration.MILLI_VALUES["year"] / 12 - Duration.MILLI_VALUES["month"];
-Duration.MONTH_SKEW = Duration.MILLI_VALUES["year"] / 12 - Duration.MILLI_VALUES["month"];
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONVERT SIMPLE <float><type> TO A DURATION OBJECT

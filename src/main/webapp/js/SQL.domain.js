@@ -143,12 +143,12 @@ SQL.domain.time = function(column, sourceColumns){
 
 	if (column.test === undefined){
 		d.getPartition = function(value){
-			if (value == null) return null;
-			if (value < this[">="] || this["<"] <= value) return null;
+			if (value == null) return this.NULL;
+			if (value < this[">="] || this["<"] <= value) return this.NULL;
 			for(var i = 0; i < this.partitions.length; i++){
 				if (this.partitions[i].max > value) return this.partitions[i];
 			}//for
-			return null;
+			return this.NULL;
 		};//method
 
 		if (d.partitions === undefined){
@@ -189,12 +189,49 @@ SQL.domain.time = function(column, sourceColumns){
 		eval(f);
 	}//endif
 
+	if (d.partitions === undefined){
+		d.map = {};
+		d.partitions = [];
+		if (!(d[">="] === undefined) && !(d["<"] === undefined)){
+			SQL.domain.time.addRange(d[">="], d["<"], d);
+		}//endif
+	} else{
+		d.map = {};
+		for(var v = 0; v < d.partitions.length; v++){
+			d.map[d.partitions[v].value] = d.partitions[v];  //ASSMUE THE DOMAIN HAS THE value ATTRBUTE
+		}//for
+	}//endif
+
+
+
 	//RETURN CANONICAL KEY VALUE FOR INDEXING
 	d.getKey = function(partition){
 		return partition.value;
 	};//method
 
 };//method;
+
+
+
+SQL.domain.time.addRange = function(min, max, domain){
+	for(var v = min; v.getMilli() < max.getMilli(); v = v.add(domain.interval)){
+		var partition = {
+			"value":v,
+			"min":v,
+			"max":v.add(domain.interval),
+			"name":domain.format(v)
+		};
+		domain.map[v] = partition;
+		domain.partitions.push(partition);
+	}//for
+};//method
+
+
+
+
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // duration IS A PARTITION OF TIME DURATION
@@ -250,7 +287,7 @@ SQL.domain.duration = function(column, sourceColumns){
 
 	if (column.test === undefined){
 		d.getPartition = function(value){
-			if (value == null) return null;
+			if (value == null) return this.NULL;
 			var floor = value.floor(this.interval);
 
 			if (this[">="] === undefined){//NO MINIMUM REQUESTED
@@ -266,7 +303,7 @@ SQL.domain.duration = function(column, sourceColumns){
 			} else if (this[">="] == null){
 				D.error("Should not happen");
 			} else if (value.milli < this[">="].milli){
-				return null;
+				return this.NULL;
 			}//endif
 
 			if (this["<"] === undefined){//NO MAXIMUM REQUESTED
@@ -281,10 +318,10 @@ SQL.domain.duration = function(column, sourceColumns){
 				}//endif
 			} else if (value.milli >= this["<"].milli){
 				column.outOfDomainCount++;
-				return null;
+				return this.NULL;
 			}//endif
 
-			return d.map[floor];
+			return this.map[floor];
 		};//method
 
 		if (d.partitions === undefined){
@@ -329,15 +366,25 @@ SQL.domain.set = function(column, sourceColumns){
 	var d = column.domain;
 	if (d.name === undefined) d.name = d.type;
 
+	d.NULL = {};
+	d.NULL.name="null";
+	d.NULL[d.key] = null;
+
+
+
 	if (d.key === undefined) d.key = "value";
 	if (d.key instanceof Array){
+		for(var i=d.key.length;i--;){
+			d.NULL[d.key[i]]=null;
+		}//for
+
 		d.getKey=function(partition){
 			////////////////////////////////////////////////////////////////////
 			// KEY USING CONCATENATION IS DANGEROUS
 			////////////////////////////////////////////////////////////////////
 			var key="";
-			for(var i=d.key.length;i--;){
-				key+=partition[d.key[i]]+"|";
+			for(var i=this.key.length;i--;){
+				key+=partition[this.key[i]]+"|";
 			}//for
 		};//method
 	}else{
@@ -345,10 +392,6 @@ SQL.domain.set = function(column, sourceColumns){
 			return partition[this.key];
 		};//method
 	}//endif
-
-	d.NULL = {};
-	d.NULL[d.key] = null;
-	d.NULL.name="null";
 
 
 	d.compare = function(a, b){

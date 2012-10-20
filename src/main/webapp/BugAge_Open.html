@@ -3,22 +3,6 @@
 <HEAD>
 </HEAD>
 <BODY>
-<!--&lt;!&ndash;[if lt IE 9]>-->
-<!--<script type="text/javascript" src="lib/jqplot/excanvas.js"></script>-->
-<!--<![endif]&ndash;&gt;-->
-<!--<script type="text/javascript" src="lib/jqplot/jquery.min.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/jquery.jqplot.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.barRenderer.min.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.pointLabels.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.logAxisRenderer.js"></script>-->
-<!--<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>-->
-
-
-
 
 
 
@@ -125,104 +109,71 @@ var query;
 var createChart = function(){
 	if (query!==undefined) query.kill();
 
-	var chartRequest={
-		"esQuery" : {
-			"query":{"filtered":{
-				"query": {
-					"match_all" : {}
-				},
-				"filter" : {
-					"and":[
-						//MAKE SURE WE REPORT BACK FAR ENOUGH IN TIME TO CAPTURE THE LONGEST TIMES (state.maxX) BEING REPORTED
-						{"range":{"modified_ts":{"gte":new Date(state.sampleMin).subtract(Duration.newInstance(state.maxX)).getMilli()}}},
-						{"range":{"modified_ts":{"lte":new Date(state.sampleMax).getMilli()}}}
-					]
-				}
-			}},
-			"from" : 0,
-			"size" : 0,
-			"sort" : [],
-			"facets":{
-				"identified" : {
-					"terms_stats" : {
-						"key_field" : 'bug_id',
-						"value_field" : "modified_ts",
-						"size":state.esSize
-					}
-				},
-				"closed" : {
-					"terms_stats" : {
-						"key_field" : 'bug_id',
-						"value_field" : "modified_ts",
-						"size":state.esSize
-					},
-					"facet_filter" : {
-						"terms" : {"bug_status" : ["resolved", "verified", "closed"]}
-					}
-				}
+
+	query = new ESQuery({
+		"name":"Age of Open Bugs",
+		"from":"bugs",
+		"select":{"name":"Count", "value":"1", "operation":"count"},
+		"facets":[
+			{"name":"State", "value":"\"Open\""},
+			{"name":"Age",
+				"value":"("+Date.now().getMilli()+'-doc["created_ts"].value)',
+				allowNulls:true,
+				"domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}
 			}
-		}
-	};
-
-	ES.InjectFilter(chartRequest);
-
-
-	query=new RestQuery({
-			"success" : function(requestObj, data){
-				status.message("Formatting ES Data");
-				var identified = CNV.ESFacet2List(data.facets.identified);
-				var closed = CNV.ESFacet2List(data.facets.closed);
-
-
-				status.message("Match Identification with Close");
-				var durations = new SQL().calc2List({
-					"from":
-						identified,
-					"select":[
-						{"name":"duration", "value":"c.min-min", "operation":"average"},
-						{"name":"age", "value":"c.min-c.created_ts", "operation":"minimum"}
-					],
-					"facets":[
-						{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "partitions":closed}}
-					],
-					"where":"c.term!=null && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
-				}).list;
-
-				status.message("Tally into interval buckets");
-				var time2res = new SQL().calc2Cube({
-					"name": "Time to Resolution",
-					"from": durations,
-					"select": {"name":"Count", "value":"1", "operation":"count"},
-					"facets":[
-						{"name":"Cohort", "value":"1"},
-						{"name":"Time Since Marked", "value":"Duration.newInstance(duration)", allowNulls:true,  "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
-					]
-				});
-
-				SQL.normalizeByCohort(time2res, 100);
-
-
-				status.message("Make chart");
-				aChart.showCCC({
-					"id":"chart",
-					"type":"stacked",
-					"cube":time2res
-				});
-				status.message("Done");
-			}
+		],
+		"esfilter":{
+			"and":[
+				{"not":{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}},
+				{ "range" : { "expires_on" : { "gte" : Date.now().getMilli()} } }
+			]
 		},
-		0,
-		chartRequest.esQuery
-	);
+		"essize":state.esSize
+	});
+
+	var queryClosed = new ESQuery({
+		"name":"Age of Closed Bugs",
+		"from":"bugs",
+		"select":{"name":"Count", "value":"1", "operation":"count"},
+		"facets":[
+			{"name":"State", "value":"\"Closed\""},
+			{"name":"Age",
+				"value":'doc["modified_ts"].value-doc["created_ts"].value',
+				allowNulls:true,
+				"domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}
+			}
+		],
+		"where":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value',  //ONLY THE DOCUMENT THAT CLOSES THE BUG
+		"esfilter":{"and":[
+			{"terms":{"bug_status":["resolved", "verified", "closed"]}},
+			{"range":{"modified_ts":{"gte":new Date(state.sampleMin).getMilli()}}},
+			{"range":{"modified_ts":{"lte":Date.now().floor("day").getMilli()}}}
+		]},
+		"essize":state.esSize
+	});
+
+	ES.InjectFilter(query);
+	ES.InjectFilter(queryClosed);
 
 
 	status.message("Calling ES");
-	query.Run();
+	query.run(function(chartCube){
+		queryClosed.run(function(chartCubeClosed){
+
+			SQL.union(chartCube, chartCubeClosed);
+
+			status.message("Make chart");
+			aChart.showCCC({
+				"id":"chart",
+				"type":"bar",
+				"cube":chartCube
+			});
+			status.message("Done");
+		});
+	});
+
 
 };
-
-
-
 
 
 	$(document).ready(function(){
@@ -230,8 +181,7 @@ var createChart = function(){
 			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
 			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
 			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
-			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-2year")},
-			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
+			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-3month")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		]);
 		createChart();
