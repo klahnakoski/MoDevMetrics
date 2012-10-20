@@ -21,19 +21,19 @@ aChart.showJQP=function(params){
 	////////////////////////////////////////////////////////////////////////////
 	if (colours===undefined) colours=[aChart.FAVORITE_COLOUR];
 	if (!(colours instanceof Array)) colours=[colours];
-	var parts=chartCube.facets[0].domain.partitions;
+	var parts=chartCube.edges[0].domain.partitions;
 	for(var i=0;i<parts.length;parts++) parts[i].colour=colours[i%colours.length];
 
 
 	////////////////////////////////////////////////////////////////////////////
-	// SERIES (ONLY IF MORE THAN ONE FACET)
+	// SERIES (ONLY IF MORE THAN ONE EDGE)
 	////////////////////////////////////////////////////////////////////////////
-	var xaxis=chartCube.facets[chartCube.facets.length-1];
+	var xaxis=chartCube.edges[chartCube.edges.length-1];
 	var seriesLabels=[];
-	if (chartCube.facets.length==2){
+	if (chartCube.edges.length==2){
 		seriesLabels=new SQL().calc2List({
 			"from":
-				chartCube.facets[0].domain.partitions,			//EACH SERIES NAMES
+				chartCube.edges[0].domain.partitions,			//EACH SERIES NAMES
 			"select":[
 				{"name":"label", "value":"value"},
 				{"name":"color", "value":"Util.coalesce(colour, aChart.FAVORITE_COLOUR)"}
@@ -119,19 +119,19 @@ aChart.showCCC=function(params){
 	////////////////////////////////////////////////////////////////////////////
 	if (colours===undefined) colours=[aChart.FAVORITE_COLOUR];
 	if (!(colours instanceof Array)) colours=[colours];
-	var parts=chartCube.facets[0].domain.partitions;
+	var parts=chartCube.edges[0].domain.partitions;
 	for(var i=0;i<parts.length;parts++) parts[i].colour=colours[i%colours.length];
 
 
 	////////////////////////////////////////////////////////////////////////////
-	// SERIES (ONLY IF MORE THAN ONE FACET)
+	// SERIES (ONLY IF MORE THAN ONE EDGE)
 	////////////////////////////////////////////////////////////////////////////
-	var xaxis=chartCube.facets[chartCube.facets.length-1];
+	var xaxis=chartCube.edges[chartCube.edges.length-1];
 	var seriesLabels=[];
-	if (chartCube.facets.length==2){
+	if (chartCube.edges.length==2){
 		seriesLabels=new SQL().calc2List({
 			"from":
-				chartCube.facets[0].domain.partitions,			//EACH SERIES NAMES
+				chartCube.edges[0].domain.partitions,			//EACH SERIES NAMES
 			"select":[
 				{"name":"label", "value":"value"},
 				{"name":"color", "value":"Util.coalesce(colour, aChart.FAVORITE_COLOUR)"}
@@ -149,7 +149,7 @@ aChart.showCCC=function(params){
 	var chart = new pvc[chartTypes[type]]({
 		canvas: divName,
 		width: 800,
-		height: 600+(chartCube.facets[0].domain.partitions.length/17*21),
+		height: 600+(chartCube.edges[0].domain.partitions.length/17*21),
 		animate:false,
 		title: chartCube.name,
 		legend: true,

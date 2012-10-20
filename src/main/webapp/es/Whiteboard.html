@@ -66,7 +66,7 @@
 						"from" : 0,
 						"size" : 0,
 						"sort" : [],
-						"facets": {
+						"edges": {
 							"Whiteboard Items": {
 								"terms": {
 									"field": "status_whiteboard.tokenized",
@@ -97,7 +97,7 @@
 			success: function(data){
 				var html = "<ul>";
 
-				var terms = data.facets['Whiteboard Items'].terms;
+				var terms = data.edges['Whiteboard Items'].terms;
 
 				for(i = 0; i < terms.length; i++){
 					html += "<li><pre>" + terms[i].term;

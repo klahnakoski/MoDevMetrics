@@ -38,7 +38,7 @@
   "from": 0,
   "size": 0,
   "sort": [],
-  "facets": {
+  "edges": {
     "0": {
       "terms_stats": {
         "key_field": "resolution",

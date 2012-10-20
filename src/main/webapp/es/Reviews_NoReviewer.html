@@ -38,13 +38,8 @@
 				},
 				"filter": {
 					"and":[
-//													{"terms":{"bug_id":[505741]}},
-						{ "range" : { "expires_on" : { "gt" : Date.now().getMilli() } } },
-						{"not" : {
-							"terms" : {
-								"bug_status" : ["resolved", "verified", "closed"]
-							}
-						}}
+						{ "range" : { "expires_on" : { "gt" : Date.now().addDay(1) } } },
+						{"not" : {"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}}
 					]
 				}
 			}
@@ -55,8 +50,8 @@
 			{ "bug_version_num" : {"order" : "asc"} }
 		],
 
-		"facets" : {
-			"pending": {
+		"edges" : {
+			"pendingReview": {
 				"terms": {
 					"script_field":
 							new MVEL().code({
@@ -71,19 +66,25 @@
 									{"or" : [
 										{ "and" : [
 											{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
-											{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}}
+											{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
+//											{"missing" : {
+//												"field" : "doc.attachments.flags.requestee",
+//												"existence" : true,
+//												"null_value" : true
+//											}}
+
 										]}
 									]},
 									{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
 								]}
 							}),
-					"size": 100000
+					"size": 1000
 				}
 			}
 		}
 	};
 
-//	console.info(query.facets.assigned.terms.script_field);
+//	console.info(query.edges.assigned.terms.script_field);
 
 
 	var request = $.ajax({
@@ -93,26 +94,26 @@
 		dataType: "json",
 
 		success: function(data){
-			var esResult = CNV.ESFacet2List(data.facets.pending);
+			var esResult = CNV.ESFacet2List(data.edges.pendingReview);
 
 			var result = new SQL().calc2List({
 				"from":
 					//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
 					new SQL().calc2List({
 						"from":
-								esResult,
+							esResult,
 						"select":[
 						],
-						"facets":[
+						"edges":[
 							{"name":"requestee", "value":"requestee"},
 							{"name":"bug_id", "value":"bug_id"}
 						]
 					}).list,
 				"select":[
 					{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
-					{"name":"bugs", "value":"bug_id", operation:"join", "separator":","}
+					{"name":"bugs", "value":"bug_id", operation:"join", "separator":", "}
 				],
-				"facets":[
+				"edges":[
 					{"name":"requestee", "value":"requestee"}
 				],
 				"order":[
@@ -120,17 +121,20 @@
 				]
 			}).list;
 
-			//ADD LINK TO BUGS
+
+			//ALTER bugs LIST TO INCLUDE LINK
 			result=new SQL().calc2List({
 				"from":result,
 				"select":[
-					{"name":"requestee", "value":"requestee"},
 					{"name":"numPending", value:"numPending"},
 					{"name":"bugs", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
-				]
+				],
+				"where":"requestee=='nobody@mozilla.org' || requestee==null"
 			}).list;
 
-			var htmlSummary = "<h1>Pending Review</h1>" + CNV.List2HTMLTable(result);
+
+
+			var htmlSummary = "<h1>Reviews Requested, but no Requestee</h1>" + CNV.List2HTMLTable(result);
 
 			document.getElementById("info").innerHTML = htmlSummary;
 		},

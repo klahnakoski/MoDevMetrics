@@ -142,7 +142,7 @@ var createChart = function(){
 			"from" : 0,
 			"size" : 0,
 			"sort" : [],
-			"facets":{
+			"edges":{
 				"identified" : {
 					"terms_stats" : {
 						"key_field" : 'bug_id',
@@ -170,8 +170,8 @@ var createChart = function(){
 	query=new RestQuery({
 			"success" : function(requestObj, data){
 				status.message("Formatting ES Data");
-				var identified = CNV.ESFacet2List(data.facets.identified);
-				var closed = CNV.ESFacet2List(data.facets.closed);
+				var identified = CNV.ESFacet2List(data.edges.identified);
+				var closed = CNV.ESFacet2List(data.edges.closed);
 
 
 				status.message("Match Identification with Close");
@@ -182,7 +182,7 @@ var createChart = function(){
 						{"name":"duration", "value":"c.min-min", "operation":"average"},
 						{"name":"age", "value":"c.min-c.created_ts", "operation":"minimum"}
 					],
-					"facets":[
+					"edges":[
 						{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "partitions":closed}}
 					],
 					"where":"c.term!=null && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
@@ -193,7 +193,7 @@ var createChart = function(){
 					"name": "Time to Resolution",
 					"from": durations,
 					"select": {"name":"Count", "value":"1", "operation":"count"},
-					"facets":[
+					"edges":[
 						{"name":"Cohort", "value":"1"},
 						{"name":"Time Since Marked", "value":"Duration.newInstance(duration)", allowNulls:true,  "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
 					]

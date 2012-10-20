@@ -39,7 +39,13 @@
 				"filter": {
 					"and":[
 						{ "range" : { "expires_on" : { "gt" : Date.now().addDay(1) } } },
-						{"not" : {"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}}
+						{ "term" : {"cf_blocking_basecamp": "+"}},
+						{"not" : {
+							"terms" : {
+								"bug_status" : ["resolved", "verified", "closed"]
+							}
+						}
+						}
 					]
 				}
 			}
@@ -50,8 +56,8 @@
 			{ "bug_version_num" : {"order" : "asc"} }
 		],
 
-		"facets" : {
-			"pendingReview": {
+		"edges" : {
+			"pending": {
 				"terms": {
 					"script_field":
 							new MVEL().code({
@@ -66,25 +72,37 @@
 									{"or" : [
 										{ "and" : [
 											{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
-											{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-//											{"missing" : {
-//												"field" : "doc.attachments.flags.requestee",
-//												"existence" : true,
-//												"null_value" : true
-//											}}
-
+											//, "D"]}},
+											{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}}
 										]}
 									]},
 									{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
 								]}
 							}),
-					"size": 1000
+					"size": 100000
+				}
+			},
+			"assigned": {
+				"terms": {
+					"script_field":
+							new MVEL().code({
+								"select" : [
+									{"name":"bug_id", "value":"doc.bug_id"},
+									{"name":"assigned_to", "value":"doc.assigned_to"}
+								],
+								"from":
+										"doc"
+							}),
+					"size": 100000
 				}
 			}
+
+
+
 		}
 	};
 
-//	console.info(query.facets.assigned.terms.script_field);
+	console.info(query.edges.assigned.terms.script_field);
 
 
 	var request = $.ajax({
@@ -94,26 +112,26 @@
 		dataType: "json",
 
 		success: function(data){
-			var esResult = CNV.ESFacet2List(data.facets.pendingReview);
+			var esResult = CNV.ESFacet2List(data.edges.pending);
 
 			var result = new SQL().calc2List({
 				"from":
 					//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
 					new SQL().calc2List({
 						"from":
-							esResult,
+								esResult,
 						"select":[
 						],
-						"facets":[
+						"edges":[
 							{"name":"requestee", "value":"requestee"},
 							{"name":"bug_id", "value":"bug_id"}
 						]
 					}).list,
 				"select":[
 					{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
-					{"name":"bugs", "value":"bug_id", operation:"join", "separator":", "}
+					{"name":"bugs", "value":"bug_id", operation:"join", "separator":","}
 				],
-				"facets":[
+				"edges":[
 					{"name":"requestee", "value":"requestee"}
 				],
 				"order":[
@@ -121,20 +139,46 @@
 				]
 			}).list;
 
-
-			//ALTER bugs LIST TO INCLUDE LINK
+			//ADD LINK TO BUGS
 			result=new SQL().calc2List({
 				"from":result,
 				"select":[
+					{"name":"requestee", "value":"requestee"},
 					{"name":"numPending", value:"numPending"},
 					{"name":"bugs", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
-				],
-				"where":"requestee=='nobody@mozilla.org' || requestee==null"
+				]
 			}).list;
 
 
 
-			var htmlSummary = "<h1>Reviews Requested, but no Requestee</h1>" + CNV.List2HTMLTable(result);
+			var assigned = CNV.ESFacet2List(data.edges.assigned);
+			var result2 = new SQL().calc2List({
+				"from":
+					assigned,
+				"select":[
+					{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
+					{"name":"bugs", "value":"bug_id", operation:"join", "separator":","}
+				],
+				"edges":[
+					{"name":"assigned_to", "value":"assigned_to"}
+				],
+				"order":[
+					"numPending"
+				]
+			}).list;
+
+						//ADD LINK TO BUGS
+			result2=new SQL().calc2List({
+				"from":result2,
+				"select":[
+					{"name":"assigned_to", value:"assigned_to"},
+					{"name":"numPending", value:"numPending"},
+					{"name":"bugs", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
+				]
+			}).list;
+
+			var htmlSummary = "<h1>Pending Review</h1>" + CNV.List2HTMLTable(result);
+			htmlSummary += "<h1>Assigned To</h1>" + CNV.List2HTMLTable(result2);
 
 			document.getElementById("info").innerHTML = htmlSummary;
 		},

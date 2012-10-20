@@ -1,6 +1,6 @@
 SQL.column = {};
 
-SQL.column.compile = function(sourceColumns, resultColumn, facets){
+SQL.column.compile = function(sourceColumns, resultColumn, edges){
 
 	if (resultColumn.value === undefined){
 		resultColumn.calc = Util.returnNull;
@@ -21,9 +21,9 @@ SQL.column.compile = function(sourceColumns, resultColumn, facets){
 			f += "var " + columnName + "=__source." + columnName + ";\n";
 		}//endif
 	}//for
-	if (facets !== undefined) for(var i = 0; i < facets.length; i++){
-		var columnName = facets[i].name;
-		var domainName = facets[i].domain.name;
+	if (edges !== undefined) for(var i = 0; i < edges.length; i++){
+		var columnName = edges[i].name;
+		var domainName = edges[i].domain.name;
 		//ONLY DEFINE VARS THAT ARE USED
 		if (resultColumn.value.indexOf(domainName + ".") != -1){
 			f += "var " + domainName + "=__result." + columnName + ";\n";
@@ -50,7 +50,7 @@ SQL.column.compile = function(sourceColumns, resultColumn, facets){
 
 //MAKE THE WHERE TEST METHOD
 SQL.where = {};
-SQL.where.compile = function(whereClause, sourceColumns, facets){
+SQL.where.compile = function(whereClause, sourceColumns, edges){
 	var whereMethod = null;
 
 
@@ -67,9 +67,9 @@ SQL.where.compile = function(whereClause, sourceColumns, facets){
 			f += "var " + columnName + "=__source." + columnName + ";\n";
 		}//endif
 	}//for
-	if (facets !== undefined) for(var i = 0; i < facets.length; i++){
-		var columnName = facets[i].name;
-		var domainName = facets[i].domain.name;
+	if (edges !== undefined) for(var i = 0; i < edges.length; i++){
+		var columnName = edges[i].name;
+		var domainName = edges[i].domain.name;
 		//ONLY DEFINE VARS THAT ARE USED
 		if (whereClause.indexOf(domainName + ".") != -1){
 			f += "var " + domainName + "=__result." + columnName + ";\n";

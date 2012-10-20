@@ -3,7 +3,19 @@
 <HEAD>
 </HEAD>
 <BODY>
-
+<!--&lt;!&ndash;[if lt IE 9]>-->
+<!--<script type="text/javascript" src="lib/jqplot/excanvas.js"></script>-->
+<!--<![endif]&ndash;&gt;-->
+<!--<script type="text/javascript" src="lib/jqplot/jquery.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/jquery.jqplot.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.barRenderer.min.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.pointLabels.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.logAxisRenderer.js"></script>-->
+<!--<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>-->
 
 
 <script type="text/javascript" src="lib/webdetails/cdf/Base.js"></script>
@@ -35,9 +47,6 @@
 
 
 
-
-
-
 <link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
 <script type="text/javascript" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="text/javascript" src="lib/js/jquery.ba-bbq.js"></script>
@@ -48,10 +57,12 @@
 <script type="text/javascript" src="js/rest/RestConfig.js"></script>
 <script type="text/javascript" src="js/CNV.js"></script>
 <script type="text/javascript" src="js/aDate.js"></script>
+<script type="text/javascript" src="js/aColour.js"></script>
 <script type="text/javascript" src="js/Test2.js"></script>
 <script type="text/javascript" src="js/MozillaPrograms.js"></script>
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/Debug.js"></script>
+
 <script type="text/javascript" src="js/MVEL.js"></script>
 <script type="text/javascript" src="js/SQL.js"></script>
 <script type="text/javascript" src="js/SQL.aggregate.js"></script>
@@ -60,10 +71,6 @@
 <script type="text/javascript" src="js/SQL.domain.js"></script>
 <script type="text/javascript" src="js/ESQuery.js"></script>
 <script type="text/javascript" src="js/charts/aChart.js"></script>
-
-
-
-<script type="text/javascript" src="../../test/js/SQL.js"></script>
 
 
 <script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
@@ -83,7 +90,7 @@
 
 <table style="width: 100%;">
 	<tr>
-		<td style="width: 320px;  vertical-align:text-top;">
+		<td style="width: 320px;">
 			<div id="status">Chart Loading...</div>
 			<hr>
 			<div id="testMessage"></div>
@@ -103,85 +110,56 @@
 
 <script type="text/javascript">
 
-var query;
+	var query=undefined;
 
+	var createChart=function(){
+		if (query!==undefined) query.kill();
 
-var createChart = function(){
-	if (query!==undefined) query.kill();
+		query = new ESQuery({
+			"name":"Resolution by Bug Age",
+			"from":"bugs",
+			"select":{"name":"Count", "value":"1", "operation":"count"},
+			"edges":[
+				{"name":"Resolution Type", "value":'resolution'},
+				//{"name":"Cohort", "value":'modified_ts', "domain":{"type":"time", "min":Date.now().add("-6month"), "max":Date.now().add("-1second"), "interval":"6month"}},
+				{"name":"Age", "value":'doc["modified_ts"].value-doc["created_ts"].value', "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
+			],
+			"where":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value',
+			"esfilter":{"and":[
+				{"not":{"term":{"resolution":""}}},	//THERE IS ONE verified WITH resolution=""
+				{"terms":{"bug_status":["resolved", "verified", "closed"]}},
+				{"range":{"modified_ts":{"gte":new Date(state.sampleMin).getMilli()}}},
+				{"range":{"modified_ts":{"lte":new Date(state.sampleMax).getMilli()}}}
+			]},
+			"essize":state.esSize
+		});
 
+		ES.InjectFilter(query);
 
-	query = new ESQuery({
-		"name":"Age of Open Bugs",
-		"from":"bugs",
-		"select":{"name":"Count", "value":"1", "operation":"count"},
-		"facets":[
-			{"name":"State", "value":"\"Open\""},
-			{"name":"Age",
-				"value":"("+Date.now().getMilli()+'-doc["created_ts"].value)',
-				allowNulls:true,
-				"domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}
-			}
-		],
-		"esfilter":{
-			"and":[
-				{"not":{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}},
-				{ "range" : { "expires_on" : { "gte" : Date.now().getMilli()} } }
-			]
-		},
-		"essize":state.esSize
-	});
+		console.info(CNV.Object2JSON(query.esQuery));
 
-	var queryClosed = new ESQuery({
-		"name":"Age of Closed Bugs",
-		"from":"bugs",
-		"select":{"name":"Count", "value":"1", "operation":"count"},
-		"facets":[
-			{"name":"State", "value":"\"Closed\""},
-			{"name":"Age",
-				"value":'doc["modified_ts"].value-doc["created_ts"].value',
-				allowNulls:true,
-				"domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}
-			}
-		],
-		"where":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value',  //ONLY THE DOCUMENT THAT CLOSES THE BUG
-		"esfilter":{"and":[
-			{"terms":{"bug_status":["resolved", "verified", "closed"]}},
-			{"range":{"modified_ts":{"gte":new Date(state.sampleMin).getMilli()}}},
-			{"range":{"modified_ts":{"lte":Date.now().floor("day").getMilli()}}}
-		]},
-		"essize":state.esSize
-	});
+		status.message("Calling ES");
+		query.run(function(chartCube){
 
-	ES.InjectFilter(query);
-	ES.InjectFilter(queryClosed);
+			SQL.normalizeByX(chartCube, 100);
 
-
-	status.message("Calling ES");
-	query.run(function(chartCube){
-		queryClosed.run(function(chartCubeClosed){
-
-			SQL.union(chartCube, chartCubeClosed);
-
-			status.message("Make chart");
+			status.message("Make Chart");
 			aChart.showCCC({
 				"id":"chart",
-				"type":"bar",
+				"type":"stacked",
 				"cube":chartCube
 			});
 			status.message("Done");
 		});
-	});
-
-
-};
-
+	};
 
 	$(document).ready(function(){
 		GUI.setup([
 			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
-			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
-			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
-			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-3month")},
+			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3year")},
+			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("3month")},
+			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-6month")},
+			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		]);
 		createChart();
@@ -192,3 +170,4 @@ var createChart = function(){
 
 </BODY>
 </HTML>
+		

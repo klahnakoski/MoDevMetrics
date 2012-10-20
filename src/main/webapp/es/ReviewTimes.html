@@ -3,19 +3,24 @@
 <HEAD>
 </HEAD>
 <BODY>
-<!--&lt;!&ndash;[if lt IE 9]>-->
-<!--<script type="text/javascript" src="lib/jqplot/excanvas.js"></script>-->
-<!--<![endif]&ndash;&gt;-->
-<!--<script type="text/javascript" src="lib/jqplot/jquery.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/jquery.jqplot.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.barRenderer.min.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.pointLabels.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.logAxisRenderer.js"></script>-->
-<!--<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>-->
+
+<!--[if lt IE 9]>
+<script type="text/javascript" src="lib/jqplot/excanvas.js"></script>
+<![endif]-->
+<script type="text/javascript" src="lib/jqplot/jquery.js"></script>
+<script type="text/javascript" src="lib/jqplot/jquery.jqplot.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.barRenderer.min.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.pointLabels.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.logAxisRenderer.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>
+
+
+
+
 
 
 <script type="text/javascript" src="lib/webdetails/cdf/Base.js"></script>
@@ -37,15 +42,10 @@
 <script type="text/javascript" src="lib/webdetails/pvc/pvcBar.js"></script>
 <script type="text/javascript" src="lib/webdetails/pvc/pvcLine.js"></script>
 <script type="text/javascript" src="lib/webdetails/pvc/pvcData.js"></script>
-
 <link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
 <link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
 
 <script type="text/javascript" src="lib/webdetails/pvcDocUtils.js"></script>
-
-
-
-
 
 <link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
 <script type="text/javascript" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
@@ -55,14 +55,13 @@
 
 
 <script type="text/javascript" src="js/rest/RestConfig.js"></script>
+
 <script type="text/javascript" src="js/CNV.js"></script>
 <script type="text/javascript" src="js/aDate.js"></script>
-<script type="text/javascript" src="js/aColour.js"></script>
 <script type="text/javascript" src="js/Test2.js"></script>
 <script type="text/javascript" src="js/MozillaPrograms.js"></script>
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/Debug.js"></script>
-
 <script type="text/javascript" src="js/MVEL.js"></script>
 <script type="text/javascript" src="js/SQL.js"></script>
 <script type="text/javascript" src="js/SQL.aggregate.js"></script>
@@ -110,55 +109,136 @@
 
 <script type="text/javascript">
 
-	var query=undefined;
-
 	var createChart=function(){
-		if (query!==undefined) query.kill();
+		var esQuery = {
+				"query":{"filtered":{
+					"query": {
+						"match_all" : {}
+					},
+					"filter" : {
+						"and":[
+							{"range":{"modified_ts":{"gte":new Date(state.sampleMin).getMilli()}}},
+							{"range":{"modified_ts":{"lt":new Date(state.sampleMax).getMilli()}}}
+						]
+					}
+				}},
+				"from" : 0,
+				"size" : 0,
+				"sort" : [],
+				"edges":{
+					"inReview": {
+						"terms":{
+							"script_field":
+								new MVEL().code({
+									"select" : [
+										{"name":"bug_id", "value":"doc.bug_id"},
+										{"name":"modified_ts", "value":"doc.modified_ts"},
+										{"name":"requestee", "value":"doc.attachments.flags.requestee"}
+									],
+									"from":
+											"doc.attachments.flags",
+									"where":
+									{"and" : [
+										{"or" : [
+											{ "and" : [
+												{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
+												{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
+												{"term" : {"doc.attachments.flags.requestee" : "roc@ocallahan.org"}}
+											]}
+										]},
+										{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
+									]}
+								}),
+							"size": state.esSize
+						}
+					},
+					"doneReview" : {
+						"terms":{
+							"script_field":
+									new MVEL().code({
+										"select" : [
+											{"name":"bug_id", "value":"doc.bug_id"},
+											{"name":"modified_ts", "value":"doc.modified_ts"},
+											{"name":"requestee", "value":"doc.attachments.flags.requestee"}
+										],
+										"from":
+												"doc.attachments.flags",
+										"where":
+										{"and" : [
+											{"or" : [
+												{ "and" : [
+													{"not": {"terms" : {"doc.attachments.flags.request_status" : ["?"]}}},
+													{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
+													{"term" : {"doc.attachments.flags.requestee" : "roc@ocallahan.org"}}
+												]}
+											]},
+											{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
+										]}
+									}),
+							"size": state.esSize
+						}
+					}
+				}
+			};
 
-		query = new ESQuery({
-			"name":"Resolution by Bug Age",
-			"from":"bugs",
-			"select":{"name":"Count", "value":"1", "operation":"count"},
-			"facets":[
-				{"name":"Resolution Type", "value":'resolution'},
-				//{"name":"Cohort", "value":'modified_ts', "domain":{"type":"time", "min":Date.now().add("-6month"), "max":Date.now().add("-1second"), "interval":"6month"}},
-				{"name":"Age", "value":'doc["modified_ts"].value-doc["created_ts"].value', "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
-			],
-			"where":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value',
-			"esfilter":{"and":[
-				{"not":{"term":{"resolution":""}}},	//THERE IS ONE verified WITH resolution=""
-				{"terms":{"bug_status":["resolved", "verified", "closed"]}},
-				{"range":{"modified_ts":{"gte":new Date(state.sampleMin).getMilli()}}},
-				{"range":{"modified_ts":{"lte":new Date(state.sampleMax).getMilli()}}}
-			]},
-			"essize":state.esSize
-		});
 
-		ES.InjectFilter(query);
+		ES.InjectFilter({"esQuery":esQuery});
 
-		console.info(CNV.Object2JSON(query.esQuery));
 
-		status.message("Calling ES");
-		query.run(function(chartCube){
+		status.message("Call ES");
+		RestQuery.Run(
+			{
+				"success" : function(requestObj, data){
+					status.message("processing Data");
+					var inReview = CNV.ESFacet2List(data.edges.inReview);
+					var doneReview = CNV.ESFacet2List(data.edges.doneReview);
 
-			SQL.normalizeByX(chartCube, 100);
+					var durations = new SQL().calc2List({
+						"from":
+							inReview,
+						"select":[
+							{"name":"reviewTime", "value":"c.modified_ts-modified_ts", "operation":"minimum"}
+						],
+						"edges":[
+							{"name":"bug_id", "test":"bug_id==c.bug_id && modified_ts<c.modified_ts", "domain":{"type":"set", "name":"c", "key":["bug_id", "modified_ts"], "partitions":doneReview}},
+							{"name":"finished_time", "value":"modified_ts"},
+							{"name":"requestee", "value":"requestee"}
+						]
+					}).list;
 
-			status.message("Make Chart");
-			aChart.showCCC({
-				"id":"chart",
-				"type":"stacked",
-				"cube":chartCube
-			});
-			status.message("Done");
-		});
-	};
+					var time2res = new SQL().calc2Cube({
+						"name": "Review Times",
+						"from": durations,
+						"select": {"name":"Count", "value":"1", "operation":"count"},
+						"edges":[
+							{"name":"Cohort", "value":"Date.newInstance(finished_time)", "domain":{"type":"time", "min":Date.now().floor("month").add("-2year"), "max":Date.now().floor("month").add("-1second"), "interval":"6month", format:"NNN yyyy"}},
+							{"name":"Review Time", "value":"Duration.newInstance(reviewTime)", allowNulls:true, "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
+						]
+					});
+
+					SQL.normalizeByCohort(time2res);
+
+					aChart.showCCC({
+						"id":"chart",
+						"type":"bar",
+						"cube":time2res
+					});
+
+					status.message("Done");
+				}
+			},
+			0,
+			esQuery
+		);
+	};//createChart
+
 
 	$(document).ready(function(){
 		GUI.setup([
 			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
 			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
 			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
-			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-6month")},
+			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-2year")},
 			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		]);
@@ -170,4 +250,3 @@
 
 </BODY>
 </HTML>
-		

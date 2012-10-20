@@ -47,7 +47,7 @@ Test.testReviewQueueSummary = function(){
 					sourceData,
 				"select":[
 				],
-				"facets":[
+				"edges":[
 					{"name":"requestee", "value":"requestee"},
 					{"name":"bug_id", "value":"bug_id"}
 				]
@@ -56,7 +56,7 @@ Test.testReviewQueueSummary = function(){
 			{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
 			{"name":"bugs", "value":"bug_id", operation:"join", "separator":","}
 		],
-		"facets":[
+		"edges":[
 			{"name":"requestee", "value":"requestee"}
 		],
 		"order":[
@@ -202,7 +202,7 @@ Test.ReviewQueuesOverTime = function(){
 			{"name":"max", "operation": "maximum", "value": "Date.newInstance(modified_ts).floorWeek()"},
 			{"name":"min", "operation": "minimum", "value": "Date.newInstance(modified_ts).floorWeek()"}
 		],
-		"facets" : [
+		"edges" : [
 			{"name":"interval", "value" : "'week'"},
 			{"name":"type", "value":"'time'"}
 		]
@@ -218,7 +218,7 @@ Test.ReviewQueuesOverTime = function(){
 			{"name":"duration_min", "operation":"minimum", "value": "modified_ts-previous_modified_ts"},
 			{"name":"count", "operation":"count", "value":"1"}
 		],
-		"facets" : [
+		"edges" : [
 			{"name" : "week", "value": "Date.newInstance(modified_ts)", "domain" : range}
 		],
 		"order":[
@@ -851,7 +851,7 @@ Test.burndown = function(){
 			//{"name":"state", "value":"state", "operation":"filter", "test":"modified_ts>total.modified_ts"},
 			{"name":"best_date", "value":"modified_ts", "operation":"maximum", "sort":"descending"}
 		],
-		"facets":[
+		"edges":[
 			{"name":"date", "test":"Date.newInstance(modified_ts)<time.max", domain:{"type": "time", "min":startDate, "max": Date.now().floorDay(), interval:"day"}},
 			{"name":"bug_id", "value":"bug_id"}
 		],
@@ -867,7 +867,7 @@ Test.burndown = function(){
 //		"select":[
 //			{"name":"count", value:"1", "operation":"count"}
 //		],
-//		"facets":[
+//		"edges":[
 //			{"name":"date", "value":"date", domain:{"type": "time", "min":startDate, "max": Date.now().floorDay(), interval:"day"}},
 //			{"name":"status", "value":"bugs.state", "test":"bug_id==bugs.bug_id && modified_ts==bugs.modified_ts", "domain":{"name":"bugs", "type": "set", "from":esAllBugs}}
 //		]
@@ -926,11 +926,11 @@ Test.TimeToResolution = function(){
 	var durations = new SQL().calc2List({
 		"from":
 			CNV.Table2List(Test.TimeToResolution.IndentifiedData),
-//					{"name":"i", "list":data.facets.identified},
+//					{"name":"i", "list":data.edges.identified},
 		"select":[
 			{"name":"duration", "value":"c.min-min", "operation":"average"}
 		],
-		"facets":[
+		"edges":[
 			{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "list":CNV.Table2List(Test.TimeToResolution.ClosedData)}}
 		]
 	}).list;
@@ -941,7 +941,7 @@ Test.TimeToResolution = function(){
 		"select":[
 			{"name":"count", "value":"1", "operation":"count"}
 		],
-		"facets":[
+		"edges":[
 			{"name":"duration", "value":"Duration.newInstance(duration)", "domain":{"type":"duration", "min":0, "interval":"week"}}
 		]
 	}).list;

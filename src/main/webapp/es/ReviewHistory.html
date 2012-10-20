@@ -117,15 +117,30 @@
 					},
 					"filter" : {
 						"and":[
-							{"range":{"modified_ts":{"gte":new Date(state.sampleMin).getMilli()}}},
-							{"range":{"modified_ts":{"lt":new Date(state.sampleMax).getMilli()}}}
+//							{"terms":{"bug_id":[454532]}},//, 19963, 505741]}},
+							{ "nested": {
+								"path" : "attachments.flags",
+								"query": {
+									"filtered" : {
+										"query" : {
+											"match_all" : {}
+										},
+										"filter" : {
+											"and":[
+												{"terms" : {"attachments.flags.request_type" : ["review", "superreview"]}},
+												{"term" : {"attachments.flags.requestee" : state.requestee}}
+											]
+										}
+									}
+								}
+							}}
 						]
 					}
 				}},
 				"from" : 0,
-				"size" : 0,
+				"size" : 200,
 				"sort" : [],
-				"facets":{
+				"edges":{
 					"inReview": {
 						"terms":{
 							"script_field":
@@ -143,13 +158,18 @@
 											{ "and" : [
 												{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
 												{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-												{"term" : {"doc.attachments.flags.requestee" : "roc@ocallahan.org"}}
+												{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
 											]}
 										]},
 										{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
 									]}
 								}),
 							"size": state.esSize
+						},
+						"facet_filter":{//HOPEFULLY THIS HELPS
+							"and":[
+								{"range":{"modified_ts":{"lt":new Date(state.sampleMax).getMilli()}}}
+							]
 						}
 					},
 					"doneReview" : {
@@ -158,7 +178,7 @@
 									new MVEL().code({
 										"select" : [
 											{"name":"bug_id", "value":"doc.bug_id"},
-											{"name":"modified_ts", "value":"doc.modified_ts"},
+											{"name":"modified_ts", "value":"(doc.bug_status=='resolved'||doc.bug_status=='verified'||doc.bug_status=='closed') ? doc.modified_ts : doc.attachments.flags.modified_ts"},
 											{"name":"requestee", "value":"doc.attachments.flags.requestee"}
 										],
 										"from":
@@ -169,13 +189,23 @@
 												{ "and" : [
 													{"not": {"terms" : {"doc.attachments.flags.request_status" : ["?"]}}},
 													{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-													{"term" : {"doc.attachments.flags.requestee" : "roc@ocallahan.org"}}
+													{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
+												]},
+												{ "and" : [//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
+													{"terms" : {"doc.bug_status" : ["resolved", "verified", "closed"]}},
+													{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
+													{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
 												]}
-											]},
-											{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
+											]}
+//											{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
 										]}
 									}),
 							"size": state.esSize
+						},
+						"facet_filter":{//HOPEFULLY THIS HELPS
+							"and":[
+								{"range":{"modified_ts":{"lt":new Date(state.sampleMax).getMilli()}}}
+							]
 						}
 					}
 				}
@@ -190,38 +220,52 @@
 			{
 				"success" : function(requestObj, data){
 					status.message("processing Data");
-					var inReview = CNV.ESFacet2List(data.facets.inReview);
-					var doneReview = CNV.ESFacet2List(data.facets.doneReview);
+					var inReview = CNV.ESFacet2List(data.edges.inReview);
+					var doneReview = CNV.ESFacet2List(data.edges.doneReview);
 
-					var durations = new SQL().calc2List({
+
+					var flooring=state.sampleInterval;
+					if (flooring.indexOf("hour")!=-1) flooring="hour";
+					if (flooring.indexOf("day")!=-1) flooring="day";
+					if (flooring.indexOf("week")!=-1) flooring="week";
+					if (flooring.indexOf("month")!=-1) flooring="month";
+					if (flooring.indexOf("year")!=-1) flooring="year";
+
+					var reviewQueues = new SQL().calc2List({
 						"from":
 							inReview,
 						"select":[
-							{"name":"reviewTime", "value":"c.modified_ts-modified_ts", "operation":"minimum"}
+							{"name":"bug_id", "value":"bug_id", "operation":"minimum"},
+							{"name":"end_time", "value":"new Date(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "operation":"minimum"}
 						],
-						"facets":[
-							{"name":"bug_id", "test":"bug_id==c.bug_id && modified_ts<c.modified_ts", "domain":{"type":"set", "name":"c", "key":["bug_id", "modified_ts"], "partitions":doneReview}},
-							{"name":"finished_time", "value":"modified_ts"},
-							{"name":"requestee", "value":"requestee"}
-						]
+						"edges":[
+							{"name":"close_record", "test":"bug_id==doneReview.bug_id && requestee==doneReview.requestee && modified_ts<=doneReview.modified_ts", allowNulls:true,
+								"domain":{"type":"set", "name":"doneReview", "key":["bug_id", "modified_ts", "requestee"], "partitions":doneReview}
+							},
+							{"name":"requestee", "value":"requestee"},
+							{"name":"start_time", "value":"new Date(modified_ts)"}
+						],
+						"where":"modified_ts<"+new Date(state.sampleMax).getMilli()+" && (doneReview.bug_id==null || doneReview.modified_ts>="+new Date(state.sampleMin).getMilli()+")"
 					}).list;
 
-					var time2res = new SQL().calc2Cube({
-						"name": "Review Times",
-						"from": durations,
-						"select": {"name":"Count", "value":"1", "operation":"count"},
-						"facets":[
-							{"name":"Cohort", "value":"Date.newInstance(finished_time)", "domain":{"type":"time", "min":Date.now().floor("month").add("-2year"), "max":Date.now().floor("month").add("-1second"), "interval":"6month", format:"NNN yyyy"}},
-							{"name":"Review Time", "value":"Duration.newInstance(reviewTime)", allowNulls:true, "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
+
+					var chart=new SQL().calc2Cube({
+						"name":
+							"Historical Review Queue for "+state.requestee,
+						"from":reviewQueues,
+						"select":{"name":"Pending", "value":"1", operation:"binary"},
+						"edges":[
+							{"name":"Bug ID", "value":"bug_id", "order":["start_time.floor('"+flooring+"')", "end_time.floor('"+flooring+"')"]},
+							{"name":"Date", "test":"start_time.floor('"+flooring+"')<=time.value && time.value<=end_time.add('"+flooring+"').floor('"+flooring+"')", "domain":{"type":"time", "min":state.sampleMin, "max":state.sampleMax, "interval":flooring, "format":"NNN dd"}}
 						]
 					});
 
-					SQL.normalizeByCohort(time2res);
+
 
 					aChart.showCCC({
 						"id":"chart",
-						"type":"bar",
-						"cube":time2res
+						"type":"stacked",
+						"cube":chart
 					});
 
 					status.message("Done");
@@ -235,11 +279,10 @@
 
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
-			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
-			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
-			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-2year")},
+			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"jmuizelaar@mozilla.com"},
+			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-6month")},
 			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
+			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("week")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		]);
 		createChart();

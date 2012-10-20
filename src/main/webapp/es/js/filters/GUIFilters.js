@@ -30,7 +30,7 @@ GUI.showESTime = function(){
 	RestQuery.Run(
 		{//CALLBACK
 			"success" : function(requestObj, data){
-				$("#testMessage").html("ES Last Updated " + Date.newInstance(data.facets.modified_ts.max).addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
+				$("#testMessage").html("ES Last Updated " + Date.newInstance(data.edges.modified_ts.max).addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 			},
 
 			"error": function(requestObj, errorData, errorMsg, errorThrown){
@@ -44,7 +44,7 @@ GUI.showESTime = function(){
 			"from" : 0,
 			"size" : 0,
 			"sort" : [],
-			"facets":{
+			"edges":{
 				"modified_ts":{
 					"statistical" : {
 						"field" : "modified_ts"

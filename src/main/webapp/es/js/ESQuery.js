@@ -58,8 +58,8 @@ ESQuery.prototype.compileSetOp=function(){
 
 ESQuery.prototype.compile = function(){
 
-	//NO FACETS IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
-	if (this.query.facets === undefined || this.query.facets.length == 0){
+	//NO EDGES IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
+	if (this.query.edges === undefined || this.query.edges.length == 0){
 		return this.compileSetOP();
 	}//endif
 
@@ -70,60 +70,60 @@ ESQuery.prototype.compile = function(){
 
 	this.select = SQL.select2Array(this.query.select)[0];
 
-	this.facets = this.query.facets.copy();
+	this.edges = this.query.edges.copy();
 //DISABLED FOR NOW
 	if (!(this.query.select instanceof Array) && this.query.select.operation=="count"){
 		this.esMode="terms";
 		this.esQuery = this.buildESTermsQuery();
 	}else{
-		//A SPECIAL FACET IS ONE THAT HAS AN UNDEFINED NUMBER OF PARTITIONS AT QUERY TIME
-		//FIND THE specialFacet, IF ONE
+		//A SPECIAL EDGE IS ONE THAT HAS AN UNDEFINED NUMBER OF PARTITIONS AT QUERY TIME
+		//FIND THE specialEdge, IF ONE
 		this.esMode = "terms_stats";
-		this.specialFacet = null;
-		for(var f = 0; f < this.facets.length; f++){
-			if ((["set", "duration", "time"].contains(this.facets[f].domain.type))){
-				for(var p = this.facets[f].domain.partitions.length; p--;){
-					this.facets[f].domain.partitions[p].dataIndex = p;
+		this.specialEdge = null;
+		for(var f = 0; f < this.edges.length; f++){
+			if ((["set", "duration", "time"].contains(this.edges[f].domain.type))){
+				for(var p = this.edges[f].domain.partitions.length; p--;){
+					this.edges[f].domain.partitions[p].dataIndex = p;
 				}//for
 			} else{
-				if (this.specialFacet != null) D.error("There is more than one open-ended facet: this can not be handled");
-				this.specialFacet = this.facets.splice(f, 1)[0];
+				if (this.specialEdge != null) D.error("There is more than one open-ended edge: this can not be handled");
+				this.specialEdge = this.edges.splice(f, 1)[0];
 				f--;
 			}//endif
 		}//for
-		if (this.specialFacet == null){
+		if (this.specialEdge == null){
 			this.esMode = "statistical";
 		}//endif
 
 		this.esQuery = this.buildESQuery();
 		var esFacets = this.buildFacetQueries();
 		for(var i = 0; i < esFacets.length; i++){
-			this.esQuery.facets[esFacets[i].name] = esFacets[i].value;
+			this.esQuery.edges[esFacets[i].name] = esFacets[i].value;
 		}//for
 	}//endif
 
 };
 
 
-// RETURN LIST OF ALL FACET QUERIES
+// RETURN LIST OF ALL EDGE QUERIES
 ESQuery.prototype.buildFacetQueries = function(){
 	var output = [];
 
-	this.esFacets = this.getAllFacets(0);
+	this.esFacets = this.getAllEdges(0);
 	for(var i = 0; i < this.esFacets.length; i++){
 		var condition = [];
 		var name = "";
-		for(var f = 0; f < this.facets.length; f++){
+		for(var f = 0; f < this.edges.length; f++){
 			if (name != "") name += ",";
 			name += this.esFacets[i][f].dataIndex;
-			condition.push(ESQuery.buildCondition(this.facets[f], this.esFacets[i][f]));
+			condition.push(ESQuery.buildCondition(this.edges[f], this.esFacets[i][f]));
 		}//for
 		var q = {"name":name};
 
 		if (this.esMode == "terms_stats"){
 			q.value = {
 				"terms_stats":{
-					"key_field":this.specialFacet.value,
+					"key_field":this.specialEdge.value,
 					"value_script":this.select.value,
 					"size":this.query.essize
 				},
@@ -150,16 +150,16 @@ ESQuery.prototype.buildFacetQueries = function(){
 
 
 //RETURN ALL PARTITION COMBINATIONS:  A LIST OF ORDERED TUPLES
-ESQuery.prototype.getAllFacets = function(facetDepth){
-	if (facetDepth == this.facets.length) return [
+ESQuery.prototype.getAllEdges = function(edgeDepth){
+	if (edgeDepth == this.edges.length) return [
 		[]
 	];
-	var facet = this.facets[facetDepth];
+	var edge = this.edges[edgeDepth];
 
 	var output = [];
-	var partitions = facet.domain.partitions;
+	var partitions = edge.domain.partitions;
 	for(var i = 0; i < partitions.length; i++){
-		var deeper = this.getAllFacets(facetDepth + 1);
+		var deeper = this.getAllEdges(edgeDepth + 1);
 		for(var o = 0; o < deeper.length; o++){
 			deeper[o].unshift(partitions[i]);
 			output.push(deeper[o]);
@@ -179,33 +179,33 @@ ESQuery.isKeyword = function(value){
 
 
 //RETURN AN ES FILTER OBJECT
-ESQuery.buildCondition = function(facet, partition){
+ESQuery.buildCondition = function(edge, partition){
 	//RETURN AN ES FILTER OBJECT
 	var output = {};
-	if (ESQuery.isKeyword(facet.value)){
+	if (ESQuery.isKeyword(edge.value)){
 		//USE FAST ES SYNTAX
-		if (facet.domain.type == "time"){
+		if (edge.domain.type == "time"){
 			output.range = {};
-			output.range[facet.value] = {"gte":partition.min.getMilli(), "lt":+partition.max.getMilli()};
-		} else if (facet.domain.type == "duration"){
+			output.range[edge.value] = {"gte":partition.min.getMilli(), "lt":+partition.max.getMilli()};
+		} else if (edge.domain.type == "duration"){
 			output.range = {};
-			output.range[facet.value] = {"gte":partition.min.milli, "lt":+partition.max.milli};
-		} else if (facet.domain.type == "set"){
+			output.range[edge.value] = {"gte":partition.min.milli, "lt":+partition.max.milli};
+		} else if (edge.domain.type == "set"){
 			output.term = {};
-			output.term[facet.value] = partition.value;
+			output.term[edge.value] = partition.value;
 		} else{
-			D.error("Facet \"" + facet.name + "\" is not supported");
+			D.error("Edge \"" + edge.name + "\" is not supported");
 		}//endif
 	} else{
 		//USE MVEL CODE
-		if (facet.domain.type == "time"){
-			output.script = {script:facet.value + ">=" + partition.min.getMilli() + " && " + facet.value + "<" + partition.max.getMilli()};
-		} else if (facet.domain.type == "duration"){
-			output.script = {script:facet.value + ">=" + partition.min.milli + " && " + facet.value + "<" + partition.max.milli};
-		} else if (facet.domain.type == "set"){
-			output.script = {script:facet.value + "==" + MVEL.Value2Code(partition.value)};
+		if (edge.domain.type == "time"){
+			output.script = {script:edge.value + ">=" + partition.min.getMilli() + " && " + edge.value + "<" + partition.max.getMilli()};
+		} else if (edge.domain.type == "duration"){
+			output.script = {script:edge.value + ">=" + partition.min.milli + " && " + edge.value + "<" + partition.max.milli};
+		} else if (edge.domain.type == "set"){
+			output.script = {script:edge.value + "==" + MVEL.Value2Code(partition.value)};
 		} else{
-			D.error("Facet \"" + facet.name + "\" is not supported");
+			D.error("Edge \"" + edge.name + "\" is not supported");
 		}//endif
 	}//endif
 	return output;
@@ -233,10 +233,10 @@ ESQuery.prototype.buildESTermsQuery=function(){
 		"from" : 0,
 		"size" : 0,
 		"sort" : [],
-		"facets":{
+		"edges":{
 			"0":{
 				"terms":{
-					"script_field":this.compileFacets2Term(),
+					"script_field":this.compileEdges2Term(),
 					"size": 100000
 				}
 			}
@@ -251,18 +251,18 @@ ESQuery.prototype.buildESTermsQuery=function(){
 
 //GIVE MVEL CODE THAT REDUCES A UNIQUE TUPLE OF PARTITIONS DOWN TO A UNIQUE TERM
 //GIVE JAVASCRIPT THAT WILL CONVERT THE TERM BACK INTO THE TUPLE
-ESQuery.prototype.compileFacets2Term=function(){
-	var facets=this.facets;
+ESQuery.prototype.compileEdges2Term=function(){
+	var edges=this.edges;
 
 	var mvel=undefined;
 	var fromTerm2Part=[];
-	for(var i=0;i<facets.length;i++){
+	for(var i=0;i<edges.length;i++){
 		if (mvel===undefined) mvel="''+"; else mvel+="+'|'+";
 		var t;
-		if (facets[i].domain.type=="time" || facets[i].domain.type=="duration"){
-			t=ESQuery.compileTime2Term(facets[i]);
+		if (edges[i].domain.type=="time" || edges[i].domain.type=="duration"){
+			t=ESQuery.compileTime2Term(edges[i]);
 		}else{
-			t=ESQuery.compileString2Term(facets[i]);
+			t=ESQuery.compileString2Term(edges[i]);
 		}//for
 		fromTerm2Part.push(t.fromTerm);
 		mvel+=t.toTerm;
@@ -297,14 +297,14 @@ ESQuery.prototype.compileFacets2Term=function(){
 };
 
 
-ESQuery.compileString2Term=function(facet){
-	var value=facet.value;
+ESQuery.compileString2Term=function(edge){
+	var value=edge.value;
 	if (ESQuery.isKeyword(value)) value="doc[\""+value+"\"].value";
 
 	return {
 		"toTerm":'replaceAll(replaceAll('+value+', "\\\\", "\\\\\\\\"), "|", "\\\\p")',
 		"fromTerm":function(value){
-			return facet.domain.getPartition(value.replaceAll("\\p", "|").replaceAll("\\\\", "\\"));
+			return edge.domain.getPartition(value.replaceAll("\\p", "|").replaceAll("\\\\", "\\"));
 		}
 	};
 };//method
@@ -312,49 +312,49 @@ ESQuery.compileString2Term=function(facet){
 
 //RETURN MVEL CODE THAT MAPS TIME AND DURATION DOMAINS DOWN TO AN INTEGER AND
 //AND THE JAVASCRIPT THAT WILL TURN THAT INTEGER BACK INTO A PARTITION (INCLUDING NULLS)
-ESQuery.compileTime2Term=function(facet){
-	if (facet.domain.type!="time" && facet.domain.type!="duration") D.error("can only translate time and duration domains");
+ESQuery.compileTime2Term=function(edge){
+	if (edge.domain.type!="time" && edge.domain.type!="duration") D.error("can only translate time and duration domains");
 
 	//IS THERE A LIMIT ON THE DOMAIN?
-	var numPartitions=facet.domain.partitions.length;
-	var value=facet.value;
+	var numPartitions=edge.domain.partitions.length;
+	var value=edge.value;
 	if (ESQuery.isKeyword(value)) value="doc[\""+value+"\"].value";
 
 	var ref, nullTest, partition2int, int2Partition;
-	if (facet.domain["<"]===undefined){
-		if (facet.domain[">="]===undefined){
-			ref=Date.now().floor(facet.domain.interval);
-			ref=facet.domain.type=="time"?ref.getMilli():ref.milli;
-			partition2int="Math.floor(("+value+"-"+ref+")/"+facet.domain.interval.milli+")";
+	if (edge.domain["<"]===undefined){
+		if (edge.domain[">="]===undefined){
+			ref=Date.now().floor(edge.domain.interval);
+			ref=edge.domain.type=="time"?ref.getMilli():ref.milli;
+			partition2int="Math.floor(("+value+"-"+ref+")/"+edge.domain.interval.milli+")";
 			nullTest="false";
 		}else{
-			ref=facet.domain[">="];
-			ref=facet.domain.type=="time"?ref.getMilli():ref.milli;
-			partition2int="Math.floor(("+value+"-"+ref+")/"+facet.domain.interval.milli+")";
+			ref=edge.domain[">="];
+			ref=edge.domain.type=="time"?ref.getMilli():ref.milli;
+			partition2int="Math.floor(("+value+"-"+ref+")/"+edge.domain.interval.milli+")";
 			nullTest=""+value+"<"+ref;
 		}//endif
-	}else if (facet.domain[">="]===undefined){
-		ref=facet.domain["<"];
-		ref=facet.domain.type=="time"?ref.getMilli():ref.milli;
-		partition2int="Math.floor(("+value+"-"+ref+")/"+facet.domain.interval.milli+")";
+	}else if (edge.domain[">="]===undefined){
+		ref=edge.domain["<"];
+		ref=edge.domain.type=="time"?ref.getMilli():ref.milli;
+		partition2int="Math.floor(("+value+"-"+ref+")/"+edge.domain.interval.milli+")";
 		nullTest=""+value+">="+ref;
 	}else{
-		var top=facet.domain["<"]; top=facet.domain.type=="time"?top.getMilli():top.milli;
-		    ref=facet.domain[">="];ref=facet.domain.type=="time"?ref.getMilli():ref.milli;
-		partition2int="Math.floor(("+value+"-"+ref+")/"+facet.domain.interval.milli+")";
+		var top=edge.domain["<"]; top=edge.domain.type=="time"?top.getMilli():top.milli;
+		    ref=edge.domain[">="];ref=edge.domain.type=="time"?ref.getMilli():ref.milli;
+		partition2int="Math.floor(("+value+"-"+ref+")/"+edge.domain.interval.milli+")";
 		nullTest="("+value+"<"+ref+") || ("+value+">="+top+")";
 	}//endif
 
 	partition2int="(("+nullTest+") ? "+numPartitions+" : "+partition2int+")";
-	if (facet.domain.type=="time"){
+	if (edge.domain.type=="time"){
 		int2Partition=function(value){
-			if (Math.round(value)==numPartitions) return facet.domain.NULL;
-			return facet.domain.getPartition(new Date((value*facet.domain.interval.milli)+ref));
+			if (Math.round(value)==numPartitions) return edge.domain.NULL;
+			return edge.domain.getPartition(new Date((value*edge.domain.interval.milli)+ref));
 		};
 	}else{
 		int2Partition=function(value){
-			if (Math.round(value)==numPartitions) return facet.domain.NULL;
-			return facet.domain.getPartition(Duration.newInstance((value*facet.domain.interval.milli)+ref));
+			if (Math.round(value)==numPartitions) return edge.domain.NULL;
+			return edge.domain.getPartition(Duration.newInstance((value*edge.domain.interval.milli)+ref));
 		};
 	}//endif
 
@@ -379,7 +379,7 @@ ESQuery.prototype.buildESQuery = function(){
 		"from" : 0,
 		"size" : 0,
 		"sort" : [],
-		"facets":{
+		"edges":{
 		}
 	};
 	if (this.query.esfilter !== undefined) output.query.filtered.filter.and.push(this.query.esfilter);
@@ -388,24 +388,24 @@ ESQuery.prototype.buildESQuery = function(){
 
 
 ESQuery.prototype.termsResults=function(data){
-	var terms=data.facets["0"].terms;
+	var terms=data.edges["0"].terms;
 
-	//GETTING ALL PARTS WILL EXPAND THE FACETS' DOMAINS
+	//GETTING ALL PARTS WILL EXPAND THE EDGES' DOMAINS
 	for(var i=0;i<terms.length;i++)
 		this.term2Parts(terms[i].term);
 
-	//NUMBER ALL FACETS FOR CUBE INDEXING
-	for(var f=0;f<this.facets.length;f++){
-		var parts=this.facets[f].domain.partitions;
+	//NUMBER ALL EDGES FOR CUBE INDEXING
+	for(var f=0;f<this.edges.length;f++){
+		var parts=this.edges[f].domain.partitions;
 		var p=0;
 		for(;p<parts.length;p++){
 			parts[p].dataIndex=p;
 		}//for
-		this.facets[f].domain.NULL.dataIndex=p;
+		this.edges[f].domain.NULL.dataIndex=p;
 	}//for
 
 	//MAKE CUBE
-	var cube = SQL.cube.newInstance(this.query.facets, 0, this.query.select);
+	var cube = SQL.cube.newInstance(this.query.edges, 0, this.query.select);
 
 	//FILL CUBE
 	for(var i=0;i<terms.length;i++){
@@ -433,18 +433,18 @@ ESQuery.agg2es = {
 //PROCESS RESULTS FROM THE ES STATISTICAL FACETS
 ESQuery.prototype.statisticalResults = function(data){
 	//MAKE CUBE
-	this.cube = SQL.cube.newInstance(this.query.facets, 0, this.query.select);
+	this.cube = SQL.cube.newInstance(this.query.edges, 0, this.query.select);
 
 	//FILL CUBE
-	var keys = Object.keys(data.facets);
+	var keys = Object.keys(data.edges);
 	for(var k = 0; k < keys.length; k++){
-		var facetName = keys[k];
-		var coord = facetName.split(",");
+		var edgeName = keys[k];
+		var coord = edgeName.split(",");
 		var d = this.cube;
-		for(var f = 0; f < this.query.facets.length - 1; f++){
+		for(var f = 0; f < this.query.edges.length - 1; f++){
 			d = d[parseInt(coord[f])];
 		}//for
-		var value = data.facets[facetName][ESQuery.agg2es[this.select.operation]];
+		var value = data.edges[edgeName][ESQuery.agg2es[this.select.operation]];
 		d[parseInt(coord[f])] = value;
 	}//for
 };//method
@@ -453,12 +453,12 @@ ESQuery.prototype.statisticalResults = function(data){
 
 //PROCESS THE RESULTS FROM THE ES TERMS_STATS FACETS
 ESQuery.prototype.terms_statsResults = function(data){
-//FIND ALL TERMS FOUND BY THE SPECIAL FACET
+//FIND ALL TERMS FOUND BY THE SPECIAL EDGE
 	var partitions = [];
 	var map = {};
-	var keys = Object.keys(data.facets);
+	var keys = Object.keys(data.edges);
 	for(var k = 0; k < keys.length; k++){
-		var terms = data.facets[keys[k]].terms;
+		var terms = data.edges[keys[k]].terms;
 		for(var t = 0; t < terms.length; t++){
 			var term = terms[t].term;
 			if (map[term] === undefined){
@@ -468,36 +468,36 @@ ESQuery.prototype.terms_statsResults = function(data){
 			}//endif
 		}//for
 	}//for
-	partitions.sort(this.specialFacet.domain.compare);
+	partitions.sort(this.specialEdge.domain.compare);
 	for(var p = 0; p < partitions.length; p++) partitions[p].dataIndex = p;
 
-	this.specialFacet.domain.map = map;
-	this.specialFacet.domain.partitions = partitions;
+	this.specialEdge.domain.map = map;
+	this.specialEdge.domain.partitions = partitions;
 
 
 	//MAKE CUBE
-	var cube = SQL.cube.newInstance(this.query.facets, 0, this.query.select);
+	var cube = SQL.cube.newInstance(this.query.edges, 0, this.query.select);
 
 	//FILL CUBE
 	for(var k = 0; k < keys.length; k++){
-		var facetName = keys[k];
-		var coord = facetName.split(",");
-		var terms = data.facets[facetName].terms;
+		var edgeName = keys[k];
+		var coord = edgeName.split(",");
+		var terms = data.edges[edgeName].terms;
 		for(var t = 0; t < terms.length; t++){
 			var d = cube;
 			var f = 0;
 			var c = 0;
-			for(; f < this.query.facets.length - 1; f++){
-				if (this.query.facets[f] == this.specialFacet){
-					d = d[this.specialFacet.domain.map[terms[t].term].dataIndex];
+			for(; f < this.query.edges.length - 1; f++){
+				if (this.query.edges[f] == this.specialEdge){
+					d = d[this.specialEdge.domain.map[terms[t].term].dataIndex];
 				} else{
 					d = d[parseInt(coord[c])];
 					c++;
 				}//endif
 			}//for
 			var value = terms[t][ESQuery.agg2es[this.select.operation]];
-			if (this.query.facets[f] == this.specialFacet){
-				d[this.specialFacet.domain.map[terms[t].term]] = value;
+			if (this.query.edges[f] == this.specialEdge){
+				d[this.specialEdge.domain.map[terms[t].term]] = value;
 			} else{
 				d[parseInt(coord[c])] = value;
 			}//endif

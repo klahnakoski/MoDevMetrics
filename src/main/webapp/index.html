@@ -1,9 +1,31 @@
 <HTML>
 
 <HEAD>
-	<link type="text/css" rel="stylesheet" href="css/menu.css"/>
+	<link type="text/css" rel="stylesheet" href="es/css/menu.css"/>
 </HEAD>
 <BODY>
+
+<div style="float: left; width:200px">
+
+	<h2>Kyle Lahnakoski</h2>
+	<img src="./images/kyle - mini.jpg" alt="Kyle is a worker bee">
+
+	<h3>Contact Info</h3>
+	Phone: 647 834 8431 <br>
+	Email: <a href="mailto://klahnakoski@mozilla.com">klahnakoski@mozilla.com</a>
+
+
+	<h3>About Project</h3>
+	The bugzilla data is in Metric's ElasticSearch container, and is updated a few times daily.  My goal is to provide metrics and numbers to development teams tha can not be easily pulled form Bugzilla
+
+	<h3>Code!</h3>
+	<a href="https://github.com/klahnakoski/MoDevMetrics">https://github.com/klahnakoski/MoDevMetrics</a>
+
+
+</div>
+
+
+
 <table style="margin-left: auto; margin-right: auto; border: 1px solid black;">
 	<tr>
 		<td>
@@ -15,25 +37,25 @@
 			<h2>Charts</h2>
 
 			<div class="items">
-				<a href="Burndown.html">Burndown.html</a>
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Burndown.html">Burndown.html</a>
 				<span class="info">Open Bug Count by Program, Product, Component</span><br>
 				<br>
-				<a href="Burnup.html">Burnup.html</a>
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Burnup.html">Burnup.html</a>
 				<span class="info">Closed Bug Count by Program, Product, Component</span><br>
 				<br>
-				<a href="NewAndClosed.html">NewAndClosed.html</a>
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/NewAndClosed.html">NewAndClosed.html</a>
 				<span class="info">Show weekly totals for new bugs and closed bugs (new bugs by Program are artificailly low because not marked upon creation) </span><br>
 				<br>
-				<a href="BugAge.html">BugAge.html</a>
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/BugAge.html">BugAge.html</a>
 				<span class="info">FAST! - Age of closed bugs - Uses ES term packing</span><br>
 				<br>
-				<a href="TimeToResolution.html">TimeToResolution.html</a>
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/TimeToResolution.html">TimeToResolution.html</a>
 				<span class="info">SLOW (about 30sec) - Same as bug age, only measurment stars when bug is marked as belonging to Program, Product or Component</span><br>
 				<br>
-				<a href="ReviewTimes.html">ReviewTimes.html</a>
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewTimes.html">ReviewTimes.html</a>
 				<span class="info">SLOW (about 3min) - Length of time a bug waits for a review</span><br>
 				<br>
-				<a href="ResolutionsOverTime.html">ResolutionsOverTime.html</a>
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/ResolutionsOverTime.html">ResolutionsOverTime.html</a>
 				<span class="info">FAST! - Show number of each Resolution by the age of the bug.  This query packs mutiple data partitions into a single &quot;term&quot; facet</span><br>
 				<br>
 			</div>
@@ -43,13 +65,13 @@
 		<td>
 			<h2>Data</h2>
 			<div class="items">
-				<a href="Reviews_Pending.html">Reviews_Pending.html</a>
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_Pending.html">Reviews_Pending.html</a>
 				<span class="info">List of all bugs pending review, grouped by requestee</span>
 				<br><br>
-				<a href="Reviews_NoReviewer.html">Reviews_NoReviewer.html</a>
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_NoReviewer.html">Reviews_NoReviewer.html</a>
 				<span class="info">List of all bugs with no reviewer</span>
 				<br><br>
-				<a href="Reviews_Basecamp_Only.html">Reviews_Basecamp_Only.html</a>
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_Basecamp_Only.html">Reviews_Basecamp_Only.html</a>
 				<span class="info">Andrew's Basecamp Blockers - but using the ES documnet store instead</span>
 				<br><br>
 			</div>

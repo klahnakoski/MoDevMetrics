@@ -132,7 +132,7 @@ var createChart = function(){
 		"name":"Resolution by Bug Age",
 		"from":"bugs",
 		"select":{"name":"Count", "value":"1", "operation":"count"},
-		"facets":[
+		"edges":[
 			{"name":"Cohort", "value":"modified_ts", "domain":{"type":"time", "min":state.cohortMin, "max":Date.now().floor("day"), "interval":interval, format:"NNN yyyy"}},
 			{"name":"Age", "value":'doc["modified_ts"].value-doc["created_ts"].value', allowNulls:true, "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
 		],

@@ -6,19 +6,19 @@ SQL.compile = function(query, sourceColumns){
 //COMPILE COLUMN CALCULATION CODE
 	var resultColumns = {};
 
-	var facets = query["facets"];
-	for(var g = 0; g < facets.length; g++){
-		if (facets[g].allowNulls === undefined) facets[g].allowNulls = false;
-		resultColumns[facets[g].name] = facets[g];
-		SQL.column.compile(sourceColumns, facets[g]);
-		SQL.domain.compile(sourceColumns, facets[g]);
-		facets[g].outOfDomainCount = 0;
+	var edges = query["edges"];
+	for(var g = 0; g < edges.length; g++){
+		if (edges[g].allowNulls === undefined) edges[g].allowNulls = false;
+		resultColumns[edges[g].name] = edges[g];
+		SQL.column.compile(sourceColumns, edges[g]);
+		SQL.domain.compile(sourceColumns, edges[g]);
+		edges[g].outOfDomainCount = 0;
 	}//for
 
 	var select = SQL.select2Array(query.select);
 	for(var s = 0; s < select.length; s++){
 		resultColumns[select[s].name] = select[s];
-		SQL.column.compile(sourceColumns, select[s], facets);
+		SQL.column.compile(sourceColumns, select[s], edges);
 		SQL.aggregate.compile(select[s]);
 	}//for
 
@@ -35,16 +35,16 @@ SQL.select2Array = function(select){
 
 SQL.prototype.calc2List = function(query){
 
-	//NO FACETS IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
-	if (query.facets === undefined || query.facets.length == 0){
+	//NO EDGES IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
+	if (query.edges === undefined || query.edges.length == 0){
 		return this.setOP(query);
 	}//endif
 
 	var sourceColumns = SQL.getColumns(query.from);
 	var select = SQL.select2Array(query.select);
-	var facets = query.facets;
+	var edges = query.edges;
 	var resultColumns = SQL.compile(query, sourceColumns);
-	var where = SQL.where.compile(query.where, sourceColumns, facets);
+	var where = SQL.where.compile(query.where, sourceColumns, edges);
 
 
 	var indexedOutput = {};
@@ -55,39 +55,39 @@ SQL.prototype.calc2List = function(query){
 		var results = [
 			{}
 		];
-		for(var f = 0; f < facets.length; f++){
-			var facet = facets[f];
+		for(var f = 0; f < edges.length; f++){
+			var edge = edges[f];
 
 
-			if (facet.domain.getPartition !== undefined){
-				var v = facet.calc(row, null);
+			if (edge.domain.getPartition !== undefined){
+				var v = edge.calc(row, null);
 
 				//STANDARD 1-1 MATCH VALUE TO DOMAIN
-				var p = facet.domain.getPartition(v);
+				var p = edge.domain.getPartition(v);
 				if (p === undefined){
 					D.error("getPartition() must return a partition, or null");
 				}//endif
 				if (p == null){
-					facet.outOfDomainCount++;
-					if (facet.allowNulls){
+					edge.outOfDomainCount++;
+					if (edge.allowNulls){
 						for(var t = results.length; t--;){
-							results[t][facet.name] = facet.domain.NULL;
+							results[t][edge.name] = edge.domain.NULL;
 						}//for
 					} else{
 //							results=[];
 						continue FROM;
 					}//endif
 				} else{
-					for(var t = results.length; t--;) results[t][facet.name] = p;
+					for(var t = results.length; t--;) results[t][edge.name] = p;
 				}//endif
 			} else{
 				//MULTIPLE MATCHES EXIST
-				var partitions = facet.domain.getPartitions(row);
+				var partitions = edge.domain.getPartitions(row);
 				if (partitions.length == 0){
-					facet.outOfDomainCount++;
-					if (facet.allowNulls){
+					edge.outOfDomainCount++;
+					if (edge.allowNulls){
 						for(var t = results.length; t--;){
-							results[t][facet.name] = facet.domain.NULL;
+							results[t][edge.name] = edge.domain.NULL;
 						}//for
 					} else{
 //							results=[];
@@ -96,11 +96,11 @@ SQL.prototype.calc2List = function(query){
 				} else{
 					for(var t = results.length; t--;){
 						result = results[t];
-						result[facet.name] = partitions[0];
+						result[edge.name] = partitions[0];
 						for(var p = 1; p < partitions.length; p++){
 							result = Util.copy(result, {});
 							results.push(result);
-							result[facet.name] = partitions[p];
+							result[edge.name] = partitions[p];
 						}//for
 					}//for
 				}//endif
@@ -110,7 +110,7 @@ SQL.prototype.calc2List = function(query){
 
 		if (select.length == 0){
 			for(var t = 0; t < results.length; t++){
-				if (where(row, results[t])) SQL.addResultToOutput(results[t], indexedOutput, select, facets);
+				if (where(row, results[t])) SQL.addResultToOutput(results[t], indexedOutput, select, edges);
 			}//for
 		} else{
 			for(var s = 0; s < (select).length; s++){
@@ -118,7 +118,7 @@ SQL.prototype.calc2List = function(query){
 				for(var t = 0; t < results.length; t++){
 					if (where(row, results[t])){
 						//FIND CANONICAL RESULT
-						var result = SQL.addResultToOutput(results[t], indexedOutput, select, facets);
+						var result = SQL.addResultToOutput(results[t], indexedOutput, select, edges);
 
 						//CALCULATE VALUE
 						var v = ss.calc(row, result);
@@ -132,19 +132,19 @@ SQL.prototype.calc2List = function(query){
 		}//endif
 	}//for
 
-	for(var g = 0; g < facets.length; g++){
-		if (facets[g].outOfDomainCount > 0) D.warning(facets[g].name + " has " + facets[g].outOfDomainCount + " records outside domain " + facets[g].domain.name);
+	for(var g = 0; g < edges.length; g++){
+		if (edges[g].outOfDomainCount > 0) D.warning(edges[g].name + " has " + edges[g].outOfDomainCount + " records outside domain " + edges[g].domain.name);
 	}//for
 
 
 	var output = [];
-	SQL.outputToList(output, indexedOutput, facets, 0, query.order);
+	SQL.outputToList(output, indexedOutput, edges, 0, query.order);
 
 
 	//ORDER THE OUTPUT
 	if (query.order === undefined){
 		query.order = [];
-		for(var f = 0; f < facets.length; f++) query.order.push(facets[f].name);
+		for(var f = 0; f < edges.length; f++) query.order.push(edges[f].name);
 	}//endif
 	output = SQL.order(output, query.order, resultColumns);
 
@@ -170,7 +170,7 @@ SQL.prototype.calc2List = function(query){
 
 SQL.prototype.calc2Array = function(sql){
 	if (sql.select instanceof Array) D.error("Expecting select to not be an array");
-	if (sql.facets !== undefined && sql.facets.length > 0) D.error("Expecting zero facets");
+	if (sql.edges !== undefined && sql.edges.length > 0) D.error("Expecting zero edges");
 
 	var temp = sql.select.name;
 	sql.select.name = 0;
@@ -189,17 +189,17 @@ SQL.prototype.calc2Cube = function(query){
 	var cube = this.calc2List(query);
 
 	//ASSIGN dataIndex TO ALL PARTITIONS
-	var facets = query.facets;
-	for(var f = 0; f < facets.length; f++){
+	var edges = query.edges;
+	for(var f = 0; f < edges.length; f++){
 		var p = 0;
-		for(; p < (facets[f].domain.partitions).length; p++){
-			facets[f].domain.partitions[p].dataIndex = p;
+		for(; p < (edges[f].domain.partitions).length; p++){
+			edges[f].domain.partitions[p].dataIndex = p;
 		}//for
-		if (facets[f].allowNulls) facets[f].domain.NULL.dataIndex = p;
+		if (edges[f].allowNulls) edges[f].domain.NULL.dataIndex = p;
 	}//for
 
 	//MAKE THE EMPTY DATA GRID
-	var data = SQL.cube.newInstance(facets, 0, query.select);
+	var data = SQL.cube.newInstance(edges, 0, query.select);
 
 	//FILL GRID WITH VALUES
 	for(var o = 0; o < cube.list.length; o++){
@@ -208,13 +208,13 @@ SQL.prototype.calc2Cube = function(query){
 		var f = 0;
 
 		var part=undefined;
-		for(; f < facets.length - 1; f++){
-			part=result[facets[f].name];
-			if (part.dataIndex===undefined) part=facets[f].domain.getPartition(part);//DEFAULT DOMAIN DOES NOT RETURN PARTITION OBJECTS, SPECIAL DEREF REQUIRED
+		for(; f < edges.length - 1; f++){
+			part=result[edges[f].name];
+			if (part.dataIndex===undefined) part=edges[f].domain.getPartition(part);//DEFAULT DOMAIN DOES NOT RETURN PARTITION OBJECTS, SPECIAL DEREF REQUIRED
 			value = value[part.dataIndex];
 		}//for
-		part=result[facets[f].name];
-		if (part.dataIndex===undefined) part=facets[f].domain.getPartition(part);//DEFAULT DOMAIN DOES NOT RETURN PARTITION OBJECTS, SPECIAL DEREF REQUIRED
+		part=result[edges[f].name];
+		if (part.dataIndex===undefined) part=edges[f].domain.getPartition(part);//DEFAULT DOMAIN DOES NOT RETURN PARTITION OBJECTS, SPECIAL DEREF REQUIRED
 
 		if (query.select instanceof Array){
 			value = value[part.dataIndex];
@@ -277,12 +277,12 @@ SQL.prototype.setOP = function(query){
 SQL.toTable=function(query){
 
 	if (query.data===undefined) D.error("Can only turn a cube into a table at this time");
-	if (query.facets.length!=2) D.error("can only handle 2D cubes right now.");
+	if (query.edges.length!=2) D.error("can only handle 2D cubes right now.");
 
-	var parts0=query.facets[0].domain.partitions.copy();
-	if (query.facets[0].allowNulls) parts0.push(query.facets[0].domain.NULL);
-	var parts1=query.facets[1].domain.partitions.copy();
-	if (query.facets[1].allowNulls) parts1.push(query.facets[1].domain.NULL);
+	var parts0=query.edges[0].domain.partitions.copy();
+	if (query.edges[0].allowNulls) parts0.push(query.edges[0].domain.NULL);
+	var parts1=query.edges[1].domain.partitions.copy();
+	if (query.edges[1].allowNulls) parts1.push(query.edges[1].domain.NULL);
 
 	var output=[];
 	for(var p0=0;p0<parts0.length;p0++){
@@ -343,41 +343,41 @@ SQL.normalizeByX=function(query, multiple){
 
 
 // CONVERT THE indexed OBJECT TO A FLAT LIST FOR output
-SQL.outputToList = function(output, indexed, facets, depth, order){
-	if (depth == facets.length){
+SQL.outputToList = function(output, indexed, edges, depth, order){
+	if (depth == edges.length){
 		output.push(indexed);
 	} else{
 		var keys = Object.keys(indexed);
 		for(var k = 0; k < keys.length; k++){
-			SQL.outputToList(output, indexed[keys[k]], facets, depth + 1)
+			SQL.outputToList(output, indexed[keys[k]], edges, depth + 1)
 		}//for
 	}//endif
 };//method
 
 ////ADD THE MISSING DOMAIN VALUES
-//SQL.nullToList=function(output, facets, depth){
+//SQL.nullToList=function(output, edges, depth){
 //	if ()
 //
 //
 //};//method
 
 
-SQL.addResultToOutput = function(result, output, select, facets){
+SQL.addResultToOutput = function(result, output, select, edges){
 
 	//FIND RESULT IN output
 	//output IS A TREE INDEXED BY THE PARTITION CANONICAL VALUES
 	var depth = output;
-	for(var i = 0; i < facets.length - 1; i++){
-		var part=result[facets[i].name];
-		var v = facets[i].domain.getKey(part);
+	for(var i = 0; i < edges.length - 1; i++){
+		var part=result[edges[i].name];
+		var v = edges[i].domain.getKey(part);
 		if (depth[v] === undefined) depth[v] = {};
 		depth = depth[v];
 	}//for
-	part=result[facets[i].name];
+	part=result[edges[i].name];
 	if (part == null){
 		D.println("what?");
 	}//endif
-	v = facets[i].domain.getKey(part);
+	v = edges[i].domain.getKey(part);
 	if (depth[v] !== undefined) return depth[v];
 
 	//ADD SELECT DEFAULTS

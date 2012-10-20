@@ -85,7 +85,7 @@
     "from": 0,
     "size": 10,
     "sort": [],
-    "facets": {
+    "edges": {
       "0": {
         "terms": {
           "script_field": "var replaceAll = function(output, find, replace){\ns = output.indexOf(find, 0);\nwhile(s>=0){\noutput=output.replace(find, replace);\ns=s-find.length+replace.length;\ns = output.indexOf(find, s);\n}\noutput;\n};\n''+replaceAll(replaceAll(\"Open\", \"\\\\\", \"\\\\\\\\\"), \"|\", \"\\\\p\")+'|'+((((1350687979312-doc[\"created_ts\"].value)<0) || ((1350687979312-doc[\"created_ts\"].value)>=7862400000)) ? 13 : Math.floor(((1350687979312-doc[\"created_ts\"].value)-0)/604800000))",
@@ -131,7 +131,7 @@
 //   "sort" :
 //      [
 //      ],
-//   "facets" :
+//   "edges" :
 //      {
 //         "doneReview" : {
 //               "terms" :
@@ -146,7 +146,7 @@
 
 
 
-	//		"facets" : {
+	//		"edges" : {
 //			"range1" : {
 //				"range" : {
 //					"key_field" : "resolution",
