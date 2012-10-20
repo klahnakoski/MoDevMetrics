@@ -1,16 +1,18 @@
 RestQuery = function(reportBackObj, id, esQuery){
-	if (reportBackObj===undefined) D.error("expecting an object to reprt back response");
 	this.id = id;
-	this.callbackObject = reportBackObj;
+	this.reportBackObj = reportBackObj;
 	this.query = esQuery;
+
+//	if (esQuery.query.filtered !== undefined){
+//		D.println("Not expected");
+//	}//endif
+
 	this.request = null;
 };
 
 
 RestQuery.Run = function(reportBackObj, id, esQuery){
-	var q=new RestQuery(reportBackObj, id, esQuery);
-	q.Run();
-	return q;
+	new RestQuery(reportBackObj, id, esQuery).Run();
 };//method
 
 
@@ -26,48 +28,50 @@ RestQuery.prototype.Run = function(){
 		data: JSON.stringify(this.query),
 		dataType: "json",
 
-		success: function(data){localObject.success(data);},
-		error: function(errorData, errorMsg, errorThrown){localObject.error(errorData, errorMsg, errorThrown);}
+		success: function(data){
+			localObject.success(data);
+		},
+
+		error: function (errorData, errorMsg, errorThrown){
+			try{
+				localObject.error(errorData, errorMsg, errorThrown);
+			}catch(e){
+				D.error(errorMsg);
+			}//try
+		}
 	});
 };
 
 RestQuery.prototype.success = function(data){
-	if (this.callbackObject===undefined) return;
-	if (this.callbackObject.success===undefined) D.error("RestQuery - Can not report back success!!");
 	try{
-		this.callbackObject.success(this, data);
+		this.reportBackObj.success(this, data);
 	}catch(e){
-		D.error("Problem calling success()", e);
+		D.error("RestQuery - Can not report back success!!");
 	}//try
 };
 
 
 RestQuery.prototype.error = function(errorData, errorMsg, errorThrown){
-	if (this.callbackObject===undefined) return;
-	if (this.callbackObject.error===undefined) D.error(errorMsg);
-	
 	try{
-		this.callbackObject.error(this, errorData, errorMsg, errorThrown);
+		this.reportBackObj.error(this, errorData, errorMsg, errorThrown);
 	}catch(e){
-		D.error("Problem with reporting back error: '"+errorMsg+"'", e);
+		D.error(errorMsg);
 	}//try
 };
 
 
-RestQuery.prototype.kill = function(data){
-	this.callbackObject=undefined;
+RestQuery.prototype.Kill = function(data){
 	if (this.request != undefined){
 		this.request.abort();
-		this.request = undefined;
-	}//endif
+		this.request = null;
+		return true;
+	}
+
+	return false;
 };
 
-
-
-
-
 MultiRestQuery = function(reportBackObj, id, chartRequests){
-	this.callbackObject = reportBackObj;
+	this.reportBackObj = reportBackObj;
 	this.id = id;
 	this.chartRequests = chartRequests;
 
@@ -101,22 +105,22 @@ MultiRestQuery.prototype.success = function(restQueryObj, data){
 	this.results[ restQueryObj.id ] = data;
 
 	if (this.IsComplete()){
-		this.callbackObject.success(this, this.results);
+		this.reportBackObj.success(this, this.results);
 	}
 };
 
 MultiRestQuery.prototype.error = function(errorData, errorMsg, errorThrown){
 	console.error("RestQuery.error: " + errorMsg);
-	this.kill();
+	this.Kill();
 
-	if (this.callbackObject != undefined)
-		this.callbackObject.error(this, errorData, errorMsg, errorThrown);
+	if (this.reportBackObj != undefined)
+		this.reportBackObj.error(this, errorData, errorMsg, errorThrown);
 };
 
-MultiRestQuery.prototype.kill = function(){
+MultiRestQuery.prototype.Kill = function(){
 	for(var i = 0; i < this.restQueryObjs.length; i++){
 		if (this.restQueryObjs[i] != undefined){
-			this.restQueryObjs[i].kill();
+			this.restQueryObjs[i].Kill();
 		}
 	}
 

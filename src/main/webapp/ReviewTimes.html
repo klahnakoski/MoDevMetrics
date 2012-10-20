@@ -89,17 +89,36 @@
 
 <table style="width: 100%;">
 	<tr>
-		<td style="width: 320px;">
-			<div id="status">Chart Loading...</div>
-			<hr>
-			<div id="testMessage"></div>
-			<hr>
-			<div id="parameters" class="parameters">
-			</div>
+		<td style="width: 300px;  vertical-align:text-top;">
 			<div id="filters" class="menu"></div>
+			<div id="testMessage"></div>
 		</td>
-		<td>
-			<div id="chart"></div>
+		<td style="vertical-align:text-top;">
+			<table style="margin-left: auto; margin-right: auto; border: 0px solid black;">
+				<tr>
+					<td style="width: 800px; height: 100px; margin-left: auto; margin-right: auto;">
+						<div style="text-align: center;font:10px arial,sans-serif;">
+							Start Date <input type="text" id="startDate"><input
+								type="text" id="endDate"> End Date
+						</div>
+					</td>
+				</tr>
+			</table>
+			<table style="margin-left: auto; margin-right: auto; border: 1px solid black;">
+				<tr>
+					<td style="margin-left: auto; margin-right: auto;">
+						<div id="chart"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div id="status"
+							 style="text-align: center; font:10px arial,sans-serif;">
+							Chart Loading...
+						</div>
+					</td>
+				</tr>
+			</table>
 		</td>
 	</tr>
 </table>
@@ -109,16 +128,18 @@
 
 <script type="text/javascript">
 
-	var createChart=function(){
-		var esQuery = {
+	GUI.GetURLState();
+
+
+	var esQuery = {
 				"query":{"filtered":{
 					"query": {
 						"match_all" : {}
 					},
 					"filter" : {
 						"and":[
-							{"range":{"modified_ts":{"gte":new Date(state.sampleMin).getMilli()}}},
-							{"range":{"modified_ts":{"lt":new Date(state.sampleMax).getMilli()}}}
+							{ "terms" : { "status_whiteboard.tokenized" : ["snappy", "snappy:p1", "snappy:p2", "snappy:p3"]}},
+							{"range":{"modified_ts":{"gte":Date.now().add("-2year")}}}
 						]
 					}
 				}},
@@ -129,27 +150,26 @@
 					"inReview": {
 						"terms":{
 							"script_field":
-								new MVEL().code({
-									"select" : [
-										{"name":"bug_id", "value":"doc.bug_id"},
-										{"name":"modified_ts", "value":"doc.modified_ts"},
-										{"name":"requestee", "value":"doc.attachments.flags.requestee"}
-									],
-									"from":
-											"doc.attachments.flags",
-									"where":
-									{"and" : [
-										{"or" : [
-											{ "and" : [
-												{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
-												{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-												{"term" : {"doc.attachments.flags.requestee" : "roc@ocallahan.org"}}
-											]}
-										]},
-										{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
-									]}
-								}),
-							"size": state.esSize
+									new MVEL().code({
+										"select" : [
+											{"name":"bug_id", "value":"doc.bug_id"},
+											{"name":"modified_ts", "value":"doc.modified_ts"},
+											{"name":"requestee", "value":"doc.attachments.flags.requestee"}
+										],
+										"from":
+												"doc.attachments.flags",
+										"where":
+										{"and" : [
+											{"or" : [
+												{ "and" : [
+													{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
+													{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}}
+												]}
+											]},
+											{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
+										]}
+									}),
+							"size": 100000
 						}
 					},
 					"doneReview" : {
@@ -168,25 +188,21 @@
 											{"or" : [
 												{ "and" : [
 													{"not": {"terms" : {"doc.attachments.flags.request_status" : ["?"]}}},
-													{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-													{"term" : {"doc.attachments.flags.requestee" : "roc@ocallahan.org"}}
+													{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}}
 												]}
 											]},
 											{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
 										]}
 									}),
-							"size": state.esSize
+							"size": 100000
 						}
 					}
 				}
 			};
 
 
-		ES.InjectFilter({"esQuery":esQuery});
-
-
-		status.message("Call ES");
-		RestQuery.Run(
+	status.message("Call ES");
+	RestQuery.Run(
 			{
 				"success" : function(requestObj, data){
 					status.message("processing Data");
@@ -201,18 +217,17 @@
 						],
 						"facets":[
 							{"name":"bug_id", "test":"bug_id==c.bug_id && modified_ts<c.modified_ts", "domain":{"type":"set", "name":"c", "key":["bug_id", "modified_ts"], "partitions":doneReview}},
-							{"name":"finished_time", "value":"modified_ts"},
-							{"name":"requestee", "value":"requestee"}
+							{"name":"finished_time", "value":"modified_ts"}
 						]
 					}).list;
 
 					var time2res = new SQL().calc2Cube({
-						"name": "Review Times",
+						"name": "Review Times for Snappy",
 						"from": durations,
 						"select": {"name":"Count", "value":"1", "operation":"count"},
 						"facets":[
-							{"name":"Cohort", "value":"Date.newInstance(finished_time)", "domain":{"type":"time", "min":Date.now().floor("month").add("-2year"), "max":Date.now().floor("month").add("-1second"), "interval":"6month", format:"NNN yyyy"}},
-							{"name":"Review Time", "value":"Duration.newInstance(reviewTime)", allowNulls:true, "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
+							{"name":"Cohort", "value":"Date.newInstance(finished_time)", "domain":{"type":"time", "min":Date.now().floor("month").add("-2year"), "max":Date.now().floor("month"), "interval":"6month", format:"NNN yyyy"}},
+							{"name":"Review Time", "value":"Duration.newInstance(reviewTime)", allowNulls:true, "domain":{"type":"duration", "min":"0", "max":"6week", "interval":"week"}}
 						]
 					});
 
@@ -225,26 +240,24 @@
 					});
 
 					status.message("Done");
+				},
+
+				"error": function(requestObj, errorData, errorMsg, errorThrown){
+					D.error(errorMsg)
 				}
 			},
 			0,
 			esQuery
-		);
-	};//createChart
+	);
 
+	var filterUI = null;
 
-	$(document).ready(function(){
-		GUI.setup([
-			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
-			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
-			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
-			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-2year")},
-			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
-			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
-		]);
-		createChart();
-	});
+	//	$(document).ready(function(){
+	//			GUI.setup();
+	//			createChart();
+	//	});
 
+	//Code for updating URL paramaters: window.location('address_goes_here');
 </script>
 
 

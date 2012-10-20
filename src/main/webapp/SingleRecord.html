@@ -23,127 +23,37 @@
 	console.info(new Date(1347753600000).format("yyyy-NNN-dd HHmmss"));
 	console.info(new Date(1348358400000).format("yyyy-NNN-dd HHmmss"));
 
-	var  esQuery = {
-
-   "query": {
-      "filtered": {
-        "query": {
-          "match_all": {}
-        },
-        "filter": {
-          "and": [
-            {
-              "script": {
-                "script": "true"
-              }
-            },
-            {
-              "and": [
-                {
-                  "not": {
-                    "terms": {
-                      "bug_status": [
-                        "resolved",
-                        "verified",
-                        "closed"
-                      ]
-                    }
-                  }
-                },
-                {
-                  "range": {
-                    "expires_on": {
-                      "gte": 1350687979312
-                    }
-                  }
-                }
-              ]
-            },
-            {
-              "or": [
-                {
-                  "prefix": {
-                    "status_whiteboard.tokenized": "sg:crit"
-                  }
-                }
-              ]
-            },
-            {
-              "script": {
-                "script": "true"
-              }
-            },
-            {
-              "script": {
-                "script": "true"
-              }
-            }
-          ]
-        }
-      }
-    },
-    "from": 0,
-    "size": 10,
-    "sort": [],
-    "facets": {
-      "0": {
-        "terms": {
-          "script_field": "var replaceAll = function(output, find, replace){\ns = output.indexOf(find, 0);\nwhile(s>=0){\noutput=output.replace(find, replace);\ns=s-find.length+replace.length;\ns = output.indexOf(find, s);\n}\noutput;\n};\n''+replaceAll(replaceAll(\"Open\", \"\\\\\", \"\\\\\\\\\"), \"|\", \"\\\\p\")+'|'+((((1350687979312-doc[\"created_ts\"].value)<0) || ((1350687979312-doc[\"created_ts\"].value)>=7862400000)) ? 13 : Math.floor(((1350687979312-doc[\"created_ts\"].value)-0)/604800000))",
-          "size": 100000
-        }
-      }
-    }
-  
-
-
-
-
-
-
-
-
-
-
-
-
-//   "query" :
-//      {
-//         "filtered" :
-//            {
-//               "query" :
-//                  {
-//                     "match_all" :
-//                        {
-//                        }
-//                  },
-//				"filter":{
-//					"and":[
-//						{"not":{"terms" : {"doc.bug_status" : ["resolved", "verified", "closed"]}}},
-//						{ "range" : { "expires_on" : { "gte" : Date.now().getMilli()} } },
-//						{"prefix" : { "status_whiteboard.tokenized" : "sg:crit" }}
-//					]
-//
-//				}
-//			}
-//      },
-//   "from" : 0,
-//   "size" : 0,
-//   "sort" :
-//      [
-//      ],
-//   "facets" :
-//      {
-//         "doneReview" : {
-//               "terms" :
-//                  {
-//                     "field" : "status_whiteboard.tokenized",
-//                     "size" : "100000"
-//                  }
-//
-//      }
-//	  }
-
-
+	var esQuery={
+		"query" : {
+		   "filtered" : {
+			 "query" : {
+			   "match_all" : {}
+			 },
+			 "filter" : {
+			   "and" : [
+				 { "range": { "previous_values.bug_status_change_away_ts": { "gte": "now-6M" } } },
+				 { "terms": { "bug_status" : ["resolved","verified","closed"]}},
+				 { "range": { "modified_ts" :{"gte": "now-6M"} } },
+				 { "script": {
+					 "script" : "doc['previous_values.bug_status_change_away_ts'].value == doc['modified_ts'].value"
+				   }
+				 },
+				 { "terms": { "previous_values.bug_status_value": ["unconfirmed", "new", "assigned", "reopened"] } }
+			   ]
+			 }
+		   }
+		 },
+		 "from" : 0,
+		 "size" : 10,
+		 "sort" : [],
+		 "facets" : {
+		   "bug_age" : {
+			 "terms": {
+				"script_field": "_source.resolution+'|'+Math.floor((doc['modified_ts'].value - doc['created_ts'].value) / 86400000)",
+				"size": 100
+			 }
+		   }
+		 }
 
 
 	//		"facets" : {

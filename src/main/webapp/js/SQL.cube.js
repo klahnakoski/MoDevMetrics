@@ -72,20 +72,3 @@ SQL.cube.transpose.remap = function(oldColumns, newColumns){
 	}//for
 	return smap;
 };//method
-
-
-// UNION THE CUBES, AND ADD PARTITIONS AS NEEDED
-SQL.cube.union=function(cubeA, cubeB){
-	//ENSURE NAMES MATCH SO MERGE IS POSSIBLE
-	if (cubeA.facets.length!=cubeB.facets.length) D.error(Èxpecting cubes to )
-
-
-
-	SQL.cube.transpose(cubeB, cubeA.facets, cubeA.select)
-
-
-
-
-
-};//method
-

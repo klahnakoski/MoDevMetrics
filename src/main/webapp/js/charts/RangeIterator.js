@@ -1,5 +1,5 @@
 RangeIterator = function(reportBackObj, queries){
-	this.callbackObject = reportBackObj;
+	this.reportBackObj = reportBackObj;
 	this.queries = queries;
 	this.request = null;
 	this.currentDate = null;
@@ -8,7 +8,7 @@ RangeIterator = function(reportBackObj, queries){
 }
 
 RangeIterator.prototype.NextQuery = function(){
-	var dataSet = this.callbackObject.dataSet;
+	var dataSet = this.reportBackObj.dataSet;
 
 	if (dataSet.currentIndex <= dataSet.maxIndex){
 
@@ -22,28 +22,28 @@ RangeIterator.prototype.NextQuery = function(){
 RangeIterator.prototype.InjectIndex = function(){
 	var queries = Util.jsonCopy(this.queries);
 
-	var iterateField = this.callbackObject.iterateField;
+	var iterateField = this.reportBackObj.iterateField;
 
 	for(var i = 0; i < queries.length; i++)
-		insertIndexIntoQuery(queries[i].query, this.callbackObject.iterateField, this.callbackObject.dataSet.currentIndex);
+		insertIndexIntoQuery(queries[i].query, this.reportBackObj.iterateField, this.reportBackObj.dataSet.currentIndex);
 
 	return queries;
 };
 
 RangeIterator.prototype.success = function(requestObj, data){
 
-	this.callbackObject.success(this, data);
-	this.callbackObject.dataSet.currentIndex += 1;
+	this.reportBackObj.success(this, data);
+	this.reportBackObj.dataSet.currentIndex += 1;
 	this.NextQuery();
 };
 
 RangeIterator.prototype.error = function(requestObj, errorData, errorMsg, errorThrown){
-	this.callbackObject.error(requestObj, errorData, errorMsg, errorThrown);
+	this.reportBackObj.error(requestObj, errorData, errorMsg, errorThrown);
 };
 
-RangeIterator.prototype.kill = function(){
+RangeIterator.prototype.Kill = function(){
 	if (this.request != null){
-		this.request.kill();
+		this.request.Kill();
 		this.request = null;
 	}
 }

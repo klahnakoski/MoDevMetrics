@@ -25,7 +25,7 @@
 				<span class="info">Show weekly totals for new bugs and closed bugs (new bugs by Program are artificailly low because not marked upon creation) </span><br>
 				<br>
 				<a href="BugAge.html">BugAge.html</a>
-				<span class="info">FAST! - Age of closed bugs - Uses ES term packing</span><br>
+				<span class="info">SLOW (about 3min) - Age of closed bugs - Pulls large amount of data from ES (?delay is due to 50meg transfer?), and processes locally </span><br>
 				<br>
 				<a href="TimeToResolution.html">TimeToResolution.html</a>
 				<span class="info">SLOW (about 30sec) - Same as bug age, only measurment stars when bug is marked as belonging to Program, Product or Component</span><br>
@@ -34,7 +34,7 @@
 				<span class="info">SLOW (about 3min) - Length of time a bug waits for a review</span><br>
 				<br>
 				<a href="ResolutionsOverTime.html">ResolutionsOverTime.html</a>
-				<span class="info">FAST! - Show number of each Resolution by the age of the bug.  This query packs mutiple data partitions into a single &quot;term&quot; facet</span><br>
+				<span class="info">SLOW (3min) - Show number of each Resolution by the age of the bug.  This query uses ES facets to gather data.  The amount of download data is small, but ES computing is slow.  Only 21 facets (for 21 days) are used here. </span><br>
 				<br>
 			</div>
 		</td>

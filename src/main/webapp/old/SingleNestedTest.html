@@ -1,0 +1,69 @@
+<HTML>
+	<HEAD>
+	</HEAD>
+	<BODY>
+		<script type="text/javascript" src="src/main/js/rest/RestConfig.js"></script>
+		<script type="text/javascript" src="lib/js/jquery-1.7.js"></script>
+		<script type="text/javascript" src="src/main/js/charts/HelperFunctions.js"></script>
+
+		<div id="info"></div>
+
+		<script type="text/javascript">          
+
+		var query = 
+			 {
+				"query": {
+					"match_all" : {}
+				},
+				"from":0,
+				"size":100,
+				"sort":[{ "_id" : {"order" : "asc"} }],
+				"filter": {
+					"and":[
+						{ "or":[
+								{"term":{"product":"firefox"}},
+								{"term":{"product":"core"}}
+						]},
+						{ "term" : { "bug_id" : "700002" }},
+
+						{
+					        "nested" : 
+	    				    {
+				            	"path" : "attachments",
+				                "query" : {
+				                    "bool" : {
+				                        "must" : [
+				                            { "term" : {"attachments.attach_id" : "572151"} }
+				                        ]
+				                    }
+				                },
+				                "_cache" : true
+				            },
+			            }
+					]
+				},
+			};
+		
+		var request = $.ajax({
+			url: window.ElasticSearchRestURL,
+			type: "POST",
+//				contentType: "application/json",
+			data: JSON.stringify(query),
+			dataType: "json",
+//				traditional: true,
+//				processData: false,
+//				timeout: 100000,
+
+			success: function( data ) {
+				document.getElementById("info").innerHTML = JSON.stringify(data); 
+			},
+
+			error: function ( errorData, errorMsg, errorThrown ) { 
+				document.getElementById("info").innerHTML = "Response Error.  Make sure you are connected to the MPT network."; 
+			},
+		});
+		
+		</script>
+	
+	</BODY>
+</HTML>

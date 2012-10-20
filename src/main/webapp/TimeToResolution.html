@@ -3,55 +3,26 @@
 <HEAD>
 </HEAD>
 <BODY>
-<!--&lt;!&ndash;[if lt IE 9]>-->
-<!--<script type="text/javascript" src="lib/jqplot/excanvas.js"></script>-->
-<!--<![endif]&ndash;&gt;-->
-<!--<script type="text/javascript" src="lib/jqplot/jquery.min.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/jquery.jqplot.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.barRenderer.min.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.pointLabels.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.logAxisRenderer.js"></script>-->
-<!--<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>-->
+<!--[if lt IE 9]>
+<script type="text/javascript" src="lib/jqplot/excanvas.js"></script>
+<![endif]-->
+<script type="text/javascript" src="lib/jqplot/jquery.min.js"></script>
+<script type="text/javascript" src="lib/jqplot/jquery.jqplot.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.barRenderer.min.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.pointLabels.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>
+<script type="text/javascript" src="lib/jqplot/plugins/jqplot.logAxisRenderer.js"></script>
 
 
+<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>
 
 
-
-
-<script type="text/javascript" src="lib/webdetails/cdf/Base.js"></script>
-<script type="text/javascript" src="lib/webdetails/cdf/jquery.js"></script>
-<script type="text/javascript" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
-<script type="text/javascript" src="lib/webdetails/data/q01-01.js"></script>
-<script type="text/javascript" src="lib/webdetails/lib/protovis-d3.3.js"></script>
-<script type="text/javascript" src="lib/webdetails/lib/jquery.tipsy.js"></script>
-<script type="text/javascript" src="lib/webdetails/lib/tipsy.js"></script>
-<link type="text/css" href="lib/webdetails/lib/tipsy.css" rel="stylesheet"/>
-
-<script type="text/javascript" src="lib/webdetails/pvc/pvc.js"></script>
-<script type="text/javascript" src="lib/webdetails/pvc/pvcPanel.js"></script>
-<script type="text/javascript" src="lib/webdetails/pvc/pvcLegend.js"></script>
-<script type="text/javascript" src="lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
-<script type="text/javascript" src="lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
-<script type="text/javascript" src="lib/webdetails/pvc/pvcWaterfall.js"></script>
-<script type="text/javascript" src="lib/webdetails/pvc/pvcPie.js"></script>
-<script type="text/javascript" src="lib/webdetails/pvc/pvcBar.js"></script>
-<script type="text/javascript" src="lib/webdetails/pvc/pvcLine.js"></script>
-<script type="text/javascript" src="lib/webdetails/pvc/pvcData.js"></script>
-
-<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
-<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
-
-<script type="text/javascript" src="lib/webdetails/pvcDocUtils.js"></script>
-
-
-
-
-
-
+<!--<script type="text/javascript" src="lib/js/jquery-1.7.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/jquery.jqplot.min.js"></script>-->
+<!--<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css" />-->
 
 
 <link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
@@ -99,17 +70,31 @@
 
 <table style="width: 100%;">
 	<tr>
-		<td style="width: 320px;  vertical-align:text-top;">
-			<div id="status">Chart Loading...</div>
-			<hr>
-			<div id="testMessage"></div>
-			<hr>
-			<div id="parameters" class="parameters">
-			</div>
+		<td style="width: 300px;  vertical-align:text-top;">
 			<div id="filters" class="menu"></div>
+			<div id="testMessage"></div>
 		</td>
-		<td>
-			<div id="chart"></div>
+		<td style="vertical-align:text-top;">
+			<div id="parameters" class="parameters" style="width: 800px; height: 100px; margin-left: auto; margin-right: auto;">
+				<span class="parameter_name">Start Date</span><input type="text" id="startDate"><br>
+				<span class="parameter_name">End Date</span><input type="text" id="endDate">
+			</div>
+
+			<table style="margin-left: auto; margin-right: auto; border: 1px solid black;">
+				<tr>
+					<td style="width: 800px; height: 400px; margin-left: auto; margin-right: auto;">
+						<div id="chart"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div id="status"
+							 style="text-align: center; font:10px arial,sans-serif;">
+							Chart Loading...
+						</div>
+					</td>
+				</tr>
+			</table>
 		</td>
 	</tr>
 </table>
@@ -119,23 +104,21 @@
 
 <script type="text/javascript">
 
-var query;
+GUI.GetURLState();
 
+var rangeChart = null;
 
-var createChart = function(){
-	if (query!==undefined) query.kill();
-
-	var chartRequest={
-		"esQuery" : {
+var chartRequest = {
+	"requests" :[
+		{"esQuery" : {
 			"query":{"filtered":{
 				"query": {
 					"match_all" : {}
 				},
 				"filter" : {
 					"and":[
-						//MAKE SURE WE REPORT BACK FAR ENOUGH IN TIME TO CAPTURE THE LONGEST TIMES (state.maxX) BEING REPORTED
-						{"range":{"modified_ts":{"gte":new Date(state.sampleMin).subtract(Duration.newInstance(state.maxX)).getMilli()}}},
-						{"range":{"modified_ts":{"lte":new Date(state.sampleMax).getMilli()}}}
+						{ "terms" : { "keywords" : ["crash", "topcrash", "regression"]}},
+						{"range":{"modified_ts": {"gt":Date.now().add("-2year").getMilli()}}}
 					]
 				}
 			}},
@@ -147,27 +130,51 @@ var createChart = function(){
 					"terms_stats" : {
 						"key_field" : 'bug_id',
 						"value_field" : "modified_ts",
-						"size":state.esSize
+						"size":1000000
 					}
 				},
 				"closed" : {
 					"terms_stats" : {
 						"key_field" : 'bug_id',
 						"value_field" : "modified_ts",
-						"size":state.esSize
+						"size":1000000
 					},
 					"facet_filter" : {
 						"terms" : {"bug_status" : ["resolved", "verified", "closed"]}
 					}
 				}
 			}
+		},
+			"seriesName" : "Open Bugs"
 		}
-	};
+	],
+	"chartTitle" : "Burndown",
+	"canvas" : "chart",
+	"originZero" : true,
+	"chartType" : "LineChart",
+	"groupSize" : 1,
+	"startDate" : state["startDate"],
+	"endDate" : state["endDate"]
+};
 
-	ES.InjectFilter(chartRequest);
 
+var createChart = function(){
+	if (rangeChart != undefined){
+		rangeChart.Kill();
+	}
 
-	query=new RestQuery({
+	ES.InjectFilters(chartRequest.requests);
+
+	console.log("chartRequest: " + JSON.stringify(chartRequest));
+
+	rangeChart = new RangeChart(chartRequest);
+	rangeChart.run();
+};
+
+status.message("Calling ES");
+
+RestQuery.Run(
+		{
 			"success" : function(requestObj, data){
 				status.message("Formatting ES Data");
 				var identified = CNV.ESFacet2List(data.facets.identified);
@@ -177,7 +184,8 @@ var createChart = function(){
 				status.message("Match Identification with Close");
 				var durations = new SQL().calc2List({
 					"from":
-						identified,
+							identified,
+//					{"name":"i", "list":data.facets.identified},
 					"select":[
 						{"name":"duration", "value":"c.min-min", "operation":"average"},
 						{"name":"age", "value":"c.min-c.created_ts", "operation":"minimum"}
@@ -189,54 +197,116 @@ var createChart = function(){
 				}).list;
 
 				status.message("Tally into interval buckets");
-				var time2res = new SQL().calc2Cube({
-					"name": "Time to Resolution",
-					"from": durations,
-					"select": {"name":"Count", "value":"1", "operation":"count"},
+				var time2res = new SQL().calc2List({
+					"from":
+							durations,
+					"select":[
+						{"name":"count", "value":"1", "operation":"count"}
+					],
 					"facets":[
-						{"name":"Cohort", "value":"1"},
-						{"name":"Time Since Marked", "value":"Duration.newInstance(duration)", allowNulls:true,  "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
-					]
-				});
-
-				SQL.normalizeByCohort(time2res, 100);
+						{"name":"duration", "value":"Duration.newInstance(duration)", "domain":{"type":"duration", "min":0, "max":"year", "interval":"month"}}
+					],
+					"where":"duration.value!=null"
+				}).list;
 
 
 				status.message("Make chart");
-				aChart.showCCC({
-					"id":"chart",
-					"type":"stacked",
-					"cube":time2res
+
+				var chartData = [new SQL().calc2Array({
+					"from": time2res,
+					"select": {"name":"count", "value":"count"}
+				})];
+
+				var chartLabels = new SQL().calc2Array({
+					"from":	time2res,
+					"select": {"name":"duration", "value":"duration.name"}
 				});
+
+				var chartNotes = [];
+				for(var i=0;i<chartLabels.length;i++) chartNotes[i] = "";
+				chartNotes[0] = "Not including Zero duraiton";
+
+
+				$.jqplot(
+						'chart',
+						chartData,
+						{
+							title:'Time to Resolution',
+							seriesDefaults:{
+								renderer:$.jqplot.BarRenderer,
+								rendererOptions: {
+									barPadding: 1,	  // number of pixels between adjacent bars in the same
+									// group (same category or bin).
+									barMargin: 3,	  // number of pixels between adjacent groups of bars.
+									barDirection: 'vertical', // vertical or horizontal.
+									barWidth: null,	 // width of the bars.  null to calculate automatically.
+									shadowOffset: 2,	// offset from the bar edge to stroke the shadow.
+									shadowDepth: 1,	 // nuber of strokes to make for the shadow.
+									shadowAlpha: 0.1,   // transparency of the shadow.
+
+									fillToZero: true
+								}
+							},
+							series:[
+								{
+									label:'Duration',
+									color:'#5FAB78',
+									pointLabels:{
+										show: true,
+										labels:chartNotes//['Not including zero duration']
+									}
+								}
+							],
+							axes: {
+								xaxis: {
+									renderer: $.jqplot.CategoryAxisRenderer,
+									label: 'Time since marked',
+									labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+									tickRenderer: $.jqplot.CanvasAxisTickRenderer,
+									ticks:chartLabels,
+									tickOptions: {
+										angle: -90,
+										labelPosition: 'end',
+//								fontFamily: 'Courier New',
+//								fontSize: '9pt',
+										showLabel: true
+									}
+								},
+								yaxis: {
+									label: 'Count',
+									labelRenderer: $.jqplot.CanvasAxisLabelRenderer
+//							renderer: $.jqplot.LogAxisRenderer,
+//							tickDistribution:'power'
+								}
+							},
+							highlighter: {
+								show: true,
+								sizeAdjust: 7.5
+							}
+						}
+				);
+
 				status.message("Done");
+
+
+			},
+
+			"error": function(requestObj, errorData, errorMsg, errorThrown){
+				D.error(errorMsg)
 			}
 		},
 		0,
-		chartRequest.esQuery
-	);
+		chartRequest.requests[0].esQuery
+);
 
+var filterUI = null;
 
-	status.message("Calling ES");
-	query.Run();
+//	$(document).ready(function(){
+//			GUI.setup();
+//			createChart();
+//	});
 
-};
-
-
-
-
-
-	$(document).ready(function(){
-		GUI.setup([
-			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
-			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
-			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
-			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-2year")},
-			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
-			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
-		]);
-		createChart();
-	});
-
+//Code for updating URL paramaters: window.location('address_goes_here');
 </script>
 
 

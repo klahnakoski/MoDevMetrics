@@ -6,7 +6,7 @@
 <!--&lt;!&ndash;[if lt IE 9]>-->
 <!--<script type="text/javascript" src="lib/jqplot/excanvas.js"></script>-->
 <!--<![endif]&ndash;&gt;-->
-<!--<script type="text/javascript" src="lib/jqplot/jquery.min.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/jquery.js"></script>-->
 <!--<script type="text/javascript" src="lib/jqplot/jquery.jqplot.js"></script>-->
 <!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.barRenderer.min.js"></script>-->
 <!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>-->
@@ -16,9 +16,6 @@
 <!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>-->
 <!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.logAxisRenderer.js"></script>-->
 <!--<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>-->
-
-
-
 
 
 
@@ -50,12 +47,15 @@
 
 
 
+<!--<script type="text/javascript" src="lib/js/jquery-1.7.js"></script>-->
+<!--<script type="text/javascript" src="lib/jqplot/jquery.jqplot.min.js"></script>-->
+<!--<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css" />-->
 
 
-
-
-<link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
-<script type="text/javascript" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
+<link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css"
+	  rel="stylesheet"/>
+<script type="text/javascript"
+		src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="text/javascript" src="lib/js/jquery.ba-bbq.js"></script>
 
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
@@ -64,22 +64,19 @@
 <script type="text/javascript" src="js/rest/RestConfig.js"></script>
 <script type="text/javascript" src="js/CNV.js"></script>
 <script type="text/javascript" src="js/aDate.js"></script>
+<script type="text/javascript" src="js/aColour.js"></script>
 <script type="text/javascript" src="js/Test2.js"></script>
 <script type="text/javascript" src="js/MozillaPrograms.js"></script>
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/Debug.js"></script>
+
 <script type="text/javascript" src="js/MVEL.js"></script>
 <script type="text/javascript" src="js/SQL.js"></script>
 <script type="text/javascript" src="js/SQL.aggregate.js"></script>
 <script type="text/javascript" src="js/SQL.column.js"></script>
 <script type="text/javascript" src="js/SQL.cube.js"></script>
 <script type="text/javascript" src="js/SQL.domain.js"></script>
-<script type="text/javascript" src="js/ESQuery.js"></script>
 <script type="text/javascript" src="js/charts/aChart.js"></script>
-
-
-
-<script type="text/javascript" src="../../test/js/SQL.js"></script>
 
 
 <script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
@@ -99,17 +96,36 @@
 
 <table style="width: 100%;">
 	<tr>
-		<td style="width: 320px;  vertical-align:text-top;">
-			<div id="status">Chart Loading...</div>
-			<hr>
-			<div id="testMessage"></div>
-			<hr>
-			<div id="parameters" class="parameters">
-			</div>
+		<td style="width: 300px;  vertical-align:text-top;">
 			<div id="filters" class="menu"></div>
+			<div id="testMessage"></div>
 		</td>
-		<td>
-			<div id="chart"></div>
+		<td style="vertical-align:text-top;">
+			<table style="margin-left: auto; margin-right: auto; border: 0px solid black;">
+				<tr>
+					<td style="width: 800px; height: 100px; margin-left: auto; margin-right: auto;">
+						<div style="text-align: center;font:10px arial,sans-serif;">
+							Start Date <input type="text" id="startDate">
+							<input type="text" id="endDate"> End Date
+						</div>
+					</td>
+				</tr>
+			</table>
+			<table style="margin-left: auto; margin-right: auto; border: 1px solid black;">
+				<tr>
+					<td style="width: 800px; height: 400px; margin-left: auto; margin-right: auto;">
+						<div id="chart"></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div id="status"
+							 style="text-align: center; font:10px arial,sans-serif;">
+							Chart Loading...
+						</div>
+					</td>
+				</tr>
+			</table>
 		</td>
 	</tr>
 </table>
@@ -119,39 +135,123 @@
 
 <script type="text/javascript">
 
-var query;
+GUI.GetURLState();
+
+var rangeChart = null;
+
+var esQuery={
+	"query":{"filtered":{
+		"query": {
+			"match_all" : {}
+		},
+		"filter" : {
+			"and":[
+				{"terms" : { "keywords" : ["crash", "topcrash", "regression"]}},
+				{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}},
+				{"not": {"terms":{"previous_values.bug_status_value": ["resolved", "verified", "closed"]}}},
+				{"range":{"modified_ts":{"gte":Date.now().floor("month").add("-2year")}}}
+//				,{"range":{"bug_id":{"gte":600000}}}
+			]
+		}
+	}},
+	"from" : 0,
+	"size" : 0,
+	"sort" : [],
+	"facets":{
+		"closed" : {
+			"terms" : {
+				"script_field":new MVEL().code({
+					"from":"doc",
+					"select":[
+						{"name":"bug_id", value:"doc.bug_id"},
+						{"name":"created_ts", value:"doc.created_ts"},
+						{"name":"modified_ts", value:"doc.modified_ts"}
+					]
+				}),
+				"size":10000
+			}
+		}
+	}
+};
+
+status.message("Calling ES");
+
+RestQuery.Run(
+	{
+		"success" : function(requestObj, data){
+			status.message("Formatting ES Data");
+			var closed = CNV.ESFacet2List(data.facets.closed);
+
+			var ages = new SQL().calc2List({
+				"from":
+					closed,
+				"select":[
+					{"name":"closed_time", "value":"modified_ts", "operation":"minimum"},
+					{"name":"age", "value":"modified_ts-created_ts", "operation":"minimum"}
+				],
+				"facets":[
+					{"name":"bug_id", "value":"bug_id"}
+				]
+			}).list;
+
+			status.message("Tally into interval buckets");
+			var chartCube = new SQL().calc2Cube({
+				"name":"Bug Age For Crash",
+				"from": ages,
+				"select": {"name":"count", "value":"1", "operation":"count"},
+				"facets":[
+					{"name":"Cohort", "value":"Date.newInstance(closed_time)", "domain":{"type":"time", "min":Date.now().floor("month").add("-2year"), "max":Date.now().floor("month"), "interval":"6month", format:"NNN yyyy"}},
+					{"name":"Age", "value":"Duration.newInstance(age)", "allowNulls":true, "domain":{"type":"duration", "min":0, "max":"6week", "interval":"week"}}
+				]
+			});
+
+			SQL.normalizeByCohort(chartCube);
 
 
-var createChart = function(){
-	if (query!==undefined) query.kill();
+
+//
+//			var avgCohort=new SQL().calc2List({
+//				"from":focusData.list,
+//				"select":{"name":"Average", "value":"count", "operation":"average"},
+//				"facets":[
+//					{"name":"Cohort", "value":"Cohort.value", "domain":{"type":"time", "min":Date.now().floor("month").add("-2year"), "max":Date.now().floor("month"), "interval":"6month", format:"NNN yyyy"}}
+//				]
+//			});
+//
+//			var avgAge=new SQL().calc2List({
+//				"from":focusData.list,
+//				"select":{"name":"Average", "value":"count", "operation":"average"},
+//				"facets":[
+//					{"name":"Age", "value":"Age.value", "domain":{"type":"duration", "min":0, "max":"3week", "interval":"day"}}
+//				]
+//			});
+//
+//			var normalized=new SQL().calc2List({
+//				"from":focusData.list,
+//				"select": {"name":"nCount", "value":"count/a.Average/c.Average", "operation":"none"},
+//				"facets":[
+//					{"name":"Cohort", "value":"Cohort.value", "domain":{"name":"c", "type":"set", "key":"Cohort.value", "partitions":avgCohort.list}},
+//					{"name":"Age", "value":"Age.value", "domain":{"name":"a", "type":"set", "key":"Age.value", "partitions":avgAge.list}}
+//				]
+//			});
+
+			
 
 
-	var interval=Date.now().floor("day").subtract(new Date(state.cohortMin)).multiply(1/state.cohortNum);
 
-	query = new ESQuery({
-		"name":"Resolution by Bug Age",
-		"from":"bugs",
-		"select":{"name":"Count", "value":"1", "operation":"count"},
-		"facets":[
-			{"name":"Cohort", "value":"modified_ts", "domain":{"type":"time", "min":state.cohortMin, "max":Date.now().floor("day"), "interval":interval, format:"NNN yyyy"}},
-			{"name":"Age", "value":'doc["modified_ts"].value-doc["created_ts"].value', allowNulls:true, "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
-		],
-		"where":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value',  //ONLY THE DOCUMENT THAT CLOSES THE BUG
-		"esfilter":{"and":[
-//			{"not":{"term":{"resolution":""}}},	//THERE IS ONE verified WITH resolution=""
-			{"terms":{"bug_status":["resolved", "verified", "closed"]}},
-			{"range":{"modified_ts":{"gte":new Date(state.cohortMin).getMilli()}}},
-			{"range":{"modified_ts":{"lte":Date.now().floor("day").getMilli()}}}
-		]},
-		"essize":state.esSize
-	});
+//			var chartCube2 = new SQL().calc2Cube({
+//				"name":"Bug Age For Crash",
+//				"from": ages,
+//				"select": {"name":"count", "value":"1", "operation":"count"},
+//				"facets":[
+//					{"name":"Cohort", "value":"Date.newInstance(closed_time)", "domain":{"type":"time", "min":Date.now().add("-2year"), "max":Date.now().add("-1second"), "interval":"6month", format:"NNN yyyy"}},
+//					{"name":"Age", "value":"Duration.newInstance(age)", "domain":{"type":"duration", "min":0, "max":"3week", "interval":"day"}}
+//				]//,
+////				"where":"duration.value!=null && age>0"
+//			});
 
-	ES.InjectFilter(query);
 
-	status.message("Calling ES");
-	query.run(
-		function(chartCube){
-			SQL.normalizeByCohort(chartCube, 100);
+
 
 			status.message("Make chart");
 			aChart.showCCC({
@@ -160,25 +260,23 @@ var createChart = function(){
 				"cube":chartCube
 			});
 			status.message("Done");
+
+
 		}
-	);
 
+	},
+	0,
+	esQuery
+);
 
-};
+var filterUI = null;
 
+//	$(document).ready(function(){
+//			GUI.setup();
+//			createChart();
+//	});
 
-	$(document).ready(function(){
-		GUI.setup([
-			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
-			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
-			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
-			{"id":"cohortMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-2year")},
-			{"id":"cohortNum", "name":"Number of Cohorts", "type":"number", "default":4},
-			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
-		]);
-		createChart();
-	});
-
+//Code for updating URL paramaters: window.location('address_goes_here');
 </script>
 
 

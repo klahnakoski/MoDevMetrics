@@ -57,11 +57,10 @@ SQL.prototype.calc2List = function(query){
 		];
 		for(var f = 0; f < facets.length; f++){
 			var facet = facets[f];
+			var v = facet.calc(row, null);
 
 
 			if (facet.domain.getPartition !== undefined){
-				var v = facet.calc(row, null);
-
 				//STANDARD 1-1 MATCH VALUE TO DOMAIN
 				var p = facet.domain.getPartition(v);
 				if (p === undefined){
@@ -116,10 +115,9 @@ SQL.prototype.calc2List = function(query){
 			for(var s = 0; s < (select).length; s++){
 				var ss = select[s];
 				for(var t = 0; t < results.length; t++){
+					//FIND CANONICAL RESULT
+					result = SQL.addResultToOutput(results[t], indexedOutput, select, facets);
 					if (where(row, results[t])){
-						//FIND CANONICAL RESULT
-						var result = SQL.addResultToOutput(results[t], indexedOutput, select, facets);
-
 						//CALCULATE VALUE
 						var v = ss.calc(row, result);
 
@@ -299,8 +297,7 @@ SQL.toTable=function(query){
 ////////////////////////////////////////////////////////////////////////////////
 // ASSUME THE FIRST DIMESION IS THE COHORT, AND NORMALIZE (DIVIDE BY SUM(ABS(Xi))
 ////////////////////////////////////////////////////////////////////////////////
-SQL.normalizeByCohort=function(query, multiple){
-	if (multiple===undefined) multiple=1.0;
+SQL.normalizeByCohort=function(query){
 	if (query.data===undefined) D.error("Can only normalize a cube into a table at this time");
 
 //	SELECT
@@ -312,7 +309,7 @@ SQL.normalizeByCohort=function(query, multiple){
 		var total=0;
 		for(var e=0;e<query.data[c].length;e++) total+=Math.abs(query.data[c][e]);
 		if (total!=0){
-			for(var e=0;e<query.data[c].length;e++) query.data[c][e]*=(multiple/total);
+			for(var e=0;e<query.data[c].length;e++) query.data[c][e]/=total;
 		}//endif
 	}//for
 };//method
@@ -320,8 +317,7 @@ SQL.normalizeByCohort=function(query, multiple){
 ////////////////////////////////////////////////////////////////////////////////
 // ASSUME THE SECOND DIMESION IS THE XAXIS, AND NORMALIZE (DIVIDE BY SUM(ABS(Ci))
 ////////////////////////////////////////////////////////////////////////////////
-SQL.normalizeByX=function(query, multiple){
-	if (multiple===undefined) multiple=1;
+SQL.normalizeByX=function(query){
 	if (query.data===undefined) D.error("Can only normalize a cube into a table at this time");
 
 //	SELECT
@@ -333,11 +329,10 @@ SQL.normalizeByX=function(query, multiple){
 		var total=0;
 		for(var c=0;c<query.data.length;c++) total+=Math.abs(query.data[c][e]);
 		if (total!=0){
-			for(var c=0;c<query.data.length;c++) query.data[c][e]*=(multiple/total);
+			for(var c=0;c<query.data.length;c++) query.data[c][e]/=total;
 		}//endif
 	}//for
 };//method
-
 
 
 

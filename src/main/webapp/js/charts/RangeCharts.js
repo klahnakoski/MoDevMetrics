@@ -44,7 +44,7 @@ RangeChart.prototype.defaults=function(){
 RangeChart.prototype.run = function(){
 	if (this.iterator == 'date'){
 		this.request = new DateRangeIterator({
-			"callbackObject":this,
+			"reportBackObj":this,
 			"startDate":this.startDate,
 			"endDate":this.endDate,
 			"useWindow":this.useWindow,
@@ -131,9 +131,9 @@ RangeChart.prototype.renderChart = function(){
 	chart.render();
 };
 
-RangeChart.prototype.kill = function(){
+RangeChart.prototype.Kill = function(){
 	if (this.request != undefined){
-		this.request.kill();
+		this.request.Kill();
 		this.request = null;
 		return true;
 	}

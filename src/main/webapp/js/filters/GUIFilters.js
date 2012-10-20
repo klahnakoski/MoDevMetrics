@@ -107,7 +107,7 @@ GUI.AddParameters=function(parameters){
 		////////////////////////////////////////////////////////////////////////
 		// DATE
 		if (param.type=="date" ||param.type=="time"){
-			$("#" + param.id).datepicker({ maxDate: "-0D" });
+			$("#" + param.id).datepicker({ maxDate: "-1D" });
 			$("#" + param.id).datepicker("option", "dateFormat", "yy-mm-dd");
 
 			$("#" + param.id).change(function(){
@@ -136,13 +136,6 @@ GUI.AddParameters=function(parameters){
 				}
 			});
 			defaultValue=defaultValue.toString();
-		}else{
-			$("#" + param.id).change(function(){
-				if (GUI.UpdateState()){
-					GUI.UpdateURL();
-					createChart();
-				}
-			});
 		}//endif
 
 		$("#" + param.id).val(defaultValue);

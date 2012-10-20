@@ -130,25 +130,6 @@ SQL.aggregate.sum = function(select){
 	select.domain = SQL.domain.value;
 };
 
-
-//RETURN ZERO (FOR NO DATA) OR ONE (FOR DATA)
-SQL.aggregate.binary = function(select){
-	select.defaultValue = function(){
-		return 0;
-	};//method
-
-	select.add = function(total, v){
-		if (v === undefined || v == null) return total;
-		return 1;
-	};//method
-
-	select.domain = SQL.domain.value;
-};
-
-
-
-
-
 SQL.aggregate.count = function(select){
 	select.defaultValue = function(){
 		return 0;

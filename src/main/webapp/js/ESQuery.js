@@ -6,7 +6,7 @@ var ESQuery = function(query){
 ESQuery.prototype.run = function(successCallback){
 	this.callback = successCallback;
 
-	this.restQuery=RestQuery.Run(
+	RestQuery.Run(
 		this,
 		0,
 		this.esQuery
@@ -15,13 +15,11 @@ ESQuery.prototype.run = function(successCallback){
 
 
 ESQuery.prototype.success = function(requestObj, data){
-	if (this.callback===undefined) return;
+	if (this.callback!==undefined) return;
 
 	status.message("Extract Cube");
 
-	if (this.esMode == "terms"){
-		this.termsResults(data);
-	} else if (this.esMode == "terms_stats"){
+	if (this.esMode == "terms_stats"){
 		this.terms_statsResults(data);
 	} else{//statistical
 		this.statisticalResults(data);
@@ -36,10 +34,6 @@ ESQuery.prototype.error = function(requestObj, errorData, errorMsg, errorThrown)
 };
 
 ESQuery.prototype.kill = function(){
-	if (this.restQuery!==undefined){
-		this.restQuery.kill();
-		this.restQuery=undefined;
-	}//endif
 	this.callack=undefined;
 };
 
@@ -68,39 +62,34 @@ ESQuery.prototype.compile = function(){
 	//ENSURE THERE IS ONLY ONE SELECT
 	this.resultColumns = SQL.compile(this.query, []);
 
+
 	this.select = SQL.select2Array(this.query.select)[0];
 
+	//A SPECIAL FACET IS ONE THAT HAS AN UNDEFINED NUMBER OF PARTITIONS AT QUERY TIME
+	//FIND THE specialFacet, IF ONE
 	this.facets = this.query.facets.copy();
-//DISABLED FOR NOW
-	if (!(this.query.select instanceof Array) && this.query.select.operation=="count"){
-		this.esMode="terms";
-		this.esQuery = this.buildESTermsQuery();
-	}else{
-		//A SPECIAL FACET IS ONE THAT HAS AN UNDEFINED NUMBER OF PARTITIONS AT QUERY TIME
-		//FIND THE specialFacet, IF ONE
-		this.esMode = "terms_stats";
-		this.specialFacet = null;
-		for(var f = 0; f < this.facets.length; f++){
-			if ((["set", "duration", "time"].contains(this.facets[f].domain.type))){
-				for(var p = this.facets[f].domain.partitions.length; p--;){
-					this.facets[f].domain.partitions[p].dataIndex = p;
-				}//for
-			} else{
-				if (this.specialFacet != null) D.error("There is more than one open-ended facet: this can not be handled");
-				this.specialFacet = this.facets.splice(f, 1)[0];
-				f--;
-			}//endif
-		}//for
-		if (this.specialFacet == null){
-			this.esMode = "statistical";
+	this.esMode = "terms_stats";
+	this.specialFacet = null;
+	for(var f = 0; f < this.facets.length; f++){
+		if ((["set", "duration", "time"].contains(this.facets[f].domain.type))){
+			for(var p = this.facets[f].domain.partitions.length; p--;){
+				this.facets[f].domain.partitions[p].dataIndex = p;
+			}//for
+		} else{
+			if (this.specialFacet != null) D.error("There is more than one open-ended facet: this can not be handled");
+			this.specialFacet = this.facets.splice(f, 1)[0];
+			f--;
 		}//endif
-
-		this.esQuery = this.buildESQuery();
-		var esFacets = this.buildFacetQueries();
-		for(var i = 0; i < esFacets.length; i++){
-			this.esQuery.facets[esFacets[i].name] = esFacets[i].value;
-		}//for
+	}//for
+	if (this.specialFacet == null){
+		this.esMode = "statistical";
 	}//endif
+
+	this.esQuery = this.buildESQuery();
+	var esFacets = this.buildFacetQueries();
+	for(var i = 0; i < esFacets.length; i++){
+		this.esQuery.facets[esFacets[i].name] = esFacets[i].value;
+	}//for
 
 };
 
@@ -212,156 +201,6 @@ ESQuery.buildCondition = function(facet, partition){
 };
 
 
-ESQuery.prototype.buildESTermsQuery=function(){
-
-	if (this.query.where===undefined) this.query.where="true";
-
-
-	var output={
-		"query":{
-			"filtered":{
-				"query": {
-					"match_all" : {}
-				},
-				"filter" : {
-					"and":[
-						{"script":{"script":this.query.where}}
-					]
-				}
-			}
-		},
-		"from" : 0,
-		"size" : 0,
-		"sort" : [],
-		"facets":{
-			"0":{
-				"terms":{
-					"script_field":this.compileFacets2Term(),
-					"size": 100000
-				}
-			}
-		}
-	};
-
-	output.query.filtered.filter.and.push(this.query.esfilter);
-
-	return output;
-};
-
-
-//GIVE MVEL CODE THAT REDUCES A UNIQUE TUPLE OF PARTITIONS DOWN TO A UNIQUE TERM
-//GIVE JAVASCRIPT THAT WILL CONVERT THE TERM BACK INTO THE TUPLE
-ESQuery.prototype.compileFacets2Term=function(){
-	var facets=this.facets;
-
-	var mvel=undefined;
-	var fromTerm2Part=[];
-	for(var i=0;i<facets.length;i++){
-		if (mvel===undefined) mvel="''+"; else mvel+="+'|'+";
-		var t;
-		if (facets[i].domain.type=="time" || facets[i].domain.type=="duration"){
-			t=ESQuery.compileTime2Term(facets[i]);
-		}else{
-			t=ESQuery.compileString2Term(facets[i]);
-		}//for
-		fromTerm2Part.push(t.fromTerm);
-		mvel+=t.toTerm;
-	}//for
-
-	//REGISTER THE DECODE FUNCTION
-	this.term2Parts=function(term){
-		var output=[];
-		var terms=term.split('|');
-		for(var i=0;i<terms.length;i++){
-			output.push(fromTerm2Part[i](terms[i]));
-		}//for
-		return output;
-	};
-
-
-	var library=
-		"var replaceAll = function(output, find, replace){\n" +
-			"s = output.indexOf(find, 0);\n" +
-			"while(s>=0){\n" +
-				"output=output.replace(find, replace);\n" +
-				"s=s-find.length+replace.length;\n" +
-				"s = output.indexOf(find, s);\n" +
-			"}\n"+
-			"output;\n"+
-		"};\n";
-
-	//v="var replaceAll = function(output, find, replace){\ns=0;\nwhile(true){\ns = output.indexOf(find, s);\nif (s < 0) break;\noutput=output.replace(find, replace);\ns=s-find.length+replace.length;\n}\noutput;\n};\nreplaceAll(replaceAll(value, \"\\\\\", \"\\\\\\\\\"), \"|\", \"\\\\p\")+'|'+((((doc[\"modified_ts\"].value-doc[\"created_ts\"].value)<0) || ((doc[\"modified_ts\"].value-doc[\"created_ts\"].value)>=0)) ? 13 : Math.floor(((doc[\"modified_ts\"].value-doc[\"created_ts\"].value)-0)/604800000))";
-
-
-	return library+mvel;
-};
-
-
-ESQuery.compileString2Term=function(facet){
-	var value=facet.value;
-	if (ESQuery.isKeyword(value)) value="doc[\""+value+"\"].value";
-
-	return {
-		"toTerm":'replaceAll(replaceAll('+value+', "\\\\", "\\\\\\\\"), "|", "\\\\p")',
-		"fromTerm":function(value){
-			return facet.domain.getPartition(value.replaceAll("\\p", "|").replaceAll("\\\\", "\\"));
-		}
-	};
-};//method
-
-
-//RETURN MVEL CODE THAT MAPS TIME AND DURATION DOMAINS DOWN TO AN INTEGER AND
-//AND THE JAVASCRIPT THAT WILL TURN THAT INTEGER BACK INTO A PARTITION (INCLUDING NULLS)
-ESQuery.compileTime2Term=function(facet){
-	if (facet.domain.type!="time" && facet.domain.type!="duration") D.error("can only translate time and duration domains");
-
-	//IS THERE A LIMIT ON THE DOMAIN?
-	var numPartitions=facet.domain.partitions.length;
-	var value=facet.value;
-	if (ESQuery.isKeyword(value)) value="doc[\""+value+"\"].value";
-
-	var ref, nullTest, partition2int, int2Partition;
-	if (facet.domain["<"]===undefined){
-		if (facet.domain[">="]===undefined){
-			ref=Date.now().floor(facet.domain.interval);
-			ref=facet.domain.type=="time"?ref.getMilli():ref.milli;
-			partition2int="Math.floor(("+value+"-"+ref+")/"+facet.domain.interval.milli+")";
-			nullTest="false";
-		}else{
-			ref=facet.domain[">="];
-			ref=facet.domain.type=="time"?ref.getMilli():ref.milli;
-			partition2int="Math.floor(("+value+"-"+ref+")/"+facet.domain.interval.milli+")";
-			nullTest=""+value+"<"+ref;
-		}//endif
-	}else if (facet.domain[">="]===undefined){
-		ref=facet.domain["<"];
-		ref=facet.domain.type=="time"?ref.getMilli():ref.milli;
-		partition2int="Math.floor(("+value+"-"+ref+")/"+facet.domain.interval.milli+")";
-		nullTest=""+value+">="+ref;
-	}else{
-		var top=facet.domain["<"]; top=facet.domain.type=="time"?top.getMilli():top.milli;
-		    ref=facet.domain[">="];ref=facet.domain.type=="time"?ref.getMilli():ref.milli;
-		partition2int="Math.floor(("+value+"-"+ref+")/"+facet.domain.interval.milli+")";
-		nullTest="("+value+"<"+ref+") || ("+value+">="+top+")";
-	}//endif
-
-	partition2int="(("+nullTest+") ? "+numPartitions+" : "+partition2int+")";
-	if (facet.domain.type=="time"){
-		int2Partition=function(value){
-			if (Math.round(value)==numPartitions) return facet.domain.NULL;
-			return facet.domain.getPartition(new Date((value*facet.domain.interval.milli)+ref));
-		};
-	}else{
-		int2Partition=function(value){
-			if (Math.round(value)==numPartitions) return facet.domain.NULL;
-			return facet.domain.getPartition(Duration.newInstance((value*facet.domain.interval.milli)+ref));
-		};
-	}//endif
-
-	return {"toTerm":partition2int, "fromTerm":int2Partition};
-};
-
-
 ESQuery.prototype.buildESQuery = function(){
 	var output = {
 		"query":{
@@ -387,39 +226,7 @@ ESQuery.prototype.buildESQuery = function(){
 };//method
 
 
-ESQuery.prototype.termsResults=function(data){
-	var terms=data.facets["0"].terms;
 
-	//GETTING ALL PARTS WILL EXPAND THE FACETS' DOMAINS
-	for(var i=0;i<terms.length;i++)
-		this.term2Parts(terms[i].term);
-
-	//NUMBER ALL FACETS FOR CUBE INDEXING
-	for(var f=0;f<this.facets.length;f++){
-		var parts=this.facets[f].domain.partitions;
-		var p=0;
-		for(;p<parts.length;p++){
-			parts[p].dataIndex=p;
-		}//for
-		this.facets[f].domain.NULL.dataIndex=p;
-	}//for
-
-	//MAKE CUBE
-	var cube = SQL.cube.newInstance(this.query.facets, 0, this.query.select);
-
-	//FILL CUBE
-	for(var i=0;i<terms.length;i++){
-		var d = cube;
-		var parts=this.term2Parts(terms[i].term);
-		var t = 0;
-		for(; t < parts.length-1; t++){
-			d = d[parts[t].dataIndex];
-		}//for
-		d[parts[t].dataIndex] = terms[i].count;
-	}//for
-
-	this.query.data=cube;
-};
 
 //MAP THE SELECT OPERATION NAME TO ES FACET AGGREGATE NAME
 ESQuery.agg2es = {
@@ -432,7 +239,7 @@ ESQuery.agg2es = {
 
 //PROCESS RESULTS FROM THE ES STATISTICAL FACETS
 ESQuery.prototype.statisticalResults = function(data){
-	//MAKE CUBE
+//MAKE CUBE
 	this.cube = SQL.cube.newInstance(this.query.facets, 0, this.query.select);
 
 	//FILL CUBE
