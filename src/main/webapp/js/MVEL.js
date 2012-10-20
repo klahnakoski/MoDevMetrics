@@ -73,10 +73,8 @@ MVEL.prototype.translate = function(variableName){
 	var shortForm = variableName;
 	for(var p = 0; p < (this.prefixMap).length; p++){
 		var prefix = this.prefixMap[p].path;
-		if (variableName.indexOf(prefix) == 0 && (variableName.length == prefix.length || variableName.charAt(prefix.length) == '.' || variableName.charAt(prefix.length) == '[')){
-			shortForm = variableName.replace(prefix, this.prefixMap[p].variable);
-			break;
-		}//endif
+		shortForm=shortForm.replaceAll(prefix+".", this.prefixMap[p].variable+".");
+		shortForm=shortForm.replaceAll(prefix+"[", this.prefixMap[p].variable+"[");
 	}//for
 	return shortForm;
 };//method

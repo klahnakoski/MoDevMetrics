@@ -62,7 +62,7 @@
 
 	var createChart = function(){
 		if (rangeChart != undefined){
-			rangeChart.Kill();
+			rangeChart.kill();
 		}
 
 		var numberOfDays = getNumberOfDays(convertStringToDate(state['startDate']), convertStringToDate(state['endDate']));

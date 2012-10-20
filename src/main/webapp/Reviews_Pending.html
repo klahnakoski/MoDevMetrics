@@ -38,13 +38,13 @@
 				},
 				"filter": {
 					"and":[
-						{ "range" : { "expires_on" : { "gt" : Date.now().addDay(1) } } },
+//													{"terms":{"bug_id":[505741]}},
+						{ "range" : { "expires_on" : { "gt" : Date.now().getMilli() } } },
 						{"not" : {
 							"terms" : {
 								"bug_status" : ["resolved", "verified", "closed"]
 							}
-						}
-						}
+						}}
 					]
 				}
 			}
@@ -71,7 +71,6 @@
 									{"or" : [
 										{ "and" : [
 											{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
-											//, "D"]}},
 											{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}}
 										]}
 									]},

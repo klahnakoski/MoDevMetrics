@@ -15,7 +15,7 @@ ProgramFilter.makeFilter = function(selectedPrograms){
 				var value = ProgramFilter.allPrograms[j].attributeValue;
 				var term = {};
 				term[name] = value;
-				or.push({"term":term});
+				or.push({"prefix":term});
 			}//endif
 		}//for
 	}//for
@@ -25,23 +25,39 @@ ProgramFilter.makeFilter = function(selectedPrograms){
 
 
 ProgramFilter.makeQuery = function(filters){
-	var compares = "";
+//	var allCompares = "";
+	var programCompares={};
 
 	for(var j=0;j<ProgramFilter.allPrograms.length;j++){
 //		if (ProgramFilter.allPrograms[j].projectName==state.selectedPrograms[i]){
 		var name = ProgramFilter.allPrograms[j].attributeName;
 		var value = ProgramFilter.allPrograms[j].attributeValue;
+		var project=ProgramFilter.allPrograms[j].projectName;
+//		var compare;
 		if (name===undefined){
 			D.error("");
 		}//endif
-		if (name.indexOf(".tokenized") >= 0){
-			name = name.leftBut(10);
-			compares += "if (_source." + name + ".indexOf(" + CNV.String2Quote(value) + ")>=0) return " + CNV.String2Quote(ProgramFilter.allPrograms[j].projectName) + ";\n";
-		} else{
-			compares += "if (doc." + name + "==" + CNV.String2Quote(value) + ") return " + CNV.String2Quote(ProgramFilter.allPrograms[j].projectName) + ";\n";
-		}//enidf
-//		}//endif
+
+		programCompares[project]=Util.coalesce(programCompares[project], []);
+		var filter={"prefix":{}};
+		filter.prefix[name]=value;
+		programCompares[project].push(filter);
+
+
+		//FOR THE SINGLE FACET AND ALL TERMS
+//		if (name.indexOf(".tokenized") >= 0){
+//			name = name.leftBut(10);
+//			compare="if (_source." + name + ".indexOf(" + CNV.String2Quote(value) + ")>=0) return " + CNV.String2Quote(project) + ";\n";
+//			allCompares += compare;
+//		} else if (name=="keywords"){
+//			compare="if (_source." + name + ".indexOf(" + CNV.String2Quote(value) + ")>=0) return " + CNV.String2Quote(project) + ";\n";
+//			allCompares += compare;
+//		} else{
+//			compare="if (doc." + name + "==" + CNV.String2Quote(value) + ") return " + CNV.String2Quote(project) + ";\n";
+//			allCompares += compare;
+//		}//enidf
 	}//for
+
 
 	var output = {
 		"query" : {
@@ -61,14 +77,28 @@ ProgramFilter.makeQuery = function(filters){
 		"size": 0,
 		"sort": [],
 		"facets": {
-			"Programs": {
-				"terms": {
-					"script_field": compares,
-					"size": 100000
-				}
-			}
+//			"Programs": {
+//				"terms": {
+//					"script_field": allCompares+"return 'None'\n",
+//					"size": 100000
+//				}
+//			}
 		}
 	};
+
+	//INSERT INDIVIDUAL FACETS
+	//I WOULD HAVE USED FACET FILTERS, BUT THEY SEEM NOT ABLE TO RUN indexOf() ON _source ATTRIBUTES
+	for(var c in programCompares){
+		output.facets[c]={
+			"terms":{
+				"script_field":MVEL.Value2Code(c),//programCompares[c]+"return 'None'\n",
+				"size":10000
+			},
+			"facet_filter":{
+				"or":programCompares[c]
+			}
+		}
+	}
 
 	var and = output.query.filtered.filter.and;
 	for(var f=0;f<filters.length;f++) and.push(filters[f]);
@@ -76,7 +106,7 @@ ProgramFilter.makeQuery = function(filters){
 	return output;
 };//method
 
-
+//programs IS A LIST OF OBJECTS WITH A term AND count ATTRIBUTES
 ProgramFilter.prototype.injectHTML = function(programs){
 	var html = '<ul id="programsList" class="menu ui-selectable">';
 	var item = '<li class="{class}" id="program_{name}">{name} ({count})</li>';
@@ -120,7 +150,20 @@ ProgramFilter.prototype.Refresh = function(){
 
 ProgramFilter.prototype.success = function(resultsObj, data){
 
-	var programs = data.facets.Programs.terms;
+	//CONVERT MULTIPLE FACETS INTO SINGLE LIST OF PROGRAMS
+	var programs=[];
+	for(var p in data.facets){
+		if (p=="Programs") continue;  //ALL PROGRAMS (NOT ACCURATE COUNTS)
+		for(var t=0;t<data.facets[p].terms.length;t++){
+			if (data.facets[p].terms[t].term=="None") continue;
+			programs.push(data.facets[p].terms[t]);
+		}//for
+	}//for
+	
+	//OLD PROGRAMS HAS BAD COUNTS
+	//var programs = data.facets.Programs.terms;
+
+
 	this.injectHTML(programs);
 
 	$("#programsList").selectable({
