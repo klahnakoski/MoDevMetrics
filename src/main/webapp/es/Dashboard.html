@@ -93,7 +93,7 @@
 			</div>
 			<div id="filters" class="menu"></div>
 		</td>
-		<td>
+		<td style="width:70%">
 			<div class="widget" id="percentOver"></div>
 			<div class="widget" id="percentOverOpen"></div>
 		</td>
@@ -121,9 +121,14 @@ var createChart = function(){
 	query = new ESQuery({
 		"name":"Age of Open Bugs",
 		"from":"bugs",
-		"select":{"name":"Age", "value":"("+Date.now().getMilli()+'-doc["created_ts"].value)', "operation":"min"},
+		"select":{"name":"Count", "value":"1", "operation":"count"},
 		"edges":[
-			{"name":"bug_id", "value":"bug_id"}
+			{"name":"State", "value":"\"Open\""},
+			{"name":"Age",
+				"value":"("+Date.now().getMilli()+'-doc["created_ts"].value)',
+				allowNulls:true,
+				"domain":{"type":"duration", "min":"0", "max":"week", "interval":"week"}
+			}
 		],
 		"esfilter":{
 			"and":[
@@ -136,9 +141,14 @@ var createChart = function(){
 	var queryClosed = new ESQuery({
 		"name":"Age of Closed Bugs",
 		"from":"bugs",
-		"select":{"name":"Age", "value":'doc["modified_ts"].value-doc["created_ts"].value', "operation":"min"},
+		"select":{"name":"Count", "value":"1", "operation":"count"},
 		"edges":[
-			{"name":"bug_id", "value":"bug_id"}
+			{"name":"State", "value":"\"Closed\""},
+			{"name":"Age",
+				"value":'doc["modified_ts"].value-doc["created_ts"].value',
+				allowNulls:true,
+				"domain":{"type":"duration", "min":"0", "max":"week", "interval":"week"}
+			}
 		],
 		"where":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value',  //ONLY THE DOCUMENT THAT CLOSES THE BUG
 		"esfilter":{"and":[
@@ -161,7 +171,7 @@ var createChart = function(){
 			var closedIN=closedBugAges.data[0][0];
 			var closedOUT=closedBugAges.data[0][1];
 
-			$("#percentOverOpen").html("<h1>"+Math.round((openOUT)/(openOUT+openIN)*10000)/100+"%</h1><br>Open and Closed");
+			$("#percentOverOpen").html("<h1>"+Math.round((openOUT)/(openOUT+closedOUT)*10000)/100+"%</h1><br>Open and Closed");
 			$("#percentOver").html("<h1>"+Math.round((openOUT+closedOUT)/(closedIN+closedOUT+openOUT+closedOUT)*10000)/100+"%</h1><br>Open");
 
 			status.message("Done");
