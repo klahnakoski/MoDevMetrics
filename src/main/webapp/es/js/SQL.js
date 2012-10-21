@@ -34,14 +34,14 @@ SQL.select2Array = function(select){
 
 
 SQL.prototype.calc2List = function(query){
+	var select = SQL.select2Array(query.select);
 
 	//NO EDGES IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
-	if (query.edges === undefined || query.edges.length == 0){
+	if (select[0].operation===undefined && query.edges === undefined || query.edges.length == 0){
 		return this.setOP(query);
 	}//endif
 
 	var sourceColumns = SQL.getColumns(query.from);
-	var select = SQL.select2Array(query.select);
 	var edges = query.edges;
 	var resultColumns = SQL.compile(query, sourceColumns);
 	var where = SQL.where.compile(query.where, sourceColumns, edges);

@@ -26,6 +26,7 @@
 <script type="text/javascript" src="js/charts/aChart.js"></script>
 
 
+<div id="summary"></div>
 <div id="info"></div>
 
 <script type="text/javascript">
@@ -50,7 +51,7 @@
 			}
 		},
 		"from":0,
-		"size":100,
+		"size":0,
 		"sort":[
 			{ "bug_version_num" : {"order" : "asc"} }
 		],
@@ -62,7 +63,8 @@
 							new MVEL().code({
 								"select" : [
 									{"name":"bug_id", "value":"doc.bug_id"},
-									{"name":"requestee", "value":"doc.attachments.flags.requestee"}
+									{"name":"requestee", "value":"doc.attachments.flags.requestee"},
+									{"name":"modified_ts", "value":"doc.attachments.flags.modified_ts"}
 								],
 								"from":
 										"doc.attachments.flags",
@@ -77,7 +79,7 @@
 									{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
 								]}
 							}),
-					"size": 100000
+					"size": 100
 				}
 			}
 		}
@@ -93,22 +95,35 @@
 		dataType: "json",
 
 		success: function(data){
-			var esResult = CNV.ESFacet2List(data.edges.pending);
+			var esResult = CNV.ESFacet2List(data.facets.pending);
 
-			var result = new SQL().calc2List({
-				"from":
-					//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
+			var reviews=					//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
 					new SQL().calc2List({
 						"from":
-								esResult,
-						"select":[
-						],
+							esResult,
+						"select": {"name":"age", "value":"Date.now().floor('day').getMilli()-modified_ts", operation:"minimum"},
 						"edges":[
 							{"name":"requestee", "value":"requestee"},
 							{"name":"bug_id", "value":"bug_id"}
 						]
-					}).list,
+					}).list;
+
+
+
+			var average = new SQL().calc2List({
+				"from": reviews,
+				"select": {"name":"Average Age", "value":"age", operation:"average"}
+			}).list;
+
+			average=Duration.newInstance(average).format("day");
+			$("#summary").html("<h1>Average Review Queue Length: "+average+"s</h1>");
+
+
+
+			var result = new SQL().calc2List({
+				"from": reviews,
 				"select":[
+					{"name":"avg_age", "value":"age", operation:"average"},
 					{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
 					{"name":"bugs", "value":"bug_id", operation:"join", "separator":","}
 				],
@@ -125,6 +140,7 @@
 				"from":result,
 				"select":[
 					{"name":"requestee", "value":"requestee"},
+					{"name":"Average Age", "value":"Duration.newInstance(avg_age).format('day')"},
 					{"name":"numPending", value:"numPending"},
 					{"name":"bugs", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
 				]

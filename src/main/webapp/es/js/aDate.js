@@ -260,6 +260,9 @@ var Duration = function(){
 };
 
 
+
+
+
 Duration.MILLI_VALUES = {
 	"year":52 * 7 * 24 * 60 * 60 * 1000,		//52weeks
 	"quarter":13 * 7 * 24 * 60 * 60 * 1000,	//13weeks
@@ -441,4 +444,11 @@ Duration.prototype.toString = function(){
 
 	if (isNegative) output = output.replace("+", "-");
 	return output;
+};//method
+
+
+Duration.prototype.format=function(interval, rounding){
+	var output=this.divideBy(interval);
+	output=Math.round(output*Math.pow(10, rounding))/Math.pow(10, rounding);
+	return output+interval;
 };//method
