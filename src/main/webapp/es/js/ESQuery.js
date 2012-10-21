@@ -57,21 +57,20 @@ ESQuery.prototype.compileSetOp=function(){
 
 
 ESQuery.prototype.compile = function(){
-
+	if (this.query.edges === undefined) this.query.edges=[];
+	this.edges = this.query.edges.copy();
+	//PICK FIRST AND ONLY SELECT
+	this.select = SQL.select2Array(this.query.select)[0];
+	
 	//NO EDGES IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
-	if (this.query.edges === undefined || this.query.edges.length == 0){
+	if (this.select.operation===undefined && this.edges.length == 0){
 		return this.compileSetOP();
 	}//endif
 
-
-
-	//ENSURE THERE IS ONLY ONE SELECT
 	this.resultColumns = SQL.compile(this.query, []);
 
-	this.select = SQL.select2Array(this.query.select)[0];
-
 	this.edges = this.query.edges.copy();
-//DISABLED FOR NOW
+
 	if (!(this.query.select instanceof Array) && this.query.select.operation=="count"){
 		this.esMode="terms";
 		this.esQuery = this.buildESTermsQuery();
@@ -96,9 +95,26 @@ ESQuery.prototype.compile = function(){
 		}//endif
 
 		this.esQuery = this.buildESQuery();
-		var esFacets = this.buildFacetQueries();
+
+		var esFacets;
+		if (this.edges.length==0){
+			//ZERO DIMENSIONAL QUERY
+			esFacets=[];
+			var q = {
+				"name":"0",
+				"value" : {
+					"statistical":{
+						"script":this.select.value
+					}
+				}
+			};
+			esFacets.push(q);
+		}else{
+			esFacets = this.buildFacetQueries();
+		}//endif
+
 		for(var i = 0; i < esFacets.length; i++){
-			this.esQuery.edges[esFacets[i].name] = esFacets[i].value;
+			this.esQuery.facets[esFacets[i].name] = esFacets[i].value;
 		}//for
 	}//endif
 
@@ -137,7 +153,7 @@ ESQuery.prototype.buildFacetQueries = function(){
 					"script":this.select.value
 				},
 				"facet_filter":{
-					"script":{"script":condition}
+					"and":condition
 				}
 			};
 		}//endif
@@ -363,6 +379,8 @@ ESQuery.compileTime2Term=function(edge){
 
 
 ESQuery.prototype.buildESQuery = function(){
+	if (this.query.where===undefined) this.query.where="true";
+
 	var output = {
 		"query":{
 			"filtered":{
@@ -432,11 +450,19 @@ ESQuery.agg2es = {
 
 //PROCESS RESULTS FROM THE ES STATISTICAL FACETS
 ESQuery.prototype.statisticalResults = function(data){
+	if (this.edges.length==0){
+		//ZERO DIMENSIONS
+		this.cube = data.facets["0"][ESQuery.agg2es[this.select.operation]];
+		return
+	}//endif
+
+
+
 	//MAKE CUBE
 	this.cube = SQL.cube.newInstance(this.query.edges, 0, this.query.select);
 
 	//FILL CUBE
-	var keys = Object.keys(data.edges);
+	var keys = Object.keys(data.facets);
 	for(var k = 0; k < keys.length; k++){
 		var edgeName = keys[k];
 		var coord = edgeName.split(",");
