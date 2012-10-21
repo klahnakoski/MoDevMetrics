@@ -121,7 +121,10 @@ var createChart = function(){
 	query = new ESQuery({
 		"name":"Age of Open Bugs",
 		"from":"bugs",
-		"select":{"name":"Age", "value":"("+Date.now().getMilli()+'-doc["created_ts"].value)', "operation":"average"},
+		"select":[
+			{"name":"Sum", "value":"("+Date.now().getMilli()+'-doc["created_ts"].value)', "operation":"sum"},
+			{"name":"Count", "value":"("+Date.now().getMilli()+'-doc["created_ts"].value)', "operation":"count"}
+		],
 		"esfilter":{
 			"and":[
 				{"not":{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}},
@@ -150,10 +153,8 @@ var createChart = function(){
 	query.run(function(openBugAges){
 		queryClosed.run(function(closedBugAges){
 
-			var openIN=openBugAges.data[0][0];
-			var openOUT=openBugAges.data[0][1];
-			var closedIN=closedBugAges.data[0][0];
-			var closedOUT=closedBugAges.data[0][1];
+			var openAVG=openBugAges.data;
+			var closedAVG=openBugAges.data;
 
 			$("#percentOverOpen").html("<h1>"+Math.round((openOUT)/(openOUT+openIN)*10000)/100+"%</h1><br>Open and Closed");
 			$("#percentOver").html("<h1>"+Math.round((openOUT+closedOUT)/(closedIN+closedOUT+openOUT+closedOUT)*10000)/100+"%</h1><br>Open");

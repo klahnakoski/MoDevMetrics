@@ -59,16 +59,19 @@ ESQuery.prototype.compileSetOp=function(){
 ESQuery.prototype.compile = function(){
 	if (this.query.edges === undefined) this.query.edges=[];
 	this.edges = this.query.edges.copy();
-	//PICK FIRST AND ONLY SELECT
-	this.select = SQL.select2Array(this.query.select)[0];
+	this.select = SQL.select2Array(this.query.select);
 	
 	//NO EDGES IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
-	if (this.select.operation===undefined && this.edges.length == 0){
-		return this.compileSetOP();
+	if (this.edges.length==0){
+		if (this.select[0].operation===undefined){
+			return this.compileSetOP();
+		}//endif
+	}else{
+		//PICK FIRST AND ONLY SELECT
+		this.select = this.select[0];
 	}//endif
 
 	this.resultColumns = SQL.compile(this.query, []);
-
 	this.edges = this.query.edges.copy();
 
 	if (!(this.query.select instanceof Array) && this.query.select.operation=="count"){
@@ -104,7 +107,7 @@ ESQuery.prototype.compile = function(){
 				"name":"0",
 				"value" : {
 					"statistical":{
-						"script":this.select.value
+						"script":this.select[0].value
 					}
 				}
 			};
@@ -452,7 +455,10 @@ ESQuery.agg2es = {
 ESQuery.prototype.statisticalResults = function(data){
 	if (this.edges.length==0){
 		//ZERO DIMENSIONS
-		this.cube = data.facets["0"][ESQuery.agg2es[this.select.operation]];
+		this.cube={};
+		for(var i=this.select.length;i--;){
+			this.cube[this.select[i].name]= data.facets["0"][ESQuery.agg2es[this.select[i].operation]]
+		}//for
 		return
 	}//endif
 
