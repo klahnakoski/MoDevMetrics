@@ -79,7 +79,7 @@
 									{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
 								]}
 							}),
-					"size": 100
+					"size": 100000
 				}
 			}
 		}
@@ -112,10 +112,10 @@
 
 			var average = new SQL().calc2List({
 				"from": reviews,
-				"select": {"name":"Average Age", "value":"age", operation:"average"}
-			}).list;
+				"select": {"name":"avg_age", "value":"age", operation:"average"}
+			}).list[0].avg_age;
 
-			average=Duration.newInstance(average).format("day");
+			average=Duration.newInstance(average).format("day", 0);
 			$("#summary").html("<h1>Average Review Queue Length: "+average+"s</h1>");
 
 
@@ -140,7 +140,7 @@
 				"from":result,
 				"select":[
 					{"name":"requestee", "value":"requestee"},
-					{"name":"Average Age", "value":"Duration.newInstance(avg_age).format('day')"},
+					{"name":"Average Age", "value":"Duration.newInstance(avg_age).format('day', 1)"},
 					{"name":"numPending", value:"numPending"},
 					{"name":"bugs", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
 				]

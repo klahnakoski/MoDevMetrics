@@ -34,11 +34,16 @@ SQL.select2Array = function(select){
 
 
 SQL.prototype.calc2List = function(query){
+	if (query.edges===undefined) query.edges=[];
 	var select = SQL.select2Array(query.select);
 
 	//NO EDGES IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
-	if (select[0].operation===undefined && query.edges === undefined || query.edges.length == 0){
-		return this.setOP(query);
+	if (query.edges.length==0){
+		if (select[0].operation===undefined){
+			return this.setOP(query);
+		}else{
+			return this.aggOP(query);
+		}//endif
 	}//endif
 
 	var sourceColumns = SQL.getColumns(query.from);
@@ -230,6 +235,56 @@ SQL.prototype.calc2Cube = function(query){
 	query.data = data;
 	return query;
 };//method
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//  REDUCE ALL DATA TO ZERO DIMENSIONS
+////////////////////////////////////////////////////////////////////////////////
+SQL.prototype.aggOP=function(query){
+	var select = SQL.select2Array(query.select);
+
+	var sourceColumns = SQL.getColumns(query.from);
+	var resultColumns = SQL.compile(query, sourceColumns);
+	var where = SQL.where.compile(query.where, sourceColumns, []);
+
+	var result={};
+	//ADD SELECT DEFAULTS
+	for(var s = 0; s < (select).length; s++){
+		result[select[s].name] = select[s].defaultValue();
+	}//for
+
+	var indexedOutput = {};
+	for(var i = 0; i < query.from.length; i++){
+		var row = query.from[i];
+		if (where(row, null)){
+			for(var s = 0; s < (select).length; s++){
+				var ss = select[s];
+				var v = ss.calc(row, result);
+				result[ss.name] = ss.add(result[ss.name], v);
+			}//for
+		}//endif
+	}//for
+
+	var output=[result];
+
+
+	//TURN AGGREGATE OBJECTS TO SINGLE NUMBER
+	for(var c in resultColumns){
+		var s=resultColumns[c];
+		if (s.domain===undefined){
+			D.error("expectin all columns to have a domain");
+		}//endif
+		var r = resultColumns[c].domain.end;
+		if (r === undefined) continue;
+
+		result[s.name] = r(result[s.name]);
+	}//for
+
+	query.list = output;
+	return query;
+};
+
 
 
 
