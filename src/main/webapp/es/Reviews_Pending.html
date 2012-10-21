@@ -118,6 +118,21 @@
 			average=Duration.newInstance(average).format("day", 0);
 			$("#summary").html("<h1>Average Review Queue Length: "+average+"s</h1>");
 
+			var over=0;
+			var under=0;
+			var interval=Duration.newInstance("week").milli;
+			for(var i=reviews.length;i--;){
+				if (reviews[i].age>interval){
+					over++;
+				}else{
+					under++;
+				}//endif
+			}//for
+
+			$("#summary").html(
+				"<h1>Average Review Queue Length: "+average+"s</h1><br>"+
+				"<h2>("+Math.round(over/(over+under)*100, 1)+"% over one week)</h2>"
+			);
 
 
 			var result = new SQL().calc2List({

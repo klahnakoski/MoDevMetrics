@@ -119,3 +119,12 @@ List.intersect = function(a, b){
 	}//for
 	return output;
 };//method
+
+
+Math.oldRound=Math.round;
+
+Math.round=function(value, rounding){
+	if (rounding===undefined) return Math.oldRound(value);
+	var d=Math.pow(10, rounding);
+	return Math.oldRound(value*d)/d;
+};//method

@@ -59,7 +59,8 @@ body {
 }
 
 h1 {
-    font-size: 3.0em
+    font-size: 3.0em;
+    margin: 0;
 }
 
 h2 {

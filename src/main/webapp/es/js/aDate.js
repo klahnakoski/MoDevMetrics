@@ -450,6 +450,6 @@ Duration.prototype.toString = function(){
 Duration.prototype.format=function(interval, rounding){
 	if (rounding===undefined) rounding=0;
 	var output=this.divideBy(Duration.newInstance(interval));
-	output=Math.round(output*Math.pow(10, rounding))/Math.pow(10, rounding);
+	output=Math.round(output, rounding);
 	return output+interval;
 };//method
