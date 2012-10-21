@@ -94,7 +94,7 @@
 		dataType: "json",
 
 		success: function(data){
-			var esResult = CNV.ESFacet2List(data.edges.pendingReview);
+			var esResult = CNV.ESFacet2List(data.facets.pendingReview);
 
 			var result = new SQL().calc2List({
 				"from":

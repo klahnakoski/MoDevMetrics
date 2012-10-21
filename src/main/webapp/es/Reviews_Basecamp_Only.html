@@ -102,7 +102,7 @@
 		}
 	};
 
-	console.info(query.edges.assigned.terms.script_field);
+	console.info(query.facets.assigned.terms.script_field);
 
 
 	var request = $.ajax({
@@ -112,7 +112,7 @@
 		dataType: "json",
 
 		success: function(data){
-			var esResult = CNV.ESFacet2List(data.edges.pending);
+			var esResult = CNV.ESFacet2List(data.facets.pending);
 
 			var result = new SQL().calc2List({
 				"from":
@@ -151,7 +151,7 @@
 
 
 
-			var assigned = CNV.ESFacet2List(data.edges.assigned);
+			var assigned = CNV.ESFacet2List(data.facets.assigned);
 			var result2 = new SQL().calc2List({
 				"from":
 					assigned,

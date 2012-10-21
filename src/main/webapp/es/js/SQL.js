@@ -200,14 +200,14 @@ SQL.prototype.calc2Cube = function(query){
 		for(; p < (edges[f].domain.partitions).length; p++){
 			edges[f].domain.partitions[p].dataIndex = p;
 		}//for
-		if (edges[f].allowNulls) edges[f].domain.NULL.dataIndex = p;
+		edges[f].domain.NULL.dataIndex = p;
 	}//for
 
 	//MAKE THE EMPTY DATA GRID
 	var data = SQL.cube.newInstance(edges, 0, query.select);
 
 	//FILL GRID WITH VALUES
-	for(var o = 0; o < cube.list.length; o++){
+	OO: for(var o = 0; o < cube.list.length; o++){
 		var result = cube.list[o];
 		var value = data;
 		var f = 0;
@@ -216,6 +216,7 @@ SQL.prototype.calc2Cube = function(query){
 		for(; f < edges.length - 1; f++){
 			part=result[edges[f].name];
 			if (part.dataIndex===undefined) part=edges[f].domain.getPartition(part);//DEFAULT DOMAIN DOES NOT RETURN PARTITION OBJECTS, SPECIAL DEREF REQUIRED
+			if (part.dataIndex==value.length) continue OO; //NULL VALUE FOUND, BUT NOT TO BE REPORTED
 			value = value[part.dataIndex];
 		}//for
 		part=result[edges[f].name];
@@ -224,7 +225,7 @@ SQL.prototype.calc2Cube = function(query){
 		if (query.select instanceof Array){
 			value = value[part.dataIndex];
 
-			for(var s = 0; s < query.select.length; s++){
+			for(var s = 0; s < this.select.length; s++){
 				value[s] = result[query.select[s].name];
 			}//for
 		} else{
