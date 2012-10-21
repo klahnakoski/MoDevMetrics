@@ -233,7 +233,7 @@ ESQuery.prototype.buildESTermsQuery=function(){
 		"from" : 0,
 		"size" : 0,
 		"sort" : [],
-		"edges":{
+		"facets":{
 			"0":{
 				"terms":{
 					"script_field":this.compileEdges2Term(),
@@ -321,26 +321,26 @@ ESQuery.compileTime2Term=function(edge){
 	if (ESQuery.isKeyword(value)) value="doc[\""+value+"\"].value";
 
 	var ref, nullTest, partition2int, int2Partition;
-	if (edge.domain["<"]===undefined){
-		if (edge.domain[">="]===undefined){
+	if (edge.domain.max===undefined){
+		if (edge.domain.min===undefined){
 			ref=Date.now().floor(edge.domain.interval);
 			ref=edge.domain.type=="time"?ref.getMilli():ref.milli;
 			partition2int="Math.floor(("+value+"-"+ref+")/"+edge.domain.interval.milli+")";
 			nullTest="false";
 		}else{
-			ref=edge.domain[">="];
+			ref=edge.domain.min;
 			ref=edge.domain.type=="time"?ref.getMilli():ref.milli;
 			partition2int="Math.floor(("+value+"-"+ref+")/"+edge.domain.interval.milli+")";
 			nullTest=""+value+"<"+ref;
 		}//endif
-	}else if (edge.domain[">="]===undefined){
-		ref=edge.domain["<"];
+	}else if (edge.domain.min===undefined){
+		ref=edge.domain.max;
 		ref=edge.domain.type=="time"?ref.getMilli():ref.milli;
 		partition2int="Math.floor(("+value+"-"+ref+")/"+edge.domain.interval.milli+")";
 		nullTest=""+value+">="+ref;
 	}else{
-		var top=edge.domain["<"]; top=edge.domain.type=="time"?top.getMilli():top.milli;
-		    ref=edge.domain[">="];ref=edge.domain.type=="time"?ref.getMilli():ref.milli;
+		var top=edge.domain.max; top=edge.domain.type=="time"?top.getMilli():top.milli;
+		    ref=edge.domain.min;ref=edge.domain.type=="time"?ref.getMilli():ref.milli;
 		partition2int="Math.floor(("+value+"-"+ref+")/"+edge.domain.interval.milli+")";
 		nullTest="("+value+"<"+ref+") || ("+value+">="+top+")";
 	}//endif
@@ -379,7 +379,7 @@ ESQuery.prototype.buildESQuery = function(){
 		"from" : 0,
 		"size" : 0,
 		"sort" : [],
-		"edges":{
+		"facets":{
 		}
 	};
 	if (this.query.esfilter !== undefined) output.query.filtered.filter.and.push(this.query.esfilter);
@@ -388,7 +388,7 @@ ESQuery.prototype.buildESQuery = function(){
 
 
 ESQuery.prototype.termsResults=function(data){
-	var terms=data.edges["0"].terms;
+	var terms=data.facets["0"].terms;
 
 	//GETTING ALL PARTS WILL EXPAND THE EDGES' DOMAINS
 	for(var i=0;i<terms.length;i++)

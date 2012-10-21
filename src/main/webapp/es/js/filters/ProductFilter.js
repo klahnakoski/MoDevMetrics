@@ -26,7 +26,7 @@ ProductUI.makeQuery = function(filters){
 		"from": 0,
 		"size": 0,
 		"sort": [],
-		"edges": {
+		"facets":{
 			"Products": {
 				"terms": {
 					"field": "product",
@@ -84,7 +84,7 @@ ProductUI.prototype.injectHTML = function(products){
 
 ProductUI.prototype.success = function(resultsObj, data){
 
-	var products = data.edges.Products.terms;
+	var products = data.facets.Products.terms;
 
 	//REMOVE ANY FILTERS THAT DO NOT APPLY ANYMORE (WILL START ACCUMULATING RESULTING IN NO MATCHES)
 	var terms = [];

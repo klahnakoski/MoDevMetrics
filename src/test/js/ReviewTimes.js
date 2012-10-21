@@ -27,9 +27,7 @@ var result = {
 		[]
 	}
 	,
-	"edges"
-		:
-	{
+	"facets":{
 		"inReview"
 			:
 		{

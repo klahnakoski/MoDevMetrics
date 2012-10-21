@@ -63,7 +63,6 @@
 
 
 
-<script type="text/javascript" src="../../test/js/SQL.js"></script>
 
 
 <script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
@@ -81,6 +80,8 @@
 <script type="text/javascript" src="js/filters/CustomFilters.js"></script>
 <script type="text/javascript" src="js/filters/GUIFilters.js"></script>
 
+
+
 <table style="width: 100%;">
 	<tr>
 		<td style="width: 320px;  vertical-align:text-top;">
@@ -93,7 +94,8 @@
 			<div id="filters" class="menu"></div>
 		</td>
 		<td>
-			<div id="chart"></div>
+			<div class="widget" id="percentOver"></div>
+			<div class="widget" id="percentOverOpen"></div>
 		</td>
 	</tr>
 </table>
@@ -101,7 +103,13 @@
 <div id="description"></div>
 <div id="report"></div>
 
+
 <script type="text/javascript">
+
+
+
+
+
 
 var query;
 
@@ -113,65 +121,55 @@ var createChart = function(){
 	query = new ESQuery({
 		"name":"Age of Open Bugs",
 		"from":"bugs",
-		"select":{"name":"Count", "value":"1", "operation":"count"},
+		"select":{"name":"Age", "value":"("+Date.now().getMilli()+'-doc["created_ts"].value)', "operation":"min"},
 		"edges":[
-			{"name":"State", "value":"\"Open\""},
-			{"name":"Age",
-				"value":"("+Date.now().getMilli()+'-doc["created_ts"].value)',
-				allowNulls:true,
-				"domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}
-			}
+			{"name":"bug_id", "value":"bug_id"}
 		],
 		"esfilter":{
 			"and":[
 				{"not":{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}},
 				{ "range" : { "expires_on" : { "gte" : Date.now().getMilli()} } }
 			]
-		},
-		"essize":state.esSize
+		}
 	});
 
 	var queryClosed = new ESQuery({
 		"name":"Age of Closed Bugs",
 		"from":"bugs",
-		"select":{"name":"Count", "value":"1", "operation":"count"},
+		"select":{"name":"Age", "value":'doc["modified_ts"].value-doc["created_ts"].value', "operation":"min"},
 		"edges":[
-			{"name":"State", "value":"\"Closed\""},
-			{"name":"Age",
-				"value":'doc["modified_ts"].value-doc["created_ts"].value',
-				allowNulls:true,
-				"domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}
-			}
+			{"name":"bug_id", "value":"bug_id"}
 		],
 		"where":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value',  //ONLY THE DOCUMENT THAT CLOSES THE BUG
 		"esfilter":{"and":[
 			{"terms":{"bug_status":["resolved", "verified", "closed"]}},
 			{"range":{"modified_ts":{"gte":new Date(state.sampleMin).getMilli()}}},
 			{"range":{"modified_ts":{"lte":Date.now().floor("day").getMilli()}}}
-		]},
-		"essize":state.esSize
+		]}
 	});
 
 	ES.InjectFilter(query);
 	ES.InjectFilter(queryClosed);
 
-	info.message(CNV.Object2JSON(query.esQuery));
 
 	status.message("Calling ES");
-	query.run(function(chartCube){
-//		queryClosed.run(function(chartCubeClosed){
+	query.run(function(openBugAges){
+		queryClosed.run(function(closedBugAges){
 
-//			chartCube=SQL.cube.union(chartCube, chartCubeClosed);
+			var openIN=openBugAges.data[0][0];
+			var openOUT=openBugAges.data[0][1];
+			var closedIN=closedBugAges.data[0][0];
+			var closedOUT=closedBugAges.data[0][1];
 
-			status.message("Make chart");
-			aChart.showCCC({
-				"id":"chart",
-				"type":"bar",
-				"cube":chartCube
-			});
+			$("#percentOverOpen").html("<h1>"+Math.round((openOUT)/(openOUT+openIN)*10000)/100+"%</h1><br>Open and Closed");
+			$("#percentOver").html("<h1>"+Math.round((openOUT+closedOUT)/(closedIN+closedOUT+openOUT+closedOUT)*10000)/100+"%</h1><br>Open");
+
 			status.message("Done");
-//		});
+		});
 	});
+
+
+
 
 
 };
@@ -179,11 +177,7 @@ var createChart = function(){
 
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
-			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
-			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
-			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-3month")},
-			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
+			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-3month")}
 		]);
 		createChart();
 	});

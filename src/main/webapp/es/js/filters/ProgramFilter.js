@@ -76,7 +76,7 @@ ProgramFilter.makeQuery = function(filters){
 		"from": 0,
 		"size": 0,
 		"sort": [],
-		"edges": {
+		"facets":{
 //			"Programs": {
 //				"terms": {
 //					"script_field": allCompares+"return 'None'\n",
@@ -89,7 +89,7 @@ ProgramFilter.makeQuery = function(filters){
 	//INSERT INDIVIDUAL FACETS
 	//I WOULD HAVE USED FACET FILTERS, BUT THEY SEEM NOT ABLE TO RUN indexOf() ON _source ATTRIBUTES
 	for(var c in programCompares){
-		output.edges[c]={
+		output.facets[c]={
 			"terms":{
 				"script_field":MVEL.Value2Code(c),//programCompares[c]+"return 'None'\n",
 				"size":10000
@@ -152,11 +152,11 @@ ProgramFilter.prototype.success = function(resultsObj, data){
 
 	//CONVERT MULTIPLE EDGES INTO SINGLE LIST OF PROGRAMS
 	var programs=[];
-	for(var p in data.edges){
+	for(var p in data.facets){
 		if (p=="Programs") continue;  //ALL PROGRAMS (NOT ACCURATE COUNTS)
-		for(var t=0;t<data.edges[p].terms.length;t++){
-			if (data.edges[p].terms[t].term=="None") continue;
-			programs.push(data.edges[p].terms[t]);
+		for(var t=0;t<data.facets[p].terms.length;t++){
+			if (data.facets[p].terms[t].term=="None") continue;
+			programs.push(data.facets[p].terms[t]);
 		}//for
 	}//for
 	

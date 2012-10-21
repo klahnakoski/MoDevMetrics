@@ -25,128 +25,29 @@
 
 	var  esQuery = {
 
-   "query": {
-      "filtered": {
-        "query": {
-          "match_all": {}
-        },
-        "filter": {
-          "and": [
-            {
-              "script": {
-                "script": "true"
-              }
-            },
-            {
-              "and": [
-                {
-                  "not": {
-                    "terms": {
-                      "bug_status": [
-                        "resolved",
-                        "verified",
-                        "closed"
-                      ]
-                    }
-                  }
-                },
-                {
-                  "range": {
-                    "expires_on": {
-                      "gte": 1350687979312
-                    }
-                  }
-                }
-              ]
-            },
-            {
-              "or": [
-                {
-                  "prefix": {
-                    "status_whiteboard.tokenized": "sg:crit"
-                  }
-                }
-              ]
-            },
-            {
-              "script": {
-                "script": "true"
-              }
-            },
-            {
-              "script": {
-                "script": "true"
-              }
-            }
-          ]
-        }
-      }
-    },
-    "from": 0,
-    "size": 10,
-    "sort": [],
-    "edges": {
-      "0": {
-        "terms": {
-          "script_field": "var replaceAll = function(output, find, replace){\ns = output.indexOf(find, 0);\nwhile(s>=0){\noutput=output.replace(find, replace);\ns=s-find.length+replace.length;\ns = output.indexOf(find, s);\n}\noutput;\n};\n''+replaceAll(replaceAll(\"Open\", \"\\\\\", \"\\\\\\\\\"), \"|\", \"\\\\p\")+'|'+((((1350687979312-doc[\"created_ts\"].value)<0) || ((1350687979312-doc[\"created_ts\"].value)>=7862400000)) ? 13 : Math.floor(((1350687979312-doc[\"created_ts\"].value)-0)/604800000))",
-          "size": 100000
-        }
-      }
-    }
-  
+
+
+ "query": { "filtered": { "query": { "match_all": {} }, "filter": {
+	 "and": [
+		 { "script": { "script": "true" } },
+		 { "and": [
+			 { "not": { "terms": { "bug_status": [ "resolved", "verified", "closed" ] } } },
+			 { "range": { "expires_on": { "gte": 1350795520535 } } } ] },
+			 { "range": { "created_ts": { "lt": Date.now().add("-12week")} } },
+		 { "or": [
+			 { "prefix": { "status_whiteboard.tokenized": "sg:crit" } },
+			 { "prefix": { "keywords": "sec-critical" } }
+		 ] },
+		 { "script": { "script": "true" } },
+		 { "script": { "script": "true" } }
+	 ]
+ } } },
+		"from": 0, "size": 100, "sort": [], "facets": { "0": { "terms": { "script_field": "var replaceAll = function(output, find, replace){\ns = output.indexOf(find, 0);\nwhile(s>=0){\noutput=output.replace(find, replace);\ns=s-find.length+replace.length;\ns = output.indexOf(find, s);\n}\noutput;\n};\n''+replaceAll(replaceAll(\"Open\", \"\\\\\", \"\\\\\\\\\"), \"|\", \"\\\\p\")+'|'+((((1350795520535-doc[\"created_ts\"].value)<0) || ((1350795520535-doc[\"created_ts\"].value)>=7257600000)) ? 12 : Math.floor(((1350795520535-doc[\"created_ts\"].value)-0)/604800000))", "size": 100000 } } }
 
 
 
 
-
-
-
-
-
-
-
-
-//   "query" :
-//      {
-//         "filtered" :
-//            {
-//               "query" :
-//                  {
-//                     "match_all" :
-//                        {
-//                        }
-//                  },
-//				"filter":{
-//					"and":[
-//						{"not":{"terms" : {"doc.bug_status" : ["resolved", "verified", "closed"]}}},
-//						{ "range" : { "expires_on" : { "gte" : Date.now().getMilli()} } },
-//						{"prefix" : { "status_whiteboard.tokenized" : "sg:crit" }}
-//					]
-//
-//				}
-//			}
-//      },
-//   "from" : 0,
-//   "size" : 0,
-//   "sort" :
-//      [
-//      ],
-//   "edges" :
-//      {
-//         "doneReview" : {
-//               "terms" :
-//                  {
-//                     "field" : "status_whiteboard.tokenized",
-//                     "size" : "100000"
-//                  }
-//
-//      }
-//	  }
-
-
-
-
-	//		"edges" : {
+	//		"facets":{
 //			"range1" : {
 //				"range" : {
 //					"key_field" : "resolution",

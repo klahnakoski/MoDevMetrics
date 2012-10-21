@@ -6,6 +6,22 @@ html {
     padding: 0px;
 }
 
+.widget {
+    display:inline;
+    float: left;
+    text-align: center;
+    height: 15em;
+    width: 15em;
+    clear: both;
+    /*padding-top: 2em;*/
+    margin: 10px;
+    border-radius: 0.5em;
+    background: rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+
+
 body {
     font-family: Tahoma, "Helvetica Neue", "Trebuchet MS", Verdana, Arial, sans-serif;
     font-size: 62.5%;
@@ -43,11 +59,11 @@ body {
 }
 
 h1 {
-    font-size: 2.0em
+    font-size: 3.0em
 }
 
 h2 {
-    font-size: 1.4em
+    font-size: 2.1em
 }
 
 .items .info {

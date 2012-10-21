@@ -96,32 +96,8 @@ SQL.domain.time = function(column, sourceColumns){
 	d.NULL = {"value":null, "name":"null"};
 
 	d.interval = Duration.newInstance(d.interval);
-
-
-	//DEFAULT TO "<" and ">=" LIMITS
-	if (d.max !== undefined){
-		d["<"] = Date.newInstance(d.max).add(d.interval);
-		d.max = undefined;
-	}//endif
-	if (d.min !== undefined){
-		d[">="] = Date.newInstance(d.min);
-		d.min = undefined;
-	}//endif
-	if (d["<="] !== undefined){
-		d["<"] = Date.newInstance(d["<="]).add(d.interval);
-		d["<="] = undefined;
-	}//endif
-	if (d[">"] !== undefined){
-		d[">="] = Date.newInstance(d[">"]).add(d.interval);
-		d[">"] = undefined;
-	}//endif
-	d["<"] = Date.newInstance(d["<"]);
-	d[">="] = Date.newInstance(d[">="]);
-
-//	d.equal=function(a, b){
-//		if (a==null || b==null)	return a == b;
-//		return (a.floor(this.interval)-b.floor(this.interval))==0;
-//	};//method
+	d.min = Date.newInstance(d.min).floor(d.interval);
+	d.max = Date.newInstance(d.max).floor(d.interval, d.min);
 
 	d.compare = function(a, b){
 		return SQL.domain.value.compare(a.value, b.value);
@@ -144,7 +120,7 @@ SQL.domain.time = function(column, sourceColumns){
 	if (column.test === undefined){
 		d.getPartition = function(value){
 			if (value == null) return this.NULL;
-			if (value < this[">="] || this["<"] <= value) return this.NULL;
+			if (value < this.min || this.max <= value) return this.NULL;
 			for(var i = 0; i < this.partitions.length; i++){
 				if (this.partitions[i].max > value) return this.partitions[i];
 			}//for
@@ -153,7 +129,7 @@ SQL.domain.time = function(column, sourceColumns){
 
 		if (d.partitions === undefined){
 			d.partitions = [];
-			for(var v = d[">="]; v < d["<"]; v = v.add(d.interval)){
+			for(var v = d.min; v < d.max; v = v.add(d.interval)){
 				var partition = {
 					"value":v,
 					"min":v,
@@ -192,8 +168,8 @@ SQL.domain.time = function(column, sourceColumns){
 	if (d.partitions === undefined){
 		d.map = {};
 		d.partitions = [];
-		if (!(d[">="] === undefined) && !(d["<"] === undefined)){
-			SQL.domain.time.addRange(d[">="], d["<"], d);
+		if (!(d.min === undefined) && !(d.max === undefined)){
+			SQL.domain.time.addRange(d.min, d.max, d);
 		}//endif
 	} else{
 		d.map = {};
@@ -242,27 +218,8 @@ SQL.domain.duration = function(column, sourceColumns){
 	if (d.name === undefined) d.name = d.type;
 	d.NULL = {"value":null, "name":"null"};
 	d.interval = Duration.newInstance(d.interval);
-
-
-	//DEFAULT TO "<" and ">=" LIMITS
-	if (d.max !== undefined){
-		d["<"] = Duration.newInstance(d.max).add(d.interval).floor(d.interval);
-		d.max = undefined;
-	}//endif
-	if (d.min !== undefined){
-		d[">="] = Duration.newInstance(d.min).floor(d.interval);
-		d.min = undefined;
-	}//endif
-	if (d["<="] !== undefined){
-		d["<"] = Duration.newInstance(d["<="]).add(d.interval).floor(d.interval);
-		d["<="] = undefined;
-	}//endif
-	if (d[">"] !== undefined){
-		d[">="] = Duration.newInstance(d[">"]).add(d.interval).floor(d.interval);
-		d[">"] = undefined;
-	}//endif
-	d["<"] = Duration.newInstance(d["<"]).floor(d.interval);
-	d[">="] = Duration.newInstance(d[">="]).floor(d.interval);
+	d.min = Duration.newInstance(d.min).floor(d.interval);
+	d.max = Duration.newInstance(d.max).floor(d.interval);
 
 
 	d.compare = function(a, b){
@@ -290,25 +247,25 @@ SQL.domain.duration = function(column, sourceColumns){
 			if (value == null) return this.NULL;
 			var floor = value.floor(this.interval);
 
-			if (this[">="] === undefined){//NO MINIMUM REQUESTED
+			if (this.min === undefined){//NO MINIMUM REQUESTED
 				if (this.min === undefined && this.max === undefined){
 					this.min = floor;
-					this.max = Util.coalesce(this["<"], floor.add(this.interval));
+					this.max = Util.coalesce(this.max, floor.add(this.interval));
 					SQL.domain.duration.addRange(this.min, this.max, this);
 				} else if (value.milli < this.min.milli){
 //					var newmin=floor;
 					SQL.domain.duration.addRange(floor, this.min, this);
 					this.min = floor;
 				}//endif
-			} else if (this[">="] == null){
+			} else if (this.min == null){
 				D.error("Should not happen");
-			} else if (value.milli < this[">="].milli){
+			} else if (value.milli < this.min.milli){
 				return this.NULL;
 			}//endif
 
-			if (this["<"] === undefined){//NO MAXIMUM REQUESTED
+			if (this.max === undefined){//NO MAXIMUM REQUESTED
 				if (this.min === undefined && this.max === undefined){
-					this.min = Util.coalesce(this[">="], floor);
+					this.min = Util.coalesce(this.min, floor);
 					this.max = floor.add(this.interval);
 					SQL.domain.duration.addRange(this.min, this.max, this);
 				} else if (value.milli >= this.max.milli){
@@ -316,7 +273,7 @@ SQL.domain.duration = function(column, sourceColumns){
 					SQL.domain.duration.addRange(this.max, newmax, this);
 					this.max = newmax;
 				}//endif
-			} else if (value.milli >= this["<"].milli){
+			} else if (value.milli >= this.max.milli){
 				column.outOfDomainCount++;
 				return this.NULL;
 			}//endif
@@ -327,8 +284,8 @@ SQL.domain.duration = function(column, sourceColumns){
 		if (d.partitions === undefined){
 			d.map = {};
 			d.partitions = [];
-			if (!(d[">="] === undefined) && !(d["<"] === undefined)){
-				SQL.domain.duration.addRange(d[">="], d["<"], d);
+			if (!(d.min === undefined) && !(d.max === undefined)){
+				SQL.domain.duration.addRange(d.min, d.max, d);
 			}//endif
 		} else{
 			d.map = {};

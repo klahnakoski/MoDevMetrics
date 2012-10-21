@@ -78,13 +78,19 @@ Date.prototype.addYear = function(value){
 	return output;
 };//method
 
+//RETURN A DATE ROUNDED DOWN TO THE CLOSEST FULL INTERVAL
+//
+Date.prototype.floor = function(interval, minDate){
+	if (minDate===undefined){
+		if (interval.indexOf("hour")>=0) return this.floorHour();
+		if (interval.indexOf("day")>=0) return this.floorDay();
+		if (interval.indexOf("month")>=0) return this.floorMonth();
+		if (interval.indexOf("week")>=0) return this.floorWeek();
+		if (interval.indexOf("year")>=0) return this.floorYear();
+		D.error("Can not floor interval '" + interval + "'");
+	}//endif
 
-Date.prototype.floor = function(interval){
-	if (interval == "day") return this.floorDay();
-	if (interval == "month") return this.floorMonth();
-	if (interval == "week") return this.floorWeek();
-	if (interval == "year") return this.floorYear();
-	D.error("Can not floor interval '" + interval + "'");
+	return minDate.add(this.subtract(minDate).floor(interval));
 };//method
 
 
@@ -95,12 +101,14 @@ Date.prototype.floorYear = function(){
 	return output;
 };//method
 
+
 Date.prototype.floorMonth = function(){
 	var output = new Date(this);
 	output.setUTCDate(1);
 	output.setUTCHours(0, 0, 0, 0);
 	return output;
 };//method
+
 
 Date.prototype.floorWeek = function(){
 	var output = new Date(this);
@@ -109,12 +117,19 @@ Date.prototype.floorWeek = function(){
 	return output;
 };//method
 
+
 Date.prototype.floorDay = function(){
 	var output = new Date(this);
 	output.setUTCHours(0, 0, 0, 0);
 	return output;
 };//method
 
+
+Date.prototype.floorHour = function(){
+	var output = new Date(this);
+	output.setUTCMinutes(0);
+	return output;
+};//method
 
 
 

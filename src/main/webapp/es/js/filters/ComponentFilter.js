@@ -25,7 +25,7 @@ ComponentUI.makeQuery = function(filters){
 		"from": 0,
 		"size": 0,
 		"sort": [],
-		"edges": {
+		"facets":{
 			"Components": {
 				"terms": {
 					"field": "component",
@@ -82,7 +82,7 @@ ComponentUI.prototype.injectHTML = function(components){
 
 
 ComponentUI.prototype.success = function(resultsObj, data){
-	var components = data.edges.Components.terms;
+	var components = data.facets.Components.terms;
 
 //	new SQL().calc({
 //		"from":
