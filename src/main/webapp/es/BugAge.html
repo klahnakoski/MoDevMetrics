@@ -129,7 +129,7 @@ var createChart = function(){
 	var interval=Date.now().floor("day").subtract(new Date(state.cohortMin)).multiply(1/state.cohortNum);
 
 	query = new ESQuery({
-		"name":"Resolution by Bug Age",
+		"name":"Age of Closed Bugs (%)",
 		"from":"bugs",
 		"select":{"name":"Count", "value":"1", "operation":"count"},
 		"edges":[

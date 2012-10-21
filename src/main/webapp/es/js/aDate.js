@@ -82,11 +82,13 @@ Date.prototype.addYear = function(value){
 //
 Date.prototype.floor = function(interval, minDate){
 	if (minDate===undefined){
-		if (interval.indexOf("hour")>=0) return this.floorHour();
-		if (interval.indexOf("day")>=0) return this.floorDay();
+		if (interval.milli!=undefined) interval=interval.toString();
+
+		if (interval.indexOf("year")>=0) return this.floorYear();
 		if (interval.indexOf("month")>=0) return this.floorMonth();
 		if (interval.indexOf("week")>=0) return this.floorWeek();
-		if (interval.indexOf("year")>=0) return this.floorYear();
+		if (interval.indexOf("day")>=0) return this.floorDay();
+		if (interval.indexOf("hour")>=0) return this.floorHour();
 		D.error("Can not floor interval '" + interval + "'");
 	}//endif
 

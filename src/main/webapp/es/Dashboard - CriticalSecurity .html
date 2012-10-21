@@ -94,8 +94,7 @@
 			<div id="filters" class="menu"></div>
 		</td>
 		<td>
-			<div class="widget" id="percentOver"></div>
-			<div class="widget" id="percentOverOpen"></div>
+			<div class="widget" id="avgAge"></div>
 		</td>
 	</tr>
 </table>
@@ -122,8 +121,8 @@ var createChart = function(){
 		"name":"Age of Open Bugs",
 		"from":"bugs",
 		"select":[
-			{"name":"Sum", "value":"("+Date.now().getMilli()+'-doc["created_ts"].value)', "operation":"sum"},
-			{"name":"Count", "value":"("+Date.now().getMilli()+'-doc["created_ts"].value)', "operation":"count"}
+			{"name":"sum", "value":"("+Date.now().getMilli()+'-doc["created_ts"].value)', "operation":"sum"},
+			{"name":"count", "value":"("+Date.now().getMilli()+'-doc["created_ts"].value)', "operation":"count"}
 		],
 		"esfilter":{
 			"and":[
@@ -136,7 +135,10 @@ var createChart = function(){
 	var queryClosed = new ESQuery({
 		"name":"Age of Closed Bugs",
 		"from":"bugs",
-		"select":{"name":"Age", "value":'doc["modified_ts"].value-doc["created_ts"].value', "operation":"average"},
+		"select":[
+			{"name":"sum", "value":'doc["modified_ts"].value-doc["created_ts"].value', "operation":"sum"},
+			{"name":"count", "value":'doc["modified_ts"].value-doc["created_ts"].value', "operation":"count"}
+		],
 		"where":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value',  //ONLY THE DOCUMENT THAT CLOSES THE BUG
 		"esfilter":{"and":[
 			{"terms":{"bug_status":["resolved", "verified", "closed"]}},
@@ -153,11 +155,13 @@ var createChart = function(){
 	query.run(function(openBugAges){
 		queryClosed.run(function(closedBugAges){
 
-			var openAVG=openBugAges.data;
-			var closedAVG=openBugAges.data;
+			var open=openBugAges.data;
+			var closed=openBugAges.data;
 
-			$("#percentOverOpen").html("<h1>"+Math.round((openOUT)/(openOUT+openIN)*10000)/100+"%</h1><br>Open and Closed");
-			$("#percentOver").html("<h1>"+Math.round((openOUT+closedOUT)/(closedIN+closedOUT+openOUT+closedOUT)*10000)/100+"%</h1><br>Open");
+			var avgDays=Duration.newInstance((open.sum+closed.sum)/(open.count+closed.count)).divideBy(Duration.newInstance("day"));
+			avgDays=Math.round(avgDays*100)/100;
+
+			$("#avgAge").html("<h1>"+avgDays+"</h1><br>Bug Age");
 
 			status.message("Done");
 		});

@@ -196,14 +196,16 @@ var createChart = function(){
 					]
 				}).list;
 
-				var avg=Duration.newInstance(average[0]["Average Duration"]);
+				var avg=Duration.newInstance(average[0]["Average Duration"]).divideBy(Duration.newInstance("day"));
+				avg=Math.round(avg*100)/100;
+
 //				var interval=Duration.newInstance("day");
 //				avg=avg.add(interval).floorDay(interval);
-				info.message("Average="+avg.toString());
+				info.message("Average="+avg+" days");
 
 				status.message("Tally into interval buckets");
 				var time2res = new SQL().calc2Cube({
-					"name": "Time to Resolution",
+					"name": "Time to Resolution (Closed Bugs Only)",
 					"from": durations,
 					"select": {"name":"Count", "value":"1", "operation":"count"},
 					"edges":[
@@ -212,7 +214,7 @@ var createChart = function(){
 					]
 				});
 
-				SQL.normalizeByCohort(time2res, 100);
+//				SQL.normalizeByCohort(time2res, 100);
 
 
 				status.message("Make chart");

@@ -65,6 +65,11 @@ ESQuery.prototype.compile = function(){
 	if (this.edges.length==0){
 		if (this.select[0].operation===undefined){
 			return this.compileSetOP();
+		}else{
+			var value=this.select[0].value;
+			for(var k=this.select.length;k--;){
+				if (this.select[k].value!=value) D.error("ES Query with mutiple select columns must all have the same value");
+			}//for
 		}//endif
 	}else{
 		//PICK FIRST AND ONLY SELECT
@@ -429,11 +434,12 @@ ESQuery.prototype.termsResults=function(data){
 	var cube = SQL.cube.newInstance(this.query.edges, 0, this.query.select);
 
 	//FILL CUBE
-	for(var i=0;i<terms.length;i++){
+	II: for(var i=0;i<terms.length;i++){
 		var d = cube;
 		var parts=this.term2Parts(terms[i].term);
 		var t = 0;
 		for(; t < parts.length-1; t++){
+			if (parts[t].dataIndex==d.length) continue II;  //IGNORE NULLS
 			d = d[parts[t].dataIndex];
 		}//for
 		d[parts[t].dataIndex] = terms[i].count;
@@ -453,32 +459,39 @@ ESQuery.agg2es = {
 
 //PROCESS RESULTS FROM THE ES STATISTICAL FACETS
 ESQuery.prototype.statisticalResults = function(data){
-	if (this.edges.length==0){
-		//ZERO DIMENSIONS
-		this.cube={};
-		for(var i=this.select.length;i--;){
-			this.cube[this.select[i].name]= data.facets["0"][ESQuery.agg2es[this.select[i].operation]]
-		}//for
-		return
+	var cube;
+
+	if (this.edges.length==0){ //ZERO DIMENSIONS
+		if (this.select.length==0){
+			cube = data.facets["0"][ESQuery.agg2es[this.select[i].operation]];
+		}else{
+			cube={};
+			for(var i=this.select.length;i--;){
+				cube[this.select[i].name]= data.facets["0"][ESQuery.agg2es[this.select[i].operation]];
+			}//for
+		}//endif
+		this.query.data = cube;
+		return;
 	}//endif
 
-
-
 	//MAKE CUBE
-	this.cube = SQL.cube.newInstance(this.query.edges, 0, this.query.select);
+	cube = SQL.cube.newInstance(this.query.edges, 0, this.query.select);
 
 	//FILL CUBE
 	var keys = Object.keys(data.facets);
 	for(var k = 0; k < keys.length; k++){
 		var edgeName = keys[k];
 		var coord = edgeName.split(",");
-		var d = this.cube;
+		var d = cube;
 		for(var f = 0; f < this.query.edges.length - 1; f++){
 			d = d[parseInt(coord[f])];
 		}//for
 		var value = data.edges[edgeName][ESQuery.agg2es[this.select.operation]];
 		d[parseInt(coord[f])] = value;
 	}//for
+
+	this.query.data = cube;
+
 };//method
 
 
