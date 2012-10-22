@@ -136,7 +136,7 @@
 
 		ES.InjectFilter(query);
 
-		console.info(CNV.Object2JSON(query.esQuery));
+		D.println(CNV.Object2JSON(query.esQuery));
 
 		status.message("Calling ES");
 		query.run(function(chartCube){

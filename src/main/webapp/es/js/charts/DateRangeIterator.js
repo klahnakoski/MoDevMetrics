@@ -20,7 +20,7 @@ DateRangeIterator.prototype.NextQuery = function(){
 };
 
 DateRangeIterator.prototype.InjectDate = function(){
-	//console.info("InjuectDate: " + JSON.stringify( this.chartRequest ));
+	//D.println("InjuectDate: " + JSON.stringify( this.chartRequest ));
 
 	var chartRequest = Util.jsonCopy(this.queries);
 
@@ -35,7 +35,7 @@ DateRangeIterator.prototype.InjectDate = function(){
 		}//endif
 	}//for
 
-	//console.info("InjuectDate: " + JSON.stringify( chartRequest ));
+	//D.println("InjuectDate: " + JSON.stringify( chartRequest ));
 
 	return chartRequest;
 };

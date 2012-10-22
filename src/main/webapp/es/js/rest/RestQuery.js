@@ -17,7 +17,7 @@ RestQuery.Run = function(reportBackObj, id, esQuery){
 RestQuery.prototype.Run = function(){
 	var localObject = this;
 
-//	console.info(CNV.Object2JSON(this.query));
+//	D.println(CNV.Object2JSON(this.query));
 
 
 	this.request = $.ajax({

@@ -125,8 +125,5 @@ ProductUI.prototype.success = function(resultsObj, data){
 			}
 		}
 	});
-}
-
-ProductUI.prototype.error = function(requestObj, errorData, errorMsg, errorThrown){
-
 };
+

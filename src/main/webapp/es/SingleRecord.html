@@ -20,8 +20,8 @@
 <div id="info"></div>
 
 <script type="text/javascript">
-	console.info(new Date(1347753600000).format("yyyy-NNN-dd HHmmss"));
-	console.info(new Date(1348358400000).format("yyyy-NNN-dd HHmmss"));
+	D.println(new Date(1347753600000).format("yyyy-NNN-dd HHmmss"));
+	D.println(new Date(1348358400000).format("yyyy-NNN-dd HHmmss"));
 
 	var  esQuery = {
 
@@ -115,7 +115,7 @@
 		dataType: "json",
 
 		success: function(data){
-			console.info(CNV.Object2JSON(data));
+			D.println(CNV.Object2JSON(data));
 
 			var htmlSummary = CNV.ESResult2HTMLSummaries(data);
 			var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));

@@ -32,7 +32,7 @@ MVEL.prototype.code = function(query){
 			'cool_func(_source)\n'
 		;
 
-	if (console !== undefined && console.info != undefined) console.info(output);
+	if (console !== undefined && D.println != undefined) D.println(output);
 	return output;
 };//method
 

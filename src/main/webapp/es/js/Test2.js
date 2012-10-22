@@ -173,7 +173,7 @@ IntegrityTest.prototype.ParseBugzillaIDs = function(){
 	}
 
 	this.dataSet.bugzilla.raw = {};
-//	console.info( JSON.stringify(this.dataSet))
+//	D.println( JSON.stringify(this.dataSet))
 }
 
 IntegrityTest.prototype.ParseElasticIDs = function(){
@@ -185,7 +185,7 @@ IntegrityTest.prototype.ParseElasticIDs = function(){
 	}
 
 	this.dataSet.elastic.raw = {};
-	console.info(JSON.stringify(this.dataSet))
+	D.println(JSON.stringify(this.dataSet))
 }
 
 function arr_diff(a1, a2){

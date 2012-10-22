@@ -3,22 +3,6 @@
 <HEAD>
 </HEAD>
 <BODY>
-<!--&lt;!&ndash;[if lt IE 9]>-->
-<!--<script type="text/javascript" src="lib/jqplot/excanvas.js"></script>-->
-<!--<![endif]&ndash;&gt;-->
-<!--<script type="text/javascript" src="lib/jqplot/jquery.min.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/jquery.jqplot.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.barRenderer.min.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.pointLabels.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>-->
-<!--<script type="text/javascript" src="lib/jqplot/plugins/jqplot.logAxisRenderer.js"></script>-->
-<!--<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>-->
-
-
-
 
 
 
@@ -121,6 +105,10 @@
 
 var query;
 
+var reviewLessThan=Duration.newInstance("20day");
+var bugOlderThan=Duration.newInstance("4month");
+D.println(reviewLessThan.toString()+"="+reviewLessThan.milli);
+D.println(bugOlderThan.toString()+"="+bugOlderThan.milli);
 
 var createChart = function(){
 	if (query!==undefined) query.kill();
@@ -133,10 +121,11 @@ var createChart = function(){
 				},
 				"filter" : {
 					"and":[
+						{"terms":{"product":["core", "firefox"]}}
 						//MAKE SURE WE REPORT BACK FAR ENOUGH IN TIME TO CAPTURE THE LONGEST TIMES (state.maxX) BEING REPORTED
 //						{"range":{"modified_ts":{"gte":new Date(state.sampleMin).subtract(Duration.newInstance(state.maxX)).getMilli()}}},
 //						{"range":{"modified_ts":{"lte":new Date(state.sampleMax).getMilli()}}}
-//						{"term":{"bug_id":"802114"}}
+//						,{"term":{"bug_id":"611612"}}
 					]
 				}
 			}},
@@ -161,7 +150,7 @@ var createChart = function(){
 						"terms" : {"bug_status" : ["resolved", "verified", "closed"]}
 					}
 				},
-				"age" : {
+				"created" : {
 					"terms_stats" : {
 						"key_field" : 'bug_id',
 						"value_field" : "created_ts",
@@ -175,12 +164,13 @@ var createChart = function(){
 	ES.InjectFilter(chartRequest);
 
 
+
 	query=new RestQuery({
 			"success" : function(requestObj, data){
 				status.message("Formatting ES Data");
 				var identified = CNV.ESFacet2List(data.facets.identified);
 				var closed = CNV.ESFacet2List(data.facets.closed);
-				var ages = CNV.ESFacet2List(data.facets.age);
+				var created = CNV.ESFacet2List(data.facets.created);
 
 
 				status.message("Match Identification with Close");
@@ -188,26 +178,26 @@ var createChart = function(){
 					"from":
 						identified,
 					"select":[
-						{"name":"duration", "value":"c.min-min", "operation":"average"},
-						{"name":"age", "value":"c.min-c.created_ts", "operation":"minimum"}
+						{"name":"duration", "value":"c.min-min", "operation":"average"}
 					],
 					"edges":[
 						{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "partitions":closed}}
 					],
-					"where":"c.term!=null && c.min-min<"+Duration.newInstance("20day").milli+" && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
+					"where":"c.term!=null && c.min-min<"+reviewLessThan.milli+" && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
 				}).list;
 
 				status.message("Match Age with Closed");
-				ages = new CUBE().calc2List({
+				var ages2 = new CUBE().calc2List({
 					"from":
-						ages,
+						created,
 					"select":[
-						{"name":"age", "value":"c.min-min", "operation":"minimum"}
+						{"name":"age", "value":"c.min-min", "operation":"minimum"},
+						{"name":"bugID", "value":"term", "operation":"minimum"}
 					],
 					"edges":[
 						{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "partitions":closed}}
 					],
-					"where":"c.term!=null && c.min-min>"+Duration.newInstance("6month").milli+" && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
+					"where":"c.term!=null && c.min-min>"+bugOlderThan.milli+" && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
 				}).list;
 
 
@@ -215,11 +205,16 @@ var createChart = function(){
 					"from":durations,
 					"select":{"name":"bug_id", "value":"bug_id.term", "operation":"minimum"},
 					"edges":[
-						{"name":"bug_id", "test":"bug_id.term==a.bug_id.term", "domain":{"type":"set", "name":"a", "partitions":ages} }
+						{"name":"close", "test":"bug_id.term==a.bugID", "domain":{"type":"set", "key":"bugID", "name":"a", "partitions":ages2} }
 					]
 				}).list;
 
-				info.message(CNV.List2Table(matched));
+				var BZlist=new CUBE().calc2List({
+					"from":matched,
+					"select":{"name":"list", "value":"bug_id", "operation":"join", "separator":", "}
+				}).list[0].list;
+
+				info.message(BZlist);
 
 
 				status.message("Done");

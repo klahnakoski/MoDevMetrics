@@ -22,7 +22,7 @@ RangeChart = function(chartRequest){
 		this.dataSet.maxIndex = chartRequest["iterations"] - 1;
 	}
 
-	console.info("ChangeChart Called.");
+	D.println("ChangeChart Called.");
 };
 
 RangeChart.prototype.defaults=function(){
@@ -197,14 +197,14 @@ RangeChart.prototype.BuildEquationString = function(seriesName){
 RangeChart.prototype.Evaluate = function(){
 	if (this.evaluations == null)
 		return;
-	//console.info("Evaluation Called.")
+	//D.println("Evaluation Called.")
 
 	for(var e=0;e<this.evaluations.length;e++){
 		if (e in this.dataSet.store) this.dataSet.store[e] = {};
 
 		var equation = this.BuildEquationString(e);
 
-		//console.info("Build Equation: " + equation);
+		//D.println("Build Equation: " + equation);
 
 		var firstSeries = null;
 
@@ -216,7 +216,7 @@ RangeChart.prototype.Evaluate = function(){
 		for(var i=0;i<firstSeries.length;i++){
 			var value = eval(equation);
 
-			//console.info("Evaluated String: " + value);
+			//D.println("Evaluated String: " + value);
 			if (this.iterator == "date")
 				this.dataSet.addData(e, i, "date", firstSeries[i].date);
 
@@ -340,7 +340,7 @@ RangeChart.prototype.ConvertToChartData = function(){
 		}
 	}
 
-	//console.info( JSON.stringify( chartData ));
+	//D.println( JSON.stringify( chartData ));
 
 	return chartData;
 };
@@ -359,7 +359,7 @@ RangeChart.prototype.showSeriesCheck = function(seriesName){
 
 RangeChart.prototype.success = function(requestObject, data){
 
-	//console.info( JSON.stringify( data ));
+	//D.println( JSON.stringify( data ));
 
 //	var text = '{ "date": "' + convertDateToString(requestObject.currentDate) + '", "data : [';
 //
@@ -395,7 +395,7 @@ RangeChart.prototype.success = function(requestObject, data){
 };
 
 RangeChart.prototype.error = function(requestObject, errorData, errorMsg, errorThrown){
-	console.info(errorMsg + ": " + errorThrown);
+	D.println(errorMsg + ": " + errorThrown);
 };
 
 chart = null;

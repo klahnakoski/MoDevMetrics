@@ -1,7 +1,7 @@
 var CustomFilter = {};
 
 InjectCustomFilters = function(query){
-	//console.info('ParseCustomFilters');
+	//D.println('ParseCustomFilters');
 
 	if (state['customFilters'].length == 0)
 		return;
@@ -11,11 +11,11 @@ InjectCustomFilters = function(query){
 	var or = query.filter.and[query.filter.and.length - 1].or;
 
 	for(var j = 0; j < customFilters.length; j++){
-//		console.info('customFilters check: ' + customFilters[i].name + " : " + state['customFilters']);
+//		D.println('customFilters check: ' + customFilters[i].name + " : " + state['customFilters']);
 		if (include(state['customFilters'], customFilters[j].name)){
-//			console.info('customFilters found: ' + customFilters[i].name);
+//			D.println('customFilters found: ' + customFilters[i].name);
 			for(var x = 0; x < customFilters[j].filters.length; x++){
-//				console.info("customFilters[i].filters[x]: " + JSON.stringify(customFilters[i].filters[x]));
+//				D.println("customFilters[i].filters[x]: " + JSON.stringify(customFilters[i].filters[x]));
 				or.push(customFilters[j].filters[x]);
 			}
 		}
