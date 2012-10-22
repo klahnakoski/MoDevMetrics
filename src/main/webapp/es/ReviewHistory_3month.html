@@ -235,6 +235,13 @@
 						"where":"modified_ts<"+new Date(state.sampleMax).getMilli()+" && (doneReview.bug_id==null || doneReview.modified_ts>="+new Date(state.sampleMin).getMilli()+")"
 					}).list;
 
+					var uniqueBugs=new CUBE().calc2List({
+						"from":reviewQueues,
+						"edges":[
+							{"name":"bug_id", "value":"bug_id"}
+						]
+					}).list.length;
+
 
 
 
@@ -250,7 +257,7 @@
 					var numReviewsCompleted=0;
 					var numCompleteInWeek=0;
 					for(var r=reviewQueues.length;r--;){
-						if (reviewQueues[r].subtract(reviewQueues[r].start_time).milli<Duration.newInstance("week"))
+						if (reviewQueues[r].end_time.subtract(reviewQueues[r].start_time).milli<Duration.newInstance("week").milli)
 							numCompleteInWeek++;
 						
 						numReviewsRequested++;
@@ -262,7 +269,9 @@
 
 					info.message(
 						"Number requested = "+numReviewsRequested+"<br>"+
-						"Number completed = "+numReviewsCompleted
+						"Number completed = "+numReviewsCompleted+"<br>"+
+						"Number completed in week = "+numCompleteInWeek+"<br>"+
+						"Unique Bugs Reviewed = "+uniqueBugs
 //						CNV.List2HTMLTable(reviewQueues)
 					);
 
@@ -270,7 +279,7 @@
 
 					var chart=new CUBE().calc2Cube({
 						"name":
-							"Historical Review Queue for Firefox and Core, past 3 months ",
+							"Historical Review Queue for Firefox and Core, Reviews requested in Past 3 Months",
 						"from":reviewQueues,
 						"select":{"name":"Pending", "value":"1", operation:"binary"},
 						"edges":[

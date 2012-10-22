@@ -39,28 +39,15 @@
 				},
 				"filter": {
 					"and":[
-//													{"terms":{"bug_id":[505741]}},
-						{"not" : {"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}},
 						{"terms":{"product":["core", "firefox"]}},
-						{ "nested": {
-							"path" : "attachments.flags",
-							"query": {
-								"filtered" : {
-									"query" : {
-										"match_all" : {}
-									},
-									"filter" : {
-										"range":{"attachments.flags.modified_ts":{"gte":Date.now().add("-1month").getMilli()}}
-									}
-								}
-							}
-						}}
+						{"range" : { "expires_on" : { "gt" : Date.now().getMilli() }}},
+						{"not" : {"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}}
 					]
 				}
 			}
 		},
 		"from":0,
-		"size":10,
+		"size":0,
 		"sort":[
 			{ "bug_version_num" : {"order" : "asc"} }
 		],
@@ -81,30 +68,8 @@
 								{"and" : [
 									{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
 									{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-									{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}},
-									{"range":{"doc.attachments.flags.modified_ts":{"gte":Date.now().add("-3month").getMilli()}}},
-									{"script":{"script":"doc.attachments.flags.modified_ts==doc.modified_ts"}}
-								]}
-							}),
-					"size": 100000
-				}
-			},
-			"closed": {
-				"terms": {
-					"script_field":
-							new MVEL().code({
-								"select" : [
-									{"name":"bug_id", "value":"doc.bug_id"},
-									{"name":"requestee", "value":"doc.attachments.flags.requestee"},
-									{"name":"modified_ts", "value":"doc.attachments.flags.modified_ts"}
-								],
-								"from":
-										"doc.attachments.flags",
-								"where":
-								{"and" : [
-									{"not":{"terms" : {"doc.attachments.flags.request_status" : ["?"]}}},
-									{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-									{"range":{"doc.attachments.flags.modified_ts":{"gte":Date.now().add("-3month").getMilli()}}}
+									{"range":{"doc.attachments.flags.modified_ts":{"lt":Date.now().add("-3month").getMilli()}}},
+									{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
 								]}
 							}),
 					"size": 100000
@@ -126,27 +91,22 @@
 			var esResult = CNV.ESFacet2List(data.facets.pending);
 
 			var reviews=					//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
-				new CUBE().calc2List({
-					"from":
-						esResult,
-					"select": {"name":"age", "value":"Date.now().floor('day').getMilli()-modified_ts", operation:"minimum"},
-					"edges":[
-						{"name":"requestee", "value":"requestee"},
-						{"name":"bug_id", "value":"bug_id"}
-					]
-				}).list;
+					new CUBE().calc2List({
+						"from":
+							esResult,
+						"select": {"name":"age", "value":"Date.now().floor('day').getMilli()-modified_ts", operation:"minimum"},
+						"edges":[
+							{"name":"requestee", "value":"requestee"},
+							{"name":"bug_id", "value":"bug_id"}
+						]
+					}).list;
 
 
 
-
-			var summary = new CUBE().calc2List({
+			var average = new CUBE().calc2List({
 				"from": reviews,
-				"select": [
-					{"name":"avg_age", "value":"age", "operation":"average"},
-					{"name":"count", "value":"1", "operation":"count"}
-				]
-			}).list[0];
-
+				"select": {"name":"avg_age", "value":"age", operation:"average"}
+			}).list[0].avg_age;
 
 			var over=0;
 			var under=0;
@@ -160,8 +120,8 @@
 			}//for
 
 			$("#summary").html(
-				"<h1>Average Review Queue Length: "+Duration.newInstance(summary.avg_age).format("day", 2)+"s</h1><br>"+
-				"<h2>("+summary.count+" pending reviews, "+Math.round(over/(over+under)*100, 1)+"% over one week)</h2>"
+				"<h1>Reviews Requested over 3 Months Ago</h1><br>"+
+				"<h2>("+(over+under)+" pending reviews, waiting an average of "+Duration.newInstance(average).format("day", 0)+"s</h2>"
 			);
 
 
@@ -185,13 +145,13 @@
 				"from":result,
 				"select":[
 					{"name":"requestee", "value":"requestee"},
-					{"name":"Average Age", "value":"Duration.newInstance(avg_age).format('day', 1)"},
+					{"name":"Average Age", "value":"Duration.newInstance(avg_age).format('day', 0)"},
 					{"name":"numPending", value:"numPending"},
 					{"name":"bugs", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
 				]
 			}).list;
 
-			var htmlSummary = "<h1>Pending Review (Only Firefox and Core, Only requested in past 1 months)</h1>" + CNV.List2HTMLTable(result);
+			var htmlSummary = "<h1>Pending Review</h1>" + CNV.List2HTMLTable(result);
 
 			document.getElementById("info").innerHTML = htmlSummary;
 		},
