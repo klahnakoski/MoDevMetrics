@@ -147,7 +147,8 @@
 									"select" : [
 										{"name":"bug_id", "value":"doc.bug_id"},
 										{"name":"modified_ts", "value":"doc.modified_ts"},
-										{"name":"requestee", "value":"doc.attachments.flags.requestee"}
+										{"name":"requestee", "value":"doc.attachments.flags.requestee"},
+										{"name":"attach_id","value":"doc.attachments.attach_id"}
 									],
 									"from":
 										"doc.attachments.flags",
@@ -174,7 +175,8 @@
 										"select" : [
 											{"name":"bug_id", "value":"doc.bug_id"},
 											{"name":"modified_ts", "value":"(doc.bug_status=='resolved'||doc.bug_status=='verified'||doc.bug_status=='closed') ? doc.modified_ts : doc.attachments.flags.modified_ts"},
-											{"name":"requestee", "value":"doc.attachments.flags.requestee"}
+											{"name":"requestee", "value":"doc.attachments.flags.requestee"},
+											{"name":"attach_id","value":"doc.attachments.attach_id"}
 										],
 										"from":
 												"doc.attachments.flags",
@@ -226,7 +228,9 @@
 							{"name":"end_time", "value":"new Date(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "operation":"minimum"}
 						],
 						"edges":[
-							{"name":"close_record", "test":"bug_id==doneReview.bug_id && requestee==doneReview.requestee && modified_ts<=doneReview.modified_ts", allowNulls:true,
+							{"name":"close_record",
+								"test":"bug_id==doneReview.bug_id && requestee==doneReview.requestee && attach_id==doneReview.attach_id && modified_ts<=doneReview.modified_ts",
+								allowNulls:true,
 								"domain":{"type":"set", "name":"doneReview", "key":["bug_id", "modified_ts", "requestee"], "partitions":doneReview}
 							},
 							{"name":"requestee", "value":"requestee"},
@@ -271,6 +275,7 @@
 						"Number requested = "+numReviewsRequested+"<br>"+
 						"Number completed = "+numReviewsCompleted+"<br>"+
 						"Number completed in week = "+numCompleteInWeek+"<br>"+
+						"% completed in a week = "+Math.round(numCompleteInWeek/numReviewsRequested*100, 2)+"%<br>"+
 						"Unique Bugs Reviewed = "+uniqueBugs
 //						CNV.List2HTMLTable(reviewQueues)
 					);
@@ -312,7 +317,6 @@
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("day")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		]);
-//		createChart();
 	});
 
 </script>
