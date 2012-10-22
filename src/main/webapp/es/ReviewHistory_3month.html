@@ -248,7 +248,11 @@
 
 					var numReviewsRequested=0;
 					var numReviewsCompleted=0;
+					var numCompleteInWeek=0;
 					for(var r=reviewQueues.length;r--;){
+						if (reviewQueues[r].subtract(reviewQueues[r].start_time).milli<Duration.newInstance("week"))
+							numCompleteInWeek++;
+						
 						numReviewsRequested++;
 						if (reviewQueues[r].end_time<Date.now().floorDay()){  //NOTICE WE ES-GRAB ONLY smapleMax.floorDay(), BUT PUT end_time AS Date.now() ON OPEN REVIEWS
 							numReviewsCompleted++;

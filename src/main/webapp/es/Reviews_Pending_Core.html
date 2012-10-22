@@ -50,7 +50,7 @@
 										"match_all" : {}
 									},
 									"filter" : {
-										"range":{"attachments.flags.modified_ts":{"gte":Date.now().add("-3month").getMilli()}}
+										"range":{"attachments.flags.modified_ts":{"gte":Date.now().add("-1month").getMilli()}}
 									}
 								}
 							}
@@ -82,8 +82,29 @@
 									{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
 									{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
 									{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}},
-									{"range":{"doc.attachments.flags.modified_ts":{"gte":Date.now().add("-3month").getMilli()}}}//,
-//									{"script":{"script":"doc.attachments.flags.modified_ts==doc.modified_ts"}}
+									{"range":{"doc.attachments.flags.modified_ts":{"gte":Date.now().add("-3month").getMilli()}}},
+									{"script":{"script":"doc.attachments.flags.modified_ts==doc.modified_ts"}}
+								]}
+							}),
+					"size": 100000
+				}
+			},
+			"closed": {
+				"terms": {
+					"script_field":
+							new MVEL().code({
+								"select" : [
+									{"name":"bug_id", "value":"doc.bug_id"},
+									{"name":"requestee", "value":"doc.attachments.flags.requestee"},
+									{"name":"modified_ts", "value":"doc.attachments.flags.modified_ts"}
+								],
+								"from":
+										"doc.attachments.flags",
+								"where":
+								{"and" : [
+									{"not":{"terms" : {"doc.attachments.flags.request_status" : ["?"]}}},
+									{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
+									{"range":{"doc.attachments.flags.modified_ts":{"gte":Date.now().add("-3month").getMilli()}}}
 								]}
 							}),
 					"size": 100000

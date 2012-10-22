@@ -134,8 +134,9 @@ var createChart = function(){
 				"filter" : {
 					"and":[
 						//MAKE SURE WE REPORT BACK FAR ENOUGH IN TIME TO CAPTURE THE LONGEST TIMES (state.maxX) BEING REPORTED
-						{"range":{"modified_ts":{"gte":new Date(state.sampleMin).subtract(Duration.newInstance(state.maxX)).getMilli()}}},
-						{"range":{"modified_ts":{"lte":new Date(state.sampleMax).getMilli()}}}
+//						{"range":{"modified_ts":{"gte":new Date(state.sampleMin).subtract(Duration.newInstance(state.maxX)).getMilli()}}},
+//						{"range":{"modified_ts":{"lte":new Date(state.sampleMax).getMilli()}}}
+//						{"term":{"bug_id":"802114"}}
 					]
 				}
 			}},
@@ -193,7 +194,7 @@ var createChart = function(){
 					"edges":[
 						{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "partitions":closed}}
 					],
-					"where":"c.min-min<"+Duration.newInstance("10day").milli+" && c.term!=null && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
+					"where":"c.term!=null && c.min-min<"+Duration.newInstance("20day").milli+" && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
 				}).list;
 
 				status.message("Match Age with Closed");
@@ -206,15 +207,15 @@ var createChart = function(){
 					"edges":[
 						{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "partitions":closed}}
 					],
-					"where":"c.min-min>"+Duration.newInstance("1year").milli+" && c.term!=null && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
+					"where":"c.term!=null && c.min-min>"+Duration.newInstance("6month").milli+" && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
 				}).list;
 
 
 				var matched=new CUBE().calc2List({
 					"from":durations,
-					"select":{"name":"bug_id", "value":"bug_id.term", "operation":"minimum"}
+					"select":{"name":"bug_id", "value":"bug_id.term", "operation":"minimum"},
 					"edges":[
-						{"name":"bug_id", "value":"bug_id.term", "domain":{"type":"set", "name":"a", "key":"bug_id.term", "partitions":ages} }
+						{"name":"bug_id", "test":"bug_id.term==a.bug_id.term", "domain":{"type":"set", "name":"a", "partitions":ages} }
 					]
 				}).list;
 
