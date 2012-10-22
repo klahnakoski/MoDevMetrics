@@ -95,6 +95,8 @@
 		</td>
 		<td>
 			<div class="widget" id="avgAge"></div>
+			<div class="widget" id="avgClosed"></div>
+
 		</td>
 	</tr>
 </table>
@@ -143,7 +145,10 @@ var createChart = function(){
 		"esfilter":{"and":[
 			{"terms":{"bug_status":["resolved", "verified", "closed"]}},
 			{"range":{"modified_ts":{"gte":Date.now().floor("day").subtract(state.sampleSize).getMilli()}}},
-			{"range":{"modified_ts":{"lte":Date.now().floor("day").getMilli()}}}
+			{"range":{"modified_ts":{"lte":Date.now().floor("day").getMilli()}}},
+			{"script":{"script":'doc["modified_ts"].value-doc["created_ts"].value>'+Duration.newInstance("439day").milli}}
+
+//{"range":{"created_ts":{"lte":Date.now().add("-206day").getMilli()}}}
 		]}
 	});
 
@@ -156,12 +161,12 @@ var createChart = function(){
 		queryClosed.run(function(closedBugAges){
 
 			var open=openBugAges.data;
-			var closed=openBugAges.data;
+			var closed=closedBugAges.data;
 
-			var avgDays=Duration.newInstance((open.sum+closed.sum)/(open.count+closed.count)).divideBy(Duration.newInstance("day"));
-			avgDays=Math.round(avgDays*100)/100;
-
+			var avgDays=Duration.newInstance((open.sum+closed.sum)/(open.count+closed.count)).format("day", 2);
+			var avgClosed=Duration.newInstance((closed.sum)/(closed.count)).format("day", 2);
 			$("#avgAge").html("<h1>"+avgDays+"</h1><br>Bug Age");
+			$("#avgClosed").html("<h1>"+avgClosed+"</h1><br>Closed Bug Age");
 
 			status.message("Done");
 		});

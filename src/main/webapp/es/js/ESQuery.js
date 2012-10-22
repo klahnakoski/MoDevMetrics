@@ -403,7 +403,7 @@ ESQuery.prototype.buildESQuery = function(){
 			}
 		},
 		"from" : 0,
-		"size" : 0,
+		"size" : 10,
 		"sort" : [],
 		"facets":{
 		}

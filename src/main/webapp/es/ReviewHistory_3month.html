@@ -125,8 +125,7 @@
 										},
 										"filter" : {
 											"and":[
-												{"terms" : {"attachments.flags.request_type" : ["review", "superreview"]}},
-//												{"term" : {"attachments.flags.requestee" : state.requestee}}
+												{"terms" : {"attachments.flags.request_type" : ["review", "superreview"]}}
 											]
 										}
 									}
@@ -152,13 +151,8 @@
 											"doc.attachments.flags",
 									"where":
 									{"and" : [
-										{"or" : [
-											{ "and" : [
-												{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
-												{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-//												{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
-											]}
-										]},
+										{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
+										{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
 										{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
 									]}
 								}),
@@ -184,18 +178,10 @@
 										"where":
 										{"and" : [
 											{"or" : [
-												{ "and" : [
-													{"not": {"terms" : {"doc.attachments.flags.request_status" : ["?"]}}},
-													{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-//													{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
-												]},
-												{ "and" : [//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
-													{"terms" : {"doc.bug_status" : ["resolved", "verified", "closed"]}},
-													{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-//													{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
-												]}
-											]}
-//											{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
+												{"not": {"terms" : {"doc.attachments.flags.request_status" : ["?"]}}},
+												{"terms" : {"doc.bug_status" : ["resolved", "verified", "closed"]}}//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
+											]},
+											{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}}
 										]}
 									}),
 							"size": state.esSize
@@ -304,13 +290,12 @@
 
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"jmuizelaar@mozilla.com"},
 			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-3month")},
 			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("day")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		]);
-		createChart();
+//		createChart();
 	});
 
 </script>
