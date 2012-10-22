@@ -146,7 +146,25 @@ var createChart = function(){
 			{"terms":{"bug_status":["resolved", "verified", "closed"]}},
 			{"range":{"modified_ts":{"gte":Date.now().floor("day").subtract(state.sampleSize).getMilli()}}},
 			{"range":{"modified_ts":{"lte":Date.now().floor("day").getMilli()}}},
-			{"script":{"script":'doc["modified_ts"].value-doc["created_ts"].value>'+Duration.newInstance("439day").milli}}
+			{"script":{"script":'doc["modified_ts"].value-doc["created_ts"].value>'+Duration.newInstance("439day").milli}}//,
+				,{"range":{"bug_id":{"gt":"400000"}}}
+			{ "nested": {
+				"path" : "attachments.flags",
+				"query": {
+					"filtered" : {
+						"query" : {
+							"match_all" : {}
+						},
+						"filter" : {
+							"and":[
+								{"terms" : {"attachments.flags.request_type" : ["review", "superreview"]}},
+								{"terms" : {"attachments.flags.request_status" : ["+", "-", "D"]}},
+								{"duration_days": 0
+							]
+						}
+					}
+				}
+			}}
 
 //{"range":{"created_ts":{"lte":Date.now().add("-206day").getMilli()}}}
 		]}
