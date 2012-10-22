@@ -432,7 +432,11 @@ CUBE.domain.set = function(column, sourceColumns){
 				sublist.push(d.partitions[o]);
 			}//for
 
-			CUBE.domain.set.compileMappedLookup(column, d, sourceColumns, lookupVar);
+			try{
+				CUBE.domain.set.compileMappedLookup(column, d, sourceColumns, lookupVar);
+			}catch(e){
+				D.error("test parameter is malformed", e);
+			}//try
 		}//endif
 	}//endif
 

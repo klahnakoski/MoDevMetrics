@@ -123,7 +123,7 @@
 					}
 				}},
 				"from" : 0,
-				"size" : 0,
+				"size" : 10,
 				"sort" : [],
 				"facets":{
 					"inReview": {
@@ -133,7 +133,8 @@
 									"select" : [
 										{"name":"bug_id", "value":"doc.bug_id"},
 										{"name":"modified_ts", "value":"doc.modified_ts"},
-										{"name":"requestee", "value":"doc.attachments.flags.requestee"}
+										{"name":"requestee", "value":"doc.attachments.flags.requestee"},
+										{"name":"attach_id","value":"doc.attachments.attach_id"}
 									],
 									"from":
 											"doc.attachments.flags",
@@ -156,7 +157,8 @@
 										"select" : [
 											{"name":"bug_id", "value":"doc.bug_id"},
 											{"name":"modified_ts", "value":"doc.modified_ts"},
-											{"name":"requestee", "value":"doc.attachments.flags.requestee"}
+											{"name":"requestee", "value":"doc.attachments.flags.requestee"},
+											{"name":"attach_id","value":"doc.attachments.attach_id"}
 										],
 										"from":
 												"doc.attachments.flags",
@@ -196,7 +198,9 @@
 							{"name":"reviewTime", "value":"c.modified_ts-modified_ts", "operation":"minimum"}
 						],
 						"edges":[
-							{"name":"bug_id", "test":"bug_id==c.bug_id && modified_ts<c.modified_ts", "domain":{"type":"set", "name":"c", "key":["bug_id", "modified_ts"], "partitions":doneReview}},
+							{"name":"bug_id",
+								"test":"bug_id==c.bug_id && requestee==c.requestee && attach_id==c.attach_id && modified_ts<c.modified_ts",
+								"domain":{"type":"set", "name":"c", "key":["bug_id", "requestee", "attach_id", "modified_ts"], "partitions":doneReview}},
 							{"name":"finished_time", "value":"modified_ts"},
 							{"name":"requestee", "value":"requestee"}
 						]
@@ -207,8 +211,12 @@
 						"from": durations,
 						"select": {"name":"Count", "value":"1", "operation":"count"},
 						"edges":[
-							{"name":"Cohort", "value":"Date.newInstance(finished_time)", "domain":{"type":"time", "min":Date.now().floor("month").add("-2year"), "max":Date.now().floor("month").add("-1second"), "interval":"6month", format:"NNN yyyy"}},
-							{"name":"Review Time", "value":"Duration.newInstance(reviewTime)", allowNulls:true, "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
+							{"name":"Cohort", "value":"Date.newInstance(finished_time)",
+								"domain":{"type":"time", "min":Date.now().add("-2year"), "max":Date.now(), "interval":"6month", format:"NNN yyyy"}},
+							{"name":"Review Time",
+								"value":"Duration.newInstance(reviewTime)",
+								"allowNulls":true,
+								"domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
 						]
 					});
 
@@ -234,11 +242,10 @@
 			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
 			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
 			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
-			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-2year")},
+			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("month").add("-2year")},
 			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		]);
-		createChart();
 	});
 
 </script>

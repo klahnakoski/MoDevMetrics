@@ -60,7 +60,8 @@
 								"select" : [
 									{"name":"bug_id", "value":"doc.bug_id"},
 									{"name":"requestee", "value":"doc.attachments.flags.requestee"},
-									{"name":"modified_ts", "value":"doc.attachments.flags.modified_ts"}
+									{"name":"modified_ts", "value":"doc.attachments.flags.modified_ts"},
+									{"name":"attach_id","value":"doc.attachments.attach_id"}
 								],
 								"from":
 										"doc.attachments.flags",
@@ -120,7 +121,7 @@
 			}//for
 
 			$("#summary").html(
-				"<h1>Reviews Requested over 3 Months Ago</h1><br>"+
+				"<h1>Reviews Requested over 3 Months Ago (Firefox and Core only)</h1><br>"+
 				"<h2>("+(over+under)+" pending reviews, waiting an average of "+Duration.newInstance(average).format("day", 0)+"s</h2>"
 			);
 

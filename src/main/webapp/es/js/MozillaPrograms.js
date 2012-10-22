@@ -11,7 +11,7 @@ var MozillaPrograms = {
 		["Security", "keywords", "sec-critical"],
 		["Security", "keywords", "sec-moderate"],
 		["Security", "keywords", "sec-low"],
-//		["Security (Critical Only)", "status_whiteboard.tokenized", "sg:crit"],
+		["Security (Critical Only)", "status_whiteboard.tokenized", "sg:crit"],
 		["Security (Critical Only)", "keywords", "sec-critical"],
 //		["Security (Critical Only)", "keywords", "sg:crit"],
 		["Crash", "keywords", "topcrash"],
