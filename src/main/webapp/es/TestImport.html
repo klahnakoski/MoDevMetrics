@@ -1,0 +1,37 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+		"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+	<div id="testid"></div>
+	<script type="text/javascript">
+		var importedScripts={};
+		var importScripts=function(path){
+			if (importedScripts[path]===undefined){
+				importedScripts[path]=path;
+				//IMPORT
+				//OPEN FILE
+				//EVAL CONTENT
+				
+			}//endif
+
+		};//method
+
+
+
+
+		importScripts("js/util.js");
+
+		$("#testid").html(""+("this is a test".indexOf("test")));
+
+
+
+
+	</script>
+
+
+
+</body>
+</html>
