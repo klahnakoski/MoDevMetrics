@@ -149,7 +149,7 @@ aChart.showCCC=function(params){
 	var chart = new pvc[chartTypes[type]]({
 		canvas: divName,
 		width: 800,
-		height: 600+(chartCube.edges[0].domain.partitions.length/17*21),
+		height: 600+(chartCube.edges[0].domain.partitions.length/17*22),
 		animate:false,
 		title: chartCube.name,
 		legend: true,

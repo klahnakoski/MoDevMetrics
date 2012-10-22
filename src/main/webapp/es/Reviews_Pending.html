@@ -131,7 +131,7 @@
 
 			$("#summary").html(
 				"<h1>Average Review Queue Length: "+average+"s</h1><br>"+
-				"<h2>("+Math.round(over/(over+under)*100, 1)+"% over one week)</h2>"
+				"<h2>("+(over+under)+" pending reviews, "+Math.round(over/(over+under)*100, 1)+"% over one week)</h2>"
 			);
 
 

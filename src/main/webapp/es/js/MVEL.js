@@ -167,7 +167,7 @@ MVEL.prototype.where = function(esFilter){
 			output.push("("+fieldName+"==null)");
 		}//endif
 		return output.join(" || ");
-	} else if (op = "range"){
+	} else if (op == "range"){
 		var pair = esFilter[op];
 		var variableName = Object.keys(pair)[0];
 		var range = pair[variableName];
@@ -203,6 +203,9 @@ MVEL.prototype.where = function(esFilter){
 		} else{
 			return "(" + upper + ") && (" + lower + ")";
 		}//endif
+	} else if (op=="script"){
+		var script = esFilter[op].script;
+		return this.translate(script);
 	} else{
 		D.error("'" + op + "' is an unknown operation");
 	}//endif

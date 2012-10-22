@@ -40,7 +40,6 @@
 				"filter": {
 					"and":[
 //													{"terms":{"bug_id":[505741]}},
-						{ "range" : { "expires_on" : { "gt" : Date.now().getMilli() } } },
 						{"not" : {"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}},
 						{"terms":{"product":["core", "firefox"]}},
 						{ "nested": {
@@ -80,14 +79,11 @@
 										"doc.attachments.flags",
 								"where":
 								{"and" : [
-									{"or" : [
-										{ "and" : [
-											{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
-											{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}}
-										]}
-									]},
+									{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
+									{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
 									{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}},
-									{"range":{"doc.attachments.flags.modified_ts":{"gte":Date.now().add("-3month").getMilli()}}}
+									{"range":{"doc.attachments.flags.modified_ts":{"gte":Date.now().add("-3month").getMilli()}}}//,
+//									{"script":{"script":"doc.attachments.flags.modified_ts==doc.modified_ts"}}
 								]}
 							}),
 					"size": 100000
@@ -126,7 +122,7 @@
 				"from": reviews,
 				"select": [
 					{"name":"avg_age", "value":"age", "operation":"average"},
-					{"name":"count", "value":"1", "operations":"count"}
+					{"name":"count", "value":"1", "operation":"count"}
 				]
 			}).list[0];
 
@@ -143,7 +139,7 @@
 			}//for
 
 			$("#summary").html(
-				"<h1>Average Review Queue Length: "+summary.avg_age+"s</h1><br>"+
+				"<h1>Average Review Queue Length: "+Duration.newInstance(summary.avg_age).format("day", 2)+"s</h1><br>"+
 				"<h2>("+summary.count+" pending reviews, "+Math.round(over/(over+under)*100, 1)+"% over one week)</h2>"
 			);
 

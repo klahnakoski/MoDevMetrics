@@ -193,7 +193,7 @@ var createChart = function(){
 					"edges":[
 						{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "partitions":closed}}
 					],
-					"where":"c.term!=null && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
+					"where":"c.min-min<"+Duration.newInstance("10day").milli+" && c.term!=null && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
 				}).list;
 
 				status.message("Match Age with Closed");
@@ -206,44 +206,21 @@ var createChart = function(){
 					"edges":[
 						{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "partitions":closed}}
 					],
-					"where":"c.term!=null && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
+					"where":"c.min-min>"+Duration.newInstance("1year").milli+" && c.term!=null && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
 				}).list;
 
-				var average = new CUBE().calc2List({
-					"from": durations,
-					"select":{"name":"Average Duration", "value":"duration", "operation":"average"},
+
+				var matched=new CUBE().calc2List({
+					"from":durations,
+					"select":{"name":"bug_id", "value":"bug_id.term", "operation":"minimum"}
 					"edges":[
-						{"name":"dummy", "value":"1"}
+						{"name":"bug_id", "value":"bug_id.term", "domain":{"type":"set", "name":"a", "key":"bug_id.term", "partitions":ages} }
 					]
 				}).list;
 
-				var avg=Duration.newInstance(average[0]["Average Duration"]).divideBy(Duration.newInstance("day"));
-				avg=Math.round(avg*100)/100;
-
-//				var interval=Duration.newInstance("day");
-//				avg=avg.add(interval).floorDay(interval);
-				info.message("Average = "+avg+" days");
-
-				status.message("Tally into interval buckets");
-				var time2res = new CUBE().calc2Cube({
-					"name": "Time to Resolution (Closed Bugs Only)",
-					"from": durations,
-					"select": {"name":"Count", "value":"1", "operation":"count"},
-					"edges":[
-						{"name":"Cohort", "value":"1"},
-						{"name":"Time Since Marked", "value":"Duration.newInstance(duration)", allowNulls:true,  "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
-					]
-				});
-
-//				CUBE.normalizeByCohort(time2res, 100);
+				info.message(CNV.List2Table(matched));
 
 
-				status.message("Make chart");
-				aChart.showCCC({
-					"id":"chart",
-					"type":"stacked",
-					"cube":time2res
-				});
 				status.message("Done");
 			}
 		},
