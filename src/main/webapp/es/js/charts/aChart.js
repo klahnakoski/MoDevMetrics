@@ -31,7 +31,7 @@ aChart.showJQP=function(params){
 	var xaxis=chartCube.edges[chartCube.edges.length-1];
 	var seriesLabels=[];
 	if (chartCube.edges.length==2){
-		seriesLabels=new SQL().calc2List({
+		seriesLabels=new CUBE().calc2List({
 			"from":
 				chartCube.edges[0].domain.partitions,			//EACH SERIES NAMES
 			"select":[
@@ -77,7 +77,7 @@ aChart.showJQP=function(params){
 					label: xaxis.name,					//X AXIS NAME
 					labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
 					tickRenderer: $.jqplot.CanvasAxisTickRenderer,
-					ticks:new SQL().calc2Array({
+					ticks:new CUBE().calc2Array({
 						"from":xaxis.domain.partitions,	//X AXIS TICK LABELS
 						"select":{"value":"name"}
 					}),
@@ -129,7 +129,7 @@ aChart.showCCC=function(params){
 	var xaxis=chartCube.edges[chartCube.edges.length-1];
 	var seriesLabels=[];
 	if (chartCube.edges.length==2){
-		seriesLabels=new SQL().calc2List({
+		seriesLabels=new CUBE().calc2List({
 			"from":
 				chartCube.edges[0].domain.partitions,			//EACH SERIES NAMES
 			"select":[
@@ -172,7 +172,7 @@ aChart.showCCC=function(params){
 		}
 	});
 
-	var data=SQL.toTable(chartCube);
+	var data=CUBE.toTable(chartCube);
 
 //	D.println(CNV.Object2JSON(data));
 

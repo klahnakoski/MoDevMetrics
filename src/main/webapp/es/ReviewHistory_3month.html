@@ -20,9 +20,6 @@
 
 
 
-
-
-
 <script type="text/javascript" src="lib/webdetails/cdf/Base.js"></script>
 <script type="text/javascript" src="lib/webdetails/cdf/jquery.js"></script>
 <script type="text/javascript" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
@@ -118,6 +115,7 @@
 					"filter" : {
 						"and":[
 //							{"terms":{"bug_id":[454532]}},//, 19963, 505741]}},
+							{"terms":{"product":["core", "firefox"]}},
 							{ "nested": {
 								"path" : "attachments.flags",
 								"query": {
@@ -128,7 +126,7 @@
 										"filter" : {
 											"and":[
 												{"terms" : {"attachments.flags.request_type" : ["review", "superreview"]}},
-												{"term" : {"attachments.flags.requestee" : state.requestee}}
+//												{"term" : {"attachments.flags.requestee" : state.requestee}}
 											]
 										}
 									}
@@ -158,7 +156,7 @@
 											{ "and" : [
 												{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
 												{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-												{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
+//												{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
 											]}
 										]},
 										{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
@@ -189,12 +187,12 @@
 												{ "and" : [
 													{"not": {"terms" : {"doc.attachments.flags.request_status" : ["?"]}}},
 													{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-													{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
+//													{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
 												]},
 												{ "and" : [//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
 													{"terms" : {"doc.bug_status" : ["resolved", "verified", "closed"]}},
 													{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-													{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
+//													{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
 												]}
 											]}
 //											{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
@@ -249,9 +247,36 @@
 					}).list;
 
 
+
+
+//					var counts=new CUBE().calc2List({
+//						"from":reviewQueues,
+//						"select":[
+//							{"name":"numReviewsRequested", "value":"1", "operation":"count"},
+//							{"name":"numReviewsCompleted", "value":"end_time<Date.now().floorDay() ? 1 : 0", "operation":"sum"}
+//						]
+//					}).list[0];
+
+					var numReviewsRequested=0;
+					var numReviewsCompleted=0;
+					for(var r=reviewQueues.length;r--;){
+						numReviewsRequested++;
+						if (reviewQueues[r].end_time<Date.now().floorDay()){  //NOTICE WE ES-GRAB ONLY smapleMax.floorDay(), BUT PUT end_time AS Date.now() ON OPEN REVIEWS
+							numReviewsCompleted++;
+						}//endif
+					}//for
+
+
+					info.message(
+						"Number requested = "+numReviewsRequested+"<br>"+
+						"Number completed = "+numReviewsCompleted
+					);
+
+
+
 					var chart=new CUBE().calc2Cube({
 						"name":
-							"Historical Review Queue for "+state.requestee,
+							"Historical Review Queue for Firefox and Core, past 3 months ",
 						"from":reviewQueues,
 						"select":{"name":"Pending", "value":"1", operation:"binary"},
 						"edges":[
@@ -282,7 +307,7 @@
 			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"jmuizelaar@mozilla.com"},
 			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-3month")},
 			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
-			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("week")},
+			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("day")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		]);
 		createChart();

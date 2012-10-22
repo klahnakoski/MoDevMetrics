@@ -1,8 +1,8 @@
-var SQL = function(){
+var CUBE = function(){
 };
 
 
-SQL.compile = function(query, sourceColumns){
+CUBE.compile = function(query, sourceColumns){
 //COMPILE COLUMN CALCULATION CODE
 	var resultColumns = {};
 
@@ -10,32 +10,32 @@ SQL.compile = function(query, sourceColumns){
 	for(var g = 0; g < edges.length; g++){
 		if (edges[g].allowNulls === undefined) edges[g].allowNulls = false;
 		resultColumns[edges[g].name] = edges[g];
-		SQL.column.compile(sourceColumns, edges[g]);
-		SQL.domain.compile(sourceColumns, edges[g]);
+		CUBE.column.compile(sourceColumns, edges[g]);
+		CUBE.domain.compile(sourceColumns, edges[g]);
 		edges[g].outOfDomainCount = 0;
 	}//for
 
-	var select = SQL.select2Array(query.select);
+	var select = CUBE.select2Array(query.select);
 	for(var s = 0; s < select.length; s++){
 		resultColumns[select[s].name] = select[s];
-		SQL.column.compile(sourceColumns, select[s], edges);
-		SQL.aggregate.compile(select[s]);
+		CUBE.column.compile(sourceColumns, select[s], edges);
+		CUBE.aggregate.compile(select[s]);
 	}//for
 
 	return resultColumns;
 };
 
 //MAP SELECT CLAUSE TO AN ARRAY OF SELECT COLUMNS
-SQL.select2Array = function(select){
+CUBE.select2Array = function(select){
 	if (select === undefined) return [];
 	if (!(select instanceof Array)) return [select];
 	return select;
 };//method
 
 
-SQL.prototype.calc2List = function(query){
+CUBE.prototype.calc2List = function(query){
 	if (query.edges===undefined) query.edges=[];
-	var select = SQL.select2Array(query.select);
+	var select = CUBE.select2Array(query.select);
 
 	//NO EDGES IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
 	if (query.edges.length==0){
@@ -46,10 +46,10 @@ SQL.prototype.calc2List = function(query){
 		}//endif
 	}//endif
 
-	var sourceColumns = SQL.getColumns(query.from);
+	var sourceColumns = CUBE.getColumns(query.from);
 	var edges = query.edges;
-	var resultColumns = SQL.compile(query, sourceColumns);
-	var where = SQL.where.compile(query.where, sourceColumns, edges);
+	var resultColumns = CUBE.compile(query, sourceColumns);
+	var where = CUBE.where.compile(query.where, sourceColumns, edges);
 
 
 	var indexedOutput = {};
@@ -115,7 +115,7 @@ SQL.prototype.calc2List = function(query){
 
 		if (select.length == 0){
 			for(var t = 0; t < results.length; t++){
-				if (where(row, results[t])) SQL.addResultToOutput(results[t], indexedOutput, select, edges);
+				if (where(row, results[t])) CUBE.addResultToOutput(results[t], indexedOutput, select, edges);
 			}//for
 		} else{
 			for(var s = 0; s < (select).length; s++){
@@ -123,7 +123,7 @@ SQL.prototype.calc2List = function(query){
 				for(var t = 0; t < results.length; t++){
 					if (where(row, results[t])){
 						//FIND CANONICAL RESULT
-						var result = SQL.addResultToOutput(results[t], indexedOutput, select, edges);
+						var result = CUBE.addResultToOutput(results[t], indexedOutput, select, edges);
 
 						//CALCULATE VALUE
 						var v = ss.calc(row, result);
@@ -143,7 +143,7 @@ SQL.prototype.calc2List = function(query){
 
 
 	var output = [];
-	SQL.outputToList(output, indexedOutput, edges, 0, query.order);
+	CUBE.outputToList(output, indexedOutput, edges, 0, query.order);
 
 
 	//ORDER THE OUTPUT
@@ -151,7 +151,7 @@ SQL.prototype.calc2List = function(query){
 		query.order = [];
 		for(var f = 0; f < edges.length; f++) query.order.push(edges[f].name);
 	}//endif
-	output = SQL.order(output, query.order, resultColumns);
+	output = CUBE.order(output, query.order, resultColumns);
 
 	//TURN AGGREGATE OBJECTS TO SINGLE NUMBER
 	for(var c in resultColumns){
@@ -173,13 +173,13 @@ SQL.prototype.calc2List = function(query){
 };//method
 
 
-SQL.prototype.calc2Array = function(sql){
+CUBE.prototype.calc2Array = function(sql){
 	if (sql.select instanceof Array) D.error("Expecting select to not be an array");
 	if (sql.edges !== undefined && sql.edges.length > 0) D.error("Expecting zero edges");
 
 	var temp = sql.select.name;
 	sql.select.name = 0;
-	var list = new SQL().setOP(sql).list;
+	var list = new CUBE().setOP(sql).list;
 	sql.select.name = temp;
 
 	var output = [];
@@ -190,7 +190,7 @@ SQL.prototype.calc2Array = function(sql){
 };//method
 
 
-SQL.prototype.calc2Cube = function(query){
+CUBE.prototype.calc2Cube = function(query){
 	var cube = this.calc2List(query);
 
 	//ASSIGN dataIndex TO ALL PARTITIONS
@@ -204,7 +204,7 @@ SQL.prototype.calc2Cube = function(query){
 	}//for
 
 	//MAKE THE EMPTY DATA GRID
-	var data = SQL.cube.newInstance(edges, 0, query.select);
+	var data = CUBE.cube.newInstance(edges, 0, query.select);
 
 	//FILL GRID WITH VALUES
 	OO: for(var o = 0; o < cube.list.length; o++){
@@ -242,12 +242,12 @@ SQL.prototype.calc2Cube = function(query){
 ////////////////////////////////////////////////////////////////////////////////
 //  REDUCE ALL DATA TO ZERO DIMENSIONS
 ////////////////////////////////////////////////////////////////////////////////
-SQL.prototype.aggOP=function(query){
-	var select = SQL.select2Array(query.select);
+CUBE.prototype.aggOP=function(query){
+	var select = CUBE.select2Array(query.select);
 
-	var sourceColumns = SQL.getColumns(query.from);
-	var resultColumns = SQL.compile(query, sourceColumns);
-	var where = SQL.where.compile(query.where, sourceColumns, []);
+	var sourceColumns = CUBE.getColumns(query.from);
+	var resultColumns = CUBE.compile(query, sourceColumns);
+	var where = CUBE.where.compile(query.where, sourceColumns, []);
 
 	var result={};
 	//ADD SELECT DEFAULTS
@@ -292,17 +292,17 @@ SQL.prototype.aggOP=function(query){
 ////////////////////////////////////////////////////////////////////////////////
 //  SIMPLE TRANSFORMATION ON A LIST OF OBJECTS
 ////////////////////////////////////////////////////////////////////////////////
-SQL.prototype.setOP = function(query){
-	var sourceColumns = SQL.getColumns(query.from);
+CUBE.prototype.setOP = function(query){
+	var sourceColumns = CUBE.getColumns(query.from);
 	var resultColumns = {};
 
-	var select = SQL.select2Array(query.select);
+	var select = CUBE.select2Array(query.select);
 
 	for(var s = 0; s < select.length; s++){
 		resultColumns[select[s].name] = select[s];
-		SQL.column.compile(sourceColumns, select[s], undefined);
+		CUBE.column.compile(sourceColumns, select[s], undefined);
 	}//for
-	var where = SQL.where.compile(query.where, sourceColumns, []);
+	var where = CUBE.where.compile(query.where, sourceColumns, []);
 
 	var output = [];
 	for(var t = 0; t < query.from.length; t++){
@@ -319,7 +319,7 @@ SQL.prototype.setOP = function(query){
 
 	//ORDER THE OUTPUT
 	if (query.order === undefined) query.order = [];
-	output = SQL.order(output, query.order, resultColumns);
+	output = CUBE.order(output, query.order, resultColumns);
 
 	query.list = output;
 	return query;
@@ -330,7 +330,7 @@ SQL.prototype.setOP = function(query){
 ////////////////////////////////////////////////////////////////////////////////
 // TABLES ARE LIKE LISTS, ONLY ATTRIBUTES ARE INDEXED BY COLUMN NUMBER
 ////////////////////////////////////////////////////////////////////////////////
-SQL.toTable=function(query){
+CUBE.toTable=function(query){
 
 	if (query.data===undefined) D.error("Can only turn a cube into a table at this time");
 	if (query.edges.length!=2) D.error("can only handle 2D cubes right now.");
@@ -355,7 +355,7 @@ SQL.toTable=function(query){
 ////////////////////////////////////////////////////////////////////////////////
 // ASSUME THE FIRST DIMESION IS THE COHORT, AND NORMALIZE (DIVIDE BY SUM(ABS(Xi))
 ////////////////////////////////////////////////////////////////////////////////
-SQL.normalizeByCohort=function(query, multiple){
+CUBE.normalizeByCohort=function(query, multiple){
 	if (multiple===undefined) multiple=1.0;
 	if (query.data===undefined) D.error("Can only normalize a cube into a table at this time");
 
@@ -376,7 +376,7 @@ SQL.normalizeByCohort=function(query, multiple){
 ////////////////////////////////////////////////////////////////////////////////
 // ASSUME THE SECOND DIMESION IS THE XAXIS, AND NORMALIZE (DIVIDE BY SUM(ABS(Ci))
 ////////////////////////////////////////////////////////////////////////////////
-SQL.normalizeByX=function(query, multiple){
+CUBE.normalizeByX=function(query, multiple){
 	if (multiple===undefined) multiple=1;
 	if (query.data===undefined) D.error("Can only normalize a cube into a table at this time");
 
@@ -399,26 +399,26 @@ SQL.normalizeByX=function(query, multiple){
 
 
 // CONVERT THE indexed OBJECT TO A FLAT LIST FOR output
-SQL.outputToList = function(output, indexed, edges, depth, order){
+CUBE.outputToList = function(output, indexed, edges, depth, order){
 	if (depth == edges.length){
 		output.push(indexed);
 	} else{
 		var keys = Object.keys(indexed);
 		for(var k = 0; k < keys.length; k++){
-			SQL.outputToList(output, indexed[keys[k]], edges, depth + 1)
+			CUBE.outputToList(output, indexed[keys[k]], edges, depth + 1)
 		}//for
 	}//endif
 };//method
 
 ////ADD THE MISSING DOMAIN VALUES
-//SQL.nullToList=function(output, edges, depth){
+//CUBE.nullToList=function(output, edges, depth){
 //	if ()
 //
 //
 //};//method
 
 
-SQL.addResultToOutput = function(result, output, select, edges){
+CUBE.addResultToOutput = function(result, output, select, edges){
 
 	//FIND RESULT IN output
 	//output IS A TREE INDEXED BY THE PARTITION CANONICAL VALUES
@@ -449,7 +449,7 @@ SQL.addResultToOutput = function(result, output, select, edges){
 
 
 // PULL COLUMN DEFINITIONS FROM LIST OF OBJECTS
-SQL.getColumns = function(data){
+CUBE.getColumns = function(data){
 	var output = [];
 	for(var i = 0; i < (data).length; i++){
 		var keys = Object.keys(data[i]);
@@ -472,7 +472,7 @@ SQL.getColumns = function(data){
 // ORDERING
 ////////////////////////////////////////////////////////////////////////////////
 //TAKE data LIST OF OBJECTS AND ENSURE names ARE ORDERED
-SQL.order = function(data, ordering, columns){
+CUBE.order = function(data, ordering, columns){
 
 	var totalSort = function(a, b){
 		for(var o = 0; o < ordering.length; o++){

@@ -1,7 +1,7 @@
 // MAKE A CUBE OF DEFAULT VALUES
-SQL.cube = {};
+CUBE.cube = {};
 
-SQL.cube.newInstance = function(edges, depth, select){
+CUBE.cube.newInstance = function(edges, depth, select){
 	var data = [];
 	if (depth == edges.length){
 		if (select instanceof Array){
@@ -16,10 +16,10 @@ SQL.cube.newInstance = function(edges, depth, select){
 
 	var p = 0;
 	for(; p < (edges[depth].domain.partitions).length; p++){
-		data[p] = SQL.cube.newInstance(edges, depth + 1, select);
+		data[p] = CUBE.cube.newInstance(edges, depth + 1, select);
 	}//for
 	if (edges[depth].allowNulls){
-		data[p]= SQL.cube.newInstance(edges, depth + 1, select);
+		data[p]= CUBE.cube.newInstance(edges, depth + 1, select);
 	}//endif
 	return data;
 };//method
@@ -27,13 +27,13 @@ SQL.cube.newInstance = function(edges, depth, select){
 
 
 //PROVIDE THE SAME EDGES, BUT IN DIFFERENT ORDER
-SQL.cube.transpose = function(cube, edges, select){
+CUBE.cube.transpose = function(cube, edges, select){
 	//MAKE COMBO MATRIX
-	var smap = SQL.cube.transpose.remap(cube.select, select);
-	var fmap = SQL.cube.transpose.remap(cube.edges, edges);
+	var smap = CUBE.cube.transpose.remap(cube.select, select);
+	var fmap = CUBE.cube.transpose.remap(cube.edges, edges);
 
 	//ENSURE THE CUBE HAS ALL DIMENSIONS
-	var data = SQL.cube.newInstance(edges, 0, []);
+	var data = CUBE.cube.newInstance(edges, 0, []);
 
 	var loops = "";
 	var ends = "";
@@ -63,7 +63,7 @@ SQL.cube.transpose = function(cube, edges, select){
 
 //MAKE THE MAP ARRAY FROM NEW TO OLD COLUMN INDICIES
 //newColumns[i]==oldColumns[smap[i]]
-SQL.cube.transpose.remap = function(oldColumns, newColumns){
+CUBE.cube.transpose.remap = function(oldColumns, newColumns){
 	var smap = [];
 	for(var snew = 0; snew < newColumns.length; snew++){
 		for(var sold = 0; sold < oldColumns.length; sold++){
@@ -76,7 +76,7 @@ SQL.cube.transpose.remap = function(oldColumns, newColumns){
 
 
 // UNION THE CUBES, AND ADD PARTITIONS AS NEEDED
-SQL.cube.union=function(cubeA, cubeB){
+CUBE.cube.union=function(cubeA, cubeB){
 	//ENSURE NAMES MATCH SO MERGE IS POSSIBLE
 	if (cubeA.edges.length!=cubeB.edges.length) D.error("Expecting cubes to have smae number of edges, with matching names");
 	for(var i=cubeA.edges.length;i--;){

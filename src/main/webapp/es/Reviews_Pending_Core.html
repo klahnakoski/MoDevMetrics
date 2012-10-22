@@ -17,11 +17,11 @@
 <script type="text/javascript" src="js/Debug.js"></script>
 
 <script type="text/javascript" src="js/MVEL.js"></script>
-<script type="text/javascript" src="js/SQL.js"></script>
-<script type="text/javascript" src="js/SQL.aggregate.js"></script>
-<script type="text/javascript" src="js/SQL.column.js"></script>
-<script type="text/javascript" src="js/SQL.cube.js"></script>
-<script type="text/javascript" src="js/SQL.domain.js"></script>
+<script type="text/javascript" src="js/CUBE.js"></script>
+<script type="text/javascript" src="js/CUBE.aggregate.js"></script>
+<script type="text/javascript" src="js/CUBE.column.js"></script>
+<script type="text/javascript" src="js/CUBE.cube.js"></script>
+<script type="text/javascript" src="js/CUBE.domain.js"></script>
 <script type="text/javascript" src="js/ESQuery.js"></script>
 <script type="text/javascript" src="js/charts/aChart.js"></script>
 
@@ -51,7 +51,7 @@
 										"match_all" : {}
 									},
 									"filter" : {
-										"range":{"attachments.flags.modified_ts":{"gte":Date.now().add("-month").getMilli()}}
+										"range":{"attachments.flags.modified_ts":{"gte":Date.now().add("-3month").getMilli()}}
 									}
 								}
 							}
@@ -87,7 +87,7 @@
 										]}
 									]},
 									{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}},
-									{"range":{"doc.attachments.flags.modified_ts":{"gte":Date.now().add("-month").getMilli()}}}
+									{"range":{"doc.attachments.flags.modified_ts":{"gte":Date.now().add("-3month").getMilli()}}}
 								]}
 							}),
 					"size": 100000
@@ -109,25 +109,27 @@
 			var esResult = CNV.ESFacet2List(data.facets.pending);
 
 			var reviews=					//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
-					new SQL().calc2List({
-						"from":
-							esResult,
-						"select": {"name":"age", "value":"Date.now().floor('day').getMilli()-modified_ts", operation:"minimum"},
-						"edges":[
-							{"name":"requestee", "value":"requestee"},
-							{"name":"bug_id", "value":"bug_id"}
-						]
-					}).list;
+				new CUBE().calc2List({
+					"from":
+						esResult,
+					"select": {"name":"age", "value":"Date.now().floor('day').getMilli()-modified_ts", operation:"minimum"},
+					"edges":[
+						{"name":"requestee", "value":"requestee"},
+						{"name":"bug_id", "value":"bug_id"}
+					]
+				}).list;
 
 
 
-			var average = new SQL().calc2List({
+
+			var summary = new CUBE().calc2List({
 				"from": reviews,
-				"select": {"name":"avg_age", "value":"age", operation:"average"}
-			}).list[0].avg_age;
+				"select": [
+					{"name":"avg_age", "value":"age", "operation":"average"},
+					{"name":"count", "value":"1", "operations":"count"}
+				]
+			}).list[0];
 
-			average=Duration.newInstance(average).format("day", 0);
-			$("#summary").html("<h1>Average Review Queue Length: "+average+"s</h1>");
 
 			var over=0;
 			var under=0;
@@ -141,12 +143,12 @@
 			}//for
 
 			$("#summary").html(
-				"<h1>Average Review Queue Length: "+average+"s</h1><br>"+
-				"<h2>("+Math.round(over/(over+under)*100, 1)+"% over one week)</h2>"
+				"<h1>Average Review Queue Length: "+summary.avg_age+"s</h1><br>"+
+				"<h2>("+summary.count+" pending reviews, "+Math.round(over/(over+under)*100, 1)+"% over one week)</h2>"
 			);
 
 
-			var result = new SQL().calc2List({
+			var result = new CUBE().calc2List({
 				"from": reviews,
 				"select":[
 					{"name":"avg_age", "value":"age", operation:"average"},
@@ -162,7 +164,7 @@
 			}).list;
 
 			//ADD LINK TO BUGS
-			result=new SQL().calc2List({
+			result=new CUBE().calc2List({
 				"from":result,
 				"select":[
 					{"name":"requestee", "value":"requestee"},

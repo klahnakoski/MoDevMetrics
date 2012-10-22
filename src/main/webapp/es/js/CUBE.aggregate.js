@@ -3,19 +3,19 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-SQL.aggregate = {};
-SQL.aggregate.compile = function(select){
+CUBE.aggregate = {};
+CUBE.aggregate.compile = function(select){
 	if (select.operation === undefined) select.operation = "none";
 
-	if (SQL.aggregate[select.operation] === undefined){
+	if (CUBE.aggregate[select.operation] === undefined){
 		D.error("Do not know aggregate operation '" + select.operation + "'");
 	}//endif
 
-	return SQL.aggregate[select.operation](select);
+	return CUBE.aggregate[select.operation](select);
 };//method
 
 
-//SQL.aggregate.filter=function(column){
+//CUBE.aggregate.filter=function(column){
 //	column.defaultValue = function(){
 //		return null;
 //	};//method
@@ -38,7 +38,7 @@ SQL.aggregate.compile = function(select){
 //};
 
 
-SQL.aggregate.join = function(column){
+CUBE.aggregate.join = function(column){
 	if (column.separator === undefined) column.separator = '';
 
 	column.defaultValue = function(){
@@ -51,10 +51,10 @@ SQL.aggregate.join = function(column){
 		return total + this.separator + v;
 	};//method
 
-	column.domain = SQL.domain.value;
+	column.domain = CUBE.domain.value;
 };
 
-SQL.aggregate.average = function(select){
+CUBE.aggregate.average = function(select){
 	select.defaultValue = function(){
 		return {total:0.0, count:0.0};
 	};//method
@@ -101,7 +101,7 @@ SQL.aggregate.average = function(select){
 	};
 };
 
-SQL.aggregate.none = function(select){
+CUBE.aggregate.none = function(select){
 	select.defaultValue = function(){
 		return null;
 	};//method
@@ -113,11 +113,11 @@ SQL.aggregate.none = function(select){
 		return null;
 	};//method
 
-	select.domain = SQL.domain.value;
+	select.domain = CUBE.domain.value;
 };
 
 
-SQL.aggregate.sum = function(select){
+CUBE.aggregate.sum = function(select){
 	select.defaultValue = function(){
 		return 0;
 	};//method
@@ -127,12 +127,12 @@ SQL.aggregate.sum = function(select){
 		return total + v;
 	};//method
 
-	select.domain = SQL.domain.value;
+	select.domain = CUBE.domain.value;
 };
 
 
 //RETURN ZERO (FOR NO DATA) OR ONE (FOR DATA)
-SQL.aggregate.binary = function(select){
+CUBE.aggregate.binary = function(select){
 	select.defaultValue = function(){
 		return 0;
 	};//method
@@ -142,14 +142,14 @@ SQL.aggregate.binary = function(select){
 		return 1;
 	};//method
 
-	select.domain = SQL.domain.value;
+	select.domain = CUBE.domain.value;
 };
 
 
 
 
 
-SQL.aggregate.count = function(select){
+CUBE.aggregate.count = function(select){
 	select.defaultValue = function(){
 		return 0;
 	};//method
@@ -159,10 +159,10 @@ SQL.aggregate.count = function(select){
 		return total + 1;
 	};//method
 
-	select.domain = SQL.domain.value;
+	select.domain = CUBE.domain.value;
 };
 
-SQL.aggregate.maximum = function(select){
+CUBE.aggregate.maximum = function(select){
 	select.defaultValue = function(){
 		return null;
 	};//method
@@ -173,10 +173,10 @@ SQL.aggregate.maximum = function(select){
 		return total;
 	};//method
 
-	select.domain = SQL.domain.value;
+	select.domain = CUBE.domain.value;
 };
 
-SQL.aggregate.minimum = function(select){
+CUBE.aggregate.minimum = function(select){
 	select.defaultValue = function(){
 		return null;
 	};//method
@@ -187,5 +187,5 @@ SQL.aggregate.minimum = function(select){
 		return total;
 	};//method
 
-	select.domain = SQL.domain.value;
+	select.domain = CUBE.domain.value;
 };

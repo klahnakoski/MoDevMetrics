@@ -17,11 +17,11 @@
 <script type="text/javascript" src="js/Debug.js"></script>
 
 <script type="text/javascript" src="js/MVEL.js"></script>
-<script type="text/javascript" src="js/SQL.js"></script>
-<script type="text/javascript" src="js/SQL.aggregate.js"></script>
-<script type="text/javascript" src="js/SQL.column.js"></script>
-<script type="text/javascript" src="js/SQL.cube.js"></script>
-<script type="text/javascript" src="js/SQL.domain.js"></script>
+<script type="text/javascript" src="js/CUBE.js"></script>
+<script type="text/javascript" src="js/CUBE.aggregate.js"></script>
+<script type="text/javascript" src="js/CUBE.column.js"></script>
+<script type="text/javascript" src="js/CUBE.cube.js"></script>
+<script type="text/javascript" src="js/CUBE.domain.js"></script>
 <script type="text/javascript" src="js/ESQuery.js"></script>
 <script type="text/javascript" src="js/charts/aChart.js"></script>
 
@@ -114,10 +114,10 @@
 		success: function(data){
 			var esResult = CNV.ESFacet2List(data.facets.pending);
 
-			var result = new SQL().calc2List({
+			var result = new CUBE().calc2List({
 				"from":
 					//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
-					new SQL().calc2List({
+					new CUBE().calc2List({
 						"from":
 								esResult,
 						"select":[
@@ -140,7 +140,7 @@
 			}).list;
 
 			//ADD LINK TO BUGS
-			result=new SQL().calc2List({
+			result=new CUBE().calc2List({
 				"from":result,
 				"select":[
 					{"name":"requestee", "value":"requestee"},
@@ -152,7 +152,7 @@
 
 
 			var assigned = CNV.ESFacet2List(data.facets.assigned);
-			var result2 = new SQL().calc2List({
+			var result2 = new CUBE().calc2List({
 				"from":
 					assigned,
 				"select":[
@@ -168,7 +168,7 @@
 			}).list;
 
 						//ADD LINK TO BUGS
-			result2=new SQL().calc2List({
+			result2=new CUBE().calc2List({
 				"from":result2,
 				"select":[
 					{"name":"assigned_to", value:"assigned_to"},

@@ -63,11 +63,11 @@
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/Debug.js"></script>
 <script type="text/javascript" src="js/MVEL.js"></script>
-<script type="text/javascript" src="js/SQL.js"></script>
-<script type="text/javascript" src="js/SQL.aggregate.js"></script>
-<script type="text/javascript" src="js/SQL.column.js"></script>
-<script type="text/javascript" src="js/SQL.cube.js"></script>
-<script type="text/javascript" src="js/SQL.domain.js"></script>
+<script type="text/javascript" src="js/CUBE.js"></script>
+<script type="text/javascript" src="js/CUBE.aggregate.js"></script>
+<script type="text/javascript" src="js/CUBE.column.js"></script>
+<script type="text/javascript" src="js/CUBE.cube.js"></script>
+<script type="text/javascript" src="js/CUBE.domain.js"></script>
 <script type="text/javascript" src="js/ESQuery.js"></script>
 <script type="text/javascript" src="js/charts/aChart.js"></script>
 
@@ -193,7 +193,7 @@
 					var inReview = CNV.ESFacet2List(data.facets.inReview);
 					var doneReview = CNV.ESFacet2List(data.facets.doneReview);
 
-					var durations = new SQL().calc2List({
+					var durations = new CUBE().calc2List({
 						"from":
 							inReview,
 						"select":[
@@ -206,7 +206,7 @@
 						]
 					}).list;
 
-					var time2res = new SQL().calc2Cube({
+					var time2res = new CUBE().calc2Cube({
 						"name": "Review Times",
 						"from": durations,
 						"select": {"name":"Count", "value":"1", "operation":"count"},
@@ -216,7 +216,7 @@
 						]
 					});
 
-					SQL.normalizeByCohort(time2res);
+					CUBE.normalizeByCohort(time2res);
 
 					aChart.showCCC({
 						"id":"chart",

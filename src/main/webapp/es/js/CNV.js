@@ -86,7 +86,7 @@ CNV.List2HTMLTable = function(data){
 
 	//WRITE HEADER
 	var header = "";
-	var columns = SQL.getColumns(data);
+	var columns = CUBE.getColumns(data);
 	for(var c = 0; c < columns.length; c++) header += "<td>" + CNV.String2HTML(CNV.Object2JSON(columns[c].name)) + "</td>";
 	header = "<tr>" + header + "</tr>";
 
@@ -179,7 +179,7 @@ CNV.Table2List = function(table){
 
 
 CNV.List2Table = function(list, columnOrder){
-	var columns = SQL.getColumns(list);
+	var columns = CUBE.getColumns(list);
 	if (columnOrder !== undefined){
 		var newOrder = [];
 		OO: for(var o = 0; o < columnOrder.length; o++){

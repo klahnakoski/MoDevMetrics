@@ -69,17 +69,17 @@
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/Debug.js"></script>
 <script type="text/javascript" src="js/MVEL.js"></script>
-<script type="text/javascript" src="js/SQL.js"></script>
-<script type="text/javascript" src="js/SQL.aggregate.js"></script>
-<script type="text/javascript" src="js/SQL.column.js"></script>
-<script type="text/javascript" src="js/SQL.cube.js"></script>
-<script type="text/javascript" src="js/SQL.domain.js"></script>
+<script type="text/javascript" src="js/CUBE.js"></script>
+<script type="text/javascript" src="js/CUBE.aggregate.js"></script>
+<script type="text/javascript" src="js/CUBE.column.js"></script>
+<script type="text/javascript" src="js/CUBE.cube.js"></script>
+<script type="text/javascript" src="js/CUBE.domain.js"></script>
 <script type="text/javascript" src="js/ESQuery.js"></script>
 <script type="text/javascript" src="js/charts/aChart.js"></script>
 
 
 
-<script type="text/javascript" src="../../test/js/SQL.js"></script>
+<script type="text/javascript" src="../../test/js/CUBE.js"></script>
 
 
 <script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
@@ -175,7 +175,7 @@ var createChart = function(){
 
 
 				status.message("Match Identification with Close");
-				var durations = new SQL().calc2List({
+				var durations = new CUBE().calc2List({
 					"from":
 						identified,
 					"select":[
@@ -188,7 +188,7 @@ var createChart = function(){
 					"where":"c.term!=null && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
 				}).list;
 
-				var average = new SQL().calc2List({
+				var average = new CUBE().calc2List({
 					"from": durations,
 					"select":{"name":"Average Duration", "value":"duration", "operation":"average"},
 					"edges":[
@@ -204,7 +204,7 @@ var createChart = function(){
 				info.message("Average = "+avg+" days");
 
 				status.message("Tally into interval buckets");
-				var time2res = new SQL().calc2Cube({
+				var time2res = new CUBE().calc2Cube({
 					"name": "Time to Resolution (Closed Bugs Only)",
 					"from": durations,
 					"select": {"name":"Count", "value":"1", "operation":"count"},
@@ -214,7 +214,7 @@ var createChart = function(){
 					]
 				});
 
-//				SQL.normalizeByCohort(time2res, 100);
+//				CUBE.normalizeByCohort(time2res, 100);
 
 
 				status.message("Make chart");

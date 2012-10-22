@@ -1,20 +1,20 @@
 ////////////////////////////////////////////////////////////////////////////////
 // DOMAIN
 ////////////////////////////////////////////////////////////////////////////////
-SQL.domain = {};
+CUBE.domain = {};
 
-SQL.domain.compile = function(sourceColumns, column){
+CUBE.domain.compile = function(sourceColumns, column){
 	if (column.domain === undefined){
-		SQL.domain["default"](column, sourceColumns);
-	} else if (SQL.domain[column.domain.type] === undefined){
+		CUBE.domain["default"](column, sourceColumns);
+	} else if (CUBE.domain[column.domain.type] === undefined){
 		D.error("Do not know how to compile a domain of type '" + column.domain.type + "'");
 	} else{
-		SQL.domain[column.domain.type](column, sourceColumns);
+		CUBE.domain[column.domain.type](column, sourceColumns);
 	}//endif
 };//method
 
 
-SQL.domain.value = {
+CUBE.domain.value = {
 
 	compare:function(a, b){
 		if (a == null){
@@ -43,7 +43,7 @@ SQL.domain.value = {
 //
 // DEFAULT DOMAIN FOR GENERAL SETS OF PRIMITIVES
 //
-SQL.domain["default"] = function(column, sourceColumns){
+CUBE.domain["default"] = function(column, sourceColumns){
 	var d = {};
 
 	column.domain = d;
@@ -55,7 +55,7 @@ SQL.domain["default"] = function(column, sourceColumns){
 //	};//method
 
 	d.compare = function(a, b){
-		return SQL.domain.value.compare(a.value, b.value);
+		return CUBE.domain.value.compare(a.value, b.value);
 	};//method
 
 	d.NULL = {"value":null};
@@ -89,7 +89,7 @@ SQL.domain["default"] = function(column, sourceColumns){
 };
 
 
-SQL.domain.time = function(column, sourceColumns){
+CUBE.domain.time = function(column, sourceColumns){
 
 	var d = column.domain;
 	if (d.name === undefined) d.name = d.type;
@@ -100,7 +100,7 @@ SQL.domain.time = function(column, sourceColumns){
 	d.max = Date.newInstance(d.max).floor(d.interval, d.min);
 
 	d.compare = function(a, b){
-		return SQL.domain.value.compare(a.value, b.value);
+		return CUBE.domain.value.compare(a.value, b.value);
 	};//method
 
 	//PROVIDE FORMATTING FUNCTION
@@ -169,7 +169,7 @@ SQL.domain.time = function(column, sourceColumns){
 		d.map = {};
 		d.partitions = [];
 		if (!(d.min === undefined) && !(d.max === undefined)){
-			SQL.domain.time.addRange(d.min, d.max, d);
+			CUBE.domain.time.addRange(d.min, d.max, d);
 		}//endif
 	} else{
 		d.map = {};
@@ -189,7 +189,7 @@ SQL.domain.time = function(column, sourceColumns){
 
 
 
-SQL.domain.time.addRange = function(min, max, domain){
+CUBE.domain.time.addRange = function(min, max, domain){
 	for(var v = min; v.getMilli() < max.getMilli(); v = v.add(domain.interval)){
 		var partition = {
 			"value":v,
@@ -212,7 +212,7 @@ SQL.domain.time.addRange = function(min, max, domain){
 ////////////////////////////////////////////////////////////////////////////////
 // duration IS A PARTITION OF TIME DURATION
 ////////////////////////////////////////////////////////////////////////////////
-SQL.domain.duration = function(column, sourceColumns){
+CUBE.domain.duration = function(column, sourceColumns){
 
 	var d = column.domain;
 	if (d.name === undefined) d.name = d.type;
@@ -251,10 +251,10 @@ SQL.domain.duration = function(column, sourceColumns){
 				if (this.min === undefined && this.max === undefined){
 					this.min = floor;
 					this.max = Util.coalesce(this.max, floor.add(this.interval));
-					SQL.domain.duration.addRange(this.min, this.max, this);
+					CUBE.domain.duration.addRange(this.min, this.max, this);
 				} else if (value.milli < this.min.milli){
 //					var newmin=floor;
-					SQL.domain.duration.addRange(floor, this.min, this);
+					CUBE.domain.duration.addRange(floor, this.min, this);
 					this.min = floor;
 				}//endif
 			} else if (this.min == null){
@@ -267,10 +267,10 @@ SQL.domain.duration = function(column, sourceColumns){
 				if (this.min === undefined && this.max === undefined){
 					this.min = Util.coalesce(this.min, floor);
 					this.max = floor.add(this.interval);
-					SQL.domain.duration.addRange(this.min, this.max, this);
+					CUBE.domain.duration.addRange(this.min, this.max, this);
 				} else if (value.milli >= this.max.milli){
 					var newmax = floor.add(this.interval);
-					SQL.domain.duration.addRange(this.max, newmax, this);
+					CUBE.domain.duration.addRange(this.max, newmax, this);
 					this.max = newmax;
 				}//endif
 			} else if (value.milli >= this.max.milli){
@@ -285,7 +285,7 @@ SQL.domain.duration = function(column, sourceColumns){
 			d.map = {};
 			d.partitions = [];
 			if (!(d.min === undefined) && !(d.max === undefined)){
-				SQL.domain.duration.addRange(d.min, d.max, d);
+				CUBE.domain.duration.addRange(d.min, d.max, d);
 			}//endif
 		} else{
 			d.map = {};
@@ -304,7 +304,7 @@ SQL.domain.duration = function(column, sourceColumns){
 
 };//method;
 
-SQL.domain.duration.addRange = function(min, max, domain){
+CUBE.domain.duration.addRange = function(min, max, domain){
 	for(var v = min; v.milli < max.milli; v = v.add(domain.interval)){
 		var partition = {
 			"value":v,
@@ -318,7 +318,7 @@ SQL.domain.duration.addRange = function(min, max, domain){
 };//method
 
 
-SQL.domain.set = function(column, sourceColumns){
+CUBE.domain.set = function(column, sourceColumns){
 
 	var d = column.domain;
 	if (d.name === undefined) d.name = d.type;
@@ -352,7 +352,7 @@ SQL.domain.set = function(column, sourceColumns){
 
 
 	d.compare = function(a, b){
-		return SQL.domain.value.compare(a[d.key], b[d.key]);
+		return CUBE.domain.value.compare(a[d.key], b[d.key]);
 	};//method
 
 	d.format = function(partition){
@@ -391,7 +391,7 @@ SQL.domain.set = function(column, sourceColumns){
 		////////////////////////////////////////////////////////////////////////
 		if (column.test.indexOf("||") >= 0){
 			D.warning("Can not optimize test condition with a OR operator: {" + column.test + "}");
-			SQL.domain.set.compileSimpleLookup(column, d, sourceColumns);
+			CUBE.domain.set.compileSimpleLookup(column, d, sourceColumns);
 			return;
 		} else{
 			var ands = column.test.split("&&");
@@ -417,7 +417,7 @@ SQL.domain.set = function(column, sourceColumns){
 			}//for
 			if (indexVar == null || lookupVar == null){
 				D.warning("test clause is too complicated to optimize: {" + column.test + "}");
-				SQL.domain.set.compileSimpleLookup(column, d, sourceColumns);
+				CUBE.domain.set.compileSimpleLookup(column, d, sourceColumns);
 				return;
 			}//endif
 
@@ -432,7 +432,7 @@ SQL.domain.set = function(column, sourceColumns){
 				sublist.push(d.partitions[o]);
 			}//for
 
-			SQL.domain.set.compileMappedLookup(column, d, sourceColumns, lookupVar);
+			CUBE.domain.set.compileMappedLookup(column, d, sourceColumns, lookupVar);
 		}//endif
 	}//endif
 
@@ -440,7 +440,7 @@ SQL.domain.set = function(column, sourceColumns){
 };//method
 
 
-SQL.domain.set.compileSimpleLookup = function(column, d, sourceColumns){
+CUBE.domain.set.compileSimpleLookup = function(column, d, sourceColumns){
 	d.getPartition = undefined;
 	d.map = undefined;
 	var f =
@@ -466,7 +466,7 @@ SQL.domain.set.compileSimpleLookup = function(column, d, sourceColumns){
 	eval(f);
 };
 
-SQL.domain.set.compileMappedLookup = function(column, d, sourceColumns, lookupVar){
+CUBE.domain.set.compileMappedLookup = function(column, d, sourceColumns, lookupVar){
 	d.getPartition = undefined;
 
 	var f =

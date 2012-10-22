@@ -1,6 +1,6 @@
-SQL.column = {};
+CUBE.column = {};
 
-SQL.column.compile = function(sourceColumns, resultColumn, edges){
+CUBE.column.compile = function(sourceColumns, resultColumn, edges){
 
 	if (resultColumn.value === undefined){
 		resultColumn.calc = Util.returnNull;
@@ -49,8 +49,8 @@ SQL.column.compile = function(sourceColumns, resultColumn, edges){
 
 
 //MAKE THE WHERE TEST METHOD
-SQL.where = {};
-SQL.where.compile = function(whereClause, sourceColumns, edges){
+CUBE.where = {};
+CUBE.where.compile = function(whereClause, sourceColumns, edges){
 	var whereMethod = null;
 
 

@@ -84,7 +84,7 @@ ComponentUI.prototype.injectHTML = function(components){
 ComponentUI.prototype.success = function(resultsObj, data){
 	var components = data.facets.Components.terms;
 
-//	new SQL().calc({
+//	new CUBE().calc({
 //		"from":
 //			components,
 //		"select":[

@@ -59,7 +59,7 @@ ESQuery.prototype.compileSetOp=function(){
 ESQuery.prototype.compile = function(){
 	if (this.query.edges === undefined) this.query.edges=[];
 	this.edges = this.query.edges.copy();
-	this.select = SQL.select2Array(this.query.select);
+	this.select = CUBE.select2Array(this.query.select);
 	
 	//NO EDGES IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
 	if (this.edges.length==0){
@@ -76,7 +76,7 @@ ESQuery.prototype.compile = function(){
 		this.select = this.select[0];
 	}//endif
 
-	this.resultColumns = SQL.compile(this.query, []);
+	this.resultColumns = CUBE.compile(this.query, []);
 	this.edges = this.query.edges.copy();
 
 	if (!(this.query.select instanceof Array) && this.query.select.operation=="count"){
@@ -431,7 +431,7 @@ ESQuery.prototype.termsResults=function(data){
 	}//for
 
 	//MAKE CUBE
-	var cube = SQL.cube.newInstance(this.query.edges, 0, this.query.select);
+	var cube = CUBE.cube.newInstance(this.query.edges, 0, this.query.select);
 
 	//FILL CUBE
 	II: for(var i=0;i<terms.length;i++){
@@ -475,7 +475,7 @@ ESQuery.prototype.statisticalResults = function(data){
 	}//endif
 
 	//MAKE CUBE
-	cube = SQL.cube.newInstance(this.query.edges, 0, this.query.select);
+	cube = CUBE.cube.newInstance(this.query.edges, 0, this.query.select);
 
 	//FILL CUBE
 	var keys = Object.keys(data.facets);
@@ -521,7 +521,7 @@ ESQuery.prototype.terms_statsResults = function(data){
 
 
 	//MAKE CUBE
-	var cube = SQL.cube.newInstance(this.query.edges, 0, this.query.select);
+	var cube = CUBE.cube.newInstance(this.query.edges, 0, this.query.select);
 
 	//FILL CUBE
 	for(var k = 0; k < keys.length; k++){

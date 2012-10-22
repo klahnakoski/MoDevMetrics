@@ -53,17 +53,17 @@
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/Debug.js"></script>
 <script type="text/javascript" src="js/MVEL.js"></script>
-<script type="text/javascript" src="js/SQL.js"></script>
-<script type="text/javascript" src="js/SQL.aggregate.js"></script>
-<script type="text/javascript" src="js/SQL.column.js"></script>
-<script type="text/javascript" src="js/SQL.cube.js"></script>
-<script type="text/javascript" src="js/SQL.domain.js"></script>
+<script type="text/javascript" src="js/CUBE.js"></script>
+<script type="text/javascript" src="js/CUBE.aggregate.js"></script>
+<script type="text/javascript" src="js/CUBE.column.js"></script>
+<script type="text/javascript" src="js/CUBE.cube.js"></script>
+<script type="text/javascript" src="js/CUBE.domain.js"></script>
 <script type="text/javascript" src="js/ESQuery.js"></script>
 <script type="text/javascript" src="js/charts/aChart.js"></script>
 
 
 
-<script type="text/javascript" src="../../test/js/SQL.js"></script>
+<script type="text/javascript" src="../../test/js/CUBE.js"></script>
 
 
 <script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
@@ -161,7 +161,7 @@ var createChart = function(){
 	query.run(function(chartCube){
 //		queryClosed.run(function(chartCubeClosed){
 
-//			chartCube=SQL.cube.union(chartCube, chartCubeClosed);
+//			chartCube=CUBE.cube.union(chartCube, chartCubeClosed);
 
 			status.message("Make chart");
 			aChart.showCCC({
