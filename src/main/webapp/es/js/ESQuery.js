@@ -6,6 +6,7 @@ var ESQuery = function(query){
 ESQuery.prototype.run = function(successCallback){
 	this.callback = successCallback;
 
+	status.message("Call ES...");
 	D.println(CNV.Object2JSON(this.esQuery));
 	this.restQuery=RestQuery.Run(
 		this,
@@ -74,8 +75,9 @@ ESQuery.prototype.compile = function(){
 		}//endif
 	}else{
 		//PICK FIRST AND ONLY SELECT
-		if (this.select.length>1) D.error("Can not handle more than one select column when there are edges");
-		this.select = this.select[0];
+		if (this.query.select instanceof Array) D.error("Can not have an array of select columns, only one allowed");
+//		if (this.select.length>1) D.error("Can not handle more than one select column when there are edges");
+		this.select = this.query.select
 	}//endif
 
 	this.resultColumns = CUBE.compile(this.query, []);

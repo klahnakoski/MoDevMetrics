@@ -75,6 +75,35 @@ CUBE.cube.transpose.remap = function(oldColumns, newColumns){
 };//method
 
 
+CUBE.cube.toList=function(cube){
+
+	var output=[];
+	if (cube.edges.length==1){
+		var parts=cube.edges[0].domain.partitions;
+		for(var p=parts.length;p--;){
+			var obj={};
+			obj[cube.edges[0].name]=parts[p].value;
+
+			if (cube.select instanceof Array){
+				for(var s=cube.select.length;s--;){
+					//I FORGET IF ELEMENTS IN CUBE ARE OBJECTS, OR ARRAYS
+					obj[cube.select[s].name]=cube.data[p][s];
+//					obj[cube.select[s].name]=cube.data[cube.select[s].name];
+				}//for
+			}else{
+				obj[cube.select.name]=cube.data[p];
+			}//endif
+			output.push(obj);
+		}//for
+	}else{
+		D.error("can only convert 1D cubes");
+	}//endif
+
+	return output;
+};//method
+
+
+
 // UNION THE CUBES, AND ADD PARTITIONS AS NEEDED
 CUBE.cube.union=function(cubeA, cubeB){
 	//ENSURE NAMES MATCH SO MERGE IS POSSIBLE
