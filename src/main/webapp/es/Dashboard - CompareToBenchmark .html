@@ -119,29 +119,55 @@ var createChart = function(){
 	if (query!==undefined) query.kill();
 
 
-	query = new ESQuery({
-		"name":"Age of Open Bugs",
+	var query = {
+		"query": {
+			"filtered" : {
+				"query": {
+					"match_all" : {}
+				},
+				"filter": {
+					"and":[
+						{"not" : {"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}},
+//						{"range":{"modified_ts":{"gte":Date.now().floorDay().subtract(sampleSize).getMilli()}}}
+					]
+				}
+			}
+		},
+		"from":0,
+		"size":0,
+		"facets":{
+			"firstmarked": {
+				"terms_stats": {
+					"key_field": "bug_id",
+					"value_field":"modified_ts",
+					"size": 100000
+				}
+			}
+		}
+	};
+
+	var queryMarked = new ESQuery({
+		"name":"When Bugs are marked",
 		"from":"bugs",
 		"select":[
-			{"name":"sum", "value":"("+Date.now().getMilli()+'-doc["created_ts"].value)', "operation":"sum"},
-			{"name":"count", "value":"("+Date.now().getMilli()+'-doc["created_ts"].value)', "operation":"count"}
+			{"name":"marked_time", "value":"modified_ts", "operation":"minimum"}
 		],
-		"esfilter":{
-			"and":[
-				{"not":{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}},
-				{ "range" : { "expires_on" : { "gte" : Date.now().getMilli()} } }
-			]
-		}
+		"edges":[
+			{"name":"bug_id", "value":"bug_id"}
+		],
+		"esfilter":{"not" : {"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}}
 	});
 
 
 
 	var queryClosed = new ESQuery({
-		"name":"Age of Closed Bugs",
+		"name":"Closed Bugs",
 		"from":"bugs",
 		"select":[
-			{"name":"sum", "value":'doc["modified_ts"].value-doc["created_ts"].value', "operation":"sum"},
-			{"name":"count", "value":'doc["modified_ts"].value-doc["created_ts"].value', "operation":"count"}
+			{"name":"closed_time", "value":"modified_ts", "operation":"minimum"}
+		],
+		"edges":[
+			{"name":"bug_id", "value":"bug_id"}
 		],
 		"where":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value',  //ONLY THE DOCUMENT THAT CLOSES THE BUG
 		"esfilter":{"and":[
@@ -157,12 +183,28 @@ var createChart = function(){
 	ES.InjectFilter(queryClosed);
 
 
-	status.message("Calling ES");
-	query.run(function(openBugAges){
-		queryClosed.run(function(closedBugAges){
 
-			var open=openBugAges.data;
+	status.message("Calling ES");
+	queryClosed.run(function(closedBugAges){
+		queryMarked.run(function(markedBugs){
+	
+			var marked=markedBugs.data;
 			var closed=closedBugAges.data;
+
+			var markedInSample=new CUBE().calc2List({
+				"from":marked,
+				"select":[
+					{"name":"marked_time", "value":"marked_time", "operation":"minimum"},
+					{"name":"bug_id", "value":"bug_id", "operation":"minimum"},
+					{"name":"is_closed", "value":"closed.bug_id", "operation":"binary"},
+					{"name":"closed_time", "value":"closed.closed_time", "operation":"minimum"}
+				],
+				"edges":[
+					{"name":"closed", value:"bug_id",
+						"domain":{"type":"set", "name":"closed", "key":"bug_id", "partitions":closed}
+					}
+				]
+			});
 
 			var avgDays=Duration.newInstance((open.sum+closed.sum)/(open.count+closed.count)).format("day", 2);
 			var avgClosed=Duration.newInstance((closed.sum)/(closed.count)).format("day", 2);
@@ -171,8 +213,10 @@ var createChart = function(){
 
 
 			status.message("Done");
-		});
-	});
+		}},
+		0,
+		{"esQuery":query}
+	);
 
 
 

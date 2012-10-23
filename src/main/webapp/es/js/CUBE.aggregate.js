@@ -101,6 +101,8 @@ CUBE.aggregate.average = function(select){
 	};
 };
 
+////////////////////////////////////////////////////////////////////////////////
+// THIS VALUE WILL BE SET ONCE AND ONLY ONCE
 CUBE.aggregate.none = function(select){
 	select.defaultValue = function(){
 		return null;
@@ -115,6 +117,25 @@ CUBE.aggregate.none = function(select){
 
 	select.domain = CUBE.domain.value;
 };
+
+
+////////////////////////////////////////////////////////////////////////////////
+// THE AGGREGATE MAY BE ACCUMULATED MANY TIMES< BUT ONLY ONE VALUE IS SET
+CUBE.aggregate.one = function(select){
+	select.defaultValue = function(){
+		return null;
+	};//method
+
+	select.add = function(total, v){
+		if (v === undefined || v == null) return total;
+		if (total == null) return v;
+		D.error("Not expecting to aggregate, only one non-null value allowed per set");
+		return null;
+	};//method
+
+	select.domain = CUBE.domain.value;
+};
+
 
 
 CUBE.aggregate.sum = function(select){
