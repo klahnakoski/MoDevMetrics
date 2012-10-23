@@ -119,34 +119,7 @@ var createChart = function(){
 	if (query!==undefined) query.kill();
 
 
-	var query = {
-		"query": {
-			"filtered" : {
-				"query": {
-					"match_all" : {}
-				},
-				"filter": {
-					"and":[
-						{"not" : {"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}},
-//						{"range":{"modified_ts":{"gte":Date.now().floorDay().subtract(sampleSize).getMilli()}}}
-					]
-				}
-			}
-		},
-		"from":0,
-		"size":0,
-		"facets":{
-			"firstmarked": {
-				"terms_stats": {
-					"key_field": "bug_id",
-					"value_field":"modified_ts",
-					"size": 100000
-				}
-			}
-		}
-	};
-
-	var queryMarked = new ESQuery({
+	query = new ESQuery({
 		"name":"When Bugs are marked",
 		"from":"bugs",
 		"select":[
@@ -194,33 +167,39 @@ var createChart = function(){
 			var markedInSample=new CUBE().calc2List({
 				"from":marked,
 				"select":[
-					{"name":"marked_time", "value":"marked_time", "operation":"minimum"},
-					{"name":"bug_id", "value":"bug_id", "operation":"minimum"},
+					{"name":"bug_id", "value":"bug_id", "operation":"one"},
+					{"name":"marked_time", "value":"marked_time", "operation":"one"},
 					{"name":"is_closed", "value":"closed.bug_id", "operation":"binary"},
-					{"name":"closed_time", "value":"closed.closed_time", "operation":"minimum"}
+					{"name":"closed_time", "value":"closed.closed_time", "operation":"minimum"},
+					{"name":"is_good", "value":"closed.closed_time-marked_time<"+Duration.newInstance(state.benchMark).milli+" ? 1 : 0", "operation":"one"}
 				],
 				"edges":[
 					{"name":"closed", value:"bug_id",
 						"domain":{"type":"set", "name":"closed", "key":"bug_id", "partitions":closed}
 					}
+				],
+				"where":"marked_time>"+Date.now().floorDay().subtract(state.sampleSize).getMilli()
+			}).list;
+
+
+			var summary=new CUBE().calc2List({
+				"from":markedInSample,
+				"select":[
+					{"name":"total", "value":"bug_id", "operation":"count"},
+					{"name":"numClosed", "value":"is_closed", "operation":"sum"},
+					{"name":"numGood", "value":"is_good", "operation":"sum"}
 				]
-			});
+			}).list[0];
 
-			var avgDays=Duration.newInstance((open.sum+closed.sum)/(open.count+closed.count)).format("day", 2);
-			var avgClosed=Duration.newInstance((closed.sum)/(closed.count)).format("day", 2);
-			$("#avgAge").html("<h1>"+avgDays+"</h1><br>Bug Age");
-			$("#avgClosed").html("<h1>"+avgClosed+"</h1><br>Closed Bug Age");
-
+			info.message(
+				"Number marked in sample:"+summary.total+"<br>"+
+				"Number marked and closed in sample:"+summary.numClosed+"<br>"+
+				"Number closed within "+Duration.newInstance(state.benchMark).toString()+":"+summary.numGood
+			);
 
 			status.message("Done");
-		}},
-		0,
-		{"esQuery":query}
-	);
-
-
-
-
+		});
+	});
 
 };
 

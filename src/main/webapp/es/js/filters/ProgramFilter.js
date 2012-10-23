@@ -141,7 +141,7 @@ ProgramFilter.prototype.Refresh = function(){
 		ProductUI.makeFilter()
 	]);
 
-	D.println(CNV.Object2JSON(this.query));
+//	D.println(CNV.Object2JSON(this.query));
 	this.restQuery = new RestQuery(this, 0, this.query);
 	this.results = null;
 	this.restQuery.Run();

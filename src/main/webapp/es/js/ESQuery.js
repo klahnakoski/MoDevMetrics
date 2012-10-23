@@ -6,6 +6,7 @@ var ESQuery = function(query){
 ESQuery.prototype.run = function(successCallback){
 	this.callback = successCallback;
 
+	D.println(CNV.Object2JSON(this.esQuery));
 	this.restQuery=RestQuery.Run(
 		this,
 		0,
@@ -73,6 +74,7 @@ ESQuery.prototype.compile = function(){
 		}//endif
 	}else{
 		//PICK FIRST AND ONLY SELECT
+		if (this.select.length>1) D.error("Can not handle more than one select column when there are edges");
 		this.select = this.select[0];
 	}//endif
 
@@ -105,7 +107,7 @@ ESQuery.prototype.compile = function(){
 		this.esQuery = this.buildESQuery();
 
 		var esFacets;
-		if (this.edges.length==0){
+		if (this.query.edges.length==0){
 			//ZERO DIMENSIONAL QUERY
 			esFacets=[];
 			var q = {
@@ -148,7 +150,8 @@ ESQuery.prototype.buildFacetQueries = function(){
 			q.value = {
 				"terms_stats":{
 					"key_field":this.specialEdge.value,
-					"value_script":this.select.value,
+					"value_field":ESQuery.isKeyword(this.select.value)?this.select.value:undefined,
+					"value_script":ESQuery.isKeyword(this.select.value)?undefined:this.select.value,
 					"size":this.query.essize
 				},
 				"facet_filter":{
@@ -165,6 +168,8 @@ ESQuery.prototype.buildFacetQueries = function(){
 				}
 			};
 		}//endif
+
+		if (condition.length==0) q.value.facet_filter=undefined;
 
 		output.push(q);
 	}//for
@@ -501,9 +506,9 @@ ESQuery.prototype.terms_statsResults = function(data){
 //FIND ALL TERMS FOUND BY THE SPECIAL EDGE
 	var partitions = [];
 	var map = {};
-	var keys = Object.keys(data.edges);
+	var keys = Object.keys(data.facets);
 	for(var k = 0; k < keys.length; k++){
-		var terms = data.edges[keys[k]].terms;
+		var terms = data.facets[keys[k]].terms;
 		for(var t = 0; t < terms.length; t++){
 			var term = terms[t].term;
 			if (map[term] === undefined){
@@ -527,7 +532,7 @@ ESQuery.prototype.terms_statsResults = function(data){
 	for(var k = 0; k < keys.length; k++){
 		var edgeName = keys[k];
 		var coord = edgeName.split(",");
-		var terms = data.edges[edgeName].terms;
+		var terms = data.facets[edgeName].terms;
 		for(var t = 0; t < terms.length; t++){
 			var d = cube;
 			var f = 0;
@@ -542,7 +547,7 @@ ESQuery.prototype.terms_statsResults = function(data){
 			}//for
 			var value = terms[t][ESQuery.agg2es[this.select.operation]];
 			if (this.query.edges[f] == this.specialEdge){
-				d[this.specialEdge.domain.map[terms[t].term]] = value;
+				d[this.specialEdge.domain.map[terms[t].term].dataIndex] = value;
 			} else{
 				d[parseInt(coord[c])] = value;
 			}//endif

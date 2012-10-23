@@ -129,7 +129,8 @@ CUBE.aggregate.one = function(select){
 	select.add = function(total, v){
 		if (v === undefined || v == null) return total;
 		if (total == null) return v;
-		D.error("Not expecting to aggregate, only one non-null value allowed per set");
+		if (total==v) return total;
+		D.error("Expecting onlyone value to aggrregate");
 		return null;
 	};//method
 
