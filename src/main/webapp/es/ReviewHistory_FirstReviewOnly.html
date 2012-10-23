@@ -116,7 +116,7 @@
 						"and":[
 //							{"terms":{"bug_id":[782211]}},//, 19963, 505741]}},
 							{"range" : {"modified_ts":{"gte":new Date(state.sampleMin).getMilli()}}},
-							{"terms":{"product":["core", "firefox", "toolkit", "firefox for android"]}},
+							{"terms":{"product":["core", "firefox", "toolkit"]}},
 							{ "nested": {
 								"path" : "attachments.flags",
 								"query": {
@@ -261,7 +261,7 @@
 					var numReviewsCompleted=0;
 					var numCompleteInWeek=0;
 					for(var r=reviewQueues.length;r--;){
-						if (reviewQueues[r].end_time.subtract(reviewQueues[r].start_time).milli<Duration.newInstance("week").milli)
+						if (reviewQueues[r].end_time.subtract(reviewQueues[r].start_time).milli<Duration.newInstance("day").milli)
 							numCompleteInWeek++;
 						
 						numReviewsRequested++;

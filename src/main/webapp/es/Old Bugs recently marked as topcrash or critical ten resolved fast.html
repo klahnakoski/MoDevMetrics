@@ -121,7 +121,7 @@ var createChart = function(){
 				},
 				"filter" : {
 					"and":[
-						{"terms":{"product":["core", "firefox"]}}
+						{"terms":{"product":["core", "firefox", "tootkit", "firefox for android"]}}
 						//MAKE SURE WE REPORT BACK FAR ENOUGH IN TIME TO CAPTURE THE LONGEST TIMES (state.maxX) BEING REPORTED
 //						{"range":{"modified_ts":{"gte":new Date(state.sampleMin).subtract(Duration.newInstance(state.maxX)).getMilli()}}},
 //						{"range":{"modified_ts":{"lte":new Date(state.sampleMax).getMilli()}}}
@@ -216,7 +216,10 @@ var createChart = function(){
 
 				info.message(BZlist);
 
-				
+				var matched=new CUBE().calc2List({
+					"from":matched,
+					"select":{"name":"average age", "value":""
+				}
 
 
 				status.message("Done");
