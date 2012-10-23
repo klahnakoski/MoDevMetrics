@@ -392,7 +392,7 @@ Duration.prototype.floor = function(interval){
 
 	//A MONTH OF DURATION IS BIGGER THAN A CANONICAL MONTH
 	if (interval.month != 0){
-		output.month = Math.floor(this.milli * 12 / Duration.MILLI_VALUES["year"] / interval.month);
+		output.month = Math.floor(this.milli * 12 / Duration.MILLI_VALUES["year"] / interval.month)*interval.month;
 		output.milli = output.month * Duration.MILLI_VALUES["month"];
 	} else{
 		output.milli = Math.floor(this.milli / (interval.milli)) * (interval.milli);

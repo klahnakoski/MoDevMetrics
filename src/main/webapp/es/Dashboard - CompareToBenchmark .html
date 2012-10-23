@@ -93,10 +93,7 @@
 			</div>
 			<div id="filters" class="menu"></div>
 		</td>
-		<td>
-			<div class="widget" id="avgAge"></div>
-			<div class="widget" id="avgClosed"></div>
-
+		<td id="summary2">
 		</td>
 	</tr>
 </table>
@@ -121,7 +118,9 @@ var createChart = function(){
 
 	var mark=Duration.newInstance(state.benchMark);
 	var sampleMin=Date.now().floorDay().subtract(Duration.newInstance(state.sampleSize));
+	var sampleMax=Date.now().floor("day");
 
+	
 	query = new ESQuery({
 		"name":"When Bugs are marked",
 		"from":"bugs",
@@ -146,7 +145,7 @@ var createChart = function(){
 		"esfilter":{"and":[
 			{"terms":{"bug_status":["resolved", "verified", "closed"]}},
 			{"range":{"modified_ts":{"gte":sampleMin.getMilli()}}},
-			{"range":{"modified_ts":{"lte":Date.now().floor("day").getMilli()}}}
+			{"range":{"modified_ts":{"lte":sampleMax.getMilli()}}}
 //			{"script":{"script":'doc["modified_ts"].value-doc["created_ts"].value>'+Duration.newInstance("439day").milli}}
 //			,{"range":{"bug_id":{"gt":"400000"}}}
 		]},
@@ -179,7 +178,7 @@ var createChart = function(){
 						"domain":{"type":"set", "name":"closed", "key":"bug_id", "partitions":closed}
 					}
 				],
-				"where":"marked_time.getMilli()>"+Date.now().floorDay().subtract(state.sampleSize).getMilli()
+				"where":"marked_time>"+sampleMin.getMilli()
 			}).list;
 
 
@@ -192,11 +191,13 @@ var createChart = function(){
 				]
 			}).list[0];
 
-			info.message(
+			$("#summary2").html(
+				"<h2>"+
 				"Number marked in sample:"+summary.total+"<br>"+
 				"Number marked and closed in sample:"+summary.numClosed+"<br>"+
 				"Number closed within "+mark.toString()+":"+summary.numGood+"<br>"+
-				"% closed within "+mark.toString()+":"+Math.round(summary.numGood/summary.total*100, 1)+"%"
+				"% closed within "+mark.toString()+":"+Math.round(summary.numGood/summary.total*100, 1)+"%"+
+				"</h2>"
 			);
 
 			status.message("Done");
