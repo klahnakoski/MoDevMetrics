@@ -238,7 +238,7 @@ GUI.UpdateSummary = function(){
 	}//endif
 
 	html += "<br><br><br><b>Hold CTRL while clicking to multi-select and deselect from the lists below.</b>";
-	html += '<br><br><a href="index.html">Return to Query List</a>';
+	html += '<br><br><a href="http://people.mozilla.com/~klahnakoski/">Return to Query List</a>';
 
 	$("#summary").html(html);
 };

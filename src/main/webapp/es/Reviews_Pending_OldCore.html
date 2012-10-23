@@ -39,7 +39,7 @@
 				},
 				"filter": {
 					"and":[
-						{"terms":{"product":["core", "firefox"]}},//toolkit
+						{"terms":{"product":["core", "firefox", ]}},//toolkit
 						{"range" : { "expires_on" : { "gt" : Date.now().getMilli() }}},
 						{"not" : {"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}}
 					]

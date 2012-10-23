@@ -155,7 +155,11 @@ var createChart = function(){
 	ES.InjectFilter(query);
 	ES.InjectFilter(queryClosed);
 
+	if (state.selectedProducts.length==0 && state.selectedPrograms.length==0){
+		$("#summary2").html("Will not work over all bugs, too big.  Make a selection");
+		return;
 
+	}//endif
 
 	status.message("Calling ES");
 	queryClosed.run(function(closedBugAges){
@@ -211,7 +215,7 @@ var createChart = function(){
 		GUI.setup([
 			{"id":"sampleSize", "name":"Sample", "type":"Duration", "default":"3month"},
 			{"id":"benchMark", "name":"Benchmark", "type":"Duration", "default":"2week"},
-			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":1000}
+			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		]);
 		createChart();
 	});
