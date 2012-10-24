@@ -48,32 +48,6 @@ CUBE.column.compile = function(sourceColumns, resultColumn, edges){
 };//method
 
 
-////////////////////////////////////////////////////////////////////////////////
-//WE OFTEN NEED TO COMPILE CODE IN THE CONTEXT OF THE OBJECTS WE ARE WORKING ON
-//THIS WILL ENCAPSULATE INTO A FUNCTION WITH THE PARAMETER NAMES GIVEN
-CUBE.column.compileInContext(code, localVars){
-	var output;
-	var f =
-		"output=function(__source){\n" +
-			"if (__source==null) [];\n";
-
-	for(var s = 0; s < localVars.length; s++){
-		var v = localVars[s].name;
-		//ONLY DEFINE VARS THAT ARE USED
-		if (column.test.indexOf(v) != -1){
-			f += "var " + v + "=__source." + v + ";\n";
-		}//endif
-	}//for
-
-	f +=
-		"var output=[];\n" +
-			"for(var i=0;i<this.partitions.length;i++){\n" +
-			"var " + d.name + "=this.partitions[i];\n" +
-			"if (" + column.test + ") output.push(" + d.name + ");\n " +
-			"}\n " +
-			"return output;\n " +
-			"}";
-	eval(f);
 
 //MAKE THE WHERE TEST METHOD
 CUBE.where = {};

@@ -330,27 +330,8 @@ CUBE.domain.set = function(column, sourceColumns){
 
 
 	if (d.key === undefined) d.key = "value";
-	if (d.key instanceof Array){
-		for(var i=d.key.length;i--;){
-			d.NULL[d.key[i]]=null;
-		}//for
-
-		d.getKey=function(partition){
-			////////////////////////////////////////////////////////////////////
-			// KEY USING CONCATENATION IS DANGEROUS
-			////////////////////////////////////////////////////////////////////
-			var key="";
-			for(var i=this.key.length;i--;){
-				key+=partition[this.key[i]]+"|";
-			}//for
-		};//method
-	}else{
-		d.getKey = function(partition){
-			return partition[this.key];
-		};//method
-	}//endif
-
-
+	CUBE.domain.set.compileKey(d.key, d);
+	
 	d.compare = function(a, b){
 		return CUBE.domain.value.compare(a[d.key], b[d.key]);
 	};//method
@@ -499,8 +480,47 @@ CUBE.domain.set.compileMappedLookup = function(column, d, sourceColumns, lookupV
 };
 
 
-CUBE.domain.set.compileKey=function(keyScript, domain){
+CUBE.domain.set.compileKey=function(key, domain){
+	//HOW TO GET THE ATTRIBUTES OF DOMAIN LOCAL, IN GENERAL?
+	//SEE FIRST PARTITION WILL INDICATE THE AVAILABLE FIELDS
 
+	if (key instanceof Array){
+		domain.getKey=function(partition){
+			//COMPILE WITH PARTITION AS PROTOTYPE
+			var newGetKeyFunction;
+			var f =
+				"newGetKeyFunction=function(__part){\n";
+					for(var att in partition){
+						for(var i=key.length;i--;){
+							if (key[i].indexOf(att) >= 0){
+								f += "var " + att + "=__part." + att + ";\n";
+								break;
+							}//endif
+						}//for
+					}//for
+					var output="";
+					for(var i=key.length;i--;) output+='"|"'+key;
+			f+=	"	return "+output+"\n"+
+				"}";
+			
+			this.getKey=newGetKeyFunction;
+			return this.getKey(partition);
+		};//method
+	}else{
+		domain.getKey=function(partition){
+			//COMPILE WITH PARTITION AS PROTOTYPE
+			var newGetKeyFunction;
+			var f =
+				"newGetKeyFunction=function(__part){\n";
+					for(var att in partition){
+						if (key.indexOf(att) >= 0) f += "var " + att + "=__part." + att + ";\n";
+					}//for
 
+			f+=	"	return "+key+"\n"+
+				"}";
+			this.getKey=newGetKeyFunction;
+			return this.getKey(partition);
+		};//method
+	}//endif
 
 };//method

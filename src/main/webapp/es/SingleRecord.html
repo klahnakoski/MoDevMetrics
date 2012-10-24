@@ -32,141 +32,18 @@
         "match_all": {}
       },
       "filter": {
-        "and": [
-          {"nested": {
-              "path": "attachments.flags",
-              "query": {
-                "filtered": {
-                  "query": {
-                    "match_all": {}
-                  },
-                  "filter": {
-                    "and": [
-                      {
-                        "terms": {
-                          "attachments.flags.request_type": [
-                            "review",
-                            "superreview"
-                          ]
-                        }
-                      },
-                      {"term": {"attachments.flags.requestee": "ehsan@mozilla.com"}}
-                    ]
-                  }
-                }
-              }
-          }},
-
-          {"nested": {
-              "path": "attachments.flags",
-              "query": {
-                "filtered": {
-                  "query": {
-                    "match_all": {}
-                  },
-                  "filter": {
-                    "and": [
-                      {
-                        "terms": {
-                          "attachments.flags.request_type": [
-                            "review",
-                            "superreview"
-                          ]
-                        }
-                      },
-            			{"missing":{ "field" :"attachments.flags.requestee"}}
-                    ]
-                  }
-                }
-              }
-          }}
-        ]
+        "term":{"bug_id":"486918"}}
       }
-    }
-  },
+    },
+
   "from": 0,
   "size": 200,
-//  "sort": [],
-//  "facets": {
-//    "doneReview": {
-//      "terms": {
-//        "script_field": "var cool_func = function(doc){\noutput=\"\";\nfor(loop1 : doc.attachments){\nfor(loop2 : loop1.flags){\nif (((!(loop2.request_status==\"?\")) && loop2.requestee==\"ehsan@mozilla.com\") || (((doc.bug_status==\"resolved\") || (doc.bug_status==\"verified\") || (doc.bug_status==\"closed\")) && loop2.request_type==\"review\" && loop2.requestee==\"ehsan@mozilla.com\")){if (output!=\"\") output+=\", \";\noutput+=\"{\"+\"\\\"bug_id\\\":\"+(doc.bug_id)\n+\",\"+\"\\\"modified_ts\\\":\"+doc.modified_ts\n+\",\"+\"\\\"requestee\\\":\"+(loop2.requestee)\n+\"}\";\n}\n\n}\n\n}\n\"[\"+output+\"]\";\n};\ncool_func(_source)\n",
-//        "size": "100000"
-//      },
-//      "facet_filter": {
-//        "and": [
-//          {
-//            "range": {
-//              "modified_ts": {
-//                "lt": 1350950400000
-//              }
-//            }
-//          }
-//        ]
-//      }
-//    }
-//  }
+"sort":{
+	"bug_version_num" : {"order":"asc"}
 
 
-	//		"facets":{
-//			"range1" : {
-//				"range" : {
-//					"key_field" : "resolution",
-//					"value_script" :'doc["modified_ts"].value-doc["created_ts"].value',
-////					"value_script" :'doc["modified_ts"].value-doc["created_ts"].value',
-////					"value_script" :'_source.modified_ts- _source.created_ts',
-////					"value_script" :'(_source.modified_ts.value) - (_source.created_ts.value)',
-//					"ranges" : [
-//						{ "from" : 0, "to" : 86400000 },
-//						{ "from" : 86400000, "to" : 172800000 },
-//						{ "from" : 172800000, "to" : 259200000},
-//						{ "from" : 259200000, "to" : 345600000},
-//						{ "from" : 345600000, "to" : 432000000},
-//						{ "from" : 432000000, "to" : 518400000},
-//						{ "from" : 518400000, "to" : 604800000},
-//						{ "from" : 604800000, "to" : 691200000},
-//						{ "from" : 691200000, "to" : 777600000},
-//						{ "from" : 777600000, "to" : 864000000},
-//						{ "from" : 864000000, "to" : 950400000},
-//						{ "from" : 950400000, "to" : 1036800000},
-//						{ "from" : 1036800000, "to" : 1123200000},
-//						{ "from" : 1123200000, "to" : 1209600000},
-//						{ "from" : 1209600000, "to" : 1296000000},
-//						{ "from" : 1296000000, "to" : 1382400000},
-//						{ "from" : 1382400000, "to" : 1468800000},
-//						{ "from" : 1468800000, "to" : 1555200000},
-//						{ "from" : 1555200000, "to" : 1641600000},
-//						{ "from" : 1641600000, "to" : 1728000000},
-//						{ "from" : 1728000000, "to" : 1814400000},
-//						{ "from" : 1814400000, "to" : 1900800000}
-//					]
-//				}
-//			}
-//		}
-
-
+}
 	};
-	//                "Bug Age2": {
-	//                    "range": {
-	//                        "key_script": "(new java.util.Date().getTime() - doc['created_ts'].value) / 86400000",
-	//                        "value_script": "1",
-	//                        "ranges": [
-	//                            { "from": 0, "lt": 1 },
-	//                            { "from": 1, "lt": 2 },
-	//                            { "from": 2, "lt": 3 },
-	//                            { "from": 3, "lt": 4 },
-	//                            { "from": 4, "lt": 8 },
-	//                            { "from": 8, "lt": 15 },
-	//                            { "from": 15, "lt": 31 },
-	//                            { "from": 31, "lt": 61 },
-	//                            { "from": 61, "lt": 181 },
-	//                            { "from": 181, "lt": 366 },
-	//                            { "from": 366, "lt": 731 },
-	//                            { "from": 731 }
-	//                        ],
-	//                        "size": 100000
-	//                    }
-	//                }
 
 
 	var request = $.ajax({
