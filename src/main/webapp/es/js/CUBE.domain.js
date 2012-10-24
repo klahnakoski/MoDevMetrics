@@ -144,7 +144,7 @@ CUBE.domain.time = function(column, sourceColumns){
 
 		var f =
 			"d.getPartitions=function(__source){\n" +
-				"if (__source==null) return [];\n";
+			"	if (__source==null) return [];\n";
 
 		for(var s = 0; s < sourceColumns.length; s++){
 			var v = sourceColumns[s].name;
@@ -155,13 +155,13 @@ CUBE.domain.time = function(column, sourceColumns){
 		}//for
 
 		f +=
-			"var output=[];\n" +
-				"for(var i=0;i<this.partitions.length;i++){\n" +
-				"var " + d.name + "=this.partitions[i];\n" +
-				"if (" + column.test + ") output.push(" + d.name + ");\n " +
-				"}\n " +
-				"return output;\n " +
-				"}";
+			"	var output=[];\n" +
+			"	for(var i=0;i<this.partitions.length;i++){\n" +
+			"		var " + d.name + "=this.partitions[i];\n" +
+			"		if (" + column.test + ") output.push(" + d.name + ");\n " +
+			"	}\n " +
+			"	return output;\n " +
+			"}";
 		eval(f);
 	}//endif
 
@@ -498,3 +498,9 @@ CUBE.domain.set.compileMappedLookup = function(column, d, sourceColumns, lookupV
 	eval(f);
 };
 
+
+CUBE.domain.set.compileKey=function(keyScript, domain){
+
+
+
+};//method

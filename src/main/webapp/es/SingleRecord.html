@@ -14,7 +14,7 @@
 <script type="text/javascript" src="js/aDate.js"></script>
 <script type="text/javascript" src="js/MVEL.js"></script>
 <script type="text/javascript" src="js/CUBE.js"></script>
-<script type="text/javascript" src="../../test/js/CUBE.js"></script>
+
 
 
 <div id="info"></div>
@@ -26,25 +26,86 @@
 	var  esQuery = {
 
 
+  "query": {
+    "filtered": {
+      "query": {
+        "match_all": {}
+      },
+      "filter": {
+        "and": [
+          {"nested": {
+              "path": "attachments.flags",
+              "query": {
+                "filtered": {
+                  "query": {
+                    "match_all": {}
+                  },
+                  "filter": {
+                    "and": [
+                      {
+                        "terms": {
+                          "attachments.flags.request_type": [
+                            "review",
+                            "superreview"
+                          ]
+                        }
+                      },
+                      {"term": {"attachments.flags.requestee": "ehsan@mozilla.com"}}
+                    ]
+                  }
+                }
+              }
+          }},
 
- "query": { "filtered": { "query": { "match_all": {} }, "filter": {
-	 "and": [
-		 { "script": { "script": "true" } },
-		 { "and": [
-			 { "not": { "terms": { "bug_status": [ "resolved", "verified", "closed" ] } } },
-			 { "range": { "expires_on": { "gte": 1350795520535 } } } ] },
-			 { "range": { "created_ts": { "lt": Date.now().add("-12week")} } },
-		 { "or": [
-			 { "prefix": { "status_whiteboard.tokenized": "sg:crit" } },
-			 { "prefix": { "keywords": "sec-critical" } }
-		 ] },
-		 { "script": { "script": "true" } },
-		 { "script": { "script": "true" } }
-	 ]
- } } },
-		"from": 0, "size": 100, "sort": [], "facets": { "0": { "terms": { "script_field": "var replaceAll = function(output, find, replace){\ns = output.indexOf(find, 0);\nwhile(s>=0){\noutput=output.replace(find, replace);\ns=s-find.length+replace.length;\ns = output.indexOf(find, s);\n}\noutput;\n};\n''+replaceAll(replaceAll(\"Open\", \"\\\\\", \"\\\\\\\\\"), \"|\", \"\\\\p\")+'|'+((((1350795520535-doc[\"created_ts\"].value)<0) || ((1350795520535-doc[\"created_ts\"].value)>=7257600000)) ? 12 : Math.floor(((1350795520535-doc[\"created_ts\"].value)-0)/604800000))", "size": 100000 } } }
-
-
+          {"nested": {
+              "path": "attachments.flags",
+              "query": {
+                "filtered": {
+                  "query": {
+                    "match_all": {}
+                  },
+                  "filter": {
+                    "and": [
+                      {
+                        "terms": {
+                          "attachments.flags.request_type": [
+                            "review",
+                            "superreview"
+                          ]
+                        }
+                      },
+            			{"missing":{ "field" :"attachments.flags.requestee"}}
+                    ]
+                  }
+                }
+              }
+          }}
+        ]
+      }
+    }
+  },
+  "from": 0,
+  "size": 200,
+//  "sort": [],
+//  "facets": {
+//    "doneReview": {
+//      "terms": {
+//        "script_field": "var cool_func = function(doc){\noutput=\"\";\nfor(loop1 : doc.attachments){\nfor(loop2 : loop1.flags){\nif (((!(loop2.request_status==\"?\")) && loop2.requestee==\"ehsan@mozilla.com\") || (((doc.bug_status==\"resolved\") || (doc.bug_status==\"verified\") || (doc.bug_status==\"closed\")) && loop2.request_type==\"review\" && loop2.requestee==\"ehsan@mozilla.com\")){if (output!=\"\") output+=\", \";\noutput+=\"{\"+\"\\\"bug_id\\\":\"+(doc.bug_id)\n+\",\"+\"\\\"modified_ts\\\":\"+doc.modified_ts\n+\",\"+\"\\\"requestee\\\":\"+(loop2.requestee)\n+\"}\";\n}\n\n}\n\n}\n\"[\"+output+\"]\";\n};\ncool_func(_source)\n",
+//        "size": "100000"
+//      },
+//      "facet_filter": {
+//        "and": [
+//          {
+//            "range": {
+//              "modified_ts": {
+//                "lt": 1350950400000
+//              }
+//            }
+//          }
+//        ]
+//      }
+//    }
+//  }
 
 
 	//		"facets":{
