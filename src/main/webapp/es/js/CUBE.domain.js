@@ -498,8 +498,7 @@ CUBE.domain.set.compileKey=function(key, domain){
 							}//endif
 						}//for
 					}//for
-					var output="";
-					for(var i=key.length;i--;) output+='"|"'+key;
+					var output=key.join('+"|"+');
 			f+=	"	return "+output+"\n"+
 				"}";
 			eval(f);

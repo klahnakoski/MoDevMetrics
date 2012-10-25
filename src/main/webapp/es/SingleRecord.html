@@ -24,27 +24,71 @@
 	D.println(new Date(1348358400000).format("yyyy-NNN-dd HHmmss"));
 
 	var  esQuery = {
-
-
   "query": {
     "filtered": {
       "query": {
         "match_all": {}
       },
       "filter": {
-        "term":{"bug_id":"486918"}}
+        "and": [
+          {
+            "terms": {
+              "bug_id": [
+                486918
+              ]
+            }
+          },
+          {
+            "nested": {
+              "path": "attachments.flags",
+              "query": {
+                "filtered": {
+                  "query": {
+                    "match_all": {}
+                  },
+                  "filter": {
+                    "and": [
+                      {
+                        "terms": {
+                          "attachments.flags.request_type": [
+                            "review",
+                            "superreview"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+       ]
       }
-    },
-
+    }
+  },
   "from": 0,
-  "size": 200,
-"sort":{
-	"bug_version_num" : {"order":"asc"}
-
-
-}
-	};
-
+  "size": 0,
+  "sort": [],
+  "facets": {
+     "doneReview": {
+      "terms": {
+        "script_field": "var cool_func = function(doc){\noutput=\"\";\nfor(loop1 : doc.attachments){\nfor(loop2 : loop1.?flags){\nif (( ((loop2.?request_type==\"review\") || (loop2.?request_type==\"superreview\"))) || (((doc.bug_status==\"resolved\") || (doc.bug_status==\"verified\") || (doc.bug_status==\"closed\")) && ((loop2.?request_type==\"review\") || (loop2.?request_type==\"superreview\")))){if (output!=\"\") output+=\", \";\noutput+=\"{\"+\"\\\"bug_id\\\":\"+(doc.bug_id)\n+\",\"+\"\\\"attach_id\\\":\"+(loop1.?attach_id)\n+\",\"+\"\\\"modified_ts\\\":\"+(loop2.?modified_ts)\n+\",\"+\"\\\"requestee\\\":\"+(loop2.?requestee)\n+\",\"+\"\\\"request_status\\\":\"+(loop2.?request_status)\n+\"}\";\n}\n\n}\n\n}\n\"[\"+output+\"]\";\n};\ncool_func(_source)\n",
+		 "size": "100000"
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "range": {
+              "modified_ts": {
+                "lt": 1351123200000
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+};
 
 	var request = $.ajax({
 		url: window.ElasticSearchRestURL,

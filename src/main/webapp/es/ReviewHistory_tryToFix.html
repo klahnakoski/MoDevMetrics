@@ -141,38 +141,6 @@
 				"size" : 0,
 				"sort" : [],
 				"facets":{
-					"inReview": {
-						"terms":{
-							"script_field":
-								new MVEL().code({
-									"select" : [
-										{"name":"bug_id", "value":"doc.bug_id"},
-										{"name":"modified_ts", "value":"doc.modified_ts"},
-										{"name":"requestee", "value":"doc.attachments.flags.requestee"}
-									],
-									"from":
-											"doc.attachments.flags",
-									"where":
-									{"and" : [
-										{"or" : [
-											{ "and" : [
-												{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
-												{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-												{"term" : {"doc.attachments.flags.requestee" : state.requestee}},
-												{"script":{"script":"doc.attachments.flags.modified_ts==doc.modified_ts"}}
-											]}
-										]},
-										{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
-									]}
-								}),
-							"size": state.esSize
-						},
-						"facet_filter":{//HOPEFULLY THIS HELPS
-							"and":[
-								{"range":{"modified_ts":{"lt":new Date(state.sampleMax).getMilli()}}}
-							]
-						}
-					},
 					"doneReview" : {
 						"terms":{
 							"script_field":
@@ -180,7 +148,9 @@
 										"select" : [
 											{"name":"bug_id", "value":"doc.bug_id"},
 											{"name":"attach_id", "value":"doc.attachments.attach_id"},
-											{"name":"modified_ts", "value":"(doc.bug_status=='resolved'||doc.bug_status=='verified'||doc.bug_status=='closed') ? doc.modified_ts : doc.attachments.flags.modified_ts"}
+											{"name":"modified_ts", "value":"(doc.bug_status=='resolved'||doc.bug_status=='verified'||doc.bug_status=='closed') ? doc.modified_ts : doc.attachments.flags.modified_ts"},
+											{"name":"requestee", "value":"doc.attachments.flags.requestee"},
+											{"name":"request_status", "value":"doc.attachments.flags.request_status"}
 										],
 										"from":
 												"doc.attachments.flags",
