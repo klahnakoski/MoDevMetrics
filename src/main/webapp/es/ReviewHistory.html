@@ -186,15 +186,17 @@
 												"doc.attachments.flags",
 										"where":
 										{"and" : [
+											{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
 											{"or" : [
 												{ "and" : [
 													{"not": {"terms" : {"doc.attachments.flags.request_status" : ["?"]}}},
-													{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-													{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
+													{"or":[
+														{"term" : {"doc.attachments.flags.requestee" : state.requestee}},
+														{"missing":{"field":"doc.attachments.flags.requestee", "testNull":true}}
+													]}
 												]},
 												{ "and" : [//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
 													{"terms" : {"doc.bug_status" : ["resolved", "verified", "closed"]}},
-													{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
 													{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
 												]}
 											]}
