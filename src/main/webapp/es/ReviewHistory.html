@@ -86,7 +86,7 @@
 <script type="text/javascript" src="js/filters/ProgramFilter.js"></script>
 <script type="text/javascript" src="js/filters/CustomFilters.js"></script>
 <script type="text/javascript" src="js/filters/GUIFilters.js"></script>
-
+<h2>BROKEN - It seems short reviews are not showing closed</h2>
 <table style="width: 100%;">
 	<tr>
 		<td style="width: 320px;">
@@ -117,7 +117,7 @@
 					},
 					"filter" : {
 						"and":[
-//							{"terms":{"bug_id":[454532]}},//, 19963, 505741]}},
+							{"terms":{"bug_id":[486918]}},//, 19963, 505741]}},
 							{ "nested": {
 								"path" : "attachments.flags",
 								"query": {
@@ -281,7 +281,7 @@
 
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"jpr@mozilla.com"},
+			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"joe@drew.ca"},
 			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-3month")},
 			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("week")},
