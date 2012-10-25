@@ -262,7 +262,7 @@ ESQuery.prototype.buildESTermsQuery=function(){
 			}
 		},
 		"from" : 0,
-		"size" : 0,
+		"size" : 100,
 		"sort" : [],
 		"facets":{
 			"0":{

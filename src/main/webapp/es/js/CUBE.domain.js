@@ -502,7 +502,7 @@ CUBE.domain.set.compileKey=function(key, domain){
 					for(var i=key.length;i--;) output+='"|"'+key;
 			f+=	"	return "+output+"\n"+
 				"}";
-			
+			eval(f);
 			this.getKey=newGetKeyFunction;
 			return this.getKey(partition);
 		};//method
