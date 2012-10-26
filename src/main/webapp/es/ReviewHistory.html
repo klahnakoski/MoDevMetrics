@@ -147,6 +147,7 @@
 								new MVEL().code({
 									"select" : [
 										{"name":"bug_id", "value":"doc.bug_id"},
+										{"name":"attach_id", "value":"doc.attachments.attach_id"},
 										{"name":"modified_ts", "value":"doc.modified_ts"},
 										{"name":"requestee", "value":"doc.attachments.flags.requestee"}
 									],
@@ -180,6 +181,7 @@
 										"select" : [
 											{"name":"bug_id", "value":"doc.bug_id"},
 											{"name":"attach_id", "value":"doc.attachments.attach_id"},
+											{"name":"requestee", "value":"doc.attachments.flags.requestee"},
 											{"name":"modified_ts", "value":"(doc.bug_status=='resolved'||doc.bug_status=='verified'||doc.bug_status=='closed') ? doc.modified_ts : doc.attachments.flags.modified_ts"}
 										],
 										"from":
@@ -192,15 +194,16 @@
 													{"not": {"terms" : {"doc.attachments.flags.request_status" : ["?"]}}},
 													{"or":[
 														{"term" : {"doc.attachments.flags.requestee" : state.requestee}},
-														{"missing":{"field":"doc.attachments.flags.requestee", "testNull":true}}
+														{"missing":{"field":"doc.attachments.flags.requestee", "existence":true, "null_value":true}}
 													]}
 												]},
+//												{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 1}},
 												{ "and" : [//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
 													{"terms" : {"doc.bug_status" : ["resolved", "verified", "closed"]}},
 													{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
 												]}
-											]}
-//											{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
+											]},
+											{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
 										]}
 									}),
 							"size": state.esSize
@@ -243,8 +246,8 @@
 							{"name":"end_time", "value":"new Date(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "operation":"minimum"}
 						],
 						"edges":[
-							{"name":"close_record", "test":"bug_id==doneReview.bug_id && requestee==doneReview.requestee && modified_ts<=doneReview.modified_ts", allowNulls:true,
-								"domain":{"type":"set", "name":"doneReview", "key":["bug_id", "modified_ts", "requestee"], "partitions":doneReview}
+							{"name":"close_record", "test":"bug_id==doneReview.bug_id && attach_id==doneReview.attach_id && requestee==doneReview.requestee && modified_ts<=doneReview.modified_ts", allowNulls:true,
+								"domain":{"type":"set", "name":"doneReview", "key":["bug_id", "attach_id", "modified_ts", "requestee"], "partitions":doneReview}
 							},
 							{"name":"requestee", "value":"requestee"},
 							{"name":"start_time", "value":"new Date(modified_ts)"}

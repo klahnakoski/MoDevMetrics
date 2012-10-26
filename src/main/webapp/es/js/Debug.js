@@ -5,11 +5,30 @@ D.println = function(message){
 	console.info(message);
 };//method
 
-D.error = function(description){
-	console.error(description);
-	throw description;
+D.error = function(description, cause){
+	//console.error(description);
+	throw new Exception(description, cause);
 };//method
 
 D.warning = function(description, cause){
-	D.println(description + (cause === undefined ? "" : (" caused by (" + cause + ")")));
+	D.println(new Exception("WARNING: "+description, cause).toString());
 };//method
+
+
+var Exception=function(description, cause){
+	this.description=description;
+	this.cause=cause;
+};
+
+Exception.prototype.toString=function(){
+	if (this.cause===undefined){
+		D.println(this.description);
+	}else if (this.cause instanceof Exception){
+		D.println(this.description + " caused by (\n" + this.cause.toString().indent(1) + "\n)\n");
+	}else{
+		D.println(this.description + " caused by (" + this.cause + ")");
+	}//endif
+};
+
+
+

@@ -159,9 +159,11 @@ MVEL.prototype.where = function(esFilter){
 		var testExistence=esFilter[op].existence;
 		var testNull=esFilter[op].null_value;
 
+		if (testExistence===undefined || testNull===undefined) D.error("must have 'existence' and 'null_value' attributes");
+
 		var output=[];
 		if (testExistence && !testNull){
-			output.push("("+fieldName+" == empty)");
+			output.push("("+fieldName.replace(".?", ".")+" == empty)");		//REMOVE THE .? SO WE REFER TO THE FIELD, NOT GET THE VALUE
 		}//endif
 		if (testNull){
 			output.push("("+fieldName+"==null)");

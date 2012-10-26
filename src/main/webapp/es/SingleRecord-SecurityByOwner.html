@@ -1,0 +1,80 @@
+<HTML>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<HEAD>
+</HEAD>
+<BODY>
+<script type="text/javascript" src="js/rest/RestConfig.js"></script>
+<script type="text/javascript" src="lib/js/jquery-1.7.js"></script>
+
+<script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
+
+<script type="text/javascript" src="js/Debug.js"></script>
+<script type="text/javascript" src="js/util.js"></script>
+<script type="text/javascript" src="js/CNV.js"></script>
+<script type="text/javascript" src="js/aDate.js"></script>
+<script type="text/javascript" src="js/MVEL.js"></script>
+<script type="text/javascript" src="js/CUBE.js"></script>
+
+
+
+<div id="info"></div>
+
+<script type="text/javascript">
+	D.println(new Date(1347753600000).format("yyyy-NNN-dd HHmmss"));
+	D.println(new Date(1348358400000).format("yyyy-NNN-dd HHmmss"));
+
+	var  esQuery = {
+  "query": {
+    "filtered": {
+      "query": {
+        "match_all": {}
+      },
+      "filter": {
+				"and":[
+			{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}},
+			{"not": {"terms":{"previous_values.bug_status_value": ["resolved", "verified", "closed"]}}},  //JUST SWITCHED TO CLOSED
+//			{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}},
+			{"range":{"modified_ts":{"gt":Date.now().add("-6month")}}},
+			{"term":{"keywords":"sec-critical"}}
+		]
+      }
+    }
+  },
+  "from": 0,
+  "size": 10,
+  "sort": [],
+  "facets": {
+     "owners": {
+      "terms": {
+        "field": "assigned_to",
+		 "size": "100000"
+      }
+
+    }
+  }
+};
+
+	var request = $.ajax({
+		url: window.ElasticSearchRestURL,
+		type: "POST",
+		data: JSON.stringify(esQuery),
+		dataType: "json",
+
+		success: function(data){
+			D.println(CNV.Object2JSON(data));
+
+			var htmlSummary = CNV.ESResult2HTMLSummaries(data);
+			var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));
+
+			document.getElementById("info").innerHTML = htmlSummary + "<br><br>" + htmlResults;
+		},
+
+		error: function (errorData, errorMsg, errorThrown){
+			document.getElementById("info").innerHTML = "Response Error.  Make sure you are connected to the MPT network.";
+		}
+	});
+
+</script>
+
+</BODY>
+</HTML>

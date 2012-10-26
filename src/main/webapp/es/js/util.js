@@ -17,6 +17,12 @@ String.join = function(list, seperator){
 };
 
 
+String.prototype.indent=function(numTabs){
+	var indent="\t\t\t\t\t\t".left(numTabs);
+	return indent+this.toString().replaceAll("\n", "\n"+indent);
+};
+
+
 Array.prototype.contains = function(value){
 	for(var i = this.length; i--;){
 		if (this[i] == value) return true;
