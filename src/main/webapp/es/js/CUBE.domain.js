@@ -325,27 +325,25 @@ CUBE.domain.set = function(column, sourceColumns){
 
 	d.NULL = {};
 	d.NULL.name="null";
-	d.NULL[d.key] = null;
-
 
 
 	if (d.key === undefined) d.key = "value";
 	CUBE.domain.set.compileKey(d.key, d);
 	
 	d.compare = function(a, b){
-		return CUBE.domain.value.compare(a[d.key], b[d.key]);
+		return CUBE.domain.value.compare(d.getKey(a), d.getKey(b));
 	};//method
 
 	d.format = function(partition){
-		if (partition[d.key].toString===undefined) return CNV.Object2JSON(partition[d.key]);
-		return partition[d.key].toString();
+		if (partition.toString===undefined) return CNV.Object2JSON(partition);
+		return partition.toString();
 	};//method
 	
 
-	d.getPartition = function(value){
-		if (value == null) return null;
+	d.getPartition = function(key){
+		if (key == null) return null;
 
-		var temp = this.map[value];
+		var temp = this.map[key];
 		if (temp === undefined) return null;
 		return temp;
 	};//method
@@ -355,13 +353,15 @@ CUBE.domain.set = function(column, sourceColumns){
 	//DEFINE VALUE->PARTITION MAP
 	if (column.test === undefined){
 		d.map = {};
+
+		//ENSURE PARTITIONS HAVE UNIQUE KEYS
 		for(var i = 0; i < d.partitions.length; i++){
 			var part = d.partitions[i];
-			if (part[d.key] === undefined) D.error("Expecting object to have '" + d.key + "' attribute:" + CNV.Object2JSON(part));
-			if (d.map[part[d.key]] !== undefined && d.test == undefined){
-				D.error("Domain '" + d.name + "' was given two partitions that map to the same value (a[\"" + d.key + "\"]==b[\"" + d.key + "\"]): where a=" + CNV.Object2JSON(part) + " and b=" + CNV.Object2JSON(d.map[part[d.key]]));
+			if (d.getKey(part) === undefined) D.error("Expecting object to have '" + d.key + "' attribute:" + CNV.Object2JSON(part));
+			if (d.map[d.getKey(part)] !== undefined && d.test == undefined){
+				D.error("Domain '" + d.name + "' was given two partitions that map to the same value (a[\"" + d.key + "\"]==b[\"" + d.key + "\"]): where a=" + CNV.Object2JSON(part) + " and b=" + CNV.Object2JSON(d.map[d.getKey(part)]));
 			}//endif
-			d.map[part[d.key]] = part;
+			d.map[d.getKey(part)] = part;
 		}//for
 	} else{
 		if (d.key !== undefined) D.warning("Domain '" + d.name + "' does not require a 'key' attribute when the colum has 'test' attribute");
