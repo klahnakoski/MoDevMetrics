@@ -129,7 +129,8 @@
 										"filter" : {
 											"and":[
 												{"terms" : {"attachments.flags.request_type" : ["review", "superreview"]}},
-												{"term" : {"attachments.flags.requestee" : state.requestee}}
+												{"term" : {"attachments.flags.requestee" : state.requestee}},
+												{"term":{
 											]
 										}
 									}
