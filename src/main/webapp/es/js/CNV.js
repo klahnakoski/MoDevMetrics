@@ -73,7 +73,7 @@ CNV.String2HTML = function(value){
 
 
 CNV.String2Quote = function(str){
-	return "\"" + (str + '').replace(/([\\"'])/g, "\\$1").replace(/\0/g, "\\0") + "\"";
+	return "\"" + (str + '').replaceAll("\n", "\\n").replace(/([\n\\"'])/g, "\\$1").replace(/\0/g, "\\0") + "\"";
 };//method
 
 

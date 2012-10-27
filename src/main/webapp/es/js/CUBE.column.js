@@ -81,9 +81,13 @@ CUBE.where.compile = function(whereClause, sourceColumns, edges){
 		"try{ " +
 			"	return (" + whereClause + "); " +
 			"}catch(e){ " +
-			"	D.warning(\"Problem with definition of the where clause {" + whereClause + "}\", e); " +
+			"	D.warning(\"Problem with definition of the where clause " + CNV.String2Quote(whereClause).rightBut(1).leftBut(1) + "\", e); " +
 			"}}";
-	eval(f);
+	try{
+		eval(f);
+	}catch(e){
+		D.error("Can not compile where clause", e);
+	}//try
 
 	return whereMethod;
 

@@ -155,7 +155,7 @@
 											"doc.attachments.flags",
 									"where":
 									{"and" : [
-										{"term":{"doc.attachments.attach_id":"393841"}},
+										{"term":{"doc.attachments.attach_id":"393341"}},
 										{"or" : [
 											{ "and" : [
 												{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
@@ -189,7 +189,7 @@
 											"doc.attachments.flags",
 									"where":
 									{"and" : [
-										{"term":{"doc.attachments.attach_id":"393841"}},
+										{"term":{"doc.attachments.attach_id":"393341"}},
 										{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
 										{"or" : [
 											{ "and" : [
@@ -263,7 +263,7 @@ D.println(CNV.List2Tab(doneReview));
 							{"name":"requestee", "value":"requestee"},
 							{"name":"start_time", "value":"new Date(modified_ts)"}
 						],
-						"where":"\nmodified_ts<"+new Date(state.sampleMax).getMilli()+" \n&& (\ndoneReview.bug_id==null\n || doneReview.modified_ts>="+new Date(state.sampleMin).getMilli()+"\n)\n"
+						"where":"modified_ts<"+new Date(state.sampleMax).getMilli()+"  && (doneReview.bug_id==null || doneReview.modified_ts>="+new Date(state.sampleMin).getMilli()+")\n"
 					}).list;
 D.println(CNV.List2Tab(reviewQueues));
 
