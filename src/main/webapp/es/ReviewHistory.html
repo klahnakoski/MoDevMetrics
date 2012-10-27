@@ -236,7 +236,9 @@
 					var inReview = CNV.ESFacet2List(data.facets.inReview);
 					var doneReview = CNV.ESFacet2List(data.facets.doneReview);
 
-D.println(CNV.List2Tab(doneReview));
+
+//D.println(CNV.List2Tab(inReview));
+//D.println(CNV.List2Tab(doneReview));
 
 					var flooring=state.sampleInterval;
 					if (flooring.indexOf("hour")!=-1) flooring="hour";
@@ -249,7 +251,8 @@ D.println(CNV.List2Tab(doneReview));
 						"from":
 							inReview,
 						"select":[
-							{"name":"bug_id", "value":"bug_id", "operation":"minimum"},
+							{"name":"bug_id", "value":"bug_id", "operation":"one"},
+							{"name":"attach_id", "value":"attach_id", "operation":"one"},
 							{"name":"end_time", "value":"new Date(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "operation":"minimum"}
 						],
 						"edges":[
@@ -261,7 +264,7 @@ D.println(CNV.List2Tab(doneReview));
 						],
 						"where":"modified_ts<"+new Date(state.sampleMax).getMilli()+" && (doneReview.bug_id==null || doneReview.modified_ts>="+new Date(state.sampleMin).getMilli()+")"
 					}).list;
-
+D.println(CNV.List2Tab(reviewQueues));
 
 					var chart=new CUBE().calc2Cube({
 						"name":
