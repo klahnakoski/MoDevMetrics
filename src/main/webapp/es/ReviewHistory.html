@@ -155,6 +155,7 @@
 											"doc.attachments.flags",
 									"where":
 									{"and" : [
+										{"terms":{"doc.attachments.attach_id":"393841"}},
 										{"or" : [
 											{ "and" : [
 												{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
@@ -188,7 +189,7 @@
 											"doc.attachments.flags",
 									"where":
 									{"and" : [
-										{"terms":{"doc.attachments.attach_id":"393841"}},
+										{"term":{"doc.attachments.attach_id":"393841"}},
 										{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
 										{"or" : [
 											{ "and" : [
