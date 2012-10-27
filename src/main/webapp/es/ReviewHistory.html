@@ -117,7 +117,8 @@
 					},
 					"filter" : {
 						"and":[
-							{"terms":{"bug_id":[486918]}},//, 19963, 505741]}},
+
+							{"terms":{"bug_id":[486918, 507902]}},//, 19963, 505741]}},
 							{ "nested": {
 								"path" : "attachments.flags",
 								"query": {
@@ -177,35 +178,35 @@
 					"doneReview" : {
 						"terms":{
 							"script_field":
-									new MVEL().code({
-										"select" : [
-											{"name":"bug_id", "value":"doc.bug_id"},
-											{"name":"attach_id", "value":"doc.attachments.attach_id"},
-											{"name":"requestee", "value":"doc.attachments.flags.requestee"},
-											{"name":"modified_ts", "value":"(doc.bug_status=='resolved'||doc.bug_status=='verified'||doc.bug_status=='closed') ? doc.modified_ts : doc.attachments.flags.modified_ts"}
-										],
-										"from":
-												"doc.attachments.flags",
-										"where":
-										{"and" : [
-											{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-											{"or" : [
-												{ "and" : [
-													{"not": {"terms" : {"doc.attachments.flags.request_status" : ["?"]}}},
-													{"or":[
-														{"term" : {"doc.attachments.flags.requestee" : state.requestee}},
-														{"missing":{"field":"doc.attachments.flags.requestee", "existence":true, "null_value":true}}
-													]}
-												]},
-//												{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 1}},
-												{ "and" : [//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
-													{"terms" : {"doc.bug_status" : ["resolved", "verified", "closed"]}},
-													{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
+								new MVEL().code({
+									"select" : [
+										{"name":"bug_id", "value":"doc.bug_id"},
+										{"name":"attach_id", "value":"doc.attachments.attach_id"},
+										{"name":"requestee", "value":"doc.attachments.flags.requestee"},
+										{"name":"modified_ts", "value":"(doc.bug_status=='resolved'||doc.bug_status=='verified'||doc.bug_status=='closed') ? doc.modified_ts : doc.attachments.flags.modified_ts"}
+									],
+									"from":
+											"doc.attachments.flags",
+									"where":
+									{"and" : [
+										{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
+										{"or" : [
+											{ "and" : [
+												{"not": {"terms" : {"doc.attachments.flags.request_status" : ["?"]}}},
+												{"or":[
+													{"term" : {"doc.attachments.flags.requestee" : state.requestee}},
+													{"missing":{"field":"doc.attachments.flags.requestee", "existence":true, "null_value":true}}
 												]}
 											]},
-											{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
-										]}
-									}),
+											{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 1}},
+											{ "and" : [//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
+												{"terms" : {"doc.bug_status" : ["resolved", "verified", "closed"]}},
+												{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
+											]}
+										]},
+										{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
+									]}
+								}),
 							"size": state.esSize
 						},
 						"facet_filter":{//HOPEFULLY THIS HELPS
@@ -223,13 +224,19 @@
 		console.info(CNV.Object2JSON(esQuery));
 
 		status.message("Call ES");
-		RestQuery.Run(
+
+
+//		RestQuery.Run(
+		RestQuery.Use(
+			{"took":180,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":148,"max_score":1.0,"hits":[]},"facets":{"inReview":{"_type":"terms","missing":0,"total":148,"other":0,"terms":[{"term":"[]","count":136},{"term":"[{\"bug_id\":507902,\"attach_id\":\"393841\",\"modified_ts\":1249995728000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":507902,\"attach_id\":\"393734\",\"modified_ts\":1249958017000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":507902,\"attach_id\":\"393434\",\"modified_ts\":1249808687000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":507902,\"attach_id\":\"393194\",\"modified_ts\":1249634680000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":507902,\"attach_id\":\"392801\",\"modified_ts\":1249483756000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":507902,\"attach_id\":\"392470\",\"modified_ts\":1249368856000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":507902,\"attach_id\":\"392469\",\"modified_ts\":1249359169000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":507902,\"attach_id\":\"392341\",\"modified_ts\":1249311887000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"614487\",\"modified_ts\":1334233003000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"609638\",\"modified_ts\":1332806654000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"609636\",\"modified_ts\":1332806351000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"607317\",\"modified_ts\":1332166535000,\"requestee\":\"joe@drew.ca\"}]","count":1}]},"doneReview":{"_type":"terms","missing":0,"total":148,"other":0,"terms":[{"term":"[{\"bug_id\":486918,\"attach_id\":\"614487\",\"requestee\":\"joe@drew.ca\",\"modified_ts\":1336380205000}]","count":42},{"term":"[]","count":41},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1348569007000}]","count":22},{"term":"[{\"bug_id\":486918,\"attach_id\":\"609636\",\"requestee\":\"joe@drew.ca\",\"modified_ts\":1332851471000}, {\"bug_id\":486918,\"attach_id\":\"609868\",\"requestee\":null,\"modified_ts\":1332855662000}]","count":5},{"term":"[{\"bug_id\":486918,\"attach_id\":\"607317\",\"requestee\":\"joe@drew.ca\",\"modified_ts\":1332406293000}]","count":3},{"term":"[{\"bug_id\":507902,\"attach_id\":\"393841\",\"requestee\":\"joe@drew.ca\",\"modified_ts\":1249999727000}]","count":2},{"term":"[{\"bug_id\":507902,\"attach_id\":\"393194\",\"requestee\":\"joe@drew.ca\",\"modified_ts\":1249808803000}]","count":2},{"term":"[{\"bug_id\":486918,\"attach_id\":\"609636\",\"requestee\":\"joe@drew.ca\",\"modified_ts\":1332851471000}]","count":2},{"term":"[{\"bug_id\":507902,\"attach_id\":\"393734\",\"requestee\":\"joe@drew.ca\",\"modified_ts\":1249997848000}]","count":1},{"term":"[{\"bug_id\":507902,\"attach_id\":\"393734\",\"requestee\":\"joe@drew.ca\",\"modified_ts\":1249997848000}, {\"bug_id\":507902,\"attach_id\":\"393841\",\"requestee\":\"joe@drew.ca\",\"modified_ts\":1249999727000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1350969356000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1350925633000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1350910698000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1350544784000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1350537854000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349856623000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349577372000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349438664000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349437774000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349437108000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349421777000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349283878000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349266405000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349230966000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349227989000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349213860000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349203034000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349175841000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349103875000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349067570000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349064639000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349064547000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349055298000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1349003436000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"664563\",\"requestee\":null,\"modified_ts\":1348982711000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"609868\",\"requestee\":null,\"modified_ts\":1332855662000}]","count":1},{"term":"[{\"bug_id\":486918,\"attach_id\":\"609636\",\"requestee\":\"joe@drew.ca\",\"modified_ts\":1332851471000}, {\"bug_id\":486918,\"attach_id\":\"609638\",\"requestee\":\"joe@drew.ca\",\"modified_ts\":1332853963000}]","count":1}]}}}
+			,
 			{
 				"success" : function(requestObj, data){
 					status.message("processing Data");
 					var inReview = CNV.ESFacet2List(data.facets.inReview);
 					var doneReview = CNV.ESFacet2List(data.facets.doneReview);
 
+D.println(CNV.List2Tab(doneReview));
 
 					var flooring=state.sampleInterval;
 					if (flooring.indexOf("hour")!=-1) flooring="hour";

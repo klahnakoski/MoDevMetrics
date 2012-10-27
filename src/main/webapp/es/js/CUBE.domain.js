@@ -489,7 +489,8 @@ CUBE.domain.set.compileKey=function(key, domain){
 			//COMPILE WITH PARTITION AS PROTOTYPE
 			var newGetKeyFunction;
 			var f =
-				"newGetKeyFunction=function(__part){\n";
+				"newGetKeyFunction=function(__part){\n"+
+				"	if (__part==this.NULL) return null;\n";
 					for(var att in partition){
 						for(var i=key.length;i--;){
 							if (key[i].indexOf(att) >= 0){
@@ -510,11 +511,11 @@ CUBE.domain.set.compileKey=function(key, domain){
 			//COMPILE WITH PARTITION AS PROTOTYPE
 			var newGetKeyFunction;
 			var f =
-				"newGetKeyFunction=function(__part){\n";
+				"newGetKeyFunction=function(__part){\n"+
+				"	if (__part==this.NULL) return null;\n";
 					for(var att in partition){
 						if (key.indexOf(att) >= 0) f += "var " + att + "=__part." + att + ";\n";
 					}//for
-
 			f+=	"	return "+key+"\n"+
 				"}";
 			this.getKey=newGetKeyFunction;

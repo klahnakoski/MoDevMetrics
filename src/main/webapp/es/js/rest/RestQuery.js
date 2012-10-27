@@ -13,6 +13,11 @@ RestQuery.Run = function(reportBackObj, id, esQuery){
 	return q;
 };//method
 
+//JUST LIKE RUN, BUT INSTEAD OF SENDING QUERY, EXECUTE success() USING data
+//JUST COMMENT-OUT A COUPLE OF LINES TO SWITCH BETWEEN LOCAL AND NETORK TESTING
+RestQuery.Use = function(data, reportBackObj, id, esQuery){
+	reportBackObj.success(this, data);
+};//method
 
 RestQuery.prototype.Run = function(){
 	var localObject = this;
@@ -32,6 +37,7 @@ RestQuery.prototype.Run = function(){
 };
 
 RestQuery.prototype.success = function(data){
+	if (data==null) D.error("Maybe you are not connected to Mozilla-MPT?");
 	if (this.callbackObject===undefined) return;
 	if (this.callbackObject.success===undefined) D.error("RestQuery - Can not report back success!!");
 	try{

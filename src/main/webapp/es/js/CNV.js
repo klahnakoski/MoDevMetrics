@@ -135,14 +135,14 @@ CNV.List2Tab = function(data){
 	var output = "";
 
 	//WRITE HEADER
-	var columns = CNV.getColumnNames(data);
+	var columns = CUBE.getColumns(data);
 	for(var c = 0; c < columns.length; c++) output += CNV.String2Quote(columns[c].name) + "\t";
 	output = output.substring(0, output.length - 1) + "\n";
 
 	//WRITE DATA
 	for(var i = 0; i < data.length; i++){
 		for(var c = 0; c < columns.length; c++){
-			output += CVN.String2Quote(data[i][columns[c].name]) + "\t";
+			output += CNV.String2Quote(data[i][columns[c].name]) + "\t";
 		}//for
 		output = output.substring(0, output.length - 1) + "\n";
 	}//for
