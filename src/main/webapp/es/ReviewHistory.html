@@ -129,9 +129,7 @@
 										"filter" : {
 											"and":[
 												{"terms" : {"attachments.flags.request_type" : ["review", "superreview"]}},
-												{"term" : {"attachments.flags.requestee" : state.requestee}},
-												{"term":{
-											]
+												{"term" : {"attachments.flags.requestee" : state.requestee}}											]
 										}
 									}
 								}
@@ -190,6 +188,7 @@
 											"doc.attachments.flags",
 									"where":
 									{"and" : [
+										{"terms":{"doc.attachments.attach_id":"393841"}},
 										{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
 										{"or" : [
 											{ "and" : [
@@ -238,8 +237,8 @@
 					var doneReview = CNV.ESFacet2List(data.facets.doneReview);
 
 
-//D.println(CNV.List2Tab(inReview));
-//D.println(CNV.List2Tab(doneReview));
+D.println(CNV.List2Tab(inReview));
+D.println(CNV.List2Tab(doneReview));
 
 					var flooring=state.sampleInterval;
 					if (flooring.indexOf("hour")!=-1) flooring="hour";
