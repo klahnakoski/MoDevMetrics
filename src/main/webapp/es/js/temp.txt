@@ -1,0 +1,57 @@
+var String2Quote = function(str){
+if (!(str is String)){ str; }else{
+”\”“+str.replace(“\\”,”\\\\”).replace(“\”“,”\\\”“).replace(“\'“,”\\\'“)+”\”“;}};
+var floorDay = function(value){ Math.floor(value/(24*60*60*1000))*(24*60*60*1000);};
+var cool_func = function(doc){
+output=““;
+for(loop1 : doc.attachments){
+for(loop2 : loop1.?flags){
+if (
+	(
+		loop1.?attach_id==393841
+	) && (
+		(loop2.?request_type==“review”) ||
+		(loop2.?request_type==“superreview”)
+	) && (
+		(
+			(
+				!(loop2.?request_status==“?”)
+			) && (
+				(loop2.?requestee==“joe@drew.ca”) ||
+				((loop2.?requestee==null))
+			)
+		) || (
+			loop1[“attachments.isobsolete”]==1
+		) || (
+			(
+				(
+				doc.bug_status==“resolved”
+				) || (
+				doc.bug_status==“verified”
+				) || (
+				doc.bug_status==“closed”
+				)
+			) && (
+				loop2.?requestee==joe@drew.ca
+			)
+		)
+	) && (
+		loop1[“attachments.isobsolete”]==0
+	)
+){
+	if (output!=““) output+=“, “;
+	output+=“{“+”\”bug_id\”:”+String2Quote(doc.bug_id)
+	+”,”+”\”attach_id\”:”+String2Quote(loop1.?attach_id)
+	+”,”+”\”requestee\”:”+String2Quote(loop2.?requestee)
+	+”,”+”\”modified_ts\”:”+String2Quote((doc.bug_status=='resolved'||doc.bug_status=='verified'||doc.bug_status=='closed') ? doc.modified_ts : loop2.?modified_ts)
+	+”}”;
+}
+
+}
+
+}
+”[“+output+”]”;
+};
+cool_func(_source)
+
+

@@ -121,7 +121,8 @@ CUBE.prototype.calc2List = function(query){
 			for(var s = 0; s < (select).length; s++){
 				var ss = select[s];
 				for(var t = 0; t < results.length; t++){
-					if (where(row, results[t])){
+					var pass=where(row, results[t]);
+					if (pass){
 						//FIND CANONICAL RESULT
 						var result = CUBE.addResultToOutput(results[t], indexedOutput, select, edges);
 
