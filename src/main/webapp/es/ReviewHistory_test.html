@@ -155,7 +155,7 @@
 											"doc.attachments.flags",
 									"where":
 									{"and" : [
-										{"term":{"doc.attachments.attach_id":"614487"}},
+										{"term":{"doc.attachments.attach_id":"393341"}},
 										{"or" : [
 											{ "and" : [
 												{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
@@ -189,7 +189,7 @@
 											"doc.attachments.flags",
 									"where":
 									{"and" : [
-										{"term":{"doc.attachments.attach_id":"614487"}},
+										{"term":{"doc.attachments.attach_id":"393341"}},
 										{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
 										{"or" : [
 											{ "and" : [//IF THE REQUESTEE SWITCHED THE ? FLAG, THEN IT IS DONE

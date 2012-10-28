@@ -34,7 +34,8 @@
           {
             "terms": {
               "bug_id": [
-                486918
+                486918,
+                507902
               ]
             }
           },
@@ -61,26 +62,58 @@
                 }
               }
             }
+          },
+          {
+            "script": {
+              "script": "true"
+            }
+          },
+          {
+            "script": {
+              "script": "true"
+            }
+          },
+          {
+            "script": {
+              "script": "true"
+            }
           }
-       ]
+        ]
       }
     }
   },
   "from": 0,
-  "size": 0,
+  "size": 10,
   "sort": [],
   "facets": {
-     "doneReview": {
+    "inReview": {
       "terms": {
-        "script_field": "var cool_func = function(doc){\noutput=\"\";\nfor(loop1 : doc.attachments){\nfor(loop2 : loop1.?flags){\nif (( ((loop2.?request_type==\"review\") || (loop2.?request_type==\"superreview\"))) || (((doc.bug_status==\"resolved\") || (doc.bug_status==\"verified\") || (doc.bug_status==\"closed\")) && ((loop2.?request_type==\"review\") || (loop2.?request_type==\"superreview\")))){if (output!=\"\") output+=\", \";\noutput+=\"{\"+\"\\\"bug_id\\\":\"+(doc.bug_id)\n+\",\"+\"\\\"attach_id\\\":\"+(loop1.?attach_id)\n+\",\"+\"\\\"modified_ts\\\":\"+(loop2.?modified_ts)\n+\",\"+\"\\\"requestee\\\":\"+(loop2.?requestee)\n+\",\"+\"\\\"request_status\\\":\"+(loop2.?request_status)\n+\"}\";\n}\n\n}\n\n}\n\"[\"+output+\"]\";\n};\ncool_func(_source)\n",
-		 "size": "100000"
+        "script_field": "var String2Quote = function(str){\nif (!(str is String)){ str; }else{\n\"\\\"\"+str.replace(\"\\\\\",\"\\\\\\\\\").replace(\"\\\"\",\"\\\\\\\"\").replace(\"\\'\",\"\\\\\\'\")+\"\\\"\";}};\nvar floorDay = function(value){ Math.floor(value/(24*60*60*1000))*(24*60*60*1000);};\nvar cool_func = function(doc){\noutput=\"\";\nfor(loop1 : doc.attachments){\nfor(loop2 : loop1.?flags){\nif ((loop1.?attach_id==393341) && ((loop2.?request_status==\"?\") && ((loop2.?request_type==\"review\") || (loop2.?request_type==\"superreview\")) && (loop2.?requestee==\"joe@drew.ca\") && (loop2.?modified_ts==doc.modified_ts)) && (loop1[\"attachments.isobsolete\"]==0)){if (output!=\"\") output+=\", \";\noutput+=\"{\"+\"\\\"bug_id\\\":\"+String2Quote(doc.bug_id)\n+\",\"+\"\\\"attach_id\\\":\"+String2Quote(loop1.?attach_id)\n+\",\"+\"\\\"modified_ts\\\":\"+String2Quote(doc.modified_ts)\n+\",\"+\"\\\"requestee\\\":\"+String2Quote(loop2.?requestee)\n+\"}\";\n}\n\n}\n\n}\n\"[\"+output+\"]\";\n};\ncool_func(_source)\n",
+        "size": "100000"
       },
       "facet_filter": {
         "and": [
           {
             "range": {
               "modified_ts": {
-                "lt": 1351123200000
+                "lt": 1351296000000
+              }
+            }
+          }
+        ]
+      }
+    },
+    "doneReview": {
+      "terms": {
+        "script_field": "var String2Quote = function(str){\nif (!(str is String)){ str; }else{\n\"\\\"\"+str.replace(\"\\\\\",\"\\\\\\\\\").replace(\"\\\"\",\"\\\\\\\"\").replace(\"\\'\",\"\\\\\\'\")+\"\\\"\";}};\nvar floorDay = function(value){ Math.floor(value/(24*60*60*1000))*(24*60*60*1000);};\nvar cool_func = function(doc){\noutput=\"\";\nfor(loop1 : doc.attachments){\nfor(loop2 : loop1.?flags){\nif ((loop1.?attach_id==393341) && ((loop2.?request_type==\"review\") || (loop2.?request_type==\"superreview\")) && (((!(loop2.?request_status==\"?\")) && ((loop2.?requestee==\"joe@drew.ca\") || (((loop2.?requestee==null)) && (loop1.?modified_by==\"joe@drew.ca\")))) || ((loop1[\"attachments.isobsolete\"]==1) && (loop1.?modified_by==\"joe@drew.ca\")) || (((doc.bug_status==\"resolved\") || (doc.bug_status==\"verified\") || (doc.bug_status==\"closed\")) && (loop2.?requestee==\"joe@drew.ca\"))) && (loop1[\"attachments.isobsolete\"]==0)){if (output!=\"\") output+=\", \";\noutput+=\"{\"+\"\\\"bug_id\\\":\"+String2Quote(doc.bug_id)\n+\",\"+\"\\\"attach_id\\\":\"+String2Quote(loop1.?attach_id)\n+\",\"+\"\\\"requestee\\\":\"+String2Quote(loop2.?requestee)\n+\",\"+\"\\\"modified_ts\\\":\"+String2Quote((doc.bug_status=='resolved'||doc.bug_status=='verified'||doc.bug_status=='closed') ? doc.modified_ts : loop2.?modified_ts)\n+\"}\";\n}\n\n}\n\n}\n\"[\"+output+\"]\";\n};\ncool_func(_source)\n",
+        "size": "100000"
+      },
+      "facet_filter": {
+        "and": [
+          {
+            "range": {
+              "modified_ts": {
+                "lt": 1351296000000
               }
             }
           }
