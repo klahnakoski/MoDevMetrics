@@ -38,6 +38,7 @@
 				},
 				"filter": {
 					"and":[
+//						{"term":{"bug_d":"386313"}},
 						{ "range" : { "expires_on" : { "gt" : Date.now().addDay(1) } } },
 						{"not" : {"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}}
 					]
@@ -78,7 +79,7 @@
 									{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
 								]}
 							}),
-					"size": 1000
+					"size": 100000
 				}
 			}
 		}
@@ -96,6 +97,8 @@
 		success: function(data){
 			var esResult = CNV.ESFacet2List(data.facets.pendingReview);
 
+
+			
 			var result = new CUBE().calc2List({
 				"from":
 					//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
@@ -135,6 +138,8 @@
 
 
 			var htmlSummary = "<h1>Reviews Requested, but no Requestee</h1>" + CNV.List2HTMLTable(result);
+
+			htmlSummary+=CNV.List2HTMLTable(data.hits.hits);
 
 			document.getElementById("info").innerHTML = htmlSummary;
 		},
