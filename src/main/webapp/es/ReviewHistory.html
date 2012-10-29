@@ -255,7 +255,9 @@ D.println(CNV.List2Tab(doneReview));
 					if (flooring.indexOf("month")!=-1) flooring="month";
 					if (flooring.indexOf("year")!=-1) flooring="year";
 
-					var reviewQueues = new CUBE().calc2List({
+
+
+					var matchAll = new CUBE().calc2List({
 						"from":
 							inReview,
 						"select":[
@@ -265,13 +267,30 @@ D.println(CNV.List2Tab(doneReview));
 						],
 						"edges":[
 							{"name":"close_record", "test":"bug_id==doneReview.bug_id && attach_id==doneReview.attach_id && requestee==doneReview.requestee && modified_ts<=doneReview.modified_ts", allowNulls:true,
-								"domain":{"type":"set", "name":"doneReview", "key":["bug_id", "attach_id", "requestee"], "partitions":doneReview}
+								"domain":{"type":"set", "name":"doneReview", "key":["bug_id", "attach_id", "modified_ts", "requestee"], "partitions":doneReview}
 							},
 							{"name":"requestee", "value":"requestee"},
 							{"name":"start_time", "value":"new Date(modified_ts)"}
-						]//,
-						//"where":"modified_ts<"+new Date(state.sampleMax).getMilli()+"  && (doneReview.bug_id==null || doneReview.modified_ts>="+new Date(state.sampleMin).getMilli()+")\n"
+						]
 					}).list;
+
+
+					var reviewQueues=new CUBE().calc2List({
+						"from":
+							matchAll,
+						"select":[
+							{"name":"end_time", "value":"end_time", "operation":"minimum"}
+						],
+						"edges":[
+							{"name":"bug_id", "value":"bug_id"},
+							{"name":"attach_id", "value":"attach_id"},
+							{"name":"start_time", "value":"start_time"},
+							{"name":"requestee", "value":"requestee"}
+						],
+						"where":new Date(state.sampleMin).getMilli()+"<=end_time.getMilli() && start_time.getMilli()<"+new Date(state.sampleMax).getMilli()
+					}).list;
+
+
 D.println(CNV.List2Tab(reviewQueues));
 return;
 					var chart=new CUBE().calc2Cube({

@@ -10,6 +10,7 @@ D.error = function(description, cause){
 };//method
 
 D.warning = function(description, cause){
+	console.info(description); return;
 	D.println(new Exception("WARNING: "+description, cause).toString());
 };//method
 

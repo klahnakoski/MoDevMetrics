@@ -30,18 +30,20 @@
         "match_all": {}
       },
       "filter": {
-				"and":[
+		"and":[
 			{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}},
 			{"not": {"terms":{"previous_values.bug_status_value": ["resolved", "verified", "closed"]}}},  //JUST SWITCHED TO CLOSED
+			{"script":{"script":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value'}},
 //			{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}},
 			{"range":{"modified_ts":{"gt":Date.now().add("-6month")}}},
-			{"term":{"keywords":"sec-critical"}}
+			{"term":{"keywords":"sec-critical"}},
+//			{"term":{"assigned_to":"ehsan@mozilla.com"}}
 		]
       }
     }
   },
   "from": 0,
-  "size": 10,
+  "size": 1000,
   "sort": [],
   "facets": {
      "owners": {
@@ -62,6 +64,13 @@
 
 		success: function(data){
 			D.println(CNV.Object2JSON(data));
+
+//			var bugCount=new CUBE().calc2List({
+//				"from":data.facets.owners,
+//				"select":""
+//			});
+
+
 
 			var htmlSummary = CNV.ESResult2HTMLSummaries(data);
 			var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));

@@ -40,9 +40,9 @@ CNV.ESFacet2List = function(esFacet){
 CNV.ESResult2HTMLSummaries = function(esResult){
 	var output = "";
 
-	if (esResult["edges"] === undefined) return output;
+	if (esResult["facets"] === undefined) return output;
 
-	var keys = Object.keys(esResult.edges);
+	var keys = Object.keys(esResult.facets);
 	for(var x = 0; x < keys.length; x++){
 		output += CNV.ESResult2HTMLSummary(esResult, keys[x]);
 	}//for
@@ -53,7 +53,7 @@ CNV.ESResult2HTMLSummaries = function(esResult){
 CNV.ESResult2HTMLSummary = function(esResult, name){
 	var output = "";
 	output += "<h1>" + name + "</h1>";
-	output += CNV.List2HTMLTable(esResult.edges[name].terms);
+	output += CNV.List2HTMLTable(esResult.facets[name].terms);
 	return output;
 };//method
 
