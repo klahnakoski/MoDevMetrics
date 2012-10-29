@@ -38,7 +38,7 @@
 				},
 				"filter": {
 					"and":[
-//						{"term":{"bug_d":"386313"}},
+//						{"term":{"bug_id":386313}},
 						{ "range" : { "expires_on" : { "gt" : Date.now().addDay(1) } } },
 						{"not" : {"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}}
 					]
@@ -46,7 +46,7 @@
 			}
 		},
 		"from":0,
-		"size":100,
+		"size":0,
 		"sort":[
 			{ "bug_version_num" : {"order" : "asc"} }
 		],
@@ -139,7 +139,7 @@
 
 			var htmlSummary = "<h1>Reviews Requested, but no Requestee</h1>" + CNV.List2HTMLTable(result);
 
-			htmlSummary+=CNV.List2HTMLTable(data.hits.hits);
+			D.println(CNV.Object2JSON(data));
 
 			document.getElementById("info").innerHTML = htmlSummary;
 		},

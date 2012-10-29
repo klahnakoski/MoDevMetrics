@@ -340,7 +340,7 @@
 							"from":reviewQueues,
 							"select":{"name":"Pending", "value":"1", operation:"binary"},
 							"edges":[
-								{"name":"Bug ID", "value":"bug_id", "order":["start_time.floor('"+flooring+"')", "end_time.floor('"+flooring+"')"]},
+								{"name":"Bug ID", "value":"attach_id", "order":["start_time.floor('"+flooring+"')", "end_time.floor('"+flooring+"')"]},
 								{"name":"Date", "test":"start_time.floor('"+flooring+"')<=time.value && time.value<=end_time.add('"+flooring+"').floor('"+flooring+"')", "domain":{"type":"time", "min":state.sampleMin, "max":state.sampleMax, "interval":flooring, "format":"NNN dd"}}
 							],
 							"where":new Date(state.sampleMin).getMilli()+"<=end_time.getMilli() && start_time.getMilli()<"+new Date(state.sampleMax).getMilli()
