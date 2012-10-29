@@ -24,104 +24,27 @@
 	D.println(new Date(1348358400000).format("yyyy-NNN-dd HHmmss"));
 
 	var  esQuery = {
-  "query": {
-    "filtered": {
-      "query": {
-        "match_all": {}
-      },
-      "filter": {
-        "and": [
-          {
-            "terms": {
-              "bug_id": [
-                486918,
-                507902
-              ]
-            }
-          },
-          {
-            "nested": {
-              "path": "attachments.flags",
-              "query": {
-                "filtered": {
-                  "query": {
-                    "match_all": {}
-                  },
-                  "filter": {
-                    "and": [
-                      {
-                        "terms": {
-                          "attachments.flags.request_type": [
-                            "review",
-                            "superreview"
-                          ]
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          },
-          {
-            "script": {
-              "script": "true"
-            }
-          },
-          {
-            "script": {
-              "script": "true"
-            }
-          },
-          {
-            "script": {
-              "script": "true"
-            }
-          }
-        ]
-      }
-    }
-  },
-  "from": 0,
-  "size": 10,
-  "sort": [],
-  "facets": {
-    "inReview": {
-      "terms": {
-        "script_field": "var String2Quote = function(str){\nif (!(str is String)){ str; }else{\n\"\\\"\"+str.replace(\"\\\\\",\"\\\\\\\\\").replace(\"\\\"\",\"\\\\\\\"\").replace(\"\\'\",\"\\\\\\'\")+\"\\\"\";}};\nvar floorDay = function(value){ Math.floor(value/(24*60*60*1000))*(24*60*60*1000);};\nvar cool_func = function(doc){\noutput=\"\";\nfor(loop1 : doc.attachments){\nfor(loop2 : loop1.?flags){\nif ((loop1.?attach_id==393341) && ((loop2.?request_status==\"?\") && ((loop2.?request_type==\"review\") || (loop2.?request_type==\"superreview\")) && (loop2.?requestee==\"joe@drew.ca\") && (loop2.?modified_ts==doc.modified_ts)) && (loop1[\"attachments.isobsolete\"]==0)){if (output!=\"\") output+=\", \";\noutput+=\"{\"+\"\\\"bug_id\\\":\"+String2Quote(doc.bug_id)\n+\",\"+\"\\\"attach_id\\\":\"+String2Quote(loop1.?attach_id)\n+\",\"+\"\\\"modified_ts\\\":\"+String2Quote(doc.modified_ts)\n+\",\"+\"\\\"requestee\\\":\"+String2Quote(loop2.?requestee)\n+\"}\";\n}\n\n}\n\n}\n\"[\"+output+\"]\";\n};\ncool_func(_source)\n",
-        "size": "100000"
-      },
-      "facet_filter": {
-        "and": [
-          {
-            "range": {
-              "modified_ts": {
-                "lt": 1351296000000
-              }
-            }
-          }
-        ]
-      }
-    },
-    "doneReview": {
-      "terms": {
-        "script_field": "var String2Quote = function(str){\nif (!(str is String)){ str; }else{\n\"\\\"\"+str.replace(\"\\\\\",\"\\\\\\\\\").replace(\"\\\"\",\"\\\\\\\"\").replace(\"\\'\",\"\\\\\\'\")+\"\\\"\";}};\nvar floorDay = function(value){ Math.floor(value/(24*60*60*1000))*(24*60*60*1000);};\nvar cool_func = function(doc){\noutput=\"\";\nfor(loop1 : doc.attachments){\nfor(loop2 : loop1.?flags){\nif ((loop1.?attach_id==393341) && ((loop2.?request_type==\"review\") || (loop2.?request_type==\"superreview\")) && (((!(loop2.?request_status==\"?\")) && ((loop2.?requestee==\"joe@drew.ca\") || (((loop2.?requestee==null)) && (loop1.?modified_by==\"joe@drew.ca\")))) || ((loop1[\"attachments.isobsolete\"]==1) && (loop1.?modified_by==\"joe@drew.ca\")) || (((doc.bug_status==\"resolved\") || (doc.bug_status==\"verified\") || (doc.bug_status==\"closed\")) && (loop2.?requestee==\"joe@drew.ca\"))) && (loop1[\"attachments.isobsolete\"]==0)){if (output!=\"\") output+=\", \";\noutput+=\"{\"+\"\\\"bug_id\\\":\"+String2Quote(doc.bug_id)\n+\",\"+\"\\\"attach_id\\\":\"+String2Quote(loop1.?attach_id)\n+\",\"+\"\\\"requestee\\\":\"+String2Quote(loop2.?requestee)\n+\",\"+\"\\\"modified_ts\\\":\"+String2Quote((doc.bug_status=='resolved'||doc.bug_status=='verified'||doc.bug_status=='closed') ? doc.modified_ts : loop2.?modified_ts)\n+\"}\";\n}\n\n}\n\n}\n\"[\"+output+\"]\";\n};\ncool_func(_source)\n",
-        "size": "100000"
-      },
-      "facet_filter": {
-        "and": [
-          {
-            "range": {
-              "modified_ts": {
-                "lt": 1351296000000
-              }
-            }
-          }
-        ]
-      }
-    }
-  }
-};
+		"query": {
+			"filtered" : {
+				"query": {
+					"match_all" : {}
+				},
+				"filter": {
+					"and":[
+						{"term":{"bug_id": 796970}},
+						{ "range" : { "expires_on" : { "gt" : new Date().getTime()+1000000000 } } },
+						{"not" : {"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}}
+					]
+				}
+			}
+		},
+		"from":0,
+		"size":100,
+		"sort":[
+			{ "bug_version_num" : {"order" : "asc"} }
+		]
+	};
+
 
 	var request = $.ajax({
 		url: window.ElasticSearchRestURL,
