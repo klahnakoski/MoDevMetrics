@@ -22,11 +22,11 @@ var Exception=function(description, cause){
 
 Exception.prototype.toString=function(){
 	if (this.cause===undefined){
-		D.println(this.description);
+		return this.description;
 	}else if (this.cause instanceof Exception){
-		D.println(this.description + " caused by (\n" + this.cause.toString().indent(1) + "\n)\n");
+		return this.description + " caused by (\n" + this.cause.toString().indent(1) + "\n)\n";
 	}else{
-		D.println(this.description + " caused by (" + this.cause + ")");
+		return this.description + " caused by (" + this.cause + ")";
 	}//endif
 };
 
