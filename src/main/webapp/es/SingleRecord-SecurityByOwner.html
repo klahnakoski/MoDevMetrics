@@ -23,6 +23,9 @@
 	D.println(new Date(1347753600000).format("yyyy-NNN-dd HHmmss"));
 	D.println(new Date(1348358400000).format("yyyy-NNN-dd HHmmss"));
 
+	////////////////////////////////////////////////////////////////////////////
+	// WARNING, DOUBLE COUNTS REOPENED BUGS
+	////////////////////////////////////////////////////////////////////////////
 	var  esQuery = {
   "query": {
     "filtered": {
@@ -36,7 +39,7 @@
 			{"script":{"script":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value'}},
 //			{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}},
 			{"range":{"modified_ts":{"gt":Date.now().add("-6month")}}},
-			{"term":{"keywords":"sec-critical"}},
+			{"term":{"keywords":"sec-critical"}}
 //			{"term":{"assigned_to":"ehsan@mozilla.com"}}
 		]
       }
@@ -48,7 +51,7 @@
   "facets": {
      "owners": {
       "terms": {
-        "field": "assigned_to",
+        "script_field": "doc['assigned_to'].value+'|'+doc['bug_id'].value",
 		 "size": "100000"
       }
 

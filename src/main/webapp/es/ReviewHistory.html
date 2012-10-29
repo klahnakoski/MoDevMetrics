@@ -257,7 +257,7 @@ D.println(CNV.List2Tab(doneReview));
 
 
 
-					var matchAll = new CUBE().calc2List({
+					var reviewQueues = new CUBE().calc2List({
 						"from":
 							inReview,
 						"select":[
@@ -271,24 +271,10 @@ D.println(CNV.List2Tab(doneReview));
 							},
 							{"name":"requestee", "value":"requestee"},
 							{"name":"start_time", "value":"new Date(modified_ts)"}
-						]
-					}).list;
-
-
-					var reviewQueues=new CUBE().calc2List({
-						"from":
-							matchAll,
-						"select":[
-							{"name":"end_time", "value":"end_time", "operation":"minimum"}
-						],
-						"edges":[
-							{"name":"bug_id", "value":"bug_id"},
-							{"name":"attach_id", "value":"attach_id"},
-							{"name":"start_time", "value":"start_time"},
-							{"name":"requestee", "value":"requestee"}
 						],
 						"where":new Date(state.sampleMin).getMilli()+"<=end_time.getMilli() && start_time.getMilli()<"+new Date(state.sampleMax).getMilli()
 					}).list;
+
 
 
 D.println(CNV.List2Tab(reviewQueues));

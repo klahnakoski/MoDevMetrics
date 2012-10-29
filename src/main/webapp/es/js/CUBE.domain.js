@@ -327,8 +327,7 @@ CUBE.domain.set = function(column, sourceColumns){
 	d.NULL.name="null";
 
 
-	if (d.key === undefined) d.key = "value";
-	CUBE.domain.set.compileKey(d.key, d);
+
 	
 	d.compare = function(a, b){
 		return CUBE.domain.value.compare(d.getKey(a), d.getKey(b));
@@ -351,22 +350,26 @@ CUBE.domain.set = function(column, sourceColumns){
 	if (d.partitions === undefined) D.error("Expecting domain " + d.name + " to have a 'partitions' attribute to define the set of partitions that compose the domain");
 
 	//DEFINE VALUE->PARTITION MAP
-	d.map = {};
+	if (column.test===undefined){
+		if (d.key === undefined) d.key = "value";
+		CUBE.domain.set.compileKey(d.key, d);
 
-	//ENSURE PARTITIONS HAVE UNIQUE KEYS
-	for(var i = 0; i < d.partitions.length; i++){
-		var part = d.partitions[i];
-		var key=d.getKey(part);
-		if (key === undefined) D.error("Expecting object to have '" + d.key + "' attribute:" + CNV.Object2JSON(part));
-		if (d.map[key] !== undefined){
-			D.error("Domain '" + d.name + "' was given two partitions that map to the same value (a[\"" + d.key + "\"]==b[\"" + d.key + "\"]): where a=" + CNV.Object2JSON(part) + " and b=" + CNV.Object2JSON(d.map[key]));
-		}//endif
-		d.map[key] = part;
-	}//for
+		d.map = {};
 
-
-	if (column.test !== undefined){
+		//ENSURE PARTITIONS HAVE UNIQUE KEYS
+		for(var i = 0; i < d.partitions.length; i++){
+			var part = d.partitions[i];
+			var key=d.getKey(part);
+			if (key === undefined) D.error("Expecting object to have '" + d.key + "' attribute:" + CNV.Object2JSON(part));
+			if (d.map[key] !== undefined){
+				D.error("Domain '" + d.name + "' was given two partitions that map to the same value (a[\"" + d.key + "\"]==b[\"" + d.key + "\"]): where a=" + CNV.Object2JSON(part) + " and b=" + CNV.Object2JSON(d.map[key]));
+			}//endif
+			d.map[key] = part;
+		}//for
+	}else{
 		if (d.key !== undefined) D.warning("Domain '" + d.name + "' does not require a 'key' attribute when the colum has 'test' attribute");
+		d.getKey=function(value){return null;};	 //COLLAPSE EDGE TO ONE VALUE
+
 		////////////////////////////////////////////////////////////////////////
 		//FIND A "==" OPERATOR AND USE IT TO DEFINE AN INDEX INTO THE DOMAIN'S VALUES
 		//THIS IS HACKY OPTIMIZATION, BUT SEVERELY REQUIRED BECAUSE JOINS WILL
