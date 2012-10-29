@@ -87,6 +87,7 @@
 <script type="text/javascript" src="js/filters/CustomFilters.js"></script>
 <script type="text/javascript" src="js/filters/GUIFilters.js"></script>
 
+<h2>Extremely slow (about 3minutes)</h2>
 <table style="width: 100%;">
 	<tr>
 		<td style="width: 320px;">
@@ -118,7 +119,7 @@
 					"filter" : {
 						"and":[
 
-//							{"terms":{"bug_id":[486918, 507902]}},//, 19963, 505741]}},
+//							{"terms":{"bug_id":[554835]}},//, 19963, 505741]}},
 							{ "nested": {
 								"path" : "attachments.flags",
 								"query": {
@@ -174,60 +175,6 @@
 								{"range":{"modified_ts":{"lt":new Date(state.sampleMax).getMilli()}}}
 							]
 						}
-					},
-					"doneReview" : {
-						"terms":{
-							"script_field":
-								new MVEL().code({
-									"select" : [
-										{"name":"bug_id", "value":"doc.bug_id"},
-										{"name":"attach_id", "value":"doc.attachments.attach_id"},
-										{"name":"modified_ts", "value":"(doc.bug_status=='resolved'||doc.bug_status=='verified'||doc.bug_status=='closed') ? doc.modified_ts : doc.attachments.flags.modified_ts"},
-										{"name":"requestee", "value":"doc.attachments.flags.requestee==null ? doc.attachments.modified_by : doc.attachments.flags.requestee"}
-									],
-									"from":
-											"doc.attachments.flags",
-									"where":
-									{"and" : [
-//										{"term":{"doc.attachments.attach_id":"614487"}},
-										{"not":{"missing":{"field":"doc.attachments.flags.request_type", "existence":true, "null_value":true}}},
-										{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-										{"or" : [
-											{ "and" : [//IF THE REQUESTEE SWITCHED THE ? FLAG, THEN IT IS DONE
-												{"not": {"terms" : {"doc.attachments.flags.request_status" : ["?"]}}},
-												{"or":[
-													{"term" : {"doc.attachments.flags.requestee" : state.requestee}},
-													{"and":[
-														{"missing":{"field":"doc.attachments.flags.requestee", "existence":true, "null_value":true}},
-														{"term":{"doc.attachments.modified_by": state.requestee}}
-													]}
-												]}
-											]},
-											{ "and" : [//IF THE ? WAS SWITCHED TO ANOTHER REQUESTEE, THEN IT IS DONE
-												{"term" : {"doc.attachments.flags.request_status" : "?"}},
-												{"not":{"term" : {"doc.attachments.flags.requestee" : state.requestee}}},
-												{"term":{"doc.attachments.modified_by": state.requestee}} //FOR SPEED
-											]},
-											{"and":[//IF THE REQUESTEE OBSOLEETED THE ATTACHMENT, IT IS DONE
-												{"not":{"missing":{"field":"doc.previous_values", "existence":true, "null_value":true}}},
-												{"term":{"doc.previous_values[\"attachments.isobsolete_values\"]" : 0}},
-												{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 1}},
-												{"term":{"doc.attachments.modified_by": state.requestee}}																								
-											]},
-											{ "and" : [//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
-												{"terms" : {"doc.bug_status" : ["resolved", "verified", "closed"]}},
-												{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
-											]}
-										]}
-									]}
-								}),
-							"size": state.esSize
-						},
-						"facet_filter":{//HOPEFULLY THIS HELPS
-							"and":[
-								{"range":{"modified_ts":{"lt":new Date(state.sampleMax).getMilli()}}}
-							]
-						}
 					}
 				}
 			};
@@ -246,67 +193,177 @@
 //			,
 			{
 				"success" : function(requestObj, data){
-					status.message("processing Data");
 					var inReview = CNV.ESFacet2List(data.facets.inReview);
-					var doneReview = CNV.ESFacet2List(data.facets.doneReview);
 
+					var bugList=new CUBE().calc2Cube({
+						"from":inReview,
+						"select":{"name":"bug_id", "value":"bug_id", "operation":"one"},
+						"edges":[{"name":"bug_id", "value":"bug_id"}]
+					}).data;
 
-D.println(CNV.List2Tab(inReview));
-D.println(CNV.List2Tab(doneReview));
+					status.message("Call ES, again");
 
+					var esQuery2 = {
+							"query":{"filtered":{
+								"query": {
+									"match_all" : {}
+								},
+								"filter" : {
+									"and":[
 
-					var flooring=state.sampleInterval;
-					if (flooring.indexOf("hour")!=-1) flooring="hour";
-					if (flooring.indexOf("day")!=-1) flooring="day";
-					if (flooring.indexOf("week")!=-1) flooring="week";
-					if (flooring.indexOf("month")!=-1) flooring="month";
-					if (flooring.indexOf("year")!=-1) flooring="year";
-
-
-
-					var reviewQueues = new CUBE().calc2List({
-						"from":
-							inReview,
-						"select":[
-//							{"name":"close_record", "order":["doneReview.end_time", ""]},
-							{"name":"end_time", "value":"new Date(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "operation":"minimum"}
-						],
-						"edges":[
-							{"name":"bug_id", "value":"bug_id"},
-							{"name":"attach_id", "value":"attach_id"},
-							{"name":"requestee", "value":"requestee"},
-							{"name":"start_time", "value":"new Date(modified_ts)"},
-							{"name":"close_record", "test":"bug_id==doneReview.bug_id && attach_id==doneReview.attach_id && requestee==doneReview.requestee && modified_ts<=doneReview.modified_ts", allowNulls:true,
-								"domain":{"type":"set", "name":"doneReview", "key":["bug_id", "attach_id", "modified_ts", "requestee"], "partitions":doneReview}
+										{"terms":{"bug_id":bugList}},//, 19963, 505741]}},
+										{ "nested": {
+											"path" : "attachments.flags",
+											"query": {
+												"filtered" : {
+													"query" : {
+														"match_all" : {}
+													},
+													"filter" : {
+														"and":[
+															{"terms" : {"attachments.flags.request_type" : ["review", "superreview"]}}
+														]
+													}
+												}
+											}
+										}}
+									]
+								}
+							}},
+							"from" : 0,
+							"size" : 10,
+							"sort" : [],
+							"facets":{
+								"doneReview" : {
+									"terms":{
+										"script_field":
+											new MVEL().code({
+												"select" : [
+													{"name":"bug_id", "value":"doc.bug_id"},
+													{"name":"attach_id", "value":"doc.attachments.attach_id"},
+													{"name":"modified_ts", "value":"(doc.bug_status=='resolved'||doc.bug_status=='verified'||doc.bug_status=='closed') ? doc.modified_ts : doc.attachments.flags.modified_ts"},
+													{"name":"requestee", "value":"doc.attachments.flags.requestee==null ? doc.attachments.modified_by : doc.attachments.flags.requestee"}
+												],
+												"from":
+														"doc.attachments.flags",
+												"where":
+												{"and" : [
+//										{"term":{"doc.attachments.attach_id":"614487"}},
+													{"not":{"missing":{"field":"doc.attachments.flags.request_type", "existence":true, "null_value":true}}},
+													{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
+													{"or" : [
+														{ "and" : [//IF THE REQUESTEE SWITCHED THE ? FLAG, THEN IT IS DONE
+															{"not": {"terms" : {"doc.attachments.flags.request_status" : ["?"]}}},
+															{"or":[
+																{"term" : {"doc.attachments.flags.requestee" : state.requestee}},
+																{"and":[
+																	{"missing":{"field":"doc.attachments.flags.requestee", "existence":true, "null_value":true}},
+																	{"term":{"doc.attachments.modified_by": state.requestee}}
+																]}
+															]}
+														]},
+														{ "and" : [//IF THE ? WAS SWITCHED TO ANOTHER REQUESTEE, THEN IT IS DONE
+															{"term" : {"doc.attachments.flags.request_status" : "?"}},
+															{"not":{"term" : {"doc.attachments.flags.requestee" : state.requestee}}}
+//												{"term":{"doc.attachments.modified_by": state.requestee}} //ANYONE CAN SWITCH
+														]},
+														{"and":[//IF THE REQUESTEE OBSOLEETED THE ATTACHMENT, IT IS DONE
+															{"not":{"missing":{"field":"doc.previous_values", "existence":true, "null_value":true}}},
+															{"term":{"doc.previous_values[\"attachments.isobsolete_values\"]" : 0}},
+															{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 1}}
+//												{"term":{"doc.attachments.modified_by": state.requestee}}  //ANYONE CAN OBSOLETE
+														]},
+														{ "and" : [//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
+															{"terms" : {"doc.bug_status" : ["resolved", "verified", "closed"]}},
+															{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
+														]}
+													]}
+												]}
+											}),
+										"size": state.esSize
+									},
+									"facet_filter":{//HOPEFULLY THIS HELPS
+										"and":[
+											{"range":{"modified_ts":{"lt":new Date(state.sampleMax).getMilli()}}}
+										]
+									}
+								}
 							}
-						]
-					}).list;
+						};
+
+
+					RestQuery.Run({"success":function(requestObj, data){
+
+
+						status.message("processing Data");
+						var doneReview = CNV.ESFacet2List(data.facets.doneReview);
+
+
+//	D.println(CNV.List2Tab(inReview));
+//	D.println(CNV.List2Tab(doneReview));
+
+
+						var flooring=state.sampleInterval;
+						if (flooring.indexOf("hour")!=-1) flooring="hour";
+						if (flooring.indexOf("day")!=-1) flooring="day";
+						if (flooring.indexOf("week")!=-1) flooring="week";
+						if (flooring.indexOf("month")!=-1) flooring="month";
+						if (flooring.indexOf("year")!=-1) flooring="year";
 
 
 
-D.println(CNV.List2Tab(reviewQueues));
-					
-					var chart=new CUBE().calc2Cube({
-						"name":
-							"Historical Review Queue for "+state.requestee,
-						"from":reviewQueues,
-						"select":{"name":"Pending", "value":"1", operation:"binary"},
-						"edges":[
-							{"name":"Bug ID", "value":"bug_id", "order":["start_time.floor('"+flooring+"')", "end_time.floor('"+flooring+"')"]},
-							{"name":"Date", "test":"start_time.floor('"+flooring+"')<=time.value && time.value<=end_time.add('"+flooring+"').floor('"+flooring+"')", "domain":{"type":"time", "min":state.sampleMin, "max":state.sampleMax, "interval":flooring, "format":"NNN dd"}}
-						],
-						"where":new Date(state.sampleMin).getMilli()+"<=end_time.getMilli() && start_time.getMilli()<"+new Date(state.sampleMax).getMilli()
-					});
+						var reviewQueues = new CUBE().calc2List({
+							"from":
+								inReview,
+							"select":[
+//							{"name":"close_record", "order":["doneReview.end_time", ""]},
+								{"name":"end_time", "value":"new Date(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "operation":"minimum"}
+							],
+							"edges":[
+								{"name":"bug_id", "value":"bug_id"},
+								{"name":"attach_id", "value":"attach_id"},
+								{"name":"requestee", "value":"requestee"},
+								{"name":"start_time", "value":"new Date(modified_ts)"},
+								{"name":"close_record", "test":"bug_id==doneReview.bug_id && attach_id==doneReview.attach_id && requestee==doneReview.requestee && modified_ts<=doneReview.modified_ts", allowNulls:true,
+									"domain":{"type":"set", "name":"doneReview", "key":["bug_id", "attach_id", "modified_ts", "requestee"], "partitions":doneReview}
+								}
+							]
+						}).list;
 
 
 
-					aChart.showCCC({
-						"id":"chart",
-						"type":"stacked",
-						"cube":chart
-					});
+	D.println(CNV.List2Tab(reviewQueues));
 
-					status.message("Done");
+						var chart=new CUBE().calc2Cube({
+							"name":
+								"Historical Review Queue for "+state.requestee,
+							"from":reviewQueues,
+							"select":{"name":"Pending", "value":"1", operation:"binary"},
+							"edges":[
+								{"name":"Bug ID", "value":"bug_id", "order":["start_time.floor('"+flooring+"')", "end_time.floor('"+flooring+"')"]},
+								{"name":"Date", "test":"start_time.floor('"+flooring+"')<=time.value && time.value<=end_time.add('"+flooring+"').floor('"+flooring+"')", "domain":{"type":"time", "min":state.sampleMin, "max":state.sampleMax, "interval":flooring, "format":"NNN dd"}}
+							],
+							"where":new Date(state.sampleMin).getMilli()+"<=end_time.getMilli() && start_time.getMilli()<"+new Date(state.sampleMax).getMilli()
+						});
+
+
+
+						aChart.showCCC({
+							"id":"chart",
+							"type":"stacked",
+							"cube":chart
+						});
+
+						status.message("Done");
+
+
+					}},0,esQuery2);
+
+
+
+
+
+
 				}
 			},
 			0,
