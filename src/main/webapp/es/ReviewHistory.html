@@ -247,6 +247,7 @@
 D.println(CNV.List2Tab(inReview));
 D.println(CNV.List2Tab(doneReview));
 
+
 					var flooring=state.sampleInterval;
 					if (flooring.indexOf("hour")!=-1) flooring="hour";
 					if (flooring.indexOf("day")!=-1) flooring="day";
@@ -272,7 +273,7 @@ D.println(CNV.List2Tab(doneReview));
 						//"where":"modified_ts<"+new Date(state.sampleMax).getMilli()+"  && (doneReview.bug_id==null || doneReview.modified_ts>="+new Date(state.sampleMin).getMilli()+")\n"
 					}).list;
 D.println(CNV.List2Tab(reviewQueues));
-
+return;
 					var chart=new CUBE().calc2Cube({
 						"name":
 							"Historical Review Queue for "+state.requestee,
@@ -309,7 +310,6 @@ D.println(CNV.List2Tab(reviewQueues));
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("week")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		]);
-		createChart();
 	});
 
 </script>

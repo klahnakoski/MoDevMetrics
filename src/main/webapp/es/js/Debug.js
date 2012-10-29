@@ -6,7 +6,6 @@ D.println = function(message){
 };//method
 
 D.error = function(description, cause){
-	//console.error(description);
 	throw new Exception(description, cause);
 };//method
 

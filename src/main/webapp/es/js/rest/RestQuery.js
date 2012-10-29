@@ -43,7 +43,7 @@ RestQuery.prototype.success = function(data){
 	try{
 		this.callbackObject.success(this, data);
 	}catch(e){
-		D.error("Problem calling success()", e);
+		D.warning("Problem calling success()", e);
 	}//try
 };
 
@@ -55,7 +55,7 @@ RestQuery.prototype.error = function(errorData, errorMsg, errorThrown){
 	try{
 		this.callbackObject.error(this, errorData, errorMsg, errorThrown);
 	}catch(e){
-		D.error("Problem with reporting back error: '"+errorMsg+"'", e);
+		D.warning("Problem with reporting back error: '"+errorMsg+"'", e);
 	}//try
 };
 
