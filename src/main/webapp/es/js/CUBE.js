@@ -139,7 +139,8 @@ CUBE.prototype.calc2List = function(query){
 	}//for
 
 	for(var g = 0; g < edges.length; g++){
-		if (edges[g].outOfDomainCount > 0) D.warning(edges[g].name + " has " + edges[g].outOfDomainCount + " records outside domain " + edges[g].domain.name);
+		if (edges[g].outOfDomainCount > 0)
+			D.warning(edges[g].name + " has " + edges[g].outOfDomainCount + " records outside domain " + edges[g].domain.name);
 	}//for
 
 

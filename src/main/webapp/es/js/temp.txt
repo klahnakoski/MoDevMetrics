@@ -55,3 +55,33 @@ if (
 cool_func(_source)
 
 
+{"and" : [
+	{"term":{"doc.attachments.attach_id":"556069"}},
+	{"not":{"missing":{"field":"doc.attachments.flags.request_type", "existence":true, "null_value":true}}},
+	{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
+	{"or" : [
+		{ "and" : [//IF THE REQUESTEE SWITCHED THE ? FLAG, THEN IT IS DONE
+			{"not": {"terms" : {"doc.attachments.flags.request_status" : ["?"]}}},
+			{"or":[
+				{"term" : {"doc.attachments.flags.requestee" : state.requestee}},
+				{"and":[
+					{"missing":{"field":"doc.attachments.flags.requestee", "existence":true, "null_value":true}},
+					{"term":{"doc.attachments.modified_by": state.requestee}}
+				]}
+			]}
+		]},
+		{ "and" : [//IF THE ? WAS SWITCHED TO ANOTHER REQUESTEE, THEN IT IS DONE
+			{"term" : {"doc.attachments.flags.request_status" : "?"}},
+			{"not":{"term" : {"doc.attachments.flags.requestee" : state.requestee}}}
+		]},
+		{"and":[//IF THE REQUESTEE OBSOLEETED THE ATTACHMENT, IT IS DONE
+			{"not":{"missing":{"field":"doc.previous_values", "existence":true, "null_value":true}}},
+			{"term":{"doc.previous_values[\"attachments.isobsolete_values\"]" : 0}},
+			{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 1}}
+		]},
+		{ "and" : [//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
+			{"terms" : {"doc.bug_status" : ["resolved", "verified", "closed"]}},
+			{"term" : {"doc.attachments.flags.requestee" : state.requestee}}
+		]}
+	]}
+]}
