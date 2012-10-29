@@ -197,7 +197,6 @@
 						"edges":[{"name":"bug_id", "value":"bug_id"}]
 					}).data;
 
-					status.message("Call ES, again");
 
 					var esQuery2 = {
 							"query":{"filtered":{
@@ -287,6 +286,9 @@
 							}
 						};
 
+					console.info(CNV.Object2JSON(esQuery2));
+					status.message("Call ES, again");
+
 
 					RestQuery.Run({"success":function(requestObj, data){
 
@@ -320,7 +322,9 @@
 								{"name":"attach_id", "value":"attach_id"},
 								{"name":"requestee", "value":"requestee"},
 								{"name":"start_time", "value":"new Date(modified_ts)"},
-								{"name":"close_record", "test":"bug_id==doneReview.bug_id && attach_id==doneReview.attach_id && requestee==doneReview.requestee && modified_ts<=doneReview.modified_ts", allowNulls:true,
+								{"name":"close_record",
+									"test":"bug_id==doneReview.bug_id && attach_id==doneReview.attach_id && requestee==doneReview.requestee && modified_ts<=doneReview.modified_ts",
+									allowNulls:true,
 									"domain":{"type":"set", "name":"doneReview", "key":["bug_id", "attach_id", "modified_ts", "requestee"], "partitions":doneReview}
 								}
 							]
@@ -372,7 +376,7 @@
 		GUI.setup([
 			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"joe@drew.ca"},
 			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-3month")},
-			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
+			{"id":"sampleMax", "name":"Sample To (but not including)", "type":"time", "default":Date.now().floor("day")},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("week")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		]);

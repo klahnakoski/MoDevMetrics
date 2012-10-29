@@ -88,7 +88,7 @@ GUI.AddParameters=function(parameters){
 	GUI.parameters=parameters;
 
 	//INSERT HTML
-	var template='<span class="parameter_name">{NAME}</span><input type="{TYPE}" id="{ID}"><span class="parameter_error" id="{ID}_error"></span><br>\n';
+	var template='<span class="parameter_name">{NAME}</span><input type="{TYPE}" id="{ID}"><span class="parameter_error" id="{ID}_error"></span><br><br>\n';
 	var html="";
 	parameters.forEach(function(param){
 		html+=template.replaceVars({
