@@ -30,6 +30,8 @@
 
 <script type="text/javascript">
 
+	document.getElementById("info").innerHTML = "<h3>This will take many seconds to load to load</h3>";
+
 	var query = {
 		"query": {
 			"filtered" : {
@@ -68,12 +70,14 @@
 										{ "and" : [
 											{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
 											{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-//											{"missing" : {
-//												"field" : "doc.attachments.flags.requestee",
-//												"existence" : true,
-//												"null_value" : true
-//											}}
-
+											{"or":[
+												{"missing" : {
+													"field" : "doc.attachments.flags.requestee",
+													"existence" : true,
+													"null_value" : true
+												}},
+												{"term":{"doc.attachments.flags.requestee":"nobody@mozilla.org"}}
+											]}
 										]}
 									]},
 									{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}

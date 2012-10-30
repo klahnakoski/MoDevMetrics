@@ -378,14 +378,16 @@ ESQuery.compileTime2Term=function(edge){
 
 	partition2int="(("+nullTest+") ? "+numPartitions+" : "+partition2int+")";
 	if (edge.domain.type=="time"){
+		var reference=new Date(ref);
 		int2Partition=function(value){
 			if (Math.round(value)==numPartitions) return edge.domain.NULL;
-			return edge.domain.getPartition(new Date((value*edge.domain.interval.milli)+ref));
+			return edge.domain.getPartition(reference.add(edge.domain.interval.multiply(value)));
 		};
 	}else{
+		var offset=Duration.newInstance(ref);
 		int2Partition=function(value){
 			if (Math.round(value)==numPartitions) return edge.domain.NULL;
-			return edge.domain.getPartition(Duration.newInstance((value*edge.domain.interval.milli)+ref));
+			return edge.domain.getPartition(offset.add(edge.domain.interval.multiply(value)));
 		};
 	}//endif
 
