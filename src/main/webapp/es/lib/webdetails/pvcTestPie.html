@@ -35,13 +35,13 @@
   </head>
   <body>
 
-    <h2>
+    <h1>
       Pie Chart
-    </h2>
+    </h1>
 Pie charts are useful for performing relative comparisons: how do the parts make up the whole? 
 An alternative to pie is the donut chart.
 
-<h3>Chart Options</h3>
+<h2>Chart Options</h2>
 <h4>Dimensions</h4>
 <ul>
   <li>width</li>
@@ -80,7 +80,7 @@ specified, explodes only one slice.&nbsp;Else explodes all.
 Default: 0<br>
   </li>
 </ul>
-<h3>Extension Points</h3>
+<h2>Extension Points</h2>
 The following&nbsp;list&nbsp;serves as the basis
 for&nbsp;Pie extension points:
 <ul>
@@ -99,8 +99,8 @@ Sample extension points:<br>
   <li>pieLabel_textAngle</li>
 </ul>
 
-<h3>Examples</h3>
-<h4>A Simple Pie </h3>
+<h2>Examples</h2>
+<h3>A Simple Pie </h2>
 This is the simplest pie ever. Just provide the dimensions, a title and the data to be rendered.
 <textarea cols="55" rows="15" id="pvcPie1Code">
         var pie = new pvc.PieChart({
@@ -122,7 +122,7 @@ This is the simplest pie ever. Just provide the dimensions, a title and the data
         <button class="tryMe" onclick='tryMe(this)'>Try me</button>
         <div id="pvcPie1"></div>
 
-<h4>A Rich Pie </h4>
+<h3>A Rich Pie </h3>
 Any simple pie can be enhanced by configuring the legends, setting colors, fonts, and more. 
 <textarea cols="55" rows="22" id="pvcPie2Code">
         var pie = new pvc.PieChart({
@@ -164,7 +164,7 @@ Any simple pie can be enhanced by configuring the legends, setting colors, fonts
         <button class="tryMe" onclick='tryMe(this)'>Try me</button>
         <div id="pvcPie2"></div>
     
-<h4>A Donut</h4>
+<h3>A Donut</h3>
 A pie can be converted into a donut by simple adding an extension point:
 <ul>
   <li>pie_innerRadius</li>

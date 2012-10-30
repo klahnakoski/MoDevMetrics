@@ -36,16 +36,16 @@
   </head>
   <body>
 
-    <h2>
+    <h1>
       Bullet Chart
-    </h2>
+    </h1>
 Bullet Charts are a replacement for so-called gauge and -meter charts 
 (think gas gauge and thermometer).<br>
 They compare a given quantitative measure (such as profit or revenue) against 
 qualitative ranges (e.g., poor, satisfactory, good) and related markers 
 (e.g. the same measure a year ago), as typically found in a gauge-type chart 
 into a much smaller space with a much higher data density.<br>
-<h3>Chart Options</h3>
+<h2>Chart Options</h2>
 <h4>Dimensions</h4>
 <ul>
   <li>width</li>
@@ -69,7 +69,7 @@ into a much smaller space with a much higher data density.<br>
   <li>bulletSpacing - spacing between bullets</li>
   <li>bulletMargin - left margin</li>  
 </ul>
-<h3>Extension Points</h3>
+<h2>Extension Points</h2>
 The following&nbsp;list&nbsp;serves as the basis
 for the Bullet char extension points:
 <ul>
@@ -94,9 +94,9 @@ Sample extension points:<br>
   <li>bulletMarker_shape</li>
 </ul>
 
-<h3>Examples</h3>
+<h2>Examples</h2>
 
-<h4>Bullet chart with fixed values</h4>
+<h3>Bullet chart with fixed values</h3>
 When no datasource is passed, the bullet chart is rendered based on the fixed values provided for 
 bulletTitle, bulletSubtitle, bulletMeasures, bulletMarkers and bulletRanges.<br> 
     
@@ -129,7 +129,7 @@ var bullet1 = new pvc.BulletChart({
         <button class="tryMe" onclick='tryMe(this)'>Try me</button>
         <div id="pvcBullet1"></div>
 
-<h4>Bullet chart based on a datasource</h4>
+<h3>Bullet chart based on a datasource</h3>
 When a datasource is provided, the bullet chart is rendered according to the structure of data. 
 <br>
 The supplied data can have one of the following formats:<br>

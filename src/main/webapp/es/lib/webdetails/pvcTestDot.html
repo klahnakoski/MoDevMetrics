@@ -35,13 +35,13 @@
   </head>
   <body>
 
-    <h2>
+    <h1>
      Dot Chart
-    </h2>
+    </h1>
 A Dot chart consists of group of data points plotted on a simple scale.
 The Dot chart can be a very useful alternative to the horizontal bar chart, being the dot chart less cluttered and less redundant than that.
 
-<h3>Chart Options</h3>
+<h2>Chart Options</h2>
 <h4>Dimensions</h4>
 <ul>
   <li>width</li>
@@ -80,7 +80,7 @@ The Dot chart can be a very useful alternative to the horizontal bar chart, bein
   <li>panelSizeRatio - Ratio of the band occupied by the pane. 
 Default: 0.5 (50%)</li>
 </ul>
-<h3>Extension Points</h3>
+<h2>Extension Points</h2>
 The following&nbsp;list&nbsp;serves as the basis
 for&nbsp;Dot chart extension points:
 <ul>
@@ -106,8 +106,8 @@ Sample extension points:<br>
   <li>dot_shape</li>
 </ul>
 
-<h3>Examples</h3>
-<h4>A Simple Dot Chart</h4>
+<h2>Examples</h2>
+<h3>A Simple Dot Chart</h3>
 Here you have a very simple dot chart.<br>
 <textarea cols="55" rows="15" id="pvcDot1Code">
           var dot1 = new pvc.DotChart({
@@ -130,7 +130,7 @@ Here you have a very simple dot chart.<br>
         <button class="tryMe" onclick='tryMe(this)'>Try me</button>
         <div id="pvcDot1"></div>
 
-<h4>An attractive dot chart</h4>
+<h3>An attractive dot chart</h3>
 The simplest dot chart can become more attractive by setting some properties as for example
 the shape or color for the dots.<br>
 <textarea cols="55" rows="15" id="pvcDot2Code">
@@ -166,7 +166,7 @@ the shape or color for the dots.<br>
         <button class="tryMe" onclick='tryMe(this)'>Try me</button>
         <div id="pvcDot2"></div>
 
-<h4>A Time series dot chart</h4>
+<h3>A Time series dot chart</h3>
 To use a dot chart to render a time series, just set the timeSeries to true, and set the timeSeriesFormat property.<br>
 <textarea cols="55" rows="15" id="pvcDot3Code">
   var dot3 = new pvc.DotChart({
