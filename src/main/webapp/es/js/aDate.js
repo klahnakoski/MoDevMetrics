@@ -390,8 +390,18 @@ Duration.prototype.floor = function(interval){
 	if (interval.milli === undefined) D.error("Expecting an interval as a Duration object");
 	var output = new Duration();
 
-	//A MONTH OF DURATION IS BIGGER THAN A CANONICAL MONTH
 	if (interval.month != 0){
+		if (this.month!=0){
+			output.month = Math.round(this.month/interval.month)*interval.month;
+			var rest=(this.milli - (Duration.MILLI_VALUES["month"] * this.month));
+			if (rest>Duration.MILLI_VALUES["month"]){
+				D.error("This duration has more tan a month's worth of millis, can not handle this rounding");
+			}//endif
+			output.milli = output.month * Duration.MILLI_VALUES["month"];
+			return output;
+		}//endif
+
+		//A MONTH OF DURATION IS BIGGER THAN A CANONICAL MONTH
 		output.month = Math.floor(this.milli * 12 / Duration.MILLI_VALUES["year"] / interval.month)*interval.month;
 		output.milli = output.month * Duration.MILLI_VALUES["month"];
 	} else{
