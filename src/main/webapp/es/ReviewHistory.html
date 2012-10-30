@@ -119,7 +119,7 @@
 					"filter" : {
 						"and":[
 
-							{"terms":{"bug_id":[600556]}},//, 19963, 505741]}},
+//							{"terms":{"bug_id":[600556]}},//, 19963, 505741]}},
 							{ "nested": {
 								"path" : "attachments.flags",
 								"query": {
@@ -244,7 +244,7 @@
 														"doc.attachments.flags",
 												"where":
 												{"and" : [
-													{"term":{"doc.attachments.attach_id":"556069"}},
+//													{"term":{"doc.attachments.attach_id":"556069"}},
 													{"not":{"missing":{"field":"doc.attachments.flags.request_type", "existence":true, "null_value":true}}},
 													{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
 													{"or" : [
@@ -329,6 +329,7 @@
 									"domain":{"type":"set", "name":"doneReview", "key":[], "partitions":doneReview}
 								}
 							]
+
 						}).list;
 
 
@@ -339,12 +340,13 @@
 							"name":
 								"Historical Review Queue for "+state.requestee,
 							"from":reviewQueues,
-							"select":{"name":"Pending", "value":"1", operation:"binary"},
+							"select":{"name":"Pending", "value":"1", operation:"sum"},
 							"edges":[
-								{"name":"Bug ID", "value":"attach_id", "order":["start_time.floor('"+flooring+"')", "end_time.floor('"+flooring+"')"]},
+								{"name":"Bug ID", "value":"bug_id", "order":["start_time.floor('"+flooring+"')", "end_time.floor('"+flooring+"')"]},
 								{"name":"Date", "test":"start_time.floor('"+flooring+"')<=time.value && time.value<=end_time.add('"+flooring+"').floor('"+flooring+"')", "domain":{"type":"time", "min":state.sampleMin, "max":state.sampleMax, "interval":flooring, "format":"NNN dd"}}
 							],
 							"where":new Date(state.sampleMin).getMilli()+"<=end_time.getMilli() && start_time.getMilli()<"+new Date(state.sampleMax).getMilli()
+//							"order":["Date"]
 						});
 
 

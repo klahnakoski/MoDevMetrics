@@ -66,7 +66,7 @@ CUBE.prototype.calc2List = function(query){
 			var edge = edges[f];
 
 
-			if (edge.domain.getPartition !== undefined){
+			if (edge.test===undefined){
 				var v = edge.calc(row, null);
 
 				//STANDARD 1-1 MATCH VALUE TO DOMAIN

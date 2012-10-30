@@ -410,6 +410,7 @@ CUBE.domain.set = function(column, sourceColumns){
 
 			//INDEX USING indexVar
 			d.map = {};
+			d.map[null]=d.NULL;
 			for(var o = 0; o < d.partitions.length; o++){
 				var sublist = d.map[d.partitions[o][indexVar]];
 				if (sublist === undefined){
