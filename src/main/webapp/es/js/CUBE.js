@@ -147,7 +147,7 @@ CUBE.prototype.calc2List = function(query){
 
 
 	var output = [];
-	CUBE.outputToList(output, indexedOutput, edges, 0, query.order);
+	CUBE.outputToList(output, indexedOutput, edges, {}, 0, query.order);
 
 
 	//ORDER THE OUTPUT
@@ -404,13 +404,15 @@ CUBE.normalizeByX=function(query, multiple){
 
 
 // CONVERT THE indexed OBJECT TO A FLAT LIST FOR output
-CUBE.outputToList = function(output, indexed, edges, depth, order){
+CUBE.outputToList = function(output, indexed, edges, coordinates, depth, order){
 	if (depth == edges.length){
+//		Util.copy(coordinates, indexed);		//should not need coordinates
 		output.push(indexed);
 	} else{
 		var keys = Object.keys(indexed);
 		for(var k = 0; k < keys.length; k++){
-			CUBE.outputToList(output, indexed[keys[k]], edges, depth + 1)
+			coordinates[edges[depth].name]=edges[depth].domain.map[keys[k]];
+			CUBE.outputToList(output, indexed[keys[k]], edges, coordinates, depth + 1)
 		}//for
 	}//endif
 };//method
@@ -427,27 +429,35 @@ CUBE.getAggregate = function(result, output, select, edges){
 
 	//FIND RESULT IN output
 	//output IS A TREE INDEXED BY THE PARTITION CANONICAL VALUES
-	var depth = output;
+	var agg = output;
 	for(var i = 0; i < edges.length - 1; i++){
 		var part=result[edges[i].name];
 		var v = edges[i].domain.getKey(part);
-		if (depth[v] === undefined) depth[v] = {};
-		depth = depth[v];
+		if (agg[v] === undefined) agg[v] = {};
+		agg = agg[v];
 	}//for
 	part=result[edges[i].name];
-	if (part == null){
-		D.println("what?");
-	}//endif
+	if (part == null) D.error("Should not happen");
+
 	v = edges[i].domain.getKey(part);
-	if (depth[v] === undefined){
-		depth[v]={};
+	if (agg[v] === undefined){
+		agg[v]={};
 		//ADD SELECT DEFAULTS
 		for(var s = 0; s < (select).length; s++){
-			depth[v][select[s].name] = select[s].defaultValue();
+			agg[v][select[s].name] = select[s].defaultValue();
+		}//for
+		//ADD COORDINATES
+		for(var i = 0; i < edges.length; i++){
+			var d=edges[i].domain;
+			var part2=result[edges[i].name];
+			var k = d.getKey(part2);
+
+			if (d.map[k]===undefined) D.error("Expecting the domain '"+d.name+"' to have key for "+CNV.Object2JSON(part2));
+			agg[v][edges[i].name]=d.map[k];
 		}//for
 	}//endif
-	depth=depth[v];
-	return depth;
+
+	return agg[v];
 };//method
 
 
