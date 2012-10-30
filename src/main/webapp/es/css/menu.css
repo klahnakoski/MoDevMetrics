@@ -1,5 +1,12 @@
 @CHARSET "ISO-8859-1";
 
+@font-face {
+    font-family: 'Open Sans';
+    src: url('OpenSans-Bold-webfont.eot');
+    src: url('OpenSans-Bold-webfont.eot?#iefix') format('embedded-opentype'), url('OpenSans-Bold-webfont.woff') format('woff'), url('OpenSans-Bold-webfont.ttf') format('truetype'), url('OpenSans-Bold-webfont.svgOpenSans-Bold-webfont.svg#OpenSansBold') format('svg');
+    font-weight: 600
+}
+
 html {
     height: 100%;
     margin: 0px;
@@ -23,14 +30,27 @@ html {
 
 
 body {
-    font-family: Tahoma, "Helvetica Neue", "Trebuchet MS", Verdana, Arial, sans-serif;
-    font-size: 62.5%;
+    background-color: #f6f4ec;
+    background-repeat: repeat-x;
+    background-image: -khtml-gradient(linear, left top, left bottom, from(#d7d3c8), to(#f6f4ec));
+    background-image: -moz-linear-gradient(#d7d3c8, #f6f4ec);
+    background-image: -ms-linear-gradient(#d7d3c8, #f6f4ec);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #d7d3c8), color-stop(100%, #f6f4ec));
+    background-image: -webkit-linear-gradient(#d7d3c8, #f6f4ec);
+    background-image: -o-linear-gradient(#d7d3c8, #f6f4ec);
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#d7d3c8', endColorstr='#f6f4ec', GradientType=0)";
+    background-image: linear-gradient(#d7d3c8, #f6f4ec);
+
+    font-family: 'Open Sans', sans-serif;
+    font-size: 14px;
     color: #444444;
     padding: 0px;
     border-width: 0px;
     margin: 0px;
-    background-color: #FFFFF0;
+    /*background-color: #FFFFF0;*/
     height: 100%;
+    line-height: 20px;
+
 }
 
 .menu {
@@ -58,13 +78,34 @@ body {
     list-style-type: disc;
 }
 
-h1 {
-    font-size: 3.0em;
-    margin: 0;
+.large {
+  font-size: 72px;
+  letter-spacing: -3px;
+  line-height: 100%;
 }
-
+h1 {
+  font-size: 48px;
+  letter-spacing: -2px;
+  line-height: 100%;
+}
 h2 {
-    font-size: 2.1em;
+  font-size: 32px;
+  letter-spacing: -1px;
+  line-height: 100%;
+}
+h3 {
+  font-size: 28px;
+  letter-spacing: -0.5px;
+  line-height: 100%;
+}
+h4 {
+  font-size: 24px;
+  letter-spacing: -0.25px;
+  line-height: 100%;
+}
+.small, small {
+  font-size: 12px;
+  line-height: 100%;
 }
 
 .items .info {
