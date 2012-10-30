@@ -116,7 +116,7 @@
 			}).list[0].avg_age;
 
 			average=Duration.newInstance(average).format("day", 0);
-			$("#summary").html("<h1>Average Review Queue Length: "+average+"s</h1>");
+			$("#summary").html("<h2>Average Review Queue Length: "+average+"s</h2>");
 
 			var over=0;
 			var under=0;
@@ -130,8 +130,8 @@
 			}//for
 
 			$("#summary").html(
-				"<h1>Average Review Queue Length: "+average+"s</h1><br>"+
-				"<h2>("+(over+under)+" pending reviews, "+Math.round(over/(over+under)*100, 1)+"% over one week)</h2>"
+				"<h2>Average Review Queue Length: "+average+"s</h2><br>"+
+				"<h3>("+(over+under)+" pending reviews, "+Math.round(over/(over+under)*100, 1)+"% over one week)</h3>"
 			);
 
 
@@ -161,7 +161,7 @@
 				]
 			}).list;
 
-			var htmlSummary = "<h1>Pending Review</h1>" + CNV.List2HTMLTable(result);
+			var htmlSummary = "<h2>Pending Review</h2>" + CNV.List2HTMLTable(result);
 
 			document.getElementById("info").innerHTML = htmlSummary;
 		},

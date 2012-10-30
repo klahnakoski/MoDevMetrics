@@ -196,12 +196,12 @@ var createChart = function(){
 			}).list[0];
 
 			$("#summary2").html(
-				"<h2>"+
+				"<h3>"+
 				"Number marked in sample:"+summary.total+"<br>"+
 				"Number marked and closed in sample:"+summary.numClosed+"<br>"+
 				"Number closed within "+mark.toString()+":"+summary.numGood+"<br>"+
 				"% closed within "+mark.toString()+":"+Math.round(summary.numGood/summary.total*100, 1)+"%"+
-				"</h2>"
+				"</h3>"
 			);
 
 			status.message("Done");

@@ -28,7 +28,7 @@ var ERROR_IMAGE = webAppPath + "/content/pentaho-cdf/resources/style/images/erro
 var CDF_ERROR_DIV = 'cdfErrorDiv';
 
 $.blockUI.defaults.fadeIn = 0;
-$.blockUI.defaults.message = '<div style="padding: 15px;"><img src="' + webAppPath + '/content/pentaho-cdf/resources/style/images/busy.gif" /><h3>Processing...</h3></div>';
+$.blockUI.defaults.message = '<div style="padding: 15px;"><img src="' + webAppPath + '/content/pentaho-cdf/resources/style/images/busy.gif" /><h4>Processing...</h4></div>';
 $.blockUI.defaults.css.left = '40%';
 $.blockUI.defaults.css.top = '30%';
 $.blockUI.defaults.css.marginLeft = '85px';
@@ -321,7 +321,7 @@ Dashboards.bindControl = function(object) {
 Dashboards.blockUIwithDrag = function() {
     if (typeof Dashboards.i18nSupport !== "undefined" && Dashboards.i18nSupport != null) {
         // If i18n support is enabled process the message accordingly
-        $.blockUI.defaults.message = '<div style="padding: 15px;"><img src="' + webAppPath + '/content/pentaho-cdf/resources/style/images/busy.gif" /><h3>' + Dashboards.i18nSupport.prop('processing.message') + '</h3></div>';
+        $.blockUI.defaults.message = '<div style="padding: 15px;"><img src="' + webAppPath + '/content/pentaho-cdf/resources/style/images/busy.gif" /><h4>' + Dashboards.i18nSupport.prop('processing.message') + '</h4></div>';
     }
 
   $.blockUI();

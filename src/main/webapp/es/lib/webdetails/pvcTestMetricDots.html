@@ -38,15 +38,15 @@
   </head>
   <body>
 
-    <h1>
+    <h2>
       Metrics Chart
-    </h1>
+    </h2>
 Metrics charts are similar to line graphs in that they use horizontal 
 and vertical axes to plot data points. However the axes in a Metric chart are <i>Linear</i> more than 
 <i>Categorical</i>, as they serve for a very specific purpose.
 Metrics charts can show you visually the strength, shape or the direction of the relationship between 
 variables, and whether there are outliers in your data.
-<h2>A comparison between categorical-base and linear-base axes</h2>
+<h3>A comparison between categorical-base and linear-base axes</h3>
 To understand the difference between categorical-base and linear-base charts, look at the following examples:
 
 <table>
@@ -70,7 +70,7 @@ A last thing (not visible here) is that you can not use low cardinality integer 
 categories, as this might lead to data-points being plotted at the wrong location.
 <p>
 
-<h2>Chart Options</h2>
+<h3>Chart Options</h3>
 <h4>Dimensions</h4>
 <ul>
   <li>width</li>
@@ -112,7 +112,7 @@ band occupied by lines. Default: 0.5 (50%)</li>
 2000</li>
 </ul>
 
-<h2>Extension Points</h2>
+<h3>Extension Points</h3>
 The following&nbsp;list&nbsp;serves as the basis
 for Metrics chart extension points:
 <ul>
@@ -142,8 +142,8 @@ Sample extension points:<br>
   <li>line_lineWidth</li>
 </ul>
 
-<h2>Examples</h2>
-<h3>Simple Metrics Chart</h3>
+<h3>Examples</h3>
+<h4>Simple Metrics Chart</h4>
 This is the same metrics chart showed above. It is a MetricLineChart.<br>
 <textarea cols="55" rows="15" id="pvcMetrics1Code">
 
@@ -170,7 +170,7 @@ Metrics1.render();
         <button class="tryMe" onclick='tryMe(this)'>Try me</button>
         <div id="pvcMetrics1"></div>
 
-<h3>A two-series Metrics Chart</h3>
+<h4>A two-series Metrics Chart</h4>
 Same as above, with a new series.<br>
 <textarea cols="55" rows="15" id="pvcMetrics2Code">
 var Metrics2 = new pvc.MetricLineChart({
@@ -198,7 +198,7 @@ Metrics2.render();
         <button class="tryMe" onclick='tryMe(this)'>Try me</button>
         <div id="pvcMetrics2"></div>
         
-<h3>A two-series Metrics Chart - Horizontal</h3>
+<h4>A two-series Metrics Chart - Horizontal</h4>
 Same as above, with different orientation.<br>
 <textarea cols="55" rows="15" id="pvcMetrics3Code">
 var Metrics3 = new pvc.MetricLineChart({
@@ -227,7 +227,7 @@ Metrics3.render();
         <button class="tryMe" onclick='tryMe(this)'>Try me</button>
         <div id="pvcMetrics3"></div>
         
-<h3>A Dot Metrics Chart</h3>
+<h4>A Dot Metrics Chart</h4>
 Same as previous charts, but dot instead of lines. This is a MetricDotChart.<br>
 <textarea cols="55" rows="15" id="pvcMetrics4Code">
 var Metrics4 = new pvc.MetricDotChart({
@@ -255,7 +255,7 @@ Metrics4.render();
         <button class="tryMe" onclick='tryMe(this)'>Try me</button>
         <div id="pvcMetrics4"></div>        
 
-<h3>An Area Metrics Chart</h3>
+<h4>An Area Metrics Chart</h4>
 Same as above, but with a coloured area (showAreas=true).<br>
 <textarea cols="55" rows="15" id="pvcMetrics5Code">
 var Metrics5 = new pvc.MetricLineChart({

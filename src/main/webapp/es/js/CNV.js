@@ -52,7 +52,7 @@ CNV.ESResult2HTMLSummaries = function(esResult){
 
 CNV.ESResult2HTMLSummary = function(esResult, name){
 	var output = "";
-	output += "<h1>" + name + "</h1>";
+	output += "<h2>" + name + "</h2>";
 	output += CNV.List2HTMLTable(esResult.facets[name].terms);
 	return output;
 };//method

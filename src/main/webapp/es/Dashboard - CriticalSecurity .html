@@ -166,8 +166,8 @@ var createChart = function(){
 
 			var avgDays=Duration.newInstance((open.sum+closed.sum)/(open.count+closed.count)).format("day", 2);
 			var avgClosed=Duration.newInstance((closed.sum)/(closed.count)).format("day", 2);
-			$("#avgAge").html("<h1>"+avgDays+"</h1><br>Bug Age");
-			$("#avgClosed").html("<h1>"+avgClosed+"</h1><br>Closed Bug Age");
+			$("#avgAge").html("<h2>"+avgDays+"</h2><br>Bug Age");
+			$("#avgClosed").html("<h2>"+avgClosed+"</h2><br>Closed Bug Age");
 
 
 			status.message("Done");

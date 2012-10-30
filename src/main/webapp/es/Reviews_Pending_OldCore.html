@@ -121,8 +121,8 @@
 			}//for
 
 			$("#summary").html(
-				"<h1>Reviews Requested over 3 Months Ago (Firefox and Core only)</h1><br>"+
-				"<h2>("+(over+under)+" pending reviews, waiting an average of "+Duration.newInstance(average).format("day", 0)+"s</h2>"
+				"<h2>Reviews Requested over 3 Months Ago (Firefox and Core only)</h2><br>"+
+				"<h3>("+(over+under)+" pending reviews, waiting an average of "+Duration.newInstance(average).format("day", 0)+"s</h3>"
 			);
 
 
@@ -152,7 +152,7 @@
 				]
 			}).list;
 
-			var htmlSummary = "<h1>Pending Review</h1>" + CNV.List2HTMLTable(result);
+			var htmlSummary = "<h2>Pending Review</h2>" + CNV.List2HTMLTable(result);
 
 			document.getElementById("info").innerHTML = htmlSummary;
 		},

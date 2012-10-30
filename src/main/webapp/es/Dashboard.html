@@ -171,8 +171,8 @@ var createChart = function(){
 			var closedIN=closedBugAges.data[0][0];
 			var closedOUT=closedBugAges.data[0][1];
 
-			$("#percentOverOpen").html("<h1>"+Math.round((openOUT)/(openOUT+closedOUT)*10000)/100+"%</h1><br>Open and Closed");
-			$("#percentOver").html("<h1>"+Math.round((openOUT+closedOUT)/(closedIN+closedOUT+openOUT+closedOUT)*10000)/100+"%</h1><br>Open");
+			$("#percentOverOpen").html("<h2>"+Math.round((openOUT)/(openOUT+closedOUT)*10000)/100+"%</h2><br>Open and Closed");
+			$("#percentOver").html("<h2>"+Math.round((openOUT+closedOUT)/(closedIN+closedOUT+openOUT+closedOUT)*10000)/100+"%</h2><br>Open");
 
 			status.message("Done");
 		});

@@ -177,8 +177,8 @@
 				]
 			}).list;
 
-			var htmlSummary = "<h1>Pending Review</h1>" + CNV.List2HTMLTable(result);
-			htmlSummary += "<h1>Assigned To</h1>" + CNV.List2HTMLTable(result2);
+			var htmlSummary = "<h2>Pending Review</h2>" + CNV.List2HTMLTable(result);
+			htmlSummary += "<h2>Assigned To</h2>" + CNV.List2HTMLTable(result2);
 
 			document.getElementById("info").innerHTML = htmlSummary;
 		},

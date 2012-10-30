@@ -2,8 +2,15 @@
 
 @font-face {
     font-family: 'Open Sans';
-    src: url('OpenSans-Bold-webfont.eot');
-    src: url('OpenSans-Bold-webfont.eot?#iefix') format('embedded-opentype'), url('OpenSans-Bold-webfont.woff') format('woff'), url('OpenSans-Bold-webfont.ttf') format('truetype'), url('OpenSans-Bold-webfont.svgOpenSans-Bold-webfont.svg#OpenSansBold') format('svg');
+    src: url('./OpenSans-Light-webfont.eot');
+    src: url('./OpenSans-Light-webfont.eot?#iefix') format('embedded-opentype'), url('./OpenSans-Light-webfont.woff') format('woff'), url('./OpenSans-Light-webfont.ttf') format('truetype'), url('./OpenSans-Light-webfont.svgOpenSans-Light-webfont.svg#OpenSansBold') format('svg');
+    font-weight: 600
+}
+
+@font-face {
+    font-family: 'Open Sans Bold';
+    src: url('./OpenSans-Bold-webfont.eot');
+    src: url('./OpenSans-Bold-webfont.eot?#iefix') format('embedded-opentype'), url('./OpenSans-Bold-webfont.woff') format('woff'), url('./OpenSans-Bold-webfont.ttf') format('truetype'), url('./OpenSans-Bold-webfont.svgOpenSans-Bold-webfont.svg#OpenSansBold') format('svg');
     font-weight: 600
 }
 
@@ -54,8 +61,8 @@ body {
 }
 
 .menu {
-    font-size: 0.8em;
-    font-family: Arial;
+    font-family: 'Open Sans', sans-serif;
+      font-size: 0.8em;
 }
 
 .menu li {
@@ -79,32 +86,38 @@ body {
 }
 
 .large {
+  font-family: 'Open Sans', sans-serif;
   font-size: 72px;
   letter-spacing: -3px;
   line-height: 100%;
 }
 h1 {
-  font-size: 48px;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 48px;
   letter-spacing: -2px;
   line-height: 100%;
 }
 h2 {
-  font-size: 32px;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 32px;
   letter-spacing: -1px;
   line-height: 100%;
 }
 h3 {
-  font-size: 28px;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 28px;
   letter-spacing: -0.5px;
   line-height: 100%;
 }
 h4 {
-  font-size: 24px;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 24px;
   letter-spacing: -0.25px;
   line-height: 100%;
 }
 .small, small {
-  font-size: 12px;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 12px;
   line-height: 100%;
 }
 
@@ -120,7 +133,8 @@ h4 {
 }
 
 .warning {
-    font-size:1.0em;
+    font-family: 'Open Sans', sans-serif;
+      font-size:1.0em;
     font-weight: bold;
     color: red;
 }

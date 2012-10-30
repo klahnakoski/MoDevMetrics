@@ -35,6 +35,14 @@ Array.prototype.copy = function(){
 };//method
 
 
+
+Array.prototype.forall=function(func){
+	for(var i=this.length;i--;){
+		func(this[i], i);
+	}//for
+};//method
+
+
 var Util = {};
 
 //RETURN FIRST NOT NULL, AND DEFINED VALUE

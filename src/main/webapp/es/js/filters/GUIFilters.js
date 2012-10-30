@@ -12,6 +12,21 @@ componentUI = null;
 GUI = {};
 
 GUI.setup = function(parameters){
+
+	//SHOW SPINNER
+	var found=$('.loading');
+	found
+		.hide()  // hide it initially
+		.ajaxStart(function() {
+			$(this).show();
+		})
+		.ajaxStop(function() {
+			$(this).hide();
+		})
+	;
+
+
+
 	state.programFilter = new ProgramFilter();
 	state.productFilter = new ProductUI();
 	state.componentFilter = new ComponentUI();
@@ -22,6 +37,11 @@ GUI.setup = function(parameters){
 	GUI.AddParameters(parameters); //ADD PARAM AND SET DEFAULTS
 	GUI.UpdateState();			//UPDATE STATE OBJECT WITH THOSE DEFAULTS
 	GUI.GetURLState();			//OVERWRITE WITH URL PARAM
+
+
+
+
+
 };
 
 
@@ -182,17 +202,17 @@ GUI.UpdateState = function(){
 GUI.makeSelectionPanel = function (){
 	var html = "";
 
-	html += '<h3><a href="#">Selection</a></h3>';
+	html += '<h4><a href="#">Selection</a></h4>';
 	html += '<div id="summary"></div>';
 	if (customFilters.length != 0){
-		html += '<h3><a href="#">Custom Filters</a></h3>';
+		html += '<h4><a href="#">Custom Filters</a></h4>';
 		html += '<div id="customFilters"></div>';
 	}
-	html += '<h3><a href="#">Programs</a></h3>';
+	html += '<h4><a href="#">Programs</a></h4>';
 	html += '<div id="programs"></div>';
-	html += '<h3><a href="#">Products</a></h3>';
+	html += '<h4><a href="#">Products</a></h4>';
 	html += '<div id="products"></div>';
-	html += '<h3><a href="#">Components</a></h3>';
+	html += '<h4><a href="#">Components</a></h4>';
 	html += '<div id="components"></div>';
 
 	$("#filters").html(html);
