@@ -9,6 +9,7 @@ CUBE.compile = function(query, sourceColumns){
 	var edges = query["edges"];
 	for(var g = 0; g < edges.length; g++){
 		if (edges[g].allowNulls === undefined) edges[g].allowNulls = false;
+		if (resultColumns[edges[g].name]!==undefined) D.error("All edges must have different names");
 		resultColumns[edges[g].name] = edges[g];
 		CUBE.column.compile(sourceColumns, edges[g]);
 		CUBE.domain.compile(sourceColumns, edges[g]);
@@ -17,6 +18,7 @@ CUBE.compile = function(query, sourceColumns){
 
 	var select = CUBE.select2Array(query.select);
 	for(var s = 0; s < select.length; s++){
+		if (resultColumns[select[s].name]!==undefined) D.error("All columns must have different names");
 		resultColumns[select[s].name] = select[s];
 		CUBE.column.compile(sourceColumns, select[s], edges);
 		CUBE.aggregate.compile(select[s]);
@@ -115,7 +117,7 @@ CUBE.prototype.calc2List = function(query){
 
 		if (select.length == 0){
 			for(var t = 0; t < results.length; t++){
-				if (where(row, results[t])) CUBE.addResultToOutput(results[t], indexedOutput, select, edges);
+				if (where(row, results[t])) CUBE.getAggregate(results[t], indexedOutput, select, edges);
 			}//for
 		} else{
 			for(var s = 0; s < (select).length; s++){
@@ -124,13 +126,13 @@ CUBE.prototype.calc2List = function(query){
 					var pass=where(row, results[t]);
 					if (pass){
 						//FIND CANONICAL RESULT
-						var result = CUBE.addResultToOutput(results[t], indexedOutput, select, edges);
+						var agg = CUBE.getAggregate(results[t], indexedOutput, select, edges);
 
 						//CALCULATE VALUE
-						var v = ss.calc(row, result);
+						var v = ss.calc(row, results[t]);
 
 						//ADD TO THE AGGREGATE VALUE
-						result[ss.name] = ss.add(result[ss.name], v);
+						agg[ss.name] = ss.add(agg[ss.name], v);
 					}//endif
 
 				}//for
@@ -222,7 +224,8 @@ CUBE.prototype.calc2Cube = function(query){
 			value = value[part.dataIndex];
 		}//for
 		part=result[edges[f].name];
-		if (part.dataIndex===undefined) part=edges[f].domain.getPartition(part);//DEFAULT DOMAIN DOES NOT RETURN PARTITION OBJECTS, SPECIAL DEREF REQUIRED
+		if (part==null || part.dataIndex===undefined)
+			part=edges[f].domain.getPartition(part);//DEFAULT DOMAIN DOES NOT RETURN PARTITION OBJECTS, SPECIAL DEREF REQUIRED
 
 		if (query.select instanceof Array){
 			value = value[part.dataIndex];
@@ -420,7 +423,7 @@ CUBE.outputToList = function(output, indexed, edges, depth, order){
 //};//method
 
 
-CUBE.addResultToOutput = function(result, output, select, edges){
+CUBE.getAggregate = function(result, output, select, edges){
 
 	//FIND RESULT IN output
 	//output IS A TREE INDEXED BY THE PARTITION CANONICAL VALUES
@@ -436,17 +439,15 @@ CUBE.addResultToOutput = function(result, output, select, edges){
 		D.println("what?");
 	}//endif
 	v = edges[i].domain.getKey(part);
-	if (depth[v] !== undefined) return depth[v];
-
-	//ADD SELECT DEFAULTS
-	for(var s = 0; s < (select).length; s++){
-		result[select[s].name] = select[s].defaultValue();
-	}//for
-
-	//ADD NEW GROUP TO output
-	depth[v] = result;
-
-	return result;
+	if (depth[v] === undefined){
+		depth[v]={};
+		//ADD SELECT DEFAULTS
+		for(var s = 0; s < (select).length; s++){
+			depth[v][select[s].name] = select[s].defaultValue();
+		}//for
+	}//endif
+	depth=depth[v];
+	return depth;
 };//method
 
 

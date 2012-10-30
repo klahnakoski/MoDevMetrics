@@ -62,7 +62,7 @@ CUBE.domain["default"] = function(column, sourceColumns){
 
 	d.partitions = [];
 	d.map = {};
-
+	d.map[null]=d.NULL;
 	d.getPartition = function(value){
 		var partition = this.map[value];
 		if (partition !== undefined) return partition;
