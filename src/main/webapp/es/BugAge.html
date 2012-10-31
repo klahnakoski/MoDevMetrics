@@ -89,7 +89,6 @@
 
 <script type="text/javascript">
 
-	$(document).ready(function(){
 
 		$("#description").html("Count of number of bugs closed since &lt;Sample From&gt;. Counts are broken into cohorts to help compare change over time.");
 
@@ -141,6 +140,7 @@
 		};
 
 
+	$(document).ready(function(){
 
 		GUI.setup([
 			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},

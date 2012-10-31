@@ -1,4 +1,6 @@
-if (window['importScript'] != undefined) importScript=function(){};
+
+
+if (window['importScript'] == undefined) importScript=function(){};
 
 Math.isNumeric = function(n){
 	return !isNaN(parseFloat(n)) && isFinite(n);
