@@ -1,4 +1,4 @@
-jQuery.holdReady(true);
+$.holdReady(true);
 
 
 var D;
@@ -141,6 +141,6 @@ importScript("lib/js/jquery-1.7.js");
 jQuery.get('PageTemplate.html', function(data, success, raw) {
 	$("body").append(raw.responseText);
 	scriptNumPending--;//DO NOT TRIGGER done()
-	jQuery.holdReady(false);
+	if ($.holdReady!==undefined) $.holdReady(false);
 
 });
