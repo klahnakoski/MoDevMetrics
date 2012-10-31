@@ -1,3 +1,18 @@
+importScript("CNV.js");
+importScript("aDate.js");
+importScript("MozillaPrograms.js");
+importScript("util.js");
+importScript("Debug.js");
+importScript("MVEL.js");
+importScript("CUBE.js");
+importScript("CUBE.aggregate.js");
+importScript("CUBE.column.js");
+importScript("CUBE.cube.js");
+importScript("CUBE.domain.js");
+
+
+
+
 var ESQuery = function(query){
 	this.query = query;
 	this.compile();

@@ -1,5 +1,28 @@
 
 
+importScript("../../lib/webdetails/cdf/Base.js");
+importScript("../../lib/webdetails/cdf/jquery.tooltip.js");
+importScript("../../lib/webdetails/data/q01-01.js");
+importScript("../../lib/webdetails/lib/protovis-d3.3.js");
+importScript("../../lib/webdetails/lib/jquery.tipsy.js");
+importScript("../../lib/webdetails/lib/tipsy.js");
+
+
+importScript("../../lib/webdetails/pvc/pvc.js");
+importScript("../../lib/webdetails/pvc/pvcPanel.js");
+importScript("../../lib/webdetails/pvc/pvcLegend.js");
+importScript("../../lib/webdetails/pvc/pvcTimeseriesAbstract.js");
+importScript("../../lib/webdetails/pvc/pvcCategoricalAbstract.js");
+importScript("../../lib/webdetails/pvc/pvcWaterfall.js");
+importScript("../../lib/webdetails/pvc/pvcPie.js");
+importScript("../../lib/webdetails/pvc/pvcBar.js");
+importScript("../../lib/webdetails/pvc/pvcLine.js");
+importScript("../../lib/webdetails/pvc/pvcData.js");
+
+
+importScript("../../lib/webdetails/pvcDocUtils.js");
+
+
 var aChart={};
 
 

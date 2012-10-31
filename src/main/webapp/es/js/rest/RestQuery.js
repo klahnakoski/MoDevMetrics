@@ -1,3 +1,7 @@
+importScript("RestConfig.js");
+
+
+
 RestQuery = function(reportBackObj, id, esQuery){
 	if (reportBackObj===undefined) D.error("expecting an object to reprt back response");
 	this.id = id;
