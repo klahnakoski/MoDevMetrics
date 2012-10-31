@@ -1,3 +1,5 @@
+jQuery.holdReady(true);
+
 
 var D;
 var aScript={};
@@ -5,16 +7,9 @@ var aScript={};
 
 var readfile=function(path){
 	//DECODE RELATIVE PATHS
-//	document.path
-
 	var client = new XMLHttpRequest();
-	client.open('GET', path, false);
-//	client.onreadystatechange = function(state) {
-//		if (this.readyState!=4) return;
-//		successFunction(client.responseText);
-//	};
-//	client.send();
 	try{
+		client.open('GET', path, false);
 		client.send(null);
 	}catch(e){
 		if(D===undefined) throw  "Can not read file "+path+": "+e;
@@ -23,17 +18,18 @@ var readfile=function(path){
 	return client.responseText;
 };
 
+
 var globalEval = function(name, src) {
-	src="//@ sourceURL="+name+"\n"+src;		//ADD NAME FOR DEBUGGER
+	src="//@ sourceURL="+name.substring(name.lastIndexOf("/")+1)+"\n"+src;		//ADD NAME FOR DEBUGGER
 
     if (window.execScript) {
         window.execScript(src);
         return;
     }
-    var fn = function() {
+//    var fn = function() {
         window.eval.call(window,src);
-    };
-    fn();
+//    };
+//    fn();
 };
 
 var getFullPath=function(parentScriptPath, relativePath){
@@ -77,6 +73,7 @@ var scriptNumPending=0;
 var scriptParentPath=".";//getFullPath(".", src);
 
 var importScript=function(path){
+	return;
 
 	//BATCH IMPORT WILL DELAY document.ready() UNTIL ALL ARE IMPORTED (INCLUDING DEPENDENCIES)
 	if (path instanceof Array){
@@ -86,28 +83,30 @@ var importScript=function(path){
 		return;
 	}//endif
 
-
-	if (scriptLoadStates[path]=="loaded") return;
-	if (scriptLoadStates[path]=="pending") D.error("Import dependency loop detected");
-
-	scriptLoadStates[path]="pending";
-	scriptNumPending++;
 	var fullPath=getFullPath(scriptParentPath, path);
 	var content=readfile(fullPath);
-console.info("getFullPath("+currPath+", "+path+")="+fullPath);
+	console.info("getFullPath("+scriptParentPath+", "+path+")="+fullPath);
+
+
+	if (scriptLoadStates[fullPath]=="loaded") return;
+	if (scriptLoadStates[fullPath]=="pending") D.error("Import dependency loop detected");
+
+	scriptLoadStates[fullPath]="pending";
+	scriptNumPending++;
+
+	var currPath=scriptParentPath;
 	try{
-		var currPath=scriptParentPath;
 		scriptParentPath=fullPath;
 		globalEval(fullPath, content);
 		scriptParentPath=currPath;
 	}catch(e){
-		scriptLoadStates[path]="error";
+		scriptLoadStates[fullPath]="error";
 		aScript.done();
-		if (D === undefined) throw "Can not load script "+path+": "+e;
-		D.error("Can not load script "+path, e);
+		if (D === undefined) throw "Can not load script "+fullPath+": "+e;
+		D.error("Can not load script "+fullPath, e);
 	}//try
 	scriptParentPath=currPath;
-	scriptLoadStates[path]="loaded";
+	scriptLoadStates[fullPath]="loaded";
 	aScript.done();
 };
 
@@ -142,4 +141,6 @@ importScript("lib/js/jquery-1.7.js");
 jQuery.get('PageTemplate.html', function(data, success, raw) {
 	$("body").append(raw.responseText);
 	scriptNumPending--;//DO NOT TRIGGER done()
+	jQuery.holdReady(false);
+
 });
