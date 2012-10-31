@@ -1,18 +1,34 @@
 
 
-var readfile=function(path, successFunction){
+var readfile=function(path){
 	//DECODE RELATIVE PATHS
 //	document.path
 
 	var client = new XMLHttpRequest();
-	client.open('GET', path);
-	client.onreadystatechange = function(state) {
-		if (this.readyState!=4) return;
-		successFunction(client.responseText);
-	};
-	client.send();
+	client.open('GET', path, false);
+//	client.onreadystatechange = function(state) {
+//		if (this.readyState!=4) return;
+//		successFunction(client.responseText);
+//	};
+//	client.send();
+	try{
+		client.send(null);
+	}catch(e){
+		if (D===undefined) return;
+	}//try
+	return client.responseText;
 };
 
+var globalEval = function(src) {
+    if (window.execScript) {
+        window.execScript(src);
+        return;
+    }
+    var fn = function() {
+        window.eval.call(window,src);
+    };
+    fn();
+};
 
 var getFullPath=function(currentFullPath, path){
 	var e=path.lastIndexOf("/");
@@ -27,9 +43,10 @@ var getFullPath=function(currentFullPath, path){
 
 var scriptLoadStates={};
 
-var scripts = document.getElementsByTagName("script");
-var src = scripts[scripts.length-1].getAttribute("src");
-var scriptPath=getFullPath(getFullPath("", window.location.pathname), src);
+//var scripts = document.getElementsByTagName("script");
+//var src = scripts[scripts.length-1].getAttribute("src");
+//var scriptPath=getFullPath(getFullPath("", window.location.pathname), src);
+var scriptPath=".";//getFullPath(".", src);
 
 var importScript=function(path){
 
@@ -37,12 +54,12 @@ var importScript=function(path){
 	if (scriptLoadStates[path]=="pending") D.error("Import dependency loop detected");
 
 	scriptLoadStates[path]="pending";
-	readfile(scriptPath+"/"+path, function(content){
+	var content=readfile(scriptPath+"/"+path);
 		var currPath=scriptPath;
 		scriptPath=getFullPath(scriptPath, path);
 		
 		try{
-			eval(content);
+			globalEval(content);
 		}catch(e){
 			scriptPath=currPath;
 			if (D===undefined) throw e;
@@ -50,7 +67,6 @@ var importScript=function(path){
 		}//try
 		scriptPath=currPath;
 		scriptLoadStates[path]="loaded";
-	})
 };
 
 

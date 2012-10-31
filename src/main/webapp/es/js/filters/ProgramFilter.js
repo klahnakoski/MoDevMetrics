@@ -1,3 +1,9 @@
+
+importScript("../MozillaPrograms.js");
+importScript("../Debug.js");
+importScript("../CNV.js");
+
+
 ProgramFilter = function(){
 	this.Refresh();
 };

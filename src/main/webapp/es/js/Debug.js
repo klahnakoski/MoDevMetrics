@@ -6,7 +6,8 @@ D.println = function(message){
 };//method
 
 D.error = function(description, cause){
-	console.error(description); return;
+	if (cause===undefined) cause="";
+	console.error(description+":"+cause); return;
 	throw new Exception(description, cause);
 };//method
 
