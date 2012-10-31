@@ -1,4 +1,7 @@
 
+var CUBE = function(){
+};
+
 importScript("CNV.js");
 importScript("aDate.js");
 importScript("util.js");
@@ -10,11 +13,6 @@ importScript("CUBE.cube.js");
 importScript("CUBE.domain.js");
 
 
-
-
-
-var CUBE = function(){
-};
 
 
 CUBE.compile = function(query, sourceColumns){
