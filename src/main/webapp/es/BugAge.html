@@ -7,7 +7,7 @@
 
 <script type="text/javascript">
 
-	$(document).ready(function(){
+	aScript.ready(function(){
 
 		$("#description").html("Count of number of bugs closed since &lt;Sample From&gt;. Counts are broken into cohorts to help compare change over time.");
 
@@ -59,7 +59,6 @@
 		};
 
 
-		scriptWaitFor(function(){return GUI!==undefined;});
 
 		GUI.setup([
 			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},

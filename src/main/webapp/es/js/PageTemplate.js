@@ -16,13 +16,15 @@ var readfile=function(path){
 	try{
 		client.send(null);
 	}catch(e){
-		if (D===undefined) throw e;
-		D.error("Problem loading file "+path, e);
+		/*if (D===undefined)*/ throw e;
+//		D.error("Problem loading file "+path, e);
 	}//try
 	return client.responseText;
 };
 
-var globalEval = function(src) {
+var globalEval = function(name, src) {
+	src="//@ sourceURL="+name+"\n"+src;		//ADD NAME FOR DEBUGGER
+
     if (window.execScript) {
         window.execScript(src);
         return;
@@ -33,16 +35,33 @@ var globalEval = function(src) {
     fn();
 };
 
-var getFullPath=function(currentFullPath, path){
-	var e=path.lastIndexOf("/");
+var getFullPath=function(parentScriptPath, relativePath){
 
-	if (path.charAt(0)=='/'){
-		if (e==-1) return "/";
-		return path.substring(0, e);
+	var e=parentScriptPath.lastIndexOf("/");
+	if (e==-1){
+		parentScriptPath=".";
 	}else{
-		if (e==-1) return currentFullPath;
-		return currentFullPath+"/"+path.substring(0, e);
+		parentScriptPath=parentScriptPath.substring(0, e);
 	}//endif
+
+	var absPath;
+	if (relativePath.charAt(0)=='/'){
+		absPath=relativePath;	//NOT RELATIVE
+	}else{
+		absPath=parentScriptPath+"/"+relativePath;
+	}//endif
+
+	absPath=absPath.replace("./", "");
+
+	var e=absPath.indexOf("/../");
+	if (e>=0){
+		var s=absPath.lastIndexOf("/", e-1);
+		if (s>=0){
+			absPath.splice(s, e-s);
+		}//endif
+	}//endif
+	return absPath;
+
 };
 
 var scriptLoadStates={};
@@ -51,9 +70,17 @@ var scriptNumPending=0;
 //var scripts = document.getElementsByTagName("script");
 //var src = scripts[scripts.length-1].getAttribute("src");
 //var scriptPath=getFullPath(getFullPath("", window.location.pathname), src);
-var scriptPath=".";//getFullPath(".", src);
+var scriptParentPath=".";//getFullPath(".", src);
 
 var importScript=function(path){
+
+	//BATCH IMPORT WILL DELAY document.ready() UNTIL ALL ARE IMPORTED (INCLUDING DEPENDENCIES)
+	if (path instanceof Array){
+		scriptNumPending++;
+		for(var i=0;i<path.length;i++) importScript(path[i]);
+		aScript.done();
+		return;
+	}//endif
 
 
 	if (scriptLoadStates[path]=="loaded") return;
@@ -61,35 +88,47 @@ var importScript=function(path){
 
 	scriptLoadStates[path]="pending";
 	scriptNumPending++;
-	var content=readfile(scriptPath+"/"+path);
-		var currPath=scriptPath;
-		scriptPath=getFullPath(scriptPath, path);
-//console.info("getFullPath("+currPath+", "+path+")="+scriptPath);
-		try{
-			globalEval(content);
-		}catch(e){
-			scriptPath=currPath;
-			scriptLoadStates[path]="error";
-			scriptDone();
-			if (D===undefined) throw e;
-			D.error("Can not load script "+path, e);
-		}//try
-		scriptPath=currPath;
-		scriptLoadStates[path]="loaded";
-		scriptDone();
+	var content=readfile(path);
+	var currPath=scriptParentPath;
+	var fullPath=getFullPath(scriptParentPath, path);
+	scriptParentPath=fullPath;
+console.info("getFullPath("+currPath+", "+path+")="+fullPath);
+	try{
+		globalEval(fullPath, content);
+	}catch(e){
+		scriptParentPath=currPath;
+		scriptLoadStates[path]="error";
+		aScript.done();
+		if (D === undefined) throw e;
+		D.error("Can not load script "+path, e);
+	}//try
+	scriptParentPath=currPath;
+	scriptLoadStates[path]="loaded";
+	aScript.done();
 };
 
-var scriptDone=function(){
+var scriptWaiting=[];
+
+aScript.ready=function(func){
+	scriptWaiting.push(func);
+};//method
+
+aScript.done=function(){
 	scriptNumPending--;
 	if (scriptNumPending==0){
 		$.holdReady(false);
+		for(var i=0;i<scriptWaiting.length;i++){
+			scriptWaiting[i]();
+		}//for
 	}//endif
 };//method
 
 
+
+scriptNumPending++;
 importScript("lib/js/jquery-1.7.js");
 $.holdReady(true);
-
+aScript.done();
 
 jQuery.get('PageTemplate.html', function(data, success, raw) {
 	$("body").append(raw.responseText);
