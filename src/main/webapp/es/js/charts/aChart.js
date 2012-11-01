@@ -30,16 +30,10 @@ var aChart={};
 // INCLUDE A WHOLE INTERVAL
 ////////////////////////////////////////////////////////////////////////////////
 aChart.fixEndDate=function(startDate, endDate, interval){
+	var diff=endDate.add(interval).subtract(startDate, interval);
 
-
-	Date.diff(endDate, startDate, interval);
-
-	ref=edge.domain.max;
-	ref=edge.domain.type=="time"?ref.getMilli():ref.milli;
-	partition2int="Math.floor(("+value+"-"+ref+")/"+edge.domain.interval.milli+")";
-	nullTest=""+value+">="+ref;
-
-
+	var newEnd=startDate.add(diff.floor(interval));
+	return newEnd.addMilli(-1);
 };
 
 

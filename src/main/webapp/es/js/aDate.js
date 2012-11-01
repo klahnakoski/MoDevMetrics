@@ -19,30 +19,60 @@ Date.prototype.add = function(interval){
 	return this.addMonth(i.month).addMilli(addMilli);
 };//method
 
-Date.prototype.subtract=function(time){
-	if (time.getMilli!==undefined){
-		return Duration.newInstance(this.getMilli()-time.getMilli());
-	}//endif
 
-	var addMilli = time.milli - (Duration.MILLI_VALUES["month"] * time.month);
-	return this.addMonth(-time.month).addMilli(-addMilli);
+
+Date.prototype.subtract=function(time, interval){
+	if (interval===undefined || interval.month==0){
+		if (time.getMilli!==undefined){
+			//SUBTRACT TIME
+			return Duration.newInstance(this.getMilli()-time.getMilli());
+		}else{
+			//SUBTRACT DURATION
+			var residue = time.milli - (Duration.MILLI_VALUES["month"] * time.month);
+			return this.addMonth(-time.month).addMilli(-residue);
+		}//endif
+	}else{
+		if (time.getMilli!==undefined){
+			//SUBTRACT TIME
+			return Date.diffMonth(this, time);
+		}else{
+			//SUBTRACT DURATION
+			return this.addMilli(-time.milli);
+		}//endif
+	}//endif
 };//method
+
 
 
 Date.diffMonth=function(endTime, startTime){
-
+	//MAKE SURE WE HAVE numMonths THAT IS TOO BIG;
 	var numMonths=Math.floor((endTime.getMilli()-startTime.getMilli()+(Duration.MILLI_VALUES.day*31))/Duration.MILLI_VALUES.year*12);
 
-	var test = new Date(startTime);
-	test.setUTCMonth(this.getUTCMonth() + numMonths);
-	while (test>endTime) test.setUTCMonth(this.getUTCMonth() - 1);
+	var test = startTime.addMonth(numMonths);
+	while (test.getMilli()>endTime.getMilli()){
+		numMonths--;
+		test= startTime.addMonth(numMonths);
+	}//while
 
 
-	}
-	this.getMilli()-time.getMilli()
+	////////////////////////////////////////////////////////////////////////////
+	// TEST
+	var testMonth=0;
+	while(startTime.addMonth(testMonth).getMilli()<endTime.getMilli()){
+		testMonth++;
+	}//while
+	testMonth--;
+	if (testMonth!=numMonths) D.error("Error calculating number of months between ("+startTime.format("yy-MM-dd HH:mm:ss")+") and ("+endTime.format("yy-MM-dd HH:mm:ss")+")");
+	// DONE TEST
+	////////////////////////////////////////////////////////////////////////////
 
-
+	var output=new Duration();
+	output.month=numMonths;
+	output.milli=endTime.getMilli()-startTime.addMonth(numMonths).getMilli()+(numMonths*Duration.MILLI_VALUES.month);
 };//method
+
+
+
 
 
 
@@ -274,7 +304,6 @@ var Duration = function(){
 	this.milli = 0;	//INCLUDES THE MONTH VALUE AS MILLISECONDS
 	this.month = 0;
 };
-
 
 
 
