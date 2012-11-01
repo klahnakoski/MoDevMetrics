@@ -87,29 +87,33 @@
 <script type="text/javascript" src="js/filters/CustomFilters.js"></script>
 <script type="text/javascript" src="js/filters/GUIFilters.js"></script>
 
-<table style="width: 100%;">
-	<tr>
-		<td style="width: 320px;">
-			    <div style="height: 30px; text-align: center;vertical-align:middle;"><span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="../images/spinner.gif" alt=""></span></div>
 
-			<hr>
-			<div id="testMessage"></div>
-			<hr>
-			<div id="parameters" class="parameters">
-			</div>
-			<div id="filters" class="menu"></div>
-		</td>
-		<td>
-			<div id="description"></div>
-			<div style="float:right;display: inline;"><a href="http://people.mozilla.com/~klahnakoski/">HOME</a></div><div id="chart"></div>
-		</td>
-	</tr>
-</table>
+<div id="sidebar">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="../images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button-sand">HOME</a>
+</div>
+<div id="chart"></div>
+
 <div id="info"></div>
-<div id="description"></div>
 <div id="report"></div>
 
 <script type="text/javascript">
+
+	$("#description").html("Shows the number of reviews the reviewer was involved in over the given interval.  This can include new reviews, or reviews untouched since the previous interval.");
 
 	var createChart=function(){
 		var esQuery = {
@@ -378,7 +382,7 @@
 
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"joe@drew.ca"},
+			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"nobody@mozilla.com"},
 			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-3month")},
 			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("week")},
