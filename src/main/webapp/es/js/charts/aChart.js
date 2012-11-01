@@ -25,16 +25,7 @@ importScript("../../lib/webdetails/pvcDocUtils.js");
 
 var aChart={};
 
-////////////////////////////////////////////////////////////////////////////////
-// GIVEN THE THREE, RETURN AN END DATE THAT WILL MAKE THE LAST PARTITION
-// INCLUDE A WHOLE INTERVAL
-////////////////////////////////////////////////////////////////////////////////
-aChart.fixEndDate=function(startDate, endDate, interval){
-	var diff=endDate.add(interval).subtract(startDate, interval);
 
-	var newEnd=startDate.add(diff.floor(interval));
-	return newEnd.addMilli(-1);
-};
 
 
 

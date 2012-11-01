@@ -31,7 +31,20 @@ componentUI = null;
 
 GUI = {};
 
-GUI.setup = function(parameters){
+
+////////////////////////////////////////////////////////////////////////////////
+// GIVEN THE THREE, RETURN AN END DATE THAT WILL MAKE THE LAST PARTITION
+// INCLUDE A WHOLE INTERVAL, AND IS *INSIDE* THAT INTERVAL
+////////////////////////////////////////////////////////////////////////////////
+GUI.fixEndDate=function(startDate, endDate, interval){
+	var diff=endDate.add(interval).subtract(startDate, interval);
+
+	var newEnd=startDate.add(diff.floor(interval));
+	return newEnd.addMilli(-1);
+};
+
+
+GUI.setup = function(parameters, relations){
 
 	//SHOW SPINNER
 	var found=$('.loading');
@@ -54,7 +67,7 @@ GUI.setup = function(parameters){
 	GUI.makeSelectionPanel();
 	GUI.showESTime();
 	GenerateCustomFilters();
-	GUI.AddParameters(parameters); //ADD PARAM AND SET DEFAULTS
+	GUI.AddParameters(parameters, relations); //ADD PARAM AND SET DEFAULTS
 	GUI.UpdateState();			//UPDATE STATE OBJECT WITH THOSE DEFAULTS
 	GUI.GetURLState();			//OVERWRITE WITH URL PARAM
 
@@ -124,8 +137,10 @@ GUI.GetURLState = function(){
 };
 
 
-GUI.AddParameters=function(parameters){
+GUI.AddParameters=function(parameters, relations){
+	GUI.relations=Util.coalesce(relations, []);
 	GUI.parameters=parameters;
+
 
 	//INSERT HTML
 	var template='<span class="parameter_name">{NAME}</span><input type="{TYPE}" id="{ID}"><span class="parameter_error" id="{ID}_error"></span><br><br>\n';
@@ -188,6 +203,13 @@ GUI.AddParameters=function(parameters){
 		$("#" + param.id).val(defaultValue);
 	});//for
 
+	//COMPLIE RELATIONS
+	this.relations.forall(function(r, i){
+		this.relations[i]=aCompile.expression(f, state);
+	});
+
+
+
 };//method
 
 
@@ -209,12 +231,14 @@ GUI.UpdateParameters = function (){
 //RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
 GUI.UpdateState = function(){
 	var changeDetected = false;
+
 	GUI.parameters.forEach(function(param){
 		if (state[param.id]===undefined || state[param.id] != $("#" + param.id).val()){
 			state[param.id] = $("#" + param.id).val();
 			changeDetected = true;
 		}//endif
 	});
+
 	return changeDetected;
 };
 
