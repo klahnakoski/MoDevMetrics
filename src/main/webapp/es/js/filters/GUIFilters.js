@@ -11,11 +11,13 @@ importScript("../charts/RangeCharts.js");
 importScript("../charts/RangeIterator.js");
 importScript("../charts/DateRangeIterator.js");
 
-importScript("../filters/Filter.js");
-importScript("../filters/ComponentFilter.js");
-importScript("../filters/ProductFilter.js");
-importScript("../filters/ProgramFilter.js");
-importScript("../filters/CustomFilters.js");
+importScript("Filter.js");
+importScript("ComponentFilter.js");
+importScript("ProductFilter.js");
+importScript("ProgramFilter.js");
+importScript("CustomFilters.js");
+
+importScript("../aCompiler.js");
 
 
 var state = {};
@@ -68,12 +70,13 @@ GUI.setup = function(parameters, relations){
 	GUI.showESTime();
 	GenerateCustomFilters();
 	GUI.AddParameters(parameters, relations); //ADD PARAM AND SET DEFAULTS
+
+
+	GUI.relations=Util.coalesce(relations, []);
 	GUI.UpdateState();			//UPDATE STATE OBJECT WITH THOSE DEFAULTS
+
+
 	GUI.GetURLState();			//OVERWRITE WITH URL PARAM
-
-
-
-
 
 };
 
@@ -138,7 +141,6 @@ GUI.GetURLState = function(){
 
 
 GUI.AddParameters=function(parameters, relations){
-	GUI.relations=Util.coalesce(relations, []);
 	GUI.parameters=parameters;
 
 
@@ -203,11 +205,6 @@ GUI.AddParameters=function(parameters, relations){
 		$("#" + param.id).val(defaultValue);
 	});//for
 
-	//COMPLIE RELATIONS
-	this.relations.forall(function(r, i){
-		this.relations[i]=aCompile.expression(f, state);
-	});
-
 
 
 };//method
@@ -238,6 +235,24 @@ GUI.UpdateState = function(){
 			changeDetected = true;
 		}//endif
 	});
+
+	if (changeDetected && GUI.relations.length>0){
+		var type=typeof(GUI.relations[0]);
+		if (type!="function"){
+			//COMPILE RELATIONS
+			GUI.relations.forall(function(r, i){
+				GUI.relations[i]=aCompile.method(r, [state]);
+			});
+		}//endif
+
+		//UPDATE THE STATE OBJECT
+		GUI.relations.forall(function(r){
+			r(state);
+		});
+
+		//PUSH BACK CHANGES IN STATE TO GUI PARAMETERS
+		GUI.UpdateParameters();
+	}//endif
 
 	return changeDetected;
 };

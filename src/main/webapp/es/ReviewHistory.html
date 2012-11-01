@@ -62,6 +62,7 @@
 <script type="text/javascript" src="js/MozillaPrograms.js"></script>
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/Debug.js"></script>
+<script type="text/javascript" src="js/aCompiler.js"></script>
 <script type="text/javascript" src="js/MVEL.js"></script>
 <script type="text/javascript" src="js/CUBE.js"></script>
 <script type="text/javascript" src="js/CUBE.aggregate.js"></script>
@@ -389,7 +390,7 @@
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		],
 		[
-			"sampleMax=GUI.fixEndDate(sampleMin, sampleMax, sampleInterval)"
+			"sampleMax=GUI.fixEndDate(new Date(sampleMin), new Date(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
 		]);
 	});
 

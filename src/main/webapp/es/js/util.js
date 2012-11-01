@@ -26,6 +26,15 @@ String.prototype.indent=function(numTabs){
 	return indent+this.toString().replaceAll("\n", "\n"+indent);
 };
 
+String.prototype.rtrim=function(value){
+	if (value===undefined) value=" ";
+
+	var i=this.length-1;
+	for(;i>=0;i--) if (this.charAt(i)!=value) break;
+
+	return this.substring(0, i+1);
+};
+
 
 Array.prototype.contains = function(value){
 	for(var i = this.length; i--;){
