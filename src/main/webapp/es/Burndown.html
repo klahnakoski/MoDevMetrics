@@ -48,7 +48,8 @@
 <script type="text/javascript" src="js/MozillaPrograms.js"></script>
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/Debug.js"></script>
-<script type="text/javascript" src="js/MVEL.js"></script>
+<script type="text/javascript" src="js/MVEL.js"></script><script type="text/javascript" src="js/aCompiler.js"></script>
+
 <script type="text/javascript" src="js/CUBE.js"></script>
 <script type="text/javascript" src="js/CUBE.aggregate.js"></script>
 <script type="text/javascript" src="js/CUBE.column.js"></script>
@@ -110,6 +111,14 @@
 	var rangeChart = null;
 
 	var createChart = function(){
+
+//		var sampleX=Duration.newInstance(state.sampleX);
+//		var startDate=Date.newInstance(state.startDate);
+//		var endDate=startDate.add(Date.newInstance(state.endDate).add(sampleX).subtract(startDate, sampleX).floor(sampleX));
+
+
+
+
 		if (rangeChart != undefined){
 			rangeChart.kill();
 		}
@@ -188,8 +197,10 @@
 			{"id":"endDate", "name":"End Date", "type":"time", "default":Date.now().floor("day")},
 			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
+		],
+		[
+			"endDate=GUI.fixEndDate(new Date(startDate), new Date(endDate), Duration.newInstance(intervalX)).format('yyyy-MM-dd')"
 		]);
-		createChart();
 	});
 </script>
 

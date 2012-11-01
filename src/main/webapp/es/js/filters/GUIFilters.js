@@ -77,6 +77,7 @@ GUI.setup = function(parameters, relations){
 
 
 	GUI.GetURLState();			//OVERWRITE WITH URL PARAM
+//	GUI.UpdateState();			//UPDATE STATE OBJECT (WITH THOSE DEFAULTS
 
 };
 
@@ -136,7 +137,7 @@ GUI.GetURLState = function(){
 	for(var k in urlState){
 		state[k] = urlState[k];
 	}//for
-	GUI.UpdateParameters();
+	GUI.UpdateState();
 };
 
 
@@ -254,14 +255,14 @@ GUI.UpdateState = function(){
 
 		//AFTER RELATIONS, IS THERE STILL A CHANGE?
 		changeDetected=false;
-		GUI.parameters.forEach(function(param){
+		GUI.parameters.forall(function(param){
 			if (backup[param.id]===undefined || state[param.id] != backup[param.id]){
 				changeDetected = true;
 			}//endif
 		});
 
 		//PUSH BACK CHANGES IN STATE TO GUI PARAMETERS
-		GUI.UpdateParameters();
+		if (changeDetected) GUI.UpdateParameters();
 	}//endif
 
 	return changeDetected;

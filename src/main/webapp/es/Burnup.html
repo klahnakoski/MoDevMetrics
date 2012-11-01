@@ -47,7 +47,8 @@
 <script type="text/javascript" src="js/MozillaPrograms.js"></script>
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/Debug.js"></script>
-<script type="text/javascript" src="js/MVEL.js"></script>
+<script type="text/javascript" src="js/MVEL.js"></script><script type="text/javascript" src="js/aCompiler.js"></script>
+
 <script type="text/javascript" src="js/CUBE.js"></script>
 <script type="text/javascript" src="js/CUBE.aggregate.js"></script>
 <script type="text/javascript" src="js/CUBE.column.js"></script>
@@ -104,11 +105,14 @@
 
 <script type="text/javascript">
 
-	$("#description").html("This chart only counts the number of bugs that are open at the start date, or opened after the start date.  The difference between the lines is the number of closed bugs.");
+	$("#description").html("This chart only consideres new bugs since the start date, and compares it to the closed bug count.  Use this to compare the close rate to the new bug rate; differing slopes may indicate a problem.  If the lines cross it means the backlog of open bugs is being tackled.");
 
 
 	var rangeChart = null;
 	var createChart = function(){
+
+
+
 		if (rangeChart != undefined){
 			rangeChart.kill();
 		}
@@ -151,13 +155,13 @@
 //				{"seriesName":"NewAndOpen", "code":"Total"
 //
 ////			]
-//			"baseline" : [{
-//				"name" : "New and Open",
-//				"data" : "Total",
-//				"start" : "Open"
-//			}],
-////					"track" : true,
-//			"showSeries" : ["Open", "New and Open"],
+			"baseline" : [{
+				"name" : "New + Closed",
+				"data" : "Total",
+				"start" : "Closed"
+			}],
+//					"track" : true,
+			"showSeries" : ["New + Closed", "Closed"],
 			"chartTitle" : "Burnup",
 			"canvas" : "chart",
 //			"originZero" : true,
@@ -183,8 +187,10 @@
 			{"id":"endDate", "name":"Max X-axis on Chart", "type":"time", "default":Date.now().floor("day")},
 			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
+		],
+		[
+			"endDate=GUI.fixEndDate(new Date(startDate), new Date(endDate), Duration.newInstance(intervalX)).format('yyyy-MM-dd')"
 		]);
-		createChart();
 	});
 </script>
 
