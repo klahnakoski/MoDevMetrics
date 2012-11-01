@@ -117,6 +117,12 @@
 	$("#description").html("Shows the number of reviews the reviewer was involved in over the given interval.  This can include new reviews, or reviews untouched since the previous interval.");
 
 	var createChart=function(){
+
+		var sampleInterval=Duration.newInstance(state.sampleInterval);
+		var sampleMin=Date.newInstance(state.sampleMin);
+		var sampleMax=sampleMin.add(Date.newInstance(state.sampleMax).add(sampleInterval).subtract(sampleMin, sampleInterval).floor(sampleInterval));
+
+
 		var esQuery = {
 				"query":{"filtered":{
 					"query": {
@@ -174,7 +180,7 @@
 						},
 						"facet_filter":{//HOPEFULLY THIS HELPS
 							"and":[
-								{"range":{"modified_ts":{"lt":new Date(state.sampleMax).getMilli()}}}
+								{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}}
 							]
 						}
 					}
@@ -286,7 +292,7 @@
 									},
 									"facet_filter":{//HOPEFULLY THIS HELPS
 										"and":[
-											{"range":{"modified_ts":{"lt":new Date(state.sampleMax).getMilli()}}}
+											{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}}
 										]
 									}
 								}
@@ -351,10 +357,10 @@
 								{"name":"Bug ID", "value":"bug_id", "order":["start_time.floor('"+flooring+"')", "end_time.floor('"+flooring+"')"]},
 								{"name":"Date",
 									"test":"start_time.floor('"+flooring+"')<=time.value && time.value<=end_time.floor('"+flooring+"')",
-									"domain":{"type":"time", "min":state.sampleMin, "max":state.sampleMax, "interval":flooring, "format":"NNN dd"}
+									"domain":{"type":"time", "min":state.sampleMin, "max":sampleMax, "interval":flooring, "format":"NNN dd"}
 								}
 							],
-							"where":new Date(state.sampleMin).getMilli()+"<=end_time.getMilli() && start_time.getMilli()<"+new Date(state.sampleMax).getMilli()
+							"where":new Date(state.sampleMin).getMilli()+"<=end_time.getMilli() && start_time.getMilli()<"+sampleMax.getMilli()
 //							"order":["Date"]
 						});
 

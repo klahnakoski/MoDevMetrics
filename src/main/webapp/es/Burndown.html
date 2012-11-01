@@ -103,6 +103,9 @@
 
 
 <script type="text/javascript">
+	$("#description").html("This chart only counts the number of bugs that are open at the start date, or opened after the start date.  The difference between the lines is the number of closed bugs.");
+
+
 
 	var rangeChart = null;
 
@@ -181,8 +184,8 @@
 
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"startDate", "name":"Min X-axis on Chart", "type":"time", "default":Date.now().floor("day").add("-1year")},
-			{"id":"endDate", "name":"Max X-axis on Chart", "type":"time", "default":Date.now().floor("day")},
+			{"id":"startDate", "name":"Start Date", "type":"time", "default":Date.now().floor("day").add("-1year")},
+			{"id":"endDate", "name":"End Date", "type":"time", "default":Date.now().floor("day")},
 			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		]);
