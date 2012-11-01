@@ -25,6 +25,25 @@ importScript("../../lib/webdetails/pvcDocUtils.js");
 
 var aChart={};
 
+////////////////////////////////////////////////////////////////////////////////
+// GIVEN THE THREE, RETURN AN END DATE THAT WILL MAKE THE LAST PARTITION
+// INCLUDE A WHOLE INTERVAL
+////////////////////////////////////////////////////////////////////////////////
+aChart.fixEndDate=function(startDate, endDate, interval){
+
+
+	Date.diff(endDate, startDate, interval);
+
+	ref=edge.domain.max;
+	ref=edge.domain.type=="time"?ref.getMilli():ref.milli;
+	partition2int="Math.floor(("+value+"-"+ref+")/"+edge.domain.interval.milli+")";
+	nullTest=""+value+">="+ref;
+
+
+};
+
+
+
 
 aChart.FAVORITE_COLOUR="#2BB8F0";//BLUE FROM FIREFOX OCEAN
 

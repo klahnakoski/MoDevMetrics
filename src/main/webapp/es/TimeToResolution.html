@@ -97,26 +97,30 @@
 <script type="text/javascript" src="js/filters/CustomFilters.js"></script>
 <script type="text/javascript" src="js/filters/GUIFilters.js"></script>
 
-<table style="width: 100%;">
-	<tr>
-		<td style="width: 320px;  vertical-align:text-top;">
-			    <div style="height: 30px; text-align: center;vertical-align:middle;"><span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="../images/spinner.gif" alt=""></span></div>
 
-			<hr>
-			<div id="testMessage"></div>
-			<hr>
-			<div id="parameters" class="parameters">
-			</div>
-			<div id="filters" class="menu"></div>
-		</td>
-		<td>
-			<div style="float:right;display: inline;"><a href="http://people.mozilla.com/~klahnakoski/">HOME</a></div><div id="chart"></div>
-		</td>
-	</tr>
-</table>
+<div id="sidebar">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div id="chart"></div>
+
 <div id="info"></div>
-<div id="description"></div>
 <div id="report"></div>
+
 
 <script type="text/javascript">
 
@@ -268,7 +272,7 @@ var createChart = function(){
 			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
 			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
 			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-2year")},
-			{"id":"sampleMax", "name":"Sample To (but not including)", "type":"time", "default":Date.now().floor("day")},
+			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		]);
 	});

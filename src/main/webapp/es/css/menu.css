@@ -20,8 +20,8 @@ html {
     height: 100%;
     margin: 0px;
     padding: 0px;
-    background: #f5f1e8 url(../../images/bg-sand.png) repeat;
-    background: url(../../images/bg-gradient-sand.png) repeat-x 0 0, url(../../images/bg-sand.png) repeat 0 0, #f5f1e8
+    background: #f5f1e8 url(../images/bg-sand.png) repeat;
+    background: url(../images/bg-gradient-sand.png) repeat-x 0 0, url(../images/bg-sand.png) repeat 0 0, #f5f1e8
 }
 
 .widget {
@@ -43,7 +43,7 @@ html {
 body {
     position: relative;
 
-     /*background: #f9f9f9 url(../../images/grain.png) 0 0 repeat-x*/
+     /*background: #f9f9f9 url(../images/grain.png) 0 0 repeat-x*/
 
     /*background-image: -khtml-gradient(linear, left top, left bottom, from(#d7d3c8), to(#f6f4ec));*/
     /*background-image: -moz-linear-gradient(#d7d3c8, #f6f4ec);*/

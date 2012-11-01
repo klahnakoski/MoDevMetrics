@@ -29,6 +29,22 @@ Date.prototype.subtract=function(time){
 };//method
 
 
+Date.diffMonth=function(endTime, startTime){
+
+	var numMonths=Math.floor((endTime.getMilli()-startTime.getMilli()+(Duration.MILLI_VALUES.day*31))/Duration.MILLI_VALUES.year*12);
+
+	var test = new Date(startTime);
+	test.setUTCMonth(this.getUTCMonth() + numMonths);
+	while (test>endTime) test.setUTCMonth(this.getUTCMonth() - 1);
+
+
+	}
+	this.getMilli()-time.getMilli()
+
+
+};//method
+
+
 
 //CONVERT THIS GMT DATE TO LOCAL DATE
 Date.prototype.addTimezone = function(){

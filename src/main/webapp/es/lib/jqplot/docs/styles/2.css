@@ -39,7 +39,7 @@ p {
 }
 
 body.ContentPage {
-  background-image: url('../../images/background.jpg');
+  background-image: url('../images/background.jpg');
   background-color: #818181;
 	background-position: left top;
 	background-repeat: repeat-x;
@@ -74,7 +74,7 @@ body.ContentPage {
 	margin: 0px;
 	background-position: left top;
 	background-repeat: no-repeat;
-	background-image: url('../../images/logo.jpg');
+	background-image: url('../images/logo.jpg');
 	background-color: #292929;
 	height: 94px;
 	position: relative;
@@ -105,7 +105,7 @@ body.ContentPage {
 	margin: 0px;
 	background-position: left top;
 	background-repeat: no-repeat;
-	background-image: url('../../images/logo.jpg');
+	background-image: url('../images/logo.jpg');
 	background-color: #292929;
 	height: 94px;
 	position: relative;
@@ -117,7 +117,7 @@ body.ContentPage {
 }
 
 body.IndexPage {
-  background-image: url('../../images/background.jpg');
+  background-image: url('../images/background.jpg');
 }
 
 /*#IPageLogo:hover {

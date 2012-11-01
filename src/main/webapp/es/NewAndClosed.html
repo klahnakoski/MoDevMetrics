@@ -79,29 +79,33 @@
 <script type="text/javascript" src="js/filters/GUIFilters.js"></script>
 
 
-<table style="width: 100%;">
-	<tr>
-		<td style="width: 320px;  vertical-align:text-top;">
-			    <div style="height: 30px; text-align: center;vertical-align:middle;"><span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="../images/spinner.gif" alt=""></span></div>
 
-			<hr>
-			<div id="testMessage"></div>
-			<hr>
-			<div id="parameters" class="parameters">
-			</div>
-			<div id="filters" class="menu"></div>
-		</td>
-		<td>
-			<div style="float:right;display: inline;"><a href="http://people.mozilla.com/~klahnakoski/">HOME</a></div><div id="chart"></div>
-		</td>
-	</tr>
-</table>
+<div id="sidebar">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div id="chart"></div>
+
 <div id="info"></div>
-<div id="description"></div>
 <div id="report"></div>
 
 <script type="text/javascript">
 
+	$("#description").html("Shows the number of new bugs and number of closed bugs over given interal.  <span class=\"warning\">New count is too low when filtering, only bugs properly marked at open time are ounted here</span>");
 
 	var rangeChart = null;
 
@@ -157,7 +161,7 @@
 //			}],
 //////					"track" : true,
 //			"showSeries" : ["Open", "New and Open"],
-			"chartTitle" : "New Bugs and Old Bugs (New count may be low if bugs not marked at create time)",
+			"chartTitle" : "New Bugs and Old Bugs",
 			"canvas" : "chart",
 			"originZero" : true,
 			"chartType" : "LineChart",
