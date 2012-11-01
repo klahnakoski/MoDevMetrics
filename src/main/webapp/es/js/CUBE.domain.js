@@ -96,8 +96,8 @@ CUBE.domain.time = function(column, sourceColumns){
 	d.NULL = {"value":null, "name":"null"};
 
 	d.interval = Duration.newInstance(d.interval);
-	d.min = Date.newInstance(d.min).floor(d.interval);
-	d.max = Date.newInstance(d.max).floor(d.interval, d.min);
+	d.min = Date.newInstance(d.min);//.floor(d.interval);
+	d.max = d.min.add(Date.newInstance(d.max).subtract(d.min, d.interval).floor(d.interval, d.min));
 
 	d.compare = function(a, b){
 		return CUBE.domain.value.compare(a.value, b.value);

@@ -86,6 +86,12 @@ Date.prototype.addMilli = function(value){
 };//method
 
 
+Date.prototype.addSecond = function(value){
+	var output = new Date(this);
+	output.setUTCSeconds(this.getUTCSeconds() + value);
+	return output;
+};//method
+
 Date.prototype.addMinute = function(value){
 	var output = new Date(this);
 	output.setUTCMinutes(this.getUTCMinutes() + value);

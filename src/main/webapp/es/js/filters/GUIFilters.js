@@ -42,7 +42,7 @@ GUI.fixEndDate=function(startDate, endDate, interval){
 	var diff=endDate.add(interval).subtract(startDate, interval);
 
 	var newEnd=startDate.add(diff.floor(interval));
-	return newEnd.addMilli(-1);
+	return newEnd.addSecond(-1);
 };
 
 
@@ -227,8 +227,10 @@ GUI.UpdateParameters = function (){
 
 //RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
 GUI.UpdateState = function(){
-	var changeDetected = false;
+	var backup={};
+	Util.copy(state, backup);
 
+	var changeDetected = false;
 	GUI.parameters.forEach(function(param){
 		if (state[param.id]===undefined || state[param.id] != $("#" + param.id).val()){
 			state[param.id] = $("#" + param.id).val();
@@ -236,10 +238,10 @@ GUI.UpdateState = function(){
 		}//endif
 	});
 
-	if (changeDetected && GUI.relations.length>0){
+	if (GUI.relations.length>0){
+		//COMPILE RELATIONS
 		var type=typeof(GUI.relations[0]);
 		if (type!="function"){
-			//COMPILE RELATIONS
 			GUI.relations.forall(function(r, i){
 				GUI.relations[i]=aCompile.method(r, [state]);
 			});
@@ -248,6 +250,14 @@ GUI.UpdateState = function(){
 		//UPDATE THE STATE OBJECT
 		GUI.relations.forall(function(r){
 			r(state);
+		});
+
+		//AFTER RELATIONS, IS THERE STILL A CHANGE?
+		changeDetected=false;
+		GUI.parameters.forEach(function(param){
+			if (backup[param.id]===undefined || state[param.id] != backup[param.id]){
+				changeDetected = true;
+			}//endif
 		});
 
 		//PUSH BACK CHANGES IN STATE TO GUI PARAMETERS
