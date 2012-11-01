@@ -108,7 +108,7 @@ ProductUI.prototype.success = function(resultsObj, data){
 			}//endif
 
 			if (didChange){
-				GUI.UpdateURL();
+				GUI.State2URL();
 				state.programFilter.Refresh();
 				state.productFilter.Refresh();
 				state.componentFilter.Refresh();
@@ -118,7 +118,7 @@ ProductUI.prototype.success = function(resultsObj, data){
 			var i = state.selectedProducts.indexOf(ui.unselected.id.rightBut("product_".length));
 			if (i != -1){
 				state.selectedProducts.splice(i, 1);
-				GUI.UpdateURL();
+				GUI.State2URL();
 				state.programFilter.Refresh();
 				state.productFilter.Refresh();
 				state.componentFilter.Refresh();

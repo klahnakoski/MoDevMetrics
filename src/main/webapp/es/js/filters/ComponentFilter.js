@@ -97,7 +97,7 @@ ComponentUI.prototype.success = function(resultsObj, data){
 
 	state.selectedComponents = List.intersect(state.selectedComponents, terms);
 
-	GUI.UpdateURL();
+	GUI.State2URL();
 	this.injectHTML(components);
 	$("#componentsList").selectable({
 		selected: function(event, ui){
@@ -113,7 +113,7 @@ ComponentUI.prototype.success = function(resultsObj, data){
 			}//endif
 
 			if (didChange){
-				GUI.UpdateURL();
+				GUI.State2URL();
 				GUI.UpdateSummary();
 				state.programFilter.Refresh();
 				state.productFilter.Refresh();
@@ -124,7 +124,7 @@ ComponentUI.prototype.success = function(resultsObj, data){
 			var i = state.selectedComponents.indexOf(ui.unselected.id.rightBut("component_".length));
 			if (i != -1){
 				state.selectedComponents.splice(i, 1);
-				GUI.UpdateURL();
+				GUI.State2URL();
 				GUI.UpdateSummary();
 				state.programFilter.Refresh();
 				state.productFilter.Refresh();

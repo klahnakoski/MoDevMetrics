@@ -51,7 +51,7 @@ GenerateCustomFilters = function(){
 		selected: function(event, ui){
 			if (!include(state['customFilters'], ui.selected.id)){
 				state['customFilters'].push(ui.selected.id);
-				GUI.UpdateURL();
+				GUI.State2URL();
 				GUI.UpdateSummary();
 				createChart();
 			}
@@ -60,7 +60,7 @@ GenerateCustomFilters = function(){
 			var i = state['customFilters'].indexOf(ui.unselected.id);
 			if (i != -1){
 				state['customFilters'].splice(i, 1);
-				GUI.UpdateURL();
+				GUI.State2URL();
 				GUI.UpdateSummary();
 				createChart();
 			}

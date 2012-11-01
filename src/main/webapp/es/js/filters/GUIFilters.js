@@ -70,15 +70,15 @@ GUI.setup = function(parameters, relations){
 	GUI.showESTime();
 	GenerateCustomFilters();
 	GUI.AddParameters(parameters, relations); //ADD PARAM AND SET DEFAULTS
-
+	GUI.Parameter2State();			//UPDATE STATE OBJECT WITH THOSE DEFAULTS
 
 	GUI.relations=Util.coalesce(relations, []);
-	GUI.UpdateState();			//UPDATE STATE OBJECT WITH THOSE DEFAULTS
+	GUI.FixState();
 
-
-	GUI.GetURLState();			//OVERWRITE WITH URL PARAM
-//	GUI.UpdateState();			//UPDATE STATE OBJECT (WITH THOSE DEFAULTS
-
+	GUI.URL2State();			//OVERWRITE WITH URL PARAM
+	GUI.FixState();
+	GUI.State2URL();
+	GUI.State2Parameter();
 };
 
 
@@ -113,7 +113,7 @@ GUI.showESTime = function(){
 };//method
 
 
-GUI.UpdateURL = function(){
+GUI.State2URL = function(){
 	var simplestate = {};
 
 	var keys = Object.keys(state);
@@ -132,12 +132,11 @@ GUI.UpdateURL = function(){
 	jQuery.bbq.pushState(simplestate);
 };
 
-GUI.GetURLState = function(){
+GUI.URL2State = function(){
 	var urlState = jQuery.bbq.getState();
 	for(var k in urlState){
 		state[k] = urlState[k];
 	}//for
-	GUI.UpdateState();
 };
 
 
@@ -170,7 +169,6 @@ GUI.AddParameters=function(parameters, relations){
 
 			$("#" + param.id).change(function(){
 				if (GUI.UpdateState()){
-					GUI.UpdateURL();
 					createChart();
 				}
 			});
@@ -189,7 +187,6 @@ GUI.AddParameters=function(parameters, relations){
 				}//try
 
 				if (GUI.UpdateState()){
-					GUI.UpdateURL();
 					createChart();
 				}
 			});
@@ -197,7 +194,6 @@ GUI.AddParameters=function(parameters, relations){
 		}else{
 			$("#" + param.id).change(function(){
 				if (GUI.UpdateState()){
-					GUI.UpdateURL();
 					createChart();
 				}
 			});
@@ -214,31 +210,48 @@ GUI.AddParameters=function(parameters, relations){
 
 
 //RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
-GUI.UpdateParameters = function (){
-	var changeDetected = false;
+GUI.State2Parameter = function (){
 	GUI.parameters.forEach(function(param){
-		if (state[param.id] != $("#" + param.id).val()){
-			$("#" + param.id).val(state[param.id]);
-			changeDetected = true;
-		}//endif
+		$("#" + param.id).val(state[param.id]);
 	});
-	return changeDetected;
 };
 
 
 //RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
-GUI.UpdateState = function(){
-	var backup={};
-	Util.copy(state, backup);
-
-	var changeDetected = false;
+GUI.Parameter2State = function(){
 	GUI.parameters.forEach(function(param){
-		if (state[param.id]===undefined || state[param.id] != $("#" + param.id).val()){
-			state[param.id] = $("#" + param.id).val();
+		state[param.id] = $("#" + param.id).val();
+	});
+};
+
+
+
+//RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
+GUI.UpdateState = function(){
+	var backup=Util.copy(state, {});
+
+	GUI.Parameter2State();
+	GUI.FixState();
+
+
+	//AFTER RELATIONS, IS THERE STILL A CHANGE?
+	var changeDetected = false;
+	GUI.parameters.forall(function(param){
+		if (backup[param.id]===undefined || state[param.id] != backup[param.id]){
 			changeDetected = true;
 		}//endif
 	});
 
+	//PUSH BACK CHANGES IN STATE TO GUI PARAMETERS
+	if (changeDetected){
+		GUI.State2URL();
+		GUI.State2Parameter();
+	}//endif
+	return changeDetected;
+};
+
+// APPLY THE RELATIONS TO STATE
+GUI.FixState=function(){
 	if (GUI.relations.length>0){
 		//COMPILE RELATIONS
 		var type=typeof(GUI.relations[0]);
@@ -252,20 +265,7 @@ GUI.UpdateState = function(){
 		GUI.relations.forall(function(r){
 			r(state);
 		});
-
-		//AFTER RELATIONS, IS THERE STILL A CHANGE?
-		changeDetected=false;
-		GUI.parameters.forall(function(param){
-			if (backup[param.id]===undefined || state[param.id] != backup[param.id]){
-				changeDetected = true;
-			}//endif
-		});
-
-		//PUSH BACK CHANGES IN STATE TO GUI PARAMETERS
-		if (changeDetected) GUI.UpdateParameters();
 	}//endif
-
-	return changeDetected;
 };
 
 

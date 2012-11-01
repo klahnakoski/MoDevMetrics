@@ -186,7 +186,7 @@ ProgramFilter.prototype.success = function(resultsObj, data){
 			}//endif
 
 			if (didChange){
-				GUI.UpdateURL();
+				GUI.State2URL();
 				state.programFilter.Refresh();
 				state.productFilter.Refresh();
 				state.componentFilter.Refresh();
@@ -196,7 +196,7 @@ ProgramFilter.prototype.success = function(resultsObj, data){
 			var i = state.selectedPrograms.indexOf(ui.unselected.id.rightBut("program_".length));
 			if (i != -1){
 				state.selectedPrograms.splice(i, 1);
-				GUI.UpdateURL();
+				GUI.State2URL();
 				state.programFilter.Refresh();
 				state.productFilter.Refresh();
 				state.componentFilter.Refresh();

@@ -69,6 +69,7 @@ Date.diffMonth=function(endTime, startTime){
 	var output=new Duration();
 	output.month=numMonths;
 	output.milli=endTime.getMilli()-startTime.addMonth(numMonths).getMilli()+(numMonths*Duration.MILLI_VALUES.month);
+	return output;
 };//method
 
 
