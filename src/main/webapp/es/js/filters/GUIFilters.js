@@ -232,7 +232,7 @@ GUI.UpdateState = function(){
 
 	GUI.Parameter2State();
 	GUI.FixState();
-
+	GUI.State2Parameter();
 
 	//AFTER RELATIONS, IS THERE STILL A CHANGE?
 	var changeDetected = false;
@@ -243,10 +243,7 @@ GUI.UpdateState = function(){
 	});
 
 	//PUSH BACK CHANGES IN STATE TO GUI PARAMETERS
-	if (changeDetected){
-		GUI.State2URL();
-		GUI.State2Parameter();
-	}//endif
+	if (changeDetected) GUI.State2URL();
 	return changeDetected;
 };
 
