@@ -2,7 +2,7 @@
 
 importScript("../charts/HelperFunctions.js");
 
-importScript("../rest/RestQuery.js");
+importScript("../rest/ElasticSearchQuery.js");
 importScript("../charts/Status.js");
 importScript("../Test2.js");
 
@@ -84,7 +84,7 @@ GUI.setup = function(parameters, relations){
 
 //SHOW THE LAST TIME ES WAS UPDATED
 GUI.showESTime = function(){
-	RestQuery.Run(
+	ElasticSearchQuery.OldRun(
 		{//CALLBACK
 			"success" : function(requestObj, data){
 				$("#testMessage").html("ES Last Updated " + Date.newInstance(data.facets.modified_ts.max).addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());

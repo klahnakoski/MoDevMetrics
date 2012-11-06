@@ -3,53 +3,45 @@ var MVEL = function(){
 
 
 MVEL.prototype.code = function(query){
-	var selectList = query.select;
-	var fromPath = query.from;
+	var selectList = CUBE.select2Array(query.select);
+	var fromPath = query.from;			//FIRST NAME IS THE INDEX
+	var indexName=fromPath.split(".")[0];
 	var whereClause = query.where;
-	var pleaseDebug = query.debug;
 
 	//PARSE THE fromPath
-	var code = this.from(fromPath, "doc", "loop");
+	var code = this.from(fromPath, indexName, "__loop");
 	var output =
-		"var String2Quote = function(str){\n" + "if (!(str is String)){ str; }else{\n" +
-			"" + MVEL.Value2Code("\"") + "+" +
-			"str.replace(" + MVEL.Value2Code("\\") + "," + MVEL.Value2Code("\\\\") +
-			").replace(" + MVEL.Value2Code("\"") + "," + MVEL.Value2Code("\\\"") +
-			").replace(" + MVEL.Value2Code("\'") + "," + MVEL.Value2Code("\\\'") + ")+" +
-			MVEL.Value2Code("\"") + ";}};\n" +
-			"var floorDay = function(value){ Math.floor(value/(24*60*60*1000))*(24*60*60*1000);};\n" +
-			'var cool_func = function(doc){\n' +
+		MVEL.FUNCTIONS.replaceAll+
+		MVEL.FUNCTIONS.Value2Pipe+
+		//MVEL.FUNCTIONS.String2Quote+
+		MVEL.FUNCTIONS.floorDay+
+		'var cool_func = function('+indexName+'){\n' +
 			"output=\"\";\n" +
 			code.replace(
 				"<CODE>",
 				"if (" + this.where(whereClause) + "){" +
-					this.select(selectList, "output") +
-					"}\n"
+					this.select(selectList, fromPath, "output") +
+				"}\n"
 			) +
-			(pleaseDebug ? "if (output==\"\") output=\"{\\\"bug_id\\\":\"+doc.bug_id+\"}\";\n" : "") +
-			"\"[\"+output+\"]\";\n" +
-			'};\n' +
-			'cool_func(_source)\n'
-		;
+			'output;\n' +
+		'};\n' +
+		'cool_func(_source)\n'
+	;
 
-	if (console !== undefined && D.println != undefined) D.println(output);
+//	if (console !== undefined && D.println != undefined) D.println(output);
 	return output;
 };//method
 
 
 
-
-
-// docVariableName NAME USED TO REFER TO HIGH LEVEL DOCUMENT
+// indexName NAME USED TO REFER TO HIGH LEVEL DOCUMENT
 // loopVariablePrefix PREFIX FOR LOOP VARABLES
-MVEL.prototype.from = function(fromPath, docVariableName, loopVariablePrefix){
+MVEL.prototype.from = function(fromPath, loopVariablePrefix){
 	var loopCode = "for(<VAR> : <LIST>){\n<CODE>\n}\n";
 	this.prefixMap = [];
 	var code = "<CODE>";
 
-
 	var path = fromPath.split(".");
-	if (path[0] != docVariableName) D.error("Expecting all paths to start with " + docVariableName);
 
 	var currPath = [];
 	currPath.push(path[0]);
@@ -69,7 +61,6 @@ MVEL.prototype.from = function(fromPath, docVariableName, loopVariablePrefix){
 
 
 MVEL.prototype.translate = function(variableName){
-
 	var shortForm = variableName;
 	for(var p = 0; p < (this.prefixMap).length; p++){
 		var prefix = this.prefixMap[p].path;
@@ -84,24 +75,72 @@ MVEL.prototype.translate = function(variableName){
 // selectList HAS SIMPLE LIST OF VARIABLES TO BE ASSIGNED TO EACH RETURN OBJECT
 // prefixMap WILL MAP path TO A LOOP variable INDEX
 // varName THE VARIABLE USED TO ACCUMULATE THE STRING CONCATENATION
-MVEL.prototype.select = function(selectList, varName){
+//MVEL.prototype.select = function(selectList, varName){
+//
+//	var list = [];
+//	for(var s = 0; s < selectList.length; s++){
+//		var variable = selectList[s].name;
+//		var value = selectList[s].value;
+//		var shortForm = this.translate(value);
+//		list.push(MVEL.Value2Code(MVEL.Value2Code(variable) + ":") + "+String2Quote(" + shortForm + ")\n");
+//	}//for
+//
+//
+//	var output =
+//		'if (' + varName + '!="") ' + varName + '+=", ";\n' +
+//			varName + '+="{"+' + String.join(list, "+\",\"+") + '+"}";\n'
+//		;
+//
+//	return output;
+//};//method
 
+
+// CREATE A PIPE DELIMITED RESULT SET
+MVEL.prototype.select = function(selectList, fromPath, varName){
 	var list = [];
 	for(var s = 0; s < selectList.length; s++){
-		var variable = selectList[s].name;
 		var value = selectList[s].value;
 		var shortForm = this.translate(value);
-		list.push(MVEL.Value2Code(MVEL.Value2Code(variable) + ":") + "+String2Quote(" + shortForm + ")\n");
+		list.push("Value2Pipe(" + shortForm + ")\n");
 	}//for
 
-
-	var output =
-		'if (' + varName + '!="") ' + varName + '+=", ";\n' +
-			varName + '+="{"+' + String.join(list, "+\",\"+") + '+"}";\n'
-		;
-
+	var output;
+	if (fromPath.indexOf(".")>0){
+		output =
+			'if (' + varName + '!="") ' + varName + '+="|";\n' +
+				varName + '+=' + String.join(list, '+"|"+') + ';\n'
+			;
+	}else{
+		output=varName + ' = ' + String.join(list, '+"|"+') + ';\n'
+	}//endif
 	return output;
 };//method
+
+
+
+
+//STATIC SO IT CAN BE USED ELSEWHERE
+MVEL.esFacet2List=function(facet, selectClause){
+	//ASSUME THE .term IS JSON OBJECT WITH ARRAY OF RESULT OBJECTS
+	var output = [];
+	var list = facet.terms;
+	for(var i = 0; i < list.length; i++){
+		var value=undefined;
+		if (list[i].term=="") continue;		//NO DATA
+		var values = list[i].term.split("|");
+		for(var v = 0; v < values.length; v++){
+			var s=v%selectClause.length;
+			if (s==0){
+				if (value!==undefined) output.push(value);
+				value={};
+			}//endif
+			value[selectClause[s].name]=CNV.Pipe2Value(values[v]);
+		}//for
+		output.push(value);
+	}//for
+	return output;
+};//method
+
 
 
 // esFilter SIMPLIFIED ElasticSearch FILTER OBJECT
@@ -208,6 +247,11 @@ MVEL.prototype.where = function(esFilter){
 	} else if (op=="script"){
 		var script = esFilter[op].script;
 		return this.translate(script);
+	}else if (op=="prefix"){
+		var pair = esFilter[op];
+		var variableName = Object.keys(pair)[0];
+		var value = pair[variableName];
+		return this.translate(variableName)+".startsWith(" + MVEL.Value2Code(value)+")";
 	} else{
 		D.error("'" + op + "' is an unknown operation");
 	}//endif
@@ -220,3 +264,39 @@ MVEL.Value2Code = function(value){
 	if (Math.isNumeric(value)) return "" + value;
 	return CNV.String2Quote(value);
 };//method
+
+
+
+MVEL.FUNCTIONS={
+	"String2Quote":
+		"var String2Quote = function(str){\n" +
+			"if (!(str is String)){ str; }else{\n" +	//LAST VALUE IS RETURNED.  "return" STOPS EXECUTION COMPLETELY!
+			"" + MVEL.Value2Code("\"") + "+" +
+			"str.replace(" + MVEL.Value2Code("\\") + "," + MVEL.Value2Code("\\\\") +
+			").replace(" + MVEL.Value2Code("\"") + "," + MVEL.Value2Code("\\\"") +
+			").replace(" + MVEL.Value2Code("\'") + "," + MVEL.Value2Code("\\\'") + ")+" +
+			MVEL.Value2Code("\"") + ";\n" +
+			"}};\n",
+
+	"Value2Pipe":
+		'var Value2Pipe = function(value){\n' +  //SPACES ARE IMPORTANT BETWEEN "="
+			"if (value==null){ \"0\" }else "+
+			"if (!(value is String)){ 'n'+value; }else{\n" +
+//			"value;\n"+
+			'"s"+replaceAll(replaceAll(value, "\\\\", "\\\\\\\\"), "|", "\\\\p");'+  //CAN NOT ""+value TO MAKE NUMBER A STRING (OR EVEN TO PREPEND A STRING!)
+		"}};\n",
+
+	"replaceAll":
+		"var replaceAll = function(output, find, replace){\n" +
+			"s = output.indexOf(find, 0);\n" +
+			"while(s>=0){\n" +
+				"output=output.replace(find, replace);\n" +
+				"s=s-find.length+replace.length;\n" +
+				"s = output.indexOf(find, s);\n" +
+			"}\n"+
+			"output;\n"+
+		'};\n',
+
+	"floorDay":
+		"var floorDay = function(value){ Math.floor(value/(24*60*60*1000))*(24*60*60*1000);};\n"
+};

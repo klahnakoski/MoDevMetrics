@@ -59,7 +59,7 @@ ProgramFilter.makeQuery = function(filters){
 //			compare="if (_source." + name + ".indexOf(" + CNV.String2Quote(value) + ")>=0) return " + CNV.String2Quote(project) + ";\n";
 //			allCompares += compare;
 //		} else{
-//			compare="if (doc." + name + "==" + CNV.String2Quote(value) + ") return " + CNV.String2Quote(project) + ";\n";
+//			compare="if (bugs." + name + "==" + CNV.String2Quote(value) + ") return " + CNV.String2Quote(project) + ";\n";
 //			allCompares += compare;
 //		}//enidf
 	}//for
@@ -153,9 +153,9 @@ ProgramFilter.prototype.Refresh = function(){
 	]);
 
 //	D.println(CNV.Object2JSON(this.query));
-	this.restQuery = new RestQuery(this, 0, this.query);
+	this.ElasticSearchQuery = OldElasticSearchQuery(this, 0, this.query);
 	this.results = null;
-	this.restQuery.Run();
+	this.ElasticSearchQuery.Run();
 };
 
 

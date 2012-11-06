@@ -14,27 +14,32 @@ CNV.ESResult2List = function(esResult){
 };//method
 
 
-CNV.ESFacet2List = function(esFacet){
-	if (esFacet._type == "terms_stats") return esFacet.terms;
+//CNV.ESFacet2List = function(esFacet){
+//	if (esFacet._type == "terms_stats") return esFacet.terms;
+//
+//	if (!(esFacet.terms === undefined)){
+//		//ASSUME THE .term IS JSON OBJECT WITH ARRAY OF RESULT OBJECTS
+//		var output = [];
+//		var list = esFacet.terms;
+//		for(var i = 0; i < list.length; i++){
+//			var esRow = list[i];
+//			var values = CNV.JSON2Object(esRow.term);
+//			for(var v = 0; v < (values).length; v++){
+//				values[v].count = esRow.count;
+//				output.push(values[v]);
+//			}//for
+//		}//for
+//		return output;
+//	} else if (!(esFacet.entries === undefined)){
+//		return esFacet.entries;
+//	}//endif
+//
+//};//method
 
-	if (!(esFacet.terms === undefined)){
-		//ASSUME THE .term IS JSON OBJECT WITH ARRAY OF RESULT OBJECTS
-		var output = [];
-		var list = esFacet.terms;
-		for(var i = 0; i < list.length; i++){
-			var esRow = list[i];
-			var values = CNV.JSON2Object(esRow.term);
-			for(var v = 0; v < (values).length; v++){
-				values[v].count = esRow.count;
-				output.push(values[v]);
-			}//for
-		}//for
-		return output;
-	} else if (!(esFacet.entries === undefined)){
-		return esFacet.entries;
-	}//endif
 
-};//method
+
+
+
 
 
 CNV.ESResult2HTMLSummaries = function(esResult){
@@ -81,8 +86,19 @@ CNV.String2Integer = function(value){
 	return value - 0;
 };//method
 
+CNV.Pipe2Value=function(value){
+	value=value.replaceAll("\\p", "|").replaceAll("\\\\", "\\");
+	var type=value.charAt(0);
+	value=value.substring(1);
+	if (type=='n') return CNV.String2Integer(value);
+	if (type=='s') return value;
+	if (type=='0') return null;
+	D.error("unknown pipe type");
+};//method
 
-CNV.List2HTMLTable = function(data){
+
+
+CNV.List2HTMLTable = function(data, options){
 
 	//WRITE HEADER
 	var header = "";
@@ -92,6 +108,8 @@ CNV.List2HTMLTable = function(data){
 
 
 	var output = "";
+	var numRows=data.length;
+	if (options!==undefined && options.limit!==undefined && numRows>options.limit) numRows=options.limit;
 	//WRITE DATA
 	for(var i = 0; i < data.length; i++){
 		var row = "";

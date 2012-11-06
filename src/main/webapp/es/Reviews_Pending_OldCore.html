@@ -3,7 +3,7 @@
 <HEAD>
 </HEAD>
 <BODY>
-<script type="text/javascript" src="js/rest/RestConfig.js"></script>
+
 <script type="text/javascript" src="lib/js/jquery-1.7.js"></script>
 
 <script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
@@ -59,19 +59,19 @@
 					"script_field":
 							new MVEL().code({
 								"select" : [
-									{"name":"bug_id", "value":"doc.bug_id"},
-									{"name":"requestee", "value":"doc.attachments.flags.requestee"},
-									{"name":"modified_ts", "value":"doc.attachments.flags.modified_ts"},
-									{"name":"attach_id","value":"doc.attachments.attach_id"}
+									{"name":"bug_id", "value":"bugs.bug_id"},
+									{"name":"requestee", "value":"bugs.attachments.flags.requestee"},
+									{"name":"modified_ts", "value":"bugs.attachments.flags.modified_ts"},
+									{"name":"attach_id","value":"bugs.attachments.attach_id"}
 								],
 								"from":
-										"doc.attachments.flags",
+										"bugs.attachments.flags",
 								"where":
 								{"and" : [
-									{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
-									{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
-									{"range":{"doc.attachments.flags.modified_ts":{"lt":Date.now().add("-3month").getMilli()}}},
-									{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
+									{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
+									{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+									{"range":{"bugs.attachments.flags.modified_ts":{"lt":Date.now().add("-3month").getMilli()}}},
+									{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
 								]}
 							}),
 					"size": 100000
@@ -83,14 +83,18 @@
 //	D.println(query.edges.assigned.terms.script_field);
 
 
-	var request = $.ajax({
-		url: window.ElasticSearchRestURL,
-		type: "POST",
-		data: JSON.stringify(query),
-		dataType: "json",
+
+	ElasticSearchQuery.Run({
+		"query":query,
+
 
 		success: function(data){
-			var esResult = CNV.ESFacet2List(data.facets.pending);
+			var esResult = MVL.esFacet2List(data.facets.pending, [
+									{"name":"bug_id", "value":"bugs.bug_id"},
+									{"name":"requestee", "value":"bugs.attachments.flags.requestee"},
+									{"name":"modified_ts", "value":"bugs.attachments.flags.modified_ts"},
+									{"name":"attach_id","value":"bugs.attachments.attach_id"}
+								]);
 
 			var reviews=					//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
 					new CUBE().calc2List({

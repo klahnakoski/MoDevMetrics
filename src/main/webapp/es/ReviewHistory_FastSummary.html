@@ -1,5 +1,7 @@
-<HTML>
+
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<HTML>
+
 <HEAD>
 </HEAD>
 <BODY>
@@ -62,8 +64,8 @@
 <script type="text/javascript" src="js/MozillaPrograms.js"></script>
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/Debug.js"></script>
-<script type="text/javascript" src="js/MVEL.js"></script><script type="text/javascript" src="js/aCompiler.js"></script>
 <script type="text/javascript" src="js/aCompiler.js"></script>
+<script type="text/javascript" src="js/MVEL.js"></script>
 
 <script type="text/javascript" src="js/CUBE.js"></script>
 <script type="text/javascript" src="js/CUBE.aggregate.js"></script>
@@ -113,74 +115,77 @@
 <div id="info"></div>
 <div id="report"></div>
 
-
-
 <script type="text/javascript">
 
+	$("#description").html("Shows the number of reviews the reviewer was involved in over the given interval.  This can include new reviews, or reviews untouched since the previous interval.");
 
-		$("#description").html("Count of number of bugs closed since &lt;Sample From&gt;. Counts are broken into cohorts to help compare change over time.");
+	var createChart=function(){
 
-		var query;
+		var esQuery = new ESQuery({
+			"from":"reviews",
+			"select":[
+				{"name":"num", "value":"bug_id", "operation":"count"}
+			],
+			"edges":[
+				{"name":"duration", "value":"reviews.review_time-reviews.request_time",
+					"domain":{"type":"duration", "min":"0", "max":"18week", "interval":"week"}
+				}
+			],
+			"esfilter":{"and":[
+				{"range":{"request_time":{"gte":Date.now().floorDay().subtract(Duration.newInstance("18week"))}}}
+			]}
+		});
+
+		console.info(CNV.Object2JSON(esQuery.esQuery));
+
+		status.message("Call ES");
 
 
-		var createChart = function(){
-			if (query !== undefined) query.kill();
+		esQuery.run(function(reviewQueues){
+			status.message("Prep Chart");
 
+D.println(CNV.List2Tab(reviewQueues));
 
-			var interval = Date.now().floor("day").subtract(new Date(state.cohortMin)).multiply(1 / state.cohortNum);
-
-			query = new ESQuery({
-				"name":"Age of Closed Bugs (%)",
-				"from":"bugs",
-				"select":{"name":"Count", "value":"1", "operation":"count"},
+			var chart=new CUBE().calc2Cube({
+				"name":
+					"Historical Review Queue for "+state.requestee,
+				"from":reviewQueues.list,
+				"select":{"name":"Pending", "value":"1", operation:"sum"},
 				"edges":[
-					{"name":"Cohort", "value":"modified_ts", "domain":{"type":"time", "min":state.cohortMin, "max":Date.now().floor("day"), "interval":interval, format:"NNN yyyy"}},
-					{"name":"Age", "value":'doc["modified_ts"].value-doc["created_ts"].value', allowNulls:true, "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
-				],
-				"where":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value',  //ONLY THE DOCUMENT THAT CLOSES THE BUG
-				"esfilter":{"and":[
-					//			{"not":{"term":{"resolution":""}}},	//THERE IS ONE verified WITH resolution=""
-					{"terms":{"bug_status":["resolved", "verified", "closed"]}},
-					{"range":{"modified_ts":{"gte":new Date(state.cohortMin).getMilli()}}},
-					{"range":{"modified_ts":{"lte":Date.now().floor("day").getMilli()}}}
-				]},
-				"essize":state.esSize
+					{"name":"Bug ID", "value":"bug_id", "order":["request_time", "review_time"]},
+					{"name":"Date",
+						"test":"request_time<=time.value && time.value<=review_time",
+						"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "format":"NNN dd"}
+					}
+				]
 			});
 
-			ES.InjectFilter(query);
+			aChart.showCCC({
+				"id":"chart",
+				"type":"stacked",
+				"cube":chart
+			});
 
-			status.message("Calling ES");
-			query.run(
-					function(chartCube){
-						CUBE.normalizeByCohort(chartCube, 100);
+			status.message("Done");
 
-						status.message("Make chart");
-						aChart.showCCC({
-							"id":"chart",
-							"type":"bar",
-							"cube":chartCube
-						});
-						status.message("Done");
-					}
-			);
-
-
-		};
+		});
+	};//createChart
 
 
 	$(document).ready(function(){
-
 		GUI.setup([
-			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
-			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
-			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
-			{"id":"cohortMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-2year")},
-			{"id":"cohortNum", "name":"Number of Cohorts", "type":"number", "default":4},
+			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"nobody@mozilla.com"},
+			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-14day")},
+			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
+			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("day")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
+		],
+		[
+			"sampleMax=GUI.fixEndDate(new Date(sampleMin), new Date(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
 		]);
-
-
 	});
+
+//	createChart();
 
 </script>
 

@@ -100,27 +100,27 @@ CUBE.prototype.calc2List = function(query){
 				} else{
 					for(var t = results.length; t--;) results[t][edge.name] = p;
 				}//endif
-			} else{
+			} else{ //test is DEFINED ON EDGE
 				//MULTIPLE MATCHES EXIST
-				var partitions = edge.domain.getPartitions(row);
-				if (partitions.length == 0){
+				var matches = edge.domain.getPartitions(row);
+				if (matches.length == 0){
 					edge.outOfDomainCount++;
 					if (edge.allowNulls){
 						for(var t = results.length; t--;){
 							results[t][edge.name] = edge.domain.NULL;
 						}//for
 					} else{
-//							results=[];
 						continue FROM;
 					}//endif
 				} else{
+					//WE MUTIPLY THE NUMBER OF MATCHES TO THE CURRENT NUMBER OF RESULTS (SQUARING AND CUBING THE RESULT-SET)
 					for(var t = results.length; t--;){
 						result = results[t];
-						result[edge.name] = partitions[0];
-						for(var p = 1; p < partitions.length; p++){
+						result[edge.name] = matches[0];
+						for(var p = 1; p < matches.length; p++){
 							result = Util.copy(result, {});
 							results.push(result);
-							result[edge.name] = partitions[p];
+							result[edge.name] = matches[p];
 						}//for
 					}//for
 				}//endif
@@ -174,7 +174,7 @@ CUBE.prototype.calc2List = function(query){
 	for(var c in resultColumns){
 		var s=resultColumns[c];
 		if (s.domain===undefined){
-			D.error("expectin all columns to have a domain");
+			D.error("expecting all columns to have a domain");
 		}//endif
 		var r = resultColumns[c].domain.end;
 		if (r === undefined) continue;

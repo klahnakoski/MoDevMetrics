@@ -1,5 +1,7 @@
-<HTML>
+
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<HTML>
+
 <HEAD>
 </HEAD>
 <BODY>
@@ -62,8 +64,8 @@
 <script type="text/javascript" src="js/MozillaPrograms.js"></script>
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/Debug.js"></script>
-<script type="text/javascript" src="js/MVEL.js"></script><script type="text/javascript" src="js/aCompiler.js"></script>
 <script type="text/javascript" src="js/aCompiler.js"></script>
+<script type="text/javascript" src="js/MVEL.js"></script>
 
 <script type="text/javascript" src="js/CUBE.js"></script>
 <script type="text/javascript" src="js/CUBE.aggregate.js"></script>
@@ -92,7 +94,7 @@
 
 <div id="sidebar">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
-		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+		<span id="status" style="height:30px">Ready</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 	</div>
 
 	<hr>
@@ -105,82 +107,91 @@
 	<div id="filters" class="menu"></div>
 </div>
 
+
+
 <div style="float:right;display: inline;">
 	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
 </div>
-<div id="chart"></div>
+<div style="float:right;display: inline;">
+	<a id="execute" class="button">EXECUTE</a>
+</div>
 
-<div id="info"></div>
-<div id="report"></div>
+<div style="width:800px;float: left;">
+	<div style="width:800px;height:250px;">
+		<textarea name="cube" id="cube" style="width:100%;height:100%;"></textarea>
+	</div>
+	<div style="width:800px;height:250px;">
+		<textarea name="esquery" id="esquery" style="width:100%;height:100%;"></textarea>
+	</div>
+	<div id="result" style="overflow: scroll;width:800px;height:250px;"></div>
 
+</div>
 
 
 <script type="text/javascript">
 
-
-		$("#description").html("Count of number of bugs closed since &lt;Sample From&gt;. Counts are broken into cohorts to help compare change over time.");
-
-		var query;
-
-
-		var createChart = function(){
-			if (query !== undefined) query.kill();
-
-
-			var interval = Date.now().floor("day").subtract(new Date(state.cohortMin)).multiply(1 / state.cohortNum);
-
-			query = new ESQuery({
-				"name":"Age of Closed Bugs (%)",
-				"from":"bugs",
-				"select":{"name":"Count", "value":"1", "operation":"count"},
-				"edges":[
-					{"name":"Cohort", "value":"modified_ts", "domain":{"type":"time", "min":state.cohortMin, "max":Date.now().floor("day"), "interval":interval, format:"NNN yyyy"}},
-					{"name":"Age", "value":'doc["modified_ts"].value-doc["created_ts"].value', allowNulls:true, "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
-				],
-				"where":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value',  //ONLY THE DOCUMENT THAT CLOSES THE BUG
-				"esfilter":{"and":[
-					//			{"not":{"term":{"resolution":""}}},	//THERE IS ONE verified WITH resolution=""
-					{"terms":{"bug_status":["resolved", "verified", "closed"]}},
-					{"range":{"modified_ts":{"gte":new Date(state.cohortMin).getMilli()}}},
-					{"range":{"modified_ts":{"lte":Date.now().floor("day").getMilli()}}}
-				]},
-				"essize":state.esSize
-			});
-
-			ES.InjectFilter(query);
-
-			status.message("Calling ES");
-			query.run(
-					function(chartCube){
-						CUBE.normalizeByCohort(chartCube, 100);
-
-						status.message("Make chart");
-						aChart.showCCC({
-							"id":"chart",
-							"type":"bar",
-							"cube":chartCube
-						});
-						status.message("Done");
-					}
-			);
+	//SHOW SPINNER
+	var found=$('.loading');
+	found
+		.hide()  // hide it initially
+		.ajaxStart(function() {
+			$(this).show();
+		})
+		.ajaxStop(function() {
+			$(this).hide();
+		})
+	;
 
 
-		};
+	$("#execute").click(function(event){
+		window.executeCube();
+	});//method
+
+	$("#description").html("converts Cube query to ES query, and then sends to ES for a result");
 
 
-	$(document).ready(function(){
+	var executeCube=function(event){
+		//EVAL THE CUBE
+		var code=$("#cube").val();
+		if (code.trim().left(1)!="{") code="{"+code;
+		if (code.trim().right(1)!="}") code=code+"}";
 
-		GUI.setup([
-			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
-			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
-			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
-			{"id":"cohortMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-2year")},
-			{"id":"cohortNum", "name":"Number of Cohorts", "type":"number", "default":4},
-			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
-		]);
+		var cubeQuery;
+		try{
+			cubeQuery = new ESQuery(CNV.JSON2Object(code));
+			$("#esquery").val(CNV.Object2JSON(cubeQuery.esQuery));
+		}catch(e){
+			$("#esquery").val(e.message);
+			return;
+		}//try
+
+		status.message("Sending query");
+		cubeQuery.run(function(data){
+			status.message("Got result");
+
+			if (data.list!==undefined){
+				$("#result").html("<div>"+data.list.length+" rows (up to 100 shown)</div>"+CNV.List2HTMLTable(data.list, {"limit":100}));
+			}else{
+				$("#result").html(CNV.String2HTML(CNV.Object2JSON(data)));
+			}//endif
+		}, function(errorMsg, errorData){
+			status.message(errorMsg);
+			$("#result").html(errorData.response);
+		});
 
 
-	});
+
+	};
+
+
+//	$(document).ready(function(){
+//		GUI.setup([
+//		],
+//		[
+//		]);
+//	});
+
+//	createChart();
 
 </script>
 

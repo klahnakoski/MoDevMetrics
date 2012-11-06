@@ -14,7 +14,7 @@ DateRangeIterator.prototype.NextQuery = function(){
 		this.currentDate = this.startDate.add(this.interval.multiply(dataSet.currentIndex + 1));
 		var queries = this.InjectDate();
 
-		this.request = new MultiRestQuery(this, dataSet.currentIndex, queries);
+		this.request = new MultiElasticSearchQuery(this, dataSet.currentIndex, queries);
 		this.request.Run();
 	}
 };

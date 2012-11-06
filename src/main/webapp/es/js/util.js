@@ -35,6 +35,10 @@ String.prototype.rtrim=function(value){
 	return this.substring(0, i+1);
 };
 
+String.prototype.startsWith=function(value){
+	return this.substring(0, value.length)==value;
+};
+
 
 Array.prototype.contains = function(value){
 	for(var i = this.length; i--;){
@@ -52,6 +56,12 @@ Array.prototype.copy = function(){
 Array.prototype.forall=function(func){
 	for(var i=this.length;i--;){
 		func(this[i], i);
+	}//for
+};//method
+
+Array.prototype.appendArray=function(arr){
+	for(var i=0;i<arr.length;i++){
+		this.push(arr[i]);
 	}//for
 };//method
 

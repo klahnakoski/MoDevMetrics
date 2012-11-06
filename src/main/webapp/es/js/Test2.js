@@ -50,16 +50,10 @@ IntegrityTest.prototype.nextQuery = function(){
 IntegrityTest.prototype.sendElasticRequest = function(query){
 	var localObject = this;
 
-	$.ajax({
-//		url: "http://node24.generic.metrics.scl3.mozilla.com:9200/_search", //MTP VPN required
-		url: window.ElasticSearchRestURL, // LDAP required
-		type: "POST",
-//		contentType: "application/json",
-		data: JSON.stringify(query),
-		dataType: "json",
-//		traditional: true,
-//		processData: false,
-//		timeout: 100000,
+
+	ElasticSearchQuery.Run({
+		"query":query,
+
 
 		success: function(data){
 			localObject.success(data);

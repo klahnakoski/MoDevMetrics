@@ -11,10 +11,7 @@ RangeChart = function(chartRequest){
 	if (this.iterator == 'date'){
 		this.startDate = convertStringToDate(chartRequest.startDate + "T00:00:00.000Z");
 		this.endDate = convertStringToDate(chartRequest.endDate + "T00:00:00.000Z");
-		if (Date.now().subtract(this.endDate).milli > 0)
-			this.dataSet.maxIndex = Math.floor(this.endDate.subtract(this.startDate, this.interval).divideBy(this.interval))-1;
-		else
-			this.dataSet.maxIndex = Math.floor(Date.now().subtract(this.startDate, this.interval).divideBy(this.interval))-1;
+		this.dataSet.maxIndex = Math.floor(this.endDate.subtract(this.startDate, this.interval).divideBy(this.interval))-1;
 
 	}
 	else if (this.iterator == "integer"){
@@ -399,5 +396,4 @@ RangeChart.prototype.error = function(requestObject, errorData, errorMsg, errorT
 };
 
 chart = null;
-status = new Status("status");
 report = new Status("report")

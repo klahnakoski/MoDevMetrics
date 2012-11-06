@@ -477,7 +477,7 @@ CUBE.domain.set.compileMappedLookup = function(column, d, sourceColumns, lookupV
 		"var output=[];\n" +
 		"var sublist=this.map[" + lookupVar + "];\n" +
 		"if (sublist===undefined) return output;\n"+
-		"for(var i=0;i<sublist.length;i++){\n" +
+		"for(var i=sublist.length;i--;){\n" +
 			"var " + d.name + "=sublist[i];\n" +
 			"if (" + column.test + ") output.push(" + d.name + ");\n " +
 		"}\n " +

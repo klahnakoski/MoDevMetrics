@@ -1,0 +1,9 @@
+{
+"from":"bugs.attachments.flags",
+"select":
+[
+{"name":"reviewer", "value":"bugs.attachments.flags.requestee"},
+{"name":"bug_id", "value":"bugs.bug_id"}
+],
+"esfilter":{"range":{"bug_id":{"gt":800000}}}
+}

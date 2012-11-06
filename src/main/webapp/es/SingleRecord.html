@@ -1,18 +1,20 @@
-<HTML>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<HTML>
 <HEAD>
 </HEAD>
 <BODY>
-<script type="text/javascript" src="js/rest/RestConfig.js"></script>
+
 <script type="text/javascript" src="lib/js/jquery-1.7.js"></script>
 
 <script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
 
 <script type="text/javascript" src="js/Debug.js"></script>
+<script type="text/javascript" src="js/rest/ElasticSearchQuery.js"></script>
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/CNV.js"></script>
 <script type="text/javascript" src="js/aDate.js"></script>
-<script type="text/javascript" src="js/MVEL.js"></script><script type="text/javascript" src="js/aCompiler.js"></script>
+<script type="text/javascript" src="js/MVEL.js"></script>
+<script type="text/javascript" src="js/aCompiler.js"></script>
 
 <script type="text/javascript" src="js/CUBE.js"></script>
 
@@ -25,33 +27,38 @@
 	D.println(new Date(1348358400000).format("yyyy-NNN-dd HHmmss"));
 
 	var  esQuery = {
-		"query": {
-			"filtered" : {
-				"query": {
-					"match_all" : {}
-				},
-				"filter": {
-					"and":[
-						{"term":{"bug_id": 796970}},
-						{ "range" : { "expires_on" : { "gt" : new Date().getTime()+1000000000 } } },
-						{"not" : {"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}}
-					]
-				}
-			}
-		},
-		"from":0,
-		"size":100,
-		"sort":[
-			{ "bug_version_num" : {"order" : "asc"} }
-		]
-	};
+  "query": {
+    "filtered": {
+      "query": {
+        "match_all": {}
+      },
+      "filter": {
+        "and": [
+          {
+            "script": {
+              "script": "true"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "from": 0,
+  "size": 10,
+  "sort": [],
+  "facets": {
+    "0": {
+      "statistical": {
+        "script": "var replaceAll = function(output, find, replace){\ns = output.indexOf(find, 0);\nwhile(s>=0){\noutput=output.replace(find, replace);\ns=s-find.length+replace.length;\ns = output.indexOf(find, s);\n}\noutput;\n};\nvar Value2Pipe = function(value){\nif (value==null){ \"0\" }else if (!(value is String)){ 'n'+value; }else{\n\"s\"+replaceAll(replaceAll(value, \"\\\\\", \"\\\\\\\\\"), \"|\", \"\\\\p\");}};\nvar floorDay = function(value){ Math.floor(value/(24*60*60*1000))*(24*60*60*1000);};\nvar cool_func = function(bugs){\noutput=\"\";\nif (true){output = Value2Pipe(bugs.bug_id)\n;\n}\noutput;\n};\ncool_func(_source)\n"
+      }
+    }
+  }
+}
+;
 
 
-	var request = $.ajax({
-		url: window.ElasticSearchRestURL,
-		type: "POST",
-		data: JSON.stringify(esQuery),
-		dataType: "json",
+	ElasticSearchQuery.Run({
+		"query":esQuery,
 
 		success: function(data){
 			D.println(CNV.Object2JSON(data));

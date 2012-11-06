@@ -48,9 +48,9 @@ ProductUI.prototype.Refresh = function(){
 		ProgramFilter.makeFilter(state.selectedPrograms)
 	]);
 
-	this.restQuery = new RestQuery(this, 0, this.query);
+	this.ElasticSearchQuery = OldElasticSearchQuery(this, 0, this.query);
 	this.results = null;
-	this.restQuery.Run();
+	this.ElasticSearchQuery.Run();
 };
 
 

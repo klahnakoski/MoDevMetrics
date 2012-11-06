@@ -206,7 +206,7 @@ SIDE BAR
 
 
 #sidebar {
-    opacity: .5;
+    /*opacity: .5;*/
     -webkit-transition: all linear .25s;
     -moz-transition: all linear .25s;
     -o-transition: all linear .25s;

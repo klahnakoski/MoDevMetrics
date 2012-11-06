@@ -1,3 +1,5 @@
+
+importScript("charts/Status.js");
 importScript("CNV.js");
 importScript("aDate.js");
 importScript("util.js");
@@ -6,31 +8,68 @@ importScript("MVEL.js");
 importScript("CUBE.js");
 
 
+
+
+
+
+
 var ESQuery = function(query){
 	this.query = query;
 	this.compile();
 };
 
-ESQuery.prototype.run = function(successCallback){
-	this.callback = successCallback;
 
-	status.message("Call ES...");
-	D.println(CNV.Object2JSON(this.esQuery));
-	this.restQuery=RestQuery.Run(
-		this,
-		0,
-		this.esQuery
-	);
+
+////////////////////////////////////////////////////////////////////////////////
+// THESE ARE THE AVAILABLE ES INDEXES
+////////////////////////////////////////////////////////////////////////////////
+ESQuery.INDEXES={
+	"bugs":{"path":"/bugs/_search"},
+	"reviews":{"path":"/reviews121104_183806/review"}
+};
+
+
+ESQuery.prototype.run = function(successFunction,errorFunction){
+	if (successFunction!==undefined) this.callback = successFunction;
+
+	var URL=window.ElasticSearch.baseURL+ESQuery.INDEXES[this.query.from.split(".")[0]].path;
+	var self=this;
+
+	this.esRequest = $.ajax({
+		url: URL,
+		type: "POST",
+		data: JSON.stringify(this.esQuery),
+		dataType: "json",
+
+		success: function(data){
+			if (data._shards.failed>0){
+				D.warning("Must resend query...");
+				self.run();
+				return;
+			}//endif
+			self.success(data)
+		},
+		error: function(errorData, errorMsg, errorThrown){
+			if (errorFunction!==undefined){
+				errorFunction(errorMsg, errorData, errorThrown);
+			}else{
+				D.error(errorMsg, errorThrown);
+			}//endif
+		}
+	});
 };//method
 
 
-ESQuery.prototype.success = function(requestObj, data){
+
+ESQuery.prototype.success = function(data){
 	if (this.callback===undefined) return;
 
 	status.message("Extract Cube");
 
 	if (this.esMode == "terms"){
 		this.termsResults(data);
+	} else if (this.esMode == "setop"){
+		this.mvelResults(data);
 	} else if (this.esMode == "terms_stats"){
 		this.terms_statsResults(data);
 	} else{//statistical
@@ -46,9 +85,9 @@ ESQuery.prototype.error = function(requestObj, errorData, errorMsg, errorThrown)
 };
 
 ESQuery.prototype.kill = function(){
-	if (this.restQuery!==undefined){
-		this.restQuery.kill();
-		this.restQuery=undefined;
+	if (this.esRequest!==undefined){
+		this.esRequest.abort();
+		this.esRequest=undefined;
 	}//endif
 	this.callack=undefined;
 };
@@ -57,13 +96,6 @@ ESQuery.prototype.kill = function(){
 
 
 
-ESQuery.prototype.compileSetOp=function(){
-	//FIND FILTER ELEMENTS THAT CAN BE USED AT THE BUG LEVEL
-
-	//
-
-
-};
 
 
 ESQuery.prototype.compile = function(){
@@ -74,7 +106,8 @@ ESQuery.prototype.compile = function(){
 	//NO EDGES IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
 	if (this.edges.length==0){
 		if (this.select[0].operation===undefined){
-			return this.compileSetOP();
+			this.esMode="setop";
+			return this.compileSetOp();
 		}else{
 			var value=this.select[0].value;
 			for(var k=this.select.length;k--;){
@@ -91,7 +124,7 @@ ESQuery.prototype.compile = function(){
 	this.resultColumns = CUBE.compile(this.query, []);
 	this.edges = this.query.edges.copy();
 
-	if (!(this.query.select instanceof Array) && this.query.select.operation=="count"){
+	if (this.select.length==1 && this.select[0].operation=="count"){
 		this.esMode="terms";
 		this.esQuery = this.buildESTermsQuery();
 	}else{
@@ -119,12 +152,29 @@ ESQuery.prototype.compile = function(){
 		var esFacets;
 		if (this.query.edges.length==0){
 			//ZERO DIMENSIONAL QUERY
+			var select=CUBE.select2Array(this.query.select)[0];
+			var mvel;
+			if (select.value.startsWith(this.query.from+".") && ESQuery.isKeyword(select.value)){
+				//FOR SPEED, WHEN SELECT IS A SIMPLE VARIABLE
+				mvel='doc["'+select.value.rightBut(this.query.from.length+1)+'"].value';
+			}else{
+				//FOR ROBUSTNESS, WHEN SELECT IS AN EXPRESSION
+				mvel=
+					"var cool_func = function("+this.query.from+"){\n"+
+					""+select.value+";\n"+
+					"};\n"+
+					"cool_func(_source)\n"
+				;
+			}//endif
+
+
+
 			esFacets=[];
 			var q = {
 				"name":"0",
 				"value" : {
 					"statistical":{
-						"script":this.select[0].value
+						"script":mvel
 					}
 				}
 			};
@@ -250,13 +300,13 @@ ESQuery.buildCondition = function(edge, partition){
 	return output;
 };
 
+ESQuery.prototype.buildESQuery = function(){
+	var where;
+	if (this.query.where===undefined) 		where={"script":{"script":"true"}};
+	if (typeof(this.query.where)!="string")	where={"script":{"script":"true"}}; //NON STRING WHERE IS ASSUMED TO BE PSUDO-esFILTER (FOR CONVERSION TO MVEL)
+	if (typeof(this.query.where)=="string")	where={"script":{"script":this.query.where}};
 
-ESQuery.prototype.buildESTermsQuery=function(){
-
-	if (this.query.where===undefined) this.query.where="true";
-
-
-	var output={
+	var output = {
 		"query":{
 			"filtered":{
 				"query": {
@@ -264,26 +314,30 @@ ESQuery.prototype.buildESTermsQuery=function(){
 				},
 				"filter" : {
 					"and":[
-						{"script":{"script":this.query.where}}
+						where
 					]
 				}
 			}
 		},
 		"from" : 0,
-		"size" : 100,
+		"size" : 10,
 		"sort" : [],
 		"facets":{
-			"0":{
-				"terms":{
-					"script_field":this.compileEdges2Term(),
-					"size": 100000
-				}
-			}
 		}
 	};
+	if (this.query.esfilter !== undefined) output.query.filtered.filter.and.push(this.query.esfilter);
+	return output;
+};//method
 
-	output.query.filtered.filter.and.push(this.query.esfilter);
 
+ESQuery.prototype.buildESTermsQuery=function(){
+	var output=this.buildESQuery();
+	output.facets["0"]={
+		"terms":{
+			"script_field":this.compileEdges2Term(),
+			"size": 100000
+		}
+	};
 	return output;
 };
 
@@ -317,22 +371,9 @@ ESQuery.prototype.compileEdges2Term=function(){
 		return output;
 	};
 
-
-	var library=
-		"var replaceAll = function(output, find, replace){\n" +
-			"s = output.indexOf(find, 0);\n" +
-			"while(s>=0){\n" +
-				"output=output.replace(find, replace);\n" +
-				"s=s-find.length+replace.length;\n" +
-				"s = output.indexOf(find, s);\n" +
-			"}\n"+
-			"output;\n"+
-		"};\n";
-
-	//v="var replaceAll = function(output, find, replace){\ns=0;\nwhile(true){\ns = output.indexOf(find, s);\nif (s < 0) break;\noutput=output.replace(find, replace);\ns=s-find.length+replace.length;\n}\noutput;\n};\nreplaceAll(replaceAll(value, \"\\\\\", \"\\\\\\\\\"), \"|\", \"\\\\p\")+'|'+((((doc[\"modified_ts\"].value-doc[\"created_ts\"].value)<0) || ((doc[\"modified_ts\"].value-doc[\"created_ts\"].value)>=0)) ? 13 : Math.floor(((doc[\"modified_ts\"].value-doc[\"created_ts\"].value)-0)/604800000))";
-
-
-	return library+mvel;
+	return MVEL.FUNCTIONS.replaceAll+
+		MVEL.FUNCTIONS.Value2Pipe+
+		mvel;
 };
 
 
@@ -341,9 +382,9 @@ ESQuery.compileString2Term=function(edge){
 	if (ESQuery.isKeyword(value)) value="doc[\""+value+"\"].value";
 
 	return {
-		"toTerm":'replaceAll(replaceAll('+value+', "\\\\", "\\\\\\\\"), "|", "\\\\p")',
+		"toTerm":'Value2Pipe('+value+')',
 		"fromTerm":function(value){
-			return edge.domain.getPartition(value.replaceAll("\\p", "|").replaceAll("\\\\", "\\"));
+			return edge.domain.getPartition(CNV.Pipe2Value(value));
 		}
 	};
 };//method
@@ -403,31 +444,6 @@ ESQuery.compileTime2Term=function(edge){
 };
 
 
-ESQuery.prototype.buildESQuery = function(){
-	if (this.query.where===undefined) this.query.where="true";
-
-	var output = {
-		"query":{
-			"filtered":{
-				"query": {
-					"match_all" : {}
-				},
-				"filter" : {
-					"and":[
-						{"script":{"script":this.query.where}}
-					]
-				}
-			}
-		},
-		"from" : 0,
-		"size" : 10,
-		"sort" : [],
-		"facets":{
-		}
-	};
-	if (this.query.esfilter !== undefined) output.query.filtered.filter.and.push(this.query.esfilter);
-	return output;
-};//method
 
 
 ESQuery.prototype.termsResults=function(data){
@@ -568,6 +584,24 @@ ESQuery.prototype.terms_statsResults = function(data){
 
 	this.query.data = cube;
 
+};//method
+
+
+
+ESQuery.prototype.compileSetOp=function(){
+	this.esQuery=this.buildESQuery();
+
+	this.esQuery.facets.mvel={
+		"terms":{
+			"script_field": new MVEL().code(this.query),
+			"size": 100000
+		}
+	};
+};
+
+
+ESQuery.prototype.mvelResults=function(data){
+ 	this.query.list =  MVEL.esFacet2List(data.facets.mvel, this.select);
 };//method
 
 

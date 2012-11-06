@@ -11,3 +11,5 @@ Status.prototype.addMessage = function(message){
 	this.lastMessage = message + "</br>" + this.lastMessage;
 	document.getElementById(this.channel).innerHTML = this.lastMessage;
 };
+
+status = new Status("status");

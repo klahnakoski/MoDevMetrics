@@ -3,7 +3,7 @@
 <HEAD>
 </HEAD>
 <BODY>
-<script type="text/javascript" src="js/rest/RestConfig.js"></script>
+
 <script type="text/javascript" src="lib/js/jquery-1.7.js"></script>
 
 <script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
@@ -63,21 +63,21 @@
 					"script_field":
 							new MVEL().code({
 								"select" : [
-									{"name":"bug_id", "value":"doc.bug_id"},
-									{"name":"requestee", "value":"doc.attachments.flags.requestee"}
+									{"name":"bug_id", "value":"bugs.bug_id"},
+									{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
 								],
 								"from":
-										"doc.attachments.flags",
+										"bugs.attachments.flags",
 								"where":
 								{"and" : [
 									{"or" : [
 										{ "and" : [
-											{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
+											{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
 											//, "D"]}},
-											{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}}
+											{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}}
 										]}
 									]},
-									{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
+									{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
 								]}
 							}),
 					"size": 100000
@@ -88,8 +88,8 @@
 					"script_field":
 							new MVEL().code({
 								"select" : [
-									{"name":"bug_id", "value":"doc.bug_id"},
-									{"name":"assigned_to", "value":"doc.assigned_to"}
+									{"name":"bug_id", "value":"bugs.bug_id"},
+									{"name":"assigned_to", "value":"bugs.assigned_to"}
 								],
 								"from":
 										"doc"
@@ -106,14 +106,15 @@
 	D.println(query.facets.assigned.terms.script_field);
 
 
-	var request = $.ajax({
-		url: window.ElasticSearchRestURL,
-		type: "POST",
-		data: JSON.stringify(query),
-		dataType: "json",
+	ElasticSearchQuery.Run({
+		"query":query,
+
 
 		success: function(data){
-			var esResult = CNV.ESFacet2List(data.facets.pending);
+			var esResult = MVEL.esFacet2List(data.facets.pending, [
+									{"name":"bug_id", "value":"bugs.bug_id"},
+									{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
+								]);
 
 			var result = new CUBE().calc2List({
 				"from":
@@ -151,8 +152,8 @@
 			}).list;
 
 
-
-			var assigned = CNV.ESFacet2List(data.facets.assigned);
+			var assigned = MVEL.esFacet2List(data.facets.assigned, [{"name":"bug_id"},{"name":"assigned_to"}]);
+			
 			var result2 = new CUBE().calc2List({
 				"from":
 					assigned,

@@ -3,7 +3,7 @@
 <HEAD>
 </HEAD>
 <BODY>
-<script type="text/javascript" src="js/rest/RestConfig.js"></script>
+
 <script type="text/javascript" src="lib/js/jquery-1.7.js"></script>
 
 <script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
@@ -60,28 +60,28 @@
 					"script_field":
 							new MVEL().code({
 								"select" : [
-									{"name":"bug_id", "value":"doc.bug_id"},
-									{"name":"requestee", "value":"doc.attachments.flags.requestee"}
+									{"name":"bug_id", "value":"bugs.bug_id"},
+									{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
 								],
 								"from":
-										"doc.attachments.flags",
+										"bugs.attachments.flags",
 								"where":
 								{"and" : [
 									{"or" : [
 										{ "and" : [
-											{"terms" : {"doc.attachments.flags.request_status" : ["?"]}},
-											{"terms" : {"doc.attachments.flags.request_type" : ["review", "superreview"]}},
+											{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
+											{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
 											{"or":[
 												{"missing" : {
-													"field" : "doc.attachments.flags.requestee",
+													"field" : "bugs.attachments.flags.requestee",
 													"existence" : true,
 													"null_value" : true
 												}},
-												{"term":{"doc.attachments.flags.requestee":"nobody@mozilla.org"}}
+												{"term":{"bugs.attachments.flags.requestee":"nobody@mozilla.org"}}
 											]}
 										]}
 									]},
-									{"term":{"doc.attachments[\"attachments.isobsolete\"]" : 0}}
+									{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
 								]}
 							}),
 					"size": 100000
@@ -93,14 +93,15 @@
 //	D.println(query.edges.assigned.terms.script_field);
 
 
-	var request = $.ajax({
-		url: window.ElasticSearchRestURL,
-		type: "POST",
-		data: JSON.stringify(query),
-		dataType: "json",
+	ElasticSearchQuery.Run({
+		"query":query,
+
 
 		success: function(data){
-			var esResult = CNV.ESFacet2List(data.facets.pendingReview);
+			var esResult = MVEL.esFacet2List(data.facets.pendingReview, [
+									{"name":"bug_id", "value":"bugs.bug_id"},
+									{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
+								]);
 
 
 			

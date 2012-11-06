@@ -14,7 +14,7 @@ RangeIterator.prototype.NextQuery = function(){
 
 		var queries = this.InjectIndex();
 
-		this.request = new MultiRestQuery(this, dataSet.currentIndex, queries);
+		this.request = new MultiElasticSearchQuery(this, dataSet.currentIndex, queries);
 		this.request.Run();
 	}
 }

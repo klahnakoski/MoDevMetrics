@@ -3,7 +3,7 @@
 <HEAD>
 </HEAD>
 <BODY>
-<script type="text/javascript" src="js/rest/RestConfig.js"></script>
+
 <script type="text/javascript" src="lib/js/jquery-1.7.js"></script>
 <script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
 <script type="text/javascript" src="js/aDate.js"></script>
@@ -43,16 +43,8 @@
 
 	};
 
-	var request = $.ajax({
-		url: window.ElasticSearchRestURL,
-		type: "POST",
-//				contentType: "application/json",
-		data: JSON.stringify(query),
-		dataType: "json",
-//				traditional: true,
-//				processData: false,
-//				timeout: 100000,
-
+	ElasticSearchQuery.Run({
+		"query":query,
 		success: function(data){
 			D.println(CNV.Object2JSON(data));
 
