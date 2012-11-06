@@ -54,12 +54,17 @@ ElasticSearch.request=function(URL, data, successFunction, errorFunction){
 
 
 
-var ElasticSearchQuery = function(esQuery, successFunction, errorFunction){
-	if (successFunction===undefined) D.error("expecting an object to reprt back response");
-	this.id = 0;
-	this.callbackObject = {"success":successFunction, "error":errorFunction};
-	this.query = esQuery;
-	this.request = null;
+var ElasticSearchQuery = function(query, successFunction, errorFunction){
+	if (query.success!==undefined){
+		if (query.query===undefined) D.error("if passing a parameter object, it must have both query and success attributes");
+		this.callbackObject = query;
+		this.query = query.query;
+	}else{
+		if (successFunction===undefined) D.error("expecting an object to reprt back response");
+		this.callbackObject = {"success":successFunction, "error":errorFunction};
+		this.query = query;
+	}//endif
+	this.request = undefined;
 };
 
 ElasticSearchQuery.DEBUG=true;
@@ -67,10 +72,10 @@ ElasticSearchQuery.DEBUG=true;
 
 
 ElasticSearchQuery.Run = function(param){
-	var q=OldElasticSearchQuery(
-		param,
-		0,
-		param.esquery
+	var q=new ElasticSearchQuery(
+		param.query,
+		param.success,
+		param.error
 	);
 	q.Run();
 	return q;
@@ -84,15 +89,14 @@ ElasticSearchQuery.Run = function(param){
 //JUST LIKE RUN, BUT INSTEAD OF SENDING QUERY, EXECUTE success() USING data
 //JUST COMMENT-OUT A COUPLE OF LINES TO SWITCH BETWEEN LOCAL AND NETORK TESTING
 ElasticSearchQuery.Use = function(data, reportBackObj, id, esQuery){
-	reportBackObj.success(this, data);
+	reportBackObj.success(data);
 };//method
 
 ElasticSearchQuery.prototype.Run = function(){
-	var localObject = this;
-
+	if (this.callbackObject.success===undefined) D.error();
 	if (ElasticSearchQuery.DEBUG) D.println(CNV.Object2JSON(this.query));
 
-
+	var self = this;
 	this.request = $.ajax({
 		url: window.ElasticSearch.queryURL,
 		type: "POST",
@@ -100,11 +104,10 @@ ElasticSearchQuery.prototype.Run = function(){
 		dataType: "json",
 
 		success: function(data){
-
-
-			localObject.success(data);
+D.println("success");
+			self.success(data);
 		},
-		error: function(errorData, errorMsg, errorThrown){localObject.error(errorData, errorMsg, errorThrown);}
+		error: function(errorData, errorMsg, errorThrown){self.error(errorData, errorMsg, errorThrown);}
 	});
 };
 
@@ -120,7 +123,8 @@ ElasticSearchQuery.prototype.success = function(data){
 	}//endif
 
 	try{
-		this.callbackObject.success(this, data);
+D.println("call the callback ");
+		this.callbackObject.success(data);
 	}catch(e){
 		D.warning("Problem calling success()", e);
 	}//try
@@ -151,9 +155,8 @@ ElasticSearchQuery.prototype.kill = function(data){
 
 
 
-MultiElasticSearchQuery = function(reportBackObj, id, chartRequests){
+MultiElasticSearchQuery = function(reportBackObj, chartRequests){
 	this.callbackObject = reportBackObj;
-	this.id = id;
 	this.chartRequests = chartRequests;
 
 	this.ElasticSearchQueryObjs = [];
@@ -161,42 +164,39 @@ MultiElasticSearchQuery = function(reportBackObj, id, chartRequests){
 
 };
 
-MultiElasticSearchQuery.prototype.Run = function(){
+MultiElasticSearchQuery.prototype.Run = function(param){
+
 	for(var i=0;i<this.chartRequests.length;i++){
-		var esQuery = OldElasticSearchQuery(this, i, this.chartRequests[i].esQuery);
-		this.ElasticSearchQueryObjs[i] = esQuery;
-		esQuery.Run();
+		var self=this;
+		(function(i){
+			self.ElasticSearchQueryObjs[i]=ElasticSearchQuery.Run({
+				"index":i,
+				"query":self.chartRequests[i].esQuery,
+				"success":function(data){
+	D.println("Success with index="+i);
+					self.results[i] = data;
+					if (self.isComplete()){
+						self.callbackObject.success(self.results);
+					}//endif
+				},
+				"error":function(errorMsg, errorData, errorThrown){
+					self.kill();
+					D.error(errorMsg, errorThrown);
+				}
+			});
+		})(i);
 	}
 };
 
-MultiElasticSearchQuery.prototype.IsComplete = function(){
-	if (this.results.length != this.chartRequests.length){
-		return false;
-	}
+MultiElasticSearchQuery.prototype.isComplete = function(){
+	if (this.results.length != this.chartRequests.length) return false;
 
 	for(var i = 0; i < this.results.length; i++){
-		if (this.results[i] == undefined)
-			return false;
+		if (this.results[i] == undefined) return false;
 	}
-
 	return true;
 };
 
-MultiElasticSearchQuery.prototype.success = function(ElasticSearchQueryObj, data){
-	this.results[ ElasticSearchQueryObj.id ] = data;
-
-	if (this.IsComplete()){
-		this.callbackObject.success(this, this.results);
-	}
-};
-
-MultiElasticSearchQuery.prototype.error = function(errorData, errorMsg, errorThrown){
-	console.error("ElasticSearchQuery.error: " + errorMsg);
-	this.kill();
-
-	if (this.callbackObject != undefined)
-		this.callbackObject.error(this, errorData, errorMsg, errorThrown);
-};
 
 MultiElasticSearchQuery.prototype.kill = function(){
 	for(var i = 0; i < this.ElasticSearchQueryObjs.length; i++){
@@ -217,7 +217,6 @@ MultiElasticSearchQuery.prototype.kill = function(){
 var OldElasticSearchQuery = function(reportBackObj, id, esQuery){
 	var output=new ElasticSearchQuery(esQuery, reportBackObj.success, reportBackObj.error);
 	output.callbackObject=reportBackObj;
-	output.id=id;
 	return output;
 };
 

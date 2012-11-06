@@ -84,17 +84,8 @@ GUI.setup = function(parameters, relations){
 
 //SHOW THE LAST TIME ES WAS UPDATED
 GUI.showESTime = function(){
-	ElasticSearchQuery.OldRun(
-		{//CALLBACK
-			"success" : function(requestObj, data){
-				$("#testMessage").html("ES Last Updated " + Date.newInstance(data.facets.modified_ts.max).addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
-			},
-
-			"error": function(requestObj, errorData, errorMsg, errorThrown){
-			}
-		},
-		0,
-		{//ES QUERY
+	ElasticSearchQuery.Run({
+		"query":{//ES QUERY
 			"query" : {
 				"match_all":{}
 			},
@@ -108,8 +99,11 @@ GUI.showESTime = function(){
 					}
 				}
 			}
+		},
+		"success" : function(data){
+			$("#testMessage").html("ES Last Updated " + Date.newInstance(data.facets.modified_ts.max).addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 		}
-	);
+	});
 };//method
 
 

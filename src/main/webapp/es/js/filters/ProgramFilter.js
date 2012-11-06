@@ -159,16 +159,20 @@ ProgramFilter.prototype.Refresh = function(){
 };
 
 
-ProgramFilter.prototype.success = function(resultsObj, data){
+ProgramFilter.prototype.success = function(data){
 
 	//CONVERT MULTIPLE EDGES INTO SINGLE LIST OF PROGRAMS
 	var programs=[];
 	for(var p in data.facets){
 		if (p=="Programs") continue;  //ALL PROGRAMS (NOT ACCURATE COUNTS)
-		for(var t=0;t<data.facets[p].terms.length;t++){
-			if (data.facets[p].terms[t].term=="None") continue;
-			programs.push(data.facets[p].terms[t]);
-		}//for
+		if (data.facets[p].terms.length==0){
+			programs.push({"term":p, "count":0});
+		}else{
+			for(var t=0;t<data.facets[p].terms.length;t++){
+				if (data.facets[p].terms[t].term=="None") continue;
+				programs.push(data.facets[p].terms[t]);
+			}//for
+		}//endif
 	}//for
 	
 	//OLD PROGRAMS HAS BAD COUNTS

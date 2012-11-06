@@ -14,7 +14,7 @@ DateRangeIterator.prototype.NextQuery = function(){
 		this.currentDate = this.startDate.add(this.interval.multiply(dataSet.currentIndex + 1));
 		var queries = this.InjectDate();
 
-		this.request = new MultiElasticSearchQuery(this, dataSet.currentIndex, queries);
+		this.request = new MultiElasticSearchQuery(this, queries);
 		this.request.Run();
 	}
 };
@@ -56,15 +56,15 @@ DateRangeIterator.prototype.insertTimeIntervalIntoQuery = function(esQuery, date
 
 
 
-DateRangeIterator.prototype.success = function(requestObj, data){
+DateRangeIterator.prototype.success = function(data){
 
-	this.callbackObject.success(this, data);
+	this.callbackObject.success(data, this.callbackObject.dataSet.currentIndex);
 	this.callbackObject.dataSet.currentIndex += 1;
 	this.NextQuery();
 };
 
-DateRangeIterator.prototype.error = function(requestObj, errorData, errorMsg, errorThrown){
-	this.callbackObject.error(requestObj, errorData, errorMsg, errorThrown);
+DateRangeIterator.prototype.error = function(errorData, errorMsg, errorThrown){
+	this.callbackObject.error(errorMsg, errorData, errorThrown);
 };
 
 DateRangeIterator.prototype.kill = function(){

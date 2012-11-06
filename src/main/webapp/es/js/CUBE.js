@@ -83,18 +83,17 @@ CUBE.prototype.calc2List = function(query){
 				var v = edge.calc(row, null);
 
 				//STANDARD 1-1 MATCH VALUE TO DOMAIN
-				var p = edge.domain.getPartition(v);
+				var p = edge.domain.map[v];// .getPartition(v);  WE NEED MAP BECAUSE domain.key==edge.value
+//				if (p === undefined){
+//					D.error("getPartition() must return a partition, or null");
+//				}//endif
 				if (p === undefined){
-					D.error("getPartition() must return a partition, or null");
-				}//endif
-				if (p == null){
 					edge.outOfDomainCount++;
 					if (edge.allowNulls){
 						for(var t = results.length; t--;){
 							results[t][edge.name] = edge.domain.NULL;
 						}//for
 					} else{
-//							results=[];
 						continue FROM;
 					}//endif
 				} else{

@@ -7,7 +7,8 @@ D.println = function(message){
 
 D.error = function(description, cause){
 	if (cause===undefined) cause="";
-	console.error(description+":"+cause); return;
+	console.error(description+":"+cause);
+//	return;
 	throw new Exception(description, cause);
 };//method
 

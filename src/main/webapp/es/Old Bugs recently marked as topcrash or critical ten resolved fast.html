@@ -170,8 +170,9 @@ var createChart = function(){
 
 
 
-	query=OldElasticSearchQuery({
-			"success" : function(requestObj, data){
+	query=new ElasticSearchQuery({
+			"query":chartRequest.esQuery,
+			"success" : function(data){
 				status.message("Formatting ES Data");
 				var identified = data.facets.identified.terms;
 				var closed = data.facets.closed.terms;
@@ -225,10 +226,8 @@ var createChart = function(){
 
 				status.message("Done");
 			}
-		},
-		0,
-		chartRequest.esQuery
-	);
+
+	});
 
 
 	status.message("Calling ES");

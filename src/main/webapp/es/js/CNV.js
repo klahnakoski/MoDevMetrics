@@ -14,7 +14,7 @@ CNV.ESResult2List = function(esResult){
 };//method
 
 
-//CNV.ESFacet2List = function(esFacet){
+//MVEL.esFacet2List = function(esFacet){
 //	if (esFacet._type == "terms_stats") return esFacet.terms;
 //
 //	if (!(esFacet.terms === undefined)){

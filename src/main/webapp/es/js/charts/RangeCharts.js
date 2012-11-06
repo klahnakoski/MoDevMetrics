@@ -354,24 +354,15 @@ RangeChart.prototype.showSeriesCheck = function(seriesName){
 	return false;
 };
 
-RangeChart.prototype.success = function(requestObject, data){
+RangeChart.prototype.success = function(data, id){
+	if (id!=this.dataSet.currentIndex) D.error("should not happen");
 
-	//D.println( JSON.stringify( data ));
-
-//	var text = '{ "date": "' + convertDateToString(requestObject.currentDate) + '", "data : [';
-//
-//	for(var x = 0; x < data[0].hits.hits.length; x++)
-//		text += JSON.stringify(data[0].hits.hits[x].fields) + ",";
-//
-//	text += ']}';
-//
-//	report.addMessage(text);
 
 	for(var i = 0; i < data.length; i++){
 		if (this.iterator == "date")
-			this.dataSet.addData(requestObject.request.chartRequests[i].seriesName, requestObject.request.id, "date", convertDateToString(requestObject.currentDate));
+			this.dataSet.addData(this.request.request.chartRequests[i].seriesName, id, "date", convertDateToString(this.request.currentDate));
 
-		this.dataSet.addData(requestObject.request.chartRequests[i].seriesName, requestObject.request.id, "total", data[i].hits.total);
+		this.dataSet.addData(this.request.request.chartRequests[i].seriesName, id, "total", data[i].hits.total);
 	}
 
 	if (this.dataSet.currentIndex <= this.dataSet.maxIndex){
@@ -383,8 +374,7 @@ RangeChart.prototype.success = function(requestObject, data){
 		$("#progressbar").progressbar({
 			"value" : progress
 		});
-	}
-	else{
+	}else{
 		status.message("Chart Rendering Complete");
 	}
 

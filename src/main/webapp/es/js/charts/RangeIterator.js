@@ -14,7 +14,7 @@ RangeIterator.prototype.NextQuery = function(){
 
 		var queries = this.InjectIndex();
 
-		this.request = new MultiElasticSearchQuery(this, dataSet.currentIndex, queries);
+		this.request = new MultiElasticSearchQuery(this, queries);
 		this.request.Run();
 	}
 }
@@ -30,15 +30,15 @@ RangeIterator.prototype.InjectIndex = function(){
 	return queries;
 };
 
-RangeIterator.prototype.success = function(requestObj, data){
+RangeIterator.prototype.success = function(data){
 
-	this.callbackObject.success(this, data);
+	this.callbackObject.success(data, this.callbackObject.dataSet.currentIndex);
 	this.callbackObject.dataSet.currentIndex += 1;
 	this.NextQuery();
 };
 
 RangeIterator.prototype.error = function(requestObj, errorData, errorMsg, errorThrown){
-	this.callbackObject.error(requestObj, errorData, errorMsg, errorThrown);
+	this.callbackObject.error(errorMsg, errorData, errorThrown);
 };
 
 RangeIterator.prototype.kill = function(){

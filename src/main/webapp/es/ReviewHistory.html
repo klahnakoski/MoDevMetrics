@@ -205,7 +205,7 @@
 //				"facets":{"inReview":{"_type":"terms","missing":0,"total":49,"other":0,"terms":[{"term":"[]","count":39},{"term":"[{\"bug_id\":600556,\"attach_id\":\"556069\",\"modified_ts\":1314355034000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":600556,\"attach_id\":\"549597\",\"modified_ts\":1312031372000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":600556,\"attach_id\":\"548443\",\"modified_ts\":1311664952000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":600556,\"attach_id\":\"546748\",\"modified_ts\":1311049236000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":600556,\"attach_id\":\"546388\",\"modified_ts\":1310853211000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":600556,\"attach_id\":\"546387\",\"modified_ts\":1310852991000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":600556,\"attach_id\":\"545580\",\"modified_ts\":1310501632000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":600556,\"attach_id\":\"545579\",\"modified_ts\":1310501569000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":600556,\"attach_id\":\"544892\",\"modified_ts\":1310131838000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":600556,\"attach_id\":\"544891\",\"modified_ts\":1310131736000,\"requestee\":\"joe@drew.ca\"}]","count":1}]}}}
 //			,
 			{
-				"success" : function(requestObj, data){
+				"success" : function(data){
 //D.println(CNV.List2Tab(data.facets.inReview));
 D.println(CNV.Object2JSON(data));
 					var inReview = MVEL.esFacet2List(data.facets.inReview, [
@@ -420,7 +420,6 @@ D.println(CNV.List2Tab(reviewQueues));
 		]);
 	});
 
-//	createChart();
 
 </script>
 

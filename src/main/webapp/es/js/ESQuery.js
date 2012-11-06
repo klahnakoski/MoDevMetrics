@@ -80,7 +80,7 @@ ESQuery.prototype.success = function(data){
 	this.callback(this.query);
 };
 
-ESQuery.prototype.error = function(requestObj, errorData, errorMsg, errorThrown){
+ESQuery.prototype.error = function(errorMsg, errorData, errorThrown){
 	D.error(errorMsg)
 };
 

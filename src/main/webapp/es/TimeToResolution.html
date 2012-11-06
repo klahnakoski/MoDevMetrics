@@ -180,82 +180,79 @@ var createChart = function(){
 	ES.InjectFilter(chartRequest);
 
 
-	query=OldElasticSearchQuery({
-			"success" : function(requestObj, data){
-				status.message("Formatting ES Data");
-				var identified = data.facets.identified.terms;
-				var closed = data.facets.closed.terms;
-				var ages = data.facets.age.terms;
+	query=new ElasticSearchQuery({
+		"query":chartRequest.esQuery,
+		"success" : function(data){
+			status.message("Formatting ES Data");
+			var identified = data.facets.identified.terms;
+			var closed = data.facets.closed.terms;
+			var ages = data.facets.age.terms;
 
 
-				status.message("Match Identification with Close");
-				var durations = new CUBE().calc2List({
-					"from":
-						identified,
-					"select":[
-						{"name":"duration", "value":"c.min-min", "operation":"average"},
-						{"name":"age", "value":"c.min-c.created_ts", "operation":"minimum"}
-					],
-					"edges":[
-						{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "partitions":closed}}
-					],
-					"where":"c.term!=null && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
-				}).list;
+			status.message("Match Identification with Close");
+			var durations = new CUBE().calc2List({
+				"from":
+					identified,
+				"select":[
+					{"name":"duration", "value":"c.min-min", "operation":"average"}
+				],
+				"edges":[
+					{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "partitions":closed}}
+				],
+				"where":"c.term!=null && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
+			}).list;
 
-				status.message("Match Age with Closed");
-				ages = new CUBE().calc2List({
-					"from":
-						ages,
-					"select":[
-						{"name":"age", "value":"c.min-min", "operation":"minimum"}
-					],
-					"edges":[
-						{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "partitions":closed}}
-					],
-					"where":"c.term!=null && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
-				}).list;
+			status.message("Match Age with Closed");
+			ages = new CUBE().calc2List({
+				"from":
+					ages,
+				"select":[
+					{"name":"age", "value":"c.min-min", "operation":"minimum"}
+				],
+				"edges":[
+					{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "partitions":closed}}
+				],
+				"where":"c.term!=null && c.min-min>0"	//REMOVE UNMATCHED AND ZERO-DURATION
+			}).list;
 
-				var average = new CUBE().calc2List({
-					"from": durations,
-					"select":{"name":"Average Duration", "value":"duration", "operation":"average"},
-					"edges":[
-						{"name":"dummy", "value":"1"}
-					]
-				}).list;
+			var average = new CUBE().calc2List({
+				"from": durations,
+				"select":{"name":"Average Duration", "value":"duration", "operation":"average"},
+				"edges":[
+					{"name":"dummy", "value":"1"}
+				]
+			}).list;
 
-				var avg=Duration.newInstance(average[0]["Average Duration"]).divideBy(Duration.newInstance("day"));
-				avg=Math.round(avg*100)/100;
+			var avg=Duration.newInstance(average[0]["Average Duration"]).divideBy(Duration.newInstance("day"));
+			avg=Math.round(avg*100)/100;
 
 //				var interval=Duration.newInstance("day");
 //				avg=avg.add(interval).floorDay(interval);
-				info.message("Average = "+avg+" days");
+			info.message("Average = "+avg+" days");
 
-				status.message("Tally into interval buckets");
-				var time2res = new CUBE().calc2Cube({
-					"name": "Time to Resolution (Closed Bugs Only)",
-					"from": durations,
-					"select": {"name":"Count", "value":"1", "operation":"count"},
-					"edges":[
-						{"name":"Cohort", "value":"1"},
-						{"name":"Time Since Marked", "value":"Duration.newInstance(duration)", allowNulls:true,  "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
-					]
-				});
+			status.message("Tally into interval buckets");
+			var time2res = new CUBE().calc2Cube({
+				"name": "Time to Resolution (Closed Bugs Only)",
+				"from": durations,
+				"select": {"name":"Count", "value":"1", "operation":"count"},
+				"edges":[
+					{"name":"Cohort", "value":"1"},
+					{"name":"Time Since Marked", "value":"Duration.newInstance(duration)", allowNulls:true,  "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
+				]
+			});
 
 //				CUBE.normalizeByCohort(time2res, 100);
 
 
-				status.message("Make chart");
-				aChart.showCCC({
-					"id":"chart",
-					"type":"stacked",
-					"cube":time2res
-				});
-				status.message("Done");
-			}
-		},
-		0,
-		chartRequest.esQuery
-	);
+			status.message("Make chart");
+			aChart.showCCC({
+				"id":"chart",
+				"type":"stacked",
+				"cube":time2res
+			});
+			status.message("Done");
+		}
+	});
 
 
 	status.message("Calling ES");

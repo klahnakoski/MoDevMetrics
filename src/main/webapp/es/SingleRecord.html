@@ -23,8 +23,7 @@
 <div id="info"></div>
 
 <script type="text/javascript">
-	D.println(new Date(1347753600000).format("yyyy-NNN-dd HHmmss"));
-	D.println(new Date(1348358400000).format("yyyy-NNN-dd HHmmss"));
+	D.println(new Date(1352207434236).format("yyyy-NNN-dd HHmmss"));
 
 	var  esQuery = {
   "query": {
@@ -33,26 +32,43 @@
         "match_all": {}
       },
       "filter": {
-        "and": [
-          {
-            "script": {
-              "script": "true"
-            }
-          }
-        ]
+		"and":[
+			{"range": {"expires_on": {"gt": 1352207434236 }}},
+			{"not":{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}},
+			{"or": [
+			{"prefix": {"cf_blocking_fennec10": "+" } },
+			{"prefix": { "cf_blocking_fennec10": "?" } }
+			]}
+		]
       }
     }
   },
   "from": 0,
   "size": 10,
   "sort": [],
-  "facets": {
-    "0": {
-      "statistical": {
-        "script": "var replaceAll = function(output, find, replace){\ns = output.indexOf(find, 0);\nwhile(s>=0){\noutput=output.replace(find, replace);\ns=s-find.length+replace.length;\ns = output.indexOf(find, s);\n}\noutput;\n};\nvar Value2Pipe = function(value){\nif (value==null){ \"0\" }else if (!(value is String)){ 'n'+value; }else{\n\"s\"+replaceAll(replaceAll(value, \"\\\\\", \"\\\\\\\\\"), \"|\", \"\\\\p\");}};\nvar floorDay = function(value){ Math.floor(value/(24*60*60*1000))*(24*60*60*1000);};\nvar cool_func = function(bugs){\noutput=\"\";\nif (true){output = Value2Pipe(bugs.bug_id)\n;\n}\noutput;\n};\ncool_func(_source)\n"
+		"facets":{
+
+			"Fennec": {
+      "terms": {
+        "script_field": "\"Fennec\"",
+        "size": 10000
+      },
+      "facet_filter": {
+        "or": [
+          {
+            "prefix": {
+              "cf_blocking_fennec10": "+"
+            }
+          },
+          {
+            "prefix": {
+              "cf_blocking_fennec10": "?"
+            }
+          }
+        ]
       }
     }
-  }
+		}
 }
 ;
 

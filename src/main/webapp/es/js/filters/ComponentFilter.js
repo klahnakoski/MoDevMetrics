@@ -81,16 +81,8 @@ ComponentUI.prototype.injectHTML = function(components){
 };
 
 
-ComponentUI.prototype.success = function(resultsObj, data){
+ComponentUI.prototype.success = function(data){
 	var components = data.facets.Components.terms;
-
-//	new CUBE().calc({
-//		"from":
-//			components,
-//		"select":[
-//			{value:"term", "domain":{"type":"set", "data":state.selectedComponents}}
-//		]
-//	});
 
 	var terms = [];
 	for(var i = 0; i < components.length; i++) terms.push(components[i].term);

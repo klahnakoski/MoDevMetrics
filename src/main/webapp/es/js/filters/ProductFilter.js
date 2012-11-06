@@ -82,7 +82,7 @@ ProductUI.prototype.injectHTML = function(products){
 };
 
 
-ProductUI.prototype.success = function(resultsObj, data){
+ProductUI.prototype.success = function(data){
 
 	var products = data.facets.Products.terms;
 

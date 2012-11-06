@@ -188,10 +188,10 @@
 		status.message("Call ES");
 		ElasticSearchQuery.OldRun(
 			{
-				"success" : function(requestObj, data){
+				"success" : function(data){
 					status.message("processing Data");
-					var inReview = CNV.ESFacet2List(data.facets.inReview);
-					var doneReview = CNV.ESFacet2List(data.facets.doneReview);
+					var inReview = MVEL.esFacet2List(data.facets.inReview);
+					var doneReview = MVEL.esFacet2List(data.facets.doneReview);
 
 					var durations = new CUBE().calc2List({
 						"from":

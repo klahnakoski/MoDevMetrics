@@ -525,6 +525,7 @@ CUBE.domain.set.compileKey=function(key, domain){
 					}//for
 			f+=	"	return "+key+"\n"+
 				"}";
+			eval(f);
 			this.getKey=newGetKeyFunction;
 			return this.getKey(partition);
 		};//method

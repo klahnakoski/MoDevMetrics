@@ -192,7 +192,7 @@ Test.ReviewQueuesOverTime = function(){
 	};
 
 
-	esResult = CNV.ESFacet2List({"terms":CNV.Table2List(esResult)});
+	esResult = MVEL.esFacet2List({"terms":CNV.Table2List(esResult)});
 
 
 	var range = new SQL().calc2List({
@@ -841,7 +841,7 @@ Test.burndown = function(){
 		{"term":"[{\"bug_id\":105843,\"modified_ts\":1.3463712E12,\"state\":\"open\"}]","count":1}
 	];
 
-	var esAllBugs = CNV.ESFacet2List({"terms":esResult});
+	var esAllBugs = MVEL.esFacet2List({"terms":esResult});
 
 
 	var result = new SQL().calc2List({
