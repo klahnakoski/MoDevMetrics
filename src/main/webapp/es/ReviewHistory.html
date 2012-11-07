@@ -199,211 +199,205 @@
 		status.message("Call ES");
 
 
-		ElasticSearchQuery.OldRun(
 //		ElasticSearchQuery.Use(
 //			{"took":7,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":49,"max_score":1.0,"hits":[{"_index":"bugs20120924","_type":"bug_version","_id":"600556.1310131736000","_score":1.0}]},
 //				"facets":{"inReview":{"_type":"terms","missing":0,"total":49,"other":0,"terms":[{"term":"[]","count":39},{"term":"[{\"bug_id\":600556,\"attach_id\":\"556069\",\"modified_ts\":1314355034000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":600556,\"attach_id\":\"549597\",\"modified_ts\":1312031372000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":600556,\"attach_id\":\"548443\",\"modified_ts\":1311664952000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":600556,\"attach_id\":\"546748\",\"modified_ts\":1311049236000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":600556,\"attach_id\":\"546388\",\"modified_ts\":1310853211000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":600556,\"attach_id\":\"546387\",\"modified_ts\":1310852991000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":600556,\"attach_id\":\"545580\",\"modified_ts\":1310501632000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":600556,\"attach_id\":\"545579\",\"modified_ts\":1310501569000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":600556,\"attach_id\":\"544892\",\"modified_ts\":1310131838000,\"requestee\":\"joe@drew.ca\"}]","count":1},{"term":"[{\"bug_id\":600556,\"attach_id\":\"544891\",\"modified_ts\":1310131736000,\"requestee\":\"joe@drew.ca\"}]","count":1}]}}}
 //			,
-			{
-				"success" : function(data){
+		ElasticSearchQuery.Run({
+			"query":esQuery,
+			"success" : function(data){
 //D.println(CNV.List2Tab(data.facets.inReview));
 D.println(CNV.Object2JSON(data));
-					var inReview = MVEL.esFacet2List(data.facets.inReview, [
-										{"name":"bug_id", "value":"bugs.bug_id"},
-										{"name":"attach_id", "value":"bugs.attachments.attach_id"},
-										{"name":"modified_ts", "value":"bugs.modified_ts"},
-										{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
-									]);
+				var inReview = MVEL.esFacet2List(data.facets.inReview, [
+									{"name":"bug_id", "value":"bugs.bug_id"},
+									{"name":"attach_id", "value":"bugs.attachments.attach_id"},
+									{"name":"modified_ts", "value":"bugs.modified_ts"},
+									{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
+								]);
 
-					var bugList=new CUBE().calc2Cube({
-						"from":inReview,
-						"select":{"name":"bug_id", "value":"bug_id", "operation":"one"},
-						"edges":[{"name":"uid", "value":"bug_id"}]
-					}).data;
+				var bugList=new CUBE().calc2Cube({
+					"from":inReview,
+					"select":{"name":"bug_id", "value":"bug_id", "operation":"one"},
+					"edges":[{"name":"uid", "value":"bug_id"}]
+				}).data;
 
 
-					var esQuery2 = {
-							"query":{"filtered":{
-								"query": {
-									"match_all" : {}
-								},
-								"filter" : {
-									"and":[
+				var esQuery2 = {
+						"query":{"filtered":{
+							"query": {
+								"match_all" : {}
+							},
+							"filter" : {
+								"and":[
 //										{"terms":{"bug_id":[730079]}},
-										{"terms":{"bug_id":bugList}},//, 19963, 505741]}},
-										{ "nested": {
-											"path" : "attachments.flags",
-											"query": {
-												"filtered" : {
-													"query" : {
-														"match_all" : {}
-													},
-													"filter" : {
-														"and":[
-															{"terms" : {"attachments.flags.request_type" : ["review", "superreview"]}}
-														]
-													}
+									{"terms":{"bug_id":bugList}},//, 19963, 505741]}},
+									{ "nested": {
+										"path" : "attachments.flags",
+										"query": {
+											"filtered" : {
+												"query" : {
+													"match_all" : {}
+												},
+												"filter" : {
+													"and":[
+														{"terms" : {"attachments.flags.request_type" : ["review", "superreview"]}}
+													]
 												}
 											}
-										}}
-									]
-								}
-							}},
-							"from" : 0,
-							"size" : 10,
-							"sort" : [],
-							"facets":{
-								"doneReview" : {
-									"terms":{
-										"script_field":
-											new MVEL().code({
-												"select" : [
-													{"name":"bug_id", "value":"bugs.bug_id"},
-													{"name":"attach_id", "value":"bugs.attachments.attach_id"},
-													{"name":"modified_ts", "value":"(bugs.bug_status=='resolved'||bugs.bug_status=='verified'||bugs.bug_status=='closed') ? bugs.modified_ts : bugs.attachments.flags.modified_ts"},
-													{"name":"requestee", "value":"bugs.attachments.flags.requestee==null ? bugs.attachments.modified_by : bugs.attachments.flags.requestee"}
-												],
-												"from":
-														"bugs.attachments.flags",
-												"where":
-												{"and" : [
+										}
+									}}
+								]
+							}
+						}},
+						"from" : 0,
+						"size" : 10,
+						"sort" : [],
+						"facets":{
+							"doneReview" : {
+								"terms":{
+									"script_field":
+										new MVEL().code({
+											"select" : [
+												{"name":"bug_id", "value":"bugs.bug_id"},
+												{"name":"attach_id", "value":"bugs.attachments.attach_id"},
+												{"name":"modified_ts", "value":"(bugs.bug_status=='resolved'||bugs.bug_status=='verified'||bugs.bug_status=='closed') ? bugs.modified_ts : bugs.attachments.flags.modified_ts"},
+												{"name":"requestee", "value":"bugs.attachments.flags.requestee==null ? bugs.attachments.modified_by : bugs.attachments.flags.requestee"}
+											],
+											"from":
+													"bugs.attachments.flags",
+											"where":
+											{"and" : [
 //													{"term":{"bugs.attachments.attach_id":"556069"}},
-													{"not":{"missing":{"field":"bugs.attachments.flags.request_type", "existence":true, "null_value":true}}},
-													{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
-													{"or" : [
-														{ "and" : [//IF THE REQUESTEE SWITCHED THE ? FLAG, THEN IT IS DONE
-															{"not": {"terms" : {"bugs.attachments.flags.request_status" : ["?"]}}},
-															{"or":[
-																{"term" : {"bugs.attachments.flags.requestee" : state.requestee}},
-																{"and":[
-																	{"missing":{"field":"bugs.attachments.flags.requestee", "existence":true, "null_value":true}},
-																	{"term":{"bugs.attachments.modified_by": state.requestee}}
-																]}
+												{"not":{"missing":{"field":"bugs.attachments.flags.request_type", "existence":true, "null_value":true}}},
+												{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+												{"or" : [
+													{ "and" : [//IF THE REQUESTEE SWITCHED THE ? FLAG, THEN IT IS DONE
+														{"not": {"terms" : {"bugs.attachments.flags.request_status" : ["?"]}}},
+														{"or":[
+															{"term" : {"bugs.attachments.flags.requestee" : state.requestee}},
+															{"and":[
+																{"missing":{"field":"bugs.attachments.flags.requestee", "existence":true, "null_value":true}},
+																{"term":{"bugs.attachments.modified_by": state.requestee}}
 															]}
-														]},
-														{ "and" : [//IF THE ? WAS SWITCHED TO ANOTHER REQUESTEE, THEN IT IS DONE
-															{"term" : {"bugs.attachments.flags.request_status" : "?"}},
-															{"not":{"term" : {"bugs.attachments.flags.requestee" : state.requestee}}}
-//												{"term":{"bugs.attachments.modified_by": state.requestee}} //ANYONE CAN SWITCH
-														]},
-														{"and":[//IF THE REQUESTEE OBSOLEETED THE ATTACHMENT, IT IS DONE
-															{"not":{"missing":{"field":"bugs.previous_values", "existence":true, "null_value":true}}},
-															{"term":{"bugs.previous_values[\"attachments.isobsolete_values\"]" : 0}},
-															{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 1}}
-//												{"term":{"bugs.attachments.modified_by": state.requestee}}  //ANYONE CAN OBSOLETE
-														]},
-														{ "and" : [//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
-															{"terms" : {"bugs.bug_status" : ["resolved", "verified", "closed"]}},
-															{"term" : {"bugs.attachments.flags.requestee" : state.requestee}}
 														]}
+													]},
+													{ "and" : [//IF THE ? WAS SWITCHED TO ANOTHER REQUESTEE, THEN IT IS DONE
+														{"term" : {"bugs.attachments.flags.request_status" : "?"}},
+														{"not":{"term" : {"bugs.attachments.flags.requestee" : state.requestee}}}
+//												{"term":{"bugs.attachments.modified_by": state.requestee}} //ANYONE CAN SWITCH
+													]},
+													{"and":[//IF THE REQUESTEE OBSOLEETED THE ATTACHMENT, IT IS DONE
+														{"not":{"missing":{"field":"bugs.previous_values", "existence":true, "null_value":true}}},
+														{"term":{"bugs.previous_values[\"attachments.isobsolete_values\"]" : 0}},
+														{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 1}}
+//												{"term":{"bugs.attachments.modified_by": state.requestee}}  //ANYONE CAN OBSOLETE
+													]},
+													{ "and" : [//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
+														{"terms" : {"bugs.bug_status" : ["resolved", "verified", "closed"]}},
+														{"term" : {"bugs.attachments.flags.requestee" : state.requestee}}
 													]}
 												]}
-											}),
-										"size": state.esSize,
-										"order" : "term"
-									},
-									"facet_filter":{//HOPEFULLY THIS HELPS
-										"and":[
-											{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}}
-										]
-									}
+											]}
+										}),
+									"size": state.esSize,
+									"order" : "term"
+								},
+								"facet_filter":{//HOPEFULLY THIS HELPS
+									"and":[
+										{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}}
+									]
 								}
 							}
-						};
+						}
+					};
 
-					console.info(CNV.Object2JSON(esQuery2));
-					status.message("Call ES, again");
+				console.info(CNV.Object2JSON(esQuery2));
+				status.message("Call ES, again");
 
 
-					ElasticSearchQuery.OldRun({"success":function(requestObj, data){
+				ElasticSearchQuery.Run({
+					"query":esQuery2,
+					"success":function(data){
 
 //D.println(CNV.List2Tab(data.facets.doneReview));
-						status.message("processing Data");
-						var doneReview = MVEL.esFacet2List(data.facets.doneReview, [
-													{"name":"bug_id", "value":"bugs.bug_id"},
-													{"name":"attach_id", "value":"bugs.attachments.attach_id"},
-													{"name":"modified_ts", "value":"(bugs.bug_status=='resolved'||bugs.bug_status=='verified'||bugs.bug_status=='closed') ? bugs.modified_ts : bugs.attachments.flags.modified_ts"},
-													{"name":"requestee", "value":"bugs.attachments.flags.requestee==null ? bugs.attachments.modified_by : bugs.attachments.flags.requestee"}
-												]);
+					status.message("processing Data");
+					var doneReview = MVEL.esFacet2List(data.facets.doneReview, [
+						{"name":"bug_id", "value":"bugs.bug_id"},
+						{"name":"attach_id", "value":"bugs.attachments.attach_id"},
+						{"name":"modified_ts", "value":"(bugs.bug_status=='resolved'||bugs.bug_status=='verified'||bugs.bug_status=='closed') ? bugs.modified_ts : bugs.attachments.flags.modified_ts"},
+						{"name":"requestee", "value":"bugs.attachments.flags.requestee==null ? bugs.attachments.modified_by : bugs.attachments.flags.requestee"}
+					]);
 
 D.println(CNV.Object2JSON(data));
 //D.println(CNV.List2Tab(inReview));
 //D.println(CNV.List2Tab(doneReview));
 
 
-						var flooring=state.sampleInterval;
-						if (flooring.indexOf("hour")!=-1) flooring="hour";
-						if (flooring.indexOf("day")!=-1) flooring="day";
-						if (flooring.indexOf("week")!=-1) flooring="week";
-						if (flooring.indexOf("month")!=-1) flooring="month";
-						if (flooring.indexOf("year")!=-1) flooring="year";
+					var flooring=state.sampleInterval;
+					if (flooring.indexOf("hour")!=-1) flooring="hour";
+					if (flooring.indexOf("day")!=-1) flooring="day";
+					if (flooring.indexOf("week")!=-1) flooring="week";
+					if (flooring.indexOf("month")!=-1) flooring="month";
+					if (flooring.indexOf("year")!=-1) flooring="year";
 
 
 
-						var reviewQueues = new CUBE().calc2List({
-							"from":
-								inReview,
-							"select":[
+					var reviewQueues = new CUBE().calc2List({
+						"from":
+							inReview,
+						"select":[
 //							{"name":"close_record", "order":["doneReview.end_time", ""]},
-								{"name":"end_time", "value":"new Date(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "operation":"minimum"}
-							],
-							"edges":[
-								{"name":"bug_id", "value":"bug_id"},
-								{"name":"attach_id", "value":"attach_id"},
-								{"name":"requestee", "value":"requestee"},
-								{"name":"start_time", "value":"new Date(modified_ts)"},
-								{"name":"close_record",
-									"test":"bug_id==doneReview.bug_id && attach_id==doneReview.attach_id && requestee==doneReview.requestee && modified_ts<=doneReview.modified_ts",
-									allowNulls:true,
-									"domain":{"type":"set", "name":"doneReview", "key":[], "partitions":doneReview}
-								}
-							]//,
+							{"name":"end_time", "value":"new Date(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "operation":"minimum"}
+						],
+						"edges":[
+							{"name":"bug_id", "value":"bug_id"},
+							{"name":"attach_id", "value":"attach_id"},
+							{"name":"requestee", "value":"requestee"},
+							{"name":"start_time", "value":"new Date(modified_ts)"},
+							{"name":"close_record",
+								"test":"bug_id==doneReview.bug_id && attach_id==doneReview.attach_id && requestee==doneReview.requestee && modified_ts<=doneReview.modified_ts",
+								allowNulls:true,
+								"domain":{"type":"set", "name":"doneReview", "key":[], "partitions":doneReview}
+							}
+						]//,
 //							"where":sampleMin.getMilli()+"<=end_time.getMilli() && start_time.getMilli()<"+sampleMax.getMilli()
-						}).list;
+					}).list;
 
 
 
 D.println(CNV.List2Tab(reviewQueues));
 
-						var chart=new CUBE().calc2Cube({
-							"name":
-								"Historical Review Queue for "+state.requestee,
-							"from":reviewQueues,
-							"select":{"name":"Pending", "value":"1", operation:"sum"},
-							"edges":[
-								{"name":"Bug ID", "value":"bug_id", "order":["start_time.floor('"+flooring+"')", "end_time.floor('"+flooring+"')"]},
-								{"name":"Date",
-									"test":"start_time.floor('"+flooring+"')<=time.value && time.value<=end_time.floor('"+flooring+"')",
-									"domain":{"type":"time", "min":state.sampleMin, "max":sampleMax, "interval":flooring, "format":"NNN dd"}
-								}
-							],
-							"where":new Date(state.sampleMin).getMilli()+"<=end_time.getMilli() && start_time.getMilli()<"+sampleMax.getMilli()
+					var chart=new CUBE().calc2Cube({
+						"name":
+							"Historical Review Queue for "+state.requestee,
+						"from":reviewQueues,
+						"select":{"name":"Pending", "value":"1", operation:"sum"},
+						"edges":[
+							{"name":"Bug ID", "value":"bug_id", "order":["start_time.floor('"+flooring+"')", "end_time.floor('"+flooring+"')"]},
+							{"name":"Date",
+								"test":"start_time.floor('"+flooring+"')<=time.value && time.value<=end_time.floor('"+flooring+"')",
+								"domain":{"type":"time", "min":state.sampleMin, "max":sampleMax, "interval":flooring, "format":"NNN dd"}
+							}
+						],
+						"where":new Date(state.sampleMin).getMilli()+"<=end_time.getMilli() && start_time.getMilli()<"+sampleMax.getMilli()
 //							"order":["Date"]
-						});
+					});
 
 
 
-						aChart.showCCC({
-							"id":"chart",
-							"type":"stacked",
-							"cube":chart
-						});
+					aChart.showCCC({
+						"id":"chart",
+						"type":"stacked",
+						"cube":chart
+					});
 
-						status.message("Done");
-
-
-					}},0,esQuery2);
+					status.message("Done");
 
 
-
-
-
-
-				}
-			},
-			0,
-			esQuery
-		);
+					}//method
+				});
+			}
+		});
 	};//createChart
 
 

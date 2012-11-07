@@ -83,11 +83,11 @@ CUBE.prototype.calc2List = function(query){
 				var v = edge.calc(row, null);
 
 				//STANDARD 1-1 MATCH VALUE TO DOMAIN
-				var p = edge.domain.map[v];// .getPartition(v);  WE NEED MAP BECAUSE domain.key==edge.value
-//				if (p === undefined){
-//					D.error("getPartition() must return a partition, or null");
-//				}//endif
+				var p = edge.domain.getPartByKey(v);
 				if (p === undefined){
+					D.error("getPartByKey() must return a partition, or null");
+				}//endif
+				if (p == edge.domain.NULL){
 					edge.outOfDomainCount++;
 					if (edge.allowNulls){
 						for(var t = results.length; t--;){
@@ -101,7 +101,7 @@ CUBE.prototype.calc2List = function(query){
 				}//endif
 			} else{ //test is DEFINED ON EDGE
 				//MULTIPLE MATCHES EXIST
-				var matches = edge.domain.getPartitions(row);
+				var matches = edge.domain.getMatchingParts(row);
 				if (matches.length == 0){
 					edge.outOfDomainCount++;
 					if (edge.allowNulls){
@@ -209,6 +209,12 @@ CUBE.prototype.calc2Array = function(sql){
 CUBE.prototype.calc2Cube = function(query){
 	var cube = this.calc2List(query);
 
+	if (query.edges.length==0){
+		if (cube.list.length!=1) D.error("Expecting a single tuple of aggreate values");
+		query.data = cube.list[0];
+		return query;
+	}//endif
+
 	//ASSIGN dataIndex TO ALL PARTITIONS
 	var edges = query.edges;
 	for(var f = 0; f < edges.length; f++){
@@ -231,13 +237,13 @@ CUBE.prototype.calc2Cube = function(query){
 		var part=undefined;
 		for(; f < edges.length - 1; f++){
 			part=result[edges[f].name];
-			if (part.dataIndex===undefined) part=edges[f].domain.getPartition(part);//DEFAULT DOMAIN DOES NOT RETURN PARTITION OBJECTS, SPECIAL DEREF REQUIRED
+			if (part.dataIndex===undefined) part=edges[f].domain.getPartByKey(part);//DEFAULT DOMAIN DOES NOT RETURN PARTITION OBJECTS, SPECIAL DEREF REQUIRED
 			if (part.dataIndex==value.length) continue OO; //NULL VALUE FOUND, BUT NOT TO BE REPORTED
 			value = value[part.dataIndex];
 		}//for
 		part=result[edges[f].name];
 		if (part==null || part.dataIndex===undefined)
-			part=edges[f].domain.getPartition(part);//DEFAULT DOMAIN DOES NOT RETURN PARTITION OBJECTS, SPECIAL DEREF REQUIRED
+			part=edges[f].domain.getPartByKey(part);//DEFAULT DOMAIN DOES NOT RETURN PARTITION OBJECTS, SPECIAL DEREF REQUIRED
 
 		if (query.select instanceof Array){
 			value = value[part.dataIndex];
@@ -462,10 +468,10 @@ CUBE.getAggregate = function(result, output, select, edges){
 		for(var i = 0; i < edges.length; i++){
 			var d=edges[i].domain;
 			var part2=result[edges[i].name];
-			var k = d.getKey(part2);
-
-			if (d.map[k]===undefined) D.error("Expecting the domain '"+d.name+"' to have key for "+CNV.Object2JSON(part2));
-			agg[v][edges[i].name]=d.map[k];
+			var canonical=d.getPartByKey(d.getKey(part2)); 	//SET DOMAIN USUALLY DEFAULTS TO A SINGLE null PART
+			if (canonical===undefined)
+				D.error("Expecting the domain '"+d.name+"' to have key for "+CNV.Object2JSON(part2));
+			agg[v][edges[i].name]=canonical;
 		}//for
 	}//endif
 

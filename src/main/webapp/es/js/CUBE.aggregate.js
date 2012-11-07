@@ -86,7 +86,7 @@ CUBE.aggregate.average = function(select){
 
 		NULL:null,
 
-		getPartition:function(value){
+		getCanonicalPart:function(value){
 			return value;
 		},
 

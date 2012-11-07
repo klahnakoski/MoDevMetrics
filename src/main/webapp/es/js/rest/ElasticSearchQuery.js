@@ -146,7 +146,11 @@ ElasticSearchQuery.prototype.error = function(errorData, errorMsg, errorThrown){
 ElasticSearchQuery.prototype.kill = function(data){
 	this.callbackObject=undefined;
 	if (this.request != undefined){
-		this.request.abort();
+		try{
+			this.request.abort();
+		}catch(e){
+			//AT LEAST WE TRIED
+		}//try
 		this.request = undefined;
 	}//endif
 };

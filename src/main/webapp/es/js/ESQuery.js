@@ -24,7 +24,7 @@ var ESQuery = function(query){
 // THESE ARE THE AVAILABLE ES INDEXES
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
-	"bugs":{"path":"/bugs/_search"},
+	"bugs":{"path":"/bugs"},
 	"reviews":{"path":"/reviews121104_183806/review"}
 };
 
@@ -32,7 +32,7 @@ ESQuery.INDEXES={
 ESQuery.prototype.run = function(successFunction,errorFunction){
 	if (successFunction!==undefined) this.callback = successFunction;
 
-	var URL=window.ElasticSearch.baseURL+ESQuery.INDEXES[this.query.from.split(".")[0]].path;
+	var URL=window.ElasticSearch.baseURL+ESQuery.INDEXES[this.query.from.split(".")[0]].path+"/_search";
 	var self=this;
 
 	this.esRequest = $.ajax({
@@ -384,7 +384,7 @@ ESQuery.compileString2Term=function(edge){
 	return {
 		"toTerm":'Value2Pipe('+value+')',
 		"fromTerm":function(value){
-			return edge.domain.getPartition(CNV.Pipe2Value(value));
+			return edge.domain.getPartByKey(CNV.Pipe2Value(value));
 		}
 	};
 };//method
@@ -430,13 +430,13 @@ ESQuery.compileTime2Term=function(edge){
 		var reference=new Date(ref);
 		int2Partition=function(value){
 			if (Math.round(value)==numPartitions) return edge.domain.NULL;
-			return edge.domain.getPartition(reference.add(edge.domain.interval.multiply(value)));
+			return edge.domain.getPartByKey(reference.add(edge.domain.interval.multiply(value)));
 		};
 	}else{
 		var offset=Duration.newInstance(ref);
 		int2Partition=function(value){
 			if (Math.round(value)==numPartitions) return edge.domain.NULL;
-			return edge.domain.getPartition(offset.add(edge.domain.interval.multiply(value)));
+			return edge.domain.getPartByKey(offset.add(edge.domain.interval.multiply(value)));
 		};
 	}//endif
 

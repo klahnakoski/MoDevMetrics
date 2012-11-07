@@ -14,6 +14,9 @@ CUBE.domain.compile = function(sourceColumns, column){
 };//method
 
 
+////////////////////////////////////////////////////////////////////////////////
+// JUST ALL VALUES, USUALLY PRIMITIVE VALUES
+////////////////////////////////////////////////////////////////////////////////
 CUBE.domain.value = {
 
 	compare:function(a, b){
@@ -29,12 +32,16 @@ CUBE.domain.value = {
 
 	NULL:null,
 
-	getPartition:function(value){
+	getCanonicalPart:function(part){
+		return part;
+	},
+
+	getPartByKey:function(key){
 		return value;
 	},
 
-	getKey:function(partition){
-		return partition;
+	getKey:function(part){
+		return part;
 	}
 
 };
@@ -63,24 +70,32 @@ CUBE.domain["default"] = function(column, sourceColumns){
 	d.partitions = [];
 	d.map = {};
 	d.map[null]=d.NULL;
-	d.getPartition = function(value){
-		var partition = this.map[value];
-		if (partition !== undefined) return partition;
 
-		//ADD ANOTHER PARTITION TO COVER
-		partition = {};
-		partition.value = value;
-		partition.name = value;
 
-		this.partitions.push(partition);
-		this.partitions.sort(this.compare);
-		this.map[value] = partition;
-		return partition;
+	d.getCanonicalPart = function(part){
+		return this.getPartByKey(part.value);
 	};//method
 
+
+	d.getPartByKey=function(key){
+		var canonical = this.map[key];
+		if (canonical !== undefined) return canonical;
+
+		//ADD ANOTHER PARTITION TO COVER
+		canonical = {};
+		canonical.value = key;
+		canonical.name = key;
+
+		this.partitions.push(canonical);
+		this.partitions.sort(this.compare);
+		this.map[key] = canonical;
+		return canonical;
+	};
+
+
 	//RETURN CANONICAL KEY VALUE FOR INDEXING
-	d.getKey = function(partition){
-		return partition.value;
+	d.getKey = function(part){
+		return part.value;
 	};//method
 
 	d.end = function(partition){
@@ -118,13 +133,8 @@ CUBE.domain.time = function(column, sourceColumns){
 
 
 	if (column.test === undefined){
-		d.getPartition = function(value){
-			if (value == null) return this.NULL;
-			if (value < this.min || this.max <= value) return this.NULL;
-			for(var i = 0; i < this.partitions.length; i++){
-				if (this.partitions[i].max > value) return this.partitions[i];
-			}//for
-			return this.NULL;
+		d.getCanonicalPart = function(part){
+			return this.getPartByKey(part.value);
 		};//method
 
 		if (d.partitions === undefined){
@@ -140,10 +150,10 @@ CUBE.domain.time = function(column, sourceColumns){
 			}//for
 		}//endif
 	} else{
-		d.getPartition = undefined;  //DO NOT USE WHEN MULTIVALUED
+		d.getCanonicalPart = undefined;  //DO NOT USE WHEN MULTIVALUED
 
 		var f =
-			"d.getPartitions=function(__source){\n" +
+			"d.getMatchingParts=function(__source){\n" +
 			"	if (__source==null) return [];\n";
 
 		for(var s = 0; s < sourceColumns.length; s++){
@@ -164,6 +174,16 @@ CUBE.domain.time = function(column, sourceColumns){
 			"}";
 		eval(f);
 	}//endif
+
+	d.getPartByKey=function(value){
+		if (value == null) return this.NULL;
+		if (value < this.min || this.max <= value) return this.NULL;
+		var i=Math.floor(value.subtract(this.min, this.interval).divideBy(this.interval));
+
+		if (this.partitions[i].min>value || value>=this.partitions[i].max) D.error("programmer error");
+		return this.partitions[i];
+	};//method
+
 
 	if (d.partitions === undefined){
 		d.map = {};
@@ -243,7 +263,7 @@ CUBE.domain.duration = function(column, sourceColumns){
 
 
 	if (column.test === undefined){
-		d.getPartition = function(value){
+		d.getPartByKey = function(value){
 			if (value == null) return this.NULL;
 			var floor = value.floor(this.interval);
 
@@ -297,12 +317,18 @@ CUBE.domain.duration = function(column, sourceColumns){
 		d.error("matching multi to duration domain is not supported");
 	}//endif
 
+
+	d.getCanonicalPart=function(part){
+		return this.getPartByKey(part.value);
+	};//method
+
+
 	//RETURN CANONICAL KEY VALUE FOR INDEXING
 	d.getKey = function(partition){
 		return partition.value;
 	};//method
-
 };//method;
+
 
 CUBE.domain.duration.addRange = function(min, max, domain){
 	for(var v = min; v.milli < max.milli; v = v.add(domain.interval)){
@@ -340,13 +366,18 @@ CUBE.domain.set = function(column, sourceColumns){
 	};//method
 	
 
-	d.getPartition = function(obj){
-		if (obj == null) return null;
-
-		var temp = this.map[this.getKey(obj)];
-		if (temp === undefined) return null;
-		return temp;
+	d.getCanonicalPart = function(obj){
+		return this.getPartByKey(this.getKey(obj));
 	};//method
+
+	d.getPartByKey=function(key){
+		var canonical = this.map[key];
+		if (canonical === undefined) return this.NULL;
+		return canonical;
+	};//method
+
+
+
 
 	if (d.partitions === undefined) D.error("Expecting domain " + d.name + " to have a 'partitions' attribute to define the set of partitions that compose the domain");
 
@@ -433,10 +464,11 @@ CUBE.domain.set = function(column, sourceColumns){
 
 
 CUBE.domain.set.compileSimpleLookup = function(column, d, sourceColumns){
-	d.getPartition = undefined;
 	d.map = undefined;
+	d.getCanonicalPart = undefined;
+	d.getMatchingParts=undefined;
 	var f =
-		"d.getPartitions=function(__source){\n" +
+		"d.getMatchingParts=function(__source){\n" +
 			"if (__source==null) return [];\n";
 
 	for(var s = 0; s < sourceColumns.length; s++){
@@ -459,10 +491,10 @@ CUBE.domain.set.compileSimpleLookup = function(column, d, sourceColumns){
 };
 
 CUBE.domain.set.compileMappedLookup = function(column, d, sourceColumns, lookupVar){
-	d.getPartition = undefined;
-
+	d.getCanonicalPart = undefined;
+	d.getMatchingParts=undefined;
 	var f =
-		"d.getPartitions=function(__source){\n" +
+		"d.getMatchingParts=function(__source){\n" +
 			"if (__source==null) return [];\n";
 
 	for(var s = 0; s < sourceColumns.length; s++){

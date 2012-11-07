@@ -32,43 +32,48 @@
         "match_all": {}
       },
       "filter": {
-		"and":[
-			{"range": {"expires_on": {"gt": 1352207434236 }}},
-			{"not":{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}},
-			{"or": [
-			{"prefix": {"cf_blocking_fennec10": "+" } },
-			{"prefix": { "cf_blocking_fennec10": "?" } }
-			]}
-		]
+		  "and":[
+			  {"range":{"bug_id":{"gt":800000}}},
+			  {"term":{"qa_contact":"general@fennec.bugs"}}
+		  ]
+//		  "script":{"script":'_source.toString().indexOf("fennec")>0'}
+//		"and":[
+//			{"range": {"expires_on": {"gt": 1352207434236 }}},
+//			{"not":{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}},
+//			"or": [
+//			{"prefix": {"cf_tracking_fennec": "+" } },
+//			{"prefix": { "cf_tracking_fennec": "?" } }
+//			]
+//		]
       }
     }
   },
   "from": 0,
-  "size": 10,
+  "size": 10000,
   "sort": [],
-		"facets":{
-
-			"Fennec": {
-      "terms": {
-        "script_field": "\"Fennec\"",
-        "size": 10000
-      },
-      "facet_filter": {
-        "or": [
-          {
-            "prefix": {
-              "cf_blocking_fennec10": "+"
-            }
-          },
-          {
-            "prefix": {
-              "cf_blocking_fennec10": "?"
-            }
-          }
-        ]
-      }
-    }
-		}
+//		"facets":{
+//
+//			"Fennec": {
+//      "terms": {
+//        "script_field": "\"Fennec\"",
+//        "size": 10000
+//      },
+//      "facet_filter": {
+//        "or": [
+//          {
+//            "prefix": {
+//              "cf_blocking_fennec10": "+"
+//            }
+//          },
+//          {
+//            "prefix": {
+//              "cf_blocking_fennec10": "?"
+//            }
+//          }
+//        ]
+//      }
+//    }
+//		}
 }
 ;
 

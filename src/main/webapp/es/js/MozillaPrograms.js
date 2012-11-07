@@ -34,7 +34,10 @@ var MozillaPrograms = {
 //		["MemShrink", "status_whiteboard.tokenized", "memshrink:p3"],
 		["MemShrink", "status_whiteboard.tokenized", "memshrink"],		//Nicholas Nethercote: CATCH memshrink (unconfirmed) AND ALL THE pX TOO
 		["Fennec", "cf_blocking_fennec10", "+"],
-		["Fennec", "cf_blocking_fennec10", "?"]
+		["Fennec", "cf_blocking_fennec10", "?"],
+		["Fennec", "cf_blocking_fennec", "+"],
+		["Fennec", "cf_blocking_fennec", "?"]
+
 //		["K9O", "status_whiteboard.tokenized", "k9o:p1"],
 //		["K9O", "status_whiteboard.tokenized", "k9o:p2"],
 //		["K9O", "status_whiteboard.tokenized", "k9o:p3"],
