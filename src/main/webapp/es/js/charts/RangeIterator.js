@@ -5,19 +5,20 @@ RangeIterator = function(reportBackObj, queries){
 	this.currentDate = null;
 
 	this.NextQuery();
-}
+};
 
 RangeIterator.prototype.NextQuery = function(){
 	var dataSet = this.callbackObject.dataSet;
 
 	if (dataSet.currentIndex <= dataSet.maxIndex){
-
 		var queries = this.InjectIndex();
-
 		this.request = new MultiElasticSearchQuery(this, queries);
 		this.request.Run();
-	}
-}
+	}else{
+		status.message("Done");
+	}//endif
+
+};
 
 RangeIterator.prototype.InjectIndex = function(){
 	var queries = Util.jsonCopy(this.queries);

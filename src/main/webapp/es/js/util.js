@@ -1,5 +1,15 @@
 
 
+var ForAllKey=function(map, func){
+	var keys=Object.keys(map);
+	for(var i=keys.length;i--;){
+		var key=keys[i];
+		var val=map[key];
+		func(key, val);
+	}//for
+};
+
+
 if (window['importScript'] == undefined) importScript=function(){};
 
 Math.isNumeric = function(n){
@@ -65,6 +75,10 @@ Array.prototype.appendArray=function(arr){
 	}//for
 };//method
 
+Array.prototype.last=function(){
+	return this[this.length-1];
+};//method
+
 
 var Util = {};
 
@@ -91,7 +105,12 @@ Util.returnNull = function(__row){
 	return null;
 };//method
 
-
+Util.UID=function(){
+	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+		return v.toString(16);
+	});
+};//method
 
 
 /// REPLACE ALL INSTANCES OF find WITH REPLACE, ONLY ONCE

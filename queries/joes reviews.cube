@@ -1,0 +1,30 @@
+{
+"from":"reviews",
+"select":[
+	{"name":"bug_id", "value":"reviews.bug_id"},
+	{"name":"attach_id", "value":"reviews.attach_id"},
+	{"name":"request_time", "value":"reviews.request_time"},
+	{"name":"review_time", "value":"reviews.review_time"}
+]
+"esfilter":{"and":[
+	{"term":{"reviewer":"joe@drew.ca"}},
+{"term":{"bug_id":"497056"}},
+{"term":{"attach_id":"420463"}}
+]}
+}
+
+
+{
+"from":"reviews",
+"select":[
+	{"name":"bug_id", "value":"reviews.bug_id"},
+	{"name":"attach_id", "value":"reviews.attach_id"},
+	{"name":"request_time", "value":"reviews.request_time"},
+	{"name":"review_time", "value":"reviews.review_time"}
+],
+"esfilter":{"and":[
+	{"term":{"reviewer":"joe@drew.ca"}},
+{"term":{"bug_id":"657748"}},
+{"term":{"attach_id":"533050"}}
+]}
+}

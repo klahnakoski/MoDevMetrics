@@ -11,6 +11,7 @@ importScript("CUBE.aggregate.js");
 importScript("CUBE.column.js");
 importScript("CUBE.cube.js");
 importScript("CUBE.domain.js");
+importScript("trampoline.js");
 
 
 
@@ -19,18 +20,25 @@ CUBE.compile = function(query, sourceColumns){
 //COMPILE COLUMN CALCULATION CODE
 	var resultColumns = {};
 
-	var edges = query["edges"];
+	var edges = query.edges;
 	for(var g = 0; g < edges.length; g++){
-		if (edges[g].allowNulls === undefined) edges[g].allowNulls = false;
-		if (resultColumns[edges[g].name]!==undefined) D.error("All edges must have different names");
-		resultColumns[edges[g].name] = edges[g];
-		CUBE.column.compile(sourceColumns, edges[g]);
-		CUBE.domain.compile(sourceColumns, edges[g]);
-		edges[g].outOfDomainCount = 0;
+		var e=edges[g];
+
+		if (typeof(e)=='string') edges[g]={"value":e}; //NOW DEFINE AN EDGE BY ITS VALUE
+		if (e.name===undefined) e.name=e.value;
+		if (e.allowNulls === undefined) e.allowNulls = false;
+
+		if (resultColumns[e.name]!==undefined) D.error("All edges must have different names");
+		resultColumns[e.name] = e;
+
+		CUBE.column.compile(sourceColumns, e);
+		CUBE.domain.compile(sourceColumns, e);
+		e.outOfDomainCount = 0;
 	}//for
 
 	var select = CUBE.select2Array(query.select);
 	for(var s = 0; s < select.length; s++){
+		if (select[s].name===undefined) select[s].name=select[s].value.split(".").last();
 		if (resultColumns[select[s].name]!==undefined) D.error("All columns must have different names");
 		resultColumns[select[s].name] = select[s];
 		CUBE.column.compile(sourceColumns, select[s], edges);
@@ -48,7 +56,20 @@ CUBE.select2Array = function(select){
 };//method
 
 
+//CUBE.prototype.calc2List = function(query){
+//	var output=aThread.run(CUBE.prototype.calc2List_generator(query));
+//	return output;
+//};
+//
+//
+//CUBE.prototype.calc2List_generator = function(query){
+//	yield aThread.sleep(10);	//TO ENSURE ANY QUEUED MESSAGES GET ON THE SCREEN BEFORE THIS RUNS
+//	yield (CUBE.prototype.calc2List_immediate(query));
+//};
+
+
 CUBE.prototype.calc2List = function(query){
+
 	if (query.edges===undefined) query.edges=[];
 	var select = CUBE.select2Array(query.select);
 

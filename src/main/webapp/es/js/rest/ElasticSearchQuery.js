@@ -21,27 +21,42 @@ if (window.location.hostname=="metrics.mozilla.com"){
 }//endif
 
 
+ElasticSearch.get=function(param){
+	param.type="GET";
+	return ElasticSearch.post(param);
+};
 
 
-ElasticSearch.request=function(URL, data, successFunction, errorFunction){
-	var t=typeof(data);
-	if (t!="string") data=JSON.stringify(data);
+ElasticSearch.post=function(URL, requestData, successFunction, errorFunction){
+	var type="POST";
+	if (requestData===undefined){
+		type=Util.coalesce(URL.type, "POST");
+		errorFunction=URL.error;
+		successFunction=URL.success;
+		requestData=URL.query;
+		URL=URL.URL;
+	}//endif
+
+
+	var t=typeof(requestData);
+	if (t!="string") requestData=JSON.stringify(requestData);
 
 	$.ajax({
 		url: URL,
-		type: "POST",
-		data: data,
+		type: type,
+		data: requestData,
 		dataType: "json",
 
 		success: function(data){
-			if (data._shards.failed>0){
+			if (data._shards!==undefined && data._shards.failed>0){
 				D.error("Request failed");
 				return;
 			}//endif
 
-			successFunction();
+			successFunction(data);
 		},
 		error: function(errorData, errorMsg, errorThrown){
+			$('.loading').hide();
 			if (errorFunction!==undefined){
 				errorFunction(errorMsg, errorData);
 			}else{

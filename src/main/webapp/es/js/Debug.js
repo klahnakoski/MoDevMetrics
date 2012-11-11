@@ -1,8 +1,25 @@
 var D = new function(){
 };
 
+D.logs=[];
+
+D.addLog=function(id){
+	D.logs.push(id);
+	$("#"+id).html("");
+};
+
+
 D.println = function(message){
-	console.info(message);
+	console.info(Date.now().format("HH:mm:ss - ")+message);
+	D.logs.forall(function(v, i){
+		try{
+			if (typeof(message)!="string") message=CNV.Object2JSON(message);
+			var ele=$("#"+v);
+			ele.append(CNV.String2HTML(message)+"<br>");
+		}catch(e){
+
+		}//try
+	});
 };//method
 
 D.error = function(description, cause){

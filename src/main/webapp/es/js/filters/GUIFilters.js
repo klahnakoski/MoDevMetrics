@@ -75,7 +75,9 @@ GUI.setup = function(parameters, relations){
 	GUI.relations=Util.coalesce(relations, []);
 	GUI.FixState();
 
-	GUI.URL2State();			//OVERWRITE WITH URL PARAM
+	GUI.URL2State();				//OVERWRITE WITH URL PARAM
+	GUI.State2URL.isEnabled=true;	//DO NOT ALLOW URL TO UPDATE UNTIL WE HAVE GRABBED IT
+
 	GUI.FixState();
 	GUI.State2URL();
 	GUI.State2Parameter();
@@ -108,6 +110,8 @@ GUI.showESTime = function(){
 
 
 GUI.State2URL = function(){
+	if (!GUI.State2URL.isEnabled) return;
+
 	var simplestate = {};
 
 	var keys = Object.keys(state);
@@ -125,12 +129,14 @@ GUI.State2URL = function(){
 	}//for
 	jQuery.bbq.pushState(simplestate);
 };
+GUI.State2URL.isEnabled=false;
+
 
 GUI.URL2State = function(){
 	var urlState = jQuery.bbq.getState();
-	for(var k in urlState){
-		state[k] = urlState[k];
-	}//for
+	ForAllKey(urlState, function(k, v){
+		state[k] = v;
+	});
 };
 
 

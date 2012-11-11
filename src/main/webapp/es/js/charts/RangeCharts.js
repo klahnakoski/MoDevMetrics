@@ -367,7 +367,7 @@ RangeChart.prototype.success = function(data, id){
 
 	if (this.dataSet.currentIndex <= this.dataSet.maxIndex){
 
-		status.message("Processing Query: " + ( this.dataSet.currentIndex + 1 ) + " out of " + parseInt(this.dataSet.maxIndex + 1));
+		status.message("Processing: " + ( this.dataSet.currentIndex + 1 ) + " out of " + parseInt(this.dataSet.maxIndex + 1));
 
 		var progress = (this.dataSet.currentIndex + 1 ) / ( this.dataSet.maxIndex + 1 ) * 100;
 

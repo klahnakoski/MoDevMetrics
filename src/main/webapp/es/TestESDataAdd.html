@@ -5,50 +5,75 @@
 <BODY>
 
 
-<script type="text/javascript" src="lib/js/jquery-1.7.js"></script>
+<script type="application/javascript;version=1.7" src="lib/js/jquery-1.7.js"></script>
 
 
 <link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
-<script type="text/javascript" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
-<script type="text/javascript" src="lib/js/jquery.ba-bbq.js"></script>
+<script type="application/javascript;version=1.7" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
+<script type="application/javascript;version=1.7" src="lib/js/jquery.ba-bbq.js"></script>
 
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 
 
-<script type="text/javascript" src="js/charts/Status.js"></script>
+<script type="application/javascript;version=1.7" src="js/charts/Status.js"></script>
 
 
-<script type="text/javascript" src="js/CNV.js"></script>
-<script type="text/javascript" src="js/aDate.js"></script>
-<script type="text/javascript" src="js/Test2.js"></script>
-<script type="text/javascript" src="js/MozillaPrograms.js"></script>
-<script type="text/javascript" src="js/util.js"></script>
-<script type="text/javascript" src="js/Debug.js"></script>
-<script type="text/javascript" src="js/MVEL.js"></script><script type="text/javascript" src="js/aCompiler.js"></script>
+<script type="application/javascript;version=1.7" src="js/CNV.js"></script>
+<script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
-<script type="text/javascript" src="js/CUBE.js"></script>
-<script type="text/javascript" src="js/CUBE.aggregate.js"></script>
-<script type="text/javascript" src="js/CUBE.column.js"></script>
-<script type="text/javascript" src="js/CUBE.cube.js"></script>
-<script type="text/javascript" src="js/CUBE.domain.js"></script>
-<script type="text/javascript" src="js/ESQuery.js"></script>
-<script type="text/javascript" src="js/charts/aChart.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/util.js"></script>
+<script type="application/javascript;version=1.7" src="js/Debug.js"></script>
+<script type="application/javascript;version=1.7" src="js/MVEL.js"></script><script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
 
-<script type="text/javascript" src="js/charts/HelperFunctions.js"></script>
-<script type="text/javascript" src="js/rest/ElasticSearchQuery.js"></script>
-<script type="text/javascript" src="js/rest/insertReviews.js"></script>
+<script type="application/javascript;version=1.7" src="js/Trampoline.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
+<script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
+<script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/charts/HelperFunctions.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/ElasticSearchQuery.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/insertReviews.js"></script>
 
 
 
 <div style="height: 30px; text-align: center;vertical-align:middle;">
 	<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 </div>
+<a id="start" class="button" href="#">Click to Start</a>
+<a id="resume" class="button" href="#">Click to Resume</a>
+<a id="inc" class="button" href="#">Click for Incremental Update</a>
+<a id="test" class="button" href="#">Click for single test</a>
+<div id="results">No Results</div>
 
 
 
-<script type="text/javascript">
+<script type="application/javascript;version=1.7">
+	D.println(""+new Date(1351473569000	).format("yy-MM-dd HH:mm:ss"));
+	D.println(""+new Date(1351604852000).format("yy-MM-dd HH:mm:ss"));
 
-	esReviews.makeSchema();
+	$("#start").click(function(){
+		REVIEWS.newInsert();
+	});
+
+	$("#resume").click(function(){
+		REVIEWS.resumeInsert();
+	});
+
+	$("#inc").click(function(){
+		REVIEWS.incrementalInsert("1day");
+	});
+
+	$("#test").click(function(){
+		REVIEWS.getReviews(790640, 790641, function(reviews){
+			$("#results").html(CNV.List2HTMLTable(reviews));
+		});
+	});
+
+	D.addLog("results");
 </script>
 
 

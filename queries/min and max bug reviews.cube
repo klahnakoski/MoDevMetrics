@@ -1,0 +1,7 @@
+{
+"from":"reviews",
+"select":[
+{"name":"maxBug", "value":"bug_id", "operation":"max"},
+{"name":"minBug", "value":"bug_id", "operation":"min"}
+]
+}

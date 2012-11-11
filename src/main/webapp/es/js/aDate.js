@@ -49,7 +49,7 @@ Date.diffMonth=function(endTime, startTime){
 	var numMonths=Math.floor((endTime.getMilli()-startTime.getMilli()+(Duration.MILLI_VALUES.day*31))/Duration.MILLI_VALUES.year*12);
 
 	var test = startTime.addMonth(numMonths);
-	while (test.getMilli()>endTime.getMilli()){
+	while (test.getMilli()>=endTime.getMilli()){
 		numMonths--;
 		test= startTime.addMonth(numMonths);
 	}//while
@@ -62,7 +62,8 @@ Date.diffMonth=function(endTime, startTime){
 		testMonth++;
 	}//while
 	testMonth--;
-	if (testMonth!=numMonths) D.error("Error calculating number of months between ("+startTime.format("yy-MM-dd HH:mm:ss")+") and ("+endTime.format("yy-MM-dd HH:mm:ss")+")");
+	if (testMonth!=numMonths)
+		D.error("Error calculating number of months between ("+startTime.format("yy-MM-dd HH:mm:ss")+") and ("+endTime.format("yy-MM-dd HH:mm:ss")+")");
 	// DONE TEST
 	////////////////////////////////////////////////////////////////////////////
 
@@ -445,10 +446,15 @@ Duration.prototype.floor = function(interval){
 	if (interval.month != 0){
 		if (this.month!=0){
 			output.month = Math.round(this.month/interval.month)*interval.month;
-			var rest=(this.milli - (Duration.MILLI_VALUES["month"] * this.month));
-			if (rest>Duration.MILLI_VALUES["month"]){
-				D.error("This duration has more tan a month's worth of millis, can not handle this rounding");
+			var rest=(this.milli - (Duration.MILLI_VALUES.month * output.month));
+			if (rest>Duration.MILLI_VALUES.day*31){	//WE HOPE THIS BIGGER VALUE WILL STILL CATCH POSSIBLE LOGIC PROBLEMS
+				D.error("This duration has more than a month's worth of millis, can not handle this rounding");
 			}//endif
+			while (rest<0){
+				output.month-=interval.month;
+				rest=(this.milli - (Duration.MILLI_VALUES.month * output.month));
+			}//while
+//			if (rest>Duration.MILLI_VALUES["month"]){ //WHEN FLOORING xmonth-1day, THE rest CAN BE 4week+1day, OR MORE.
 			output.milli = output.month * Duration.MILLI_VALUES["month"];
 			return output;
 		}//endif
@@ -500,11 +506,26 @@ Duration.prototype.toString = function(){
 	//WEEK
 	if (rest != 0) output = "+" + rest + "week" + output;
 
-	//MONTH
-	if (this.month != 0) output = (this.month > 0 ? "+" : "") + this.month + "month" + output;
-
-
 	if (isNegative) output = output.replace("+", "-");
+
+
+	//MONTH AND YEAR
+	if (this.month != 0){
+		var sign=(this.month<0 ? "-" : "+");
+		var month=Math.abs(this.month);
+
+		if (month <= 18 && month != 12){
+			output = sign + month + "month" + output;
+		} else{
+			var m = month % 12;
+			if (m != 0) output = sign + m + "month" + output;
+			var y = Math.floor(month / 12);
+			output = sign + y + "year" + output;
+		}//endif
+	}//endif
+
+
+	if (output.charAt(0)=="+") output=output.rightBut(1);
 	return output;
 };//method
 

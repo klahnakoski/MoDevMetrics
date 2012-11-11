@@ -16,7 +16,9 @@ DateRangeIterator.prototype.NextQuery = function(){
 
 		this.request = new MultiElasticSearchQuery(this, queries);
 		this.request.Run();
-	}
+	}else{
+		status.message("Done");
+	}//endif
 };
 
 DateRangeIterator.prototype.InjectDate = function(){

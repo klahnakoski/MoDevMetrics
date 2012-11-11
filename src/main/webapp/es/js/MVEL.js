@@ -15,6 +15,7 @@ MVEL.prototype.code = function(query){
 		MVEL.FUNCTIONS.Value2Pipe+
 		//MVEL.FUNCTIONS.String2Quote+
 		MVEL.FUNCTIONS.floorDay+
+		MVEL.FUNCTIONS.maximum+
 		'var cool_func = function('+indexName+'){\n' +
 			"output=\"\";\n" +
 			code.replace(
@@ -37,7 +38,7 @@ MVEL.prototype.code = function(query){
 // indexName NAME USED TO REFER TO HIGH LEVEL DOCUMENT
 // loopVariablePrefix PREFIX FOR LOOP VARABLES
 MVEL.prototype.from = function(fromPath, loopVariablePrefix){
-	var loopCode = "for(<VAR> : <LIST>){\n<CODE>\n}\n";
+	var loopCode = "if (<LIST>!=null){ for(<VAR> : <LIST>){\n<CODE>\n}}\n";
 	this.prefixMap = [];
 	var code = "<CODE>";
 
@@ -52,8 +53,8 @@ MVEL.prototype.from = function(fromPath, loopVariablePrefix){
 		var shortPath = this.translate(pathi);
 		this.prefixMap.unshift({"path":pathi, "variable":loopVariable});
 
-		var loop = loopCode.replace("<VAR>", loopVariable).replace("<LIST>", shortPath);
-		code = code.replace("<CODE>", loop);
+		var loop = loopCode.replaceAll("<VAR>", loopVariable).replaceAll("<LIST>", shortPath);
+		code = code.replaceAll("<CODE>", loop);
 	}//for
 
 	return code;
@@ -131,7 +132,9 @@ MVEL.esFacet2List=function(facet, selectClause){
 		for(var v = 0; v < values.length; v++){
 			var s=v%selectClause.length;
 			if (s==0){
-				if (value!==undefined) output.push(value);
+				if (value!==undefined){
+					output.push(value);
+				}//endif
 				value={};
 			}//endif
 			value[selectClause[s].name]=CNV.Pipe2Value(values[v]);
@@ -288,6 +291,7 @@ MVEL.FUNCTIONS={
 
 	"replaceAll":
 		"var replaceAll = function(output, find, replace){\n" +
+			"if (output.length()==0) return output;\n"+
 			"s = output.indexOf(find, 0);\n" +
 			"while(s>=0){\n" +
 				"output=output.replace(find, replace);\n" +
@@ -298,5 +302,8 @@ MVEL.FUNCTIONS={
 		'};\n',
 
 	"floorDay":
-		"var floorDay = function(value){ Math.floor(value/(24*60*60*1000))*(24*60*60*1000);};\n"
+		"var floorDay = function(value){ Math.floor(value/(24*60*60*1000))*(24*60*60*1000);};\n",
+
+	"maximum":
+		"var maximum = function(a, b){if (a==null){ b; }else if (b==null){ a; }else if (a>b){ a; }else{ b;}\n};\n"
 };

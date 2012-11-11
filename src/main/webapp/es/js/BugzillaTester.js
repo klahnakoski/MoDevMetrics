@@ -1,18 +1,4 @@
-function Status(channel){
-	this.lastMessage = "";
-	this.channel = channel;
-}
-;
 
-Status.prototype.message = function(message){
-	document.getElementById(this.channel).innerHTML = message;
-	this.lastMessage = message;
-};
-
-Status.prototype.addMessage = function(message){
-	this.lastMessage = this.lastMessage + "</br>" + message;
-	document.getElementById(this.channel).innerHTML = this.lastMessage;
-};
 
 function DataSet(){
 	this.bugzilla = {};
@@ -61,7 +47,7 @@ IntegrityTest.prototype.sendElasticRequest = function(query){
 
 		error: function (errorData, errorMsg, errorThrown){
 			localObject.error(errorData, errorMsg, errorThrown);
-		},
+		}
 	});
 };
 

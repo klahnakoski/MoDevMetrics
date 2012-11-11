@@ -19,13 +19,14 @@ var ESQuery = function(query){
 };
 
 
+ESQuery.DEBUG=false;
 
 ////////////////////////////////////////////////////////////////////////////////
 // THESE ARE THE AVAILABLE ES INDEXES
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
 	"bugs":{"path":"/bugs"},
-	"reviews":{"path":"/reviews121104_183806/review"}
+	"reviews":{"path":"/reviews121111_174816/review"}//http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews121109_041939/review/_search
 };
 
 
@@ -116,15 +117,16 @@ ESQuery.prototype.compile = function(){
 		}//endif
 	}else{
 		//PICK FIRST AND ONLY SELECT
-		if (this.query.select instanceof Array) D.error("Can not have an array of select columns, only one allowed");
+		if (this.select.length>1)
+			D.error("Can not have an array of select columns, only one allowed");
 //		if (this.select.length>1) D.error("Can not handle more than one select column when there are edges");
-		this.select = this.query.select
+		this.select = this.select[0];
 	}//endif
 
 	this.resultColumns = CUBE.compile(this.query, []);
 	this.edges = this.query.edges.copy();
 
-	if (this.select.length==1 && this.select[0].operation=="count"){
+	if (this.select.operation=="count"){
 		this.esMode="terms";
 		this.esQuery = this.buildESTermsQuery();
 	}else{
@@ -320,7 +322,7 @@ ESQuery.prototype.buildESQuery = function(){
 			}
 		},
 		"from" : 0,
-		"size" : 10,
+		"size" : ESQuery.DEBUG ? 100 : 0,
 		"sort" : [],
 		"facets":{
 		}

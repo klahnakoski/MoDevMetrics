@@ -413,13 +413,13 @@ CUBE.domain.set = function(column, sourceColumns){
 			return;
 		} else{
 			var ands = column.test.split("&&");
-			var indexVar = null;		//THE DOMAIN VALUE TO INDEX THE LIST WITH
-			var lookupVar = null;		//THE VALUE THAT WILL BE USED TO LOOKUP
+			var indexVars = [];		//THE DOMAIN VALUE TO INDEX THE LIST WITH
+			var lookupVars = [];		//THE VALUE THAT WILL BE USED TO LOOKUP
 			for(var a = 0; a < ands.length; a++){
 				if (ands[a].indexOf("==") >= 0){
 					var equals = ands[a].split("==");
-					indexVar = null;
-					lookupVar = null;
+					var indexVar = null;
+					var lookupVar = null;
 					for(var i = 0; i < equals.length; i++){
 						if (equals[i].trim().indexOf(d.name + ".") == 0){
 							indexVar = equals[1].trim().rightBut((d.name + ".").length); //REMOVE DOMAIN PREFIX,  ASSUME REMAINDER IS JUST A COLUMN NAME
@@ -430,10 +430,13 @@ CUBE.domain.set = function(column, sourceColumns){
 							}//endif
 						}//for
 					}//for
-					if (indexVar != null && lookupVar != null) break;
+					if (indexVar != null && lookupVar != null){
+						indexVars.push(indexVar);
+						lookupVars.push(lookupVar);
+					}//endif
 				}//endif
 			}//for
-			if (indexVar == null || lookupVar == null){
+			if (indexVars.length==0){
 				D.warning("test clause is too complicated to optimize: {" + column.test + "}");
 				CUBE.domain.set.compileSimpleLookup(column, d, sourceColumns);
 				return;
@@ -443,16 +446,26 @@ CUBE.domain.set = function(column, sourceColumns){
 			d.map = {};
 			d.map[null]=d.NULL;
 			for(var o = 0; o < d.partitions.length; o++){
-				var sublist = d.map[d.partitions[o][indexVar]];
+				var parent=d.map;
+				var iv=0;
+				for(;iv<indexVars.length-1;iv++){
+					var submap = parent[d.partitions[o][indexVars[iv]]];
+					if (submap === undefined){
+						submap = {};
+						parent[d.partitions[o][indexVars[iv]]] = submap;
+					}//endif
+					parent=submap;
+				}//for
+				var sublist = parent[d.partitions[o][indexVars[iv]]];
 				if (sublist === undefined){
 					sublist = [];
-					d.map[d.partitions[o][indexVar]] = sublist;
+					parent[d.partitions[o][indexVars[iv]]] = sublist;
 				}//endif
 				sublist.push(d.partitions[o]);
 			}//for
 
 			try{
-				CUBE.domain.set.compileMappedLookup(column, d, sourceColumns, lookupVar);
+				CUBE.domain.set.compileMappedLookup2(column, d, sourceColumns, lookupVars);
 			}catch(e){
 				D.error("test parameter is malformed", e);
 			}//try
@@ -517,6 +530,40 @@ CUBE.domain.set.compileMappedLookup = function(column, d, sourceColumns, lookupV
 		"}";
 	eval(f);
 };
+
+CUBE.domain.set.compileMappedLookup2 = function(column, d, sourceColumns, lookupVars){
+	d.getCanonicalPart = undefined;
+	d.getMatchingParts=undefined;
+	var f =
+		"d.getMatchingParts=function(__source){\n" +
+			"if (__source==null) return [];\n";
+
+	for(var s = 0; s < sourceColumns.length; s++){
+		var v = sourceColumns[s].name;
+		//ONLY DEFINE VARS THAT ARE USED
+		if (column.test.indexOf(v) != -1){
+			f += "var " + v + "=__source." + v + ";\n";
+		}//endif
+	}//for
+
+	f += "var output=[];\n";
+	f += "var sublist=this.map;";
+	for(var subs = 0; subs < lookupVars.length; subs++){
+		f +=
+			"sublist=sublist[" + lookupVars[subs] + "];\n" +
+			"if (sublist===undefined) return output;\n"
+	}//for
+
+	f +=
+		"for(var i=sublist.length;i--;){\n" +
+			"var " + d.name + "=sublist[i];\n" +
+			"if (" + column.test + ")\noutput.push(" + d.name + ");\n " +
+		"}\n " +
+		"return output;\n " +
+		"}";
+	eval(f);
+};
+
 
 
 CUBE.domain.set.compileKey=function(key, domain){
