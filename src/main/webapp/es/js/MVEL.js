@@ -16,6 +16,7 @@ MVEL.prototype.code = function(query){
 		//MVEL.FUNCTIONS.String2Quote+
 		MVEL.FUNCTIONS.floorDay+
 		MVEL.FUNCTIONS.maximum+
+		MVEL.FUNCTIONS.coalesce+
 		'var cool_func = function('+indexName+'){\n' +
 			"output=\"\";\n" +
 			code.replace(
@@ -305,5 +306,8 @@ MVEL.FUNCTIONS={
 		"var floorDay = function(value){ Math.floor(value/(24*60*60*1000))*(24*60*60*1000);};\n",
 
 	"maximum":
-		"var maximum = function(a, b){if (a==null){ b; }else if (b==null){ a; }else if (a>b){ a; }else{ b;}\n};\n"
+		"var maximum = function(a, b){if (a==null){ b; }else if (b==null){ a; }else if (a>b){ a; }else{ b;}\n};\n",
+
+	"coalesce":
+		"var coalesce = function(a, b){if (a==null){ b; }else{ a; }\n};\n"
 };
