@@ -133,7 +133,20 @@ var query;
 var createChart = function(){
 	if (query!==undefined) query.kill();
 
+	query=new ESQuery({
+		"from":"bugs",
+		"select":
+
+
+	});
+
+
 	var chartRequest={
+
+
+
+
+
 		"esQuery" : {
 			"query":{"filtered":{
 				"query": {
@@ -165,7 +178,12 @@ var createChart = function(){
 						"size":state.esSize
 					},
 					"facet_filter" : {
-						"terms" : {"bug_status" : ["resolved", "verified", "closed"]}
+						"and":[
+							{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}},
+							{"term":{"changes.field_name":"bug_status"}},
+							{"not":{"terms":{"changes.field_value_removed":["resolved", "verified", "closed"]}}}
+						]
+
 					}
 				},
 				"age" : {

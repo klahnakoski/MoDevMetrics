@@ -26,49 +26,8 @@
 	D.println(new Date(1352207434236).format("yyyy-NNN-dd HHmmss"));
 
 	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
-		{"script":{"script":"true"}},
-		{"range":{"bug_id":{"gte":497056,"lt":497057}}}
-	]}}},"from":0,"size":100,"sort":[],"facets":{"mvel":{"terms":{"script_field":
-		"var replaceAll = function(output, find, replace){\n"+
-		"if (output.length()==0) return output;\n"+
-		"s = output.indexOf(find, 0);\n"+
-		"while(s>=0){\n"+
-		"output=output.replace(find, replace);\n"+
-		"s=s-find.length+replace.length;\n"+
-		"s = output.indexOf(find, s);\n"+
-		"}\n"+
-		"output;\n"+
-		"};\n"+
-		"var Value2Pipe = function(value){\n"+
-		"if (value==null){ \"0\" }else if (!(value is String)){ 'n'+value; }else{\n"+
-		"\"s\"+replaceAll(replaceAll(value, \"\\\\\", \"\\\\\\\\\"), \"|\", \"\\\\p\");}};\n"+
-		"var floorDay = function(value){ Math.floor(value/(24*60*60*1000))*(24*60*60*1000);};\n"+
-		"var maximum = function(a, b){if (a==null){ b; }else if (b==null){ a; }else if (a>b){ a; }else{ b;}\n};\n"+
-		"var cool_func = function(bugs){\n"+
-		"output=\"\";\n"+
-		"if (bugs.?attachments!=null){ for(bugs1 : bugs.attachments){\n"+
-		"if (bugs1.?flags!=null){ for(bugs2 : bugs1.?flags){\n"+
-		"if ((!((bugs2.?request_type==null))) && (bugs1.?attach_id==420463) && ((bugs2.?request_type==\"review\") || (bugs2.?request_type==\"superreview\")) && ((!(bugs2.?request_status==\"?\")) || ((bugs1[\"attachments.isobsolete\"]==1) && (!((bugs.previous_values==null))) && (bugs.previous_values[\"attachments.isobsolete_values\"]==0)) || (((bugs.bug_status==\"resolved\") || (bugs.bug_status==\"verified\") || (bugs.bug_status==\"closed\")) && (!((bugs.previous_values==null))) && (!((bugs.previous_values.bug_status_value==null))) && (!((bugs.previous_values.bug_status_value==\"resolved\") || (bugs.previous_values.bug_status_value==\"verified\") || (bugs.previous_values.bug_status_value==\"closed\")))))){if (output!=\"\") output+=\"|\";\n"+
-		"output = output+Value2Pipe(bugs.bug_id)\n"+
-		"+\"|\"+Value2Pipe(bugs1.?attach_id)\n"+
-		"+\"|\"+Value2Pipe(maximum(bugs.modified_ts, null))\n"+
-		"+\"|\"+Value2Pipe(bugs2.?requestee)\n"+
-		"+\"|\"+Value2Pipe(bugs2.?modified_by)\n"+
-		"+\"|\"+Value2Pipe(bugs1[\"attachments.isobsolete\"]==1 ? 'obsolete' : ((bugs.bug_status=='resolved'||bugs.bug_status=='verified'||bugs.bug_status=='closed') ? 'closed':'done'))\n"+
-		";\n"+
-		"}\n"+
-		"\n"+
-		"}}\n"+
-		"\n"+
-		"}}\n"+
-		"output;\n"+
-		"};\n"+
-		"cool_func(_source)\n"+
-		""
-,"size":100000}}}}
-
-
-			;
+		{"term":{"bug_id":1111}}
+	]}}},"from":0,"size":100,"sort":[]};
 
 
 	//	ElasticSearch.get({
