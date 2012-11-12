@@ -269,7 +269,7 @@ CUBE.prototype.calc2Cube = function(query){
 		if (query.select instanceof Array){
 			value = value[part.dataIndex];
 
-			for(var s = 0; s < this.select.length; s++){
+			for(var s = 0; s < query.select.length; s++){
 				value[s] = result[query.select[s].name];
 			}//for
 		} else{

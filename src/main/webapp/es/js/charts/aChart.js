@@ -170,10 +170,11 @@ aChart.showCCC=function(params){
 	var chartTypes={
 		"line":"LineChart",
 		"stacked":"StackedAreaChart",
-		"bar":"BarChart"
+		"bar":"BarChart",
+		"bullet":"BulletChart"
 	};
 
-	var chart = new pvc[chartTypes[type]]({
+	var chartParams={
 		canvas: divName,
 		width: 800,
 		height: 600+(chartCube.edges[0].domain.partitions.length/17*24),
@@ -184,20 +185,28 @@ aChart.showCCC=function(params){
 		legendAlign: "center",
 
 		orientation: 'vertical',
-		timeSeries: false,// (xaxis.domain.type=="time"),
-		timeSeriesFormat: "%Y-%m-%d",
+//		timeSeries: false,// (xaxis.domain.type=="time"),
+//		timeSeriesFormat: "%Y-%m-%d",
 
 		showValues: false,
 		originIsZero: this.originZero,
 		yAxisPosition: "right",
 		yAxisSize: 50,
+		xAxisSize: 100,
 		extensionPoints: {
-			noDataMessage_text: "No Data To Chart"
+			noDataMessage_text: "No Data To Chart",
+			xAxisLabel_textAngle: Math.PI/4,
+			xAxisLabel_textAlign: "left",
+			xAxisLabel_textBaseline: "top"
 //			xAxisScale_dateTickFormat: "%Y/%m/%d",
 //			xAxisScale_dateTickPrecision: xaxis.domain.interval.milli
 			//set in miliseconds
 		}
-	});
+	};
+	Util.copy(params, chartParams);
+
+
+	var chart = new pvc[chartTypes[type]](chartParams);
 
 	var data=CUBE.toTable(chartCube);
 
