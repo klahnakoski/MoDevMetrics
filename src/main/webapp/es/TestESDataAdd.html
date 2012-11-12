@@ -64,7 +64,10 @@
 	});
 
 	$("#inc").click(function(){
-		REVIEWS.incrementalInsert("1day");
+
+		REVIEWS.getLastUpdated(function(startTime){
+			REVIEWS.incrementalInsert(startTime);
+		});
 	});
 
 	$("#test").click(function(){

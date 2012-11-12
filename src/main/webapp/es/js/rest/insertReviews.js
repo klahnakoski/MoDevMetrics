@@ -7,6 +7,18 @@ REVIEWS.BATCH_SIZE=20000;
 REVIEWS.aliasName="reviews";
 REVIEWS.typeName="review";
 
+REVIEWS.getLastUpdated=function(successFunction){
+	var q=new ESQuery({
+		"from":"reviews",
+		"select":[
+			{"name":"last_request", "value":"reviews.request_time", "operation":"maximum"}
+		]
+	});
+
+	q.run(function(data){
+		successFunction(Date.newInstance(data.data.last_request));
+	});
+};
 
 
 REVIEWS.makeSchema=function(successFunction){
@@ -177,12 +189,8 @@ REVIEWS.resumeInsert=function(){
 	});
 };
 
-
-REVIEWS.incrementalInsert=function(howFarBack){
-	var d=Duration.newInstance(howFarBack);
-	d.milli=Math.abs(d.milli);
-	d.month=Math.abs(d.month);
-	var startTime=Date.now().subtract(d);
+//UPDATE REVIEWS THAT MAY HAVE HAPPENED AFTER startTime
+REVIEWS.incrementalInsert=function(startTime){
 
 	//FIND RECENTLY TOUCHED BUGS
 	var q=new ESQuery({
@@ -439,13 +447,21 @@ REVIEWS.insertReviews=function(reviews, successFunction){
 
 
 REVIEWS.deleteReviews=function(bugList, successFunction){
-	//DELETE REVIEWS OF THOSE BUGS FROM COPY
-	$.ajax({
-		url: ElasticSearch.baseURL+"/"+REVIEWS.aliasName+"/"+REVIEWS.typeName,
-		type: "DELETE",
-		dataType: "json",
-		data: CNV.Object2JSON({"terms":{"bug_id": bugList}}),
-		error: function(errorData, errorMsg, errorThrown){D.error(errorMsg, errorThrown);},
-		success: successFunction
+	var numleft=bugList.length;
+
+	bugList.forall(function(v, i){
+		//DELETE REVIEWS OF THOSE BUGS FROM COPY
+		$.ajax({
+			url: ElasticSearch.baseURL+"/"+REVIEWS.aliasName+"/"+REVIEWS.typeName+"?q=bug_id:"+v,
+			type: "DELETE",
+//			dataType: "json",
+			error: function(errorData, errorMsg, errorThrown){D.error(errorMsg, errorThrown);},
+			success: function(){
+				numleft--;
+				if (numleft==0)
+					successFunction();
+			}
+		});
 	});
+
 };//method

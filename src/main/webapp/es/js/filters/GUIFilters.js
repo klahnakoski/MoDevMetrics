@@ -108,15 +108,8 @@ GUI.showLastUpdated = function(type){
 			}
 		});
 	}else if (type=="reviews"){
-		var q=new ESQuery({
-			"from":"reviews",
-			"select":[
-				{"name":"last_request", "value":"reviews.request_time", "operation":"maximum"}
-			]
-		});
-
-		q.run(function(data){
-			$("#testMessage").html("Reviews Last Updated " + Date.newInstance(data.data.last_request).addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
+		REVIEWS.getLastUpdated(function(time){
+			$("#testMessage").html("Reviews Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 		});
 	}//endif
 };//method
