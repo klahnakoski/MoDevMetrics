@@ -176,14 +176,14 @@ table tr td {
     margin-right: auto;
 }
 
-.parameters span.parameter_name {
+span.parameter_name {
     float: left;
     width: 150px;
     text-align: right;
     margin-right: 10px;
 }
 
-.parameters span.parameter_error {
+span.parameter_error {
     color: red;
 }
 

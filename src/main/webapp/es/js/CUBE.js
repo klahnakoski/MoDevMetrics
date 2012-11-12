@@ -295,7 +295,7 @@ CUBE.prototype.aggOP=function(query){
 
 	var result={};
 	//ADD SELECT DEFAULTS
-	for(var s = 0; s < (select).length; s++){
+	for(var s = 0; s < select.length; s++){
 		result[select[s].name] = select[s].defaultValue();
 	}//for
 
@@ -303,7 +303,7 @@ CUBE.prototype.aggOP=function(query){
 	for(var i = 0; i < query.from.length; i++){
 		var row = query.from[i];
 		if (where(row, null)){
-			for(var s = 0; s < (select).length; s++){
+			for(var s = 0; s < select.length; s++){
 				var ss = select[s];
 				var v = ss.calc(row, result);
 				result[ss.name] = ss.add(result[ss.name], v);
