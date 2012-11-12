@@ -218,8 +218,7 @@ ESQuery.prototype.buildFacetQueries = function(){
 				},
 				"facet_filter":{
 					"and":condition
-				},
-				"size": 100000,
+				}
 			};
 		} else{//statistical
 			q.value = {
