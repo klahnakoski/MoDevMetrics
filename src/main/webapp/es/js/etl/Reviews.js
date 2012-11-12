@@ -9,7 +9,7 @@ REVIEWS.typeName="review";
 
 REVIEWS.getLastUpdated=function(successFunction){
 	var q=new ESQuery({
-		"from":"reviews",
+		"from":REVIEWS.aliasName,
 		"select":[
 			{"name":"last_request", "value":"reviews.request_time", "operation":"maximum"}
 		]
@@ -212,7 +212,7 @@ REVIEWS.incrementalInsert=function(startTime){
 		//FIND REVIEW QUEUES ON THOSE BUGS
 		REVIEWS.getReviews(buglist, null, function(reviews){
 			REVIEWS.deleteReviews(buglist, function(){
-				REVIEWS.insertReviews(reviews, function(){
+				REVIEWS.insert(reviews, function(){
 					status.message("Done");
 					D.println("Done incremental update");
 				});
@@ -423,7 +423,7 @@ REVIEWS.insertBatch=function(b, max, workQueue){
 
 	REVIEWS.insertBatch(b+1, max, function(){
 		REVIEWS.getReviews(b*REVIEWS.BATCH_SIZE, (b+1)*REVIEWS.BATCH_SIZE, function(reviews){
-			REVIEWS.insertReviews(reviews, function(){
+			REVIEWS.insert(reviews, function(){
 				D.println("Done batch "+b+" into "+REVIEWS.indexName);
 				workQueue();
 			});
@@ -433,7 +433,7 @@ REVIEWS.insertBatch=function(b, max, workQueue){
 };//method
 
 
-REVIEWS.insertReviews=function(reviews, successFunction){
+REVIEWS.insert=function(reviews, successFunction){
 	var uid=Util.UID();
 	var insert=[];
 	reviews.forall(function(r, i){

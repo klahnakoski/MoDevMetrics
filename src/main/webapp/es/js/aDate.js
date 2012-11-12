@@ -190,6 +190,16 @@ Date.prototype.floorHour = function(){
 
 
 
+Date.prototype.ceilingDay = function(){
+	return this.floorDay().addDay(1);
+};//method
+
+
+
+
+
+
+
 // ------------------------------------------------------------------
 // These functions use the same 'format' strings as the
 // java.text.SimpleDateFormat class, with minor exceptions.

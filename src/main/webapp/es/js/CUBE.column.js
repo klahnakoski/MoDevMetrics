@@ -27,8 +27,15 @@ CUBE.column.compile = function(sourceColumns, resultColumn, edges){
 		var columnName = edges[i].name;
 		var domainName = edges[i].domain.name;
 		//ONLY DEFINE VARS THAT ARE USED
-		if (resultColumn.value.indexOf(domainName + ".") != -1){
-			f += "var " + domainName + "=__result." + columnName + ";\n";
+		if (domainName!==undefined){
+			if (resultColumn.value.indexOf(domainName + ".") != -1){
+				f += "var " + domainName + "=__result." + columnName + ";\n";
+			}//endif
+			
+			var reg=new RegExp(domainName+"\\s*==", "g");
+			if (reg.test(resultColumn.value)){
+				D.error("Using domain '"+domainName+"' on it's own is a good idea, it is just not implemented yet");
+			}//endif
 		}//endif
 	}//for
 

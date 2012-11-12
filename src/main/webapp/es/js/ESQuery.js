@@ -87,7 +87,11 @@ ESQuery.prototype.error = function(errorMsg, errorData, errorThrown){
 
 ESQuery.prototype.kill = function(){
 	if (this.esRequest!==undefined){
-		this.esRequest.abort();
+		try{
+			this.esRequest.abort();
+		}catch(e){
+
+		}//try
 		this.esRequest=undefined;
 	}//endif
 	this.callack=undefined;

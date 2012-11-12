@@ -396,6 +396,58 @@ CUBE.toTable=function(query){
 };//method
 
 
+CUBE.Cube2List=function(query){
+	var name=CUBE.select2Array(query.select)[0].name;
+	if (query.select instanceof Array) name=undefined;
+
+
+	if (query.data===undefined) D.error("Can only turn a cube into a table at this time");
+
+	var output=[];
+	if (query.edges.length==2){
+		if (!(typeof(query.data[0][0])+"").startsWith("[object")) name=CUBE.select2Array(query.select)[0].name;  //ES QUERIES WILL RETURN A VALUE, NOT A TUPLE
+		var parts0=query.edges[0].domain.partitions.copy();
+		if (query.edges[0].allowNulls) parts0.push(query.edges[0].domain.NULL);
+		var parts1=query.edges[1].domain.partitions.copy();
+		if (query.edges[1].allowNulls) parts1.push(query.edges[1].domain.NULL);
+
+		for(var p0=0;p0<parts0.length;p0++){
+			for(var p1=0;p1<parts1.length;p1++){
+				var row={};
+				if (name===undefined){
+					row=Util.copy(query.data[p0][p1], row);
+				}else{
+					row[name]=query.data[p0][p1];
+				}//endif
+				row[query.edges[0].name]=parts0[p0];
+				row[query.edges[1].name]=parts1[p1];
+				output.push(row);
+			}//for
+		}//for
+		return output;
+	}else if (query.edges.length==1){
+		if (!(typeof(query.data[0])+"").startsWith("[object")) name=CUBE.select2Array(query.select)[0].name;  //ES QUERIES WILL RETURN A VALUE, NOT A TUPLE
+		var parts0=query.edges[0].domain.partitions.copy();
+		if (query.edges[0].allowNulls) parts0.push(query.edges[0].domain.NULL);
+
+		for(var p0=0;p0<parts0.length;p0++){
+			var row;
+			if (name===undefined){
+				row=Util.copy(query.data[p0], {});
+			}else{
+				row={};
+				row[name]=query.data[p0];
+			}//endif
+			row[query.edges[0].name]=parts0[p0].value;  //ONLY FOR default DOMAIN
+			output.push(row);
+		}//for
+		return output;
+	}else{
+		D.error("can only handle 2D cubes right now.");
+	}//endif
+};//method
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // ASSUME THE FIRST DIMESION IS THE COHORT, AND NORMALIZE (DIVIDE BY SUM(ABS(Xi))
