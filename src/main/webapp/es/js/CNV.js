@@ -103,8 +103,10 @@ CNV.List2HTMLTable = function(data, options){
 	//WRITE HEADER
 	var header = "";
 	var columns = CUBE.getColumns(data);
-	for(var c = 0; c < columns.length; c++) header += "<td>" + CNV.String2HTML(CNV.Object2JSON(columns[c].name)) + "</td>";
-	header = "<tr>" + header + "</tr>";
+	columns.forall(function(v, i){
+		header += "<td>" + CNV.String2HTML(v.name) + "</td>";
+	});
+	header = "<thead><tr>" + header + "</tr></thead>";
 
 
 	var output = "";
@@ -121,7 +123,7 @@ CNV.List2HTMLTable = function(data, options){
 			} else if (value == null){
 				row += "<td>&lt;null&gt;</td>";
 			} else if (Math.isNumeric(value)){
-				row += "<td>" + value + "</td>";
+				row += "<td style='text-align:right;'>" + value + "</td>";
 			} else if (value.toString !== undefined){
 				row += "<td>" + CNV.String2HTML(value.toString()) + "</td>";
 			} else{
@@ -137,7 +139,7 @@ CNV.List2HTMLTable = function(data, options){
 		output += "<tr>" + row + "</tr>\n";
 	}//for
 
-	return "<table>" +
+	return "<table class='table'>" +
 		"<thead>" + header + "</thead>\n" +
 		"<tbody>" + output + "</tbody>" +
 		"</table>"

@@ -15,6 +15,7 @@ ES.TrueFilter = {"script":{"script":"true"}};
 
 
 ES.InjectFilters = function(chartRequests){
+	if (!(chartRequests instanceof Array)) D.error("Expecting an array of chartRequests");
 	for(var i = 0; i < chartRequests.length; i++){
 		ES.InjectFilter(chartRequests[i]);
 	}//for

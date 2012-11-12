@@ -109,6 +109,8 @@
 	<hr>
 	<div id="testMessage"></div>
 	<hr>
+	<div id="stats"></div>
+	<hr>
 	<div id="parameters" class="parameters">
 	</div>
 	<div id="filters" class="menu"></div>
@@ -269,6 +271,9 @@ var createChart = function(){
 			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-2year")},
 			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
+		],
+		[
+			"maxX=Duration.newInstance(maxX).add(Duration.newInstance(intervalX)).add(Duration.newInstance('-second')).floor(Duration.newInstance(intervalX)).toString()"
 		]);
 	});
 
