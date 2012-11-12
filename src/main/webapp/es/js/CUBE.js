@@ -392,6 +392,7 @@ CUBE.toTable=function(query){
 		}//for
 	}//for
 	return output;
+
 };//method
 
 
