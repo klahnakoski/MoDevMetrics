@@ -106,7 +106,7 @@
 	var q=new ESQuery({
 		"from":"reviews",
 		"select":[
-			{"name":"reviewer", value:"reviews.requester"},
+			{"name":"reviewer", value:"reviews.reviewer"},
 			{"name":"request_time", value:"reviews.request_time"},
 			{"name":"bug_id", "value":"reviews.bug_id"}
 		],
@@ -122,8 +122,8 @@
 		var oldRequests=new CUBE().calc2List({
 			"from":old.list,
 			"select":[
-				{"name":"avg_wait_time", "value":"Duration.newInstance("+Date.now().floorDay().getMilli()+"-request_time)", "operation":"average"},
-				{"name":"count", "value":"bug_id", "operation":"count", "sort":"decending"},
+				{"name":"avg_wait_time", "value":""+Date.now().floorDay().getMilli()+"-request_time", "operation":"average"},
+				{"name":"count", "value":"bug_id", "operation":"count", "sort":"descending"},
 				{"name":"bugs", "value":"bug_id", "operation":"join", "separator":","}
 			],
 			"edges":[
@@ -139,7 +139,7 @@
 			"from":oldRequests,
 			"select":[
 				{"name":"reviewer", value:"reviewer"},
-				{"name":"avg_wait_time", value:"avg_wait_time"},
+				{"name":"avg_wait_time", value:"Math.round(avg_wait_time/Duration.MILLI_VALUES.day, 2)+'days'"},
 				{"name":"count", value:"count"},
 				{"name":"bugs", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
 			]
@@ -183,6 +183,7 @@
 
 			chart.edges[1].domain.NULL.name="over 10 days";
 			chart.edges[1].domain.partitions.forall(function(v, i){
+				v.name=v.name.replaceAll("+", ",");
 				v.name+=("+");
 			});
 
@@ -197,7 +198,7 @@
 
 			var wait_times=new CUBE().calc2List({
 				"from":reviews.list,
-				"select":{"name":"wait_time", "value":"Duration.newInstance(Util.coalesce(review_time, Date.now().floorDay().add('day'))-request_time)"}
+				"select":{"name":"wait_time", "value":"Util.coalesce(review_time, Date.now().floorDay().add('day'))-request_time"}
 			}).list;
 
 			var stats=new CUBE().calc2Cube({
@@ -214,8 +215,8 @@
 			$("#singleNumber").html(
 				'<span class="parameter_name">Total Reviews:</span><b>'+stats.data.total+'</b><br>'+
 				'<span class="parameter_name">Reviews per week:</span><b>'+Math.round(stats.data.total/NUM_WEEKS, 0)+'</b><br>'+
-				'<span class="parameter_name">Portion Under One Day:</span><b>'+Math.round(stats.data.under_24_hours/stats.data.total*100, 1)+'%</b><br>'+
-				'<span class="parameter_name">Average Review Time:</span><b>'+stats.data.average+'</b><br>'
+				'<span class="parameter_name">% Under One Day:</span><b>'+Math.round(stats.data.under_24_hours/stats.data.total*100, 1)+'%</b><br>'+
+				'<span class="parameter_name">Average Review Time:</span><b>'+Math.round(stats.data.average/Duration.MILLI_VALUES.day, 2)+'days</b><br>'
 			);
 
 
@@ -225,6 +226,20 @@
 		});
 
 	});
+
+	var showReviewLastUpdateTime = function(){
+		var q=new ESQuery({
+			"from":"reviews",
+			"select":[
+				{"name":"last_request", "value":"reviews.request_time", "operation":"maximum"}
+			]
+		});
+
+		q.run(function(data){
+			$("#testMessage").html("Reviews Last Updated " + Date.newInstance(data.data.last_request).addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
+		});
+	};//method
+	showReviewLastUpdateTime();
 
 </script>
 

@@ -79,6 +79,13 @@ Array.prototype.last=function(){
 	return this[this.length-1];
 };//method
 
+Array.prototype.indexOf=function(value){
+	for(var i=0;i<this.length;i++){
+		if (this[i]==value) return i;
+	}//for
+	return -1;
+};//method
+
 
 var Util = {};
 
