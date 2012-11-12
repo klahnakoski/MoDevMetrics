@@ -236,6 +236,7 @@ CUBE.domain.duration = function(column, sourceColumns){
 
 	var d = column.domain;
 	if (d.name === undefined) d.name = d.type;
+	if (d.interval===undefined) D.error("Expecting domain '"+d.name+"' to have an interval defined");
 	d.NULL = {"value":null, "name":"null"};
 	d.interval = Duration.newInstance(d.interval);
 	d.min = Duration.newInstance(d.min).floor(d.interval);

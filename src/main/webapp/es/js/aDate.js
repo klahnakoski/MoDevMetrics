@@ -440,7 +440,8 @@ Duration.prototype.subtract = function(duration){
 };//method
 
 Duration.prototype.floor = function(interval){
-	if (interval.milli === undefined) D.error("Expecting an interval as a Duration object");
+	if (interval===undefined || interval.milli === undefined)
+		D.error("Expecting an interval as a Duration object");
 	var output = new Duration();
 
 	if (interval.month != 0){

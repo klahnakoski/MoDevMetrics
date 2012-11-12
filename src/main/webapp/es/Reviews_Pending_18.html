@@ -150,15 +150,11 @@
 		//SHOW CHART OF REMAINING TIMES
 		////////////////////////////////////////////////////////////////////////
 		var q2=new ESQuery({
-			"name":"Review Request Wait Times",
 			"from":"reviews",
 			"select":[
-				{"name":"count", "value":"bug_id", "operation":"count"}
-			],
-			"edges":[
-				{"name":"wait_duration", "value":"coalesce(reviews.review_time, "+Date.now().getMilli()+")-reviews.request_time",
-					"domain":{"type":"duration", "min":0, "max":"10day", "interval":"6hour"}
-				}
+				{"name":"bug_id", "value":"reviews.bug_id"},
+				{"name":"review_time", "value":"reviews.review_time"},
+				{"name":"request_time", "value":"reviews.request_time"}
 			],
 			"esfilter":{
 				"and":[
@@ -167,7 +163,21 @@
 			}
 		});
 
-		q2.run(function(chart){
+		q2.run(function(reviews){
+			var chart=new CUBE().calc2List({
+				"name":"Review Wait Times",
+				"from":reviews.list,
+				"select":[
+					{"name":"count", "value":"bug_id", "operation":"count"}
+				],
+				"edges":[
+					{"name":"wait time", allowNulls:true,
+						"value":"Duration.newInstance(Util.coalesce(review_time, Date.now().floorDay().add('day'))-request_time)",
+						"domain":{"type":"duration", "min":0, "max":"10day", "interval":"6hour"}
+					}
+				]
+			});
+
 			aChart.showCCC({
 				"id":"chart",
 				"type":"stacked",
