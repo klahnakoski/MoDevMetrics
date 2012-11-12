@@ -46,7 +46,7 @@ GUI.fixEndDate=function(startDate, endDate, interval){
 };
 
 
-GUI.setup = function(parameters, relations){
+GUI.setup = function(parameters, relations, showLastUpdated){
 
 	//SHOW SPINNER
 	var found=$('.loading');
@@ -67,7 +67,7 @@ GUI.setup = function(parameters, relations){
 	state.componentFilter = new ComponentUI();
 
 	GUI.makeSelectionPanel();
-	GUI.showESTime();
+	GUI.showLastUpdated(showLastUpdated);
 	GenerateCustomFilters();
 	GUI.AddParameters(parameters, relations); //ADD PARAM AND SET DEFAULTS
 	GUI.Parameter2State();			//UPDATE STATE OBJECT WITH THOSE DEFAULTS
@@ -85,27 +85,40 @@ GUI.setup = function(parameters, relations){
 
 
 //SHOW THE LAST TIME ES WAS UPDATED
-GUI.showESTime = function(){
-	ElasticSearchQuery.Run({
-		"query":{//ES QUERY
-			"query" : {
-				"match_all":{}
-			},
-			"from" : 0,
-			"size" : 0,
-			"sort" : [],
-			"facets":{
-				"modified_ts":{
-					"statistical" : {
-						"field" : "modified_ts"
+GUI.showLastUpdated = function(type){
+	if (type===undefined || type=="bugs"){
+		ElasticSearchQuery.Run({
+			"query":{//ES QUERY
+				"query" : {
+					"match_all":{}
+				},
+				"from" : 0,
+				"size" : 0,
+				"sort" : [],
+				"facets":{
+					"modified_ts":{
+						"statistical" : {
+							"field" : "modified_ts"
+						}
 					}
 				}
+			},
+			"success" : function(data){
+				$("#testMessage").html("ES Last Updated " + Date.newInstance(data.facets.modified_ts.max).addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 			}
-		},
-		"success" : function(data){
-			$("#testMessage").html("ES Last Updated " + Date.newInstance(data.facets.modified_ts.max).addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
-		}
-	});
+		});
+	}else if (type=="reviews"){
+		var q=new ESQuery({
+			"from":"reviews",
+			"select":[
+				{"name":"last_request", "value":"reviews.request_time", "operation":"maximum"}
+			]
+		});
+
+		q.run(function(data){
+			$("#testMessage").html("Reviews Last Updated " + Date.newInstance(data.data.last_request).addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
+		});
+	}//endif
 };//method
 
 

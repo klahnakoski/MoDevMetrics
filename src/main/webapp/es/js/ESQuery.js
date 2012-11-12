@@ -100,6 +100,10 @@ ESQuery.prototype.kill = function(){
 
 
 ESQuery.prototype.compile = function(){
+	if (this.query.essize===undefined) this.query.essize=100000;
+	if (ESQuery.DEBUG) this.query.essize=100;
+
+
 	if (this.query.edges === undefined) this.query.edges=[];
 	this.edges = this.query.edges.copy();
 	this.select = CUBE.select2Array(this.query.select);

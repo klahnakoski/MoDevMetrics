@@ -238,21 +238,8 @@ var createChart=function(){
 
 };
 
-	var showReviewLastUpdateTime = function(){
-		var q=new ESQuery({
-			"from":"reviews",
-			"select":[
-				{"name":"last_request", "value":"reviews.request_time", "operation":"maximum"}
-			]
-		});
-
-		q.run(function(data){
-			$("#testMessage").html("Reviews Last Updated " + Date.newInstance(data.data.last_request).addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
-		});
-	};//method
-	showReviewLastUpdateTime();
-		$(document).ready(function(){
-		GUI.setup([],[]);
+	$(document).ready(function(){
+		GUI.setup([],[], "reviews");
 	});
 
 
