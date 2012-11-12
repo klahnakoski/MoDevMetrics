@@ -45,7 +45,7 @@ ESQuery.prototype.run = function(successFunction,errorFunction){
 		success: function(data){
 			if (data._shards.failed>0){
 				D.warning("Must resend query...");
-				self.run();
+				self.run(successFunction,errorFunction);
 				return;
 			}//endif
 			self.success(data)

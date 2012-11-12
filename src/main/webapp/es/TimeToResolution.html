@@ -151,7 +151,6 @@ var createChart = function(){
 	query2=new ESQuery({
 		"from":"bugs",
 		"select":[
-			{"name":"create_time", "value":"bugs.created_ts", "operation":"minimum"},
 			{"name":"close_time", "value":"bugs.modified_ts", "operation":"minimum"}
 		],
 		"edges":[
