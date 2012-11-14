@@ -25,111 +25,11 @@ importScript("../../lib/webdetails/pvcDocUtils.js");
 
 var aChart={};
 
-
-
-
-
-
 aChart.FAVORITE_COLOUR="#2BB8F0";//BLUE FROM FIREFOX OCEAN
 
 
-//SHOW USING jqplot LIBRARY
-aChart.showJQP=function(params){
-	var divName=params.id;
-	var type=params.type;
-	var chartCube=params.cube;
-	var colours=params.colours;
-
-	if (chartCube.select instanceof Array) D.error("Can not chart when select clause is an array");
-
-
-	////////////////////////////////////////////////////////////////////////////
-	// COLOUR MANAGMENT
-	////////////////////////////////////////////////////////////////////////////
-	if (colours===undefined) colours=[aChart.FAVORITE_COLOUR];
-	if (!(colours instanceof Array)) colours=[colours];
-	var parts=chartCube.edges[0].domain.partitions;
-	for(var i=0;i<parts.length;parts++) parts[i].colour=colours[i%colours.length];
-
-
-	////////////////////////////////////////////////////////////////////////////
-	// SERIES (ONLY IF MORE THAN ONE EDGE)
-	////////////////////////////////////////////////////////////////////////////
-	var xaxis=chartCube.edges[chartCube.edges.length-1];
-	var seriesLabels=[];
-	if (chartCube.edges.length==2){
-		seriesLabels=new CUBE().calc2List({
-			"from":
-				chartCube.edges[0].domain.partitions,			//EACH SERIES NAMES
-			"select":[
-				{"name":"label", "value":"value"},
-				{"name":"color", "value":"Util.coalesce(colour, aChart.FAVORITE_COLOUR)"}
-			]
-		}).list
-	}//endif
-
-
-
-	$.jqplot(
-		divName,
-		chartCube.data,
-		{
-			stackSeries: true,			//STACK
-			title:chartCube.name,										//CHART NAME
-			seriesDefaults:{
-				renderer:(type=="bar"?$.jqplot.BarRenderer:undefined),
-				fill: false,
-				showMarker: false,
-
-				markerOptions:{
-					show:false
-				},
-				rendererOptions: {
-					barPadding: 1,	  // number of pixels between adjacent bars in the same
-					// group (same category or bin).
-					barMargin: 3,	  // number of pixels between adjacent groups of bars.
-					barDirection: 'vertical', // vertical or horizontal.
-					barWidth: null,	 // width of the bars.  null to calculate automatically.
-					shadowOffset: 2,	// offset from the bar edge to stroke the shadow.
-					shadowDepth: 1,	 // nuber of strokes to make for the shadow.
-					shadowAlpha: 0.1,   // transparency of the shadow.
-
-					fillToZero: true
-				}
-			},
-			series: seriesLabels,
-			axes: {
-				xaxis: {
-					renderer: $.jqplot.CategoryAxisRenderer,
-					label: xaxis.name,					//X AXIS NAME
-					labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
-					tickRenderer: $.jqplot.CanvasAxisTickRenderer,
-					ticks:new CUBE().calc2Array({
-						"from":xaxis.domain.partitions,	//X AXIS TICK LABELS
-						"select":{"value":"name"}
-					}),
-					tickOptions: {
-						angle: -90,
-						labelPosition: 'end',
-						showLabel: true
-					}
-				},
-				yaxis: {
-					label: chartCube.select.name,						//Y AXIS NAME
-					labelRenderer: $.jqplot.CanvasAxisLabelRenderer
-//							renderer: $.jqplot.LogAxisRenderer,
-//							tickDistribution:'power'
-				}
-			},
-			highlighter: {
-				show: true,
-				sizeAdjust: 7.5
-			}
-		}
-	);
-
-
-};
+aChart.PVC_TIME_FORMAT="%y-%m-%d %H:%M:%S";
+aChart.TIME_FORMAT="yyyy-MM-dd HH:mm:ss";
 
 //PLOT USING THE Common Charting Components
 aChart.showCCC=function(params){
@@ -153,17 +53,48 @@ aChart.showCCC=function(params){
 	////////////////////////////////////////////////////////////////////////////
 	// SERIES (ONLY IF MORE THAN ONE EDGE)
 	////////////////////////////////////////////////////////////////////////////
-	var xaxis=chartCube.edges[chartCube.edges.length-1];
 	var seriesLabels=[];
+	var xaxis=chartCube.edges[chartCube.edges.length-1];
+	if (xaxis.domain.type=="time"){
+		var bestFormat=Date.getBestFormat(xaxis.domain.min, xaxis.domain.max, xaxis.domain.interval);
+		xaxis.domain.partitions.forall(function(v, i){
+			if (v instanceof String){
+				seriesLabels.push(v);
+			}else if (v instanceof Date){
+				seriesLabels.push(v.format(bestFormat));
+			}else{
+				seriesLabels.push(v.value.format(bestFormat));
+			}//endif
+		});
+	}else if (xaxis.domain.type=="duration"){
+		xaxis.domain.partitions.forall(function(v, i){
+			if (v instanceof String){
+				seriesLabels.push(v);
+			}else if (v.milli===undefined){
+				seriesLabels.push(v.value.toString());
+			}else{
+				seriesLabels.push(v.toString());
+			}//endif
+		});
+	}else{
+		xaxis.domain.partitions.forall(function(v, i){
+			seriesLabels.push(v);
+		});
+	}//endif
+	if (xaxis.allowNulls) seriesLabels.push(xaxis.domain.NULL.name);
+
+
+	var categoryLabels=[];
 	if (chartCube.edges.length==2){
-		seriesLabels=new CUBE().calc2List({
+		categoryLabels=new CUBE().calc2List({
 			"from":
 				chartCube.edges[0].domain.partitions,			//EACH SERIES NAMES
 			"select":[
 				{"name":"label", "value":"value"},
 				{"name":"color", "value":"Util.coalesce(colour, aChart.FAVORITE_COLOUR)"}
 			]
-		}).list
+		}).list;
+		if (chartCube.edges[0].allowNulls) categoryLabels.push(chartCube.edges[0].domain.NULL.name);
 	}//endif
 
 	//STATIC MAP FROM MY CHART TYPES TO CCC CLASS NAMES
@@ -185,8 +116,8 @@ aChart.showCCC=function(params){
 		legendAlign: "center",
 
 		orientation: 'vertical',
-//		timeSeries: false,// (xaxis.domain.type=="time"),
-//		timeSeriesFormat: "%Y-%m-%d",
+		timeSeries: false,// (xaxis.domain.type=="time"),
+//		timeSeriesFormat: aChart.PVC_TIME_FORMAT,
 
 		showValues: false,
 		originIsZero: this.originZero,
@@ -205,10 +136,23 @@ aChart.showCCC=function(params){
 	};
 	Util.copy(params, chartParams);
 
-
 	var chart = new pvc[chartTypes[type]](chartParams);
 
-	var data=CUBE.toTable(chartCube);
+	//FILL THE CROSS TAB DATASTUCTURE TO THE FORMAT EXPECTED (2D array of rows
+	//first row is series names, first column of each row is category name
+	var data=chartCube.cube.copy();
+	data.forall(function(v,i,d){
+		v=v.copy();
+		v.splice(0,0, categoryLabels[i].label);
+		d[i]=v;
+	});
+
+	var metadata=[];
+	seriesLabels.forall(function(v, i){
+		metadata.push({"colName":v});
+	});
+	metadata.splice(0,0,{"colName":"x"});
+
 
 //	D.println(CNV.Object2JSON(data));
 
@@ -216,26 +160,10 @@ aChart.showCCC=function(params){
 
 	var cccData = {
 		"resultset":data,
-		"metadata":[
-			{
-				"colIndex":1,
-				"colType":"String",
-				"colName":"Series"
-			},
-			{
-				"colIndex":0,
-				"colType":"String",
-				"colName":"Categories"
-			},
-			{
-				"colIndex":2,
-				"colType":"Numeric",
-				"colName":"Value"
-			}
-		]
+		"metadata":metadata
 	};
 
-	chart.setData(cccData, {crosstabMode: false, seriesInRows: false});
+	chart.setData(cccData, {crosstabMode: true, seriesInRows: true});
 
 	chart.render();
 

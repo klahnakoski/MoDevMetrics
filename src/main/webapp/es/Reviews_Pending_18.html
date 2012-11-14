@@ -7,7 +7,7 @@
 
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
-<script type="application/javascript;version=1.7" src="lib/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/lib/protovis-d3.3.js"></script>
@@ -72,6 +72,10 @@
 <script type="application/javascript;version=1.7" src="js/filters/CustomFilters.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/GUIFilters.js"></script>
 
+<script type="application/javascript;version=1.7" src="js/etl/Reviews.js"></script>
+
+
+
 <div id="sidebar">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
@@ -107,7 +111,7 @@ var createChart=function(){
 
 	$("#newReviewsTitle").html("Reviews Requested in Past "+NUM_WEEKS+" Weeks");
 	$("#oldReviewsTitle").html("Reviews Over "+NUM_WEEKS+" Weeks Old");
-	$("#description").html("Metrics for all reviews requested in the past "+NUM_WEEKS+" weeks.");
+	$("#description").html("Metrics for all reviews requested in the past "+NUM_WEEKS+" weeks.  <span class='warning'>Filter by Program does not work.  Sorry.</span>");
 
 	var q=new ESQuery({
 		"from":"reviews",
@@ -124,7 +128,7 @@ var createChart=function(){
 		}
 	});
 
-	ES.InjectFilter(q);
+	ES.InjectGUIFilter(q);
 
 	q.run(function(old){
 		var oldRequests=new CUBE().calc2List({
@@ -174,7 +178,7 @@ var createChart=function(){
 		}
 	});
 
-	ES.InjectFilter(mainquery);
+	ES.InjectGUIFilter(mainquery);
 
 	status.message("Get Review Data");
 	mainquery.run(function(reviews){
@@ -219,14 +223,14 @@ var createChart=function(){
 				{"name":"under_24_hours", "value":"wait_time<"+Duration.newInstance('24hour').milli+" ? 1 : 0", "operation":"sum"},
 				{"name":"average", "value":"wait_time", "operation":"average"}
 			]
-		});
+		}).cube;
 
 
 		$("#stats").html(
-			'<span class="parameter_name">Total Reviews:</span><b>'+stats.data.total+'</b><br>'+
-			'<span class="parameter_name">Reviews per week:</span><b>'+Math.round(stats.data.total/NUM_WEEKS, 0)+'</b><br>'+
-			'<span class="parameter_name">% Under One Day:</span><b>'+Math.round(stats.data.under_24_hours/stats.data.total*100, 1)+'%</b><br>'+
-			'<span class="parameter_name">Average Review Time:</span><b>'+Math.round(stats.data.average/Duration.MILLI_VALUES.day, 2)+'days</b><br>'
+			'<span class="parameter_name">Total Reviews:</span><b>'+stats.total+'</b><br>'+
+			'<span class="parameter_name">Reviews per week:</span><b>'+Math.round(stats.total/NUM_WEEKS, 0)+'</b><br>'+
+			'<span class="parameter_name">% Under One Day:</span><b>'+Math.round(stats.under_24_hours/stats.total*100, 1)+'%</b><br>'+
+			'<span class="parameter_name">Average Review Time:</span><b>'+Math.round(stats.average/Duration.MILLI_VALUES.day, 2)+'days</b><br>'
 		);
 
 

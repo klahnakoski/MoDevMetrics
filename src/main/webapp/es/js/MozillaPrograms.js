@@ -1,7 +1,7 @@
 var MozillaPrograms = {
 	"columns":
 		["projectName", "attributeName", "attributeValue"],
-	"data":[
+	"rows":[
 		["Boot2Gecko (B2G)", "cf_blocking_basecamp", "+"],
 		["Security", "status_whiteboard.tokenized", "sg:dos"],
 		["Security", "status_whiteboard.tokenized", "sg:low"],

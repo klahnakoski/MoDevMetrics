@@ -7,7 +7,7 @@
 <BODY>
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
-<script type="application/javascript;version=1.7" src="lib/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/lib/protovis-d3.3.js"></script>
@@ -144,7 +144,7 @@ D.println(CNV.List2Tab(reviewQueues));
 					{"name":"Bug ID", "value":"bug_id", "order":["request_time", "review_time"]},
 					{"name":"Date",
 						"test":"time.min<=Util.coalesce(Date.newInstance(review_time), Date.now().floorDay().add('day')) && new Date(request_time)<time.max",
-						"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "format":"NNN dd"}
+						"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, value:"value"}
 					}
 				]
 			});

@@ -65,9 +65,19 @@ Array.prototype.copy = function(){
 
 Array.prototype.forall=function(func){
 	for(var i=0;i<this.length;i++){
-		func(this[i], i);
+		func(this[i], i, this);
 	}//for
 };//method
+
+
+Array.prototype.map=function(func){
+	var output=[];
+	for(var i=0;i<this.length;i++){
+		output.push(func(this[i], i));
+	}//for
+	return output;
+};//method
+
 
 Array.prototype.appendArray=function(arr){
 	for(var i=0;i<arr.length;i++){
@@ -132,6 +142,23 @@ String.prototype.replaceAll = function(find, replace){
 		s=s-find.length+replace.length;
 	}//while
 };//method
+
+
+
+String.prototype.deformat = function(){
+	var output=[];
+	for(var i=0;i<this.length;i++){
+		var c=this.charAt(i);
+		if ((c>='a' && c<='z') || (c>='0' && c<='9')){
+			output.push(c);
+		}else if (c>='A' && c<='Z'){
+			output.push(String.fromCharCode(c.charCodeAt(0)+32));
+		}//endif
+	}//for
+	return output.join("");
+};//method
+
+
 
 ///
 /// EXPECTING AN OBJECT WITH KEY VALUE PAIRS

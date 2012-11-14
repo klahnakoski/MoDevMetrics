@@ -67,6 +67,36 @@ ElasticSearch.post=function(URL, requestData, successFunction, errorFunction){
 };//method
 
 
+ElasticSearch.makeBasicQuery=function(esfilter){
+	return {
+		"query": {
+			"filtered": {
+			  "query": {"match_all": {}},
+			  "filter": {"and": [esfilter]}
+			}
+		},
+		"from": 0,
+		"size": 0,
+		"sort": [],
+		"facets": {}
+	};
+};
+
+ElasticSearch.injectFilter=function(esquery, filter){
+	if (esquery.query.filtered === undefined){
+		var filtered = {};
+		filtered.filtered = {};
+		filtered.filtered.query = esquery.query;
+		filtered.filtered.filter = esquery.filter;
+
+		esquery.query = filtered;
+		esquery.filter = undefined;
+	}//endif
+
+	var and = esquery.query.filtered.filter.and;
+	and.push(filter);
+};
+
 
 
 var ElasticSearchQuery = function(query, successFunction, errorFunction){
@@ -75,7 +105,7 @@ var ElasticSearchQuery = function(query, successFunction, errorFunction){
 		this.callbackObject = query;
 		this.query = query.query;
 	}else{
-		if (successFunction===undefined) D.error("expecting an object to reprt back response");
+		if (successFunction===undefined) D.error("expecting an object to report back response");
 		this.callbackObject = {"success":successFunction, "error":errorFunction};
 		this.query = query;
 	}//endif

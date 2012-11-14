@@ -19,7 +19,7 @@
 
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
-<script type="application/javascript;version=1.7" src="lib/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/lib/protovis-d3.3.js"></script>
@@ -137,7 +137,7 @@
 			"essize":state.esSize
 		});
 
-		ES.InjectFilter(query);
+		ES.InjectGUIFilter(query);
 
 		D.println(CNV.Object2JSON(query.esQuery));
 

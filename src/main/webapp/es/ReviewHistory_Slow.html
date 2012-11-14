@@ -26,7 +26,7 @@
 
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
-<script type="application/javascript;version=1.7" src="lib/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/lib/protovis-d3.3.js"></script>
@@ -192,7 +192,7 @@
 			};
 
 
-		ES.InjectFilter({"esQuery":esQuery});
+		ES.InjectGUIFilter({"esQuery":esQuery});
 
 		console.info(CNV.Object2JSON(esQuery));
 
@@ -219,7 +219,7 @@ D.println(CNV.Object2JSON(data));
 					"from":inReview,
 					"select":{"name":"bug_id", "value":"bug_id", "operation":"one"},
 					"edges":[{"name":"uid", "value":"bug_id"}]
-				}).data;
+				}).cube;
 
 
 				var esQuery2 = {

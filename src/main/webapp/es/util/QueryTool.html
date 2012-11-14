@@ -67,7 +67,8 @@
 <script type="application/javascript;version=1.7" src="../js/aCompiler.js"></script>
 <script type="application/javascript;version=1.7" src="../js/MVEL.js"></script>
 
-<script type="application/javascript;version=1.7" src="../js/Trampoline.js"></script><script type="application/javascript;version=1.7" src="../js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="../js/Trampoline.js"></script>
+<script type="application/javascript;version=1.7" src="../js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="../js/CUBE.aggregate.js"></script>
 <script type="application/javascript;version=1.7" src="../js/CUBE.column.js"></script>
 <script type="application/javascript;version=1.7" src="../js/CUBE.cube.js"></script>
@@ -182,7 +183,10 @@
 		cubeQuery.run(function(data){
 			status.message("Got result");
 
-			if (data.list!==undefined){
+			if (data.data!==undefined){
+				data.list=CUBE.Cube2List(data);
+				$("#result").html("<div>"+data.list.length+" rows (up to 100 shown)</div>"+CNV.List2HTMLTable(data.list, {"limit":100}));
+			}else if (data.list!==undefined){
 				$("#result").html("<div>"+data.list.length+" rows (up to 100 shown)</div>"+CNV.List2HTMLTable(data.list, {"limit":100}));
 			}else{
 				$("#result").html(CNV.String2HTML(CNV.Object2JSON(data)));

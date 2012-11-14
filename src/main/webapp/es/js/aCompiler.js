@@ -7,24 +7,39 @@ aCompile={};
 ////////////////////////////////////////////////////////////////////////////////
 // EXECUTE SIMPLE CODE IN THE CONTEXT OF AN OBJECT'S VARIABLES
 ////////////////////////////////////////////////////////////////////////////////
-aCompile.method=function(code, contextObjects){
+aCompile.method_usingObjects=function(code, contextObjects){
 	if (!(contextObjects instanceof Array)) contextObjects=[contextObjects];
+
+	var contextTypes=[];
+	contextObjects.forall(function(v, i){
+		contextTypes[i]={"columns":CUBE.getColumns([v])};
+	});
+
+	return aCompile.method(code, contextTypes);
+
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// EXECUTE SIMPLE CODE IN THE CONTEXT OF AN OBJECT'S VARIABLES
+// contextTypes ARE TABLES 
+////////////////////////////////////////////////////////////////////////////////
+aCompile.method=function(code, contextTypes){
+	if (!(contextTypes instanceof Array)) contextTypes=[contextTypes];
 	var output;
 
-	var contextObjectNames=[];
-	contextObjects.forall(function(c, i){
-		contextObjectNames.push("__source"+i);
+	var contexTypeNames=[];
+	contextTypes.forall(function(c, i){
+		contexTypeNames.push("__source"+i);
 	});
 
 	var f =
-			"output=function("+contextObjectNames.join(",")+"){\n";
+		"output=function("+contexTypeNames.join(",")+"){\n";
 
-		for(var s = contextObjects.length; s--;){
-			var params=Object.keys(contextObjects[s]);
-			params.forall(function(p){
+		for(var s = contextTypes.length; s--;){
+			contextTypes[s].columns.forall(function(p){
 				//ONLY DEFINE VARS THAT ARE USED
-				if (code.indexOf(p) != -1){
-					f += "var " + p + "="+contextObjectNames[s]+"." + p + ";\n";
+				if (code.indexOf(p.name) != -1){
+					f += "var " + p.name + "="+contexTypeNames[s]+"." + p.name + ";\n";
 				}//endif
 			});
 		}//for
@@ -32,14 +47,45 @@ aCompile.method=function(code, contextObjects){
 		f+=code.trim().rtrim(";")+";\n";
 
 		//FIRST CONTEXT OBJECT IS SPECIAL, AND WILL HAVE IT'S VARS ASSIGNED BACK
-		var params=Object.keys(contextObjects[0]);
-		params.forall(function(p){
-			if (code.indexOf(p) != -1){
-				f += contextObjectNames[0] + "." + p + "=" + p + ";	\n";
+		contextTypes[0].columns.forall(function(p){
+			if (code.indexOf(p.name) != -1){
+				f += contexTypeNames[0] + "." + p.name + "=" + p.name + ";	\n";
 			}//endif
 		});
 
 		f += "}";
+		eval(f);
+
+	return output;
+
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// COMPILE AN EXPRESSION, WHICH WILL RETURN A VALUE
+////////////////////////////////////////////////////////////////////////////////
+aCompile.expression=function(code, contextTypes){
+	if (!(contextTypes instanceof Array)) contextTypes=[contextTypes];
+	var output;
+
+	var contexTypeNames=[];
+	contextTypes.forall(function(c, i){
+		contexTypeNames.push("__source"+i);
+	});
+
+	var f =
+		"output=function("+contexTypeNames.join(",")+"){\n";
+
+		for(var s = contextTypes.length; s--;){
+			contextTypes[s].columns.forall(function(p){
+				//ONLY DEFINE VARS THAT ARE USED
+				if (code.indexOf(p.name) != -1){
+					f += "var " + p.name + "="+contexTypeNames[s]+"." + p.name + ";\n";
+				}//endif
+			});
+		}//for
+
+		f+="return "+code.trim().rtrim(";")+";\n}";
 		eval(f);
 
 	return output;

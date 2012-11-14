@@ -1,4 +1,7 @@
 
+importScript("ETL.js");
+importScript("../filters/ProgramFilter.js");
+
 
 var BUG_SUMMARY={};
 
@@ -6,6 +9,20 @@ BUG_SUMMARY.BATCH_SIZE=20000;
 
 BUG_SUMMARY.aliasName="bug_history";
 BUG_SUMMARY.typeName="bug_history";
+
+
+BUG_SUMMARY.BUG_STATUS=[
+	"new",
+	"unconfirmed",
+	"assigned",
+	"resolved",
+	"verified",
+	"closed",
+	"reopened"
+];
+
+BUG_SUMMARY.allPrograms = CNV.Table2List(MozillaPrograms);
+
 
 BUG_SUMMARY.getLastUpdated=function(successFunction){
 	var q=new ESQuery({
@@ -16,7 +33,7 @@ BUG_SUMMARY.getLastUpdated=function(successFunction){
 	});
 
 	q.run(function(data){
-		successFunction(Date.newInstance(data.data.last_request));
+		successFunction(Date.newInstance(data.cube.last_request));
 	});
 };
 
@@ -31,21 +48,28 @@ BUG_SUMMARY.makeSchema=function(successFunction){
 		"properties":{
 			"bug_id":{"type":"integer", "store":"yes", "index":"not_analyzed"},
 			"product":{"type":"string", "store":"yes", "index":"not_analyzed"},
+			"product_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
 			"component":{"type":"string", "store":"yes", "index":"not_analyzed"},
-			"current_bug_state":{"type":"string", "store":"yes", "index":"not_analyzed"},
-			"current_bug_status":{"type":"string", "store":"yes", "index":"not_analyzed"},
+			"component_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
+
+			"assigned_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
+			"closed_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
+			"new_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
+			"reopened_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
+			"resolved_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
+			"unconfirmed_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
+			"verified_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
+
 			"create_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
 			"close_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
-			"modified_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
+			"modified_time":{"type":"integer", "store":"yes", "index":"not_analyzed"}
 		}
 	};
 
 	//ADD MOZILLA PROGRAMS
 	new CUBE.calc2List({
-		"from":CNV.Table2List(MozillaPrograms),
-		"edges":[
-			"projectName"
-		]
+		"from":BUG_SUMMARY.allPrograms,
+		"edges":["projectName"]
 	}).list.forEach(function(v,i){
 		config.properties[v+"_time"]={"type":"string", "store":"yes", "index":"not_analyzed"};
 	});
@@ -123,7 +147,7 @@ BUG_SUMMARY.newInsert=function(){
 		});
 
 		maxBugQuery.run(function(maxResults){
-			var maxBug=maxResults.data.bug_id;
+			var maxBug=maxResults.cube.bug_id;
 			var maxBatches=Math.floor(maxBug/BUG_SUMMARY.BATCH_SIZE);
 //			maxBatches=32;
 			BUG_SUMMARY.insertBatch(0, maxBatches, BUG_SUMMARY.updateAlias);
@@ -173,7 +197,7 @@ BUG_SUMMARY.resumeInsert=function(){
 			});
 			ESQuery.INDEXES.reviews={"path":"/"+BUG_SUMMARY.lastInsert+"/"+BUG_SUMMARY.typeName};
 			q.run(function(maxResults){
-				var minBug=maxResults.data.minBug;
+				var minBug=maxResults.cube.minBug;
 				var maxBatches=Math.floor(minBug/BUG_SUMMARY.BATCH_SIZE)-1;
 				BUG_SUMMARY.insertBatch(0, maxBatches, BUG_SUMMARY.updateAlias);
 			});
@@ -228,162 +252,106 @@ BUG_SUMMARY.getBugSummaries=function(minBug, maxBug, successFunction){
 	}//endif
 
 
-
-	var esQuery=new ESQuery({
-		"select" : [
-			{"name":"bug_id", "value":"bugs.bug_id"},
-			{"name":"attach_id", "value":"bugs.attachments.attach_id"},
-			{"name":"modified_ts", "value":"bugs.modified_ts"},
-			{"name":"requestee", "value":"bugs.attachments.flags.requestee"},
-			{"name":"modified_by", "value":"bugs.attachments.flags.modified_by"},
-			{"name":"product", "value":"bugs.product"},
-			{"name":"component", "value":"bugs.component"},
-			{"name":"bug_status", "value":"(bugs.bug_status=='resolved'||bugs.bug_status=='verified'||bugs.bug_status=='closed') ? 'closed':'open'"}
-		],
-		"from":
-			"bugs.attachments.flags",
-		"where":
-			{"and" : [
-				{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
-				{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
-				{"script" :{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}},
-				{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
-			]},
-		"esfilter":
-			esfilter
-	});
-
-
-
-	var esQuery2 = new ESQuery({
-		"select" : [
-			{"name":"bug_id", "value":"bugs.bug_id"},
-			{"name":"attach_id", "value":"bugs.attachments.attach_id"},
-			{"name":"modified_ts", "value":"maximum(bugs.modified_ts, maximum(bugs.attachments.modified_ts, bugs.attachments.flags.modified_ts))"},
-			{"name":"requestee", "value":"bugs.attachments.flags.requestee"},
-			{"name":"modified_by", "value":"bugs.attachments.flags.modified_by"},
-			{"name":"product", "value":"bugs.product"},
-			{"name":"component", "value":"bugs.component"},
-			{"name":"done_reason", "value":"bugs.attachments.flags.request_status!='?' ? 'done' : (bugs.attachments[\"attachments.isobsolete\"]==1 ? 'obsolete' : 'closed')"}
-		],
-		"from":
-			"bugs.attachments.flags",
-		"where":
-			{"and" : [
-				{"not":{"missing":{"field":"bugs.attachments.flags.request_type", "existence":true, "null_value":true}}},
-//				{"term":{"bugs.attachments.attach_id":"420463"}},
-				{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
-				{"or" : [
-					{ "and" : [//IF THE REQUESTEE SWITCHED THE ? FLAG, THEN IT IS DONE
-						{"not": {"terms" : {"bugs.attachments.flags.request_status" : ["?"]}}}
-					]},
-					{"and":[//IF OBSOLEETED THE ATTACHMENT, IT IS DONE
-						{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 1}},
-						{"not":{"missing":{"field":"bugs.previous_values", "existence":true, "null_value":true}}},
-						{"term":{"bugs.previous_values[\"attachments.isobsolete_values\"]" : 0}}
-					]},
-					{ "and" : [//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
-						{"terms" : {"bugs.bug_status" : ["resolved", "verified", "closed"]}},
-						{"not":{"missing":{"field":"bugs.previous_values", "existence":true, "null_value":true}}},
-						{"not":{"missing":{"field":"bugs.previous_values.bug_status_value", "existence":true, "null_value":true}}},
-						{"not": {"terms":{"bugs.previous_values.bug_status_value": ["resolved", "verified", "closed"]}}}
-					]}
-				]}
-			]},
-		"esfilter":
-			esfilter
-	});
-
-	//BUG_SUMMARY END WHEN REASSIGNED TO SOMEONE ELSE
-	var esQuery3 = new ESQuery({
-		"select" : [
-			{"name":"bug_id", "value":"bugs.bug_id"},
-			{"name":"attach_id", "value":"bugs.changes.attach_id"},
-			{"name":"modified_ts", "value":"bugs.modified_ts"},
-			{"name":"requestee", "value":"bugs.changes.field_value_removed"},
-			{"name":"modified_by", "value":"null"},
-			{"name":"product", "value":"bugs.product"},
-			{"name":"component", "value":"bugs.component"},
-			{"name":"done_reason", "value":"'reasigned'"}
-		],
-		"from":
-			"bugs.changes",
-		"where":
-			{"and":[//ONLY LOOK FOR NAME CHANGES IN THE "review?" FIELD
-				{"term":{"bugs.changes.field_name":"flags"}},
-				{"or":[
-					{"prefix":{"bugs.changes.field_value":"review?"}},
-					{"prefix":{"bugs.changes.field_value":"superreview?"}}
-				]},
-				{"or":[
-					{"prefix":{"bugs.changes.field_value_removed":"review?"}},
-					{"prefix":{"bugs.changes.field_value_removed":"superreview?"}}
-				]}
-			]},
-		"esfilter":
-			esfilter
-	});
-
-
-	////////////////////////////////////////////////////////////////////////
-	status.message("Get Review Requests");
-	esQuery.run(function(inReview){
-	status.message("Get Review Ends");
-	esQuery2.run(function(doneReview){
-	status.message("Get Review Re-assignments");
-	esQuery3.run(function(switchedReview){
-	////////////////////////////////////////////////////////////////////////
-
-	status.message("processing Data...");
-	D.println("start processing "+Date.now().format("HH:mm:ss"));
-
-//	D.println(CNV.List2Tab(inReview.list));
-//	D.println(CNV.List2Tab(doneReview.list));
-//	D.println(CNV.List2Tab(switchedReview.list));
-
-	doneReview.list.appendArray(switchedReview.list);
-
-
-	var reviewQueues = new CUBE().calc2List({
-		"from":
-			inReview.list,
+	var current=new ESQuery({
+		"from":"bugs",
 		"select":[
-			{"name":"bug_status", "value":"bug_status", "operation":"one"},
-			{"name":"review_time", "value":"Util.coalesce(doneReview.modified_ts, null)", "operation":"minimum"},
-			{"name":"product", "value":"Util.coalesce(doneReview.product, product)", "operation":"minimum"},
-			{"name":"component", "value":"Util.coalesce(doneReview.component, component)", "operation":"minimum"}
-//			{"name":"is_first", "value":"rownum==1", "groupby":"bug_id", "sort":"request_time"}
+			{"name":"bug_id", "value":"bugs.bug_id"},
+			{"name":"product", "value":"bugs.product"},
+			{"name":"product_time", "value":"coalesce(bugs.?previous_values.?product_change_away_ts, bugs.created_ts)"},
+			{"name":"component", "value":"bugs.component"},
+			{"name":"component_time", "value":"coalesce(bugs.?previous_values.?component_change_away_ts, bugs.created_ts)"},
+			{"name":"create_time", "value":"bugs.created_ts"},
+			{"name":"modified_time", "value":"bugs.modified_ts"}
 		],
-		"edges":[
-			{"name":"bug_id", "value":"bug_id"},
-			{"name":"attach_id", "value":"attach_id"},
-			{"name":"reviewer", "value":"requestee"},
-			{"name":"requester", "value":"modified_by"},
-			{"name":"request_time", "value":"modified_ts"},
-			{"name":"close_record",
-				"test":
-					"bug_id==doneReview.bug_id && "+
-					"attach_id==doneReview.attach_id && "+
-					"requestee==doneReview.requestee && "+
-					"!(bug_status=='closed' && doneReview.done_reason=='closed') && "+
-					"modified_ts<=doneReview.modified_ts",
-				allowNulls:true,
-				"domain":{"type":"set", "name":"doneReview", "key":[], "partitions":doneReview.list}
+		"esfilter":
+			{"range":{"expires_on":{"gt":Date.now().ceilingDay().getMilli()}}}
+	});
+	ElasticSearch.injectFilter(current.esQuery, esfilter);
+
+
+
+	
+	var times=ElasticSearch.makeBasicQuery(esfilter);
+
+	//GET THE FIRST TIME FOR EACH BUGS STATUS
+	BUG_SUMMARY.BUG_STATUS.forall(function(v,i){
+		times.facets[v+"_time"]={
+			"terms_stats": {
+				"key_field": "bug_id",
+				"value_field": "modified_ts",
+				"size": 100000
+			},
+			"facet_filter": {
+				"term":{"bug_status":v}
 			}
-		]
-
-	}).list;
-
-
-	D.println("end processing "+Date.now().format("HH:mm:ss"));
-	status.message("Done");
-	successFunction(reviewQueues);
-
-	////////////////////////////////////////////////////////////////////////
+		}
 	});
+
+	//ADD FACETS TO COUNT ALL MOZILLA PROGRAMS
+	new CUBE().calc2List({
+		"from":BUG_SUMMARY.allPrograms,
+		"edges":["projectName"]
+	}).list.forall(function(v, i){
+		times.facets[v.projectName+"_time"]={
+			"terms_stats": {
+				"key_field": "bug_id",
+				"value_field": "modified_ts",
+				"size": 100000
+			},
+			"facet_filter":{"or":[]}
+		};
+
+		var or=times.facets[v.projectName+"_time"].facet_filter.or;
+		for(var j=0;j<BUG_SUMMARY.allPrograms.length;j++){
+			if (BUG_SUMMARY.allPrograms[j].projectName == v.projectName){
+				var name = BUG_SUMMARY.allPrograms[j].attributeName;
+				var value = BUG_SUMMARY.allPrograms[j].attributeValue;
+				var term = {};
+				term[name] = value;
+				or.push({"prefix":term});
+			}//endif
+		}//for
 	});
+	ElasticSearch.injectFilter(times, esfilter);
+
+
+
+	status.message("Get Current Bug Info");
+	current.run(function(currentData){
+		status.message("Get Historical Timestamps");
+		ElasticSearchQuery.Run({"query":times,"success":function(timesData){
+			var joinItAll={
+				"from":currentData.list,
+				"select":[],
+				"edges":[]
+			};
+
+			currentData.select.forall(function(v, i){
+				joinItAll.select.push({"name":v.name, "value":v.name});
+			});
+
+			//JOIN IN ALL TIME FACETS
+			var removeList=[];
+			ForAllKey(timesData.facets, function(k, v){
+				var domainName=k.deformat()+"part"
+				var s={"name":k, "value":"Util.coalesce("+domainName+".min, null)", "operation":"minimum"};
+				var e={"name":domainName+"__edge", "value":"bug_id", allowNulls:true, "domain":{"name":domainName, "type":"set", "key":"term", "partitions":v.terms}};
+				removeList.push(domainName+"__edge");
+				joinItAll.select.push(s);
+				joinItAll.edges.push(e);
+			});
+
+			var r=new CUBE().calc2List(joinItAll).list;
+
+			//REMOVE EDGES
+			for(var e=removeList.length;e--;){
+				var k=removeList[e];
+				for(var i=r.length;i--;) r[i][k]=undefined;
+			}//for
+
+			successFunction(r);
+		}});
 	});
-	////////////////////////////////////////////////////////////////////////
 
 };//method
 

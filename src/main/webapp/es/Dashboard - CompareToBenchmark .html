@@ -7,7 +7,7 @@
 
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
-<script type="application/javascript;version=1.7" src="lib/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/lib/protovis-d3.3.js"></script>
@@ -154,8 +154,8 @@ var createChart = function(){
 		"essize":state.esSize
 	});
 
-	ES.InjectFilter(query);
-	ES.InjectFilter(queryClosed);
+	ES.InjectGUIFilter(query);
+	ES.InjectGUIFilter(queryClosed);
 
 	if (state.selectedProducts.length==0 && state.selectedPrograms.length==0){
 		$("#summary2").html("Will not work over all bugs, too big.  Make a selection");

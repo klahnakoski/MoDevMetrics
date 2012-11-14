@@ -15,7 +15,7 @@
 <script type="application/javascript;version=1.7" src="js/charts/DateRangeIterator.js"></script>
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
-<script type="application/javascript;version=1.7" src="lib/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
 <script type="application/javascript;version=1.7"
 		src="lib/webdetails/cdf/jquery.tooltip.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
@@ -215,7 +215,7 @@
 			"groupSize" : 30
 		};
 
-		ES.InjectFilters(chartRequest.requests);
+		ES.InjectGUIFilters(chartRequest.requests);
 
 		console.log("chartRequest: " + JSON.stringify(chartRequest));
 

@@ -26,7 +26,7 @@ ESQuery.DEBUG=false;
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
 	"bugs":{"path":"/bugs"},
-	"reviews":{"path":"/reviews/review"}//http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews121109_041939/review/_search
+	"reviews":{"path":"/reviews121114_225703/review"}//http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews121109_041939/review/_search
 };
 
 
@@ -44,8 +44,11 @@ ESQuery.prototype.run = function(successFunction,errorFunction){
 
 		success: function(data){
 			if (data._shards.failed>0){
+				status.message("ES Failure! Retrying...");
 				D.warning("Must resend query...");
-				self.run(successFunction,errorFunction);
+				setTimeout(function(){
+					self.run(successFunction,errorFunction);
+				}, 1000);
 				return;
 			}//endif
 			self.success(data)
@@ -488,7 +491,7 @@ ESQuery.prototype.termsResults=function(data){
 		d[parts[t].dataIndex] = terms[i].count;
 	}//for
 
-	this.query.data=cube;
+	this.query.cube=cube;
 };
 
 //MAP THE SELECT OPERATION NAME TO ES FACET AGGREGATE NAME
@@ -513,7 +516,7 @@ ESQuery.prototype.statisticalResults = function(data){
 				cube[this.select[i].name]= data.facets["0"][ESQuery.agg2es[this.select[i].operation]];
 			}//for
 		}//endif
-		this.query.data = cube;
+		this.query.cube = cube;
 		return;
 	}//endif
 
@@ -533,7 +536,7 @@ ESQuery.prototype.statisticalResults = function(data){
 		d[parseInt(coord[f])] = value;
 	}//for
 
-	this.query.data = cube;
+	this.query.cube = cube;
 
 };//method
 
@@ -592,7 +595,7 @@ ESQuery.prototype.terms_statsResults = function(data){
 		}//for
 	}//for
 
-	this.query.data = cube;
+	this.query.cube = cube;
 
 };//method
 

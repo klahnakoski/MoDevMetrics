@@ -186,9 +186,9 @@ CNV.Table2List = function(table){
 	}//endif
 
 
-	for(var d = 0; d < table.data.length; d++){
+	for(var d = 0; d < table.rows.length; d++){
 		var item = {};
-		var row = table.data[d];
+		var row = table.rows[d];
 		for(var c = 0; c < table.columns.length; c++){
 			item[table.columns[c].name] = row[c];
 		}//for

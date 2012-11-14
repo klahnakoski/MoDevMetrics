@@ -24,7 +24,10 @@ CUBE.compile = function(query, sourceColumns){
 	for(var g = 0; g < edges.length; g++){
 		var e=edges[g];
 
-		if (typeof(e)=='string') edges[g]={"value":e}; //NOW DEFINE AN EDGE BY ITS VALUE
+		if (typeof(e)=='string'){
+			e={"value":e}; //NOW DEFINE AN EDGE BY ITS VALUE
+			edges[g]=e;
+		}//endif
 		if (e.name===undefined) e.name=e.value;
 		if (e.allowNulls === undefined) e.allowNulls = false;
 
@@ -56,39 +59,17 @@ CUBE.select2Array = function(select){
 };//method
 
 
-//CUBE.prototype.calc2List = function(query){
-//	var output=aThread.run(CUBE.prototype.calc2List_generator(query));
-//	return output;
-//};
-//
-//
-//CUBE.prototype.calc2List_generator = function(query){
-//	yield aThread.sleep(10);	//TO ENSURE ANY QUEUED MESSAGES GET ON THE SCREEN BEFORE THIS RUNS
-//	yield (CUBE.prototype.calc2List_immediate(query));
-//};
+CUBE.prototype.calc2Tree = function(query){
+	if (query.edges.length==0) D.error("Tree processing requires an edge");
 
-
-CUBE.prototype.calc2List = function(query){
-
-	if (query.edges===undefined) query.edges=[];
 	var select = CUBE.select2Array(query.select);
-
-	//NO EDGES IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
-	if (query.edges.length==0){
-		if (select[0].operation===undefined){
-			return this.setOP(query);
-		}else{
-			return this.aggOP(query);
-		}//endif
-	}//endif
-
 	var sourceColumns = CUBE.getColumns(query.from);
 	var edges = query.edges;
-	var resultColumns = CUBE.compile(query, sourceColumns);
+	query.columns = CUBE.compile(query, sourceColumns);
 	var where = CUBE.where.compile(query.where, sourceColumns, edges);
 
 
-	var indexedOutput = {};
+	var tree = {};
 	FROM: for(var i = 0; i < query.from.length; i++){
 		var row = query.from[i];
 
@@ -150,16 +131,16 @@ CUBE.prototype.calc2List = function(query){
 
 		if (select.length == 0){
 			for(var t = 0; t < results.length; t++){
-				if (where(row, results[t])) CUBE.getAggregate(results[t], indexedOutput, select, edges);
+				if (where(row, results[t])) CUBE.getAggregate(results[t], tree, select, edges);
 			}//for
 		} else{
-			for(var s = 0; s < (select).length; s++){
+			for(var s = 0; s < select.length; s++){
 				var ss = select[s];
 				for(var t = 0; t < results.length; t++){
 					var pass=where(row, results[t]);
 					if (pass){
 						//FIND CANONICAL RESULT
-						var agg = CUBE.getAggregate(results[t], indexedOutput, select, edges);
+						var agg = CUBE.getAggregate(results[t], tree, select, edges);
 
 						//CALCULATE VALUE
 						var v = ss.calc(row, results[t]);
@@ -179,8 +160,30 @@ CUBE.prototype.calc2List = function(query){
 	}//for
 
 
+	query.tree=tree;
+};
+
+
+CUBE.prototype.calc2List = function(query){
+	if (query.edges===undefined) query.edges=[];
+	var select = CUBE.select2Array(query.select);
+
+	//NO EDGES IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
+	if (query.edges.length==0){
+		if (select[0].operation===undefined){
+			return this.setOP(query);
+		}else{
+			return this.aggOP(query);
+		}//endif
+	}//endif
+
+	this.calc2Tree(query);
+
+	var edges=query.edges;
+	var resultColumns=query.columns;
+
 	var output = [];
-	CUBE.outputToList(output, indexedOutput, edges, {}, 0, query.order);
+	CUBE.outputToList(output, query.tree, edges, {}, 0, query.order);
 
 
 	//ORDER THE OUTPUT
@@ -190,7 +193,7 @@ CUBE.prototype.calc2List = function(query){
 	}//endif
 	output = CUBE.order(output, query.order, resultColumns);
 
-	//TURN AGGREGATE OBJECTS TO SINGLE NUMBER
+	//COLLAPSE OBJECTS TO SINGLE VALUE
 	for(var c in resultColumns){
 		var s=resultColumns[c];
 		if (s.domain===undefined){
@@ -210,14 +213,14 @@ CUBE.prototype.calc2List = function(query){
 };//method
 
 
-CUBE.prototype.calc2Array = function(sql){
-	if (sql.select instanceof Array) D.error("Expecting select to not be an array");
-	if (sql.edges !== undefined && sql.edges.length > 0) D.error("Expecting zero edges");
+CUBE.prototype.calc2Array = function(query){
+	if (query.select instanceof Array) D.error("Expecting select to not be an array");
+	if (query.edges !== undefined && query.edges.length > 0) D.error("Expecting zero edges");
 
-	var temp = sql.select.name;
-	sql.select.name = 0;
-	var list = new CUBE().setOP(sql).list;
-	sql.select.name = temp;
+	var temp = query.select.name;
+	query.select.name = 0;
+	var list = new CUBE().setOP(query).list;
+	query.select.name = temp;
 
 	var output = [];
 	for(var i = 0; i < list.length; i++){
@@ -228,13 +231,14 @@ CUBE.prototype.calc2Array = function(sql){
 
 
 CUBE.prototype.calc2Cube = function(query){
-	var cube = this.calc2List(query);
+	if (query.edges===undefined) query.edges=[];
 
 	if (query.edges.length==0){
-		if (cube.list.length!=1) D.error("Expecting a single tuple of aggreate values");
-		query.data = cube.list[0];
+		this.aggOP(query);
 		return query;
 	}//endif
+
+	this.calc2Tree(query);
 
 	//ASSIGN dataIndex TO ALL PARTITIONS
 	var edges = query.edges;
@@ -247,37 +251,10 @@ CUBE.prototype.calc2Cube = function(query){
 	}//for
 
 	//MAKE THE EMPTY DATA GRID
-	var data = CUBE.cube.newInstance(edges, 0, query.select);
+	query.cube = CUBE.cube.newInstance(edges, 0, query.select);
 
-	//FILL GRID WITH VALUES
-	OO: for(var o = 0; o < cube.list.length; o++){
-		var result = cube.list[o];
-		var value = data;
-		var f = 0;
+	CUBE.outputToCube(query, query.cube, query.tree, 0);
 
-		var part=undefined;
-		for(; f < edges.length - 1; f++){
-			part=result[edges[f].name];
-			if (part.dataIndex===undefined) part=edges[f].domain.getPartByKey(part);//DEFAULT DOMAIN DOES NOT RETURN PARTITION OBJECTS, SPECIAL DEREF REQUIRED
-			if (part.dataIndex==value.length) continue OO; //NULL VALUE FOUND, BUT NOT TO BE REPORTED
-			value = value[part.dataIndex];
-		}//for
-		part=result[edges[f].name];
-		if (part==null || part.dataIndex===undefined)
-			part=edges[f].domain.getPartByKey(part);//DEFAULT DOMAIN DOES NOT RETURN PARTITION OBJECTS, SPECIAL DEREF REQUIRED
-
-		if (query.select instanceof Array){
-			value = value[part.dataIndex];
-
-			for(var s = 0; s < query.select.length; s++){
-				value[s] = result[query.select[s].name];
-			}//for
-		} else{
-			value[part.dataIndex] = result[query.select.name];
-		}//endif
-	}//for
-
-	query.data = data;
 	return query;
 };//method
 
@@ -311,9 +288,6 @@ CUBE.prototype.aggOP=function(query){
 		}//endif
 	}//for
 
-	var output=[result];
-
-
 	//TURN AGGREGATE OBJECTS TO SINGLE NUMBER
 	for(var c in resultColumns){
 		var s=resultColumns[c];
@@ -326,7 +300,8 @@ CUBE.prototype.aggOP=function(query){
 		result[s.name] = r(result[s.name]);
 	}//for
 
-	query.list = output;
+	query.list = [result];
+	query.cube = result;
 	return query;
 };
 
@@ -376,22 +351,37 @@ CUBE.prototype.setOP = function(query){
 ////////////////////////////////////////////////////////////////////////////////
 CUBE.toTable=function(query){
 
-	if (query.data===undefined) D.error("Can only turn a cube into a table at this time");
+	if (query.cube===undefined) D.error("Can only turn a cube into a table at this time");
 	if (query.edges.length!=2) D.error("can only handle 2D cubes right now.");
 
-	var parts0=query.edges[0].domain.partitions.copy();
-	if (query.edges[0].allowNulls) parts0.push(query.edges[0].domain.NULL);
-	var parts1=query.edges[1].domain.partitions.copy();
-	if (query.edges[1].allowNulls) parts1.push(query.edges[1].domain.NULL);
+	var columns=[];
+	var parts=[];
+	var f="<CODE>";
+	var param=[];
+	var coord="";
+	for(var w=0;w<query.edges.length;w++){
+		f=f.replace("<CODE>","for(var p"+w+"=0;p"+w+"<parts["+w+"].length;p"+w+"++){\n<CODE>}\n");
+		param.push("parts["+w+"][p"+w+"]");
+		coord+="[p"+w+"]";
+
+		columns[w]=query.edges[w];
+		var d=query.edges[w].domain;
+		if (d.end===undefined) d.end=function(part){return part;};
+		parts[w]=[];
+		d.partitions.forall(function(v,i){parts[w][i]=d.end(v);});
+		if (query.edges[w].allowNulls) parts[w].push(d.end(d.NULL));
+	}//for
+
+	CUBE.select2Array(query.select).forall(function(s, i){
+		columns.push(s);
+		param.push("query.cube"+coord+((query.select instanceof Array) ? "[\""+s.name+"\"]" : ""));
+	});
 
 	var output=[];
-	for(var p0=0;p0<parts0.length;p0++){
-		for(var p1=0;p1<parts1.length;p1++){
-			var row=[parts0[p0].name, parts1[p1].name, query.data[p0][p1]];
-			output.push(row);
-		}//for
-	}//for
-	return output;
+	f=f.replace("<CODE>", "var row=["+param.join(", ")+"];\noutput.push(row);\n");
+	eval(f);
+
+	return {"columns":columns, "rows":output};
 
 };//method
 
@@ -401,11 +391,11 @@ CUBE.Cube2List=function(query){
 	if (query.select instanceof Array) name=undefined;
 
 
-	if (query.data===undefined) D.error("Can only turn a cube into a table at this time");
+	if (query.cube===undefined) D.error("Can only turn a cube into a table at this time");
 
 	var output=[];
 	if (query.edges.length==2){
-		if (!(typeof(query.data[0][0])+"").startsWith("[object")) name=CUBE.select2Array(query.select)[0].name;  //ES QUERIES WILL RETURN A VALUE, NOT A TUPLE
+		if (!(typeof(query.cube[0][0])+"").startsWith("[object")) name=CUBE.select2Array(query.select)[0].name;  //ES QUERIES WILL RETURN A VALUE, NOT A TUPLE
 		var parts0=query.edges[0].domain.partitions.copy();
 		if (query.edges[0].allowNulls) parts0.push(query.edges[0].domain.NULL);
 		var parts1=query.edges[1].domain.partitions.copy();
@@ -415,9 +405,9 @@ CUBE.Cube2List=function(query){
 			for(var p1=0;p1<parts1.length;p1++){
 				var row={};
 				if (name===undefined){
-					row=Util.copy(query.data[p0][p1], row);
+					row=Util.copy(query.cube[p0][p1], row);
 				}else{
-					row[name]=query.data[p0][p1];
+					row[name]=query.cube[p0][p1];
 				}//endif
 				row[query.edges[0].name]=parts0[p0];
 				row[query.edges[1].name]=parts1[p1];
@@ -426,17 +416,17 @@ CUBE.Cube2List=function(query){
 		}//for
 		return output;
 	}else if (query.edges.length==1){
-		if (!(typeof(query.data[0])+"").startsWith("[object")) name=CUBE.select2Array(query.select)[0].name;  //ES QUERIES WILL RETURN A VALUE, NOT A TUPLE
+		if (!(typeof(query.cube[0])+"").startsWith("[object")) name=CUBE.select2Array(query.select)[0].name;  //ES QUERIES WILL RETURN A VALUE, NOT A TUPLE
 		var parts0=query.edges[0].domain.partitions.copy();
 		if (query.edges[0].allowNulls) parts0.push(query.edges[0].domain.NULL);
 
 		for(var p0=0;p0<parts0.length;p0++){
 			var row;
 			if (name===undefined){
-				row=Util.copy(query.data[p0], {});
+				row=Util.copy(query.cube[p0], {});
 			}else{
 				row={};
-				row[name]=query.data[p0];
+				row[name]=query.cube[p0];
 			}//endif
 			row[query.edges[0].name]=parts0[p0].value;  //ONLY FOR default DOMAIN
 			output.push(row);
@@ -454,18 +444,18 @@ CUBE.Cube2List=function(query){
 ////////////////////////////////////////////////////////////////////////////////
 CUBE.normalizeByCohort=function(query, multiple){
 	if (multiple===undefined) multiple=1.0;
-	if (query.data===undefined) D.error("Can only normalize a cube into a table at this time");
+	if (query.cube===undefined) D.error("Can only normalize a cube into a table at this time");
 
 //	SELECT
 //		count/sum(count over Cohort) AS nCount
 //	FROM
 //		query.cube
 
-	for(var c=0;c<query.data.length;c++){
+	for(var c=0;c<query.cube.length;c++){
 		var total=0;
-		for(var e=0;e<query.data[c].length;e++) total+=Math.abs(query.data[c][e]);
+		for(var e=0;e<query.cube[c].length;e++) total+=Math.abs(query.cube[c][e]);
 		if (total!=0){
-			for(var e=0;e<query.data[c].length;e++) query.data[c][e]*=(multiple/total);
+			for(var e=0;e<query.cube[c].length;e++) query.cube[c][e]*=(multiple/total);
 		}//endif
 	}//for
 };//method
@@ -475,18 +465,18 @@ CUBE.normalizeByCohort=function(query, multiple){
 ////////////////////////////////////////////////////////////////////////////////
 CUBE.normalizeByX=function(query, multiple){
 	if (multiple===undefined) multiple=1;
-	if (query.data===undefined) D.error("Can only normalize a cube into a table at this time");
+	if (query.cube===undefined) D.error("Can only normalize a cube into a table at this time");
 
 //	SELECT
 //		count/sum(count over Cohort) AS nCount
 //	FROM
 //		query.cube
 
-	for(var e=0;e<query.data[0].length;e++){
+	for(var e=0;e<query.cube[0].length;e++){
 		var total=0;
-		for(var c=0;c<query.data.length;c++) total+=Math.abs(query.data[c][e]);
+		for(var c=0;c<query.cube.length;c++) total+=Math.abs(query.cube[c][e]);
 		if (total!=0){
-			for(var c=0;c<query.data.length;c++) query.data[c][e]*=(multiple/total);
+			for(var c=0;c<query.cube.length;c++) query.cube[c][e]*=(multiple/total);
 		}//endif
 	}//for
 };//method
@@ -495,19 +485,64 @@ CUBE.normalizeByX=function(query, multiple){
 
 
 
-// CONVERT THE indexed OBJECT TO A FLAT LIST FOR output
-CUBE.outputToList = function(output, indexed, edges, coordinates, depth, order){
+// CONVERT THE tree STRUCTURE TO A FLAT LIST FOR output
+CUBE.outputToList = function(output, tree, edges, coordinates, depth, order){
 	if (depth == edges.length){
-//		Util.copy(coordinates, indexed);		//should not need coordinates
-		output.push(indexed);
+		//FRSH OBJECT
+//		var obj={};
+//		Util.copy(coordinates, obj);
+//		Util.copy(tree, obj);
+//		output.push(obj);
+
+		//ADD TO THE TREE'S LEAVES
+		Util.copy(coordinates, tree);
+		output.push(tree);
 	} else{
-		var keys = Object.keys(indexed);
+		var keys = Object.keys(tree);
 		for(var k = 0; k < keys.length; k++){
 			coordinates[edges[depth].name]=edges[depth].domain.map[keys[k]];
-			CUBE.outputToList(output, indexed[keys[k]], edges, coordinates, depth + 1)
+			CUBE.outputToList(output, tree[keys[k]], edges, coordinates, depth + 1)
 		}//for
 	}//endif
 };//method
+
+
+// CONVERT THE tree STRUCTURE TO A cube
+CUBE.outputToCube = function(query, cube, tree, depth){
+	var edge=query.edges[depth];
+	var domain=edge.domain;
+	var parts=domain.partitions;
+
+	if (depth == query.edges.length-1){
+		if (query.select instanceof Array){
+			var keys=Object.keys(tree);
+			for(var k=keys.length;k--;){
+				var p=domain.getPartByKey(keys[k]).dataIndex;
+				var tuple={};
+				for(var s = 0; s < query.select.length; s++){
+					tuple[query.select[s].name] = tree[keys[k]][query.select[s].name];
+				}//for
+				cube[p]=tuple;
+			}//for
+		} else{
+			var keys=Object.keys(tree);
+			for(var k=keys.length;k--;){
+				var p=domain.getPartByKey(keys[k]).dataIndex;
+				cube[p]=tree[keys[k]][query.select.name];
+			}//for
+		}//endif
+		return;
+	}//endif
+
+	var keys=Object.keys(tree);
+	for(var k=keys.length;k--;){
+		var p=domain.getPartByKey(keys[k]).dataIndex;
+		CUBE.outputToCube(query, cube[p], tree[keys[k]], depth+1);
+	}//for
+};//method
+
+
+
 
 ////ADD THE MISSING DOMAIN VALUES
 //CUBE.nullToList=function(output, edges, depth){
@@ -517,11 +552,11 @@ CUBE.outputToList = function(output, indexed, edges, coordinates, depth, order){
 //};//method
 
 
-CUBE.getAggregate = function(result, output, select, edges){
+CUBE.getAggregate = function(result, tree, select, edges){
 
 	//FIND RESULT IN output
 	//output IS A TREE INDEXED BY THE PARTITION CANONICAL VALUES
-	var agg = output;
+	var agg = tree;
 	for(var i = 0; i < edges.length - 1; i++){
 		var part=result[edges[i].name];
 		var v = edges[i].domain.getKey(part);

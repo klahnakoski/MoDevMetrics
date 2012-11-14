@@ -16,7 +16,7 @@ REVIEWS.getLastUpdated=function(successFunction){
 	});
 
 	q.run(function(data){
-		successFunction(Date.newInstance(data.data.last_request));
+		successFunction(Date.newInstance(data.cube.last_request));
 	});
 };
 
@@ -35,7 +35,9 @@ REVIEWS.makeSchema=function(successFunction){
 			"reviewer":{"type":"string", "store":"yes", "index":"not_analyzed"},
 			"request_time":{"type":"long", "store":"yes", "index":"not_analyzed"},
 			"review_time":{"type":"long", "store":"yes", "index":"not_analyzed"},
-			"done_reason":{"type":"string", "store":"yes", "index":"not_analyzed"}
+			"done_reason":{"type":"string", "store":"yes", "index":"not_analyzed"},
+			"component":{"type":"string", "store":"yes", "index":"not_analyzed"},
+			"product":{"type":"string", "store":"yes", "index":"not_analyzed"}
 		}
 	};
 
@@ -130,7 +132,7 @@ REVIEWS.newInsert=function(){
 		});
 
 		maxBugQuery.run(function(maxResults){
-			var maxBug=maxResults.data.bug_id;
+			var maxBug=maxResults.cube.bug_id;
 			var maxBatches=Math.floor(maxBug/REVIEWS.BATCH_SIZE);
 //			maxBatches=32;
 			REVIEWS.insertBatch(0, maxBatches, REVIEWS.updateAlias);
@@ -180,7 +182,7 @@ REVIEWS.resumeInsert=function(){
 			});
 			ESQuery.INDEXES.reviews={"path":"/"+REVIEWS.lastInsert+"/"+REVIEWS.typeName};
 			q.run(function(maxResults){
-				var minBug=maxResults.data.minBug;
+				var minBug=maxResults.cube.minBug;
 				var maxBatches=Math.floor(minBug/REVIEWS.BATCH_SIZE)-1;
 				REVIEWS.insertBatch(0, maxBatches, REVIEWS.updateAlias);
 			});

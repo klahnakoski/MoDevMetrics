@@ -27,18 +27,18 @@ CUBE.cube.newInstance = function(edges, depth, select){
 
 
 //PROVIDE THE SAME EDGES, BUT IN DIFFERENT ORDER
-CUBE.cube.transpose = function(cube, edges, select){
+CUBE.cube.transpose = function(query, edges, select){
 	//MAKE COMBO MATRIX
-	var smap = CUBE.cube.transpose.remap(cube.select, select);
-	var fmap = CUBE.cube.transpose.remap(cube.edges, edges);
+	var smap = CUBE.cube.transpose.remap(query.select, select);
+	var fmap = CUBE.cube.transpose.remap(query.edges, edges);
 
 	//ENSURE THE CUBE HAS ALL DIMENSIONS
-	var data = CUBE.cube.newInstance(edges, 0, []);
+	var cube = CUBE.cube.newInstance(edges, 0, []);
 
 	var loops = "";
 	var ends = "";
-	var source = "var s=cube.data";
-	var dest = "var d=data";
+	var source = "var s=query.cube";
+	var dest = "var d=cube";
 
 	for(var i = 0; i < edges.length; i++){
 		loops += "for(var a" + i + " in cube.edges[" + i + "].domain.partitions){\n";
@@ -56,7 +56,7 @@ CUBE.cube.transpose = function(cube, edges, select){
 	return {
 		"edges":edges,
 		"select":select,
-		"data":data
+		"cube":cube
 	}
 
 };//method
@@ -75,23 +75,23 @@ CUBE.cube.transpose.remap = function(oldColumns, newColumns){
 };//method
 
 
-CUBE.cube.toList=function(cube){
+CUBE.cube.toList=function(query){
 
 	var output=[];
-	if (cube.edges.length==1){
-		var parts=cube.edges[0].domain.partitions;
+	if (query.edges.length==1){
+		var parts=query.edges[0].domain.partitions;
 		for(var p=parts.length;p--;){
 			var obj={};
-			obj[cube.edges[0].name]=parts[p].value;
+			obj[query.edges[0].name]=parts[p].value;
 
-			if (cube.select instanceof Array){
-				for(var s=cube.select.length;s--;){
+			if (query.select instanceof Array){
+				for(var s=query.select.length;s--;){
 					//I FORGET IF ELEMENTS IN CUBE ARE OBJECTS, OR ARRAYS
-					obj[cube.select[s].name]=cube.data[p][s];
-//					obj[cube.select[s].name]=cube.data[cube.select[s].name];
+					obj[query.select[s].name]=query.cube[p][s];
+//					obj[cube.select[s].name]=cube.cube[cube.select[s].name];
 				}//for
 			}else{
-				obj[cube.select.name]=cube.data[p];
+				obj[query.select.name]=query.cube[p];
 			}//endif
 			output.push(obj);
 		}//for

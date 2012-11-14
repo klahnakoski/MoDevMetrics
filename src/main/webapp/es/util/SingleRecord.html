@@ -6,6 +6,7 @@
 
 
 
+<script type="application/javascript;version=1.7" src="../lib/jquery.js"></script>
 <script type="application/javascript;version=1.7" src="../js/charts/HelperFunctions.js"></script>
 
 <script type="application/javascript;version=1.7" src="../js/Debug.js"></script>
@@ -16,7 +17,9 @@
 <script type="application/javascript;version=1.7" src="../js/MVEL.js"></script>
 <script type="application/javascript;version=1.7" src="../js/aCompiler.js"></script>
 
-<script type="application/javascript;version=1.7" src="../js/Trampoline.js"></script><script type="application/javascript;version=1.7" src="../js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="../js/Trampoline.js">
+
+</script><script type="application/javascript;version=1.7" src="../js/CUBE.js"></script>
 
 
 
@@ -26,8 +29,13 @@
 	D.println(new Date(1352207434236).format("yyyy-NNN-dd HHmmss"));
 
 	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
-		{"term":{"bug_id":1111}}
-	]}}},"from":0,"size":100,"sort":[]};
+		{
+                "term": {
+                  "bug_id": "810415"
+                }
+              },
+		{"term":{"product":["firefox"]}}
+	]}}},"from":0,"size":1000,"sort":[]};
 
 
 	//	ElasticSearch.get({
@@ -39,7 +47,7 @@
 //	});
 
 	ElasticSearch.post({
-		"URL":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+		"URL":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews121113_172522/review/_search",
 		"query":esQuery,
 
 		success: function(data){

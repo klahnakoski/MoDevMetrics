@@ -23,7 +23,7 @@
 
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
-<script type="application/javascript;version=1.7" src="lib/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/lib/protovis-d3.3.js"></script>
@@ -131,7 +131,7 @@
 var query;
 var query2;
 var CUTOFF=Duration.newInstance("3week");
-$("#description").html("<span class='warning'>SLOW (about 30sec)</span> This chart includes all bugs identified since the Start Date.  The chart counts both the time-since-identified on open bugs, and the time-to-close on closed bugs.  If you just got here, and have not chosen a filter below, THIS WILL TAKE SOME TIME.");
+$("#description").html("<span class='warning'>SLOW (about 30sec)</span> This chart includes all bugs identified since the Start Date.  For closed bugs, the duration is defined from the time the bug is identified, to the time the bug is closed.  For open bugs, the duration is defined from the time the bug is identified, to the end of today (GMT).  These durations are partitioned into intervals, counted, and charted here.  If you just got here, and have not chosen a filter below, THIS WILL TAKE SOME TIME.");
 
 
 
@@ -176,8 +176,8 @@ var createChart = function(){
 		]}
 	});
 
-	ES.InjectFilter(query);
-	ES.InjectFilter(query2);
+	ES.InjectGUIFilter(query);
+	ES.InjectGUIFilter(query2);
 
 	status.message("Download ID Times");
 	query.run(function(identified){
@@ -211,7 +211,7 @@ var createChart = function(){
 					{"name":"average", "value":"duration", "operation":"average"},
 					{"name":"under", "value":"duration<"+CUTOFF.milli+" ? 1 : 0", "operation":"sum"}
 				]
-			}).data;
+			}).cube;
 
 
 			$("#stats").html(
@@ -229,15 +229,13 @@ var createChart = function(){
 				"select": {"name":"Count", "value":"1", "operation":"count"},
 				"edges":[
 					{"name":"Cohort", "value":"\"Number of bugs\""},
-					{"name":"Time Since Marked", "value":"Duration.newInstance(duration)", allowNulls:true,  "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
+					{"name":"Time Since Marked", "value":"Duration.newInstance(duration)", allowNulls:true,
+						"domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX, "value":"name+\"+\""}}
 				]
 			});
 
 //				CUBE.normalizeByCohort(time2res, 100);
 			time2res.edges[1].domain.NULL.name="Over "+state.maxX;
-			time2res.edges[1].domain.partitions.forall(function(v, i){
-				v.name+="+";
-			});
 
 			status.message("Make chart");
 			aChart.showCCC({
@@ -261,7 +259,7 @@ var createChart = function(){
 			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
 			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
 			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
-			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.now().floor("day").add("-18week")},
+			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.now().ceilingDay().add("-18week")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		],
 		[

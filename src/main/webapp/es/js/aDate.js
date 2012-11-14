@@ -13,6 +13,10 @@ Date.prototype.getMilli = Date.prototype.getTime;
 
 
 Date.prototype.add = function(interval){
+	if (interval===undefined || interval==null){
+		D.error("expecting an interval to add");
+	}//endif
+
 	var i = Duration.newInstance(interval);
 
 	var addMilli = i.milli - (Duration.MILLI_VALUES["month"] * i.month);
@@ -306,16 +310,64 @@ Date.Timezones = {
 };
 
 
+
 Date.getTimezone = function(){
 	D.warning("Date.getTimezone is incomplete!");
-	var offset = new Date().getTimezoneOffset();
+	Date.getTimezone=function(){
+		var offset = new Date().getTimezoneOffset();
 
-	//CHEAT AND SIMPLY GUESS
-	if (offset == 240 || offset == 300) return "EDT";
-	if (offset == 420 || offset == 480) return "PDT";
-	return "(" + Math.round(offset / 60) + "GMT)"
-
+		//CHEAT AND SIMPLY GUESS
+		if (offset == 240 || offset == 300) return "EDT";
+		if (offset == 420 || offset == 480) return "PDT";
+		return "(" + Math.round(offset / 60) + "GMT)"
+	};
+	return Date.getTimezone();
 };
+
+////////////////////////////////////////////////////////////////////////////////
+// WHAT IS THE MOST COMPACT DATE FORMAT TO DISTINGUISH THE RANGE
+////////////////////////////////////////////////////////////////////////////////
+Date.getBestFormat=function(minDate, maxDate, interval){
+	var minFormat=5; //SECONDS
+	if (interval.milli>=Duration.MILLI_VALUES.minute) minFormat=4;
+	if (interval.milli>=Duration.MILLI_VALUES.hour) minFormat=3;
+	if (interval.milli>=Duration.MILLI_VALUES.day) minFormat=2;
+	if (interval.milli>=Duration.MILLI_VALUES.month) minFormat=1;
+	if (interval.month>=Duration.MONTH_VALUES.month) minFormat=1;
+	if (interval.month>=Duration.MONTH_VALUES.year) minFormat=0;
+
+	var maxFormat=0;
+	var span=maxDate.subtract(minDate, interval);
+	if (span.month<Duration.MONTH_VALUES.year) maxFormat=1;
+	if (span.month<Duration.MONTH_VALUES.month) maxFormat=2;
+	if (span.milli<Duration.MILLI_VALUES.day*31) maxFormat=2;
+	if (span.milli<Duration.MILLI_VALUES.day) maxFormat=3;
+	if (span.milli<Duration.MILLI_VALUES.hour) maxFormat=4;
+	if (span.milli<Duration.MILLI_VALUES.minute) maxFormat=5;
+
+	if (maxFormat>=minFormat) maxFormat=Math.max(0, minFormat-1);	//SOME CONTEXT IS GOOD
+
+	//INDEX BY [minFormat][maxFormat]
+//	var formats=[
+//	["yyyy", "yyyy", "yyyy", "yyyy", "yyyy", "yyyy"],
+//	["yyyy", "NNN yyyy", "NNN yyyy", "NNN yyyy", "NNN yyyy", "NNN yyyy"],
+//	["yyyy", "NNN yyyy", "dd-NNN-yyyy", "yyyy-NNN-dd HH:mm", "yyyy-NNN-dd HH:mm", "yyyy-NNN-dd HH:ss"],
+//	["yyyy", "NNN yyyy", "dd-NNN-yyyy", "yyyy-NNN-dd HH:mm", "yyyy-NNN-dd HH:mm", "yyyy-NNN-dd HH:ss"],
+//	["yyyy", "NNN yyyy", "dd-NNN-yyyy", "yyyy-NNN-dd HH:mm", "yyyy-NNN-dd HH:mm", "yyyy-NNN-dd HH:ss"],
+//	["yyyy", "NNN yyyy", "dd-NNN-yyyy", "yyyy-NNN-dd HH:mm", "yyyy-NNN-dd HH:mm", "yyyy-NNN-dd HH:ss"],
+//	];	
+
+	var output="";
+	for(var i=maxFormat; i<=minFormat; i++){
+		if (i!=maxFormat) output+=Date.getBestFormat.SEPERATOR[i];
+		output+=Date.getBestFormat.ORDERED[i];
+	}//for
+	return output;
+};//method
+//                               0      1      2     3     4     5
+Date.getBestFormat.ORDERED  =["yyyy", "NNN", "dd", "HH", "mm", "ss"];
+Date.getBestFormat.SEPERATOR=[    "",   "-",  "-",  " ",  ":",  ":"];
+
 
 
 var Duration = function(){
@@ -364,7 +416,8 @@ Duration.String2Duration = function(text){
 	var interval = text.rightBut(s);
 	var amount = (s == 0 ? 1 : CNV.String2Integer(text.left(s)));
 
-	if (Duration.MILLI_VALUES[interval] === undefined) D.error(interval + " is not a recognized duration type (did you use the pural form by mistake?");
+	if (Duration.MILLI_VALUES[interval] === undefined)
+		D.error(interval + " is not a recognized duration type (did you use the pural form by mistake?");
 	if (Duration.MONTH_VALUES[interval] == 0){
 		output.milli = amount * Duration.MILLI_VALUES[interval];
 	} else{
@@ -547,3 +600,5 @@ Duration.prototype.format=function(interval, rounding){
 	output=Math.round(output, rounding);
 	return output+interval;
 };//method
+
+

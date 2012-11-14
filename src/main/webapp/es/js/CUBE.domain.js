@@ -101,6 +101,9 @@ CUBE.domain["default"] = function(column, sourceColumns){
 	d.end = function(partition){
 		return partition.value;
 	};
+
+	CUBE.domain.compileEnd(d);
+
 };
 
 
@@ -175,12 +178,14 @@ CUBE.domain.time = function(column, sourceColumns){
 		eval(f);
 	}//endif
 
-	d.getPartByKey=function(value){
-		if (value == null) return this.NULL;
-		if (value < this.min || this.max <= value) return this.NULL;
-		var i=Math.floor(value.subtract(this.min, this.interval).divideBy(this.interval));
+	d.getPartByKey=function(key){
+		if (key == null  || key=="null") return this.NULL;
+		if (typeof(key)=="string")
+			key=new Date(key);
+		if (key < this.min || this.max <= key) return this.NULL;
+		var i=Math.floor(key.subtract(this.min, this.interval).divideBy(this.interval));
 
-		if (this.partitions[i].min>value || value>=this.partitions[i].max) D.error("programmer error");
+		if (this.partitions[i].min>key || key>=this.partitions[i].max) D.error("programmer error");
 		return this.partitions[i];
 	};//method
 
@@ -204,6 +209,8 @@ CUBE.domain.time = function(column, sourceColumns){
 	d.getKey = function(partition){
 		return partition.value;
 	};//method
+
+	CUBE.domain.compileEnd(d);
 
 };//method;
 
@@ -264,23 +271,28 @@ CUBE.domain.duration = function(column, sourceColumns){
 
 
 	if (column.test === undefined){
-		d.getPartByKey = function(value){
-			if (value == null) return this.NULL;
-			var floor = value.floor(this.interval);
+		d.getPartByKey = function(key){
+			if (key == null || key=="null") return this.NULL;
+			if (typeof(key)=="string") key=Duration.newInstance(key);
+			try{
+				var floor = key.floor(this.interval);
+			}catch(e){
+				D.error();
 
+			}
 			if (this.min === undefined){//NO MINIMUM REQUESTED
 				if (this.min === undefined && this.max === undefined){
 					this.min = floor;
 					this.max = Util.coalesce(this.max, floor.add(this.interval));
 					CUBE.domain.duration.addRange(this.min, this.max, this);
-				} else if (value.milli < this.min.milli){
+				} else if (key.milli < this.min.milli){
 //					var newmin=floor;
 					CUBE.domain.duration.addRange(floor, this.min, this);
 					this.min = floor;
 				}//endif
 			} else if (this.min == null){
 				D.error("Should not happen");
-			} else if (value.milli < this.min.milli){
+			} else if (key.milli < this.min.milli){
 				return this.NULL;
 			}//endif
 
@@ -289,12 +301,12 @@ CUBE.domain.duration = function(column, sourceColumns){
 					this.min = Util.coalesce(this.min, floor);
 					this.max = floor.add(this.interval);
 					CUBE.domain.duration.addRange(this.min, this.max, this);
-				} else if (value.milli >= this.max.milli){
+				} else if (key.milli >= this.max.milli){
 					var newmax = floor.add(this.interval);
 					CUBE.domain.duration.addRange(this.max, newmax, this);
 					this.max = newmax;
 				}//endif
-			} else if (value.milli >= this.max.milli){
+			} else if (key.milli >= this.max.milli){
 				column.outOfDomainCount++;
 				return this.NULL;
 			}//endif
@@ -328,6 +340,9 @@ CUBE.domain.duration = function(column, sourceColumns){
 	d.getKey = function(partition){
 		return partition.value;
 	};//method
+
+	CUBE.domain.compileEnd(d);
+
 };//method;
 
 
@@ -345,6 +360,7 @@ CUBE.domain.duration.addRange = function(min, max, domain){
 };//method
 
 
+
 CUBE.domain.set = function(column, sourceColumns){
 
 	var d = column.domain;
@@ -354,16 +370,13 @@ CUBE.domain.set = function(column, sourceColumns){
 	d.NULL.name="null";
 
 
-
-
-	
 	d.compare = function(a, b){
 		return CUBE.domain.value.compare(d.getKey(a), d.getKey(b));
 	};//method
 
-	d.format = function(partition){
-		if (partition.toString===undefined) return CNV.Object2JSON(partition);
-		return partition.toString();
+	d.format = function(part){
+		if (part.toString===undefined) return CNV.Object2JSON(part);
+		return part.toString();
 	};//method
 	
 
@@ -474,6 +487,7 @@ CUBE.domain.set = function(column, sourceColumns){
 	}//endif
 
 
+	CUBE.domain.compileEnd(d);
 };//method
 
 
@@ -612,3 +626,25 @@ CUBE.domain.set.compileKey=function(key, domain){
 	}//endif
 
 };//method
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// IF THE DOMAIN DEFINES A value, THEN MAKE AN end() FUNCTION WHICH WILL RETURN
+// THAT VALUE, INSTEAD OF RETURNING THE DOMAIN OBJECT
+////////////////////////////////////////////////////////////////////////////////
+CUBE.domain.compileEnd=function(domain){
+	if (domain.value!=undefined){
+		domain.end=function(part){
+			//HOPEFULLY THE FIRST RUN WILL HAVE ENOUGH PARTITIONS TO DETERMINE A TYPE
+			var columns=CUBE.getColumns(domain.partitions);
+			//RECOMPILE SELF WITH NEW INFO
+			domain.end=aCompile.expression(domain.value, [{"columns":columns}]);
+			return domain.end(part);
+		};//method
+	}//endif
+};
+
+

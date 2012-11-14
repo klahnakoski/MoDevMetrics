@@ -260,7 +260,7 @@ GUI.FixState=function(){
 		var type=typeof(GUI.relations[0]);
 		if (type!="function"){
 			GUI.relations.forall(function(r, i){
-				GUI.relations[i]=aCompile.method(r, [state]);
+				GUI.relations[i]=aCompile.method_usingObjects(r, [state]);
 			});
 		}//endif
 

@@ -7,7 +7,7 @@
 
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
-<script type="application/javascript;version=1.7" src="lib/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/lib/protovis-d3.3.js"></script>
@@ -160,8 +160,8 @@ var createChart = function(){
 		]}
 	});
 
-	ES.InjectFilter(query);
-	ES.InjectFilter(queryClosed);
+	ES.InjectGUIFilter(query);
+	ES.InjectGUIFilter(queryClosed);
 
 
 	status.message("Calling ES");
