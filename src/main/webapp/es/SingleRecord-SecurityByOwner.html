@@ -14,7 +14,7 @@
 <script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script><script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/Trampoline.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="js/aThread.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
 
 
 
@@ -68,7 +68,7 @@
 		success: function(data){
 			D.println(CNV.Object2JSON(data));
 
-//			var bugCount=new CUBE().calc2List({
+//			var bugCount=(yield (CUBE.calc2List({
 //				"from":data.facets.owners,
 //				"select":""
 //			});

@@ -86,14 +86,9 @@ aChart.showCCC=function(params){
 
 	var categoryLabels=[];
 	if (chartCube.edges.length==2){
-		categoryLabels=new CUBE().calc2List({
-			"from":
-				chartCube.edges[0].domain.partitions,			//EACH SERIES NAMES
-			"select":[
-				{"name":"label", "value":"value"},
-				{"name":"color", "value":"Util.coalesce(colour, aChart.FAVORITE_COLOUR)"}
-			]
-		}).list;
+		categoryLabels=chartCube.edges[0].domain.partitions.map(function(v, i){
+			return v.name;
+		});
 		if (chartCube.edges[0].allowNulls) categoryLabels.push(chartCube.edges[0].domain.NULL.name);
 	}//endif
 
@@ -143,7 +138,7 @@ aChart.showCCC=function(params){
 	var data=chartCube.cube.copy();
 	data.forall(function(v,i,d){
 		v=v.copy();
-		v.splice(0,0, categoryLabels[i].label);
+		v.splice(0,0, categoryLabels[i]);
 		d[i]=v;
 	});
 

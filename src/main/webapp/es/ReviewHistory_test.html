@@ -64,12 +64,12 @@
 <script type="application/javascript;version=1.7" src="js/Debug.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script><script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/Trampoline.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="js/aThread.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
-<script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script><script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
 
 
@@ -255,7 +255,7 @@ D.println(CNV.List2Tab(doneReview));
 					if (flooring.indexOf("month")!=-1) flooring="month";
 					if (flooring.indexOf("year")!=-1) flooring="year";
 
-					var reviewQueues = new CUBE().calc2List({
+					var reviewQueues = (yield (CUBE.calc2List({
 						"from":
 							inReview,
 						"select":[
@@ -271,10 +271,10 @@ D.println(CNV.List2Tab(doneReview));
 							{"name":"start_time", "value":"new Date(modified_ts)"}
 						],
 						"where":"modified_ts<"+new Date(state.sampleMax).getMilli()+"  && (doneReview.bug_id==null || doneReview.modified_ts>="+new Date(state.sampleMin).getMilli()+")\n"
-					}).list;
+					}))).list;
 D.println(CNV.List2Tab(reviewQueues));
 
-					var chart=new CUBE().calc2Cube({
+					var chart=CUBE.calc2Cube({
 						"name":
 							"Historical Review Queue for "+state.requestee,
 						"from":reviewQueues,

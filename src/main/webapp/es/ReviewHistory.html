@@ -48,12 +48,12 @@
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/Trampoline.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="js/aThread.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
-<script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script><script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
 
 
@@ -100,7 +100,14 @@
 
 	$("#description").html("Shows the number of reviews the reviewer was reviewing for each interval.  This can include new reviews, or reviews untouched since the previous interval.");
 
+	var thread;
 	var createChart=function(){
+		if (thread!==undefined)
+			thread.kill();
+		thread=aThread.run( __createChart());
+	};
+
+	var __createChart = function(){
 
 		var sampleInterval=Duration.newInstance(state.sampleInterval);
 		var sampleMin=Date.newInstance(state.sampleMin);//.floor(sampleInterval);
@@ -130,34 +137,34 @@
 		status.message("Call ES");
 
 
-		esQuery.run(function(reviewQueues){
-			status.message("Prep Chart");
+		var reviewQueues=yield (esQuery.run());
+
+		status.message("Prep Chart");
 
 D.println(CNV.List2Tab(reviewQueues));
 
-			var chart=new CUBE().calc2Cube({
-				"name":
-					"Historical Review Queue for "+state.requestee,
-				"from":reviewQueues.list,
-				"select":{"name":"Pending", "value":"1", operation:"sum"},
-				"edges":[
-					{"name":"Bug ID", "value":"bug_id", "order":["request_time", "review_time"]},
-					{"name":"Date",
-						"test":"time.min<=Util.coalesce(Date.newInstance(review_time), Date.now().floorDay().add('day')) && new Date(request_time)<time.max",
-						"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, value:"value"}
-					}
-				]
-			});
+		var chart=yield (CUBE.calc2Cube({
+			"name":
+				"Historical Review Queue for "+state.requestee,
+			"from":reviewQueues.list,
+			"select":{"name":"Pending", "value":"1", operation:"sum"},
+			"edges":[
+				{"name":"Bug ID", "value":"bug_id", "order":["request_time", "review_time"]},
+				{"name":"Date",
+					"test":"time.min<=Util.coalesce(Date.newInstance(review_time), Date.now().floorDay().add('day')) && new Date(request_time)<time.max",
+					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, value:"value"}
+				}
+			]
+		}));
 
-			aChart.showCCC({
-				"id":"chart",
-				"type":"stacked",
-				"cube":chart
-			});
-
-			status.message("Done");
-
+		aChart.showCCC({
+			"id":"chart",
+			"type":"stacked",
+			"cube":chart
 		});
+
+		status.message("Done");
+
 	};//createChart
 
 

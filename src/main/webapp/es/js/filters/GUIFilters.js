@@ -140,7 +140,7 @@ GUI.State2URL.isEnabled=false;
 
 GUI.URL2State = function(){
 	var urlState = jQuery.bbq.getState();
-	ForAllKey(urlState, function(k, v){
+	forAllKey(urlState, function(k, v){
 		state[k] = v;
 	});
 };

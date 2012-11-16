@@ -21,51 +21,6 @@ if (window.location.hostname=="metrics.mozilla.com"){
 }//endif
 
 
-ElasticSearch.get=function(param){
-	param.type="GET";
-	return ElasticSearch.post(param);
-};
-
-
-ElasticSearch.post=function(URL, requestData, successFunction, errorFunction){
-	var type="POST";
-	if (requestData===undefined){
-		type=Util.coalesce(URL.type, "POST");
-		errorFunction=URL.error;
-		successFunction=URL.success;
-		requestData=URL.query;
-		URL=URL.URL;
-	}//endif
-
-
-	var t=typeof(requestData);
-	if (t!="string") requestData=JSON.stringify(requestData);
-
-	$.ajax({
-		url: URL,
-		type: type,
-		data: requestData,
-		dataType: "json",
-
-		success: function(data){
-			if (data._shards!==undefined && data._shards.failed>0){
-				D.error("Request failed");
-				return;
-			}//endif
-
-			successFunction(data);
-		},
-		error: function(errorData, errorMsg, errorThrown){
-			$('.loading').hide();
-			if (errorFunction!==undefined){
-				errorFunction(errorMsg, errorData);
-			}else{
-				D.error(errorMsg, errorThrown);
-			}//endif
-		}
-	});
-};//method
-
 
 ElasticSearch.makeBasicQuery=function(esfilter){
 	return {
@@ -101,11 +56,13 @@ ElasticSearch.injectFilter=function(esquery, filter){
 
 var ElasticSearchQuery = function(query, successFunction, errorFunction){
 	if (query.success!==undefined){
-		if (query.query===undefined) D.error("if passing a parameter object, it must have both query and success attributes");
+		if (query.query===undefined)
+			D.error("if passing a parameter object, it must have both query and success attributes");
 		this.callbackObject = query;
 		this.query = query.query;
 	}else{
-		if (successFunction===undefined) D.error("expecting an object to report back response");
+		if (successFunction===undefined)
+			D.error("expecting an object to report back response");
 		this.callbackObject = {"success":successFunction, "error":errorFunction};
 		this.query = query;
 	}//endif

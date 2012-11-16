@@ -13,6 +13,7 @@ importScript("CUBE.js");
 
 
 
+
 var ESQuery = function(query){
 	this.query = query;
 	this.compile();
@@ -30,63 +31,48 @@ ESQuery.INDEXES={
 };
 
 
-ESQuery.prototype.run = function(successFunction,errorFunction){
-	if (successFunction!==undefined) this.callback = successFunction;
 
+ESQuery.run=function(query){
+	var esq=new ESQuery(query);
+	return esq.run();	//RETURN A GENERATOR
+};
+
+
+ESQuery.prototype.run = function(){
 	var URL=window.ElasticSearch.baseURL+ESQuery.INDEXES[this.query.from.split(".")[0]].path+"/_search";
-	var self=this;
+	var postResult;
+	try{
+		postResult=yield (Rest.post({
+			url: URL,
+			data: JSON.stringify(this.esQuery),
+			dataType: "json"
+		}));
 
-	this.esRequest = $.ajax({
-		url: URL,
-		type: "POST",
-		data: JSON.stringify(this.esQuery),
-		dataType: "json",
-
-		success: function(data){
-			if (data._shards.failed>0){
-				status.message("ES Failure! Retrying...");
-				D.warning("Must resend query...");
-				setTimeout(function(){
-					self.run(successFunction,errorFunction);
-				}, 1000);
-				return;
-			}//endif
-			self.success(data)
-		},
-		error: function(errorData, errorMsg, errorThrown){
-			if (errorFunction!==undefined){
-				errorFunction(errorMsg, errorData, errorThrown);
-			}else{
-				D.error(errorMsg, errorThrown);
-			}//endif
-		}
-	});
-};//method
-
-
-
-ESQuery.prototype.success = function(data){
-	if (this.callback===undefined) return;
+		if (postResult._shards.failed>0){
+			status.message("ES Failure! Retrying...");
+			D.warning("Must resend query...");
+			yield aThread.sleep(1000);
+			yield this.run();
+		}//endif
+	}catch(e){
+		D.error("Error with ESQuery", e);
+	}//try
 
 	status.message("Extract Cube");
 
 	if (this.esMode == "terms"){
-		this.termsResults(data);
+		this.termsResults(postResult);
 	} else if (this.esMode == "setop"){
-		this.mvelResults(data);
+		this.mvelResults(postResult);
 	} else if (this.esMode == "terms_stats"){
-		this.terms_statsResults(data);
+		this.terms_statsResults(postResult);
 	} else{//statistical
-		this.statisticalResults(data);
+		this.statisticalResults(postResult);
 	}//endif
 
+	yield this.query;
+};//method
 
-	this.callback(this.query);
-};
-
-ESQuery.prototype.error = function(errorMsg, errorData, errorThrown){
-	D.error(errorMsg)
-};
 
 ESQuery.prototype.kill = function(){
 	if (this.esRequest!==undefined){

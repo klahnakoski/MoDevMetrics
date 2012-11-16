@@ -1,6 +1,6 @@
 
 
-var ForAllKey=function(map, func){
+var forAllKey=function(map, func){
 	var keys=Object.keys(map);
 	for(var i=keys.length;i--;){
 		var key=keys[i];

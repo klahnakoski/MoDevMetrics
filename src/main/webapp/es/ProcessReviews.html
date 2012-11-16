@@ -67,12 +67,12 @@
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/Trampoline.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="js/aThread.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
-<script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script><script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
 
 
@@ -211,7 +211,7 @@
 		doneReview.list.appendArray(switchedReview.list);
 
 
-		var reviewQueues = new CUBE().calc2List({
+		var reviewQueues = (yield (CUBE.calc2List({
 			"from":
 				inReview.list,
 			"select":[
@@ -231,7 +231,7 @@
 				}
 			]
 
-		}).list;
+		}))).list;
 
 
 		return reviewQueues;

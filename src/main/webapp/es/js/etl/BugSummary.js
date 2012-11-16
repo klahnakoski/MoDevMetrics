@@ -5,7 +5,6 @@ importScript("../filters/ProgramFilter.js");
 
 var BUG_SUMMARY={};
 
-BUG_SUMMARY.BATCH_SIZE=20000;
 
 BUG_SUMMARY.aliasName="bug_history";
 BUG_SUMMARY.typeName="bug_history";
@@ -24,23 +23,20 @@ BUG_SUMMARY.BUG_STATUS=[
 BUG_SUMMARY.allPrograms = CNV.Table2List(MozillaPrograms);
 
 
-BUG_SUMMARY.getLastUpdated=function(successFunction){
-	var q=new ESQuery({
+BUG_SUMMARY.getLastUpdated=function(){
+	var data=yield (ESQuery.run({
 		"from":BUG_SUMMARY.aliasName,
 		"select":[
-			{"name":"last_request", "value":REVIEWS.aliasName+".last_modified", "operation":"maximum"}
+			{"name":"last_request", "value":BUG_SUMMARY.aliasName+".last_modified", "operation":"maximum"}
 		]
-	});
-
-	q.run(function(data){
-		successFunction(Date.newInstance(data.cube.last_request));
-	});
+	}));
+	yield (Date.newInstance(data.cube.last_request));
 };
 
 
-BUG_SUMMARY.makeSchema=function(successFunction){
+BUG_SUMMARY.makeSchema=function(){
 	//MAKE SCHEMA
-	BUG_SUMMARY.indexName="reviews"+Date.now().format("yyMMdd_HHmmss");
+	BUG_SUMMARY.indexName="bug_history"+Date.now().format("yyMMdd_HHmmss");
 
 	var config={
 		"_source":{"enabled": true},
@@ -67,11 +63,11 @@ BUG_SUMMARY.makeSchema=function(successFunction){
 	};
 
 	//ADD MOZILLA PROGRAMS
-	new CUBE.calc2List({
+	(yield (CUBE.calc2List({
 		"from":BUG_SUMMARY.allPrograms,
 		"edges":["projectName"]
-	}).list.forEach(function(v,i){
-		config.properties[v+"_time"]={"type":"string", "store":"yes", "index":"not_analyzed"};
+	}))).list.forall(function(v,i){
+		config.properties[v.projectName+"_time"]={"type":"string", "store":"yes", "index":"not_analyzed"};
 	});
 
 	var setup={
@@ -81,167 +77,44 @@ BUG_SUMMARY.makeSchema=function(successFunction){
 	setup.mappings[BUG_SUMMARY.typeName]=config;
 
 
-	ElasticSearch.post(ElasticSearch.baseURL+"/"+BUG_SUMMARY.indexName, setup, function(data){
-		D.println(data);
+	var data=yield (Rest.post({
+		"url":ElasticSearch.baseURL+"/"+BUG_SUMMARY.indexName,
+		"data":setup
+	}));
+
+	D.println(data);
 
 //		var lastAlias;  		//THE VERSION CURRENTLY IN USE
 
 		//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
-		$.ajax({
-			url: ElasticSearch.baseURL+"/_aliases",
-			type: "GET",
-			dataType: "json",
+	data=yield (Rest.get({url: ElasticSearch.baseURL+"/_aliases"}));
+	D.println(data);
 
-			success: function(data){
-				D.println(data);
+	var keys=Object.keys(data);
+	for(var k=keys.length;k--;){
+		var name=keys[k];
+		if (!name.startsWith(BUG_SUMMARY.aliasName)) continue;
+		if (name==BUG_SUMMARY.indexName) continue;
 
-				//REMOVE ALL BUT MOST RECENT REVIEW
-//				ForAllKeys(data, function(name){
-//
-//				});
-				var keys=Object.keys(data);
-				for(var k=keys.length;k--;){
-					var name=keys[k];
-					if (!name.startsWith(BUG_SUMMARY.aliasName)) continue;
-					if (name==BUG_SUMMARY.indexName) continue;
+		if (BUG_SUMMARY.lastInsert===undefined || name>BUG_SUMMARY.lastInsert){
+			BUG_SUMMARY.lastInsert=name;
+		}//endif
 
-					if (BUG_SUMMARY.lastInsert===undefined || name>BUG_SUMMARY.lastInsert){
-						BUG_SUMMARY.lastInsert=name;
-					}//endif
+		if (Object.keys(data[name].aliases).length>0){
+			BUG_SUMMARY.lastAlias=name;
+			continue;
+		}//endif
 
-					if (Object.keys(data[name].aliases).length>0){
-						BUG_SUMMARY.lastAlias=name;
-						continue;
-					}//endif
-
-					//OLD, REMOVE IT
-					$.ajax({
-						url: ElasticSearch.baseURL+"/"+name,
-						type: "DELETE",
-						dataType: "json",
-
-						success: function(data){},
-						error: function(errorData, errorMsg, errorThrown){D.error(errorMsg, errorThrown);}
-					});
-				}//for
-
-				successFunction();
-
-			},
-			error: function(errorData, errorMsg, errorThrown){D.error(errorMsg, errorThrown);}
-		});
-
-	});
+		//OLD, REMOVE IT
+		yield (Rest["delete"]({url: ElasticSearch.baseURL+"/"+name}));
+	}//for
 };
 
 
 
 
-BUG_SUMMARY.newInsert=function(){
 
-	BUG_SUMMARY.makeSchema(function(){
-		var maxBugQuery=new ESQuery({
-			"select": {"name":"bug_id", "value":"bugs.bug_id", "operation":"maximum"},
-			"from" : "bugs",
-			"edges" :[]
-		});
-
-		maxBugQuery.run(function(maxResults){
-			var maxBug=maxResults.cube.bug_id;
-			var maxBatches=Math.floor(maxBug/BUG_SUMMARY.BATCH_SIZE);
-//			maxBatches=32;
-			BUG_SUMMARY.insertBatch(0, maxBatches, BUG_SUMMARY.updateAlias);
-		});
-	});
-};
-
-
-BUG_SUMMARY.resumeInsert=function(){
-	//MAKE SCHEMA
-
-	//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
-	$.ajax({
-		url: ElasticSearch.baseURL+"/_aliases",
-		type: "GET",
-		dataType: "json",
-		error: function(errorData, errorMsg, errorThrown){D.error(errorMsg, errorThrown);},
-		success: function(data){
-			D.println(data);
-
-			var keys=Object.keys(data);
-			for(var k=keys.length;k--;){
-				var name=keys[k];
-				if (!name.startsWith(BUG_SUMMARY.aliasName)) continue;
-
-				if (Object.keys(data[name].aliases).length>0){
-					BUG_SUMMARY.lastAlias=name;
-				}//endif
-
-				if (BUG_SUMMARY.lastInsert===undefined || name>BUG_SUMMARY.lastInsert){
-					BUG_SUMMARY.lastInsert=name;
-				}//endif
-			}//for
-
-			if (BUG_SUMMARY.lastInsert===undefined || BUG_SUMMARY.lastInsert==BUG_SUMMARY.lastAlias){
-				return BUG_SUMMARY.newInsert();
-			}//endif
-			BUG_SUMMARY.indexName=BUG_SUMMARY.lastInsert;
-
-			//GET THE MAX AND MIN TO FIND WHERE TO START
-			var q=new ESQuery({
-				"from":"reviews",
-				"select":[
-					{"name":"maxBug", "value":"reviews.bug_id", "operation":"maximum"},
-					{"name":"minBug", "value":"reviews.bug_id", "operation":"minimum"}
-					]
-			});
-			ESQuery.INDEXES.reviews={"path":"/"+BUG_SUMMARY.lastInsert+"/"+BUG_SUMMARY.typeName};
-			q.run(function(maxResults){
-				var minBug=maxResults.cube.minBug;
-				var maxBatches=Math.floor(minBug/BUG_SUMMARY.BATCH_SIZE)-1;
-				BUG_SUMMARY.insertBatch(0, maxBatches, BUG_SUMMARY.updateAlias);
-			});
-
-		}//success
-	});
-};
-
-//UPDATE BUG_SUMMARY THAT MAY HAVE HAPPENED AFTER startTime
-BUG_SUMMARY.incrementalInsert=function(startTime){
-
-	//FIND RECENTLY TOUCHED BUGS
-	var q=new ESQuery({
-		"from":"bugs",
-		"select": {"name":"bug_id", "value":"bug_id", "operation":"count"},
-		"edges":[
-			{"name":"bug_ids", "value":"bug_id"}
-		],
-		"esfilter":{
-			"range":{"modified_ts":{"gte":startTime.getMilli()}}
-		}
-	});
-	q.run(function(data){
-		var buglist=[];
-		data.edges[0].domain.partitions.forall(function(v,i){
-			buglist.push(v.value);
-		});
-
-		//FIND REVIEW QUEUES ON THOSE BUGS
-		BUG_SUMMARY.getReviews(buglist, null, function(reviews){
-			BUG_SUMMARY.deleteReviews(buglist, function(){
-				BUG_SUMMARY.insert(reviews, function(){
-					status.message("Done");
-					D.println("Done incremental update");
-				});
-			});
-		});
-	});
-};
-
-
-
-
-BUG_SUMMARY.getBugSummaries=function(minBug, maxBug, successFunction){
+BUG_SUMMARY.get=function(minBug, maxBug){
 
 	//DETERMINE IF WE ARE LOOKING AT A RANGE, OR A SPECIFIC SET, OF BUGS
 	var esfilter;
@@ -288,10 +161,10 @@ BUG_SUMMARY.getBugSummaries=function(minBug, maxBug, successFunction){
 	});
 
 	//ADD FACETS TO COUNT ALL MOZILLA PROGRAMS
-	new CUBE().calc2List({
+	(yield (CUBE.calc2List({
 		"from":BUG_SUMMARY.allPrograms,
 		"edges":["projectName"]
-	}).list.forall(function(v, i){
+	}))).list.forall(function(v, i){
 		times.facets[v.projectName+"_time"]={
 			"terms_stats": {
 				"key_field": "bug_id",
@@ -317,66 +190,49 @@ BUG_SUMMARY.getBugSummaries=function(minBug, maxBug, successFunction){
 
 
 	status.message("Get Current Bug Info");
-	current.run(function(currentData){
-		status.message("Get Historical Timestamps");
-		ElasticSearchQuery.Run({"query":times,"success":function(timesData){
-			var joinItAll={
-				"from":currentData.list,
-				"select":[],
-				"edges":[]
-			};
+	var currentData=yield (current.run());
 
-			currentData.select.forall(function(v, i){
-				joinItAll.select.push({"name":v.name, "value":v.name});
-			});
+	status.message("Get Historical Timestamps");
+	var timesData=yield (Rest.post({
+		"url":window.ElasticSearch.queryURL,
+		"data":times
+	}));
 
-			//JOIN IN ALL TIME FACETS
-			var removeList=[];
-			ForAllKey(timesData.facets, function(k, v){
-				var domainName=k.deformat()+"part"
-				var s={"name":k, "value":"Util.coalesce("+domainName+".min, null)", "operation":"minimum"};
-				var e={"name":domainName+"__edge", "value":"bug_id", allowNulls:true, "domain":{"name":domainName, "type":"set", "key":"term", "partitions":v.terms}};
-				removeList.push(domainName+"__edge");
-				joinItAll.select.push(s);
-				joinItAll.edges.push(e);
-			});
 
-			var r=new CUBE().calc2List(joinItAll).list;
+	var joinItAll={
+		"from":currentData.list,
+		"select":[],
+		"edges":[]
+	};
 
-			//REMOVE EDGES
-			for(var e=removeList.length;e--;){
-				var k=removeList[e];
-				for(var i=r.length;i--;) r[i][k]=undefined;
-			}//for
-
-			successFunction(r);
-		}});
+	currentData.select.forall(function(v, i){
+		joinItAll.select.push({"name":v.name, "value":v.name});
 	});
 
+	//JOIN IN ALL TIME FACETS
+	var removeList=[];
+	forAllKey(timesData.facets, function(k, v){
+		var domainName=k.deformat()+"part";
+		var s={"name":k, "value":"Util.coalesce("+domainName+".min, null)", "operation":"minimum"};
+		var e={"name":domainName+"__edge", "value":"bug_id", allowNulls:true, "domain":{"name":domainName, "type":"set", "key":"term", "partitions":v.terms}};
+		removeList.push(domainName+"__edge");
+		joinItAll.select.push(s);
+		joinItAll.edges.push(e);
+	});
+
+	var r=(yield (CUBE.calc2List(joinItAll))).list;
+
+	//REMOVE EDGES
+	for(var e=removeList.length;e--;){
+		var k=removeList[e];
+		for(var i=r.length;i--;) r[i][k]=undefined;
+	}//for
+
+	yield r;
 };//method
 
 
-//PROCESS ALL BATCHES, IN REVERSE ORDER (NEWEST FIRST)
-//MAKE SURE THE DEEPEST STACKTRACE IS USED FIRST, SO RESULTS CAN BE GCed
-BUG_SUMMARY.insertBatch=function(b, max, workQueue){
-	if (b>max){
-		workQueue();
-		return;
-	}//endif
-
-	BUG_SUMMARY.insertBatch(b+1, max, function(){
-		BUG_SUMMARY.getReviews(b*BUG_SUMMARY.BATCH_SIZE, (b+1)*BUG_SUMMARY.BATCH_SIZE, function(reviews){
-			BUG_SUMMARY.insert(reviews, function(){
-				D.println("Done batch "+b+" into "+BUG_SUMMARY.indexName);
-				workQueue();
-			});
-		});
-	});
-
-};//method
-
-
-BUG_SUMMARY.insert=function(reviews, successFunction){
+BUG_SUMMARY.insert=function(reviews){
 	var uid=Util.UID();
 	var insert=[];
 	reviews.forall(function(r, i){
@@ -384,27 +240,16 @@ BUG_SUMMARY.insert=function(reviews, successFunction){
 		insert.push(JSON.stringify(r));
 	});
 	status.message("Push review queues to ES");
-	ElasticSearch.post(ElasticSearch.baseURL+"/"+BUG_SUMMARY.indexName+"/"+BUG_SUMMARY.typeName+"/_bulk", insert.join("\n"), successFunction);
+	yield (Rest.post({
+		"url":ElasticSearch.baseURL+"/"+BUG_SUMMARY.indexName+"/"+BUG_SUMMARY.typeName+"/_bulk",
+		"data":insert.join("\n")
+	}));
 };//method
 
 
 
-BUG_SUMMARY.deleteBugSummary=function(bugList, successFunction){
-	var numleft=bugList.length;
-
-	bugList.forall(function(v, i){
-		//DELETE BUG_SUMMARY OF THOSE BUGS FROM COPY
-		$.ajax({
-			url: ElasticSearch.baseURL+"/"+BUG_SUMMARY.aliasName+"/"+BUG_SUMMARY.typeName+"?q=bug_id:"+v,
-			type: "DELETE",
-//			dataType: "json",
-			error: function(errorData, errorMsg, errorThrown){D.error(errorMsg, errorThrown);},
-			success: function(){
-				numleft--;
-				if (numleft==0)
-					successFunction();
-			}
-		});
-	});
-
+BUG_SUMMARY["delete"]=function(bugList){
+	for(var i=0;i<bugList.length;i++){
+		yield(Rest["delete"]({url: ElasticSearch.baseURL+"/"+BUG_SUMMARY.aliasName+"/"+BUG_SUMMARY.typeName+"?q=bug_id:"+bugList[i]}));
+	}//for
 };//method

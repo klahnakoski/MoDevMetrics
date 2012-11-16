@@ -61,12 +61,12 @@
 <script type="application/javascript;version=1.7" src="js/Debug.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script><script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/Trampoline.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="js/aThread.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
-<script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script><script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
 
 
@@ -222,7 +222,7 @@
 					if (flooring.indexOf("month")!=-1) flooring="month";
 					if (flooring.indexOf("year")!=-1) flooring="year";
 
-					var reviewQueues = new CUBE().calc2List({
+					var reviewQueues = (yield (CUBE.calc2List({
 						"from":
 							inReview,
 						"select":[
@@ -239,25 +239,25 @@
 							{"name":"start_time", "value":"new Date(modified_ts)"}
 						],
 						"where":"modified_ts<"+new Date(state.sampleMax).getMilli()+" && (doneReview.bug_id==null || doneReview.modified_ts>="+new Date(state.sampleMin).getMilli()+")"
-					}).list;
+					}))).list;
 
-					var uniqueBugs=new CUBE().calc2List({
+					var uniqueBugs=(yield (CUBE.calc2List({
 						"from":reviewQueues,
 						"edges":[
 							{"name":"bug_id", "value":"bug_id"}
 						]
-					}).list.length;
+					}))).list.length;
 
 
 
 
-//					var counts=new CUBE().calc2List({
+//					var counts=(yield (CUBE.calc2List({
 //						"from":reviewQueues,
 //						"select":[
 //							{"name":"numReviewsRequested", "value":"1", "operation":"count"},
 //							{"name":"numReviewsCompleted", "value":"end_time<Date.now().floorDay() ? 1 : 0", "operation":"sum"}
 //						]
-//					}).list[0];
+//					}))).list[0];
 
 					var numReviewsRequested=0;
 					var numReviewsCompleted=0;
@@ -284,7 +284,7 @@
 
 
 
-					var chart=new CUBE().calc2Cube({
+					var chart=CUBE.calc2Cube({
 						"name":
 							"Historical Review Queue for Firefox and Core, Reviews requested in Past 3 Months",
 						"from":reviewQueues,

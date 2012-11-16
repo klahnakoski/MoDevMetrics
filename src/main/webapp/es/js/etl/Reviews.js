@@ -2,28 +2,24 @@
 
 var REVIEWS={};
 
-REVIEWS.BATCH_SIZE=20000;
-
 REVIEWS.aliasName="reviews";
 REVIEWS.typeName="review";
 
-REVIEWS.getLastUpdated=function(successFunction){
-	var q=new ESQuery({
+
+REVIEWS.getLastUpdated=function(){
+	var result=ESQuery.run({
 		"from":REVIEWS.aliasName,
 		"select":[
 			{"name":"last_request", "value":"reviews.request_time", "operation":"maximum"}
 		]
 	});
-
-	q.run(function(data){
-		successFunction(Date.newInstance(data.cube.last_request));
-	});
+	yield Date.newInstance(result.cube.last_request);
 };
 
 
 REVIEWS.makeSchema=function(successFunction){
 	//MAKE SCHEMA
-	REVIEWS.indexName="reviews"+Date.now().format("yyMMdd_HHmmss");
+	REVIEWS.indexName=REVIEWS.aliasName+Date.now().format("yyMMdd_HHmmss");
 
 	var config={
 		"_source":{"enabled": true},
@@ -47,204 +43,50 @@ REVIEWS.makeSchema=function(successFunction){
 	};
 	setup.mappings[REVIEWS.typeName]=config;
 
+	var data=yield (Rest.post({
+		"url":ElasticSearch.baseURL+"/"+REVIEWS.indexName,
+		"data":setup
+	}));
+	D.println(data);
 
-	ElasticSearch.post(ElasticSearch.baseURL+"/"+REVIEWS.indexName, setup, function(data){
-		D.println(data);
+	//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
+	data=yield (Rest.get({url: ElasticSearch.baseURL+"/_aliases"}));
 
-//		var lastAlias;  		//THE VERSION CURRENTLY IN USE
+	D.println(data);
 
-		//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
-		$.ajax({
-			url: ElasticSearch.baseURL+"/_aliases",
-			type: "GET",
-			dataType: "json",
+	//REMOVE ALL BUT MOST RECENT REVIEW
+	//				forAllKeys(data, function(name){
+	//
+	//				});
+	var keys=Object.keys(data);
+	for(var k=keys.length;k--;){
+		var name=keys[k];
+		if (!name.startsWith(REVIEWS.aliasName)) continue;
+		if (name==REVIEWS.indexName) continue;
 
-			success: function(data){
-				D.println(data);
+		if (REVIEWS.lastInsert===undefined || name>REVIEWS.lastInsert){
+			REVIEWS.lastInsert=name;
+		}//endif
 
-				//REMOVE ALL BUT MOST RECENT REVIEW
-//				ForAllKeys(data, function(name){
-//
-//				});
-				var keys=Object.keys(data);
-				for(var k=keys.length;k--;){
-					var name=keys[k];
-					if (!name.startsWith(REVIEWS.aliasName)) continue;
-					if (name==REVIEWS.indexName) continue;
+		if (Object.keys(data[name].aliases).length>0){
+			REVIEWS.lastAlias=name;
+			continue;
+		}//endif
 
-					if (REVIEWS.lastInsert===undefined || name>REVIEWS.lastInsert){
-						REVIEWS.lastInsert=name;
-					}//endif
-
-					if (Object.keys(data[name].aliases).length>0){
-						REVIEWS.lastAlias=name;
-						continue;
-					}//endif
-
-					//OLD, REMOVE IT
-					$.ajax({
-						url: ElasticSearch.baseURL+"/"+name,
-						type: "DELETE",
-						dataType: "json",
-
-						success: function(data){},
-						error: function(errorData, errorMsg, errorThrown){D.error(errorMsg, errorThrown);}
-					});
-				}//for
-
-				successFunction();
-
-			},
-			error: function(errorData, errorMsg, errorThrown){D.error(errorMsg, errorThrown);}
-		});
-
-	});
+		//OLD, REMOVE IT
+		yield (Rest["delete"]({url: ElasticSearch.baseURL+"/"+name}));
+	}//for
 };
 
 
 REVIEWS.updateAlias=function(){
-	status.message("Done bulk load, change alias pointer");
-	//MAKE ALIAS FROM reviews
-	var rename={
-		"actions":[
-			{"add":{"index":REVIEWS.indexName, "alias":REVIEWS.aliasName}}
-		]
-	};
-	if (REVIEWS.lastAlias!==undefined){
-		rename.actions.push({"remove":{"index":REVIEWS.lastAlias, "alias":REVIEWS.aliasName}});
-	}//endif
-
-	ElasticSearch.post(ElasticSearch.baseURL+"/_aliases", rename, function(result){
-		status.message("Success!");
-		D.println(result);
-	});
+	yield (ETL.updateAlias(REVIEWS.aliasName, REVIEWS.lastAlias, REVIEWS.indexName));
+	status.message("Success!");
 };
 
 
 
-REVIEWS.newInsert=function(){
-
-	REVIEWS.makeSchema(function(){
-		var maxBugQuery=new ESQuery({
-			"select": {"name":"bug_id", "value":"bugs.bug_id", "operation":"maximum"},
-			"from" : "bugs",
-			"edges" :[]
-		});
-
-		maxBugQuery.run(function(maxResults){
-			var maxBug=maxResults.cube.bug_id;
-			var maxBatches=Math.floor(maxBug/REVIEWS.BATCH_SIZE);
-//			maxBatches=32;
-			REVIEWS.insertBatch(0, maxBatches, REVIEWS.updateAlias);
-		});
-	});
-};
-
-
-REVIEWS.resumeInsert=function(){
-	//MAKE SCHEMA
-
-	//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
-	$.ajax({
-		url: ElasticSearch.baseURL+"/_aliases",
-		type: "GET",
-		dataType: "json",
-		error: function(errorData, errorMsg, errorThrown){D.error(errorMsg, errorThrown);},
-		success: function(data){
-			D.println(data);
-
-			var keys=Object.keys(data);
-			for(var k=keys.length;k--;){
-				var name=keys[k];
-				if (!name.startsWith(REVIEWS.aliasName)) continue;
-
-				if (Object.keys(data[name].aliases).length>0){
-					REVIEWS.lastAlias=name;
-				}//endif
-
-				if (REVIEWS.lastInsert===undefined || name>REVIEWS.lastInsert){
-					REVIEWS.lastInsert=name;
-				}//endif
-			}//for
-
-			if (REVIEWS.lastInsert===undefined || REVIEWS.lastInsert==REVIEWS.lastAlias){
-				return REVIEWS.newInsert();
-			}//endif
-			REVIEWS.indexName=REVIEWS.lastInsert;
-
-			//GET THE MAX AND MIN TO FIND WHERE TO START
-			var q=new ESQuery({
-				"from":"reviews",
-				"select":[
-					{"name":"maxBug", "value":"reviews.bug_id", "operation":"maximum"},
-					{"name":"minBug", "value":"reviews.bug_id", "operation":"minimum"}
-					]
-			});
-			ESQuery.INDEXES.reviews={"path":"/"+REVIEWS.lastInsert+"/"+REVIEWS.typeName};
-			q.run(function(maxResults){
-				var minBug=maxResults.cube.minBug;
-				var maxBatches=Math.floor(minBug/REVIEWS.BATCH_SIZE)-1;
-				REVIEWS.insertBatch(0, maxBatches, REVIEWS.updateAlias);
-			});
-
-		}//success
-	});
-};
-
-//UPDATE REVIEWS THAT MAY HAVE HAPPENED AFTER startTime
-REVIEWS.incrementalInsert=function(startTime){
-
-	//FIND RECENTLY TOUCHED BUGS
-	var q=new ESQuery({
-		"from":"bugs",
-		"select": {"name":"bug_id", "value":"bug_id", "operation":"count"},
-		"edges":[
-			{"name":"bug_ids", "value":"bug_id"}
-		],
-		"esfilter":{
-			"range":{"modified_ts":{"gte":startTime.getMilli()}}
-		}
-	});
-	q.run(function(data){
-		var buglist=[];
-		data.edges[0].domain.partitions.forall(function(v,i){
-			buglist.push(v.value);
-		});
-
-		//FIND REVIEW QUEUES ON THOSE BUGS
-		REVIEWS.getReviews(buglist, null, function(reviews){
-			REVIEWS.deleteReviews(buglist, function(){
-				REVIEWS.insert(reviews, function(){
-					status.message("Done");
-					D.println("Done incremental update");
-				});
-			});
-		});
-	});
-};
-
-
-//REVIEWS.getAllReviews=function(){
-//
-//	return [
-//		//INSERT A REVIEW
-//		{
-//			"bug_id":100,
-//			"attach_id":101,
-//			"request_time":Date.now().addHour(-2).getMilli(),
-//			"review_time":Date.now().addHour(-2).getMilli(),
-//			"requester":"kyle",
-//			"reviewer":"joe"
-//		}
-//	];
-//
-//
-//
-//};
-
-
-
-REVIEWS.getReviews=function(minBug, maxBug, successFunction){
+REVIEWS.get=function(minBug, maxBug){
 
 	//DETERMINE IF WE ARE LOOKING AT A RANGE, OR A SPECIFIC SET, OF BUGS
 	var esfilter;
@@ -352,14 +194,14 @@ REVIEWS.getReviews=function(minBug, maxBug, successFunction){
 	});
 
 
-	////////////////////////////////////////////////////////////////////////
 	status.message("Get Review Requests");
-	esQuery.run(function(inReview){
+	var inReview=yield(esQuery.run());
+
 	status.message("Get Review Ends");
-	esQuery2.run(function(doneReview){
+	var doneReview=yield(esQuery2.run());
+
 	status.message("Get Review Re-assignments");
-	esQuery3.run(function(switchedReview){
-	////////////////////////////////////////////////////////////////////////
+	var switchedReview=yield(esQuery3.run());
 
 	status.message("processing Data...");
 	D.println("start processing "+Date.now().format("HH:mm:ss"));
@@ -371,7 +213,7 @@ REVIEWS.getReviews=function(minBug, maxBug, successFunction){
 	doneReview.list.appendArray(switchedReview.list);
 
 
-	var reviewQueues = new CUBE().calc2List({
+	var reviewQueues = (yield (CUBE.calc2List({
 		"from":
 			inReview.list,
 		"select":[
@@ -399,43 +241,15 @@ REVIEWS.getReviews=function(minBug, maxBug, successFunction){
 			}
 		]
 
-	}).list;
-
+	}))).list;
 
 	D.println("end processing "+Date.now().format("HH:mm:ss"));
-	status.message("Done");
-	successFunction(reviewQueues);
-		
-	////////////////////////////////////////////////////////////////////////
-	});
-	});
-	});
-	////////////////////////////////////////////////////////////////////////
 
+	yield (reviewQueues);
 };//method
 
 
-//PROCESS ALL BATCHES, IN REVERSE ORDER (NEWEST FIRST)
-//MAKE SURE THE DEEPEST STACKTRACE IS USED FIRST, SO RESULTS CAN BE GCed
-REVIEWS.insertBatch=function(b, max, workQueue){
-	if (b>max){
-		workQueue();
-		return;
-	}//endif
-
-	REVIEWS.insertBatch(b+1, max, function(){
-		REVIEWS.getReviews(b*REVIEWS.BATCH_SIZE, (b+1)*REVIEWS.BATCH_SIZE, function(reviews){
-			REVIEWS.insert(reviews, function(){
-				D.println("Done batch "+b+" into "+REVIEWS.indexName);
-				workQueue();
-			});
-		});
-	});
-
-};//method
-
-
-REVIEWS.insert=function(reviews, successFunction){
+REVIEWS.insert=function(reviews){
 	var uid=Util.UID();
 	var insert=[];
 	reviews.forall(function(r, i){
@@ -443,27 +257,16 @@ REVIEWS.insert=function(reviews, successFunction){
 		insert.push(JSON.stringify(r));
 	});
 	status.message("Push review queues to ES");
-	ElasticSearch.post(ElasticSearch.baseURL+"/"+REVIEWS.indexName+"/"+REVIEWS.typeName+"/_bulk", insert.join("\n"), successFunction);
+	yield (Rest.post({
+		"url":ElasticSearch.baseURL+"/"+REVIEWS.indexName+"/"+REVIEWS.typeName+"/_bulk",
+		"data":insert.join("\n")
+	}));
 };//method
 
 
 
-REVIEWS.deleteReviews=function(bugList, successFunction){
-	var numleft=bugList.length;
-
-	bugList.forall(function(v, i){
-		//DELETE REVIEWS OF THOSE BUGS FROM COPY
-		$.ajax({
-			url: ElasticSearch.baseURL+"/"+REVIEWS.aliasName+"/"+REVIEWS.typeName+"?q=bug_id:"+v,
-			type: "DELETE",
-//			dataType: "json",
-			error: function(errorData, errorMsg, errorThrown){D.error(errorMsg, errorThrown);},
-			success: function(){
-				numleft--;
-				if (numleft==0)
-					successFunction();
-			}
-		});
-	});
-
+REVIEWS["delete"]=function(bugList){
+	for(var i=0;i<bugList.length;i++){
+		yield (Rest["delete"](ElasticSearch.baseURL+"/"+REVIEWS.aliasName+"/"+REVIEWS.typeName+"?q=bug_id:"+bugList[i]));
+	}//for
 };//method

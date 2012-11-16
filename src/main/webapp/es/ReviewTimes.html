@@ -64,12 +64,12 @@
 <script type="application/javascript;version=1.7" src="js/Debug.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script><script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/Trampoline.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="js/aThread.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
-<script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script><script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
 
 
@@ -193,7 +193,7 @@
 					var inReview = MVEL.esFacet2List(data.facets.inReview);
 					var doneReview = MVEL.esFacet2List(data.facets.doneReview);
 
-					var durations = new CUBE().calc2List({
+					var durations = (yield (CUBE.calc2List({
 						"from":
 							inReview,
 						"select":[
@@ -206,9 +206,9 @@
 							{"name":"finished_time", "value":"modified_ts"},
 							{"name":"requestee", "value":"requestee"}
 						]
-					}).list;
+					}))).list;
 
-					var time2res = new CUBE().calc2Cube({
+					var time2res = CUBE.calc2Cube({
 						"name": "Review Times",
 						"from": durations,
 						"select": {"name":"Count", "value":"1", "operation":"count"},

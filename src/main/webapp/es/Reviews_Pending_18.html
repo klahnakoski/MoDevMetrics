@@ -48,12 +48,12 @@
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/Trampoline.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="js/aThread.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
-<script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script><script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
 
 
@@ -131,7 +131,7 @@ var createChart=function(){
 	ES.InjectGUIFilter(q);
 
 	q.run(function(old){
-		var oldRequests=new CUBE().calc2List({
+		var oldRequests=(yield (CUBE.calc2List({
 			"from":old.list,
 			"select":[
 				{"name":"avg_wait_time", "value":""+Date.now().floorDay().getMilli()+"-request_time", "operation":"average"},
@@ -144,10 +144,10 @@ var createChart=function(){
 			"order":[
 				"count"
 			]
-		}).list;
+		}))).list;
 
 		//ADD LINK TO BUGS
-		var show=new CUBE().calc2List({
+		var show=(yield (CUBE.calc2List({
 			"from":oldRequests,
 			"select":[
 				{"name":"Reviewer", value:"reviewer"},
@@ -155,7 +155,7 @@ var createChart=function(){
 				{"name":"Count", value:"count"},
 				{"name":"Bugs", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
 			]
-		}).list;
+		}))).list;
 
 		$("#oldReviews").html(CNV.List2HTMLTable(show));
 	});
@@ -182,7 +182,7 @@ var createChart=function(){
 
 	status.message("Get Review Data");
 	mainquery.run(function(reviews){
-		var chart=new CUBE().calc2Cube({
+		var chart=CUBE.calc2Cube({
 			"name":"Review Wait Times",
 			"from":reviews.list,
 			"select": {"name":"count", "value":"bug_id", "operation":"count"},
@@ -210,12 +210,12 @@ var createChart=function(){
 
 		status.message("Calc Stats");
 
-		var wait_times=new CUBE().calc2List({
+		var wait_times=(yield (CUBE.calc2List({
 			"from":reviews.list,
 			"select":{"name":"wait_time", "value":"Util.coalesce(review_time, Date.now().floorDay().add('day'))-request_time"}
-		}).list;
+		}))).list;
 
-		var stats=new CUBE().calc2Cube({
+		var stats=CUBE.calc2Cube({
 			"from":
 				wait_times,
 			"select": [

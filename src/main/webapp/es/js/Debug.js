@@ -35,10 +35,24 @@ D.warning = function(description, cause){
 };//method
 
 
+
+
+
 var Exception=function(description, cause){
 	this.description=description;
 	this.cause=cause;
 };
+
+//MAKE A GENERIC ERROR OBJECT DECRIBING THE ARGUMENTS PASSED
+Exception.error=function(){
+	var args = Array.prototype.slice.call(arguments).map(function(v,i){
+		if (typeof(v)=="string") return v;
+		return CNV.Object2JSON(v);
+	});
+	return new Exception("error called with arguments("+args.join(",\n"+")"), null);
+};
+
+
 
 Exception.prototype.toString=function(){
 	if (this.cause===undefined){

@@ -27,17 +27,18 @@
 <script type="application/javascript;version=1.7" src="../js/MVEL.js"></script>
 <script type="application/javascript;version=1.7" src="../js/aCompiler.js"></script>
 
-<script type="application/javascript;version=1.7" src="../js/Trampoline.js"></script>
+<script type="application/javascript;version=1.7" src="../js/aThread.js"></script>
 <script type="application/javascript;version=1.7" src="../js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="../js/CUBE.aggregate.js"></script>
 <script type="application/javascript;version=1.7" src="../js/CUBE.column.js"></script>
 <script type="application/javascript;version=1.7" src="../js/CUBE.cube.js"></script>
 <script type="application/javascript;version=1.7" src="../js/CUBE.domain.js"></script>
-<script type="application/javascript;version=1.7" src="../js/ESQuery.js"></script>
+<script type="application/javascript;version=1.7" src="../js/rest/Rest.js"></script><script type="application/javascript;version=1.7" src="../js/ESQuery.js"></script>
 <script type="application/javascript;version=1.7" src="../js/charts/aChart.js"></script>
 
 <script type="application/javascript;version=1.7" src="../js/charts/HelperFunctions.js"></script>
 <script type="application/javascript;version=1.7" src="../js/rest/ElasticSearch.js"></script>
+<script type="application/javascript;version=1.7" src="../js/etl/ETL.js"></script>
 <script type="application/javascript;version=1.7" src="../js/etl/Reviews.js"></script>
 
 
@@ -58,27 +59,30 @@
 	D.println(""+new Date(1351604852000).format("yy-MM-dd HH:mm:ss"));
 
 	$("#start").click(function(){
-		REVIEWS.newInsert();
+		aThread.run(REVIEWS.newInsert());
 	});
 
 	$("#resume").click(function(){
-		REVIEWS.resumeInsert();
+		aThread.run(REVIEWS.resumeInsert());
 	});
 
 	$("#inc").click(function(){
-
-		REVIEWS.getLastUpdated(function(startTime){
-			REVIEWS.incrementalInsert(startTime);
+		aThread.run(function(){
+			var startTime=yield (REVIEWS.getLastUpdated());
+			yield (ETL.incrementalInsert(REVIEWS, startTime));
 		});
 	});
 
 	$("#test").click(function(){
-		REVIEWS.getReviews(790640, 790641, function(reviews){
+		aThread.run((function(){
+			var reviews=yield (REVIEWS.get(790640, 790641));
 			$("#results").html(CNV.List2HTMLTable(reviews));
-		});
+			status.message("Done");
+		})());
 	});
 
 	D.addLog("results");
+	status.message("Done");
 </script>
 
 

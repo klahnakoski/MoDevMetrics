@@ -54,12 +54,12 @@
 <script type="application/javascript;version=1.7" src="js/Debug.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script><script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/Trampoline.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="js/aThread.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
-<script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script><script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
 
 
@@ -170,7 +170,7 @@ var createChart = function(){
 			var marked=CUBE.cube.toList(markedBugs);
 			var closed=CUBE.cube.toList(closedBugAges);
 
-			var markedInSample=new CUBE().calc2List({
+			var markedInSample=(yield (CUBE.calc2List({
 				"from":marked,
 				"select":[
 					{"name":"bug_id", "value":"bug_id", "operation":"one"},
@@ -185,17 +185,17 @@ var createChart = function(){
 					}
 				],
 				"where":"marked_time>"+sampleMin.getMilli()
-			}).list;
+			}))).list;
 
 
-			var summary=new CUBE().calc2List({
+			var summary=(yield (CUBE.calc2List({
 				"from":markedInSample,
 				"select":[
 					{"name":"total", "value":"bug_id", "operation":"count"},
 					{"name":"numClosed", "value":"is_closed", "operation":"sum"},
 					{"name":"numGood", "value":"is_good", "operation":"sum"}
 				]
-			}).list[0];
+			}))).list[0];
 
 			$("#summary2").html(
 				"<h3>"+
