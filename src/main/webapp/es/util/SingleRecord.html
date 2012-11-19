@@ -6,41 +6,107 @@
 
 
 
-<script type="application/javascript;version=1.7" src="../lib/jquery.js"></script>
-<script type="application/javascript;version=1.7" src="../js/charts/HelperFunctions.js"></script>
 
-<script type="application/javascript;version=1.7" src="../js/Debug.js"></script>
-<script type="application/javascript;version=1.7" src="../js/rest/ElasticSearch.js"></script>
-<script type="application/javascript;version=1.7" src="../js/util.js"></script>
+
+<script type="application/javascript;version=1.7" src="../lib/jquery.js"></script>
+<link type="text/css" href="../css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
+<script type="application/javascript;version=1.7" src="../lib/js/jquery-ui-1.8.16.custom.min.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/js/jquery.ba-bbq.js"></script>
+
+<link type="text/css" rel="stylesheet" href="../css/menu.css"/>
+
+
+<script type="application/javascript;version=1.7" src="../js/charts/Status.js"></script>
+
+
 <script type="application/javascript;version=1.7" src="../js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="../js/aDate.js"></script>
+
+<script type="application/javascript;version=1.7" src="../js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="../js/util.js"></script>
+<script type="application/javascript;version=1.7" src="../js/Debug.js"></script>
 <script type="application/javascript;version=1.7" src="../js/MVEL.js"></script>
 <script type="application/javascript;version=1.7" src="../js/aCompiler.js"></script>
 
-<script type="application/javascript;version=1.7" src="../js/aThread.js">
 
-</script><script type="application/javascript;version=1.7" src="../js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="../js/aThread.js"></script>
+<script type="application/javascript;version=1.7" src="../js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="../js/CUBE.aggregate.js"></script>
+<script type="application/javascript;version=1.7" src="../js/CUBE.column.js"></script>
+<script type="application/javascript;version=1.7" src="../js/CUBE.cube.js"></script>
+<script type="application/javascript;version=1.7" src="../js/CUBE.domain.js"></script>
+<script type="application/javascript;version=1.7" src="../js/rest/Rest.js"></script><script type="application/javascript;version=1.7" src="../js/ESQuery.js"></script>
+<script type="application/javascript;version=1.7" src="../js/charts/aChart.js"></script>
 
+<script type="application/javascript;version=1.7" src="../js/filters/ProgramFilter.js"></script>
+<script type="application/javascript;version=1.7" src="../js/charts/HelperFunctions.js"></script>
+<script type="application/javascript;version=1.7" src="../js/rest/ElasticSearch.js"></script>
 
+<script type="application/javascript;version=1.7" src="../js/etl/ETL.js"></script>
+<script type="application/javascript;version=1.7" src="../js/etl/Reviews.js"></script>
+<script type="application/javascript;version=1.7" src="../js/etl/BugSummary.js"></script>
 
 <div id="info"></div>
 
 <script type="application/javascript;version=1.7">
+
+aThread.run(function(){
+
 	D.println(new Date(1352207434236).format("yyyy-NNN-dd HHmmss"));
 
 	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
-		{
-                "term": {
-                  "bug_id": "810415"
-                }
-              },
-		{"term":{"product":["firefox"]}}
-	]}}},"from":0,"size":1000,"sort":[]};
+		{"script":{"script":"true"}},
+		{"and":[
+			{"term":{"reviewer":"jmuizelaar@mozilla.com"}},
+			{"range":{"request_time":{"lt":1353196800000}}},
+			{"or":[
+				{"range":{"review_time":{"gt":1345161600000}}},
+				{"missing":{"field":"review_time"}}
+			]}
+		]}
+	]}}},"from":0,"size":0,"sort":[],"facets":{"mvel":{"terms":{"script_field":
+"var coalesce = function(a, b){if (a==null) b; else a; \n"+
+"};\n"+
+"var cool_func = function(reviews){\n"+
+"output=\"\";\n"+
+"output =(coalesce(reviews.review_time, 1353196800000)-reviews.request_time > 86400000) ? 1 : 0\n"+
+"output;\n"+
+"};\n"+
+"cool_func(_source)\n"+
+""
+,"size":100000}}}};
+
+
+//	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
+////		{"script":{"script":"true"}},
+////		{"range":{"expires_on":{"gt":1353110400000}}},
+//		{"range":{"bug_id":{"gte":812400,"lt":812600}}}
+//	]}}},"from":0,"size":0,"sort":[],"facets":{"mvel":{"terms":{
+//		"script_field":
+////			"var coalesce = function(a, b){if (a==null){ b; }else{ a; }\n"+
+////			"};\n"+
+////			"var get = function(hash, key){\n"+
+////				"if (hash==null) null; else {\n"+
+////					"hash[key];\n"+
+////				"}\n"+
+////			"};\n"+
+//			"var cool_func = function(bugs){\n"+
+////				"output = coalesce(get(bugs.?previous_values, 'product_change_away_ts'), bugs.created_ts);\n"+
+////				"output = get(bugs.?previous_values, 'product_change_away_ts');\n"+
+//				"output = bugs.?previous_values;\n"+
+//				"output;\n"+
+//			"};\n"+
+//			"cool_func(_source)\n"+
+//			""
+//			,
+//		"size":100000
+//	}}}
+//	};
 
 
 	try{
 		var data=yield (Rest.post({
-			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews121113_172522/review/_search",
+			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews/review/_search",
 			"data":esQuery
 		}));
 
@@ -53,7 +119,9 @@
 	}catch(e){
 		D.warning(errorData);
 		document.getElementById("info").innerHTML = "Response Error.  Make sure you are connected to the MPT network.";
-	};
+	}
+
+});
 
 </script>
 

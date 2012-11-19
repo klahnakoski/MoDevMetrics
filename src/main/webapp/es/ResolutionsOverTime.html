@@ -3,20 +3,6 @@
 <HEAD>
 </HEAD>
 <BODY>
-<!--&lt;!&ndash;[if lt IE 9]>-->
-<!--<script type="application/javascript;version=1.7" src="lib/jqplot/excanvas.js"></script>-->
-<!--<![endif]&ndash;&gt;-->
-<!---->
-<!--<script type="application/javascript;version=1.7" src="lib/jqplot/jquery.jqplot.js"></script>-->
-<!--<script type="application/javascript;version=1.7" src="lib/jqplot/plugins/jqplot.barRenderer.min.js"></script>-->
-<!--<script type="application/javascript;version=1.7" src="lib/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>-->
-<!--<script type="application/javascript;version=1.7" src="lib/jqplot/plugins/jqplot.pointLabels.js"></script>-->
-<!--<script type="application/javascript;version=1.7" src="lib/jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>-->
-<!--<script type="application/javascript;version=1.7" src="lib/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>-->
-<!--<script type="application/javascript;version=1.7" src="lib/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>-->
-<!--<script type="application/javascript;version=1.7" src="lib/jqplot/plugins/jqplot.logAxisRenderer.js"></script>-->
-<!--<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>-->
-
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
@@ -37,15 +23,10 @@
 <script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcBar.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcLine.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcData.js"></script>
-
 <link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
 <link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/pvcDocUtils.js"></script>
-
-
-
-
 
 <link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
 <script type="application/javascript;version=1.7" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
@@ -55,15 +36,15 @@
 
 
 
+
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/aDate.js"></script>
-<script type="application/javascript;version=1.7" src="js/aColour.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script>
 <script type="application/javascript;version=1.7" src="js/Debug.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/MVEL.js"></script><script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
+<script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
+<script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/aThread.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
@@ -89,36 +70,49 @@
 <script type="application/javascript;version=1.7" src="js/filters/CustomFilters.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/GUIFilters.js"></script>
 
-<table style="width: 100%;">
-	<tr>
-		<td style="width: 320px;">
-			    <div style="height: 30px; text-align: center;vertical-align:middle;"><span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span></div>
+<script type="application/javascript;version=1.7" src="js/etl/Reviews.js"></script>
 
-			<hr>
-			<div id="testMessage"></div>
-			<hr>
-			<div id="parameters" class="parameters">
-			</div>
-			<div id="filters" class="menu"></div>
-		</td>
-		<td>
-			<div style="float:right;display: inline;"><a href="http://people.mozilla.com/~klahnakoski/">HOME</a></div><div id="chart"></div>
-		</td>
-	</tr>
-</table>
-<div id="info"></div>
-<div id="description"></div>
-<div id="report"></div>
+
+
+
+
+<div id="sidebar">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters"></div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div id="chart" style="height:300px"></div>
 
 <script type="application/javascript;version=1.7">
 
-	var query=undefined;
+$("#description").html("This chart counts all closed bugs in the given sample, and the resolution categories each falls into.");
 
-	var createChart=function(){
 
-		if (query!==undefined) query.kill();
 
-		query = new ESQuery({
+var thread;
+var createChart=function(){
+	if (thread!==undefined)
+		thread.kill();
+	thread=aThread.run( __createChart());
+};
+
+var __createChart = function(){
+
+		var query = new ESQuery({
 			"name":"Resolution by Bug Age",
 			"from":"bugs",
 			"select":{"name":"Count", "value":"1", "operation":"count"},
@@ -142,18 +136,17 @@
 		D.println(CNV.Object2JSON(query.esQuery));
 
 		status.message("Calling ES");
-		query.run(function(chartCube){
+		var chartCube=(yield (query.run()));
 
-			CUBE.normalizeByX(chartCube, 100);
+		CUBE.normalizeByX(chartCube, 100);
 
-			status.message("Make Chart");
-			aChart.showCCC({
-				"id":"chart",
-				"type":"stacked",
-				"cube":chartCube
-			});
-			status.message("Done");
+		status.message("Make Chart");
+		aChart.showCCC({
+			"id":"chart",
+			"type":"stacked",
+			"cube":chartCube
 		});
+		status.message("Done");
 	};
 
 	$(document).ready(function(){

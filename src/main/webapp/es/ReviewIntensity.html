@@ -1,11 +1,10 @@
+
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <HTML>
+
 <HEAD>
 </HEAD>
 <BODY>
-
-
-
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
@@ -26,7 +25,6 @@
 <script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcBar.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcLine.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcData.js"></script>
-
 <link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
 <link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
 
@@ -41,15 +39,14 @@
 
 
 
-
-
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script>
 <script type="application/javascript;version=1.7" src="js/Debug.js"></script>
-<script type="application/javascript;version=1.7" src="js/MVEL.js"></script><script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
+<script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
+<script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/aThread.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
@@ -58,10 +55,6 @@
 <script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script><script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
-
-
-
-
 
 
 <script type="application/javascript;version=1.7" src="js/charts/HelperFunctions.js"></script>
@@ -78,7 +71,6 @@
 <script type="application/javascript;version=1.7" src="js/filters/ProgramFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/CustomFilters.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/GUIFilters.js"></script>
-
 
 
 <div id="sidebar">
@@ -106,96 +98,149 @@
 
 <script type="application/javascript;version=1.7">
 
-	$("#description").html("Shows the number of new bugs and number of closed bugs over given interal.  <span class=\"warning\">New count is too low when filtering, only bugs properly marked at open time are counted here</span>");
+	$("#description").html("Shows the number of reviews requested and the number of reviews completed for each interval.  The latter is shown as a negative to increase clarity.  The &quot;Still Open&quot; shows the total number of reviews open more than 24 hours (backlog), which is the cumulative sum of the other two, .");
 
-	var rangeChart = null;
-
-	var createChart = function(){
-		if (rangeChart != undefined) rangeChart.kill();
-		
-		var chartRequest = {
-			"requests" :[
-				{
-					"esQuery" : {
-						"query": {
-							"match_all" : {}
-						},
-						"filter" : {
-							"and":[
-//								{"not" : {"terms" : { "bug_status" : ["resolved", "verified", "closed"] }}},
-								{"script":{"script":'doc["modified_ts"].value==doc["created_ts"].value'}}
-							]
-						},
-						"from" : 0,
-						"size" : 0,
-						"sort" : []
-					},
-					"seriesName" : "New"
-				},
-				{
-					"esQuery" : {
-						"query": {
-							"match_all" : {}
-						},
-						"filter" : {
-							"and":[
-								{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}},
-								{"not": {"terms":{"previous_values.bug_status_value": ["resolved", "verified", "closed"]}}},
-								{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}}
-							]
-						},
-						"from" : 0,
-						"size" : 0,
-						"sort" : []
-					},
-					"seriesName" : "Closed"
-				}
-			],
-//			"evaluations":[
-//				{"seriesName":"NewAndOpen", "code":"Total"
-//
-////			]
-//			"baseline" : [{
-//				"name" : "New and Open",
-//				"data" : "Total",
-//				"start" : "Open"
-//			}],
-//////					"track" : true,
-//			"showSeries" : ["Open", "New and Open"],
-			"chartTitle" : "New Bugs and Old Bugs",
-			"canvas" : "chart",
-			"originZero" : true,
-			"chartType" : "LineChart",
-			"interval": state.intervalX,
-//			"groupSize" : 7,
-			"startDate" : state.startDate,
-			"endDate" : state.endDate,
-			"useWindow":true
-		};
-
-		ES.InjectGUIFilters(chartRequest.requests);
-
-		console.log("chartRequest: " + JSON.stringify(chartRequest));
-
-		rangeChart = new RangeChart(chartRequest);
-		rangeChart.run();
+	var thread;
+	var createChart=function(){
+		if (thread!==undefined)
+			thread.kill();
+		thread=aThread.run( __createChart());
 	};
 
+	var __createChart = function(){
 
+		var sampleInterval=Duration.newInstance(state.sampleInterval);
+		var sampleMin=Date.newInstance(state.sampleMin);//.floor(sampleInterval);
+		var sampleMax=sampleMin.add(Date.newInstance(state.sampleMax).add(sampleInterval).subtract(sampleMin, sampleInterval).floor(sampleInterval));
+
+
+		var requested = yield (ESQuery.run({
+			"from":"reviews",
+			"select":[
+				{"name":"request_count", "value":"bug_id", "operation":"count"}
+			],
+			"edges":[
+				{"name":"time", "value":"request_time", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}}
+			],
+			"esfilter":{"and":[
+				{"term":{"reviewer":state.requestee}},
+				{"range":{"request_time":{"gt":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}}
+			]}
+		}));
+
+		var reviewed = yield (ESQuery.run({
+			"from":"reviews",
+			"select":[
+				{"name":"review_count", "value":"bug_id", "operation":"count"}
+			],
+			"edges":[
+				{"name":"time", "value":"review_time", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}}
+			],
+			"esfilter":{"and":[
+				{"term":{"reviewer":state.requestee}},
+				{"range":{"request_time":{"gt":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}}
+			]}
+		}));
+
+		//SHOW AS NEGATIVE
+		reviewed.cube=reviewed.cube.map(function(v, i){return -v;});
+
+
+
+		//WE CAN NOT DO THIS DIRECTLY: WE WILL REQUIRE MULTIPLE COUNTS PER REVIEW
+		var stillOpen = (yield (ESQuery.run({
+			"from":"reviews",
+			"select":[
+//				{"name":"bug_id", "value":"reviews.bug_id"},
+//				{"name":"attach_id", "value":"reviews.attach_id"},
+				{"name":"wait_time_over_day", "value":"(coalesce(reviews.review_time, "+Date.now().ceilingDay().getMilli()+")-reviews.request_time > "+Duration.MILLI_VALUES.day+") ? 1 : 0"},
+				{"name":"wait_time", "value":"coalesce(reviews.review_time, "+Date.now().ceilingDay().getMilli()+")-reviews.request_time"},
+				{"name":"request_time", "value":"reviews.request_time"},
+				{"name":"review_time", "value":"coalesce(reviews.review_time,"+Date.now().ceilingDay().getMilli()+")"}
+			],
+			"esfilter":{"and":[
+				{"term":{"reviewer":state.requestee}},
+				{"script":{"script":	//NO NEED TO CONSIDER THE MINI-REVIEWS
+					MVEL.FUNCTIONS.coalesce+
+					"(coalesce(_source.review_time, "+Date.now().ceilingDay().getMilli()+")-_source.request_time > "+Duration.MILLI_VALUES.day+") ? 1 : 0;"
+				}},
+				{"range":{"request_time":{"lt":sampleMax.getMilli()}}},
+				{"or":[
+					{"range":{"review_time":{"gt":sampleMin.getMilli()}}}, //REVIEWED AFTER THE min
+					{"missing":{"field":"review_time"}}						//...OR NEVER REVIEWED
+				]}
+			]}
+		}))).list;
+
+		var open=yield (CUBE.calc2Cube({
+			"from":stillOpen,
+			"select":{"name":"open_count", "value":"request_time", "operation":"count"},
+			"edges":[
+				{"name":"time", "value":"request_time",
+					"test":	"review_time-request_time > "+Duration.MILLI_VALUES.day+" && "+
+							"time.min < review_time && "+
+							"request_time+"+Duration.MILLI_VALUES.day+" < time.max",
+					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+
+				}
+			]
+		}));
+
+		//WE HAVE THREE SERIES, ALL DEFINED OVER THE SAME DOMAIN, WHAT TO DO?
+		//THE THREE ARE PARTS OF THE CATEGORY DIMENSION
+
+		//MERGE ALL RESULTS
+		var chart=CUBE.join({
+			"select":{"name":"Count"},
+			"domain":{"name":"category"},
+			"partitions":[
+				{"value":"Request", "from":requested, "edges":["time"]},
+				{"value":"Review", "from":reviewed, "edges":["time"]},
+				{"value":"Still Open", "from":open, "edges":["time"]}
+			]
+		});
+
+//		var chart=yield (CUBE.calc2Cube({
+//			"from":requested,
+//			"select":[
+//				{"value":"request_count", "operation":"one"},
+//				{"value":"r.review_count", "operation":"one"},
+//				{"value":"o.open_count", "operation":"one"}
+//			],
+//			"edges":[
+//				{"name":"domain",  "value":"time.value", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}},
+//				{"name":"domain2", "value":"time.value", "domain":{"name":"r", "key":"time.value", "value":"undefined", "partitions":reviewed}},
+//				{"name":"domain3", "value":"time.value", "domain":{"name":"o", "key":"time.value", "value":"undefined", "partitions":open}}
+//			]
+//		}));
+
+
+		aChart.showCCC({
+			"id":"chart",
+			"type":"line",
+			"cube":chart
+		});
+
+		status.message("Done");
+
+	};//createChart
 
 
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"startDate", "name":"Min X-axis on Chart", "type":"time", "default":Date.now().floor("day").add("-1year")},
-			{"id":"endDate", "name":"Max X-axis on Chart", "type":"time", "default":Date.now().floor("day")},
-			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
+			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"jmuizelaar@mozilla.com"},
+			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-3month")},
+			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
+			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("day")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		],
 		[
-			"endDate=GUI.fixEndDate(new Date(startDate), new Date(endDate), Duration.newInstance(intervalX)).format('yyyy-MM-dd')"
+			"sampleMax=GUI.fixEndDate(new Date(sampleMin), new Date(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
 		]);
-		createChart();
 	});
+
+//	createChart();
+
 </script>
 
 

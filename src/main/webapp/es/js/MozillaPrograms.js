@@ -16,7 +16,11 @@ var MozillaPrograms = {
 		["Security (High and Critical Only)", "status_whiteboard.tokenized", "sg:high"],
 		["Security (High and Critical Only)", "keywords", "sec-high"],
 		["Security (High and Critical Only)", "keywords", "sec-critical"],
-		["Crash", "keywords", "topcrash"],			//Robert Kaiser PULLS HIS METRICS USING THIS 
+		["in-testsuite", "status_whiteboard.tokenized", "in-testsuite+"],
+		["in-testsuite", "status_whiteboard.tokenized", "in-testsuite"],
+		["testcase", "keywords", "testcase"],
+		["testcase", "keywords", "testcase-wanted"],
+		["Crash", "keywords", "topcrash"],			//Robert Kaiser PULLS HIS METRICS USING THIS
 		["Crash", "keywords", "crash"],
 		["Crash", "keywords", "regression"],
 		["Top Crash", "keywords", "topcrash"],		//THE KEYWORD IS ADDED AND REMOVED TO KEEP ABOUT 100 MARKED

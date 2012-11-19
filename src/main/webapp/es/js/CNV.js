@@ -100,6 +100,10 @@ CNV.Pipe2Value=function(value){
 
 CNV.List2HTMLTable = function(data, options){
 
+	if (data.length==0){
+		return "<table class='table'><tbody><tr><td>no records to show</td></tr></tbody></table>";
+	}//endif
+
 	//WRITE HEADER
 	var header = "";
 	var columns = CUBE.getColumns(data);

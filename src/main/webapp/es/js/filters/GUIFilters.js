@@ -108,7 +108,8 @@ GUI.showLastUpdated = function(type){
 			}
 		});
 	}else if (type=="reviews"){
-		REVIEWS.getLastUpdated(function(time){
+		aThread.run(function(){
+			var time=yield (REVIEWS.getLastUpdated());
 			$("#testMessage").html("Reviews Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 		});
 	}//endif

@@ -15,26 +15,82 @@ CUBE.aggregate.compile = function(select){
 };//method
 
 
-//CUBE.aggregate.filter=function(column){
+//CUBE.aggregate.analytic=function(column, columns){
+//	var groupby=column.groupby;
+//	if (groupby===undefined) column.groupby="1";
+//	if (groupby instanceof String) groupby=[groupby];
+//
+//	var sort=column.sort;
+//	if (sort===undefined) sort="1";
+//	if (sort instanceof String) sort=[sort];
+//
+//
 //	column.defaultValue = function(){
-//		return null;
+//		return []
 //	};//method
 //
+//	column.add = function(total, v){
+//		if (v === undefined || v == null) return total;
 //
-//
-//
-//	column.add=function(total, v){
-//		if (v===undefined || v==null) return total;
-//		if (total==null) return v;
-//
-//		if () total=v;
+//		var t=total;
+//		for(var i=0;i<groupby.length;i++){
+//			t=t[v[groupby[i]]];
+//			if (t===undefined){
+//				t=[];
+//				t[v[groupby[i]]]=t;
+//			}//endif
+//		}//endif
+//		t.push(v);
 //		return total;
 //	};//method
 //
-//	column.end=function(total){
-//		if (total==null) return null;
-//		return column.calc(total);
-//	};//method
+//	column.domain = CUBE.domain.value;
+//
+//	column.sortFunction=function(a, b){
+//		for(var o = 0; o < sort.length; o++){
+//			if (columns[sort[o]].domain === undefined){
+//				D.warning("what?");
+//			}
+//
+//			var diff = columns[sort[o]].domain.compare(a[sort[o]], b[sort[o]]);
+//			if (diff != 0) return columns[sort[o]].sortOrder * diff;
+//		}//for
+//		return 0;
+//	};
+//
+//
+//	column.domain = {
+//
+//		compare:function(a, b){
+//			D.error("do not know how to compare analytic parts");
+//		},
+//
+//		NULL:null,
+//
+//		getCanonicalPart:function(value){
+//			return value;
+//		},
+//
+//		getKey:function(partition){
+//			return partition;
+//		},
+//
+//		end :function(total){
+//			//SORT
+//
+//
+//
+//
+//			if (total.count == 0) return null;
+//			return total.total / total.count;
+//			data.sort(totalSort);
+//		}
+//	};
+//
+//
+//
+//
+//
 //};
 
 

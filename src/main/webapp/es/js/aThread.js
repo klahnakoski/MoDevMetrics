@@ -1,5 +1,5 @@
 
-//ORIGINALLY FROM https://github.com/airportyh/trampoline.js/blob/master/6_add_exception.html
+//INSPIRED FROM  https://github.com/airportyh/trampoline.js/blob/master/6_add_exception.html
 
 importScript("util.js");
 
@@ -22,11 +22,11 @@ aThread.numRunning=0;
 
 aThread.showWorking=function(){
 	var l=$(".loading");
-	if (l!==undefined) l.show();
+	l.show();
 };
 aThread.hideWorking=function(){
 	var l=$(".loading");
-	if (l!==undefined) l.hide();
+	l.hide();
 };
 
 
@@ -86,7 +86,7 @@ aThread.prototype.resume=function(retval){
 			if (e instanceof StopIteration){
 				retval=undefined;	//HAPPENS WHEN THE CALLED GENERATOR IS DONE
 			}else{
-				retval=new Exception("Can not send "+CNV.Object2JSON(gen.history)+" to generator", e);
+				retval=e;
 			}//endif
 		}//try
 	}//while

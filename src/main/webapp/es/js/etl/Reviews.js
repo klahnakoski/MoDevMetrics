@@ -7,12 +7,12 @@ REVIEWS.typeName="review";
 
 
 REVIEWS.getLastUpdated=function(){
-	var result=ESQuery.run({
+	var result=yield (ESQuery.run({
 		"from":REVIEWS.aliasName,
 		"select":[
 			{"name":"last_request", "value":"reviews.request_time", "operation":"maximum"}
 		]
-	});
+	}));
 	yield Date.newInstance(result.cube.last_request);
 };
 
@@ -79,10 +79,7 @@ REVIEWS.makeSchema=function(successFunction){
 };
 
 
-REVIEWS.updateAlias=function(){
-	yield (ETL.updateAlias(REVIEWS.aliasName, REVIEWS.lastAlias, REVIEWS.indexName));
-	status.message("Success!");
-};
+
 
 
 
@@ -236,7 +233,8 @@ REVIEWS.get=function(minBug, maxBug){
 					"requestee==doneReview.requestee && "+
 					"!(bug_status=='closed' && doneReview.done_reason=='closed') && "+
 					"modified_ts<=doneReview.modified_ts",
-				allowNulls:true,
+				"allowNulls":true,
+				"value":undefined,
 				"domain":{"type":"set", "name":"doneReview", "key":[], "partitions":doneReview.list}
 			}
 		]
@@ -267,6 +265,8 @@ REVIEWS.insert=function(reviews){
 
 REVIEWS["delete"]=function(bugList){
 	for(var i=0;i<bugList.length;i++){
-		yield (Rest["delete"](ElasticSearch.baseURL+"/"+REVIEWS.aliasName+"/"+REVIEWS.typeName+"?q=bug_id:"+bugList[i]));
+		yield (Rest["delete"]({
+			"url":ElasticSearch.baseURL+"/"+REVIEWS.aliasName+"/"+REVIEWS.typeName+"?q=bug_id:"+bugList[i]
+		}));
 	}//for
 };//method

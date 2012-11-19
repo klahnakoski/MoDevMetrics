@@ -47,7 +47,7 @@
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/Trampoline.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="js/aThread.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
@@ -158,6 +158,7 @@
 
 
 		success: function(data){
+			aThread.run(function(){
 			var esResult = MVEL.esFacet2List(data.facets.pending, [
 									{"name":"bug_id", "value":"bugs.bug_id"},
 									{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
@@ -230,7 +231,7 @@
 			htmlSummary += "<h2>Assigned To</h2>" + CNV.List2HTMLTable(result2);
 
 			document.getElementById("info").innerHTML = htmlSummary;
-		},
+		});},
 
 		error: function (errorData, errorMsg, errorThrown){
 			document.getElementById("info").innerHTML = "Response Error.  Make sure you are connected to the MPT network.";

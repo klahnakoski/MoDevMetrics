@@ -8,16 +8,18 @@ Rest.send=function(ajaxParam){
 	if (ajaxParam.query!==undefined) D.error("Do not set the query parameter, use 'data'");
 	if (ajaxParam.success!==undefined) D.error("This function will return data, it does not accept the success function");
 
+	var callback=yield (aThread.Resume);	//RESUME THREAD ON RETURN
+
 	//FILL IN THE OPTIONAL VALUES
 	if (ajaxParam.type===undefined) ajaxParam.type="post";
 	if (ajaxParam.dataType===undefined) ajaxParam.dataType="json";
 	if (ajaxParam.error===undefined){
 		ajaxParam.error=function(errorData, errorMsg, errorThrown){
-			callback(new Exception(errorMsg));
+			callback(new Exception(errorMsg, errorData));
 		};
 	}//endif
 	if (typeof(ajaxParam.data)!="string") ajaxParam.data=JSON.stringify(ajaxParam.data);
-	ajaxParam.success=yield (aThread.Resume);
+	ajaxParam.success=callback;
 
 	var request=$.ajax(ajaxParam);
 	request.kill=function(){request.abort();};

@@ -59,11 +59,11 @@
 	D.println(""+new Date(1351604852000).format("yy-MM-dd HH:mm:ss"));
 
 	$("#start").click(function(){
-		aThread.run(REVIEWS.newInsert());
+		aThread.run(ETL.newInsert(REVIEWS));
 	});
 
 	$("#resume").click(function(){
-		aThread.run(REVIEWS.resumeInsert());
+		aThread.run(ETL.resumeInsert(REVIEWS));
 	});
 
 	$("#inc").click(function(){

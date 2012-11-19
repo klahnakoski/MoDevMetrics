@@ -338,9 +338,8 @@ Date.getBestFormat=function(minDate, maxDate, interval){
 
 	var maxFormat=0;
 	var span=maxDate.subtract(minDate, interval);
-	if (span.month<Duration.MONTH_VALUES.year) maxFormat=1;
-	if (span.month<Duration.MONTH_VALUES.month) maxFormat=2;
-	if (span.milli<Duration.MILLI_VALUES.day*31) maxFormat=2;
+	if (span.month<Duration.MONTH_VALUES.year && span.milli<Duration.MILLI_VALUES.day*365) maxFormat=1;
+	if (span.month<Duration.MONTH_VALUES.month && span.milli<Duration.MILLI_VALUES.day*31) maxFormat=2;
 	if (span.milli<Duration.MILLI_VALUES.day) maxFormat=3;
 	if (span.milli<Duration.MILLI_VALUES.hour) maxFormat=4;
 	if (span.milli<Duration.MILLI_VALUES.minute) maxFormat=5;

@@ -6,12 +6,38 @@ CUBE.domain = {};
 CUBE.domain.compile = function(sourceColumns, column){
 	if (column.domain === undefined){
 		CUBE.domain["default"](column, sourceColumns);
-	} else if (CUBE.domain[column.domain.type] === undefined){
+		return;
+	}//endif
+
+	if (column.domain.type===undefined && column.domain.partitions!==undefined){
+		column.domain.type="set";
+		if (column.domain.name==="undefined") D.warning("it is always good to name your domain");
+	}//endif
+
+	if (CUBE.domain[column.domain.type] === undefined){
 		D.error("Do not know how to compile a domain of type '" + column.domain.type + "'");
 	} else{
 		CUBE.domain[column.domain.type](column, sourceColumns);
 	}//endif
 };//method
+
+
+//COMPARE TWO DOMAINS, RETURN true IF IDENTICAL
+CUBE.domain.equals=function(a, b){
+	if ((a.type=="default" || a.type=="set") && (b.type=="default" || b.type=="set")){
+		D.error("not completed");
+	}else if (a.type=="time" && b.type=="time"){
+		if (a.interval.milli!=b.interval.milli) return false;
+		if (a.min.getMilli()!=b.min.getMilli()) return false;
+		if (a.max.getMilli()!=b.max.getMilli()) return false;
+		return true;
+	}else if (a.type="duration" && b.type=="duration"){
+		D.error("not completed");
+	}else{
+		D.error("do not know what to do here");
+	}//endif
+};//method
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

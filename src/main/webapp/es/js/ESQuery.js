@@ -27,7 +27,7 @@ ESQuery.DEBUG=false;
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
 	"bugs":{"path":"/bugs"},
-	"reviews":{"path":"/reviews121114_225703/review"}//http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews121109_041939/review/_search
+	"reviews":{"path":"/reviews121119_000049/review"}//http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews121109_041939/review/_search
 };
 
 
@@ -75,17 +75,32 @@ ESQuery.prototype.run = function(){
 
 
 ESQuery.prototype.kill = function(){
-	if (this.esRequest!==undefined){
-		try{
-			this.esRequest.abort();
-		}catch(e){
-
-		}//try
-		this.esRequest=undefined;
-	}//endif
-	this.callack=undefined;
+	D.warning("do not need to call this anymore");
+//
+//	if (this.esRequest!==undefined){
+//		try{
+//			this.esRequest.abort();
+//		}catch(e){
+//
+//		}//try
+//		this.esRequest=undefined;
+//	}//endif
+//	this.callack=undefined;
 };
 
+
+//ACCEPT MULTIPLE ESQuery OBJECTS AND MERGE THE FACETS SO ONLY ONE CALL IS MADE TO ES
+ESQuery.merge=function(){
+	for(var i=0;i<arguments.length;i++){
+
+
+	}//for
+
+
+
+
+
+};//method
 
 
 
@@ -463,7 +478,7 @@ ESQuery.prototype.termsResults=function(data){
 	}//for
 
 	//MAKE CUBE
-	var cube = CUBE.cube.newInstance(this.query.edges, 0, this.query.select);
+	var cube = CUBE.cube.newInstance(this.query.edges, 0, CUBE.select2Array(this.query.select)[0]);
 
 	//FILL CUBE
 	II: for(var i=0;i<terms.length;i++){

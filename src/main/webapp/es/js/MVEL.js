@@ -17,6 +17,7 @@ MVEL.prototype.code = function(query){
 		MVEL.FUNCTIONS.floorDay+
 		MVEL.FUNCTIONS.maximum+
 		MVEL.FUNCTIONS.coalesce+
+		MVEL.FUNCTIONS.get+
 		'var cool_func = function('+indexName+'){\n' +
 			"output=\"\";\n" +
 			code.replace(
@@ -305,9 +306,14 @@ MVEL.FUNCTIONS={
 	"floorDay":
 		"var floorDay = function(value){ Math.floor(value/(24*60*60*1000))*(24*60*60*1000);};\n",
 
-	"maximum":
-		"var maximum = function(a, b){if (a==null){ b; }else if (b==null){ a; }else if (a>b){ a; }else{ b;}\n};\n",
+	"maximum"://JUST BECAUSE MVEL'S Math.max ONLY USES Math.max(int, int).  G*DDA*NIT!
+		"var maximum = function(a, b){if (a==null) b; else if (b==null) a; else if (a>b) a; else b;\n};\n",
 
-	"coalesce":
-		"var coalesce = function(a, b){if (a==null){ b; }else{ a; }\n};\n"
+	"coalesce"://PICK FIRST NOT-NULL VALUE
+		"var coalesce = function(a, b){if (a==null) b; else a; \n};\n",
+
+	"get":	//MY OWN PERSONAL *FU* TO THE TWISTED MVEL PROPERTY ACCESS
+		"var get = function(hash, key){\n"+
+			"if (hash==null) null; else hash[key];\n"+
+		"};\n"
 };

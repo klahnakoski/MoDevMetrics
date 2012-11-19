@@ -264,6 +264,42 @@ CUBE.calc2Cube = function(query){
 
 
 
+//CONVERT LIST TO CUBE
+CUBE.toCube=function(query){
+
+	if (query.list!==undefined) D.error("Can only convert list to a cube at this time");
+
+	//ASSIGN dataIndex TO ALL PARTITIONS
+	var edges = query.edges;
+	for(var f = 0; f < edges.length; f++){
+		var p = 0;
+		for(; p < (edges[f].domain.partitions).length; p++){
+			edges[f].domain.partitions[p].dataIndex = p;
+		}//for
+		edges[f].domain.NULL.dataIndex = p;
+	}//for
+
+	//MAKE THE EMPTY DATA GRID
+	query.cube = CUBE.cube.newInstance(edges, 0, query.select);
+
+
+	for(var i=query.list.length;i--;){
+		var cube=query.cube;
+		var e=0;
+		for(;e<query.edges.length-1;e++){
+			cube=cube[edges[e].dataIndex];
+		}//for
+		if (query.select instanceof Array){
+			cube[edges[e].dataIndex]=query.list[i];
+		}else{
+			cube[edges[e].dataIndex]=query.list[i][query.select.name];
+		}//endif
+	}//for
+
+	return query;
+};//method
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //  REDUCE ALL DATA TO ZERO DIMENSIONS
 ////////////////////////////////////////////////////////////////////////////////
@@ -481,7 +517,10 @@ CUBE.normalizeByX=function(query, multiple){
 
 	for(var e=0;e<query.cube[0].length;e++){
 		var total=0;
-		for(var c=0;c<query.cube.length;c++) total+=Math.abs(query.cube[c][e]);
+		for(var c=0;c<query.cube.length;c++){
+			if (query.cube[c][e]===undefined) query.cube[c][e]=0;
+			total+=Math.abs(query.cube[c][e]);
+		}//for
 		if (total!=0){
 			for(var c=0;c<query.cube.length;c++) query.cube[c][e]*=(multiple/total);
 		}//endif
@@ -613,6 +652,66 @@ CUBE.getColumns = function(data){
 	return output;
 };//method
 
+
+//({
+//	"domain":{"name":"category"},
+//	"partitions":[
+//		{"value":"Request", "from":requested, "edges":["time"]},
+//		{"value":"Review", "from":reviewed, "edges":["time"]},
+//		{"value":"Still Open", "from":open, "edges":["time"]}
+//	]
+//});
+CUBE.join=function(query){
+	var newEdge={
+		"name":query.domain.name,
+		"domain":{
+			"name":query.domain.name,
+			"type":"default",
+			"partitions":query.partitions.map(function(v, i){return {"name":v.value, "value":v.value, "dataIndex":i};}),
+			"end":function(p){return p.value}
+		}
+	};
+
+	//MAP THE EDGE NAMES TO ACTUAL EDGES IN THE from QUERY
+	query.partitions.forall(function(p){
+		if (p.edges.length!=p.from.edges.length) D.error("do not know how to join partial edges");
+
+		p.edges.forall(function(pe, i, edges){
+			p.from.edges.forall(function(pfe, j){
+				if (pfe.name==pe) edges[i]=pfe;
+			});//for
+		});
+	});
+
+	var commonEdges=query.partitions[0].edges;
+
+	var output={};
+	output.edges=[newEdge];
+	output.edges.appendArray(commonEdges);
+	output.cube=[];
+
+	query.partitions.forall(function(p, index){
+		//VERIFY DOMAINS ARE IDENTICAL
+		if (p.edges.length!=commonEdges.length) D.error("Expecting all partitions to have same number of (common) edges declared");
+		p.edges.forall(function(pe, i){
+			if (typeof(pe)=="string") D.error("can not find edge named '"+pe+"'");
+			if (!CUBE.domain.equals(commonEdges[i].domain, p.edges[i].domain)) D.error("Edges domains ("+p.value+", edge="+pe.name+") and ("+query.partitions[0].value+", edge="+commonEdges[i].name+") are different");
+		});
+
+		//REFER TO
+		if (p.from.cube!==undefined){
+			output.cube[index]=p.from.cube;
+		}else if (p.from.list!==undefined){
+			output.cube[index]=CUBE.toCube(p.from).cube;
+		}else{
+			D.error("do not know how to handle");
+		}//endif
+	});
+
+//	output.select=query.partitions[0].from.select;	//I AM TIRED, JUST MAKE A BUNCH OF ASSUMPTIONS
+
+	return output;
+};//method
 
 
 

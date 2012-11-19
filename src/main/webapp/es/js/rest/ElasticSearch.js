@@ -16,8 +16,14 @@ if (window.location.hostname=="metrics.mozilla.com"){
 }else{
 	//FROM Mark Reid Sept 25, 2012 (for use during coding)
 	//ONLY WITH MOZILLA_MPT
+//	ElasticSearch.baseURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
+//	ElasticSearch.queryURL = "http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search";
+
+	//WHILE #7 HAS PROBLEMS
 	ElasticSearch.baseURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
 	ElasticSearch.queryURL = "http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search";
+
+
 }//endif
 
 
@@ -221,7 +227,11 @@ MultiElasticSearchQuery.prototype.kill = function(){
 //OLD VERSION IS BACKWARD WRT CONTROLL FLOW
 ////////////////////////////////////////////////////////////////////////////////
 var OldElasticSearchQuery = function(reportBackObj, id, esQuery){
-	var output=new ElasticSearchQuery(esQuery, reportBackObj.success, reportBackObj.error);
+	var output=new ElasticSearchQuery({
+		"query":esQuery,
+		"success":reportBackObj.success,
+		"error":reportBackObj.error
+	});
 	output.callbackObject=reportBackObj;
 	return output;
 };

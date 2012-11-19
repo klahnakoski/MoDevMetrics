@@ -130,9 +130,9 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 		"select":[
 			{"name":"bug_id", "value":"bugs.bug_id"},
 			{"name":"product", "value":"bugs.product"},
-			{"name":"product_time", "value":"coalesce(bugs.?previous_values.?product_change_away_ts, bugs.created_ts)"},
+			{"name":"product_time", "value":"coalesce(get(bugs.?previous_values, 'product_change_away_ts'), bugs.created_ts)"},
 			{"name":"component", "value":"bugs.component"},
-			{"name":"component_time", "value":"coalesce(bugs.?previous_values.?component_change_away_ts, bugs.created_ts)"},
+			{"name":"component_time", "value":"coalesce(get(bugs.?previous_values, 'component_change_away_ts'), bugs.created_ts)"},
 			{"name":"create_time", "value":"bugs.created_ts"},
 			{"name":"modified_time", "value":"bugs.modified_ts"}
 		],

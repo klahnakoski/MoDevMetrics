@@ -1,24 +1,32 @@
 ETL={};
 
-ETL.BATCH_SIZE=200;
+ETL.BATCH_SIZE=20000;
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // REDIRECT alias TO POINT FROM oldIndexName TO newIndexName
 ////////////////////////////////////////////////////////////////////////////////
-ETL.updateAlias=function(alias, oldIndexName, newIndexName){
+ETL.updateAlias=function(etl){
+	var alias=etl.aliasName;
+	var oldIndexName=etl.lastAlias;
+	var newIndexName=etl.indexName;
+
 	status.message("Done bulk load, change alias pointer");
 	//MAKE ALIAS FROM reviews
-	var rename={
-		"actions":[
-			{"add":{"index":newIndexName, "alias":alias}}
-		]
+	var param={
+		"url":ElasticSearch.baseURL+"/_aliases",
+		"data":{
+			"actions":[
+				{"add":{"index":newIndexName, "alias":alias}}
+			]
+		}
 	};
+
 	if (oldIndexName!==undefined){
-		rename.actions.push({"remove":{"index":oldIndexName, "alias":alias}});
+		param.data.actions.push({"remove":{"index":oldIndexName, "alias":alias}});
 	}//endif
 
-	yield (Rest.post(ElasticSearch.baseURL+"/_aliases", rename));
+	yield (Rest.post(param));
 };
 
 
@@ -38,10 +46,11 @@ ETL.newInsert=function(etl){
 	yield (etl.makeSchema());
 
 	var maxBug=yield(ETL.getMaxBugID());
-	var maxBatches=Math.floor(maxBug/etl.BATCH_SIZE);
+	var maxBatches=Math.floor(maxBug/ETL.BATCH_SIZE);
 
 	yield(ETL.insertBatches(etl, 0, maxBatches));
-	yield(etl.updateAlias());
+	yield(ETL.updateAlias(etl));
+	status.message("Success!");
 };
 
 
@@ -88,9 +97,10 @@ ETL.resumeInsert=function(etl){
 	var minBug=maxResults.cube.minBug;
 	var maxBatches=Math.floor(minBug/ETL.BATCH_SIZE)-1;
 
-	yield (etl.insertBatches(0, maxBatches));
-	yield (etl.updateAlias());
+	yield (ETL.insertBatches(etl, 0, maxBatches));
+	yield (ETL.updateAlias(etl));
 	ESQuery.INDEXES.reviews={"path":"/"+etl.indexName+"/"+etl.typeName};
+	status.message("Success!");
 };
 
 
@@ -128,7 +138,7 @@ ETL.insertBatches=function(etl, minBatch, maxBatch){
 	for(var b=maxBatch;b>=0;b--){
 		var reviews=yield (etl.get(b*ETL.BATCH_SIZE, (b+1)*ETL.BATCH_SIZE));
 		yield (etl.insert(reviews));
-		D.println("Done batch "+b+" into "+REVIEWS.indexName);
+		D.println("Done batch "+b+"/"+maxBatch+" into "+etl.indexName);
 	}//for
 };//method
 
