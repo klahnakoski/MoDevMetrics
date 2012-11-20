@@ -10,14 +10,7 @@ MVEL.prototype.code = function(query){
 
 	//PARSE THE fromPath
 	var code = this.from(fromPath, indexName, "__loop");
-	var output =
-		MVEL.FUNCTIONS.replaceAll+
-		MVEL.FUNCTIONS.Value2Pipe+
-		//MVEL.FUNCTIONS.String2Quote+
-		MVEL.FUNCTIONS.floorDay+
-		MVEL.FUNCTIONS.maximum+
-		MVEL.FUNCTIONS.coalesce+
-		MVEL.FUNCTIONS.get+
+	var output = MVEL.addFunctions(
 		'var cool_func = function('+indexName+'){\n' +
 			"output=\"\";\n" +
 			code.replace(
@@ -29,7 +22,7 @@ MVEL.prototype.code = function(query){
 			'output;\n' +
 		'};\n' +
 		'cool_func(_source)\n'
-	;
+	);
 
 //	if (console !== undefined && D.println != undefined) D.println(output);
 	return output;
@@ -270,6 +263,24 @@ MVEL.Value2Code = function(value){
 	return CNV.String2Quote(value);
 };//method
 
+
+//PREPEND THE REQUIRED MVEL FUNCTIONS TO THE CODE
+MVEL.addFunctions=function(mvel){
+	var isAdded={};			//SOME FUNCTIONS DEPEND ON OTHERS 
+
+	var keepAdding=true;
+	while(keepAdding){
+		keepAdding=false;
+		forAllKey(MVEL.FUNCTIONS, function(k, v){
+			if (isAdded[k]) return;
+			if (mvel.indexOf(k)==-1) return;
+			keepAdding=true;
+			isAdded[k]=v;
+			mvel=v+mvel;
+		});
+	}//while
+	return mvel;
+};//method
 
 
 MVEL.FUNCTIONS={

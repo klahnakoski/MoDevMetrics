@@ -562,6 +562,16 @@ Duration.prototype.toString = function(){
 	rest = Math.floor(rest / 24);
 
 	//DAY
+	if (rest<11){
+		rem = rest;
+		rest = 0;
+	}else{
+		rem = rest % 7;
+		rest = Math.floor(rest / 7);
+	}//endif
+	if (rem != 0) output = "+" + rem + "day" + output;
+
+
 	rem = rest % 7;
 	if (rem != 0) output = "+" + rem + "day" + output;
 	rest = Math.floor(rest / 7);

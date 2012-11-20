@@ -31,9 +31,133 @@ aChart.FAVORITE_COLOUR="#2BB8F0";//BLUE FROM FIREFOX OCEAN
 aChart.PVC_TIME_FORMAT="%y-%m-%d %H:%M:%S";
 aChart.TIME_FORMAT="yyyy-MM-dd HH:mm:ss";
 
-//PLOT USING THE Common Charting Components
-aChart.showCCC=function(params){
+
+aChart.getAxisLabels=function(axis){
+	var labels=[];
+	if (axis.domain.type == "time"){
+		var bestFormat = Date.getBestFormat(axis.domain.min, axis.domain.max, axis.domain.interval);
+//		var bestFormat=aChart.TIME_FORMAT;  //WILL NOT WORK UNTIL ALL NULL PARTS ARE REMOVED
+		axis.domain.partitions.forall(function(v, i){
+			if (v instanceof String){
+				labels.push(v);
+			} else if (v instanceof Date){
+				labels.push(v.format(bestFormat));
+			} else{
+				labels.push(v.value.format(bestFormat));
+			}//endif
+		});
+	} else if (axis.domain.type == "duration"){
+		axis.domain.partitions.forall(function(v, i){
+			if (v instanceof String){
+				labels.push(v);
+			} else if (v.milli === undefined){
+				labels.push(v.value.toString());
+			} else{
+				labels.push(v.toString());
+			}//endif
+		});
+	} else{
+		axis.domain.partitions.forall(function(v, i){
+			if (v instanceof String){
+				labels.push(v);
+			}else{
+				labels.push(v.name);
+			}//endif
+		});
+	}//endif
+	if (axis.allowNulls) labels.push(axis.domain.NULL.name);
+	return labels;
+};//method
+
+
+aChart.showPie=function(params){
 	var divName=params.id;
+
+	var type=params.type;
+	var chartCube=params.cube;
+
+	if (chartCube.edges.length!=1) D.error("Only one dimension suuported");
+	if (chartCube.select instanceof Array) D.error("Can not chart when select clause is an array");
+
+
+	var seriesLabels=aChart.getAxisLabels(chartCube.edges[0]);
+
+
+	var chartParams={
+		canvas: divName,
+		width: 400,
+		height: 400,
+		animate:false,
+		title: chartCube.name,
+		legend: true,
+		legendPosition: "right",
+//		legendAlign: "center",
+		legendSize:100,
+		orientation: 'vertical',
+		timeSeries: false, //(xaxis.domain.type=="time"),
+//		timeSeriesFormat: aChart.PVC_TIME_FORMAT,
+
+		showValues: false,
+		extensionPoints: {
+			noDataMessage_text: "No Data To Chart"
+//			xAxisLabel_textAngle: Math.PI/4,
+//			xAxisLabel_textAlign: "left",
+//			xAxisLabel_textBaseline: "top"
+//			xAxisScale_dateTickFormat: "%Y/%m/%d",
+//			xAxisScale_dateTickPrecision: xaxis.domain.interval.milli
+			//set in miliseconds
+		}
+	};
+	Util.copy(params, chartParams);
+
+	var chart = new pvc.PieChart(chartParams);
+
+	//FILL THE CROSS TAB DATASTUCTURE TO THE FORMAT EXPECTED (2D array of rows
+	//first row is series names, first column of each row is category name
+	var data=chartCube.cube.map(function(v, i){return [seriesLabels[i], v]});
+//	var metadata=[{"colName":"name"}, {"colName":"value"}];
+
+
+//	var data=chartCube.cube.copy();
+//	data.splice(0,0,"value");
+//
+////	data[0].splice(0,0,"value");
+//
+//	var metadata=seriesLabels.map(function(v, i){return {"colName":v};});
+//	metadata.splice(0,0,{"colName":"x"});
+
+
+
+
+
+	var cccData = {
+		"resultset":data,
+		"metadata":[{
+			"colIndex":0,
+			"colType":"String",
+			"colName":"Categories"
+		},{
+			"colIndex":1,
+			"colType":"Numeric",
+			"colName":"Value"
+		}]
+	};
+
+	chart.setData(cccData, {crosstabMode: false, seriesInRows: false});
+
+	chart.render();
+
+};//method
+
+
+
+
+
+
+//PLOT USING THE Common Charting Components
+aChart.show=function(params){
+	var divName=params.id;
+
 	var type=params.type;
 	var chartCube=params.cube;
 	var colours=params.colours;
@@ -53,43 +177,13 @@ aChart.showCCC=function(params){
 	////////////////////////////////////////////////////////////////////////////
 	// SERIES (ONLY IF MORE THAN ONE EDGE)
 	////////////////////////////////////////////////////////////////////////////
-	var seriesLabels=[];
-	var xaxis=chartCube.edges[chartCube.edges.length-1];
-	if (xaxis.domain.type=="time"){
-		var bestFormat=Date.getBestFormat(xaxis.domain.min, xaxis.domain.max, xaxis.domain.interval);
-		xaxis.domain.partitions.forall(function(v, i){
-			if (v instanceof String){
-				seriesLabels.push(v);
-			}else if (v instanceof Date){
-				seriesLabels.push(v.format(bestFormat));
-			}else{
-				seriesLabels.push(v.value.format(bestFormat));
-			}//endif
-		});
-	}else if (xaxis.domain.type=="duration"){
-		xaxis.domain.partitions.forall(function(v, i){
-			if (v instanceof String){
-				seriesLabels.push(v);
-			}else if (v.milli===undefined){
-				seriesLabels.push(v.value.toString());
-			}else{
-				seriesLabels.push(v.toString());
-			}//endif
-		});
-	}else{
-		xaxis.domain.partitions.forall(function(v, i){
-			seriesLabels.push(v);
-		});
-	}//endif
-	if (xaxis.allowNulls) seriesLabels.push(xaxis.domain.NULL.name);
+	var seriesLabels=aChart.getAxisLabels(chartCube.edges[chartCube.edges.length-1]);
 
-
-	var categoryLabels=[];
-	if (chartCube.edges.length==2){
-		categoryLabels=chartCube.edges[0].domain.partitions.map(function(v, i){
-			return v.name;
-		});
-		if (chartCube.edges[0].allowNulls) categoryLabels.push(chartCube.edges[0].domain.NULL.name);
+	var categoryLabels;
+	if (chartCube.edges.length==1){
+		categoryLabels=["Category"];
+	}else if (chartCube.edges.length==2){
+		categoryLabels=aChart.getAxisLabels(chartCube.edges[0]);
 	}//endif
 
 	//STATIC MAP FROM MY CHART TYPES TO CCC CLASS NAMES
@@ -100,18 +194,20 @@ aChart.showCCC=function(params){
 		"bullet":"BulletChart"
 	};
 
+
+
 	var chartParams={
 		canvas: divName,
 		width: 800,
 		height: 600+(chartCube.edges[0].domain.partitions.length/17*24),
 		animate:false,
 		title: chartCube.name,
-		legend: true,
+		legend: chartCube.edges.length!=1,		//DO NOT SHOW LEGEND IF NO CATEGORIES
 		legendPosition: "bottom",
 		legendAlign: "center",
 
 		orientation: 'vertical',
-		timeSeries: false,// (xaxis.domain.type=="time"),
+		timeSeries: false, //(xaxis.domain.type=="time"),
 //		timeSeriesFormat: aChart.PVC_TIME_FORMAT,
 
 		showValues: false,
@@ -136,16 +232,14 @@ aChart.showCCC=function(params){
 	//FILL THE CROSS TAB DATASTUCTURE TO THE FORMAT EXPECTED (2D array of rows
 	//first row is series names, first column of each row is category name
 	var data=chartCube.cube.copy();
+	if (chartCube.edges.length==1) data=[data];
 	data.forall(function(v,i,d){
 		v=v.copy();
 		v.splice(0,0, categoryLabels[i]);
 		d[i]=v;
 	});
 
-	var metadata=[];
-	seriesLabels.forall(function(v, i){
-		metadata.push({"colName":v});
-	});
+	var metadata=seriesLabels.map(function(v, i){ return {"colName":v};});
 	metadata.splice(0,0,{"colName":"x"});
 
 

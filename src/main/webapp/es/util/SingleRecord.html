@@ -54,28 +54,21 @@ aThread.run(function(){
 
 	D.println(new Date(1352207434236).format("yyyy-NNN-dd HHmmss"));
 
+//	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
+//		{"script":{"script":"true"}},
+//		{"and":[
+//			{"term":{"bug_id":"749568"}}
+//		]}
+//	]}}},"from":0,"size":1000,"sort":["bug_version_num"]
+//	};
+
 	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
 		{"script":{"script":"true"}},
-		{"and":[
-			{"term":{"reviewer":"jmuizelaar@mozilla.com"}},
-			{"range":{"request_time":{"lt":1353196800000}}},
-			{"or":[
-				{"range":{"review_time":{"gt":1345161600000}}},
-				{"missing":{"field":"review_time"}}
-			]}
-		]}
-	]}}},"from":0,"size":0,"sort":[],"facets":{"mvel":{"terms":{"script_field":
-"var coalesce = function(a, b){if (a==null) b; else a; \n"+
-"};\n"+
-"var cool_func = function(reviews){\n"+
-"output=\"\";\n"+
-"output =(coalesce(reviews.review_time, 1353196800000)-reviews.request_time > 86400000) ? 1 : 0\n"+
-"output;\n"+
-"};\n"+
-"cool_func(_source)\n"+
-""
-,"size":100000}}}};
-
+		{"range":{"request_time":{"gt":1342483200000}}}
+	]}}},"from":0,"size":0,"sort":[],"facets":{"0":{"terms":{
+//		"script_field":"var coalesce = function(a, b){if (a==null) b; else a; \n};\n''+((((coalesce(doc['review_time'], 1353369600000)-doc['request_time'])<0) || ((coalesce(doc['review_time'], 1353369600000)-doc['request_time'])>=864000000)) ? 10 : Math.floor(((coalesce(doc['review_time'], 1353369600000)-doc['request_time'])-0)/86400000))",
+		"script_field":"var coalesce = function(a, b){if (a==null) b; else a; \n};\n''+coalesce(doc[\"review_time\"].value, 1353369600000)",
+			"size":100000}}}};
 
 //	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
 ////		{"script":{"script":"true"}},
@@ -107,6 +100,7 @@ aThread.run(function(){
 	try{
 		var data=yield (Rest.post({
 			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews/review/_search",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
 			"data":esQuery
 		}));
 

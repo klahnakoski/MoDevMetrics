@@ -127,7 +127,9 @@ ETL.incrementalInsert=function(etl, startTime){
 	//FIND REVIEW QUEUES ON THOSE BUGS
 	var bugSummaries=yield (etl.get(buglist, null));
 
+	status.message("remove changed bugs");
 	yield (etl["delete"](buglist));
+	status.message("insert changed bugs");
 	yield (etl.insert(bugSummaries));
 	status.message("Done");
 	D.println("Done incremental update");

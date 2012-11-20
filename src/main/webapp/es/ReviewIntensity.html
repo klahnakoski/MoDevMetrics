@@ -72,6 +72,15 @@
 <script type="application/javascript;version=1.7" src="js/filters/CustomFilters.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/GUIFilters.js"></script>
 
+<script type="application/javascript;version=1.7" src="js/etl/Reviews.js"></script>
+
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<h3>Personal Review Queues</h3>
+
+
 
 <div id="sidebar">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
@@ -83,22 +92,26 @@
 	<hr>
 	<div id="testMessage"></div>
 	<hr>
+	<div id="stats"></div>
+	<hr>
 	<div id="parameters" class="parameters">
 	</div>
 	<div id="filters" class="menu"></div>
 </div>
 
-<div style="float:right;display: inline;">
-	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
-</div>
-<div id="chart"></div>
+<div id="chartResponse" style="width:400px;height:200px;float:left;display: inline;"></div>
+<div id="chartProducts" style="width:400px;height:200px;float:left;display: inline;"></div>
+<div id="chart" style="width:800px;height:400px;"></div>
 
 <div id="info"></div>
 <div id="report"></div>
 
 <script type="application/javascript;version=1.7">
 
-	$("#description").html("Shows the number of reviews requested and the number of reviews completed for each interval.  The latter is shown as a negative to increase clarity.  The &quot;Still Open&quot; shows the total number of reviews open more than 24 hours (backlog), which is the cumulative sum of the other two, .");
+	$("#description").html("Shows the number of reviews requested and the number of reviews completed for each interval.  The latter is shown as a negative to increase clarity.  The &quot;Still Open&quot; (Green) shows the total number of reviews open more than 24 hours, which is the cumulative sum of the other two."+
+			"<br><span class='warning'>EXPERIMENT: If a review is open more then 18weeks, it will be removed from the Still Open total</span>"+
+			"<br><span class='warning'>NOTE: Program/Product/Component filters (below) do not work</span>"
+	);
 
 	var thread;
 	var createChart=function(){
@@ -113,6 +126,87 @@
 		var sampleMin=Date.newInstance(state.sampleMin);//.floor(sampleInterval);
 		var sampleMax=sampleMin.add(Date.newInstance(state.sampleMax).add(sampleInterval).subtract(sampleMin, sampleInterval).floor(sampleInterval));
 
+		//CHART OF AGGREGATE RESPONSE TIMES
+		aThread.run(function(){
+			var response=yield (ESQuery.run({
+				"name":"Wait Time Breakdown",
+				"from":"reviews",
+				"select":{"name":"count", "value":"bug_id", "operation":"count"},
+				"edges":[
+					{"name":"wait_time", value:"(coalesce(doc[\"review_time\"].value, "+Date.now().ceilingDay().getMilli()+")-doc[\"request_time\"].value)",
+						"domain":{"type":"duration", "min":0, "max":"10day", "interval":"day"}
+					}
+				],
+				"esfilter":{"and":[
+					{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
+					{"terms":{"reviewer":[state.requestee]}}
+				]}
+			}));
+
+			aChart.show({
+				"id":"chartResponse",
+				"type":"bar",
+				"cube":response,
+				"height":200,
+				"width":400,
+				xAxisSize: 70
+			});
+
+
+
+
+
+			status.message("Calc Stats");
+
+			var stats=(yield (CUBE.calc2Cube({
+				"from":
+					yield (CUBE.Cube2List(response)),
+				"select": [
+					{"name":"total", "value":"count", "operation":"sum"},
+					{"name":"under_24_hours", "value":"wait_time.milli<"+Duration.newInstance('24hour').milli+" ? count : 0", "operation":"sum"}
+				]
+			}))).cube;
+
+
+			var numWeek=sampleMax.subtract(sampleMin).milli/Duration.MILLI_VALUES.week;
+			
+			$("#stats").html(
+				'<span class="parameter_name">Total Reviews:</span><b>'+stats.total+'</b><br>'+
+				'<span class="parameter_name">Reviews per week:</span><b>'+Math.round(stats.total/numWeek, 1)+'</b><br>'+
+				'<span class="parameter_name">% Under One Day:</span><b>'+Math.round(stats.under_24_hours/stats.total*100, 1)+'%</b><br>'
+			);
+
+
+
+
+
+		});
+
+		//CHART PRODUCT BREAKDOWN
+		aThread.run(function(){
+			var response=yield (ESQuery.run({
+				"name":"Product Breakdown",
+				"from":"reviews",
+				"select":{"name":"count", "value":"bug_id", "operation":"count"},
+				"edges":[
+					{"name":"product", "value":"product"}
+				],
+				"esfilter":{"and":[
+					{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
+					{"terms":{"reviewer":[state.requestee]}}
+				]}
+			}));
+
+			aChart.showPie({
+				"id":"chartProducts",
+				"cube":response,
+				"height":200,
+				"width":400
+			});
+
+		});
+
+
 
 		var requested = yield (ESQuery.run({
 			"from":"reviews",
@@ -124,7 +218,7 @@
 			],
 			"esfilter":{"and":[
 				{"term":{"reviewer":state.requestee}},
-				{"range":{"request_time":{"gt":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}}
+				{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}}
 			]}
 		}));
 
@@ -138,7 +232,7 @@
 			],
 			"esfilter":{"and":[
 				{"term":{"reviewer":state.requestee}},
-				{"range":{"request_time":{"gt":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}}
+				{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}}
 			]}
 		}));
 
@@ -166,7 +260,7 @@
 				}},
 				{"range":{"request_time":{"lt":sampleMax.getMilli()}}},
 				{"or":[
-					{"range":{"review_time":{"gt":sampleMin.getMilli()}}}, //REVIEWED AFTER THE min
+					{"range":{"review_time":{"gte":sampleMin.getMilli()}}}, //REVIEWED AFTER THE min
 					{"missing":{"field":"review_time"}}						//...OR NEVER REVIEWED
 				]}
 			]}
@@ -179,6 +273,7 @@
 				{"name":"time", "value":"request_time",
 					"test":	"review_time-request_time > "+Duration.MILLI_VALUES.day+" && "+
 							"time.min < review_time && "+
+							"time.min < request_time+"+Duration.MILLI_VALUES.week*18+" && "+  //JUST IGNORE THE REALLY OLD reviews
 							"request_time+"+Duration.MILLI_VALUES.day+" < time.max",
 					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
 
@@ -215,10 +310,11 @@
 //		}));
 
 
-		aChart.showCCC({
+		aChart.show({
 			"id":"chart",
 			"type":"line",
-			"cube":chart
+			"cube":chart,
+			"height":400
 		});
 
 		status.message("Done");
@@ -228,7 +324,7 @@
 
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"jmuizelaar@mozilla.com"},
+			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"nobody@mozilla.org"},
 			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-3month")},
 			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("day")},
@@ -236,7 +332,8 @@
 		],
 		[
 			"sampleMax=GUI.fixEndDate(new Date(sampleMin), new Date(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
-		]);
+		],
+		"reviews");
 	});
 
 //	createChart();

@@ -6,6 +6,12 @@ REVIEWS.aliasName="reviews";
 REVIEWS.typeName="review";
 
 
+REVIEWS.ALIASES=[
+	{"name":"ben@netscape.com", "alias":"ben"},
+	{"name":"bas.schouten@live.nl", "alias":"bas@basschouten.com"}
+];
+
+
 REVIEWS.getLastUpdated=function(){
 	var result=yield (ESQuery.run({
 		"from":REVIEWS.aliasName,
@@ -264,9 +270,21 @@ REVIEWS.insert=function(reviews){
 
 
 REVIEWS["delete"]=function(bugList){
+	var count=0;
+
 	for(var i=0;i<bugList.length;i++){
-		yield (Rest["delete"]({
-			"url":ElasticSearch.baseURL+"/"+REVIEWS.aliasName+"/"+REVIEWS.typeName+"?q=bug_id:"+bugList[i]
-		}));
+		$.ajax({
+			type:"DELETE",
+			url:ElasticSearch.baseURL+"/"+REVIEWS.aliasName+"/"+REVIEWS.typeName+"?q=bug_id:"+bugList[i],
+			dataType:"json",
+			error:function(errorData, errorMsg, errorThrown){},
+			success:function(data){count++}
+		});
 	}//for
+
+	while(count<bugList.length){
+		yield (aThread.sleep(1000));
+	}//while
+
+	yield (null);
 };//method

@@ -27,7 +27,7 @@ ESQuery.DEBUG=false;
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
 	"bugs":{"path":"/bugs"},
-	"reviews":{"path":"/reviews121119_000049/review"}//http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews121109_041939/review/_search
+	"reviews":{"path":"/reviews/review"}//http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews121109_041939/review/_search
 };
 
 
@@ -58,7 +58,7 @@ ESQuery.prototype.run = function(){
 		D.error("Error with ESQuery", e);
 	}//try
 
-	status.message("Extract Cube");
+	status.message("Process ES Terms");
 
 	if (this.esMode == "terms"){
 		this.termsResults(postResult);
@@ -385,9 +385,7 @@ ESQuery.prototype.compileEdges2Term=function(){
 		return output;
 	};
 
-	return MVEL.FUNCTIONS.replaceAll+
-		MVEL.FUNCTIONS.Value2Pipe+
-		mvel;
+	return MVEL.addFunctions(mvel);
 };
 
 
