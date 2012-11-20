@@ -137,7 +137,7 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 			{"name":"modified_time", "value":"bugs.modified_ts"}
 		],
 		"esfilter":
-			{"range":{"expires_on":{"gt":Date.now().ceilingDay().getMilli()}}}
+			{"range":{"expires_on":{"gt":Date.eod().getMilli()}}}
 	});
 	ElasticSearch.injectFilter(current.esQuery, esfilter);
 

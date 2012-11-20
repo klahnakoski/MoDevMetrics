@@ -14,7 +14,6 @@ CUBE.column.compile = function(sourceColumns, resultColumn, edges){
 	}//enidf
 
 	//COMPILE THE CALCULATION OF THE DESTINATION COLUMN USING THE SOURCE COLUMNS
-	//AS VAR DEFS, AND USING THE GROUPBY result
 	var f = "resultColumn.calc=function(__source, __result){\n";
 	for(var s = 0; s < sourceColumns.length; s++){
 		var columnName = sourceColumns[s].name;

@@ -219,7 +219,7 @@ var __createChart = function(){
 
 	var wait_times=(yield (CUBE.calc2List({
 		"from":reviews.list,
-		"select":{"name":"wait_time", "value":"Util.coalesce(review_time, Date.now().ceilingDay())-request_time"}
+		"select":{"name":"wait_time", "value":"Util.coalesce(review_time, Date.eod())-request_time"}
 	}))).list;
 
 	var stats=(yield (CUBE.calc2Cube({

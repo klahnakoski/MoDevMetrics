@@ -87,8 +87,9 @@ CUBE.domain["default"] = function(column, sourceColumns){
 //		return a == b;
 //	};//method
 
+	d.valCMP=CUBE.domain.value.compare;
 	d.compare = function(a, b){
-		return CUBE.domain.value.compare(a.value, b.value);
+		return d.valCMP(a.value, b.value);
 	};//method
 
 	d.NULL = {"value":null};
@@ -99,7 +100,7 @@ CUBE.domain["default"] = function(column, sourceColumns){
 
 
 	d.getCanonicalPart = function(part){
-		return this.getPartByKey(part.value);
+		return d.getPartByKey(part.value);
 	};//method
 
 
@@ -113,7 +114,7 @@ CUBE.domain["default"] = function(column, sourceColumns){
 		canonical.name = key;
 
 		this.partitions.push(canonical);
-		this.partitions.sort(this.compare);
+//		this.partitions.sort(this.compare);
 		this.map[key] = canonical;
 		return canonical;
 	};

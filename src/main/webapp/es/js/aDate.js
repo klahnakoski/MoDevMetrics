@@ -2,6 +2,10 @@ Date.now = function(){
 	return new Date();
 };//method
 
+Date.eod=function(){
+	return new Date().ceilingDay();
+};//method
+
 Date.newInstance = function(value){
 	if (value === undefined || value == null) return null;
 	return new Date(value);
@@ -562,7 +566,7 @@ Duration.prototype.toString = function(){
 	rest = Math.floor(rest / 24);
 
 	//DAY
-	if (rest<11){
+	if (rest<11 && rest!=7){
 		rem = rest;
 		rest = 0;
 	}else{
@@ -570,11 +574,6 @@ Duration.prototype.toString = function(){
 		rest = Math.floor(rest / 7);
 	}//endif
 	if (rem != 0) output = "+" + rem + "day" + output;
-
-
-	rem = rest % 7;
-	if (rem != 0) output = "+" + rem + "day" + output;
-	rest = Math.floor(rest / 7);
 
 	//WEEK
 	if (rest != 0) output = "+" + rest + "week" + output;

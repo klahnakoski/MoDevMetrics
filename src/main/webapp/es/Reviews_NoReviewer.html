@@ -126,7 +126,7 @@ var __createChart = function(){
 		"from":	reviews.list,
 		"select":[
 			{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
-			{"name":"average_wait_time", "value":"Date.now().ceilingDay().getMilli()-request_time", operation:"average", "sort":"descending"},
+			{"name":"average_wait_time", "value":"Date.eod().getMilli()-request_time", operation:"average", "sort":"descending"},
 			{"name":"bugs", "value":"bug_id", operation:"join", "separator":", "}
 		],
 		"edges":[

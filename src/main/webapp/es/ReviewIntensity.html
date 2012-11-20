@@ -133,7 +133,7 @@
 				"from":"reviews",
 				"select":{"name":"count", "value":"bug_id", "operation":"count"},
 				"edges":[
-					{"name":"wait_time", value:"(coalesce(doc[\"review_time\"].value, "+Date.now().ceilingDay().getMilli()+")-doc[\"request_time\"].value)",
+					{"name":"wait_time", value:"(coalesce(doc[\"review_time\"].value, "+Date.eod().getMilli()+")-doc[\"request_time\"].value)",
 						"domain":{"type":"duration", "min":0, "max":"10day", "interval":"day"}
 					}
 				],
@@ -247,16 +247,16 @@
 			"select":[
 //				{"name":"bug_id", "value":"reviews.bug_id"},
 //				{"name":"attach_id", "value":"reviews.attach_id"},
-				{"name":"wait_time_over_day", "value":"(coalesce(reviews.review_time, "+Date.now().ceilingDay().getMilli()+")-reviews.request_time > "+Duration.MILLI_VALUES.day+") ? 1 : 0"},
-				{"name":"wait_time", "value":"coalesce(reviews.review_time, "+Date.now().ceilingDay().getMilli()+")-reviews.request_time"},
+				{"name":"wait_time_over_day", "value":"(coalesce(reviews.review_time, "+Date.eod().getMilli()+")-reviews.request_time > "+Duration.MILLI_VALUES.day+") ? 1 : 0"},
+				{"name":"wait_time", "value":"coalesce(reviews.review_time, "+Date.eod().getMilli()+")-reviews.request_time"},
 				{"name":"request_time", "value":"reviews.request_time"},
-				{"name":"review_time", "value":"coalesce(reviews.review_time,"+Date.now().ceilingDay().getMilli()+")"}
+				{"name":"review_time", "value":"coalesce(reviews.review_time,"+Date.eod().getMilli()+")"}
 			],
 			"esfilter":{"and":[
 				{"term":{"reviewer":state.requestee}},
 				{"script":{"script":	//NO NEED TO CONSIDER THE MINI-REVIEWS
 					MVEL.FUNCTIONS.coalesce+
-					"(coalesce(_source.review_time, "+Date.now().ceilingDay().getMilli()+")-_source.request_time > "+Duration.MILLI_VALUES.day+") ? 1 : 0;"
+					"(coalesce(_source.review_time, "+Date.eod().getMilli()+")-_source.request_time > "+Duration.MILLI_VALUES.day+") ? 1 : 0;"
 				}},
 				{"range":{"request_time":{"lt":sampleMax.getMilli()}}},
 				{"or":[

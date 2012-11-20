@@ -157,6 +157,14 @@ h4 {
     font-weight: bold;
     color: red;
 }
+.new {
+    border: 2px yellow solid;
+    background-image: url(../images/new.gif);
+    background-size:67px 45px;
+    background-position:right;
+    background-repeat:no-repeat;
+}
+
 
 .table {
     border-collapse: collapse;
