@@ -119,8 +119,8 @@ var createChart = function(){
 
 
 	var mark=Duration.newInstance(state.benchMark);
-	var sampleMin=Date.now().floorDay().subtract(Duration.newInstance(state.sampleSize));
-	var sampleMax=Date.now().floor("day");
+	var sampleMin=Date.today().subtract(Duration.newInstance(state.sampleSize));
+	var sampleMax=Date.today();
 
 	
 	query = new ESQuery({

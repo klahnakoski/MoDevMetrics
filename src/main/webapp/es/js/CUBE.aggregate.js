@@ -11,86 +11,47 @@ CUBE.aggregate.compile = function(select){
 		D.error("Do not know aggregate operation '" + select.operation + "'");
 	}//endif
 
-	return CUBE.aggregate[select.operation](select);
+	CUBE.aggregate[select.operation](select);
+
+	//DEFAULT AGGREGATION USES A STRUCTURE (OR VALUE) THAT CHANGES
+	//SOME AGGREGATES DEFER calc() UNTIL LATER
+	if (select.aggregate===undefined){
+		select.aggregate=function(row, result, agg){
+			var v=this.calc(row, result);
+			return this.add(agg, v);
+		};//method
+	}//endif
+
+
+	return select;
 };//method
 
-
-//CUBE.aggregate.analytic=function(column, columns){
-//	var groupby=column.groupby;
-//	if (groupby===undefined) column.groupby="1";
-//	if (groupby instanceof String) groupby=[groupby];
 //
-//	var sort=column.sort;
-//	if (sort===undefined) sort="1";
-//	if (sort instanceof String) sort=[sort];
-//
+//CUBE.aggregate.analytic = function(column){
+//	if (column.separator === undefined) column.separator = '';
 //
 //	column.defaultValue = function(){
-//		return []
+//		return [];
 //	};//method
 //
 //	column.add = function(total, v){
 //		if (v === undefined || v == null) return total;
-//
-//		var t=total;
-//		for(var i=0;i<groupby.length;i++){
-//			t=t[v[groupby[i]]];
-//			if (t===undefined){
-//				t=[];
-//				t[v[groupby[i]]]=t;
-//			}//endif
-//		}//endif
-//		t.push(v);
+//		total.push(v);
 //		return total;
 //	};//method
 //
 //	column.domain = CUBE.domain.value;
 //
-//	column.sortFunction=function(a, b){
-//		for(var o = 0; o < sort.length; o++){
-//			if (columns[sort[o]].domain === undefined){
-//				D.warning("what?");
-//			}
+//	column.end=function(total){
+//		//GROUP BY
 //
-//			var diff = columns[sort[o]].domain.compare(a[sort[o]], b[sort[o]]);
-//			if (diff != 0) return columns[sort[o]].sortOrder * diff;
-//		}//for
-//		return 0;
-//	};
-//
-//
-//	column.domain = {
-//
-//		compare:function(a, b){
-//			D.error("do not know how to compare analytic parts");
-//		},
-//
-//		NULL:null,
-//
-//		getCanonicalPart:function(value){
-//			return value;
-//		},
-//
-//		getKey:function(partition){
-//			return partition;
-//		},
-//
-//		end :function(total){
-//			//SORT
+//		//SORT
+//		//CALC VALUE
 //
 //
 //
-//
-//			if (total.count == 0) return null;
-//			return total.total / total.count;
-//			data.sort(totalSort);
-//		}
-//	};
-//
-//
-//
-//
-//
+//		return total.join(column.separator);
+//	};//method
 //};
 
 
@@ -98,16 +59,22 @@ CUBE.aggregate.join = function(column){
 	if (column.separator === undefined) column.separator = '';
 
 	column.defaultValue = function(){
-		return null;
+		return [];
 	};//method
 
 	column.add = function(total, v){
 		if (v === undefined || v == null) return total;
-		if (total == null) return v;
-		return total + this.separator + v;
+		total.push(v);
+		return total;
 	};//method
 
 	column.domain = CUBE.domain.value;
+
+	column.end=function(total){
+		return total.join(column.separator);
+	};//method
+
+
 };
 
 CUBE.aggregate.average = function(select){

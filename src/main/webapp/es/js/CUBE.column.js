@@ -28,7 +28,7 @@ CUBE.column.compile = function(sourceColumns, resultColumn, edges){
 		//ONLY DEFINE VARS THAT ARE USED
 		if (domainName!==undefined){
 			if (resultColumn.value.indexOf(domainName + ".") != -1){
-				f += "var " + domainName + "=__result." + columnName + ";\n";
+				f += "var " + domainName + "=__result["+i+"];\n";
 			}//endif
 			
 			var reg=new RegExp(domainName+"\\s*==", "g");
@@ -74,7 +74,7 @@ CUBE.where.compile = function(whereClause, sourceColumns, edges){
 		var columnName = sourceColumns[s].name;
 		//ONLY DEFINE VARS THAT ARE USED
 		if (whereClause.indexOf(columnName) != -1){
-			f += "var " + columnName + "=__source." + columnName + ";\n";
+			f += "var " + columnName + "=__source[\"" + columnName + "\"];\n";
 		}//endif
 	}//for
 	if (edges !== undefined) for(var i = 0; i < edges.length; i++){
@@ -82,7 +82,7 @@ CUBE.where.compile = function(whereClause, sourceColumns, edges){
 		var domainName = edges[i].domain.name;
 		//ONLY DEFINE VARS THAT ARE USED
 		if (whereClause.indexOf(domainName + ".") != -1){
-			f += "var " + domainName + "=__result." + columnName + ";\n";
+			f += "var " + domainName + "=__result["+i+"];\n";
 		}//endif
 	}//for
 

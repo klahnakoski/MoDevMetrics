@@ -126,7 +126,7 @@ var __createChart = function(){
 		],
 		"esfilter":{
 			"and":[
-				{"range":{"request_time":{"lt":Date.now().floorDay().add("-"+NUM_WEEKS+"week").getMilli()}}},
+				{"range":{"request_time":{"lt":Date.today().add("-"+NUM_WEEKS+"week").getMilli()}}},
 				{"missing":{"field":"review_time"}}
 			]
 		}
@@ -140,7 +140,7 @@ var __createChart = function(){
 		var oldRequests=(yield (CUBE.calc2List({
 			"from":old.list,
 			"select":[
-				{"name":"avg_wait_time", "value":""+Date.now().floorDay().getMilli()+"-request_time", "operation":"average"},
+				{"name":"avg_wait_time", "value":""+Date.today().getMilli()+"-request_time", "operation":"average"},
 				{"name":"count", "value":"bug_id", "operation":"count", "sort":"descending"},
 				{"name":"bugs", "value":"bug_id", "operation":"join", "separator":","}
 			],
@@ -179,7 +179,7 @@ var __createChart = function(){
 		],
 		"esfilter":{
 			"and":[
-				{"range":{"request_time":{"gt":Date.now().floorDay().add(Duration.newInstance("-"+NUM_WEEKS+"week")).getMilli()}}}
+				{"range":{"request_time":{"gt":Date.today().add(Duration.newInstance("-"+NUM_WEEKS+"week")).getMilli()}}}
 			]
 		}
 	});
@@ -196,7 +196,7 @@ var __createChart = function(){
 		"edges":[
 			{"name":"dummy", "value":"\"Number of reviews\""},
 			{"name":"wait time", allowNulls:true,
-				"value":"Duration.newInstance(Util.coalesce(review_time, Date.now().floorDay().add('day'))-request_time)",
+				"value":"Duration.newInstance(Util.coalesce(review_time, Date.eod())-request_time)",
 				"domain":{"type":"duration", "min":0, "max":"10day", "interval":"6hour"}
 			}
 		]

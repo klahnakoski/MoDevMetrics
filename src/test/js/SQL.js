@@ -852,7 +852,7 @@ Test.burndown = function(){
 			{"name":"best_date", "value":"modified_ts", "operation":"maximum", "sort":"descending"}
 		],
 		"edges":[
-			{"name":"date", "test":"Date.newInstance(modified_ts)<time.max", domain:{"type": "time", "min":startDate, "max": Date.now().floorDay(), interval:"day"}},
+			{"name":"date", "test":"Date.newInstance(modified_ts)<time.max", domain:{"type": "time", "min":startDate, "max": Date.today(), interval:"day"}},
 			{"name":"bug_id", "value":"bug_id"}
 		],
 		"order":[
@@ -868,7 +868,7 @@ Test.burndown = function(){
 //			{"name":"count", value:"1", "operation":"count"}
 //		],
 //		"edges":[
-//			{"name":"date", "value":"date", domain:{"type": "time", "min":startDate, "max": Date.now().floorDay(), interval:"day"}},
+//			{"name":"date", "value":"date", domain:{"type": "time", "min":startDate, "max": Date.today(), interval:"day"}},
 //			{"name":"status", "value":"bugs.state", "test":"bug_id==bugs.bug_id && modified_ts==bugs.modified_ts", "domain":{"name":"bugs", "type": "set", "from":esAllBugs}}
 //		]
 //	});

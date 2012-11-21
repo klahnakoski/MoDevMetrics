@@ -404,8 +404,8 @@ D.println(CNV.List2Tab(reviewQueues));
 	$(document).ready(function(){
 		GUI.setup([
 			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"nobody@mozilla.com"},
-			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-14day")},
-			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
+			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.today().add("-14day")},
+			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.today()},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("day")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		],

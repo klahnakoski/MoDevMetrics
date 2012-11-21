@@ -186,8 +186,8 @@
 
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"startDate", "name":"Min X-axis on Chart", "type":"time", "default":Date.now().floor("day").add("-1year")},
-			{"id":"endDate", "name":"Max X-axis on Chart", "type":"time", "default":Date.now().floor("day")},
+			{"id":"startDate", "name":"Min X-axis on Chart", "type":"time", "default":Date.today().add("-1year")},
+			{"id":"endDate", "name":"Max X-axis on Chart", "type":"time", "default":Date.today()},
 			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		],

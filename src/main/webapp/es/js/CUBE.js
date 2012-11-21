@@ -60,7 +60,6 @@ CUBE.select2Array = function(select){
 
 
 
-
 CUBE.calc2Tree = function(query){
 	if (query.edges.length==0) D.error("Tree processing requires an edge");
 
@@ -69,17 +68,16 @@ CUBE.calc2Tree = function(query){
 	var edges = query.edges;
 	query.columns = CUBE.compile(query, sourceColumns);
 	var where = CUBE.where.compile(query.where, sourceColumns, edges);
+	var agg=CUBE.calcAgg;
 
 
-	var tree = {};
+	var tree = {};  query.tree=tree;
 	FROM: for(var i = 0; i < query.from.length; i++){
 		if (i%100==0)
 			yield (aThread.yield());
 		var row = query.from[i];
 		//CALCULATE THE GROUP COLUMNS TO PLACE RESULT
-		var results = [
-			{}
-		];
+		var results = [[]];
 		for(var f = 0; f < edges.length; f++){
 			var edge = edges[f];
 
@@ -96,13 +94,13 @@ CUBE.calc2Tree = function(query){
 					edge.outOfDomainCount++;
 					if (edge.allowNulls){
 						for(var t = results.length; t--;){
-							results[t][edge.name] = edge.domain.NULL;
+							results[t][f] = edge.domain.NULL;
 						}//for
 					} else{
 						continue FROM;
 					}//endif
 				} else{
-					for(var t = results.length; t--;) results[t][edge.name] = p;
+					for(var t = results.length; t--;) results[t][f] = p;
 				}//endif
 			} else{ //test is DEFINED ON EDGE
 				//MULTIPLE MATCHES EXIST
@@ -111,7 +109,7 @@ CUBE.calc2Tree = function(query){
 					edge.outOfDomainCount++;
 					if (edge.allowNulls){
 						for(var t = results.length; t--;){
-							results[t][edge.name] = edge.domain.NULL;
+							results[t][f] = edge.domain.NULL;
 						}//for
 					} else{
 						continue FROM;
@@ -120,11 +118,11 @@ CUBE.calc2Tree = function(query){
 					//WE MUTIPLY THE NUMBER OF MATCHES TO THE CURRENT NUMBER OF RESULTS (SQUARING AND CUBING THE RESULT-SET)
 					for(var t = results.length; t--;){
 						result = results[t];
-						result[edge.name] = matches[0];
+						result[f] = matches[0];
 						for(var p = 1; p < matches.length; p++){
-							result = Util.copy(result, {});
+							result = result.copy();
 							results.push(result);
-							result[edge.name] = matches[p];
+							result[f] = matches[p];
 						}//for
 					}//for
 				}//endif
@@ -132,29 +130,13 @@ CUBE.calc2Tree = function(query){
 		}//for
 
 
-		if (select.length == 0){
-			for(var t = 0; t < results.length; t++){
-				if (where(row, results[t])) CUBE.getAggregate(results[t], tree, select, edges);
+		for(var r=results.length;r--;){
+			var pass=where(row, results[r]);
+			if (pass){
+				agg(row, results[r], query, select);
 			}//for
-		} else{
-			for(var s = 0; s < select.length; s++){
-				var ss = select[s];
-				for(var t = 0; t < results.length; t++){
-					var pass=where(row, results[t]);
-					if (pass){
-						//FIND CANONICAL RESULT
-						var agg = CUBE.getAggregate(results[t], tree, select, edges);
+		}//for
 
-						//CALCULATE VALUE
-						var v = ss.calc(row, results[t]);
-
-						//ADD TO THE AGGREGATE VALUE
-						agg[ss.name] = ss.add(agg[ss.name], v);
-					}//endif
-
-				}//for
-			}//for
-		}//endif
 	}//for
 
 	for(var g = 0; g < edges.length; g++){
@@ -163,9 +145,48 @@ CUBE.calc2Tree = function(query){
 	}//for
 
 
-	query.tree=tree;
+//	query.tree=tree;
 	yield query;
 };
+
+
+CUBE.calcAgg=function(row, result, query, select){
+	var agg = CUBE.getAggregate(result, query, select);
+	for(var s = 0; s < select.length; s++){
+		//ADD TO THE AGGREGATE VALUE
+		agg[s] = select[s].aggregate(row, result, agg[s]);
+	}//endif
+};//method
+
+
+CUBE.getAggregate = function(result, query, select){
+	//WE NEED THE select TO BE AN ARRAY
+	var edges=query.edges;
+
+	//FIND RESULT IN tree
+	var agg = query.tree;
+	var i = 0;
+	for(; i < edges.length - 1; i++){
+		var part=result[i];
+		var v = edges[i].domain.getKey(part);
+		if (agg[v] === undefined) agg[v] = {};
+		agg = agg[v];
+	}//for
+
+
+	
+	part=result[i];
+	v = edges[i].domain.getKey(part);
+	if (agg[v] === undefined){
+		agg[v]=[];
+		//ADD SELECT DEFAULTS
+		for(var s = 0; s < select.length; s++){
+			agg[v][s] = select[s].defaultValue();
+		}//for
+	}//endif
+
+	return agg[v];
+};//method
 
 
 CUBE.calc2List = function(query){
@@ -187,7 +208,7 @@ CUBE.calc2List = function(query){
 	var resultColumns=query.columns;
 
 	var output = [];
-	CUBE.outputToList(output, query.tree, edges, {}, 0, query.order);
+	CUBE.Tree2List(output, query.tree, select, edges, {}, 0, query.order);
 	yield (aThread.yield());
 
 	//ORDER THE OUTPUT
@@ -257,7 +278,7 @@ CUBE.calc2Cube = function(query){
 	//MAKE THE EMPTY DATA GRID
 	query.cube = CUBE.cube.newInstance(edges, 0, query.select);
 
-	CUBE.outputToCube(query, query.cube, query.tree, 0);
+	CUBE.Tree2Cube(query, query.cube, query.tree, 0);
 
 	yield (query);
 };//method
@@ -265,7 +286,7 @@ CUBE.calc2Cube = function(query){
 
 
 //CONVERT LIST TO CUBE
-CUBE.toCube=function(query){
+CUBE.List2Cube=function(query){
 
 	if (query.list!==undefined) D.error("Can only convert list to a cube at this time");
 
@@ -414,7 +435,7 @@ CUBE.toTable=function(query){
 
 	CUBE.select2Array(query.select).forall(function(s, i){
 		columns.push(s);
-		param.push("query.cube"+coord+((query.select instanceof Array) ? "[\""+s.name+"\"]" : ""));
+		param.push("query.cube"+coord+((query.select instanceof Array) ? "["+i+"]" : ""));
 	});
 
 	var output=[];
@@ -532,40 +553,38 @@ CUBE.normalizeByX=function(query, multiple){
 
 
 // CONVERT THE tree STRUCTURE TO A FLAT LIST FOR output
-CUBE.outputToList = function(output, tree, edges, coordinates, depth, order){
+CUBE.Tree2List = function(output, tree, select, edges, coordinates, depth){
 	if (depth == edges.length){
-		//FRSH OBJECT
-//		var obj={};
-//		Util.copy(coordinates, obj);
-//		Util.copy(tree, obj);
-//		output.push(obj);
-
-		//ADD TO THE TREE'S LEAVES
-		Util.copy(coordinates, tree);
-		output.push(tree);
-//		if (output.length%4000==0) yield (aThread.yield());
+		//FRESH OBJECT
+		var obj={};
+		Util.copy(coordinates, obj);
+		for(var s=0;s<select.length;s++){
+			obj[select[s].name]=tree[s];
+		}//for
+		output.push(obj);
 	} else{
 		var keys = Object.keys(tree);
 		for(var k = 0; k < keys.length; k++){
 			coordinates[edges[depth].name]=edges[depth].domain.map[keys[k]];
-			CUBE.outputToList(output, tree[keys[k]], edges, coordinates, depth + 1)
+			CUBE.Tree2List(output, tree[keys[k]], select, edges, coordinates, depth + 1)
 		}//for
 	}//endif
 //	yield (null);
 };//method
 
 
+
+
 // CONVERT THE tree STRUCTURE TO A cube
-CUBE.outputToCube = function(query, cube, tree, depth){
+CUBE.Tree2Cube = function(query, cube, tree, depth){
 	var edge=query.edges[depth];
 	var domain=edge.domain;
-//	var parts=domain.partitions;
 
 	if (depth < query.edges.length-1){
 		var keys=Object.keys(tree);
 		for(var k=keys.length;k--;){
 			var p=domain.getPartByKey(keys[k]).dataIndex;
-			CUBE.outputToCube(query, cube[p], tree[keys[k]], depth+1);
+			CUBE.Tree2Cube(query, cube[p], tree[keys[k]], depth+1);
 		}//for
 		return;
 	}//endif
@@ -576,7 +595,7 @@ CUBE.outputToCube = function(query, cube, tree, depth){
 			var p=domain.getPartByKey(keys[k]).dataIndex;
 			var tuple={};
 			for(var s = 0; s < query.select.length; s++){
-				tuple[query.select[s].name] = tree[keys[k]][query.select[s].name];
+				tuple[query.select[s].name] = tree[keys[k]][s];
 			}//for
 			cube[p]=tuple;
 		}//for
@@ -584,7 +603,7 @@ CUBE.outputToCube = function(query, cube, tree, depth){
 		var keys=Object.keys(tree);
 		for(var k=keys.length;k--;){
 			var p=domain.getPartByKey(keys[k]).dataIndex;
-			cube[p]=tree[keys[k]][query.select.name];
+			cube[p]=tree[keys[k]][0];
 		}//for
 	}//endif
 
@@ -601,40 +620,6 @@ CUBE.outputToCube = function(query, cube, tree, depth){
 //};//method
 
 
-CUBE.getAggregate = function(result, tree, select, edges){
-
-	//FIND RESULT IN output
-	//output IS A TREE INDEXED BY THE PARTITION CANONICAL VALUES
-	var agg = tree;
-	for(var i = 0; i < edges.length - 1; i++){
-		var part=result[edges[i].name];
-		var v = edges[i].domain.getKey(part);
-		if (agg[v] === undefined) agg[v] = {};
-		agg = agg[v];
-	}//for
-	part=result[edges[i].name];
-	if (part == null) D.error("Should not happen");
-
-	v = edges[i].domain.getKey(part);
-	if (agg[v] === undefined){
-		agg[v]={};
-		//ADD SELECT DEFAULTS
-		for(var s = 0; s < (select).length; s++){
-			agg[v][select[s].name] = select[s].defaultValue();
-		}//for
-		//ADD COORDINATES
-		for(var i = 0; i < edges.length; i++){
-			var d=edges[i].domain;
-			var part2=result[edges[i].name];
-			var canonical=d.getPartByKey(d.getKey(part2)); 	//SET DOMAIN USUALLY DEFAULTS TO A SINGLE null PART
-			if (canonical===undefined)
-				D.error("Expecting the domain '"+d.name+"' to have key for "+CNV.Object2JSON(part2));
-			agg[v][edges[i].name]=canonical;
-		}//for
-	}//endif
-
-	return agg[v];
-};//method
 
 
 // PULL COLUMN DEFINITIONS FROM LIST OF OBJECTS
@@ -702,7 +687,7 @@ CUBE.join=function(query){
 		if (p.from.cube!==undefined){
 			output.cube[index]=p.from.cube;
 		}else if (p.from.list!==undefined){
-			output.cube[index]=CUBE.toCube(p.from).cube;
+			output.cube[index]=CUBE.List2Cube(p.from).cube;
 		}else{
 			D.error("do not know how to handle");
 		}//endif

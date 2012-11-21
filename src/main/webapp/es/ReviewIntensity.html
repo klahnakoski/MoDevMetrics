@@ -321,12 +321,15 @@
 
 	};//createChart
 
+//	$("#description").click(function(){
+//		createChart();
+//	});
 
 	$(document).ready(function(){
 		GUI.setup([
 			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"nobody@mozilla.org"},
-			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-3month")},
-			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
+			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.today().add("-3month")},
+			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.today()},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("day")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		],

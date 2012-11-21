@@ -154,8 +154,8 @@ var __createChart = function(){
 			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
 			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3year")},
 			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("3month")},
-			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-2year")},
-			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
+			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.today().add("-2year")},
+			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.today()},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		],
 		[

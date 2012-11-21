@@ -253,7 +253,7 @@
 //						"from":reviewQueues,
 //						"select":[
 //							{"name":"numReviewsRequested", "value":"1", "operation":"count"},
-//							{"name":"numReviewsCompleted", "value":"end_time<Date.now().floorDay() ? 1 : 0", "operation":"sum"}
+//							{"name":"numReviewsCompleted", "value":"end_time<Date.today() ? 1 : 0", "operation":"sum"}
 //						]
 //					}))).list[0];
 
@@ -265,7 +265,7 @@
 							numCompleteInWeek++;
 						
 						numReviewsRequested++;
-						if (reviewQueues[r].end_time<Date.now().floorDay()){  //NOTICE WE ES-GRAB ONLY smapleMax.floorDay(), BUT PUT end_time AS Date.now() ON OPEN REVIEWS
+						if (reviewQueues[r].end_time<Date.today()){  //NOTICE WE ES-GRAB ONLY smapleMax.floorDay(), BUT PUT end_time AS Date.now() ON OPEN REVIEWS
 							numReviewsCompleted++;
 						}//endif
 					}//for
@@ -312,8 +312,8 @@
 
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-3month")},
-			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
+			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.today().add("-3month")},
+			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.today()},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("day")},
 			{"id":"benchmark", "name":"Benchmark", "type":"duration", "default":Duration.newInstance("week")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100}

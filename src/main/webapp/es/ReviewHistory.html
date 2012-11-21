@@ -149,13 +149,15 @@ D.println(CNV.List2Tab(reviewQueues));
 			"from":reviewQueues.list,
 			"select":{"name":"Pending", "value":"1", operation:"sum"},
 			"edges":[
-				{"name":"Bug ID", "value":"bug_id", "order":["request_time", "review_time"]},
+				{"name":"Bug ID", "value":"bug_id", "sort":["request_time", "review_time"]},
 				{"name":"Date",
-					"test":"time.min<=Util.coalesce(Date.newInstance(review_time), Date.now().floorDay().add('day')) && new Date(request_time)<time.max",
+					"test":"time.min<=Util.coalesce(Date.newInstance(review_time), Date.eod()) && new Date(request_time)<time.max",
 					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, value:"value"}
 				}
 			]
 		}));
+
+
 
 		aChart.show({
 			"id":"chart",
@@ -171,8 +173,8 @@ D.println(CNV.List2Tab(reviewQueues));
 	$(document).ready(function(){
 		GUI.setup([
 			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"nobody@mozilla.com"},
-			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("day").add("-14day")},
-			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.now().floor("day")},
+			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.today().add("-14day")},
+			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.today()},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("day")},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		],

@@ -6,8 +6,19 @@ Date.eod=function(){
 	return new Date().ceilingDay();
 };//method
 
+Date.today=function(){
+	return new Date().floorDay();
+};//method
+
+
+
 Date.newInstance = function(value){
 	if (value === undefined || value == null) return null;
+	if (value instanceof String){
+		
+
+
+	}//endif
 	return new Date(value);
 };//method
 
@@ -332,44 +343,34 @@ Date.getTimezone = function(){
 // WHAT IS THE MOST COMPACT DATE FORMAT TO DISTINGUISH THE RANGE
 ////////////////////////////////////////////////////////////////////////////////
 Date.getBestFormat=function(minDate, maxDate, interval){
-	var minFormat=5; //SECONDS
-	if (interval.milli>=Duration.MILLI_VALUES.minute) minFormat=4;
-	if (interval.milli>=Duration.MILLI_VALUES.hour) minFormat=3;
-	if (interval.milli>=Duration.MILLI_VALUES.day) minFormat=2;
-	if (interval.milli>=Duration.MILLI_VALUES.month) minFormat=1;
-	if (interval.month>=Duration.MONTH_VALUES.month) minFormat=1;
-	if (interval.month>=Duration.MONTH_VALUES.year) minFormat=0;
+	var minFormat=0; //SECONDS
+	if (interval.milli>=Duration.MILLI_VALUES.minute) minFormat=1;
+	if (interval.milli>=Duration.MILLI_VALUES.hour) minFormat=2;
+	if (interval.milli>=Duration.MILLI_VALUES.day) minFormat=3;
+	if (interval.milli>=Duration.MILLI_VALUES.month) minFormat=4;
+	if (interval.month>=Duration.MONTH_VALUES.month) minFormat=4;
+	if (interval.month>=Duration.MONTH_VALUES.year) minFormat=5;
 
-	var maxFormat=0;
+	var maxFormat=5;//year
 	var span=maxDate.subtract(minDate, interval);
-	if (span.month<Duration.MONTH_VALUES.year && span.milli<Duration.MILLI_VALUES.day*365) maxFormat=1;
-	if (span.month<Duration.MONTH_VALUES.month && span.milli<Duration.MILLI_VALUES.day*31) maxFormat=2;
-	if (span.milli<Duration.MILLI_VALUES.day) maxFormat=3;
-	if (span.milli<Duration.MILLI_VALUES.hour) maxFormat=4;
-	if (span.milli<Duration.MILLI_VALUES.minute) maxFormat=5;
+	if (span.month<Duration.MONTH_VALUES.year && span.milli<Duration.MILLI_VALUES.day*365) maxFormat=4; //month
+	if (span.month<Duration.MONTH_VALUES.month && span.milli<Duration.MILLI_VALUES.day*31) maxFormat=3; //day
+	if (span.milli<Duration.MILLI_VALUES.day) maxFormat=2;
+	if (span.milli<Duration.MILLI_VALUES.hour) maxFormat=1;
+	if (span.milli<Duration.MILLI_VALUES.minute) maxFormat=0;
 
-	if (maxFormat>=minFormat) maxFormat=Math.max(0, minFormat-1);	//SOME CONTEXT IS GOOD
+	if (maxFormat<=minFormat) maxFormat=minFormat;
 
 	//INDEX BY [minFormat][maxFormat]
-//	var formats=[
-//	["yyyy", "yyyy", "yyyy", "yyyy", "yyyy", "yyyy"],
-//	["yyyy", "NNN yyyy", "NNN yyyy", "NNN yyyy", "NNN yyyy", "NNN yyyy"],
-//	["yyyy", "NNN yyyy", "dd-NNN-yyyy", "yyyy-NNN-dd HH:mm", "yyyy-NNN-dd HH:mm", "yyyy-NNN-dd HH:ss"],
-//	["yyyy", "NNN yyyy", "dd-NNN-yyyy", "yyyy-NNN-dd HH:mm", "yyyy-NNN-dd HH:mm", "yyyy-NNN-dd HH:ss"],
-//	["yyyy", "NNN yyyy", "dd-NNN-yyyy", "yyyy-NNN-dd HH:mm", "yyyy-NNN-dd HH:mm", "yyyy-NNN-dd HH:ss"],
-//	["yyyy", "NNN yyyy", "dd-NNN-yyyy", "yyyy-NNN-dd HH:mm", "yyyy-NNN-dd HH:mm", "yyyy-NNN-dd HH:ss"],
-//	];	
-
-	var output="";
-	for(var i=maxFormat; i<=minFormat; i++){
-		if (i!=maxFormat) output+=Date.getBestFormat.SEPERATOR[i];
-		output+=Date.getBestFormat.ORDERED[i];
-	}//for
-	return output;
+	return [
+	["ss.000", "mm:ss", "HH:mm:ss", "NNN dd, HH:mm:ss", "NNN dd, HH:mm:ss", "dd-NNN-yyyyy HH:mm:ss"],
+	[      "", "HH:mm", "HH:mm"   ,   "E dd, HH:mm"   , "NNN dd, HH:mm"   , "dd-NNN-yyyyy HH:mm"   ],
+	[      "",      "", "HH:mm"   ,   "E dd, HH:mm"   , "NNN dd, HH:mm"   , "dd-NNN-yyyyy HH:mm"   ],
+	[      "",      "",         "",   "E dd"          , "NNN dd"          , "dd-NNN-yyyyy"         ],
+	[      "",      "",         "", ""                , "NNN"             ,    "NNN yyyyy"         ],
+	[      "",      "",         "", ""                , ""                ,        "yyyyy"         ]
+	][minFormat][maxFormat];
 };//method
-//                               0      1      2     3     4     5
-Date.getBestFormat.ORDERED  =["yyyy", "NNN", "dd", "HH", "mm", "ss"];
-Date.getBestFormat.SEPERATOR=[    "",   "-",  "-",  " ",  ":",  ":"];
 
 
 
