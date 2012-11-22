@@ -173,9 +173,9 @@
 
 			if (data.data!==undefined){
 				data.list=CUBE.Cube2List(data);
-				$("#result").html("<div>"+data.list.length+" rows (up to 100 shown)</div>"+CNV.List2HTMLTable(data.list, {"limit":100}));
+				$("#result").html("<div>"+data.list.length+" rows (up to 100 shown)</div>"+CNV.List2HTMLTable(data.list, {"limit":3000}));
 			}else if (data.list!==undefined){
-				$("#result").html("<div>"+data.list.length+" rows (up to 100 shown)</div>"+CNV.List2HTMLTable(data.list, {"limit":100}));
+				$("#result").html("<div>"+data.list.length+" rows (up to 100 shown)</div>"+CNV.List2HTMLTable(data.list, {"limit":3000}));
 			}else{
 				$("#result").html(CNV.String2HTML(CNV.Object2JSON(data)));
 			}//endif

@@ -10,14 +10,18 @@ D.addLog=function(id){
 
 
 D.println = function(message){
+	try{
+		if (typeof(message)!="string") message=CNV.Object2JSON(message);
+	}catch(e){
+	}//try
+
 	console.info(Date.now().format("HH:mm:ss - ")+message);
+
 	D.logs.forall(function(v, i){
 		try{
-			if (typeof(message)!="string") message=CNV.Object2JSON(message);
 			var ele=$("#"+v);
 			ele.append(CNV.String2HTML(message)+"<br>");
 		}catch(e){
-
 		}//try
 	});
 };//method

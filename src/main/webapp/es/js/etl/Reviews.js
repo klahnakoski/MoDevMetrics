@@ -3,6 +3,8 @@
 var REVIEWS={};
 
 REVIEWS.aliasName="reviews";
+REVIEWS.newIndexName=null;  //CURRENT INDEX FOR INSERT
+REVIEWS.oldIndexName=null;  //WHERE THE CURENT ALIAS POINTS
 REVIEWS.typeName="review";
 
 
@@ -25,7 +27,7 @@ REVIEWS.getLastUpdated=function(){
 
 REVIEWS.makeSchema=function(successFunction){
 	//MAKE SCHEMA
-	REVIEWS.indexName=REVIEWS.aliasName+Date.now().format("yyMMdd_HHmmss");
+	REVIEWS.newIndexName=REVIEWS.aliasName+Date.now().format("yyMMdd_HHmmss");
 
 	var config={
 		"_source":{"enabled": true},
@@ -50,7 +52,7 @@ REVIEWS.makeSchema=function(successFunction){
 	setup.mappings[REVIEWS.typeName]=config;
 
 	var data=yield (Rest.post({
-		"url":ElasticSearch.baseURL+"/"+REVIEWS.indexName,
+		"url":ElasticSearch.baseURL+"/"+REVIEWS.newIndexName,
 		"data":setup
 	}));
 	D.println(data);
@@ -68,14 +70,14 @@ REVIEWS.makeSchema=function(successFunction){
 	for(var k=keys.length;k--;){
 		var name=keys[k];
 		if (!name.startsWith(REVIEWS.aliasName)) continue;
-		if (name==REVIEWS.indexName) continue;
+		if (name==REVIEWS.newIndexName) continue;
 
-		if (REVIEWS.lastInsert===undefined || name>REVIEWS.lastInsert){
-			REVIEWS.lastInsert=name;
+		if (REVIEWS.newIndexName===undefined || name>REVIEWS.newIndexName){
+			REVIEWS.newIndexName=name;
 		}//endif
 
 		if (Object.keys(data[name].aliases).length>0){
-			REVIEWS.lastAlias=name;
+			REVIEWS.oldIndexName=name;
 			continue;
 		}//endif
 
@@ -262,7 +264,7 @@ REVIEWS.insert=function(reviews){
 	});
 	status.message("Push review queues to ES");
 	yield (Rest.post({
-		"url":ElasticSearch.baseURL+"/"+REVIEWS.indexName+"/"+REVIEWS.typeName+"/_bulk",
+		"url":ElasticSearch.baseURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName+"/_bulk",
 		"data":insert.join("\n")
 	}));
 };//method

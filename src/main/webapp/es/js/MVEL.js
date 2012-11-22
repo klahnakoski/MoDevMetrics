@@ -297,10 +297,12 @@ MVEL.FUNCTIONS={
 	"Value2Pipe":
 		'var Value2Pipe = function(value){\n' +  //SPACES ARE IMPORTANT BETWEEN "="
 			"if (value==null){ \"0\" }else "+
-			"if (!(value is String)){ 'n'+value; }else{\n" +
+			"if (value is ArrayList){ 's'+value.toString(); }else \n" +
+			"if (value is Long || value is Integer){ 'n'+value; }else \n" +
+			"if (!(value is String)){ 's'+value.getClass().getName(); }else \n" +
 //			"value;\n"+
 			'"s"+replaceAll(replaceAll(value, "\\\\", "\\\\\\\\"), "|", "\\\\p");'+  //CAN NOT ""+value TO MAKE NUMBER A STRING (OR EVEN TO PREPEND A STRING!)
-		"}};\n",
+		"};\n",
 
 	"replaceAll":
 		"var replaceAll = function(output, find, replace){\n" +

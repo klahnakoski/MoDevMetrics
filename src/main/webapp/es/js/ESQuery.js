@@ -28,6 +28,7 @@ ESQuery.DEBUG=false;
 ESQuery.INDEXES={
 	"bugs":{"path":"/bugs"},
 	"reviews":{"path":"/reviews/review"}//http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews121109_041939/review/_search
+	"bug_summary":{"path":"/reviews/review"}//http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews121109_041939/review/_search
 };
 
 

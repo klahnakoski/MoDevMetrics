@@ -30,6 +30,7 @@ CUBE.compile = function(query, sourceColumns){
 		}//endif
 		if (e.name===undefined) e.name=e.value;
 		if (e.allowNulls === undefined) e.allowNulls = false;
+		e.columnIndex=g;
 
 		if (resultColumns[e.name]!==undefined) D.error("All edges must have different names");
 		resultColumns[e.name] = e;
@@ -43,6 +44,7 @@ CUBE.compile = function(query, sourceColumns){
 	for(var s = 0; s < select.length; s++){
 		if (select[s].name===undefined) select[s].name=select[s].value.split(".").last();
 		if (resultColumns[select[s].name]!==undefined) D.error("All columns must have different names");
+		select[s].columnIndex=s+edges.length;
 		resultColumns[select[s].name] = select[s];
 		CUBE.column.compile(sourceColumns, select[s], edges);
 		CUBE.aggregate.compile(select[s]);
@@ -208,15 +210,15 @@ CUBE.calc2List = function(query){
 	var resultColumns=query.columns;
 
 	var output = [];
-	CUBE.Tree2List(output, query.tree, select, edges, {}, 0, query.order);
+	CUBE.Tree2List(output, query.tree, select, edges, {}, 0);
 	yield (aThread.yield());
 
 	//ORDER THE OUTPUT
-	if (query.order === undefined){
-		query.order = [];
-		for(var f = 0; f < edges.length; f++) query.order.push(edges[f].name);
+	if (query.sort === undefined){
+		query.sort = [];
+		for(var f = 0; f < edges.length; f++) query.sort.push(edges[f].name);
 	}//endif
-	output = CUBE.order(output, query.order, resultColumns);
+	output = CUBE.sort(output, query.sort, resultColumns);
 
 	//COLLAPSE OBJECTS TO SINGLE VALUE
 	for(var c in resultColumns){
@@ -398,8 +400,8 @@ CUBE.setOP = function(query){
 
 
 	//ORDER THE OUTPUT
-	if (query.order === undefined) query.order = [];
-	output = CUBE.order(output, query.order, resultColumns);
+	if (query.sort === undefined) query.sort = [];
+	output = CUBE.sort(output, query.sort, resultColumns);
 
 	query.list = output;
 	return query;
@@ -565,7 +567,7 @@ CUBE.Tree2List = function(output, tree, select, edges, coordinates, depth){
 	} else{
 		var keys = Object.keys(tree);
 		for(var k = 0; k < keys.length; k++){
-			coordinates[edges[depth].name]=edges[depth].domain.map[keys[k]];
+			coordinates[edges[depth].name]=edges[depth].domain.getPartByKey(keys[k]);
 			CUBE.Tree2List(output, tree[keys[k]], select, edges, coordinates, depth + 1)
 		}//for
 	}//endif
@@ -706,16 +708,21 @@ CUBE.join=function(query){
 // ORDERING
 ////////////////////////////////////////////////////////////////////////////////
 //TAKE data LIST OF OBJECTS AND ENSURE names ARE ORDERED
-CUBE.order = function(data, ordering, columns){
+CUBE.sort = function(data, sortOrder, columns){
+
+	var orderedColumns=sortOrder.map(function(v, i){
+		return columns[v];
+	});
 
 	var totalSort = function(a, b){
-		for(var o = 0; o < ordering.length; o++){
-			if (columns[ordering[o]].domain === undefined){
+		for(var o = 0; o < orderedColumns.length; o++){
+			var col=orderedColumns[o];
+			if (col.domain === undefined){
 				D.warning("what?");
 			}
 
-			var diff = columns[ordering[o]].domain.compare(a[ordering[o]], b[ordering[o]]);
-			if (diff != 0) return columns[ordering[o]].sortOrder * diff;
+			var diff = col.domain.compare(a[col.name], b[col.name]);
+			if (diff != 0) return col.sortOrder * diff;
 		}//for
 		return 0;
 	};

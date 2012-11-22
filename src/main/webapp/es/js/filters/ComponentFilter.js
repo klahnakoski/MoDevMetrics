@@ -1,13 +1,13 @@
-ComponentUI = function(){
+ComponentFilter = function(){
 	this.Refresh()
 };
 
 
-ComponentUI.makeFilter = function(){
+ComponentFilter.makeFilter = function(){
 	return ES.makeFilter("component", state.selectedComponents);
 };//method
 
-ComponentUI.makeQuery = function(filters){
+ComponentFilter.makeQuery = function(filters){
 	var output = {
 		"query" : {
 			"filtered" : {
@@ -41,10 +41,10 @@ ComponentUI.makeQuery = function(filters){
 	return output;
 };//method
 
-ComponentUI.prototype.Refresh = function(){
-	this.query = ComponentUI.makeQuery([
-		ES.makeFilter("product", state.selectedProducts),
-		ProgramFilter.makeFilter(state.selectedPrograms)
+ComponentFilter.prototype.Refresh = function(){
+	this.query = ComponentFilter.makeQuery([
+		ES.makeFilter("product", state.selectedProducts)//,
+//		ProgramFilter.makeFilter(state.selectedPrograms)
 	]);
 
 	this.ElasticSearchQuery = OldElasticSearchQuery(this, 0, this.query);
@@ -53,7 +53,7 @@ ComponentUI.prototype.Refresh = function(){
 };
 
 
-ComponentUI.prototype.injectHTML = function(components){
+ComponentFilter.prototype.injectHTML = function(components){
 	var html = '<ul id="componentsList" class="menu ui-selectable">';
 	var item = '<li class="{class}" id="component_{name}">{name} ({count})</li>';
 
@@ -81,7 +81,7 @@ ComponentUI.prototype.injectHTML = function(components){
 };
 
 
-ComponentUI.prototype.success = function(data){
+ComponentFilter.prototype.success = function(data){
 	var components = data.facets.Components.terms;
 
 	var terms = [];

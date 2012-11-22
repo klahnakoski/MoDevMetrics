@@ -7,23 +7,19 @@ ETL.BATCH_SIZE=20000;
 // REDIRECT alias TO POINT FROM oldIndexName TO newIndexName
 ////////////////////////////////////////////////////////////////////////////////
 ETL.updateAlias=function(etl){
-	var alias=etl.aliasName;
-	var oldIndexName=etl.lastAlias;
-	var newIndexName=etl.indexName;
-
 	status.message("Done bulk load, change alias pointer");
 	//MAKE ALIAS FROM reviews
 	var param={
 		"url":ElasticSearch.baseURL+"/_aliases",
 		"data":{
 			"actions":[
-				{"add":{"index":newIndexName, "alias":alias}}
+				{"add":{"index":etl.newIndexName, "alias":etl.aliasName}}
 			]
 		}
 	};
 
-	if (oldIndexName!==undefined){
-		param.data.actions.push({"remove":{"index":oldIndexName, "alias":alias}});
+	if (etl.oldIndexName!==undefined){
+		param.data.actions.push({"remove":{"index":etl.oldIndexName, "alias":etl.aliasName}});
 	}//endif
 
 	yield (Rest.post(param));
@@ -47,6 +43,7 @@ ETL.newInsert=function(etl){
 
 	var maxBug=yield(ETL.getMaxBugID());
 	var maxBatches=Math.floor(maxBug/ETL.BATCH_SIZE);
+maxBatches=1;
 
 	yield(ETL.insertBatches(etl, 0, maxBatches));
 	yield(ETL.updateAlias(etl));
@@ -69,23 +66,22 @@ ETL.resumeInsert=function(etl){
 		if (!name.startsWith(etl.aliasName)) continue;
 
 		if (Object.keys(data[name].aliases).length>0){
-			etl.lastAlias=name;
+			etl.oldIndexName=name;
 		}//endif
 
-		if (etl.lastInsert===undefined || name>etl.lastInsert){
-			etl.lastInsert=name;
+		if (etl.newIndexName===undefined || name>etl.newIndexName){
+			etl.newIndexName=name;
 		}//endif
 	}//for
 
-	if (etl.lastInsert===undefined || etl.lastInsert==etl.lastAlias){
+	if (etl.newIndexName===undefined || etl.newIndexName==etl.oldIndexName){
 		yield (etl.newInsert());
 		yield null;
 	}//endif
 
-	etl.indexName=etl.lastInsert;
 
 	//GET THE MAX AND MIN TO FIND WHERE TO START
-	ESQuery.INDEXES.reviews={"path":"/"+etl.lastInsert+"/"+etl.typeName};
+	ESQuery.INDEXES.reviews={"path":"/"+etl.newIndexName+"/"+etl.typeName};
 	var maxResults=yield(ESQuery.run({
 		"from":"reviews",
 		"select":[
@@ -98,8 +94,10 @@ ETL.resumeInsert=function(etl){
 	var maxBatches=Math.floor(minBug/ETL.BATCH_SIZE)-1;
 
 	yield (ETL.insertBatches(etl, 0, maxBatches));
+
 	yield (ETL.updateAlias(etl));
-	ESQuery.INDEXES.reviews={"path":"/"+etl.indexName+"/"+etl.typeName};
+	D.error("update the ESQuery to handle new query paths");
+	ESQuery.INDEXES.reviews={"path":"/"+etl.aliasName+"/"+etl.typeName};
 	status.message("Success!");
 };
 
@@ -137,10 +135,29 @@ ETL.incrementalInsert=function(etl, startTime){
 
 
 ETL.insertBatches=function(etl, minBatch, maxBatch){
+	var maxConcurrent=3;
+	var numRemaining=maxBatch+1;
+
 	for(var b=maxBatch;b>=0;b--){
-		var reviews=yield (etl.get(b*ETL.BATCH_SIZE, (b+1)*ETL.BATCH_SIZE));
-		yield (etl.insert(reviews));
-		D.println("Done batch "+b+"/"+maxBatch+" into "+etl.indexName);
+		while(numRemaining>b+maxConcurrent){
+			//LIMIT REQUESTS
+			yield (aThread.sleep(100));
+		}//while
+
+		(function(b){
+			aThread.run(function(){
+				var data=yield (etl.get(b*ETL.BATCH_SIZE, (b+1)*ETL.BATCH_SIZE));
+				yield (etl.insert(data));
+				D.println("Done batch "+b+"/"+maxBatch+" into "+etl.newIndexName);
+				numRemaining--;
+			});
+		})(b);
 	}//for
+
+	while(numRemaining>0){
+		yield (aThread.sleep(100));
+	}//while
+
+	yield (null);
 };//method
 

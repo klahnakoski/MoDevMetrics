@@ -75,7 +75,7 @@
 
 	$("#test").click(function(){
 		aThread.run(function(){
-			var reviews=yield (BUG_SUMMARY.get(790640, 790641));
+			var reviews=yield (BUG_SUMMARY.get([790640, 563491], undefined));
 			$("#results").html(CNV.List2HTMLTable(reviews));
 			status.message("Done");
 		});

@@ -93,7 +93,7 @@
 
 <script type="application/javascript;version=1.7" src="js/filters/Filter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/ComponentFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script><script type="application/javascript;version=1.7" src="js/filters/ClassificationFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/ProgramFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/CustomFilters.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/GUIFilters.js"></script>
@@ -142,9 +142,9 @@ var createChart=function(){
 var __createChart = function(){
 
 	var sampleMin=new Date(state.sampleMin);
-	var eod=Date.eod();
+	var sampleMax=new Date(state.sampleMax).ceilingDay();
 
-	var sampleSize=Date.eod().subtract(sampleMin, Duration.newInstance(state.intervalX));
+	var sampleSize=sampleMax.subtract(sampleMin, Duration.newInstance(state.intervalX));
 	$("#title").html("Time to Resolution ("+sampleSize.toString()+" sample)");
 
 
@@ -157,8 +157,7 @@ var __createChart = function(){
 			{"name":"bug_id", "value":"bug_id"}
 		],
 		"esfilter":{"and":[
-			//MAKE SURE WE REPORT BACK FAR ENOUGH IN TIME TO CAPTURE THE LONGEST TIMES (state.maxX) BEING REPORTED
-			{"range":{"modified_ts":{"gte":sampleMin.getMilli()}}}
+			{"script":{"script":"true"}}
 		]}
 	});
 
@@ -177,7 +176,7 @@ var __createChart = function(){
 				{"term":{"changes.field_name":"bug_status"}},
 				{"not":{"terms":{"changes.field_value_removed":["resolved", "verified", "closed"]}}}
 			]},
-			{"range":{"expires_on":{"gt":Date.eod().getMilli()}}}
+			{"range":{"expires_on":{"gt":sampleMax.getMilli()}}}
 		]}
 	});
 
@@ -200,14 +199,17 @@ var __createChart = function(){
 			identified,
 		"select":[
 			{"name":"bug_status", "value":"c.bug_id==null ? 'open' : 'closed'", "operation":"minimum"},
-			{"name":"duration", "value":"Util.coalesce(c.close_time, "+Date.eod().getMilli()+") - first_identified", "operation":"average"}
+			{"name":"duration", "value":"Util.coalesce(c.close_time, "+sampleMax.getMilli()+") - first_identified", "operation":"average"}
 		],
 		"edges":[
 			{"name":"bug_id", "value":"bug_id"},
 			{"name":"close", "value":"bug_id", "allowNulls":true, "domain":{"type":"set", "name":"c", "key":"bug_id", "partitions":closed}}
 		],
-		"where":"Util.coalesce(c.close_time, "+Date.eod().getMilli()+") > first_identified"	//REMOVE UNMATCHED AND ZERO-DURATION
+		"where":"Util.coalesce(c.close_time, "+sampleMax.getMilli()+") > first_identified && "+sampleMin.getMilli()+"<=first_identified"	//REMOVE UNMATCHED AND ZERO-DURATION
 	}))).list;
+
+
+D.println(JSON.stringify(durations.map(function(v, i){return v.bug_id})));
 
 	var stats = (yield(CUBE.calc2Cube({
 		"from": durations,
@@ -265,7 +267,7 @@ var __createChart = function(){
 			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
 			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
 			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
-			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
+			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today()}
 		],
 		[
 			"maxX=Duration.newInstance(maxX).add(Duration.newInstance(intervalX)).add(Duration.newInstance('-second')).floor(Duration.newInstance(intervalX)).toString()"

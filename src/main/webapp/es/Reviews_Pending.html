@@ -66,7 +66,7 @@
 
 <script type="application/javascript;version=1.7" src="js/filters/Filter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/ComponentFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script><script type="application/javascript;version=1.7" src="js/filters/ClassificationFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/ProgramFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/CustomFilters.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/GUIFilters.js"></script>
@@ -105,7 +105,7 @@
 		"from":0,
 		"size":0,
 		"sort":[
-			{ "bug_version_num" : {"order" : "asc"} }
+			{ "bug_version_num" : {"sort" : "asc"} }
 		],
 
 		"facets":{
@@ -200,7 +200,7 @@
 				"edges":[
 					{"name":"requestee", "value":"requestee"}
 				],
-				"order":[
+				"sort":[
 					"numPending"
 				]
 			}))).list;

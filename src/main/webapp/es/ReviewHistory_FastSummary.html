@@ -86,7 +86,7 @@
 
 <script type="application/javascript;version=1.7" src="js/filters/Filter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/ComponentFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script><script type="application/javascript;version=1.7" src="js/filters/ClassificationFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/ProgramFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/CustomFilters.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/GUIFilters.js"></script>
@@ -152,7 +152,7 @@ D.println(CNV.List2Tab(reviewQueues));
 				"from":reviewQueues.list,
 				"select":{"name":"Pending", "value":"1", operation:"sum"},
 				"edges":[
-					{"name":"Bug ID", "value":"bug_id", "order":["request_time", "review_time"]},
+					{"name":"Bug ID", "value":"bug_id", "sort":["request_time", "review_time"]},
 					{"name":"Date",
 						"test":"request_time<=time.value && time.value<=review_time",
 						"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "format":"NNN dd"}

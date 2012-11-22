@@ -211,6 +211,8 @@ List.intersect = function(a, b){
 };//method
 
 
+
+if (Math.oldRound) throw "You can not call this util.js twice!!!"
 Math.oldRound=Math.round;
 
 Math.round=function(value, rounding){

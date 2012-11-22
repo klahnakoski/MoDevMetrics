@@ -1,14 +1,14 @@
-ProductUI = function(){
+ProductFilter = function(){
 	this.Refresh();
 };
 
 
-ProductUI.makeFilter = function(){
+ProductFilter.makeFilter = function(){
 	return ES.makeFilter("product", state.selectedProducts);
 };//method
 
 
-ProductUI.makeQuery = function(filters){
+ProductFilter.makeQuery = function(filters){
 	var output = {
 		"query" : {
 			"filtered" : {
@@ -43,9 +43,9 @@ ProductUI.makeQuery = function(filters){
 };//method
 
 
-ProductUI.prototype.Refresh = function(){
-	this.query = ProductUI.makeQuery([
-		ProgramFilter.makeFilter(state.selectedPrograms)
+ProductFilter.prototype.Refresh = function(){
+	this.query = ProductFilter.makeQuery([
+//		ProgramFilter.makeFilter(state.selectedPrograms)
 	]);
 
 	this.ElasticSearchQuery = OldElasticSearchQuery(this, 0, this.query);
@@ -54,7 +54,7 @@ ProductUI.prototype.Refresh = function(){
 };
 
 
-ProductUI.prototype.injectHTML = function(products){
+ProductFilter.prototype.injectHTML = function(products){
 	var html = '<ul id="productsList" class="menu ui-selectable">';
 	var item = '<li class="{class}" id="product_{name}">{name} ({count})</li>';
 
@@ -82,7 +82,7 @@ ProductUI.prototype.injectHTML = function(products){
 };
 
 
-ProductUI.prototype.success = function(data){
+ProductFilter.prototype.success = function(data){
 
 	var products = data.facets.Products.terms;
 
@@ -91,39 +91,49 @@ ProductUI.prototype.success = function(data){
 	for(var i = 0; i < products.length; i++) terms.push(products[i].term);
 	state.selectedProducts = List.intersect(state.selectedProducts, terms);
 
+	var self=this;
 
-	this.injectHTML(products);
+	aThread.run(function(){
+		self.injectHTML(products);
 
-	$("#productsList").selectable({
-		selected: function(event, ui){
-			var didChange = false;
-			if (ui.selected.id == "product_ALL"){
-				if (state.selectedProducts / length > 0) didChange = true;
-				state.selectedProducts = [];
-			} else{
-				if (!include(state.selectedProducts, ui.selected.id.rightBut("product_".length))){
-					state.selectedProducts.push(ui.selected.id.rightBut("product_".length));
-					didChange = true;
+		$("#productsList").selectable({
+			selected: function(event, ui){
+				var didChange = false;
+				if (ui.selected.id == "product_ALL"){
+					if (state.selectedProducts / length > 0) didChange = true;
+					state.selectedProducts = [];
+					state.selectedClassifications=[];
+				} else{
+					if (!include(state.selectedProducts, ui.selected.id.rightBut("product_".length))){
+						state.selectedProducts.push(ui.selected.id.rightBut("product_".length));
+						didChange = true;
+					}//endif
 				}//endif
-			}//endif
 
-			if (didChange){
-				GUI.State2URL();
-				state.programFilter.Refresh();
-				state.productFilter.Refresh();
-				state.componentFilter.Refresh();
-			}//endif
-		},
-		unselected: function(event, ui){
-			var i = state.selectedProducts.indexOf(ui.unselected.id.rightBut("product_".length));
-			if (i != -1){
-				state.selectedProducts.splice(i, 1);
-				GUI.State2URL();
-				state.programFilter.Refresh();
-				state.productFilter.Refresh();
-				state.componentFilter.Refresh();
+				if (didChange){
+					GUI.State2URL();
+					state.programFilter.Refresh();
+					state.classificationFilter.Refresh();
+					state.productFilter.Refresh();
+					state.componentFilter.Refresh();
+				}//endif
+			},
+			unselected: function(event, ui){
+				var i = state.selectedProducts.indexOf(ui.unselected.id.rightBut("product_".length));
+				if (i != -1){
+					state.selectedProducts.splice(i, 1);
+					state.selectedClassifications=[];
+					GUI.State2URL();
+					state.programFilter.Refresh();
+					state.classificationFilter.Refresh();
+					state.productFilter.Refresh();
+					state.componentFilter.Refresh();
+				}
 			}
-		}
+		});
+
+		yield (null);
 	});
+	
 };
 

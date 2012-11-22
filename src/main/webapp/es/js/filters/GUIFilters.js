@@ -23,6 +23,7 @@ importScript("../aCompiler.js");
 var state = {};
 
 state.selectedPrograms = [];
+state.selectedClassifications = [];
 state.selectedProducts = [];
 state.selectedComponents = [];
 
@@ -62,11 +63,15 @@ GUI.setup = function(parameters, relations, showLastUpdated){
 
 
 
-	state.programFilter = new ProgramFilter();
-	state.productFilter = new ProductUI();
-	state.componentFilter = new ComponentUI();
-
 	GUI.makeSelectionPanel();
+
+
+	state.programFilter = new ProgramFilter();
+	state.classificationFilter = new ClassificationFilter();
+	state.productFilter = new ProductFilter();
+	state.componentFilter = new ComponentFilter();
+
+
 	GUI.showLastUpdated(showLastUpdated);
 	GenerateCustomFilters();
 	GUI.AddParameters(parameters, relations); //ADD PARAM AND SET DEFAULTS
@@ -282,6 +287,8 @@ GUI.makeSelectionPanel = function (){
 		html += '<h4><a href="#">Custom Filters</a></h4>';
 		html += '<div id="customFilters"></div>';
 	}
+	html += '<h4><a href="#">Classifications</a></h4>';
+	html += '<div id="classifications"></div>';
 	html += '<h4><a href="#">Programs</a></h4>';
 	html += '<div id="programs"></div>';
 	html += '<h4><a href="#">Products</a></h4>';
@@ -293,7 +300,8 @@ GUI.makeSelectionPanel = function (){
 
 	$("#filters").accordion({
 		autoHeight: false,
-		navigation: true
+		navigation: true,
+		collapsible: true
 	});
 };
 

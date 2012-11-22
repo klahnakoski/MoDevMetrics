@@ -7,6 +7,7 @@ var BUG_SUMMARY={};
 
 
 BUG_SUMMARY.aliasName="bug_history";
+BUG_SUMMARY.newIndexName=null;				//THE CURRENT INDEX BEING INSERTED
 BUG_SUMMARY.typeName="bug_history";
 
 
@@ -36,7 +37,7 @@ BUG_SUMMARY.getLastUpdated=function(){
 
 BUG_SUMMARY.makeSchema=function(){
 	//MAKE SCHEMA
-	BUG_SUMMARY.indexName="bug_history"+Date.now().format("yyMMdd_HHmmss");
+	BUG_SUMMARY.newIndexName="bug_history"+Date.now().format("yyMMdd_HHmmss");
 
 	var config={
 		"_source":{"enabled": true},
@@ -70,15 +71,17 @@ BUG_SUMMARY.makeSchema=function(){
 		config.properties[v.projectName+"_time"]={"type":"string", "store":"yes", "index":"not_analyzed"};
 	});
 
+
+
+
 	var setup={
 		"mappings":{
 		}
 	};
 	setup.mappings[BUG_SUMMARY.typeName]=config;
 
-
 	var data=yield (Rest.post({
-		"url":ElasticSearch.baseURL+"/"+BUG_SUMMARY.indexName,
+		"url":ElasticSearch.baseURL+"/"+BUG_SUMMARY.newIndexName,
 		"data":setup
 	}));
 
@@ -94,20 +97,21 @@ BUG_SUMMARY.makeSchema=function(){
 	for(var k=keys.length;k--;){
 		var name=keys[k];
 		if (!name.startsWith(BUG_SUMMARY.aliasName)) continue;
-		if (name==BUG_SUMMARY.indexName) continue;
+		if (name==BUG_SUMMARY.newIndexName) continue;
 
-		if (BUG_SUMMARY.lastInsert===undefined || name>BUG_SUMMARY.lastInsert){
-			BUG_SUMMARY.lastInsert=name;
+		if (BUG_SUMMARY.newIndexName===undefined || name>BUG_SUMMARY.newIndexName){
+			BUG_SUMMARY.newIndexName=name;
 		}//endif
 
 		if (Object.keys(data[name].aliases).length>0){
-			BUG_SUMMARY.lastAlias=name;
+			BUG_SUMMARY.oldIndexName=name;
 			continue;
 		}//endif
 
 		//OLD, REMOVE IT
 		yield (Rest["delete"]({url: ElasticSearch.baseURL+"/"+name}));
 	}//for
+
 };
 
 
@@ -239,9 +243,9 @@ BUG_SUMMARY.insert=function(reviews){
 		insert.push(JSON.stringify({ "create" : { "_id" : uid+"-"+i } }));
 		insert.push(JSON.stringify(r));
 	});
-	status.message("Push review queues to ES");
+	status.message("Push bug hisotry to ES");
 	yield (Rest.post({
-		"url":ElasticSearch.baseURL+"/"+BUG_SUMMARY.indexName+"/"+BUG_SUMMARY.typeName+"/_bulk",
+		"url":ElasticSearch.baseURL+"/"+BUG_SUMMARY.newIndexName+"/"+BUG_SUMMARY.typeName+"/_bulk",
 		"data":insert.join("\n")
 	}));
 };//method

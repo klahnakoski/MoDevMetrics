@@ -149,7 +149,7 @@ ProgramFilter.prototype.injectHTML = function(programs){
 
 ProgramFilter.prototype.Refresh = function(){
 	this.query = ProgramFilter.makeQuery([
-		ProductUI.makeFilter()
+//		ProductFilter.makeFilter()
 	]);
 
 //	D.println(CNV.Object2JSON(this.query));

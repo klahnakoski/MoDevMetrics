@@ -26,33 +26,54 @@ CUBE.aggregate.compile = function(select){
 	return select;
 };//method
 
-//
-//CUBE.aggregate.analytic = function(column){
-//	if (column.separator === undefined) column.separator = '';
-//
-//	column.defaultValue = function(){
-//		return [];
-//	};//method
-//
-//	column.add = function(total, v){
-//		if (v === undefined || v == null) return total;
-//		total.push(v);
-//		return total;
-//	};//method
-//
-//	column.domain = CUBE.domain.value;
-//
-//	column.end=function(total){
-//		//GROUP BY
-//
-//		//SORT
-//		//CALC VALUE
-//
-//
-//
-//		return total.join(column.separator);
-//	};//method
-//};
+
+CUBE.aggregate.analytic = function(column){
+	if (column.separator === undefined) column.separator = '';
+
+	column.defaultValue = function(){
+		return {
+			"result":null,
+			"rows":[]
+		};
+	};//method
+
+	column.add = function(total, v){
+		if (v === undefined || v == null) return total;
+		total.push(v);
+		return total;
+	};//method
+
+	column.domain = CUBE.domain.value;
+
+	column.end=function(total){
+		//GROUP BY (HANDLED BY MASTER TREE)
+		
+		//SORT
+		total.rows.sort
+
+		//CALC VALUE
+
+
+
+		return total.join(column.separator);
+	};//method
+
+
+	column.aggregate=function(row, result, agg){
+		if (agg.result==null){
+			agg.result=result;
+		}else{
+			if (result.length!=agg.result.length) D.error("Expecting identical result");
+			for(var r=result.length;r--;){
+				if (result[r]!=agg.result[r]) D.error("Expecting identical result");
+			}//for
+		}//endif
+
+		agg.rows.push[row];
+
+		return agg;
+	};//method
+};
 
 
 CUBE.aggregate.join = function(column){

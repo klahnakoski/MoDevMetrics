@@ -27,8 +27,8 @@ ES.InjectGUIFilter = function(chartRequest){
 		D.error("Expecting chart requests to have a \"esQuery\", not \"query\"");
 
 	ElasticSearch.injectFilter(chartRequest.esQuery, ProgramFilter.makeFilter());
-	ElasticSearch.injectFilter(chartRequest.esQuery, ProductUI.makeFilter());
-	ElasticSearch.injectFilter(chartRequest.esQuery, ComponentUI.makeFilter());
+	ElasticSearch.injectFilter(chartRequest.esQuery, ProductFilter.makeFilter());
+	ElasticSearch.injectFilter(chartRequest.esQuery, ComponentFilter.makeFilter());
 
 	InjectCustomFilters(chartRequest);
 };
