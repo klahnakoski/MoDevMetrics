@@ -43,7 +43,6 @@ ETL.newInsert=function(etl){
 
 	var maxBug=yield(ETL.getMaxBugID());
 	var maxBatches=Math.floor(maxBug/ETL.BATCH_SIZE);
-maxBatches=1;
 
 	yield(ETL.insertBatches(etl, 0, maxBatches));
 	yield(ETL.updateAlias(etl));
@@ -122,7 +121,9 @@ ETL.incrementalInsert=function(etl, startTime){
 		return v.value;
 	});
 
-	//FIND REVIEW QUEUES ON THOSE BUGS
+	//FIND EXISTING RECORDS FOR THOSE BUGS
+
+	//GET NEW RECORDS FOR THOSE BUGS
 	var bugSummaries=yield (etl.get(buglist, null));
 
 	status.message("remove changed bugs");
@@ -135,28 +136,29 @@ ETL.incrementalInsert=function(etl, startTime){
 
 
 ETL.insertBatches=function(etl, minBatch, maxBatch){
-	var maxConcurrent=3;
-	var numRemaining=maxBatch+1;
+//	var maxConcurrent=3;
+//	var numRemaining=maxBatch+1;
 
 	for(var b=maxBatch;b>=0;b--){
-		while(numRemaining>b+maxConcurrent){
-			//LIMIT REQUESTS
-			yield (aThread.sleep(100));
-		}//while
+		//RUNNING MORE THAN ONE JUST CRASHES BROWSER
+//		while(numRemaining>b+maxConcurrent){
+//			//LIMIT REQUESTS
+//			yield (aThread.sleep(100));
+//		}//while
 
-		(function(b){
-			aThread.run(function(){
+//		(function(b){
+//			aThread.run(function(){
 				var data=yield (etl.get(b*ETL.BATCH_SIZE, (b+1)*ETL.BATCH_SIZE));
 				yield (etl.insert(data));
 				D.println("Done batch "+b+"/"+maxBatch+" into "+etl.newIndexName);
-				numRemaining--;
-			});
-		})(b);
+//				numRemaining--;
+//			});
+//		})(b);
 	}//for
 
-	while(numRemaining>0){
-		yield (aThread.sleep(100));
-	}//while
+//	while(numRemaining>0){
+//		yield (aThread.sleep(100));
+//	}//while
 
 	yield (null);
 };//method

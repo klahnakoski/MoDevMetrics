@@ -213,3 +213,43 @@ ProgramFilter.prototype.success = function(data){
 		}
 	});
 };
+
+//RETURN MINIMUM VALUE OF ALL SELECTED PROGRAMS
+ProgramFilter.bugStatusMinimum_fromDoc=function(){
+	var idTime;
+	if (state.selectedPrograms.length==0){
+		idTime="doc[\"create_time\"].value";
+	}else{
+		idTime=ProgramFilter.minimum(state.selectedPrograms.map(function(v, i){return "doc[\""+v+"_time\"].value"}));
+	}//endif
+
+	return idTime;
+};//method
+//RETURN MINIMUM VALUE OF ALL SELECTED PROGRAMS
+ProgramFilter.bugStatusMinimum_fromSource=function(){
+	var idTime;
+	if (state.selectedPrograms.length==0){
+		idTime="bug_summary.create_time";
+	}else{
+		idTime=ProgramFilter.minimum(state.selectedPrograms.map(function(v, i){return "bug_summary[\""+v+"_time\"]"}));
+	}//endif
+
+	return idTime;
+};//method
+
+
+
+
+
+
+	//TAKE THE MINIMIM OF ALL GIVEN vars
+ProgramFilter.minimum=function(vars){
+	if (vars.length==1) return vars[0];
+
+	var output=[];
+	for(var i=0;i<vars.length-1;i+=2){
+		output.push("minimum("+vars[i]+","+vars[i+1]+")");
+	}//for
+	if (i!=vars.length) output.push(vars[i]);
+	return ProgramFilter.minimum(output);
+};

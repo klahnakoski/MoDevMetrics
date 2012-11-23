@@ -1,0 +1,7 @@
+{
+"from":"bug_summary",
+"select":[
+	{"name":"bug_id", "value":"bugs.bug_id"}
+]
+}
+

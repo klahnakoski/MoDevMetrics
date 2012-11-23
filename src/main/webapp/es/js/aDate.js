@@ -15,7 +15,6 @@ Date.today=function(){
 Date.newInstance = function(value){
 	if (value === undefined || value == null) return null;
 	if (value instanceof String){
-
 	}//endif
 	return new Date(value);
 };//method
@@ -363,7 +362,6 @@ Date.getBestFormat=function(minDate, maxDate, interval){
 
 	//INDEX BY [minFormat][maxFormat]
 	return [
-
 	["ss.000", "mm:ss", "HH:mm:ss", "NNN dd, HH:mm:ss", "NNN dd, HH:mm:ss", "dd-NNN-yyyy HH:mm:ss"],
 	[      "", "HH:mm", "HH:mm"   ,   "E dd, HH:mm"   , "NNN dd, HH:mm"   , "dd-NNN-yyyy HH:mm"   ],
 	[      "",      "", "HH:mm"   ,   "E dd, HH:mm"   , "NNN dd, HH:mm"   , "dd-NNN-yyyy HH:mm"   ],

@@ -75,7 +75,7 @@ CUBE.calc2Tree = function(query){
 
 	var tree = {};  query.tree=tree;
 	FROM: for(var i = 0; i < query.from.length; i++){
-		if (i%100==0)
+		if (i%500==0)
 			yield (aThread.yield());
 		var row = query.from[i];
 		//CALCULATE THE GROUP COLUMNS TO PLACE RESULT
@@ -472,8 +472,8 @@ CUBE.Cube2List=function(query){
 				}else{
 					row[name]=query.cube[p0][p1];
 				}//endif
-				row[query.edges[0].name]=parts0[p0];
-				row[query.edges[1].name]=parts1[p1];
+				row[query.edges[0].name]=query.edges[0].domain.end(parts0[p0]);
+				row[query.edges[1].name]=query.edges[1].domain.end(parts1[p1]);
 				output.push(row);
 				if (output.length%1000==0) yield(aThread.yield());
 			}//for

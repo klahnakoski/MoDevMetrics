@@ -6,9 +6,10 @@ importScript("../filters/ProgramFilter.js");
 var BUG_SUMMARY={};
 
 
-BUG_SUMMARY.aliasName="bug_history";
-BUG_SUMMARY.newIndexName=null;				//THE CURRENT INDEX BEING INSERTED
-BUG_SUMMARY.typeName="bug_history";
+BUG_SUMMARY.aliasName="bug_summary";
+BUG_SUMMARY.newIndexName=undefined;  //CURRENT INDEX FOR INSERT
+BUG_SUMMARY.oldIndexName=undefined;  //WHERE THE CURENT ALIAS POINTS
+BUG_SUMMARY.typeName="bug_summary";
 
 
 BUG_SUMMARY.BUG_STATUS=[
@@ -37,7 +38,7 @@ BUG_SUMMARY.getLastUpdated=function(){
 
 BUG_SUMMARY.makeSchema=function(){
 	//MAKE SCHEMA
-	BUG_SUMMARY.newIndexName="bug_history"+Date.now().format("yyMMdd_HHmmss");
+	BUG_SUMMARY.newIndexName=BUG_SUMMARY.aliasName+Date.now().format("yyMMdd_HHmmss");
 
 	var config={
 		"_source":{"enabled": true},
@@ -45,21 +46,21 @@ BUG_SUMMARY.makeSchema=function(){
 		"properties":{
 			"bug_id":{"type":"integer", "store":"yes", "index":"not_analyzed"},
 			"product":{"type":"string", "store":"yes", "index":"not_analyzed"},
-			"product_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
+			"product_time":{"type":"long", "store":"yes", "index":"not_analyzed"},
 			"component":{"type":"string", "store":"yes", "index":"not_analyzed"},
-			"component_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
+			"component_time":{"type":"long", "store":"yes", "index":"not_analyzed"},
 
-			"assigned_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
-			"closed_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
-			"new_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
-			"reopened_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
-			"resolved_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
-			"unconfirmed_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
-			"verified_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
+			"assigned_time":{"type":"long", "store":"yes", "index":"not_analyzed"},
+			"closed_time":{"type":"long", "store":"yes", "index":"not_analyzed"},
+			"new_time":{"type":"long", "store":"yes", "index":"not_analyzed"},
+			"reopened_time":{"type":"long", "store":"yes", "index":"not_analyzed"},
+			"resolved_time":{"type":"long", "store":"yes", "index":"not_analyzed"},
+			"unconfirmed_time":{"type":"long", "store":"yes", "index":"not_analyzed"},
+			"verified_time":{"type":"long", "store":"yes", "index":"not_analyzed"},
 
-			"create_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
-			"close_time":{"type":"integer", "store":"yes", "index":"not_analyzed"},
-			"modified_time":{"type":"integer", "store":"yes", "index":"not_analyzed"}
+			"create_time":{"type":"long", "store":"yes", "index":"not_analyzed"},
+			"close_time":{"type":"long", "store":"yes", "index":"not_analyzed"},
+			"modified_time":{"type":"long", "store":"yes", "index":"not_analyzed"}
 		}
 	};
 
@@ -68,7 +69,7 @@ BUG_SUMMARY.makeSchema=function(){
 		"from":BUG_SUMMARY.allPrograms,
 		"edges":["projectName"]
 	}))).list.forall(function(v,i){
-		config.properties[v.projectName+"_time"]={"type":"string", "store":"yes", "index":"not_analyzed"};
+		config.properties[v.projectName+"_time"]={"type":"long", "store":"yes", "index":"not_analyzed"};
 	});
 
 
@@ -164,6 +165,18 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 		}
 	});
 
+	//GET THE FIRST TIME FOR CLOSE EVENT
+	times.facets["close_time"]={
+		"terms_stats": {
+			"key_field": "bug_id",
+			"value_field": "modified_ts",
+			"size": 100000
+		},
+		"facet_filter": {
+			"terms":{"bug_status":["resolved", "verified", "closed"]}
+		}
+	};
+
 	//ADD FACETS TO COUNT ALL MOZILLA PROGRAMS
 	(yield (CUBE.calc2List({
 		"from":BUG_SUMMARY.allPrograms,
@@ -214,12 +227,13 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 	});
 
 	//JOIN IN ALL TIME FACETS
-	var removeList=[];
+	var edgeList=[];
 	forAllKey(timesData.facets, function(k, v){
 		var domainName=k.deformat()+"part";
+		var edgeName=domainName+"__edge";
 		var s={"name":k, "value":"Util.coalesce("+domainName+".min, null)", "operation":"minimum"};
-		var e={"name":domainName+"__edge", "value":"bug_id", allowNulls:true, "domain":{"name":domainName, "type":"set", "key":"term", "partitions":v.terms}};
-		removeList.push(domainName+"__edge");
+		var e={"name":edgeName, "value":"bug_id", allowNulls:true, "domain":{"name":domainName, "type":"set", "key":"term", "partitions":v.terms}};
+		edgeList.push(edgeName);
 		joinItAll.select.push(s);
 		joinItAll.edges.push(e);
 	});
@@ -227,9 +241,18 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 	var r=(yield (CUBE.calc2List(joinItAll))).list;
 
 	//REMOVE EDGES
-	for(var e=removeList.length;e--;){
-		var k=removeList[e];
+	for(var e=edgeList.length;e--;){
+		var k=edgeList[e];
 		for(var i=r.length;i--;) r[i][k]=undefined;
+	}//for
+
+	//REMOVE NULL VALUES
+	var keys=Object.keys(r[0]);
+	for(var e=keys.length;e--;){
+		var k=keys[e];
+		for(var i=r.length;i--;){
+			if (r[i][k]==null) r[i][k]=undefined;
+		}//for
 	}//for
 
 	yield r;
@@ -243,7 +266,7 @@ BUG_SUMMARY.insert=function(reviews){
 		insert.push(JSON.stringify({ "create" : { "_id" : uid+"-"+i } }));
 		insert.push(JSON.stringify(r));
 	});
-	status.message("Push bug hisotry to ES");
+	status.message("Push bug history to ES");
 	yield (Rest.post({
 		"url":ElasticSearch.baseURL+"/"+BUG_SUMMARY.newIndexName+"/"+BUG_SUMMARY.typeName+"/_bulk",
 		"data":insert.join("\n")

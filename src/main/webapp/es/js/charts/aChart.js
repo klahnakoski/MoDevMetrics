@@ -180,7 +180,7 @@ aChart.show=function(params){
 	var seriesLabels=aChart.getAxisLabels(chartCube.edges[chartCube.edges.length-1]);
 
 	var categoryLabels;
-	if (chartCube.edges.length==1){
+	if (chartCube.edges.length==1 || chartCube.edges[0].domain.partitions.length==0){
 		categoryLabels=["Category"];
 	}else if (chartCube.edges.length==2){
 		categoryLabels=aChart.getAxisLabels(chartCube.edges[0]);
@@ -190,16 +190,22 @@ aChart.show=function(params){
 	var chartTypes={
 		"line":"LineChart",
 		"stacked":"StackedAreaChart",
+		"stackedbar":"StackedBarChart",
 		"bar":"BarChart",
 		"bullet":"BulletChart"
 	};
 
-
+	var height;
+	if (chartCube.edges.length>1){
+		height=600+(chartCube.edges[0].domain.partitions.length/17*24);
+	}else{
+		height=600;
+	}
 
 	var chartParams={
 		canvas: divName,
 		width: 800,
-		height: 600+(chartCube.edges[0].domain.partitions.length/17*24),
+		height: height,
 		animate:false,
 		title: chartCube.name,
 		legend: chartCube.edges.length!=1,		//DO NOT SHOW LEGEND IF NO CATEGORIES

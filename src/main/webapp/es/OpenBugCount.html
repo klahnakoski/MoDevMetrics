@@ -119,7 +119,6 @@
 <div style="float:right;display: inline;">
 	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
 </div>
-<h3 id="title"></h3>
 <div id="chart"></div>
 
 <div id="info"></div>
@@ -130,7 +129,7 @@
 
 
 var CUTOFF=Duration.newInstance("3week");
-$("#description").html("This chart includes all bugs <i>identified</i> between the Start and End Dates.  For closed bugs, the duration is defined from the time the bug is identified, to the time the bug is closed.  For open bugs, the duration is defined from the time the bug is identified, to the end of today (GMT).  These durations are partitioned into intervals, counted, and charted here.");
+$("#description").html("An attempt to get bug history to pull faster from ES -- Failure");
 
 var thread;
 var createChart=function(){
@@ -143,70 +142,79 @@ var __createChart = function(){
 
 	var sampleMin=new Date(state.sampleMin);
 	var sampleMax=new Date(state.sampleMax).ceilingDay();
+	var sampleInterval=new Duration.newInstance(state.sampleInterval);
 
-	var sampleSize=sampleMax.subtract(sampleMin, Duration.newInstance(state.intervalX));
-	$("#title").html("Time to Resolution ("+sampleSize.toString()+" sample)");
+	$("#title").html("Open Bug Count");
 
-	var idTime=ProgramFilter.bugStatusMinimum_fromDoc();
+	var createTime="doc[\"create_time\"].value";
+	var idTime=ProgramFilter.bugStatusMinimum_fromSource();
+	var testValue=ProgramFilter.bugStatusMinimum_fromDoc();
+	
+	
 	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(doc[\"close_time\"].value), "+sampleMax.getMilli()+"))";
 
-	status.message("Download Times");
-	var durations=yield(ESQuery.run({
+
+	status.message("Request Bugs");
+	var openBugs=yield (ESQuery.run({
 		"from":"bug_summary",
+		"select": [
+			{"name":"bug_id", "value":"bug_summary.bug_id"},
+			{"name":"create_time", "value":"bug_summary.create_time"},
+			{"name":"close_time", "value":"coalesce(get(bug_summary, \"close_time\"), "+sampleMax.getMilli()+")"},
+			{"name":"id_time", "value":idTime}
+		],
+		"esfilter":{"and":[
+			{"script":{"script":MVEL.addFunctions(sampleMin.getMilli()+" <= "+closeTime+" && "+createTime +" < "+sampleMax.getMilli())}},
+			{"script":{"script":MVEL.addFunctions(testValue+">0")}},
+			ProductFilter.makeFilter(),
+			ComponentFilter.makeFilter()
+		]}
+	}));
+
+	status.message("Count Bugs");
+	var chart=(yield (CUBE.calc2Cube({
+		"name":"Open Bug Count",
+		"from":openBugs.list,
 		"select":
 			{"name":"count", "value":"bug_id", "operation":"count"}
 		,
 		"edges":[
-			{"name":"bug_status", "value":closeTime+" < "+sampleMax.getMilli()+" ? \"Closed\" : \"Open\""},
-			{"name":"duration", "value":closeTime+"-"+idTime, "domain":{"type":"duration", "min":"0", "max":state.maxX, "interval":state.intervalX}}
-		],
-		"esfilter":{"and":[
-			{"script":{"script":sampleMin.getMilli()+" <= "+idTime+" && "+idTime +" < "+sampleMax.getMilli()}},
-			ProductFilter.makeFilter(),
-			ComponentFilter.makeFilter()
-		]}
-	}));
-
-	var average=yield(ESQuery.run({
-		"from":"bug_summary",
-		"select":[
-			{"name":"duration", "value":closeTime+"-"+idTime, "operation":"average"}
-		],
-		"esfilter":{"and":[
-			{"script":{"script":sampleMin.getMilli()+" <= "+idTime+" && "+idTime +" < "+sampleMax.getMilli()}},
-			ProductFilter.makeFilter(),
-			ComponentFilter.makeFilter()
-		]}
-	}));
-
-
-	var stats = (yield(CUBE.calc2Cube({
-		"from": (yield (CUBE.Cube2List(durations))),
-		"select":[
-			{"name":"total", "value":"count", "operation":"sum"},
-			{"name":"num_open", "value":"bug_status=='Open' ? count : 0", "operation":"sum"},
-			{"name":"num_closed", "value":"bug_status=='Closed' ? count : 0", "operation":"sum"},
-			{"name":"under", "value":"duration.value.milli<"+CUTOFF.milli+" ? count : 0", "operation":"sum"}
+			{"name":"date",
+				"test":"create_time<time.max.getMilli() && time.max.getMilli()<=close_time",
+				"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+			}
 		]
-	}))).cube;
+	})));
 
 
-	$("#stats").html(
-		'<span class="parameter_name">Total Bugs:</span><b>'+stats.total+'</b><br>'+
-		'<span class="parameter_name">Bugs Closed per week:</span><b>'+Math.round(stats.num_closed/(sampleSize.milli/Duration.MILLI_VALUES.week), 0)+'</b><br>'+
-		'<span class="parameter_name">Open Bugs Remaining:</span><b>'+Math.round(stats.num_open, 0)+'</b><br>'+
-		'<span class="parameter_name">% Under '+CUTOFF.toString()+'</span><b>'+Math.round(stats.under/stats.total*100, 1)+'%</b><br>'+
-		'<span class="parameter_name">Average Time Open:</span><b>'+Math.round(average.cube.duration/Duration.MILLI_VALUES.day, 2)+'days</b><br>'
-	);
 
-	durations.edges[1].domain.NULL.name="Over "+state.maxX;
+//	var stats = (yield(CUBE.calc2Cube({
+//		"from": (yield (CUBE.Cube2List(durations))),
+//		"select":[
+//			{"name":"total", "value":"count", "operation":"sum"},
+//			{"name":"num_open", "value":"bug_status=='Open' ? count : 0", "operation":"sum"},
+//			{"name":"num_closed", "value":"bug_status=='Closed' ? count : 0", "operation":"sum"},
+//			{"name":"under", "value":"duration.value.milli<"+CUTOFF.milli+" ? count : 0", "operation":"sum"}
+//		]
+//	}))).cube;
+//
+//
+//	$("#stats").html(
+//		'<span class="parameter_name">Current Open Bugs:</span><b>'+stats.total+'</b><br>'+
+//		'<span class="parameter_name">Bugs Closed per week:</span><b>'+Math.round(stats.num_closed/(sampleSize.milli/Duration.MILLI_VALUES.week), 0)+'</b><br>'+
+//		'<span class="parameter_name">Open Bugs Remaining:</span><b>'+Math.round(stats.num_open, 0)+'</b><br>'+
+//		'<span class="parameter_name">% Under '+CUTOFF.toString()+'</span><b>'+Math.round(stats.under/stats.total*100, 1)+'%</b><br>'+
+//		'<span class="parameter_name">Average Time Open:</span><b>'+Math.round(average.cube.duration/Duration.MILLI_VALUES.day, 2)+'days</b><br>'
+//	);
+
+//	durations.edges[1].domain.NULL.name="Over "+state.maxX;
 
 	status.message("Make chart");
 	aChart.show({
 		"id":"chart",
-		"type":"bar",
+		"type":"line",
 		"stacked":true,
-		"cube":durations
+		"cube":chart
 	});
 	status.message("Done");
 
@@ -219,14 +227,12 @@ var __createChart = function(){
 
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
-			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
-			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
 			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
-			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today()}
+			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today()},
+			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("day")}
 		],
 		[
-			"maxX=Duration.newInstance(maxX).add(Duration.newInstance(intervalX)).add(Duration.newInstance('-second')).floor(Duration.newInstance(intervalX)).toString()"
+//			"sampleMax=new Date(sampleMax).add(Duration.newInstance(sampleInterval)).add(Duration.newInstance('-second')).floor(Duration.newInstance(sampleInterval)).toString()"
 		],
 		"bug_summary");
 	});

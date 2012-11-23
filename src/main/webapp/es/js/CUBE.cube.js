@@ -15,10 +15,10 @@ CUBE.cube.newInstance = function(edges, depth, select){
 	}//for
 
 	var p = 0;
-	for(; p < (edges[depth].domain.partitions).length; p++){
+	for(; p < edges[depth].domain.partitions.length; p++){
 		data[p] = CUBE.cube.newInstance(edges, depth + 1, select);
 	}//for
-	if (edges[depth].allowNulls){
+	if (edges[depth].domain.partitions.length==0 || edges[depth].allowNulls){
 		data[p]= CUBE.cube.newInstance(edges, depth + 1, select);
 	}//endif
 	return data;

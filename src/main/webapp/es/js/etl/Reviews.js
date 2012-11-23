@@ -3,8 +3,8 @@
 var REVIEWS={};
 
 REVIEWS.aliasName="reviews";
-REVIEWS.newIndexName=null;  //CURRENT INDEX FOR INSERT
-REVIEWS.oldIndexName=null;  //WHERE THE CURENT ALIAS POINTS
+REVIEWS.newIndexName=undefined;  //CURRENT INDEX FOR INSERT
+REVIEWS.oldIndexName=undefined;  //WHERE THE CURENT ALIAS POINTS
 REVIEWS.typeName="review";
 
 

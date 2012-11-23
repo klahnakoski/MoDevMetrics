@@ -117,6 +117,15 @@ GUI.showLastUpdated = function(type){
 			var time=yield (REVIEWS.getLastUpdated());
 			$("#testMessage").html("Reviews Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 		});
+	}else if (type="bug_summary"){
+		aThread.run(function(){
+			var time=new Date((yield(ESQuery.run({
+				"from":"bug_summary",
+				"select":{"name":"max_date", "value":"doc[\"modified_time\"].value", "operation":"maximum"}
+			}))).cube.max_date);
+			$("#testMessage").html("Reviews Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
+		})
+
 	}//endif
 };//method
 

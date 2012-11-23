@@ -671,6 +671,10 @@ CUBE.domain.compileEnd=function(domain){
 			domain.end=aCompile.expression(domain.value, [{"columns":columns}]);
 			return domain.end(part);
 		};//method
+	}else if (domain.end===undefined){
+		domain.end=function(p){	return p;};
+
+		
 	}//endif
 };
 

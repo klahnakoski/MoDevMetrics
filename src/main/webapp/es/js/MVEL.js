@@ -322,8 +322,14 @@ MVEL.FUNCTIONS={
 	"maximum"://JUST BECAUSE MVEL'S Math.max ONLY USES Math.max(int, int).  G*DDA*NIT!
 		"var maximum = function(a, b){if (a==null) b; else if (b==null) a; else if (a>b) a; else b;\n};\n",
 
+	"minimum"://JUST BECAUSE MVEL'S Math.max ONLY USES Math.max(int, int).  G*DDA*NIT!
+		"var minimum = function(a, b){if (a==null) b; else if (b==null) a; else if (a<b) a; else b;\n};\n",
+
 	"coalesce"://PICK FIRST NOT-NULL VALUE
 		"var coalesce = function(a, b){if (a==null) b; else a; \n};\n",
+
+	"zero2null"://ES MAKES IT DIFFICULT TO DETECT NULL/MISSING VALUES, BUT WHEN DEALING WITH NUMBERS, THE PIECE OF S**T DEFAULTS TO RETURNING ZERO FOR missing VALUES!!
+		"var zero2null = function(a){if (a==0) null; else a; \n};\n",
 
 	"get":	//MY OWN PERSONAL *FU* TO THE TWISTED MVEL PROPERTY ACCESS
 		"var get = function(hash, key){\n"+

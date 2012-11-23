@@ -27,10 +27,9 @@ ESQuery.DEBUG=false;
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
 	"bugs":{"path":"/bugs"},
-	"reviews":{"path":"/reviews/review"}//http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews121109_041939/review/_search
-	"bug_summary":{"path":"/reviews/review"}//http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews121109_041939/review/_search
+	"reviews":{"path":"/reviews/review"},//http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews121109_041939/review/_search
+	"bug_summary":{"path":"/bug_summary/bug_summary"}//http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews121109_041939/review/_search
 };
-
 
 
 ESQuery.run=function(query){
@@ -109,7 +108,8 @@ ESQuery.merge=function(){
 
 
 ESQuery.prototype.compile = function(){
-	if (this.query.essize===undefined) this.query.essize=100000;
+	if (this.query.where!==undefined) D.error("ESQuery does not support the where clause, use esfilter instead");
+	if (this.query.essize===undefined) this.query.essize=200000;
 	if (ESQuery.DEBUG) this.query.essize=100;
 
 
@@ -172,14 +172,17 @@ ESQuery.prototype.compile = function(){
 			if (select.value.startsWith(this.query.from+".") && ESQuery.isKeyword(select.value)){
 				//FOR SPEED, WHEN SELECT IS A SIMPLE VARIABLE
 				mvel='doc["'+select.value.rightBut(this.query.from.length+1)+'"].value';
+			} else if (select.value.indexOf('doc["')>=0){
+				//WE ASSUME THE PROGRAMMER IS PASSING MVEL DIRECTLY, NO NEED TO CONVERT
+				mvel=MVEL.addFunctions(select.value);
 			}else{
 				//FOR ROBUSTNESS, WHEN SELECT IS AN EXPRESSION
-				mvel=
+				mvel=MVEL.addFunctions(
 					"var cool_func = function("+this.query.from+"){\n"+
 					""+select.value+";\n"+
 					"};\n"+
 					"cool_func(_source)\n"
-				;
+				);
 			}//endif
 
 
@@ -616,6 +619,3 @@ ESQuery.prototype.compileSetOp=function(){
 ESQuery.prototype.mvelResults=function(data){
  	this.query.list =  MVEL.esFacet2List(data.facets.mvel, this.select);
 };//method
-
-
-

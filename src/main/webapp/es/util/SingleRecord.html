@@ -54,13 +54,29 @@ aThread.run(function(){
 
 	D.println(new Date(1352207434236).format("yyyy-NNN-dd HHmmss"));
 
+//	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
+//		{"script":{"script":"true"}},
+//		{"and":[
+//			{"term":{"bug_id":"814029"}}
+//		]}
+//	]}}},"from":0,"size":1000,"sort":["bug_version_num"]
+//	};
+
+
 	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
 		{"script":{"script":"true"}},
 		{"and":[
-			{"term":{"bug_id":"814029"}}
-		]}
-	]}}},"from":0,"size":1000,"sort":["bug_version_num"]
-	};
+			{"script":{"script":"1342742400000 <= doc[\"Security (High and Critical Only)_time\"].value && doc[\"Security (High and Critical Only)_time\"].value < 1353628800000"}}
+		]},
+//		{"or":[
+//			{"prefix":{"status_whiteboard.tokenized":"sg:crit"}},
+//			{"prefix":{"status_whiteboard.tokenized":"sg:high"}},
+//			{"prefix":{"keywords":"sec-high"}},
+//			{"prefix":{"keywords":"sec-critical"}}
+//		]},
+		{"script":{"script":"true"}},
+		{"script":{"script":"true"}}
+	]}}},"from":0,"size":100,"sort":[],"facets":{"0":{"terms":{"script_field":"var replaceAll = function(output, find, replace){\nif (output.length()==0) return output;\ns = output.indexOf(find, 0);\nwhile(s>=0){\noutput=output.replace(find, replace);\ns=s-find.length+replace.length;\ns = output.indexOf(find, s);\n}\noutput;\n};\nvar get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar Value2Pipe = function(value){\nif (value==null){ \"0\" }else if (value is ArrayList){ 's'+value.toString(); }else \nif (value is Long || value is Integer){ 'n'+value; }else \nif (!(value is String)){ 's'+value.getClass().getName(); }else \n\"s\"+replaceAll(replaceAll(value, \"\\\\\", \"\\\\\\\\\"), \"|\", \"\\\\p\");};\nvar minimum = function(a, b){if (a==null) b; else if (b==null) a; else if (a<b) a; else b;\n};\nvar coalesce = function(a, b){if (a==null) b; else a; \n};\nvar zero2null = function(a){if (a==0) null; else a; \n};\n''+Value2Pipe(minimum(1353628800000, coalesce(zero2null(doc[\"close_time\"].value), 1353628800000)) < 1353628800000 ? \"Closed\" : \"Open\")+'|'+(((minimum(1353628800000, coalesce(zero2null(doc[\"close_time\"].value), 1353628800000))-doc[\"Security (High and Critical Only)_time\"].value<0) || (minimum(1353628800000, coalesce(zero2null(doc[\"close_time\"].value), 1353628800000))-doc[\"Security (High and Critical Only)_time\"].value>=7257600000)) ? 12 : Math.floor((minimum(1353628800000, coalesce(zero2null(doc[\"close_time\"].value), 1353628800000))-doc[\"Security (High and Critical Only)_time\"].value-0)/604800000))","size":100000}}}};
 
 //	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
 //		{"script":{"script":"true"}},
@@ -100,7 +116,7 @@ aThread.run(function(){
 	try{
 		var data=yield (Rest.post({
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews/review/_search",
-			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
 			"data":esQuery
 		}));
 
