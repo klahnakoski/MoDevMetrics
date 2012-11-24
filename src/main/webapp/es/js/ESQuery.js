@@ -27,8 +27,10 @@ ESQuery.DEBUG=false;
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
 	"bugs":{"path":"/bugs"},
-	"reviews":{"path":"/reviews/review"},//http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews121109_041939/review/_search
-	"bug_summary":{"path":"/bug_summary/bug_summary"}//http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews121109_041939/review/_search
+	"reviews":{"path":"/reviews/review"},
+	"bug_summary":{"path":"/bug_summary/bug_summary"},
+	"bug_tags":{"path":"/bug_tags/bug_tags"},
+	"temp":{"path":""}
 };
 
 
@@ -136,7 +138,7 @@ ESQuery.prototype.compile = function(){
 		this.select = this.select[0];
 	}//endif
 
-	this.resultColumns = CUBE.compile(this.query, []);
+	this.columns = CUBE.compile(this.query, []);
 	this.edges = this.query.edges.copy();
 
 	if (this.select.operation=="count"){

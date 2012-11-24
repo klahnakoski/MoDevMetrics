@@ -3,9 +3,10 @@ importScript("ETL.js");
 importScript("../filters/ProgramFilter.js");
 
 
+
+
 var BUG_SUMMARY={};
-
-
+BUG_SUMMARY.BATCH_SIZE=20000;
 BUG_SUMMARY.aliasName="bug_summary";
 BUG_SUMMARY.newIndexName=undefined;  //CURRENT INDEX FOR INSERT
 BUG_SUMMARY.oldIndexName=undefined;  //WHERE THE CURENT ALIAS POINTS

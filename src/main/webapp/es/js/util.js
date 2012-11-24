@@ -132,8 +132,7 @@ Util.UID=function(){
 
 /// REPLACE ALL INSTANCES OF find WITH REPLACE, ONLY ONCE
 String.prototype.replaceAll = function(find, replace){
-	var output = Util.jsonCopy(this);
-
+	var output=this;
 	var s=0;
 	while(true){
 		s = output.indexOf(find, s);

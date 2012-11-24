@@ -310,7 +310,7 @@ MVEL.FUNCTIONS={
 			"s = output.indexOf(find, 0);\n" +
 			"while(s>=0){\n" +
 				"output=output.replace(find, replace);\n" +
-				"s=s-find.length+replace.length;\n" +
+				"s=s-find.length()+replace.length();\n" +
 				"s = output.indexOf(find, s);\n" +
 			"}\n"+
 			"output;\n"+

@@ -18,6 +18,19 @@ aThread.run=function(gen){
 	return output;
 };//method
 
+
+aThread.getStackTrace=function(depth){
+	var trace;
+	try{
+		this.undef();  //deliberate error
+	}catch(e){
+		trace=e.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^[\(@]/gm, '{anonymous}()@').split('\n');
+	}//try
+	return trace.slice(depth+1);
+};//method
+
+
+
 aThread.numRunning=0;
 
 aThread.showWorking=function(){
@@ -75,7 +88,8 @@ aThread.prototype.resume=function(retval){
 		var gen = this.stack.last();
 		try{
 			if (gen.history===undefined) gen.history=[];
-			gen.history.push(retval===undefined ? "undefined" : retval);
+
+//			gen.history.push(retval===undefined ? "undefined" : retval);
 
 			if (retval instanceof Exception){
 				retval = gen["throw"](retval);  //THROW METHOD OF THE GENERATOR IS CALLED, WHICH IS SENT TO CALLER AS thrown EXCEPTION

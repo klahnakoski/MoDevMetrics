@@ -7,7 +7,6 @@
 
 
 
-
 <script type="application/javascript;version=1.7" src="../lib/jquery.js"></script>
 <link type="text/css" href="../css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
 <script type="application/javascript;version=1.7" src="../lib/js/jquery-ui-1.8.16.custom.min.js"></script>
@@ -44,48 +43,68 @@
 
 <script type="application/javascript;version=1.7" src="../js/etl/ETL.js"></script>
 <script type="application/javascript;version=1.7" src="../js/etl/Reviews.js"></script>
-<script type="application/javascript;version=1.7" src="../js/etl/BugSummary.js"></script>
+<script type="application/javascript;version=1.7" src="../js/etl/BugTags.js"></script>
 
-<div id="info"></div>
+
+<div style="height: 30px; text-align: center;vertical-align:middle;">
+	<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="../images/spinner.gif" alt=""></span>
+</div>
+<a id="start" class="button" href="#">Click to Start</a>
+<a id="resume" class="button" href="#">Click to Resume</a>
+<a id="inc" class="button" href="#">Click for Incremental Update</a>
+<a id="test" class="button" href="#">Click for single test</a>
+<a id="kill" class="button" href="#">Click to Kill</a>
+<div id="results">No Results</div>
+
+
 
 <script type="application/javascript;version=1.7">
+	var mainThread;
 
-aThread.run(function(){
+	$("#start").click(function(){
+		if (mainThread!==undefined) mainThread.kill();
+		mainThread=aThread.run(ETL.newInsert(BUG_TAGS));
+	});
 
-	D.println(new Date(1352207434236).format("yyyy-NNN-dd HHmmss"));
+	$("#resume").click(function(){
 
-	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
-		{"script":{"script":"true"}},
-		{"and":[
-			{"term":{"bug_id":"812896"}}
-		]}
-	]}}},"from":0,"size":100,"sort":["bug_version_num"]
-	};
+		D.println(CNV.Pipe2Value("sthis is a pp\\p pipe test \\\\ok?\\\\"));
 
 
+		if (mainThread!==undefined) mainThread.kill();
+		mainThread=aThread.run(ETL.resumeInsert(BUG_TAGS));
+	});
 
-	try{
-		var data=yield (Rest.post({
-//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews/review/_search",
-//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
-			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
-			"data":esQuery
-		}));
+	$("#inc").click(function(){
+		if (mainThread!==undefined) mainThread.kill();
+		mainThread=aThread.run(function(){
+			var startTime=yield (BUG_TAGS.getLastUpdated());
+			ETL.incrementalInsert(BUG_TAGS, startTime);
+		});
+	});
 
-		D.println(CNV.Object2JSON(data));
+	$("#test").click(function(){
+		if (mainThread!==undefined) mainThread.kill();
+		mainThread=aThread.run(function(){
+//			var reviews=yield (BUG_TAGS.get([563491], undefined));
+			var reviews=yield (BUG_TAGS.get([812896], undefined));
+//			var reviews=yield (BUG_TAGS.get([812896, 790640, 563491, 634724, 782603], undefined));
+			$("#results").html(CNV.List2HTMLTable(reviews));
+			status.message("Done");
+		});
+	});
 
-		var htmlSummary = CNV.ESResult2HTMLSummaries(data);
-		var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));
-		document.getElementById("info").innerHTML = htmlSummary + "<br><br>" + htmlResults;
+	$("#kill").click(function(){
+		if (mainThread!==undefined) mainThread.kill();
+	});
 
-	}catch(e){
-		D.warning(errorData);
-		document.getElementById("info").innerHTML = "Response Error.  Make sure you are connected to the MPT network.";
-	}
 
-});
 
+
+	status.message("Done");
+	D.addLog("results");
 </script>
+
 
 </BODY>
 </HTML>

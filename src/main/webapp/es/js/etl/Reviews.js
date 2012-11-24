@@ -1,7 +1,7 @@
 
 
 var REVIEWS={};
-
+REVIEWS.BATCH_SIZE=20000;
 REVIEWS.aliasName="reviews";
 REVIEWS.newIndexName=undefined;  //CURRENT INDEX FOR INSERT
 REVIEWS.oldIndexName=undefined;  //WHERE THE CURENT ALIAS POINTS

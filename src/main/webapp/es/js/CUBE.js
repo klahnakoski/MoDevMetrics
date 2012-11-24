@@ -18,7 +18,7 @@ importScript("trampoline.js");
 
 CUBE.compile = function(query, sourceColumns){
 //COMPILE COLUMN CALCULATION CODE
-	var resultColumns = {};
+	var columns = {};
 
 	var edges = query.edges;
 	for(var g = 0; g < edges.length; g++){
@@ -32,8 +32,8 @@ CUBE.compile = function(query, sourceColumns){
 		if (e.allowNulls === undefined) e.allowNulls = false;
 		e.columnIndex=g;
 
-		if (resultColumns[e.name]!==undefined) D.error("All edges must have different names");
-		resultColumns[e.name] = e;
+		if (columns[e.name]!==undefined) D.error("All edges must have different names");
+		columns[e.name] = e;
 
 		CUBE.column.compile(sourceColumns, e);
 		CUBE.domain.compile(sourceColumns, e);
@@ -43,14 +43,15 @@ CUBE.compile = function(query, sourceColumns){
 	var select = CUBE.select2Array(query.select);
 	for(var s = 0; s < select.length; s++){
 		if (select[s].name===undefined) select[s].name=select[s].value.split(".").last();
-		if (resultColumns[select[s].name]!==undefined) D.error("All columns must have different names");
+		if (columns[select[s].name]!==undefined) D.error("All columns must have different names");
 		select[s].columnIndex=s+edges.length;
-		resultColumns[select[s].name] = select[s];
+		columns[select[s].name] = select[s];
 		CUBE.column.compile(sourceColumns, select[s], edges);
 		CUBE.aggregate.compile(select[s]);
 	}//for
 
-	return resultColumns;
+	query.columns=columns;
+	return columns;
 };
 
 //MAP SELECT CLAUSE TO AN ARRAY OF SELECT COLUMNS
@@ -65,8 +66,22 @@ CUBE.select2Array = function(select){
 CUBE.calc2Tree = function(query){
 	if (query.edges.length==0) D.error("Tree processing requires an edge");
 
+	var sourceColumns;
+	var from=query.from;
+	if (query.from instanceof Array){
+		sourceColumns=CUBE.getColumns(query.from);
+		from=query.from;
+	}else if(query.from.list){
+		sourceColumns=query.columns;
+		from=query.from.list;
+	}else if (query.from.cube){
+		query.from.list=CUBE.Cube2List(query.from);
+		sourceColumns=query.columns;
+		from=query.from.list;
+	}//endif
+	if (sourceColumns===undefined) sourceColumns=CUBE.getColumns(from);
+
 	var select = CUBE.select2Array(query.select);
-	var sourceColumns = CUBE.getColumns(query.from);
 	var edges = query.edges;
 	query.columns = CUBE.compile(query, sourceColumns);
 	var where = CUBE.where.compile(query.where, sourceColumns, edges);
@@ -74,10 +89,16 @@ CUBE.calc2Tree = function(query){
 
 
 	var tree = {};  query.tree=tree;
-	FROM: for(var i = 0; i < query.from.length; i++){
-		if (i%500==0)
+	var nextYield=new Date().getMilli()+200;
+	FROM: for(var i = 0; i < from.length; i++){
+		var now=new Date().getMilli();
+		if (now > nextYield){
 			yield (aThread.yield());
-		var row = query.from[i];
+			nextYield=new Date().getMilli()+200;
+		}//endif
+
+
+		var row = from[i];
 		//CALCULATE THE GROUP COLUMNS TO PLACE RESULT
 		var results = [[]];
 		for(var f = 0; f < edges.length; f++){
@@ -207,7 +228,7 @@ CUBE.calc2List = function(query){
 	yield (CUBE.calc2Tree(query));
 
 	var edges=query.edges;
-	var resultColumns=query.columns;
+	var columns=query.columns;
 
 	var output = [];
 	CUBE.Tree2List(output, query.tree, select, edges, {}, 0);
@@ -218,20 +239,21 @@ CUBE.calc2List = function(query){
 		query.sort = [];
 		for(var f = 0; f < edges.length; f++) query.sort.push(edges[f].name);
 	}//endif
-	output = CUBE.sort(output, query.sort, resultColumns);
+	output = CUBE.sort(output, query.sort, columns);
 
 	//COLLAPSE OBJECTS TO SINGLE VALUE
-	for(var c in resultColumns){
-		var s=resultColumns[c];
+	for(var c in columns){
+		var s=columns[c];
 		if (s.domain===undefined){
 			D.error("expecting all columns to have a domain");
 		}//endif
-		var r = resultColumns[c].domain.end;
-		if (r === undefined) continue;
+		var d = columns[c].domain;
+		if (d.end === undefined) continue;
 
+		//d.end() MAY REDEFINE ITSELF (COMPILE GIVEN CONTEXT)
 		for(var i = 0; i < output.length; i++){
 			var o = output[i];
-			o[s.name] = r(o[s.name]);
+			o[s.name] = d.end(o[s.name]);
 		}//for
 	}//for
 
@@ -330,7 +352,7 @@ CUBE.aggOP=function(query){
 	var select = CUBE.select2Array(query.select);
 
 	var sourceColumns = CUBE.getColumns(query.from);
-	var resultColumns = CUBE.compile(query, sourceColumns);
+	var columns = CUBE.compile(query, sourceColumns);
 	var where = CUBE.where.compile(query.where, sourceColumns, []);
 
 	var result={};
@@ -352,12 +374,12 @@ CUBE.aggOP=function(query){
 	}//for
 
 	//TURN AGGREGATE OBJECTS TO SINGLE NUMBER
-	for(var c in resultColumns){
-		var s=resultColumns[c];
+	for(var c in columns){
+		var s=columns[c];
 		if (s.domain===undefined){
 			D.error("expectin all columns to have a domain");
 		}//endif
-		var r = resultColumns[c].domain.end;
+		var r = columns[c].domain.end;
 		if (r === undefined) continue;
 
 		result[s.name] = r(result[s.name]);
@@ -376,12 +398,12 @@ CUBE.aggOP=function(query){
 ////////////////////////////////////////////////////////////////////////////////
 CUBE.setOP = function(query){
 	var sourceColumns = CUBE.getColumns(query.from);
-	var resultColumns = {};
+	var columns = {};
 
 	var select = CUBE.select2Array(query.select);
 
 	for(var s = 0; s < select.length; s++){
-		resultColumns[select[s].name] = select[s];
+		columns[select[s].name] = select[s];
 		CUBE.column.compile(sourceColumns, select[s], undefined);
 	}//for
 	var where = CUBE.where.compile(query.where, sourceColumns, []);
@@ -401,7 +423,7 @@ CUBE.setOP = function(query){
 
 	//ORDER THE OUTPUT
 	if (query.sort === undefined) query.sort = [];
-	output = CUBE.sort(output, query.sort, resultColumns);
+	output = CUBE.sort(output, query.sort, columns);
 
 	query.list = output;
 	return query;

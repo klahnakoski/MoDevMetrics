@@ -156,11 +156,11 @@ var __createChart = function(){
 
 	status.message("Request Bugs");
 	var openBugs=yield (ESQuery.run({
-		"from":"bug_summary",
+		"from":"BUG_TAGS",
 		"select": [
-			{"name":"bug_id", "value":"bug_summary.bug_id"},
-			{"name":"create_time", "value":"bug_summary.create_time"},
-			{"name":"close_time", "value":"coalesce(get(bug_summary, \"close_time\"), "+sampleMax.getMilli()+")"},
+			{"name":"bug_id", "value":"BUG_TAGS.bug_id"},
+			{"name":"create_time", "value":"BUG_TAGS.create_time"},
+			{"name":"close_time", "value":"coalesce(get(BUG_TAGS, \"close_time\"), "+sampleMax.getMilli()+")"},
 			{"name":"id_time", "value":idTime}
 		],
 		"esfilter":{"and":[
@@ -234,7 +234,7 @@ var __createChart = function(){
 		[
 //			"sampleMax=new Date(sampleMax).add(Duration.newInstance(sampleInterval)).add(Duration.newInstance('-second')).floor(Duration.newInstance(sampleInterval)).toString()"
 		],
-		"bug_summary");
+		"BUG_TAGS");
 	});
 
 </script>

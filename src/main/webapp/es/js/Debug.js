@@ -14,8 +14,9 @@ D.println = function(message){
 		if (typeof(message)!="string") message=CNV.Object2JSON(message);
 	}catch(e){
 	}//try
+	message=Date.now().addTimezone().format("HH:mm:ss - ")+message;
 
-	console.info(Date.now().format("HH:mm:ss - ")+message);
+	console.info(message);
 
 	D.logs.forall(function(v, i){
 		try{

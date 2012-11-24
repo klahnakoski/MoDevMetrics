@@ -230,6 +230,12 @@ CUBE.domain.time = function(column, sourceColumns){
 		}//for
 	}//endif
 
+	d.columns=[
+		{"name":"value"},
+		{"name":"min"},
+		{"name":"max"},
+		{"name":"interval"}
+	];
 
 
 	//RETURN CANONICAL KEY VALUE FOR INDEXING
@@ -367,6 +373,15 @@ CUBE.domain.duration = function(column, sourceColumns){
 	d.getKey = function(partition){
 		return partition.value;
 	};//method
+
+	d.columns=[
+		{"name":"value"},
+		{"name":"min"},
+		{"name":"max"},
+		{"name":"interval"}
+	];
+
+
 
 	CUBE.domain.compileEnd(d);
 
@@ -666,9 +681,11 @@ CUBE.domain.compileEnd=function(domain){
 	if (domain.value!=undefined){
 		domain.end=function(part){
 			//HOPEFULLY THE FIRST RUN WILL HAVE ENOUGH PARTITIONS TO DETERMINE A TYPE
-			var columns=CUBE.getColumns(domain.partitions);
+			if (!domain.columns){
+				domain.columns=CUBE.getColumns(domain.partitions);
+			}//endif
 			//RECOMPILE SELF WITH NEW INFO
-			domain.end=aCompile.expression(domain.value, [{"columns":columns}]);
+			domain.end=aCompile.expression(domain.value, domain);
 			return domain.end(part);
 		};//method
 	}else if (domain.end===undefined){

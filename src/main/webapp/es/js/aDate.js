@@ -139,6 +139,7 @@ Date.prototype.addWeek = function(value){
 };//method
 
 Date.prototype.addMonth = function(value){
+	if (value==0) return this;	//WHOA! SETTING MONTH IS CRAZY EXPENSIVE!!
 	var output = new Date(this);
 	output.setUTCMonth(this.getUTCMonth() + value);
 	return output;

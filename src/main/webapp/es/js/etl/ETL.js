@@ -1,6 +1,6 @@
 ETL={};
 
-ETL.BATCH_SIZE=20000;
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -39,10 +39,11 @@ ETL.getMaxBugID=function(){
 
 
 ETL.newInsert=function(etl){
+	D.println("NEW INDEX CREATED");
 	yield (etl.makeSchema());
 
 	var maxBug=yield(ETL.getMaxBugID());
-	var maxBatches=Math.floor(maxBug/ETL.BATCH_SIZE);
+	var maxBatches=Math.floor(maxBug/etl.BATCH_SIZE);
 
 	yield(ETL.insertBatches(etl, 0, maxBatches));
 	yield(ETL.updateAlias(etl));
@@ -74,23 +75,24 @@ ETL.resumeInsert=function(etl){
 	}//for
 
 	if (etl.newIndexName===undefined || etl.newIndexName==etl.oldIndexName){
-		yield (etl.newInsert());
+		yield (ETL.newInsert(etl));
 		yield null;
 	}//endif
 
 
 	//GET THE MAX AND MIN TO FIND WHERE TO START
-	ESQuery.INDEXES.reviews={"path":"/"+etl.newIndexName+"/"+etl.typeName};
+	ESQuery.INDEXES.temp={"path":"/"+etl.newIndexName+"/"+etl.typeName};
 	var maxResults=yield(ESQuery.run({
-		"from":"reviews",
+		"from":"temp",
 		"select":[
-			{"name":"maxBug", "value":"reviews.bug_id", "operation":"maximum"},
-			{"name":"minBug", "value":"reviews.bug_id", "operation":"minimum"}
+			{"name":"maxBug", "value":"temp.bug_id", "operation":"maximum"},
+			{"name":"minBug", "value":"temp.bug_id", "operation":"minimum"}
 			]
 	}));
 
 	var minBug=maxResults.cube.minBug;
-	var maxBatches=Math.floor(minBug/ETL.BATCH_SIZE)-1;
+	if (!isFinite(maxBatches)) minBug=yield (ETL.getMaxBugID());
+	var maxBatches=Math.floor(minBug/etl.BATCH_SIZE)-1;
 
 	yield (ETL.insertBatches(etl, 0, maxBatches));
 
@@ -102,7 +104,7 @@ ETL.resumeInsert=function(etl){
 
 
 
-//UPDATE BUG_SUMMARY THAT MAY HAVE HAPPENED AFTER startTime
+//UPDATE BUG_TAGS THAT MAY HAVE HAPPENED AFTER startTime
 ETL.incrementalInsert=function(etl, startTime){
 
 	//FIND RECENTLY TOUCHED BUGS
@@ -148,7 +150,7 @@ ETL.insertBatches=function(etl, minBatch, maxBatch){
 
 //		(function(b){
 //			aThread.run(function(){
-				var data=yield (etl.get(b*ETL.BATCH_SIZE, (b+1)*ETL.BATCH_SIZE));
+				var data=yield (etl.get(b*etl.BATCH_SIZE, (b+1)*etl.BATCH_SIZE));
 				yield (etl.insert(data));
 				D.println("Done batch "+b+"/"+maxBatch+" into "+etl.newIndexName);
 //				numRemaining--;

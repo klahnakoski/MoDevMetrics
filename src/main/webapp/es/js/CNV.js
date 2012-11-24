@@ -86,8 +86,14 @@ CNV.String2Integer = function(value){
 	return value - 0;
 };//method
 
+
 CNV.Pipe2Value=function(value){
-	value=value.replaceAll("\\p", "|").replaceAll("\\\\", "\\");
+//	if (value.indexOf("\\\\")!=-1){
+//		D.println("");
+//	}
+//	value=value.replaceAll("\\p", "|").replaceAll("\\\\", "\\");
+	value=value.replace(CNV.Pipe2Value.pipe, "|").replace(CNV.Pipe2Value.bs, "\\");
+
 	var type=value.charAt(0);
 	value=value.substring(1);
 	if (type=='n') return CNV.String2Integer(value);
@@ -95,6 +101,9 @@ CNV.Pipe2Value=function(value){
 	if (type=='0') return null;
 	D.error("unknown pipe type");
 };//method
+CNV.Pipe2Value.pipe = new RegExp("\\\\p", "g");
+CNV.Pipe2Value.bs = new RegExp("\\\\\\\\", "g");
+
 
 
 
