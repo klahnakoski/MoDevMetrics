@@ -270,7 +270,8 @@ BUG_SUMMARY.insert=function(reviews){
 	status.message("Push bug history to ES");
 	yield (Rest.post({
 		"url":ElasticSearch.baseURL+"/"+BUG_SUMMARY.newIndexName+"/"+BUG_SUMMARY.typeName+"/_bulk",
-		"data":insert.join("\n")
+		"data":insert.join("\n")+"\n",
+		dataType: "text"
 	}));
 };//method
 

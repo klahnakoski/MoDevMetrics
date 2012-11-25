@@ -48,6 +48,7 @@
 
 <div style="height: 30px; text-align: center;vertical-align:middle;">
 	<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="../images/spinner.gif" alt=""></span>
+	<div id="progress"></div>
 </div>
 <a id="start" class="button" href="#">Click to Start</a>
 <a id="resume" class="button" href="#">Click to Resume</a>
@@ -59,6 +60,10 @@
 
 
 <script type="application/javascript;version=1.7">
+
+//	$("#progress").progressbar({ value: 37 });
+
+
 	var mainThread;
 
 	$("#start").click(function(){

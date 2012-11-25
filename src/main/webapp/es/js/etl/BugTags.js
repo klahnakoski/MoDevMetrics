@@ -164,11 +164,17 @@ BUG_TAGS.insert=function(reviews){
 		insert.push(JSON.stringify({ "create" : { "_id" : uid+"-"+i } }));
 		insert.push(JSON.stringify(r));
 	});
-	status.message("Push bug history to ES");
-	yield (Rest.post({
-		"url":ElasticSearch.baseURL+"/"+BUG_TAGS.newIndexName+"/"+BUG_TAGS.typeName+"/_bulk",
-		"data":insert.join("\n")
-	}));
+	var data=insert.join("\n")+"\n";
+	status.message("Push bug tags to ES");
+	try{
+		yield (Rest.post({
+			"url":ElasticSearch.baseURL+"/"+BUG_TAGS.newIndexName+"/"+BUG_TAGS.typeName+"/_bulk",
+			"data":data,
+			"dataType":"text"
+		}));
+	}catch(e){
+		D.warning("problem with _bulk", e)
+	}
 };//method
 
 

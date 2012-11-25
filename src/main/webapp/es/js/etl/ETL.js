@@ -91,7 +91,7 @@ ETL.resumeInsert=function(etl){
 	}));
 
 	var minBug=maxResults.cube.minBug;
-	if (!isFinite(maxBatches)) minBug=yield (ETL.getMaxBugID());
+	if (!isFinite(minBug)) minBug=yield (ETL.getMaxBugID());
 	var maxBatches=Math.floor(minBug/etl.BATCH_SIZE)-1;
 
 	yield (ETL.insertBatches(etl, 0, maxBatches));

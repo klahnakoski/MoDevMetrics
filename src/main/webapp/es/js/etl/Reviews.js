@@ -265,7 +265,8 @@ REVIEWS.insert=function(reviews){
 	status.message("Push review queues to ES");
 	yield (Rest.post({
 		"url":ElasticSearch.baseURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName+"/_bulk",
-		"data":insert.join("\n")
+		"data":insert.join("\n")+"\n",
+		dataType: "text"
 	}));
 };//method
 
