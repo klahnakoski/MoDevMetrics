@@ -41,11 +41,13 @@ ESQuery.run=function(query){
 
 
 ESQuery.prototype.run = function(){
-	var URL=window.ElasticSearch.baseURL+ESQuery.INDEXES[this.query.from.split(".")[0]].path+"/_search";
+	if (!this.query.url) this.query.url=window.ElasticSearch.baseURL+ESQuery.INDEXES[this.query.from.split(".")[0]].path;
+	this.query.url+="/_search";
+	//var URL=window.ElasticSearch.baseURL+ESQuery.INDEXES[this.query.from.split(".")[0]].path+"/_search";
 	var postResult;
 	try{
 		postResult=yield (Rest.post({
-			url: URL,
+			url: this.query.url,
 			data: JSON.stringify(this.esQuery),
 			dataType: "json"
 		}));
@@ -110,7 +112,7 @@ ESQuery.merge=function(){
 
 
 ESQuery.prototype.compile = function(){
-	if (this.query.where!==undefined) D.error("ESQuery does not support the where clause, use esfilter instead");
+
 	if (this.query.essize===undefined) this.query.essize=200000;
 	if (ESQuery.DEBUG) this.query.essize=100;
 
@@ -132,16 +134,22 @@ ESQuery.prototype.compile = function(){
 		}//endif
 	}else{
 		//PICK FIRST AND ONLY SELECT
-		if (this.select.length>1)
+		if (this.select.length>1){
 			D.error("Can not have an array of select columns, only one allowed");
-//		if (this.select.length>1) D.error("Can not handle more than one select column when there are edges");
-		this.select = this.select[0];
+		}else if (this.select.length==0){
+			this.select=undefined;
+		}else{
+			this.select = this.select[0];
+		}//endif
 	}//endif
+	if (this.query.where)
+		D.error("ESQuery does not support the where clause, use esfilter instead");
 
+	
 	this.columns = CUBE.compile(this.query, []);
 	this.edges = this.query.edges.copy();
 
-	if (this.select.operation=="count"){
+	if (this.select===undefined || this.select.operation=="count"){
 		this.esMode="terms";
 		this.esQuery = this.buildESTermsQuery();
 	}else{
@@ -481,22 +489,51 @@ ESQuery.prototype.termsResults=function(data){
 		this.edges[f].domain.NULL.dataIndex=p;
 	}//for
 
+
+
 	//MAKE CUBE
-	var cube = CUBE.cube.newInstance(this.query.edges, 0, CUBE.select2Array(this.query.select)[0]);
+	var select=CUBE.select2Array(this.query.select)[0];
+	if (select){
+		var cube = CUBE.cube.newInstance(this.query.edges, 0, select);
 
-	//FILL CUBE
-	II: for(var i=0;i<terms.length;i++){
-		var d = cube;
-		var parts=this.term2Parts(terms[i].term);
-		var t = 0;
-		for(; t < parts.length-1; t++){
-			if (parts[t].dataIndex==d.length) continue II;  //IGNORE NULLS
-			d = d[parts[t].dataIndex];
+		//FILL CUBE
+		II: for(var i=0;i<terms.length;i++){
+			var d = cube;
+			var parts=this.term2Parts(terms[i].term);
+			var t = 0;
+			for(; t < parts.length-1; t++){
+				if (parts[t].dataIndex==d.length) continue II;  //IGNORE NULLS
+				d = d[parts[t].dataIndex];
+			}//for
+			d[parts[t].dataIndex] = terms[i].count;
 		}//for
-		d[parts[t].dataIndex] = terms[i].count;
-	}//for
 
-	this.query.cube=cube;
+		this.query.cube=cube;
+	}else{
+		if (this.edges.length>1)
+			D.error("Do not know how to deal with more then one edge, and no select");
+		//NO SELECT MEANS USE THE EDGES
+		//A DUMMY SELECT FOR FILLING DEFAULT CUBE
+		select=this.query.edges[0];
+		select.defaultValue=function(){return 0;};
+		
+		var cube = CUBE.cube.newInstance(this.query.edges, 0, select);
+
+		//FILL CUBE
+		II: for(var i=0;i<terms.length;i++){
+			var d = cube;
+			var parts=this.term2Parts(terms[i].term);
+			var t = 0;
+			for(; t < parts.length-1; t++){
+				if (parts[t].dataIndex==d.length) continue II;  //IGNORE NULLS
+				d = d[parts[t].dataIndex];
+			}//for
+			d[parts[t].dataIndex] = CNV.Pipe2Value(terms[i].term);
+		}//for
+
+		this.query.cube=cube;
+	}//endif
+
 };
 
 //MAP THE SELECT OPERATION NAME TO ES FACET AGGREGATE NAME

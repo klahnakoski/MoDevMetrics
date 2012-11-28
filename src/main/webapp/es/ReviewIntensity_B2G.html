@@ -67,8 +67,7 @@
 
 <script type="application/javascript;version=1.7" src="js/filters/Filter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/ComponentFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ClassificationFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script><script type="application/javascript;version=1.7" src="js/filters/ClassificationFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/ProgramFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/CustomFilters.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/GUIFilters.js"></script>
@@ -109,7 +108,7 @@
 
 <script type="application/javascript;version=1.7">
 
-	$("#description").html("Shows the number of reviews requested and the number of reviews completed for each interval.  The latter is shown as a negative to increase clarity.  The &quot;Still Open&quot; (Green) shows the total number of reviews open more than 24 hours, which is the cumulative sum of the other two."+
+	$("#description").html("B2G ONLY - Shows the number of reviews requested and the number of reviews completed for each interval.  The latter is shown as a negative to increase clarity.  The &quot;Still Open&quot; (Green) shows the total number of reviews open more than 24 hours, which is the cumulative sum of the other two."+
 			"<br><span class='warning'>EXPERIMENT: If a review is open more then 18weeks, it will be removed from the Still Open total</span>"+
 			"<br><span class='warning'>NOTE: Program/Product/Component filters (below) do not work</span>"
 	);
@@ -127,8 +126,20 @@
 		var sampleMin=Date.newInstance(state.sampleMin);//.floor(sampleInterval);
 		var sampleMax=sampleMin.add(Date.newInstance(state.sampleMax).add(sampleInterval).subtract(sampleMin, sampleInterval).floor(sampleInterval));
 
+
+
+		var buglist=(yield (ESQuery.run({
+			"from":"bugs",
+			"edges":["bug_id"],
+			"esfilter":{"term":{"cf_blocking_basecamp":"+"}}
+		}))).cube;
+
+
 		//CHART OF AGGREGATE RESPONSE TIMES
 		aThread.run(function(){
+
+
+
 			var response=yield (ESQuery.run({
 				"name":"Wait Time Breakdown",
 				"from":"reviews",
@@ -140,7 +151,7 @@
 				],
 				"esfilter":{"and":[
 					{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
-					{"terms":{"reviewer":[state.requestee]}}
+					{"terms":{"bug_id":buglist}}
 				]}
 			}));
 
@@ -168,20 +179,31 @@
 				]
 			}))).cube;
 
+			var average=(yield (ESQuery.run({
+				"from":"reviews",
+				"select":[
+					{"name":"wait_time", value:"(coalesce(zero2null(doc[\"review_time\"].value), "+Date.eod().getMilli()+")-doc[\"request_time\"].value)", "operation":"average"}
+				],
+				"esfilter":{"and":[
+					{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
+					{"terms":{"bug_id":buglist}}
+				]}
+
+			})));
+
+			average=Math.round(average.cube.wait_time/Duration.MILLI_VALUES.day, 1);
 
 			var numWeek=sampleMax.subtract(sampleMin).milli/Duration.MILLI_VALUES.week;
 			
 			$("#stats").html(
 				'<span class="parameter_name">Total Reviews:</span><b>'+stats.total+'</b><br>'+
 				'<span class="parameter_name">Reviews per week:</span><b>'+Math.round(stats.total/numWeek, 1)+'</b><br>'+
-				'<span class="parameter_name">% Under One Day:</span><b>'+Math.round(stats.under_24_hours/stats.total*100, 1)+'%</b><br>'
+				'<span class="parameter_name">% Under One Day:</span><b>'+Math.round(stats.under_24_hours/stats.total*100, 1)+'%</b><br>'+
+				'<span class="parameter_name">Avg Wait for Review:</span><b>'+average+'days</b><br>'
 			);
-
-
-
-
-
 		});
+
+
 
 		//CHART PRODUCT BREAKDOWN
 		aThread.run(function(){
@@ -194,7 +216,7 @@
 				],
 				"esfilter":{"and":[
 					{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
-					{"terms":{"reviewer":[state.requestee]}}
+					{"terms":{"bug_id":buglist}}
 				]}
 			}));
 
@@ -218,7 +240,7 @@
 				{"name":"time", "value":"request_time", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}}
 			],
 			"esfilter":{"and":[
-				{"term":{"reviewer":state.requestee}},
+				{"terms":{"bug_id":buglist}},
 				{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}}
 			]}
 		}));
@@ -232,7 +254,7 @@
 				{"name":"time", "value":"review_time", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}}
 			],
 			"esfilter":{"and":[
-				{"term":{"reviewer":state.requestee}},
+				{"terms":{"bug_id":buglist}},
 				{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}}
 			]}
 		}));
@@ -254,7 +276,7 @@
 				{"name":"review_time", "value":"coalesce(reviews.review_time,"+Date.eod().getMilli()+")"}
 			],
 			"esfilter":{"and":[
-				{"term":{"reviewer":state.requestee}},
+				{"terms":{"bug_id":buglist}},
 				{"script":{"script":	//NO NEED TO CONSIDER THE MINI-REVIEWS
 					MVEL.FUNCTIONS.coalesce+
 					"(coalesce(_source.review_time, "+Date.eod().getMilli()+")-_source.request_time > "+Duration.MILLI_VALUES.day+") ? 1 : 0;"
@@ -328,7 +350,6 @@
 
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"nobody@mozilla.org"},
 			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.today().add("-3month")},
 			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.today()},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("day")},

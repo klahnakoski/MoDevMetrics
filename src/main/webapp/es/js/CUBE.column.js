@@ -10,7 +10,7 @@ CUBE.column.compile = function(sourceColumns, resultColumn, edges){
 	resultColumn.sortOrder = 1;
 	if (resultColumn.sort== "descending") resultColumn.sortOrder = -1;
 	if (resultColumn.sort!=undefined && ["descending", "none", "ascending"].indexOf(resultColumn.sort)==-1){
-		D.error('unknown sort order, pick one of ["descending", "none", "ascending"]');
+		D.error(resultColumn.name+' has unknown sort order, pick one of ["descending", "none", "ascending"]');
 	}//enidf
 
 	//COMPILE THE CALCULATION OF THE DESTINATION COLUMN USING THE SOURCE COLUMNS

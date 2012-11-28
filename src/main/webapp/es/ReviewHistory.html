@@ -149,7 +149,7 @@ D.println(CNV.List2Tab(reviewQueues));
 			"from":reviewQueues.list,
 			"select":{"name":"Pending", "value":"1", operation:"sum"},
 			"edges":[
-				{"name":"Bug ID", "value":"bug_id", "sort":["request_time", "review_time"]},
+				{"name":"Bug ID", "value":"bug_id"/*, "sort":["request_time", "review_time"]*/},
 				{"name":"Date",
 					"test":"time.min<=Util.coalesce(Date.newInstance(review_time), Date.eod()) && new Date(request_time)<time.max",
 					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, value:"value"}

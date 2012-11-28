@@ -1,3 +1,7 @@
 .svn
 .git
 .idea
+src/main/webapp/es/js/etl/_OrgChart.js
+src/main/webapp/es/lib/jstree/_lib
+src/main/webapp/es/lib/jstree/_docs
+src/main/webapp/es/lib/jstree/_demo

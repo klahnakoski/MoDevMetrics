@@ -83,7 +83,7 @@ BUG_SUMMARY.makeSchema=function(){
 	setup.mappings[BUG_SUMMARY.typeName]=config;
 
 	var data=yield (Rest.post({
-		"url":ElasticSearch.baseURL+"/"+BUG_SUMMARY.newIndexName,
+		"url":ElasticSearch.pushURL+"/"+BUG_SUMMARY.newIndexName,
 		"data":setup
 	}));
 
@@ -91,8 +91,8 @@ BUG_SUMMARY.makeSchema=function(){
 
 //		var lastAlias;  		//THE VERSION CURRENTLY IN USE
 
-		//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
-	data=yield (Rest.get({url: ElasticSearch.baseURL+"/_aliases"}));
+	//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
+	data=yield (Rest.get({url: ElasticSearch.pushURL+"/_aliases"}));
 	D.println(data);
 
 	var keys=Object.keys(data);
@@ -111,7 +111,7 @@ BUG_SUMMARY.makeSchema=function(){
 		}//endif
 
 		//OLD, REMOVE IT
-		yield (Rest["delete"]({url: ElasticSearch.baseURL+"/"+name}));
+		yield (Rest["delete"]({url: ElasticSearch.pushURL+"/"+name}));
 	}//for
 
 };
@@ -269,7 +269,7 @@ BUG_SUMMARY.insert=function(reviews){
 	});
 	status.message("Push bug history to ES");
 	yield (Rest.post({
-		"url":ElasticSearch.baseURL+"/"+BUG_SUMMARY.newIndexName+"/"+BUG_SUMMARY.typeName+"/_bulk",
+		"url":ElasticSearch.pushURL+"/"+BUG_SUMMARY.newIndexName+"/"+BUG_SUMMARY.typeName+"/_bulk",
 		"data":insert.join("\n")+"\n",
 		dataType: "text"
 	}));
@@ -279,6 +279,6 @@ BUG_SUMMARY.insert=function(reviews){
 
 BUG_SUMMARY["delete"]=function(bugList){
 	for(var i=0;i<bugList.length;i++){
-		yield(Rest["delete"]({url: ElasticSearch.baseURL+"/"+BUG_SUMMARY.aliasName+"/"+BUG_SUMMARY.typeName+"?q=bug_id:"+bugList[i]}));
+		yield(Rest["delete"]({url: ElasticSearch.pushURL+"/"+BUG_SUMMARY.aliasName+"/"+BUG_SUMMARY.typeName+"?q=bug_id:"+bugList[i]}));
 	}//for
 };//method

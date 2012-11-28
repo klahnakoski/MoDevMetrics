@@ -68,8 +68,7 @@
 
 	$("#inc").click(function(){
 		aThread.run(function(){
-			var startTime=yield (REVIEWS.getLastUpdated());
-			yield (ETL.incrementalInsert(REVIEWS, startTime));
+			yield (ETL.incrementalInsert(REVIEWS));
 		});
 	});
 

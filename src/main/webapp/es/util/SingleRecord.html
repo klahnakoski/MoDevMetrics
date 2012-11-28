@@ -57,11 +57,13 @@ aThread.run(function(){
 	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
 		{"script":{"script":"true"}},
 		{"and":[
-			{"term":{"bug_id":"812896"}}
+			{"term":{"bug_id":"740241"}}
 		]}
 	]}}},"from":0,"size":100,"sort":["bug_version_num"]
 	};
 
+
+//	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[{"script":{"script":"true"}}]}}},"from":0,"size":0,"sort":[],"facets":{"0":{"statistical":{"script":"doc[\"bug_id\"].value"}}}};
 
 
 	try{

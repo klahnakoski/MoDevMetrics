@@ -30,6 +30,19 @@ String.join = function(list, seperator){
 	return output;
 };
 
+//RETURN THE STRING BETWEEN THE start AND end
+//IF end IS UNDEFINED, THEN GRABS TO END OF STRING
+String.between=function(start, end){
+	var s=this.indexOf(start);
+	if (s=-1) return null;
+	s+=start.length;
+	if (!e) return this.substring(s);
+
+	var e=this.indexOf(end, s);
+	if (e==-1) return null;
+	return this.substring(s, e);
+};
+
 
 String.prototype.indent=function(numTabs){
 	var indent="\t\t\t\t\t\t".left(numTabs);
@@ -95,6 +108,8 @@ Array.prototype.indexOf=function(value){
 	}//for
 	return -1;
 };//method
+
+Array.prototype.substring=Array.prototype.slice;
 
 
 var Util = {};

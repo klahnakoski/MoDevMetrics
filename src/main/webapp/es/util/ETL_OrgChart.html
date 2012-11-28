@@ -42,20 +42,23 @@
 <script type="application/javascript;version=1.7" src="../js/rest/ElasticSearch.js"></script>
 
 <script type="application/javascript;version=1.7" src="../js/etl/ETL.js"></script>
-<script type="application/javascript;version=1.7" src="../js/etl/Reviews.js"></script>
-<script type="application/javascript;version=1.7" src="../js/etl/BugTags.js"></script>
 
+<script type="application/javascript;version=1.7" src="../js/etl/OrgChart.js"></script>
+<script type="application/javascript;version=1.7" src="../js/etl/_OrgChart.js"></script>
 
 <div style="height: 30px; text-align: center;vertical-align:middle;">
 	<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="../images/spinner.gif" alt=""></span>
 	<div id="progress"></div>
 </div>
 <a id="start" class="button" href="#">Click to Start</a>
-<a id="resume" class="button" href="#">Click to Resume</a>
-<a id="inc" class="button" href="#">Click for Incremental Update</a>
-<a id="test" class="button" href="#">Click for single test</a>
 <a id="kill" class="button" href="#">Click to Kill</a>
+<!--<form>-->
+	<!--USERNAME: <input name="username" id="username" type="text"/><br>-->
+	<!--PASSWORD: <input name="password" id="password" type="password"/><br>-->
+<!--</form>-->
 <div id="results">No Results</div>
+<div id="images"></div>
+<div id="scripts"></div>
 
 
 
@@ -68,45 +71,23 @@
 
 	$("#start").click(function(){
 		if (mainThread!==undefined) mainThread.kill();
-		mainThread=aThread.run(ETL.newInsert(BUG_TAGS));
-	});
-
-	$("#resume").click(function(){
-
-		if (mainThread!==undefined) mainThread.kill();
-		mainThread=aThread.run(ETL.resumeInsert(BUG_TAGS));
-	});
-
-	$("#inc").click(function(){
-		if (mainThread!==undefined) mainThread.kill();
-		mainThread=aThread.run(function(){
-			var startTime=yield (BUG_TAGS.getLastUpdated());
-			ETL.incrementalInsert(BUG_TAGS, startTime);
-		});
-	});
-
-	$("#test").click(function(){
-		if (mainThread!==undefined) mainThread.kill();
-		mainThread=aThread.run(function(){
-//			var reviews=yield (BUG_TAGS.get([563491], undefined));
-			var reviews=yield (BUG_TAGS.get([812896], undefined));
-//			var reviews=yield (BUG_TAGS.get([812896, 790640, 563491, 634724, 782603], undefined));
-			$("#results").html(CNV.List2HTMLTable(reviews));
-			status.message("Done");
-		});
+		mainThread=aThread.run(ETL.newInsert(OrgChart));
 	});
 
 	$("#kill").click(function(){
 		if (mainThread!==undefined) mainThread.kill();
 	});
 
-
+//var testit=function(data){
+//	D.println(data);
+//};
 
 
 	status.message("Done");
 	D.addLog("results");
 </script>
 
+<!--<script type="application/javascript;version=1.7" src="https://phonebook.mozilla.org/search.php?callback=testit&format=json&query=dbisgeier@mozilla.com"></script>-->
 
 </BODY>
 </HTML>

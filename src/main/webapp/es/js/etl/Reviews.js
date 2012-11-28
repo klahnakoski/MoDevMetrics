@@ -15,7 +15,14 @@ REVIEWS.ALIASES=[
 
 
 REVIEWS.getLastUpdated=function(){
+	var url;
+	if (REVIEWS.newIndexName){
+		url=ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName;
+	}//endif
+
+
 	var result=yield (ESQuery.run({
+		"url":url,
 		"from":REVIEWS.aliasName,
 		"select":[
 			{"name":"last_request", "value":"reviews.request_time", "operation":"maximum"}
@@ -52,13 +59,13 @@ REVIEWS.makeSchema=function(successFunction){
 	setup.mappings[REVIEWS.typeName]=config;
 
 	var data=yield (Rest.post({
-		"url":ElasticSearch.baseURL+"/"+REVIEWS.newIndexName,
+		"url":ElasticSearch.pushURL+"/"+REVIEWS.newIndexName,
 		"data":setup
 	}));
 	D.println(data);
 
 	//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
-	data=yield (Rest.get({url: ElasticSearch.baseURL+"/_aliases"}));
+	data=yield (Rest.get({url: ElasticSearch.pushURL+"/_aliases"}));
 
 	D.println(data);
 
@@ -82,7 +89,7 @@ REVIEWS.makeSchema=function(successFunction){
 		}//endif
 
 		//OLD, REMOVE IT
-		yield (Rest["delete"]({url: ElasticSearch.baseURL+"/"+name}));
+		yield (Rest["delete"]({url: ElasticSearch.pushURL+"/"+name}));
 	}//for
 };
 
@@ -264,7 +271,7 @@ REVIEWS.insert=function(reviews){
 	});
 	status.message("Push review queues to ES");
 	yield (Rest.post({
-		"url":ElasticSearch.baseURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName+"/_bulk",
+		"url":ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName+"/_bulk",
 		"data":insert.join("\n")+"\n",
 		dataType: "text"
 	}));
@@ -273,21 +280,18 @@ REVIEWS.insert=function(reviews){
 
 
 REVIEWS["delete"]=function(bugList){
-	var count=0;
+//	var count=0;
 
-	for(var i=0;i<bugList.length;i++){
-		$.ajax({
-			type:"DELETE",
-			url:ElasticSearch.baseURL+"/"+REVIEWS.aliasName+"/"+REVIEWS.typeName+"?q=bug_id:"+bugList[i],
-			dataType:"json",
-			error:function(errorData, errorMsg, errorThrown){},
-			success:function(data){count++}
-		});
-	}//for
+//	for(var i=0;i<bugList.length;i++){
+	yield (Rest["delete"]({
+		url:ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName+"_query",
+		data:{"terms":{"bug_id":bugList}}
+	}));
+//	}//for
 
-	while(count<bugList.length){
-		yield (aThread.sleep(1000));
-	}//while
+//	while(count<bugList.length){
+//		yield (aThread.sleep(1000));
+//	}//while
 
-	yield (null);
+//	yield (null);
 };//method

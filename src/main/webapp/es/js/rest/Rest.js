@@ -40,7 +40,12 @@ Rest.send=function(ajaxParam){
 	//get WHEN URL DOES NOT MATCH CURRENT SITE.  jQuery ALSO FOLLOWS SPEC, AND
 	//DOES NOT ALLOW BODY CONTENT ON delete, ES DEMANDS IT  >:|  )
 	var request=new XMLHttpRequest();
-	request.open(ajaxParam.type,ajaxParam.url,ajaxParam.async);
+	if (ajaxParam.username){
+		request.withCredentials = true;
+		request.open(ajaxParam.type,ajaxParam.url,ajaxParam.async, ajaxParam.username, ajaxParam.password);
+	}else{
+		request.open(ajaxParam.type,ajaxParam.url,ajaxParam.async);
+	}//endif
 	request.onreadystatechange=function(){
   		if (request.readyState==4){
 			if (request.status==200){
@@ -82,16 +87,21 @@ Rest.get=function(ajaxParam){
 	return Rest.send(ajaxParam);
 };
 
+Rest.put=function(ajaxParam){
+	ajaxParam.type="PUT";
+	return Rest.send(ajaxParam);
+};
+
 Rest.post=function(ajaxParam){
 	ajaxParam.type="POST";
 	return Rest.send(ajaxParam);
 };//method
 
 Rest["delete"]=function(ajaxParam){
-	D.warning("DISABLED DELETE OF "+ajaxParam.url);
-	yield (null);
-//	ajaxParam.type="DELETE";
-//	return Rest.send(ajaxParam);
+//	D.warning("DISABLED DELETE OF "+ajaxParam.url);
+//	yield (null);
+	ajaxParam.type="DELETE";
+	return Rest.send(ajaxParam);
 };//method
 
 

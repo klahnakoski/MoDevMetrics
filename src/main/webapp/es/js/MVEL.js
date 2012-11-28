@@ -301,20 +301,20 @@ MVEL.FUNCTIONS={
 			"if (value is Long || value is Integer){ 'n'+value; }else \n" +
 			"if (!(value is String)){ 's'+value.getClass().getName(); }else \n" +
 //			"value;\n"+
-			'"s"+replaceAll(replaceAll(value, "\\\\", "\\\\\\\\"), "|", "\\\\p");'+  //CAN NOT ""+value TO MAKE NUMBER A STRING (OR EVEN TO PREPEND A STRING!)
+			'"s"+value.replace("\\\\", "\\\\\\\\").replace("|", "\\\\p");'+  //CAN NOT ""+value TO MAKE NUMBER A STRING (OR EVEN TO PREPEND A STRING!)
 		"};\n",
 
-	"replaceAll":
-		"var replaceAll = function(output, find, replace){\n" +
-			"if (output.length()==0) return output;\n"+
-			"s = output.indexOf(find, 0);\n" +
-			"while(s>=0){\n" +
-				"output=output.replace(find, replace);\n" +
-				"s=s-find.length()+replace.length();\n" +
-				"s = output.indexOf(find, s);\n" +
-			"}\n"+
-			"output;\n"+
-		'};\n',
+//	"replaceAll":
+//		"var replaceAll = function(output, find, replace){\n" +
+//			"if (output.length()==0) return output;\n"+
+//			"s = output.indexOf(find, 0);\n" +
+//			"while(s>=0){\n" +
+//				"output=output.replace(find, replace);\n" +
+//				"s=s-find.length()+replace.length();\n" +
+//				"s = output.indexOf(find, s);\n" +
+//			"}\n"+
+//			"output;\n"+
+//		'};\n',
 
 	"floorDay":
 		"var floorDay = function(value){ Math.floor(value/(24*60*60*1000))*(24*60*60*1000);};\n",

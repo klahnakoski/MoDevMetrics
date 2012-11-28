@@ -44,21 +44,23 @@ BUG_TAGS.makeSchema=function(){
 	};
 
 	var setup={
+		"index" : {
+     	   "refresh_interval" : "-1"
+   		},
 		"mappings":{
 		}
 	};
 	setup.mappings[BUG_TAGS.typeName]=config;
 
 	var data=yield (Rest.post({
-		"url":ElasticSearch.baseURL+"/"+BUG_TAGS.newIndexName,
+		"url":ElasticSearch.pushURL+"/"+BUG_TAGS.newIndexName,
 		"data":setup
 	}));
-
 	D.println(data);
 
 
 	//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
-	data=yield (Rest.get({url: ElasticSearch.baseURL+"/_aliases"}));
+	data=yield (Rest.get({url: ElasticSearch.pushURL+"/_aliases"}));
 	D.println(data);
 
 	var keys=Object.keys(data);
@@ -77,7 +79,7 @@ BUG_TAGS.makeSchema=function(){
 		}//endif
 
 		//OLD, REMOVE IT
-		yield (Rest["delete"]({url: ElasticSearch.baseURL+"/"+name}));
+		yield (Rest["delete"]({url: ElasticSearch.pushURL+"/"+name}));
 	}//for
 
 };
@@ -157,6 +159,7 @@ BUG_TAGS.get=function(minBug, maxBug){
 
 
 
+
 BUG_TAGS.insert=function(reviews){
 	var uid=Util.UID();
 	var insert=[];
@@ -164,24 +167,26 @@ BUG_TAGS.insert=function(reviews){
 		insert.push(JSON.stringify({ "create" : { "_id" : uid+"-"+i } }));
 		insert.push(JSON.stringify(r));
 	});
-	var data=insert.join("\n")+"\n";
+
 	status.message("Push bug tags to ES");
-	try{
-		yield (Rest.post({
-			"url":ElasticSearch.baseURL+"/"+BUG_TAGS.newIndexName+"/"+BUG_TAGS.typeName+"/_bulk",
-			"data":data,
-			"dataType":"text"
-		}));
-	}catch(e){
-		D.warning("problem with _bulk", e)
-	}
+	ETL.chunk(insert, function(data){
+		try{
+			yield (Rest.post({
+				"url":ElasticSearch.pushURL + "/" + BUG_TAGS.newIndexName + "/" + BUG_TAGS.typeName + "/_bulk",
+				"data":data,
+				"dataType":"text"
+			}));
+		} catch(e){
+			D.warning("problem with _bulk", e)
+		}//try
+	});
 };//method
 
 
 
 BUG_TAGS["delete"]=function(bugList){
 	for(var i=0;i<bugList.length;i++){
-		yield(Rest["delete"]({url: ElasticSearch.baseURL+"/"+BUG_TAGS.aliasName+"/"+BUG_TAGS.typeName+"?q=bug_id:"+bugList[i]}));
+		yield(Rest["delete"]({url: ElasticSearch.pushURL+"/"+BUG_TAGS.aliasName+"/"+BUG_TAGS.typeName+"?q=bug_id:"+bugList[i]}));
 	}//for
 };//method
 
