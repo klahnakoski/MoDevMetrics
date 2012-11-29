@@ -19,20 +19,19 @@ importScript("CustomFilters.js");
 
 importScript("../aCompiler.js");
 
-
-var state = {};
-
-state.selectedPrograms = [];
-state.selectedClassifications = [];
-state.selectedProducts = [];
-state.selectedComponents = [];
-
-state['customFilters'] = [];
-customFilters = [];
-componentUI = null;
-
-
 GUI = {};
+
+GUI.state = {};
+GUI.state.selectedPrograms = [];
+GUI.state.selectedClassifications = [];
+GUI.state.selectedProducts = [];
+GUI.state.selectedComponents = [];
+GUI.state.selectedTeams=new TeamFilter();
+GUI.state.customFilters = [];
+
+
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -66,10 +65,11 @@ GUI.setup = function(parameters, relations, showLastUpdated){
 	GUI.makeSelectionPanel();
 
 
-	state.programFilter = new ProgramFilter();
-	state.classificationFilter = new ClassificationFilter();
-	state.productFilter = new ProductFilter();
-	state.componentFilter = new ComponentFilter();
+	GUI.state.teamFilter = new TeamFilter();
+	GUI.state.programFilter = new ProgramFilter();
+	GUI.state.classificationFilter = new ClassificationFilter();
+	GUI.state.productFilter = new ProductFilter();
+	GUI.state.componentFilter = new ComponentFilter();
 
 
 	GUI.showLastUpdated(showLastUpdated);
@@ -134,20 +134,18 @@ GUI.State2URL = function(){
 	if (!GUI.State2URL.isEnabled) return;
 
 	var simplestate = {};
-
-	var keys = Object.keys(state);
-	for(k in keys){
-		var t = typeof(state[keys[k]]);
-		if (
-			jQuery.isArray(state[keys[k]]) ||
-			typeof(state[keys[k]]) == "string" ||
-			Math.isNumeric(state[keys[k]])
+	forAllKey(GUI.state, function(k, v){
+		if (v.getSimpleState){
+			simplestate[k] = v.getSimpleState();
+		}else if (
+			jQuery.isArray(v) ||
+			typeof(v) == "string" ||
+			Math.isNumeric(k)
 		){
-			simplestate[keys[k]] = state[keys[k]];
+			simplestate[k] = v;
 		}//endif
+	});
 
-
-	}//for
 	jQuery.bbq.pushState(simplestate);
 };
 GUI.State2URL.isEnabled=false;
@@ -156,7 +154,7 @@ GUI.State2URL.isEnabled=false;
 GUI.URL2State = function(){
 	var urlState = jQuery.bbq.getState();
 	forAllKey(urlState, function(k, v){
-		state[k] = v;
+		GUI.state[k] = v;
 	});
 };
 
@@ -233,7 +231,7 @@ GUI.AddParameters=function(parameters, relations){
 //RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
 GUI.State2Parameter = function (){
 	GUI.parameters.forEach(function(param){
-		$("#" + param.id).val(state[param.id]);
+		$("#" + param.id).val(GUI.state[param.id]);
 	});
 };
 
@@ -241,7 +239,7 @@ GUI.State2Parameter = function (){
 //RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
 GUI.Parameter2State = function(){
 	GUI.parameters.forEach(function(param){
-		state[param.id] = $("#" + param.id).val();
+		GUI.state[param.id] = $("#" + param.id).val();
 	});
 };
 
@@ -249,7 +247,7 @@ GUI.Parameter2State = function(){
 
 //RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
 GUI.UpdateState = function(){
-	var backup=Util.copy(state, {});
+	var backup=Util.copy(GUI.state, {});
 
 	GUI.Parameter2State();
 	GUI.FixState();
@@ -258,7 +256,7 @@ GUI.UpdateState = function(){
 	//AFTER RELATIONS, IS THERE STILL A CHANGE?
 	var changeDetected = false;
 	GUI.parameters.forall(function(param){
-		if (backup[param.id]===undefined || state[param.id] != backup[param.id]){
+		if (backup[param.id]===undefined || GUI.state[param.id] != backup[param.id]){
 			changeDetected = true;
 		}//endif
 	});
@@ -275,13 +273,13 @@ GUI.FixState=function(){
 		var type=typeof(GUI.relations[0]);
 		if (type!="function"){
 			GUI.relations.forall(function(r, i){
-				GUI.relations[i]=aCompile.method_usingObjects(r, [state]);
+				GUI.relations[i]=aCompile.method_usingObjects(r, [GUI.state]);
 			});
 		}//endif
 
 		//UPDATE THE STATE OBJECT
 		GUI.relations.forall(function(r){
-			r(state);
+			r(GUI.state);
 		});
 	}//endif
 };
@@ -292,10 +290,12 @@ GUI.makeSelectionPanel = function (){
 
 	html += '<h4><a href="#">Selection</a></h4>';
 	html += '<div id="summary"></div>';
-	if (customFilters.length != 0){
+	if (GUI.state.customFilters.length != 0){
 		html += '<h4><a href="#">Custom Filters</a></h4>';
-		html += '<div id="customFilters"></div>';
+		html += '<div id="GUI.state.customFilters"></div>';
 	}
+	html += '<h4><a href="#">Teams</a></h4>';
+	html += '<div id="teams"></div>';
 	html += '<h4><a href="#">Classifications</a></h4>';
 	html += '<div id="classifications"></div>';
 	html += '<h4><a href="#">Programs</a></h4>';
@@ -318,34 +318,44 @@ GUI.makeSelectionPanel = function (){
 GUI.UpdateSummary = function(){
 	var html = "";
 
-	if (state["customFilters"].length > 0){
-		html += "Custom Filters: " + state["customFilters"].join(", ");
+	if (GUI.state.customFilters.length > 0){
+		html += "Custom Filters: " + GUI.state.customFilters.join(", ");
 		html += "<br><br>";
 	}//endif
 
-	html += "Programs: ";
-	if (state.selectedPrograms.length == 0){
+	html += "Teams: ";
+	if (GUI.state.selectedTeams.length == 0){
 		html += "All";
 	} else{
-		html += state.selectedPrograms.join(", ");
+		html += GUI.state.selectedTeams.join(", ");
+	}//endif
+
+	html += "<br><br>";
+
+
+	html += "Programs: ";
+	if (GUI.state.selectedPrograms.length == 0){
+		html += "All";
+	} else{
+		html += GUI.state.selectedPrograms.join(", ");
 	}//endif
 
 	html += "<br><br>";
 
 	html += "Products: ";
-	if (state.selectedProducts.length == 0){
+	if (GUI.state.selectedProducts.length == 0){
 		html += "All";
 	} else{
-		html += state.selectedProducts.join(", ");
+		html += GUI.state.selectedProducts.join(", ");
 	}//endif
 
 	html += "<br><br>";
 
 	html += "Components: ";
-	if (state.selectedComponents.length == 0){
+	if (GUI.state.selectedComponents.length == 0){
 		html += "All";
 	} else{
-		html += state.selectedComponents.join(", ");
+		html += GUI.state.selectedComponents.join(", ");
 	}//endif
 
 	html += "<br><br><br><b>Hold CTRL while clicking to multi-select and deselect from the lists below.</b>";
@@ -354,5 +364,33 @@ GUI.UpdateSummary = function(){
 	$("#summary").html(html);
 };
 
+GUI.refresh=function(){
+	GUI.State2URL();
+	GUI.UpdateSummary();
+	GUI.state.programFilter.Refresh();
+	GUI.state.productFilter.Refresh();
+	GUI.state.componentFilter.Refresh();
+};
 
 
+
+
+GUI.injectFilterss = function(chartRequests){
+	if (!(chartRequests instanceof Array)) D.error("Expecting an array of chartRequests");
+	for(var i = 0; i < chartRequests.length; i++){
+		GUI.injectFilters(chartRequests[i]);
+	}//for
+};
+
+GUI.injectFilters = function(chartRequest){
+	if (chartRequest.esQuery === undefined)
+		D.error("Expecting chart requests to have a \"esQuery\", not \"query\"");
+
+	ElasticSearch.injectFilter(chartRequest.esQuery, ProgramFilter.makeFilter());
+	ElasticSearch.injectFilter(chartRequest.esQuery, ProductFilter.makeFilter());
+	ElasticSearch.injectFilter(chartRequest.esQuery, ComponentFilter.makeFilter());
+	ElasticSearch.injectFilter(chartRequest.esQuery, TeamFilter.makeFilter());
+
+
+	InjectCustomFilters(chartRequest);
+};

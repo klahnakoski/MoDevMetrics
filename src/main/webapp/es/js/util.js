@@ -86,7 +86,9 @@ Array.prototype.forall=function(func){
 Array.prototype.map=function(func){
 	var output=[];
 	for(var i=0;i<this.length;i++){
-		output.push(func(this[i], i));
+		var v=func(this[i], i);
+		if (!v) continue;
+		output.push(v);
 	}//for
 	return output;
 };//method

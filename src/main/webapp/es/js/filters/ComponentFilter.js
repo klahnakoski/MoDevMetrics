@@ -4,7 +4,7 @@ ComponentFilter = function(){
 
 
 ComponentFilter.makeFilter = function(){
-	return ES.makeFilter("component", state.selectedComponents);
+	return ES.makeFilter("component", GUI.state.selectedComponents);
 };//method
 
 ComponentFilter.makeQuery = function(filters){
@@ -43,8 +43,8 @@ ComponentFilter.makeQuery = function(filters){
 
 ComponentFilter.prototype.Refresh = function(){
 	this.query = ComponentFilter.makeQuery([
-		ES.makeFilter("product", state.selectedProducts)//,
-//		ProgramFilter.makeFilter(state.selectedPrograms)
+		ES.makeFilter("product", GUI.state.selectedProducts)//,
+//		ProgramFilter.makeFilter(GUI.state.selectedPrograms)
 	]);
 
 	this.ElasticSearchQuery = OldElasticSearchQuery(this, 0, this.query);
@@ -61,14 +61,14 @@ ComponentFilter.prototype.injectHTML = function(components){
 	var total = 0;
 	for(var i = 0; i < components.length; i++) total += components[i].count;
 	html += item.replaceVars({
-		"class" : ((state.selectedProducts.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
+		"class" : ((GUI.state.selectedProducts.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
 		"name" : "ALL",
 		"count" : total
 	});
 
 	for(var i = 0; i < components.length; i++){
 		html += item.replaceVars({
-			"class" : (state.selectedProducts.contains(components[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
+			"class" : (GUI.state.selectedProducts.contains(components[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
 			"name" : components[i].term,
 			"count" : components[i].count
 		});
@@ -87,7 +87,7 @@ ComponentFilter.prototype.success = function(data){
 	var terms = [];
 	for(var i = 0; i < components.length; i++) terms.push(components[i].term);
 
-	state.selectedComponents = List.intersect(state.selectedComponents, terms);
+	GUI.state.selectedComponents = List.intersect(GUI.state.selectedComponents, terms);
 
 	GUI.State2URL();
 	this.injectHTML(components);
@@ -95,32 +95,22 @@ ComponentFilter.prototype.success = function(data){
 		selected: function(event, ui){
 			var didChange = false;
 			if (ui.selected.id == "component_ALL"){
-				if (state.selectedComponents.length > 0) didChange = true;
-				state.selectedComponents = [];
+				if (GUI.state.selectedComponents.length > 0) didChange = true;
+				GUI.state.selectedComponents = [];
 			} else{
-				if (!include(state.selectedComponents, ui.selected.id.rightBut("component_".length))){
-					state.selectedComponents.push(ui.selected.id.rightBut("component_".length));
+				if (!include(GUI.state.selectedComponents, ui.selected.id.rightBut("component_".length))){
+					GUI.state.selectedComponents.push(ui.selected.id.rightBut("component_".length));
 					didChange = true;
 				}//endif
 			}//endif
 
-			if (didChange){
-				GUI.State2URL();
-				GUI.UpdateSummary();
-				state.programFilter.Refresh();
-				state.productFilter.Refresh();
-				state.componentFilter.Refresh();
-			}//endif
+			if (didChange) GUI.refresh();
 		},
 		unselected: function(event, ui){
-			var i = state.selectedComponents.indexOf(ui.unselected.id.rightBut("component_".length));
+			var i = GUI.state.selectedComponents.indexOf(ui.unselected.id.rightBut("component_".length));
 			if (i != -1){
-				state.selectedComponents.splice(i, 1);
-				GUI.State2URL();
-				GUI.UpdateSummary();
-				state.programFilter.Refresh();
-				state.productFilter.Refresh();
-				state.componentFilter.Refresh();
+				GUI.state.selectedComponents.splice(i, 1);
+				GUI.refresh();
 			}
 		}
 	});

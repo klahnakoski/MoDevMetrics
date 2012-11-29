@@ -25,6 +25,7 @@
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="lib/jstree/jquery.jstree.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/lib/protovis-d3.3.js"></script>
@@ -62,14 +63,17 @@
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script>
 <script type="application/javascript;version=1.7" src="js/Debug.js"></script>
-<script type="application/javascript;version=1.7" src="js/MVEL.js"></script><script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
+<script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
+<script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/aThread.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="js/aThread.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
-<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script><script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script>
+<script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
 
 
@@ -83,10 +87,12 @@
 
 <script type="application/javascript;version=1.7" src="js/filters/Filter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/ComponentFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script><script type="application/javascript;version=1.7" src="js/filters/ClassificationFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/TeamFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/ClassificationFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/ProgramFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/CustomFilters.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/GUIFilters.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/GUI.js"></script>
 <h3>BROKEN - It seems short reviews are not showing closed</h3>
 <table style="width: 100%;">
 	<tr>
@@ -162,18 +168,18 @@
 											{ "and" : [
 												{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
 												{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
-												{"term" : {"bugs.attachments.flags.requestee" : state.requestee}},
+												{"term" : {"bugs.attachments.flags.requestee" : GUI.state.requestee}},
 												{"script":{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}}
 											]}
 										]},
 										{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
 									]}
 								}),
-							"size": state.esSize
+							"size": GUI.state.esSize
 						},
 						"facet_filter":{//HOPEFULLY THIS HELPS
 							"and":[
-								{"range":{"modified_ts":{"lt":new Date(state.sampleMax).getMilli()}}}
+								{"range":{"modified_ts":{"lt":new Date(GUI.state.sampleMax).getMilli()}}}
 							]
 						}
 					},
@@ -197,29 +203,29 @@
 											{ "and" : [//IF THE REQUESTEE SWITCHED THE ? FLAG, THEN IT IS DONE
 												{"not": {"terms" : {"bugs.attachments.flags.request_status" : ["?"]}}},
 												{"or":[
-													{"term" : {"bugs.attachments.flags.requestee" : state.requestee}},
+													{"term" : {"bugs.attachments.flags.requestee" : GUI.state.requestee}},
 													{"and":[
 														{"missing":{"field":"bugs.attachments.flags.requestee", "existence":true, "null_value":true}},
-														{"term":{"bugs.attachments.modified_by": state.requestee}}
+														{"term":{"bugs.attachments.modified_by": GUI.state.requestee}}
 													]}
 												]}
 											]},
 											{"and":[//IF THE REQUESTEE OBSOLEETED THE ATTACHMENT, IT IS DONE
 												{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 1}},
-												{"term":{"bugs.attachments.modified_by": state.requestee}}
+												{"term":{"bugs.attachments.modified_by": GUI.state.requestee}}
 											]},
 											{ "and" : [//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
 												{"terms" : {"bugs.bug_status" : ["resolved", "verified", "closed"]}},
-												{"term" : {"bugs.attachments.flags.requestee" : state.requestee}}
+												{"term" : {"bugs.attachments.flags.requestee" : GUI.state.requestee}}
 											]}
 										]}
 									]}
 								}),
-							"size": state.esSize
+							"size": GUI.state.esSize
 						},
 						"facet_filter":{//HOPEFULLY THIS HELPS
 							"and":[
-								{"range":{"modified_ts":{"lt":new Date(state.sampleMax).getMilli()}}}
+								{"range":{"modified_ts":{"lt":new Date(GUI.state.sampleMax).getMilli()}}}
 							]
 						}
 					}
@@ -227,7 +233,7 @@
 			};
 
 
-		ES.InjectGUIFilter({"esQuery":esQuery});
+		GUI.injectFilters({"esQuery":esQuery});
 
 		console.info(CNV.Object2JSON(esQuery));
 
@@ -248,7 +254,7 @@
 D.println(CNV.List2Tab(inReview));
 D.println(CNV.List2Tab(doneReview));
 
-					var flooring=state.sampleInterval;
+					var flooring=GUI.state.sampleInterval;
 					if (flooring.indexOf("hour")!=-1) flooring="hour";
 					if (flooring.indexOf("day")!=-1) flooring="day";
 					if (flooring.indexOf("week")!=-1) flooring="week";
@@ -270,18 +276,18 @@ D.println(CNV.List2Tab(doneReview));
 							{"name":"requestee", "value":"requestee"},
 							{"name":"start_time", "value":"new Date(modified_ts)"}
 						],
-						"where":"modified_ts<"+new Date(state.sampleMax).getMilli()+"  && (doneReview.bug_id==null || doneReview.modified_ts>="+new Date(state.sampleMin).getMilli()+")\n"
+						"where":"modified_ts<"+new Date(GUI.state.sampleMax).getMilli()+"  && (doneReview.bug_id==null || doneReview.modified_ts>="+new Date(GUI.state.sampleMin).getMilli()+")\n"
 					}))).list;
 D.println(CNV.List2Tab(reviewQueues));
 
 					var chart=CUBE.calc2Cube({
 						"name":
-							"Historical Review Queue for "+state.requestee,
+							"Historical Review Queue for "+GUI.state.requestee,
 						"from":reviewQueues,
 						"select":{"name":"Pending", "value":"1", operation:"binary"},
 						"edges":[
 							{"name":"Bug ID", "value":"bug_id", "sort":["start_time.floor('"+flooring+"')", "end_time.floor('"+flooring+"')"]},
-							{"name":"Date", "test":"start_time.floor('"+flooring+"')<=time.value && time.value<=end_time.add('"+flooring+"').floor('"+flooring+"')", "domain":{"type":"time", "min":state.sampleMin, "max":state.sampleMax, "interval":flooring, "format":"NNN dd"}}
+							{"name":"Date", "test":"start_time.floor('"+flooring+"')<=time.value && time.value<=end_time.add('"+flooring+"').floor('"+flooring+"')", "domain":{"type":"time", "min":GUI.state.sampleMin, "max":GUI.state.sampleMax, "interval":flooring, "format":"NNN dd"}}
 						]
 					});
 

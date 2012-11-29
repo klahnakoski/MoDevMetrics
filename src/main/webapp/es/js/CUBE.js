@@ -574,6 +574,41 @@ CUBE.normalizeByX=function(query, multiple){
 
 
 
+// CONVERT FROM AN ARRAY OF OBJECTS WITH A parent_field DEFINED TO A TREE OF
+// THE SAME, BUT WITH child_field CONTAINING AN ARRAY OF CHILDREN
+// ALL OBJECTS MUST HAVE id_field DEFINED
+// RETURNS AN ARRAY OF ROOT NODES.
+CUBE.List2Hierarchy=function(args){
+	var childList={};
+	var roots=[];
+
+	args.from.forall(function(p, i){
+		if (p[args.parent_field]!=null){
+			var peers=childList[p[args.parent_field]];
+			if (!peers){
+				peers=[];
+				childList[p[args.parent_field]]=peers;
+			}//endif
+			peers.push(p);
+		}else{
+			roots.push(p);
+		}//endif
+	});
+
+	var heir=function(children){
+		children.forall(function(child, i){
+			var grandchildren=childList[child[args.id_field]];
+			if (grandchildren){
+				child[args.child_field]=grandchildren;
+				heir(grandchildren);
+			}//endif
+		});
+	};
+	heir(roots);
+
+	return roots;
+};
+
 
 
 // CONVERT THE tree STRUCTURE TO A FLAT LIST FOR output

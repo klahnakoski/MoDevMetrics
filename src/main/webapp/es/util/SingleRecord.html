@@ -35,7 +35,8 @@
 <script type="application/javascript;version=1.7" src="../js/CUBE.column.js"></script>
 <script type="application/javascript;version=1.7" src="../js/CUBE.cube.js"></script>
 <script type="application/javascript;version=1.7" src="../js/CUBE.domain.js"></script>
-<script type="application/javascript;version=1.7" src="../js/rest/Rest.js"></script><script type="application/javascript;version=1.7" src="../js/ESQuery.js"></script>
+<script type="application/javascript;version=1.7" src="../js/rest/Rest.js"></script>
+<script type="application/javascript;version=1.7" src="../js/ESQuery.js"></script>
 <script type="application/javascript;version=1.7" src="../js/charts/aChart.js"></script>
 
 <script type="application/javascript;version=1.7" src="../js/filters/ProgramFilter.js"></script>
@@ -54,23 +55,24 @@ aThread.run(function(){
 
 	D.println(new Date(1352207434236).format("yyyy-NNN-dd HHmmss"));
 
-	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
-		{"script":{"script":"true"}},
-		{"and":[
-			{"term":{"bug_id":"740241"}}
-		]}
-	]}}},"from":0,"size":100,"sort":["bug_version_num"]
-	};
+//	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
+//		{"script":{"script":"true"}},
+//		{"and":[
+//			{"term":{"bug_id":"740241"}}
+//		]}
+//	]}}},"from":0,"size":100,"sort":["bug_version_num"]
+//	};
 
 
-//	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[{"script":{"script":"true"}}]}}},"from":0,"size":0,"sort":[],"facets":{"0":{"statistical":{"script":"doc[\"bug_id\"].value"}}}};
+	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[{"script":{"script":"true"}}]}}},"from":0,"size":0,"sort":[],"facets":{"mvel":{"terms":{"script_field":"var Value2Pipe = function(value){\nif (value==null){ \"0\" }else if (value is ArrayList){ 's'+value.toString(); }else \nif (value is Long || value is Integer){ 'n'+value; }else \nif (!(value is String)){ 's'+value.getClass().getName(); }else \n\"s\"+value.replace(\"\\\\\", \"\\\\\\\\\").replace(\"|\", \"\\\\p\");};\nvar get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar cool_func = function(org_chart){\noutput=\"\";\nif (true){output = Value2Pipe(org_chart.name)\n+\"|\"+Value2Pipe(org_chart.email)\n+\"|\"+Value2Pipe(get(org_chart, \"manager\"))\n;\n}\noutput;\n};\ncool_func(_source)\n","size":100000}}}};
 
 
 	try{
 		var data=yield (Rest.post({
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews/review/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
-			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/org_chart/person/_search",
 			"data":esQuery
 		}));
 

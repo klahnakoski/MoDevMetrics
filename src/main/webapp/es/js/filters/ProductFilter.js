@@ -4,7 +4,7 @@ ProductFilter = function(){
 
 
 ProductFilter.makeFilter = function(){
-	return ES.makeFilter("product", state.selectedProducts);
+	return ES.makeFilter("product", GUI.state.selectedProducts);
 };//method
 
 
@@ -45,7 +45,7 @@ ProductFilter.makeQuery = function(filters){
 
 ProductFilter.prototype.Refresh = function(){
 	this.query = ProductFilter.makeQuery([
-//		ProgramFilter.makeFilter(state.selectedPrograms)
+//		ProgramFilter.makeFilter(GUI.state.selectedPrograms)
 	]);
 
 	this.ElasticSearchQuery = OldElasticSearchQuery(this, 0, this.query);
@@ -62,7 +62,7 @@ ProductFilter.prototype.injectHTML = function(products){
 	var total = 0;
 	for(var i = 0; i < products.length; i++) total += products[i].count;
 	html += item.replaceVars({
-		"class" : ((state.selectedProducts.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
+		"class" : ((GUI.state.selectedProducts.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
 		"name" : "ALL",
 		"count" : total
 	});
@@ -70,7 +70,7 @@ ProductFilter.prototype.injectHTML = function(products){
 	//LIST SPECIFIC PRODUCTS
 	for(var i = 0; i < products.length; i++){
 		html += item.replaceVars({
-			"class" : (include(state.selectedProducts, products[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
+			"class" : (include(GUI.state.selectedProducts, products[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
 			"name" : products[i].term,
 			"count" : products[i].count
 		});
@@ -89,7 +89,7 @@ ProductFilter.prototype.success = function(data){
 	//REMOVE ANY FILTERS THAT DO NOT APPLY ANYMORE (WILL START ACCUMULATING RESULTING IN NO MATCHES)
 	var terms = [];
 	for(var i = 0; i < products.length; i++) terms.push(products[i].term);
-	state.selectedProducts = List.intersect(state.selectedProducts, terms);
+	GUI.state.selectedProducts = List.intersect(GUI.state.selectedProducts, terms);
 
 	var self=this;
 
@@ -100,34 +100,34 @@ ProductFilter.prototype.success = function(data){
 			selected: function(event, ui){
 				var didChange = false;
 				if (ui.selected.id == "product_ALL"){
-					if (state.selectedProducts / length > 0) didChange = true;
-					state.selectedProducts = [];
-					state.selectedClassifications=[];
+					if (GUI.state.selectedProducts / length > 0) didChange = true;
+					GUI.state.selectedProducts = [];
+					GUI.state.selectedClassifications=[];
 				} else{
-					if (!include(state.selectedProducts, ui.selected.id.rightBut("product_".length))){
-						state.selectedProducts.push(ui.selected.id.rightBut("product_".length));
+					if (!include(GUI.state.selectedProducts, ui.selected.id.rightBut("product_".length))){
+						GUI.state.selectedProducts.push(ui.selected.id.rightBut("product_".length));
 						didChange = true;
 					}//endif
 				}//endif
 
 				if (didChange){
 					GUI.State2URL();
-					state.programFilter.Refresh();
-					state.classificationFilter.Refresh();
-					state.productFilter.Refresh();
-					state.componentFilter.Refresh();
+					GUI.state.programFilter.Refresh();
+					GUI.state.classificationFilter.Refresh();
+					GUI.state.productFilter.Refresh();
+					GUI.state.componentFilter.Refresh();
 				}//endif
 			},
 			unselected: function(event, ui){
-				var i = state.selectedProducts.indexOf(ui.unselected.id.rightBut("product_".length));
+				var i = GUI.state.selectedProducts.indexOf(ui.unselected.id.rightBut("product_".length));
 				if (i != -1){
-					state.selectedProducts.splice(i, 1);
-					state.selectedClassifications=[];
+					GUI.state.selectedProducts.splice(i, 1);
+					GUI.state.selectedClassifications=[];
 					GUI.State2URL();
-					state.programFilter.Refresh();
-					state.classificationFilter.Refresh();
-					state.productFilter.Refresh();
-					state.componentFilter.Refresh();
+					GUI.state.programFilter.Refresh();
+					GUI.state.classificationFilter.Refresh();
+					GUI.state.productFilter.Refresh();
+					GUI.state.componentFilter.Refresh();
 				}
 			}
 		});

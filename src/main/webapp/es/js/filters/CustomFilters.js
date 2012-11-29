@@ -3,20 +3,20 @@ var CustomFilter = {};
 InjectCustomFilters = function(query){
 	//D.println('ParseCustomFilters');
 
-	if (state['customFilters'].length == 0)
+	if (GUI.state.customFilters.length == 0)
 		return;
 
 	query.filter.and.push({"or" : []});
 
 	var or = query.filter.and[query.filter.and.length - 1].or;
 
-	for(var j = 0; j < customFilters.length; j++){
-//		D.println('customFilters check: ' + customFilters[i].name + " : " + state['customFilters']);
-		if (include(state['customFilters'], customFilters[j].name)){
-//			D.println('customFilters found: ' + customFilters[i].name);
-			for(var x = 0; x < customFilters[j].filters.length; x++){
-//				D.println("customFilters[i].filters[x]: " + JSON.stringify(customFilters[i].filters[x]));
-				or.push(customFilters[j].filters[x]);
+	for(var j = 0; j < GUI.state.customFilters.length; j++){
+//		D.println('GUI.state.customFilters check: ' + GUI.state.customFilters[i].name + " : " + GUI.state.GUI.state.customFilters);
+		if (include(GUI.state.customFilters, GUI.state.customFilters[j].name)){
+//			D.println('GUI.state.customFilters found: ' + GUI.state.customFilters[i].name);
+			for(var x = 0; x < GUI.state.customFilters[j].filters.length; x++){
+//				D.println("GUI.state.customFilters[i].filters[x]: " + JSON.stringify(GUI.state.customFilters[i].filters[x]));
+				or.push(GUI.state.customFilters[j].filters[x]);
 			}
 		}
 	}
@@ -24,42 +24,42 @@ InjectCustomFilters = function(query){
 
 
 GenerateCustomFilters = function(){
-	if (customFilters.length == 0)
+	if (GUI.state.customFilters.length == 0)
 		return;
 
 	var html = "";
 
 	html += '<ul id="customFiltersList" class="menu ui-selectable">';
 
-	for(var i = 0; i < customFilters.length; i++){
+	for(var i = 0; i < GUI.state.customFilters.length; i++){
 		html += '<li class="ui-selectee';
 
-		if (include(state['customFilters'], customFilters[i].name))
+		if (include(GUI.state.customFilters, GUI.state.customFilters[i].name))
 			html += ' ui-selected';
 
-		html += '" id="' + customFilters[i].name +
-			'">' + customFilters[i].name + '</li>';
+		html += '" id="' + GUI.state.customFilters[i].name +
+			'">' + GUI.state.customFilters[i].name + '</li>';
 	}
 
 	html += '</ul>';
 
-	document.getElementById("customFilters").innerHTML = html;
+	document.getElementById("GUI.state.customFilters").innerHTML = html;
 
 	var callBackObj = this;
 
 	$("#customFiltersList").selectable({
 		selected: function(event, ui){
-			if (!include(state['customFilters'], ui.selected.id)){
-				state['customFilters'].push(ui.selected.id);
+			if (!include(GUI.state.customFilters, ui.selected.id)){
+				GUI.state.customFilters.push(ui.selected.id);
 				GUI.State2URL();
 				GUI.UpdateSummary();
 				createChart();
 			}
 		},
 		unselected: function(event, ui){
-			var i = state['customFilters'].indexOf(ui.unselected.id);
+			var i = GUI.state.customFilters.indexOf(ui.unselected.id);
 			if (i != -1){
-				state['customFilters'].splice(i, 1);
+				GUI.state.customFilters.splice(i, 1);
 				GUI.State2URL();
 				GUI.UpdateSummary();
 				createChart();

@@ -11,12 +11,12 @@ ProgramFilter = function(){
 ProgramFilter.allPrograms = CNV.Table2List(MozillaPrograms);
 
 ProgramFilter.makeFilter = function(selectedPrograms){
-	if (state.selectedPrograms.length == 0) return ES.TrueFilter;
+	if (GUI.state.selectedPrograms.length == 0) return ES.TrueFilter;
 
 	var or = [];
-	for(var i=0;i<state.selectedPrograms.length;i++){
+	for(var i=0;i<GUI.state.selectedPrograms.length;i++){
 		for(var j=0;j<ProgramFilter.allPrograms.length;j++){
-			if (ProgramFilter.allPrograms[j].projectName == state.selectedPrograms[i]){
+			if (ProgramFilter.allPrograms[j].projectName == GUI.state.selectedPrograms[i]){
 				var name = ProgramFilter.allPrograms[j].attributeName;
 				var value = ProgramFilter.allPrograms[j].attributeValue;
 				var term = {};
@@ -35,7 +35,7 @@ ProgramFilter.makeQuery = function(filters){
 	var programCompares={};
 
 	for(var j=0;j<ProgramFilter.allPrograms.length;j++){
-//		if (ProgramFilter.allPrograms[j].projectName==state.selectedPrograms[i]){
+//		if (ProgramFilter.allPrograms[j].projectName==GUI.state.selectedPrograms[i]){
 		var name = ProgramFilter.allPrograms[j].attributeName;
 		var value = ProgramFilter.allPrograms[j].attributeValue;
 		var project=ProgramFilter.allPrograms[j].projectName;
@@ -127,14 +127,14 @@ ProgramFilter.prototype.injectHTML = function(programs){
 	var total = 0;
 	for(var i = 0; i < programs.length; i++) total += programs[i].count;
 	html += item.replaceVars({
-		"class" : ((state.selectedPrograms.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
+		"class" : ((GUI.state.selectedPrograms.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
 		"name" : "ALL",
 		"count" : total
 	});
 
 	for(var i = 0; i < programs.length; i++){
 		html += item.replaceVars({
-			"class" : (include(state.selectedPrograms, programs[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
+			"class" : (include(GUI.state.selectedPrograms, programs[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
 			"name" : programs[i].term,
 			"count" : programs[i].count
 		});
@@ -185,30 +185,30 @@ ProgramFilter.prototype.success = function(data){
 		selected: function(event, ui){
 			var didChange = false;
 			if (ui.selected.id == "program_ALL"){
-				if (state.selectedPrograms.length > 0) didChange = true;
-				state.selectedPrograms = [];
+				if (GUI.state.selectedPrograms.length > 0) didChange = true;
+				GUI.state.selectedPrograms = [];
 			} else{
-				if (!include(state.selectedPrograms, ui.selected.id.rightBut("program_".length))){
-					state.selectedPrograms.push(ui.selected.id.rightBut("program_".length));
+				if (!include(GUI.state.selectedPrograms, ui.selected.id.rightBut("program_".length))){
+					GUI.state.selectedPrograms.push(ui.selected.id.rightBut("program_".length));
 					didChange = true;
 				}//endif
 			}//endif
 
 			if (didChange){
 				GUI.State2URL();
-				state.programFilter.Refresh();
-				state.productFilter.Refresh();
-				state.componentFilter.Refresh();
+				GUI.state.programFilter.Refresh();
+				GUI.state.productFilter.Refresh();
+				GUI.state.componentFilter.Refresh();
 			}//endif
 		},
 		unselected: function(event, ui){
-			var i = state.selectedPrograms.indexOf(ui.unselected.id.rightBut("program_".length));
+			var i = GUI.state.selectedPrograms.indexOf(ui.unselected.id.rightBut("program_".length));
 			if (i != -1){
-				state.selectedPrograms.splice(i, 1);
+				GUI.state.selectedPrograms.splice(i, 1);
 				GUI.State2URL();
-				state.programFilter.Refresh();
-				state.productFilter.Refresh();
-				state.componentFilter.Refresh();
+				GUI.state.programFilter.Refresh();
+				GUI.state.productFilter.Refresh();
+				GUI.state.componentFilter.Refresh();
 			}
 		}
 	});
@@ -217,10 +217,10 @@ ProgramFilter.prototype.success = function(data){
 //RETURN MINIMUM VALUE OF ALL SELECTED PROGRAMS
 ProgramFilter.bugStatusMinimum_fromDoc=function(){
 	var idTime;
-	if (state.selectedPrograms.length==0){
+	if (GUI.state.selectedPrograms.length==0){
 		idTime="doc[\"create_time\"].value";
 	}else{
-		idTime=ProgramFilter.minimum(state.selectedPrograms.map(function(v, i){return "doc[\""+v+"_time\"].value"}));
+		idTime=ProgramFilter.minimum(GUI.state.selectedPrograms.map(function(v, i){return "doc[\""+v+"_time\"].value"}));
 	}//endif
 
 	return idTime;
@@ -228,10 +228,10 @@ ProgramFilter.bugStatusMinimum_fromDoc=function(){
 //RETURN MINIMUM VALUE OF ALL SELECTED PROGRAMS
 ProgramFilter.bugStatusMinimum_fromSource=function(){
 	var idTime;
-	if (state.selectedPrograms.length==0){
+	if (GUI.state.selectedPrograms.length==0){
 		idTime="bug_summary.create_time";
 	}else{
-		idTime=ProgramFilter.minimum(state.selectedPrograms.map(function(v, i){return "bug_summary[\""+v+"_time\"]"}));
+		idTime=ProgramFilter.minimum(GUI.state.selectedPrograms.map(function(v, i){return "bug_summary[\""+v+"_time\"]"}));
 	}//endif
 
 	return idTime;

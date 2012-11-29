@@ -27,6 +27,7 @@
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="lib/jstree/jquery.jstree.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/lib/protovis-d3.3.js"></script>
@@ -67,12 +68,14 @@
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/aThread.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="js/aThread.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
-<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script><script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script>
+<script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
 
 
@@ -86,10 +89,12 @@
 
 <script type="application/javascript;version=1.7" src="js/filters/Filter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/ComponentFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script><script type="application/javascript;version=1.7" src="js/filters/ClassificationFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/TeamFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/ClassificationFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/ProgramFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/CustomFilters.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/GUIFilters.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/GUI.js"></script>
 
 
 <div id="sidebar">
@@ -121,9 +126,9 @@
 
 	var createChart=function(){
 
-		var sampleInterval=Duration.newInstance(state.sampleInterval);
-		var sampleMin=Date.newInstance(state.sampleMin);
-		var sampleMax=sampleMin.add(Date.newInstance(state.sampleMax).add(sampleInterval).subtract(sampleMin, sampleInterval).floor(sampleInterval));
+		var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
+		var sampleMin=Date.newInstance(GUI.state.sampleMin);
+		var sampleMax=sampleMin.add(Date.newInstance(GUI.state.sampleMax).add(sampleInterval).subtract(sampleMin, sampleInterval).floor(sampleInterval));
 
 
 		var esQuery = {
@@ -174,12 +179,12 @@
 //										{"term":{"bugs.attachments.attach_id":"614487"}},
 										{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
 										{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
-										{"term" : {"bugs.attachments.flags.requestee" : state.requestee}},
+										{"term" : {"bugs.attachments.flags.requestee" : GUI.state.requestee}},
 										{"script" :{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}},
 										{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
 									]}
 								}),
-							"size": state.esSize,
+							"size": GUI.state.esSize,
 							"sort" : "term"
 						},
 						"facet_filter":{//HOPEFULLY THIS HELPS
@@ -192,7 +197,7 @@
 			};
 
 
-		ES.InjectGUIFilter({"esQuery":esQuery});
+		GUI.injectFilters({"esQuery":esQuery});
 
 		console.info(CNV.Object2JSON(esQuery));
 
@@ -274,32 +279,32 @@ D.println(CNV.Object2JSON(data));
 													{ "and" : [//IF THE REQUESTEE SWITCHED THE ? FLAG, THEN IT IS DONE
 														{"not": {"terms" : {"bugs.attachments.flags.request_status" : ["?"]}}},
 														{"or":[
-															{"term" : {"bugs.attachments.flags.requestee" : state.requestee}},
+															{"term" : {"bugs.attachments.flags.requestee" : GUI.state.requestee}},
 															{"and":[
 																{"missing":{"field":"bugs.attachments.flags.requestee", "existence":true, "null_value":true}},
-																{"term":{"bugs.attachments.modified_by": state.requestee}}
+																{"term":{"bugs.attachments.modified_by": GUI.state.requestee}}
 															]}
 														]}
 													]},
 													{ "and" : [//IF THE ? WAS SWITCHED TO ANOTHER REQUESTEE, THEN IT IS DONE
 														{"term" : {"bugs.attachments.flags.request_status" : "?"}},
-														{"not":{"term" : {"bugs.attachments.flags.requestee" : state.requestee}}}
-//												{"term":{"bugs.attachments.modified_by": state.requestee}} //ANYONE CAN SWITCH
+														{"not":{"term" : {"bugs.attachments.flags.requestee" : GUI.state.requestee}}}
+//												{"term":{"bugs.attachments.modified_by": GUI.state.requestee}} //ANYONE CAN SWITCH
 													]},
 													{"and":[//IF THE REQUESTEE OBSOLEETED THE ATTACHMENT, IT IS DONE
 														{"not":{"missing":{"field":"bugs.previous_values", "existence":true, "null_value":true}}},
 														{"term":{"bugs.previous_values[\"attachments.isobsolete_values\"]" : 0}},
 														{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 1}}
-//												{"term":{"bugs.attachments.modified_by": state.requestee}}  //ANYONE CAN OBSOLETE
+//												{"term":{"bugs.attachments.modified_by": GUI.state.requestee}}  //ANYONE CAN OBSOLETE
 													]},
 													{ "and" : [//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
 														{"terms" : {"bugs.bug_status" : ["resolved", "verified", "closed"]}},
-														{"term" : {"bugs.attachments.flags.requestee" : state.requestee}}
+														{"term" : {"bugs.attachments.flags.requestee" : GUI.state.requestee}}
 													]}
 												]}
 											]}
 										}),
-									"size": state.esSize,
+									"size": GUI.state.esSize,
 									"sort" : "term"
 								},
 								"facet_filter":{//HOPEFULLY THIS HELPS
@@ -333,7 +338,7 @@ D.println(CNV.Object2JSON(data));
 //D.println(CNV.List2Tab(doneReview));
 
 
-					var flooring=state.sampleInterval;
+					var flooring=GUI.state.sampleInterval;
 					if (flooring.indexOf("hour")!=-1) flooring="hour";
 					if (flooring.indexOf("day")!=-1) flooring="day";
 					if (flooring.indexOf("week")!=-1) flooring="week";
@@ -369,17 +374,17 @@ D.println(CNV.List2Tab(reviewQueues));
 
 					var chart=CUBE.calc2Cube({
 						"name":
-							"Historical Review Queue for "+state.requestee,
+							"Historical Review Queue for "+GUI.state.requestee,
 						"from":reviewQueues,
 						"select":{"name":"Pending", "value":"1", operation:"sum"},
 						"edges":[
 							{"name":"Bug ID", "value":"bug_id", "sort":["start_time.floor('"+flooring+"')", "end_time.floor('"+flooring+"')"]},
 							{"name":"Date",
 								"test":"start_time.floor('"+flooring+"')<=time.value && time.value<=end_time.floor('"+flooring+"')",
-								"domain":{"type":"time", "min":state.sampleMin, "max":sampleMax, "interval":flooring, "format":"NNN dd"}
+								"domain":{"type":"time", "min":GUI.state.sampleMin, "max":sampleMax, "interval":flooring, "format":"NNN dd"}
 							}
 						],
-						"where":new Date(state.sampleMin).getMilli()+"<=end_time.getMilli() && start_time.getMilli()<"+sampleMax.getMilli()
+						"where":new Date(GUI.state.sampleMin).getMilli()+"<=end_time.getMilli() && start_time.getMilli()<"+sampleMax.getMilli()
 //							"sort":["Date"]
 					});
 

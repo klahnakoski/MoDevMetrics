@@ -16,6 +16,7 @@
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="lib/jstree/jquery.jstree.js"></script>
 <script type="application/javascript;version=1.7"
 		src="lib/webdetails/cdf/jquery.tooltip.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
@@ -51,7 +52,7 @@
 		src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="application/javascript;version=1.7" src="lib/js/jquery.ba-bbq.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/GUIFunctions.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/GUIFilters.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/GUI.js"></script>
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 <h2>This is very old, and broken</h2>
 <script type="application/javascript;version=1.7">
@@ -65,7 +66,7 @@
 			rangeChart.kill();
 		}
 
-		var numberOfDays = getNumberOfDays(convertStringToDate(state['startDate']), convertStringToDate(state['endDate']));
+		var numberOfDays = getNumberOfDays(convertStringToDate(GUI.state['startDate']), convertStringToDate(GUI.state['endDate']));
 
 		var chartRequest = {
 			"requests" :[
@@ -76,7 +77,7 @@
 								"must" : [
 									{ "term" : { "_type" : "bug" } },
 									{ "term" : { "expiration_date" : "2199-12-31T08:00:00.000Z" } },
-									{ "range" : { "modification_date" : {"from" : state['startDate'] + "T00:00:00.000Z", "to" : state['endDate'] + "T23:59:59.999Z"  } } },
+									{ "range" : { "modification_date" : {"from" : GUI.state['startDate'] + "T00:00:00.000Z", "to" : GUI.state['endDate'] + "T23:59:59.999Z"  } } },
 									{ "term" : { "major_status" : "CLOSED" } },
 									{ "term" : { "resolution" : "FIXED" } },
 								],
@@ -95,7 +96,7 @@
 				 "must" : [
 				 { "term" : { "_type" : "bug" } },
 				 { "term" : { "expiration_date" : "2199-12-31T08:00:00.000Z" } },
-				 { "range" : { "modification_date" : {"from" : state['startDate'] + "T00:00:00.000Z", "to" : state['endDate']+"T23:59:59.999Z"  } } },
+				 { "range" : { "modification_date" : {"from" : GUI.state['startDate'] + "T00:00:00.000Z", "to" : GUI.state['endDate']+"T23:59:59.999Z"  } } },
 				 { "term" : { "major_status" : "CLOSED" } },
 				 ],
 				 "must_not" : [
@@ -116,7 +117,7 @@
 								"must" : [
 									{ "term" : { "_type" : "bug" } },
 									{ "term" : { "expiration_date" : "2199-12-31T08:00:00.000Z" } },
-									{ "range" : { "modification_date" : {"from" : state['startDate'] + "T00:00:00.000Z", "to" : state['endDate'] + "T23:59:59.999Z"  } } },
+									{ "range" : { "modification_date" : {"from" : GUI.state['startDate'] + "T00:00:00.000Z", "to" : GUI.state['endDate'] + "T23:59:59.999Z"  } } },
 									{ "term" : { "major_status" : "CLOSED" } },
 									{ "term" : { "resolution" : "WONTFIX" } },
 								],
@@ -135,7 +136,7 @@
 								"must" : [
 									{ "term" : { "_type" : "bug" } },
 									{ "term" : { "expiration_date" : "2199-12-31T08:00:00.000Z" } },
-									{ "range" : { "modification_date" : {"from" : state['startDate'] + "T00:00:00.000Z", "to" : state['endDate'] + "T23:59:59.999Z"  } } },
+									{ "range" : { "modification_date" : {"from" : GUI.state['startDate'] + "T00:00:00.000Z", "to" : GUI.state['endDate'] + "T23:59:59.999Z"  } } },
 									{ "term" : { "major_status" : "CLOSED" } },
 									{ "term" : { "resolution" : "INVALID" } },
 								],
@@ -154,7 +155,7 @@
 								"must" : [
 									{ "term" : { "_type" : "bug" } },
 									{ "term" : { "expiration_date" : "2199-12-31T08:00:00.000Z" } },
-									{ "range" : { "modification_date" : {"from" : state['startDate'] + "T00:00:00.000Z", "to" : state['endDate'] + "T23:59:59.999Z"  } } },
+									{ "range" : { "modification_date" : {"from" : GUI.state['startDate'] + "T00:00:00.000Z", "to" : GUI.state['endDate'] + "T23:59:59.999Z"  } } },
 									{ "term" : { "major_status" : "CLOSED" } },
 									{ "term" : { "resolution" : "DUPLICATE" } },
 								],
@@ -173,7 +174,7 @@
 								"must" : [
 									{ "term" : { "_type" : "bug" } },
 									{ "term" : { "expiration_date" : "2199-12-31T08:00:00.000Z" } },
-									{ "range" : { "modification_date" : {"from" : state['startDate'] + "T00:00:00.000Z", "to" : state['endDate'] + "T23:59:59.999Z"  } } },
+									{ "range" : { "modification_date" : {"from" : GUI.state['startDate'] + "T00:00:00.000Z", "to" : GUI.state['endDate'] + "T23:59:59.999Z"  } } },
 									{ "term" : { "major_status" : "CLOSED" } },
 									{ "term" : { "resolution" : "WORKSFORME" } },
 								],
@@ -192,7 +193,7 @@
 								"must" : [
 									{ "term" : { "_type" : "bug" } },
 									{ "term" : { "expiration_date" : "2199-12-31T08:00:00.000Z" } },
-									{ "range" : { "modification_date" : {"from" : state['startDate'] + "T00:00:00.000Z", "to" : state['endDate'] + "T23:59:59.999Z"  } } },
+									{ "range" : { "modification_date" : {"from" : GUI.state['startDate'] + "T00:00:00.000Z", "to" : GUI.state['endDate'] + "T23:59:59.999Z"  } } },
 									{ "term" : { "major_status" : "CLOSED" } },
 									{ "term" : { "resolution" : "INCOMPLETE" } },
 								],
@@ -215,7 +216,7 @@
 			"groupSize" : 30
 		};
 
-		ES.InjectGUIFilters(chartRequest.requests);
+		GUI.injectFilterss(chartRequest.requests);
 
 		console.log("chartRequest: " + JSON.stringify(chartRequest));
 

@@ -7,6 +7,11 @@
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
+
+<!--<script type="application/javascript;version=1.7" src="lib/jstree/_lib/jquery.js"></script>-->
+<script type="application/javascript;version=1.7" src="lib/jstree/jquery.jstree.js"></script>
+<!--<link type="text/css" href="lib/jstree/themes/apple/style.css" rel="stylesheet"/>-->
+
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/lib/protovis-d3.3.js"></script>
@@ -47,12 +52,14 @@
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/aThread.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="js/aThread.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
-<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script><script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script>
+<script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
 
 
@@ -66,13 +73,14 @@
 
 <script type="application/javascript;version=1.7" src="js/filters/Filter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/ComponentFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script><script type="application/javascript;version=1.7" src="js/filters/ClassificationFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/TeamFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/ClassificationFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/ProgramFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/CustomFilters.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/GUIFilters.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/GUI.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/etl/Reviews.js"></script>
-
 
 <div id="sidebar">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
@@ -113,26 +121,26 @@ var createChart=function(){
 };
 
 var __createChart = function(){
-	var interval = Date.today().subtract(new Date(state.cohortMin)).multiply(1 / state.cohortNum);
+	var interval = Date.today().subtract(new Date(GUI.state.cohortMin)).multiply(1 / GUI.state.cohortNum);
 
 	var query = new ESQuery({
 		"name":"Age of Closed Bugs (%)",
 		"from":"bugs",
 		"select":{"name":"Count", "value":"1", "operation":"count"},
 		"edges":[
-			{"name":"Cohort", "value":"modified_ts", "domain":{"type":"time", "min":state.cohortMin, "max":Date.today(), "interval":interval, format:"NNN yyyy"}},
-			{"name":"Age", "value":'doc["modified_ts"].value-doc["created_ts"].value', allowNulls:true, "domain":{"type":"duration", "min":state.minX, "max":state.maxX, "interval":state.intervalX}}
+			{"name":"Cohort", "value":"modified_ts", "domain":{"type":"time", "min":GUI.state.cohortMin, "max":Date.today(), "interval":interval, format:"NNN yyyy"}},
+			{"name":"Age", "value":'doc["modified_ts"].value-doc["created_ts"].value', allowNulls:true, "domain":{"type":"duration", "min":GUI.state.minX, "max":GUI.state.maxX, "interval":GUI.state.intervalX}}
 		],
 		"esfilter":{"and":[
 			{"terms":{"bug_status":["resolved", "verified", "closed"]}},
-			{"range":{"modified_ts":{"gte":new Date(state.cohortMin).getMilli()}}},
+			{"range":{"modified_ts":{"gte":new Date(GUI.state.cohortMin).getMilli()}}},
 			{"range":{"modified_ts":{"lte":Date.today().getMilli()}}},
 			{"script":{"script":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value'}}  //ONLY THE DOCUMENT THAT CLOSES THE BUG
 		]},
-		"essize":state.esSize
+		"essize":GUI.state.esSize
 	});
 
-	ES.InjectGUIFilter(query);
+	GUI.injectFilters(query);
 
 	status.message("Calling ES");
 	var chartCube=yield(query.run());
@@ -158,7 +166,8 @@ var __createChart = function(){
 			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
 			{"id":"cohortMin", "name":"Sample From", "type":"time", "default":Date.today().add("-2year")},
 			{"id":"cohortNum", "name":"Number of Cohorts", "type":"number", "default":4},
-			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
+			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000},
+			{"id":"team", "name":"Team", "type":"TeamFilter"}
 		]);
 
 

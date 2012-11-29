@@ -22,18 +22,13 @@ ClassificationFilter.products["Graveyard"] = ['CCK','Core Graveyard','Derivative
 
 
 ClassificationFilter.makeFilter = function(){
-	return ES.makeFilter("classification", state.selectedClassifications);
+	D.error("this filter is a fake!  it just selects product for you!");
 };//method
 
 
 
 ClassificationFilter.prototype.Refresh = function(){
-
-
-
 	this.injectHTML();
-
-
 };
 
 
@@ -45,7 +40,7 @@ ClassificationFilter.prototype.injectHTML = function(){
 	var classifications=Object.keys(ClassificationFilter.products);
 	for(var i = 0; i < classifications.length; i++){
 		html += item.replaceVars({
-			"class" : (include(state.selectedClassifications, classifications[i]) ? "ui-selectee ui-selected" : "ui-selectee"),
+			"class" : (include(GUI.state.selectedClassifications, classifications[i]) ? "ui-selectee ui-selected" : "ui-selectee"),
 			"name" : classifications[i]
 		});
 	}//for
@@ -59,28 +54,28 @@ ClassificationFilter.prototype.injectHTML = function(){
 			selected: function(event, ui){
 				var didChange = false;
 				var selection=ui.selected.id.rightBut("classification_".length);
-				if (!include(state.selectedClassifications, selection)){
-					state.selectedClassifications.push(selection);
+				if (!include(GUI.state.selectedClassifications, selection)){
+					GUI.state.selectedClassifications.push(selection);
 
 					//ADD TO THE SELECTED PROGRAMS LIST
-					state.selectedProducts.appendArray(ClassificationFilter.products[selection]);
+					GUI.state.selectedProducts.appendArray(ClassificationFilter.products[selection]);
 
 					didChange = true;
 				}//endif
 
 				if (didChange){
 					GUI.State2URL();
-					state.programFilter.Refresh();
-					state.classificationFilter.Refresh();
-					state.productFilter.Refresh();
-					state.componentFilter.Refresh();
+					GUI.state.programFilter.Refresh();
+					GUI.state.classificationFilter.Refresh();
+					GUI.state.productFilter.Refresh();
+					GUI.state.componentFilter.Refresh();
 				}//endif
 			},
 			unselected: function(event, ui){
-				var i = state.selectedClassifications.indexOf(ui.unselected.id.rightBut("classification_".length));
+				var i = GUI.state.selectedClassifications.indexOf(ui.unselected.id.rightBut("classification_".length));
 				if (i != -1){
-					state.selectedClassifications.splice(i, 1);
-					state.classificationFilter.Refresh();
+					GUI.state.selectedClassifications.splice(i, 1);
+					GUI.state.classificationFilter.Refresh();
 				}
 			}
 		});

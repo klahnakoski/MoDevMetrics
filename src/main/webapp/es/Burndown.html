@@ -7,6 +7,7 @@
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="lib/jstree/jquery.jstree.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/lib/protovis-d3.3.js"></script>
@@ -47,12 +48,14 @@
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/aThread.js"></script><script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="js/aThread.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
-<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script><script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script>
+<script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
 
 
@@ -66,10 +69,12 @@
 
 <script type="application/javascript;version=1.7" src="js/filters/Filter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/ComponentFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script><script type="application/javascript;version=1.7" src="js/filters/ClassificationFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/TeamFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/ClassificationFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/ProgramFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/filters/CustomFilters.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/GUIFilters.js"></script>
+<script type="application/javascript;version=1.7" src="js/filters/GUI.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/etl/Reviews.js"></script>
 
@@ -107,9 +112,9 @@
 
 	var createChart = function(){
 
-//		var sampleX=Duration.newInstance(state.sampleX);
-//		var startDate=Date.newInstance(state.startDate);
-//		var endDate=startDate.add(Date.newInstance(state.endDate).add(sampleX).subtract(startDate, sampleX).floor(sampleX));
+//		var sampleX=Duration.newInstance(GUI.state.sampleX);
+//		var startDate=Date.newInstance(GUI.state.startDate);
+//		var endDate=startDate.add(Date.newInstance(GUI.state.endDate).add(sampleX).subtract(startDate, sampleX).floor(sampleX));
 
 
 
@@ -170,12 +175,12 @@
 			"canvas" : "chart",
 //			"originZero" : true,
 			"chartType" : "LineChart",
-			"interval" : state.intervalX,
-			"startDate" : state["startDate"],
-			"endDate" : state["endDate"]
+			"interval" : GUI.state.intervalX,
+			"startDate" : GUI.state["startDate"],
+			"endDate" : GUI.state["endDate"]
 		};
 
-		ES.InjectGUIFilters(chartRequest.requests);
+		GUI.injectFilterss(chartRequest.requests);
 
 		console.log("chartRequest: " + JSON.stringify(chartRequest));
 

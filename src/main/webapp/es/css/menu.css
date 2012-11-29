@@ -87,7 +87,7 @@ a:hover, a:active {
 .menu li {
     list-style-type: none;
     list-style-position: outside;
-    margin-left: -15px;
+    /*margin-left: -15px;*/
     padding: 0pt;
 }
 
@@ -352,6 +352,11 @@ SIDE BAR
 #sidebar nav>ul>li.active:first-child a:only-child {
     background-image: none
 }
+
+
+/*#teamList ul li {*/
+    /*margin-left: 20px;*/
+/*}*/
 
 /*******************************************************************************
 BUTTONS

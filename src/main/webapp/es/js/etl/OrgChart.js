@@ -28,7 +28,7 @@ OrgChart.get=function(minBug, maxBug){
 
 
 	var people=OrgChart.people.map(function(v, i){
-		return {"name":v.cn, "manager":v.manager ? v.manager.cn : null, "email":v.bugzillaemail};
+		return {"id":v.dn, "name":v.cn, "manager":v.manager ? v.manager.dn : null, "email":v.bugzillaemail};
 	});
 	yield people;
 
@@ -139,8 +139,9 @@ OrgChart.makeSchema=function(){
 		"_source":{"enabled": true},
 		"_all" : {"enabled" : false},
 		"properties":{
+			"id":{"type":"string", "store":"yes", "index":"not_analyzed"},
 			"name":{"type":"string", "store":"yes", "index":"not_analyzed"},
-			"manager":{"type":"string", "store":"yes", "index":"not_analyzed"},
+			"manager":{"type":"string", "store":"yes", "index":"not_analyzed", "null_value":"null"},
 			"email":{"type":"string", "store":"yes", "index":"not_analyzed"}
 		}
 	};

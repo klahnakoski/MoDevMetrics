@@ -30,6 +30,7 @@ ESQuery.INDEXES={
 	"reviews":{"path":"/reviews/review"},
 	"bug_summary":{"path":"/bug_summary/bug_summary"},
 	"bug_tags":{"path":"/bug_tags/bug_tags"},
+	"org_chart":{"path":"/org_chart/person"},
 	"temp":{"path":""}
 };
 
@@ -41,6 +42,8 @@ ESQuery.run=function(query){
 
 
 ESQuery.prototype.run = function(){
+	if (this.query.from=="org_chart")
+		D.println("hi");
 	if (!this.query.url) this.query.url=window.ElasticSearch.baseURL+ESQuery.INDEXES[this.query.from.split(".")[0]].path;
 	this.query.url+="/_search";
 	//var URL=window.ElasticSearch.baseURL+ESQuery.INDEXES[this.query.from.split(".")[0]].path+"/_search";

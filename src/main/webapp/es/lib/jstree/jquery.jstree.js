@@ -2815,7 +2815,7 @@
 						}
 						if(!ts) {
 							if(c === "jstree-checked" || $t.hasClass("jstree-checked") || $t.children(':checked').length) {
-								$t.find("li").andSelf().addClass("jstree-checked").children(":checkbox").prop("checked", true);
+								$t.find("li").andSelf().addClass("jstree-checked").children(":checkbox").each(function(){$(this).prop("checked", true);});
 							}
 						}
 						else {
