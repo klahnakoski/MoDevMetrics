@@ -1,5 +1,5 @@
 ComponentFilter = function(){
-	this.Refresh()
+	this.refresh()
 };
 
 
@@ -41,7 +41,7 @@ ComponentFilter.makeQuery = function(filters){
 	return output;
 };//method
 
-ComponentFilter.prototype.Refresh = function(){
+ComponentFilter.prototype.refresh = function(){
 	this.query = ComponentFilter.makeQuery([
 		ES.makeFilter("product", GUI.state.selectedProducts)//,
 //		ProgramFilter.makeFilter(GUI.state.selectedPrograms)
@@ -104,17 +104,21 @@ ComponentFilter.prototype.success = function(data){
 				}//endif
 			}//endif
 
-			if (didChange) GUI.refresh();
+			if (didChange){
+				aThread.run(function(){
+					yield (GUI.refresh());
+				});
+			}
 		},
 		unselected: function(event, ui){
 			var i = GUI.state.selectedComponents.indexOf(ui.unselected.id.rightBut("component_".length));
 			if (i != -1){
 				GUI.state.selectedComponents.splice(i, 1);
-				GUI.refresh();
+				aThread.run(function(){
+					yield (GUI.refresh());
+				});
 			}
 		}
 	});
 
-	GUI.UpdateSummary();
-	createChart();
 };

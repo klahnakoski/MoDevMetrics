@@ -136,7 +136,7 @@ var __createChart = function(){
 			"essize":GUI.state.esSize
 		});
 
-		GUI.injectFilters(query);
+		yield (GUI.injectFilters(query));
 
 		D.println(CNV.Object2JSON(query.esQuery));
 

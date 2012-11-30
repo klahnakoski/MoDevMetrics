@@ -166,8 +166,8 @@ var createChart = function(){
 		]}
 	});
 
-	GUI.injectFilters(query);
-	GUI.injectFilters(queryClosed);
+	yield (GUI.injectFilters(query));
+	yield (GUI.injectFilters(queryClosed));
 
 
 	status.message("Calling ES");

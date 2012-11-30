@@ -3,6 +3,7 @@ var MozillaPrograms = {
 		["projectName", "attributeName", "attributeValue"],
 	"rows":[
 		["Boot2Gecko (B2G)", "cf_blocking_basecamp", "+"],
+		["Metro MVP", "status_whiteboard.tokenized", "metro-mvp"],
 		["Security", "status_whiteboard.tokenized", "sg:dos"],
 		["Security", "status_whiteboard.tokenized", "sg:low"],
 		["Security", "status_whiteboard.tokenized", "sg:mod"],

@@ -32,11 +32,11 @@ String.join = function(list, seperator){
 
 //RETURN THE STRING BETWEEN THE start AND end
 //IF end IS UNDEFINED, THEN GRABS TO END OF STRING
-String.between=function(start, end){
+String.prototype.between=function(start, end){
 	var s=this.indexOf(start);
-	if (s=-1) return null;
+	if (s==-1) return null;
 	s+=start.length;
-	if (!e) return this.substring(s);
+	if (end===undefined) return this.substring(s);
 
 	var e=this.indexOf(end, s);
 	if (e==-1) return null;
@@ -87,18 +87,19 @@ Array.prototype.map=function(func){
 	var output=[];
 	for(var i=0;i<this.length;i++){
 		var v=func(this[i], i);
-		if (!v) continue;
+		if (v===undefined || v==null) continue;
 		output.push(v);
 	}//for
 	return output;
 };//method
-
 
 Array.prototype.appendArray=function(arr){
 	for(var i=0;i<arr.length;i++){
 		this.push(arr[i]);
 	}//for
 };//method
+
+Array.prototype.prepend=Array.prototype.unshift;
 
 Array.prototype.last=function(){
 	return this[this.length-1];

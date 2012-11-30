@@ -6,7 +6,7 @@ ClassificationFilter = function(){
 		});
 	});
 
-	this.Refresh();
+	this.refresh();
 };
 
 
@@ -27,7 +27,7 @@ ClassificationFilter.makeFilter = function(){
 
 
 
-ClassificationFilter.prototype.Refresh = function(){
+ClassificationFilter.prototype.refresh = function(){
 	this.injectHTML();
 };
 
@@ -64,18 +64,14 @@ ClassificationFilter.prototype.injectHTML = function(){
 				}//endif
 
 				if (didChange){
-					GUI.State2URL();
-					GUI.state.programFilter.Refresh();
-					GUI.state.classificationFilter.Refresh();
-					GUI.state.productFilter.Refresh();
-					GUI.state.componentFilter.Refresh();
+					GUI.refresh();
 				}//endif
 			},
 			unselected: function(event, ui){
 				var i = GUI.state.selectedClassifications.indexOf(ui.unselected.id.rightBut("classification_".length));
 				if (i != -1){
 					GUI.state.selectedClassifications.splice(i, 1);
-					GUI.state.classificationFilter.Refresh();
+					GUI.state.classificationFilter.refresh();
 				}
 			}
 		});

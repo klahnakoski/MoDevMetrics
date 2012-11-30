@@ -18,6 +18,18 @@ aThread.run=function(gen){
 	return output;
 };//method
 
+//FEELING LUCKY?  MAYBE THIS GENERATOR WILL NOT DELAY AND RETURN A VALID VALUE
+aThread.runSynchonously=function(gen){
+	if (String(gen) !== '[object Generator]'){
+		D.error("You can not pass a function.  Pass a generator! (have function use the yield keyword instead)");
+	}//endif
+
+	var thread=new aThread(gen);
+	var result=thread.start();
+	if (result===aThread.Suspend) D.error("Suspend was called while trying to synchronously run generator");
+	return result;
+};//method
+
 
 aThread.getStackTrace=function(depth){
 	var trace;
@@ -46,20 +58,22 @@ aThread.hideWorking=function(){
 aThread.prototype.start=function(){
 	aThread.numRunning++;
 	aThread.showWorking();
-	this.resume(this.stack.pop());
+	return this.resume(this.stack.pop());
 };
 
-aThread.prototype.resume=function(retval){
+function aThread_prototype_resume(retval){
 	aThread.showWorking();
 	while (this.keepRunning){
 		if (String(retval) === '[object Generator]'){
 			this.stack.push(retval);
 			retval = undefined
 		}else if (retval === aThread.Suspend){
-			break;
+			if (!this.keepRunning) this.kill(new Exception("thread aborted"));
+			return retval;
 		}else if (retval instanceof aThread.Suspend){
 			this.currentRequest=retval.request;
-			break;
+			if (!this.keepRunning) this.kill(new Exception("thread aborted"));
+			return aThread.Suspend;
 		}else if (retval === aThread.Resume){
 			var self=this;
 			retval = function(retval){
@@ -78,8 +92,8 @@ aThread.prototype.resume=function(retval){
 				if (aThread.numRunning==0){
 					aThread.hideWorking();
 				}//endif
-				this.keepRunning=false;
-				break;
+				this.kill(retval);
+				return retval;
 			}//endif
 
 		}//endif
@@ -105,12 +119,15 @@ aThread.prototype.resume=function(retval){
 		}//try
 	}//while
 
-	if (!this.keepRunning) this.kill();
-};
+	D.error("Should not get here");
+	//if (!this.keepRunning) this.kill();
+}
+aThread.prototype.resume=aThread_prototype_resume;
 
-aThread.prototype.kill=function(){
+aThread.prototype.kill=function(retval){
+	this.returnValue=retval;				//REMEMBER FO THREAD THAT JOINS WITH THIS
 	this.keepRunning=false;
-	if (this.currentRequest!==undefined){
+	if (this.currentRequest){
 		this.currentRequest.kill();
 		this.currentRequest=undefined;
 	}//endif
@@ -125,6 +142,12 @@ aThread.prototype.kill=function(){
 };
 
 
+//PUT AT THE BEGINNING OF A GNERATOR TO ENSURE IT WILL ONLY BE CALLED USING yield()
+aThread.assertThreaded=function(){
+	//GET CALLER AND DETERMINE IF RUNNING IN THREADED MODE
+	if (arguments.callee.caller.caller.name!="aThread_prototype_resume")
+		D.error("must call from a thread as \"yield (GUI.refresh());\" ");
+};//method
 
 
 //DO NOT RESUME FOR A WHILE
@@ -134,10 +157,33 @@ aThread.sleep=function(millis) {
 };
 
 //LET THE MAIN EVENT LOOP GET SOME ACTION
-aThread.yield=function(millis) {
+aThread.yield=function() {
     setTimeout((yield (aThread.Resume)), 1);
     yield (aThread.Suspend);
 };
+
+//WAIT FOR OTHER THREAD TO FINISH
+aThread.join=function(otherThread){
+	if (otherThread.keepRunning) {
+		//WE WILL SIMPLY MAKE THE JOINING THREAD LOOK LIKE THE otherThread's CALLER
+		//(WILL ALSO GRAB ANY EXCEPTIONS THAT ARE THROWN FROM otherThread)
+		var gen=aThread_join_resume(yield (aThread.Resume));
+		gen.send();  //THE FIRST CALL TO send()
+		otherThread.stack.prepend(gen);
+		yield (aThread.Suspend);
+	}else{
+		yield (otherThread.returnValue);
+	}//endif
+};
+
+//THIS GENERATOR EXPECTS send TO BE UN TWICE ONLY
+//FIRST WITH NO PARAMETERS, AS REQUIRED BY ALL GENERATORS
+//THE SEND RUN FROM THE JOINING THREAD TO RETURN THE VALUE
+function aThread_join_resume(resumeFunction){
+	var result=yield;	
+	yield (resumeFunction(result));
+	D.error("You used this wrong");
+}//method
 
 //CALL THE funcTION WITH THE GIVEN PARAMETERS
 //WILL ADD success AND error FUNCTIONS TO PARAM TO CAPTURE RESPONSE
@@ -163,3 +209,19 @@ aThread.Suspend = function(request){
 };
 aThread.Suspend.name="suspend";
 
+
+
+
+aThread_testFunction=function(){
+	aThread.run(function(){
+		var t=aThread.run(function(){
+			yield (aThread.sleep(10000));	//REMOVING THIS WILL CHANGE ORDER, BUT STILL RETURN PROPER VALUE
+			D.println("this is a test");
+			yield ("return value");
+		});
+		D.println("this is first");
+		var returnValue=yield (aThread.join(t));
+		D.println("this is the return value: "+returnValue);
+	});
+
+};

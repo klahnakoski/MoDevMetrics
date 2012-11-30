@@ -233,7 +233,7 @@
 			};
 
 
-		GUI.injectFilters({"esQuery":esQuery});
+		yield (GUI.injectFilters({"esQuery":esQuery}));
 
 		console.info(CNV.Object2JSON(esQuery));
 

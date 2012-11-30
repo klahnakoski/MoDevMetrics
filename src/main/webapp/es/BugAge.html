@@ -113,6 +113,9 @@
 		$("#description").html("Count of number of bugs closed since &lt;Sample From&gt;. Counts are broken into cohorts to help compare change over time.");
 
 
+
+
+
 var thread;
 var createChart=function(){
 	if (thread!==undefined)
@@ -159,18 +162,18 @@ var __createChart = function(){
 
 
 	$(document).ready(function(){
+//		aThread.run(function(){
 
-		GUI.setup([
-			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
-			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
-			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
-			{"id":"cohortMin", "name":"Sample From", "type":"time", "default":Date.today().add("-2year")},
-			{"id":"cohortNum", "name":"Number of Cohorts", "type":"number", "default":4},
-			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000},
-			{"id":"team", "name":"Team", "type":"TeamFilter"}
-		]);
-
-
+			GUI.setup([
+				{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
+				{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
+				{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
+				{"id":"cohortMin", "name":"Sample From", "type":"time", "default":Date.today().add("-2year")},
+				{"id":"cohortNum", "name":"Number of Cohorts", "type":"number", "default":4},
+				{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000},
+				{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance('assigned_to'), "default":""}
+			]);
+//		});
 	});
 
 </script>

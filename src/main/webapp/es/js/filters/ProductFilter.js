@@ -1,5 +1,5 @@
 ProductFilter = function(){
-	this.Refresh();
+	this.refresh();
 };
 
 
@@ -43,7 +43,7 @@ ProductFilter.makeQuery = function(filters){
 };//method
 
 
-ProductFilter.prototype.Refresh = function(){
+ProductFilter.prototype.refresh = function(){
 	this.query = ProductFilter.makeQuery([
 //		ProgramFilter.makeFilter(GUI.state.selectedPrograms)
 	]);
@@ -111,11 +111,10 @@ ProductFilter.prototype.success = function(data){
 				}//endif
 
 				if (didChange){
-					GUI.State2URL();
-					GUI.state.programFilter.Refresh();
-					GUI.state.classificationFilter.Refresh();
-					GUI.state.productFilter.Refresh();
-					GUI.state.componentFilter.Refresh();
+					aThread.run(function(){
+						yield (GUI.refresh());
+					});
+
 				}//endif
 			},
 			unselected: function(event, ui){
@@ -123,11 +122,9 @@ ProductFilter.prototype.success = function(data){
 				if (i != -1){
 					GUI.state.selectedProducts.splice(i, 1);
 					GUI.state.selectedClassifications=[];
-					GUI.State2URL();
-					GUI.state.programFilter.Refresh();
-					GUI.state.classificationFilter.Refresh();
-					GUI.state.productFilter.Refresh();
-					GUI.state.componentFilter.Refresh();
+					aThread.run(function(){
+						yield (GUI.refresh());
+					});
 				}
 			}
 		});

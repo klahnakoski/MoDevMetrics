@@ -137,7 +137,7 @@ var __createChart = function(){
 		}
 	});
 
-	GUI.injectFilters(q);
+	yield (GUI.injectFilters(q));
 
 	aThread.run(function(){
 		var old=yield (q.run());
@@ -189,7 +189,7 @@ var __createChart = function(){
 		}
 	});
 
-	GUI.injectFilters(getReviews);
+	yield (GUI.injectFilters(getReviews));
 
 	status.message("Get Review Data");
 	var reviews=yield (getReviews.run());

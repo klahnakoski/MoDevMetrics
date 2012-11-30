@@ -160,8 +160,8 @@ var createChart = function(){
 		"essize":GUI.state.esSize
 	});
 
-	GUI.injectFilters(query);
-	GUI.injectFilters(queryClosed);
+	yield (GUI.injectFilters(query));
+	yield (GUI.injectFilters(queryClosed));
 
 	if (GUI.state.selectedProducts.length==0 && GUI.state.selectedPrograms.length==0){
 		$("#summary2").html("Will not work over all bugs, too big.  Make a selection");

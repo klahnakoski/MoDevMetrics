@@ -1,14 +1,17 @@
 
 
-TeamFilter = function(field_name){
-	this.field_name=field_name;
-	this.selectedEmails=[];
+TeamFilter = function(){};
 
-	 var self=this;
+
+TeamFilter.newInstance=function(field_name){
+	var self=new TeamFilter();
+
+	self.field_name=field_name;
+	self.selectedEmails=[];
+
 	aThread.run(function(){
-
 		//GET ALL PEOPLE
-		self.people=(yield (ESQuery.run({
+		var people=(yield (ESQuery.run({
 			"from":"org_chart",
 			"select":[
 				{"name":"id", "value":"org_chart.id"},
@@ -20,14 +23,14 @@ TeamFilter = function(field_name){
 
 		//USE THIS TO SIMPLIFY THE TREE SELECTION
 		self.managers={};
-		self.people.forall(function(v, i){
+		people.forall(function(v, i){
 			if (self.managers[v.id])
 				D.warning(v.id+" is not unique");
 			self.managers[v.id]=v.manager;
 		});
 
 		var hier=CUBE.List2Hierarchy({
-			"from":self.people.map(function(p, i){
+			"from":people.map(function(p, i){
 				return {"data":p.name, "attr":{"id":p.id}, "manager":p.manager, "id":p.id};
 				}),
 			"id_field":"id",
@@ -40,33 +43,48 @@ TeamFilter = function(field_name){
 		});
 
 		self.injectHTML(hier);
+		self.people=people;
 	});
-	
-	this.Refresh();
+	return self;
 };
 
 
-TeamFilter.prototype.getSelectedPeople=function(self){
+TeamFilter.prototype.getSelectedPeople=function(){
+	var self=this;
+
+	while(!self.people){
+		yield (aThread.sleep(100));
+	}//while
+
 	//CONVERT SELECTED LIST INTO PERSONS
 	var selected = this.selectedEmails.map(function(email){
 		for(var i = self.people.length; i--;){
 			if (self.people[i].id.startsWith("mail=" + email)) return self.people[i];
 		}//for
 	});
-	return selected;
+	yield selected;
 };//method
+
+
 
 //RETURN SOMETHING SIMPLE ENOUGH TO BE USED IN A URL
 TeamFilter.prototype.getSimpleState=function(){
 	return this.selectedEmails;
 };
 
+//RETURN SOMETHING SIMPLE ENOUGH TO BE USED IN A URL
+TeamFilter.prototype.setSimpleState=function(value){
+	if (!value || value=="") value=[];
+	this.selectedEmails=value;
+	this.refresh();
+};
 
 
 TeamFilter.prototype.makeFilter = function(){
 	if (this.selectedEmails.length == 0) return ES.TrueFilter;
 
-	var selected = this.getSelectedPeople();
+	var selected = aThread.runSynchonously(this.getSelectedPeople());
+	if (selected.length == 0) return ES.TrueFilter;
 
 	//FIND BZ EMAILS THAT THE GIVEN LIST MAP TO
 	var getEmail=function(list, children){
@@ -77,23 +95,25 @@ TeamFilter.prototype.makeFilter = function(){
 				getEmail(list, child.children);
 		});
 	};//method
-	var all=[];
-	getEmail(all, selected);
+	var bzEmails=[];
+	getEmail(bzEmails, selected);
 
-	return ES.makeFilter(this.field_name, GUI.state.selectedTeams);
+	return ES.makeFilter(this.field_name, bzEmails);
 };//method
 
 
 
-TeamFilter.prototype.Refresh = function(){
+TeamFilter.prototype.refresh = function(){
 	//FIND WHAT IS IN STATE, AND UPDATE STATE
-	var selected=this.getSelectedPeople();
+	var selected=yield(this.getSelectedPeople());
 
-	var f=$('#teamList').jstree;
-	f("deselect_all");
+	var f=$('#teamList');
+	f.jstree("deselect_all");
 	selected.forall(function(p){
-		f("select_node", "#"+p.id);
+		f.jstree("select_node", "#"+p.id);
 	});
+
+	yield null;
 };
 
 
@@ -131,14 +151,17 @@ TeamFilter.prototype.injectHTML = function(hier){
 
 		//HAS ANYTHING CHANGED?
 		var hasChanged=false;
-		if (GUI.state.selectedTeams.length!=minCover.length) hasChanged=true;
+		if (self.selectedEmails.length!=minCover.length) hasChanged=true;
 		if (!hasChanged) for(var i=minCover.length;i--;){
-			if (minCover[i]!=GUI.state.selectedTeams[i]) hasChanged=true;
+			if (minCover[i]!=self.selectedEmails[i]) hasChanged=true;
 		}//for
 
 		if (hasChanged){
-			GUI.state.selectedTeams=minCover;
-			GUI.refresh();
+			self.selectedEmails=minCover;
+			aThread.run(function(){
+				yield (GUI.refresh());
+			});
+
 		}//endif
 	});
 

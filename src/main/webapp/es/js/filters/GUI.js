@@ -26,7 +26,6 @@ GUI.state.selectedPrograms = [];
 GUI.state.selectedClassifications = [];
 GUI.state.selectedProducts = [];
 GUI.state.selectedComponents = [];
-GUI.state.selectedTeams=new TeamFilter();
 GUI.state.customFilters = [];
 
 
@@ -46,7 +45,7 @@ GUI.fixEndDate=function(startDate, endDate, interval){
 };
 
 
-GUI.setup = function(parameters, relations, showLastUpdated){
+GUI.setup = function(parameters, relations, datasource){
 
 	//SHOW SPINNER
 	var found=$('.loading');
@@ -65,15 +64,13 @@ GUI.setup = function(parameters, relations, showLastUpdated){
 	GUI.makeSelectionPanel();
 
 
-	GUI.state.teamFilter = new TeamFilter();
 	GUI.state.programFilter = new ProgramFilter();
 	GUI.state.classificationFilter = new ClassificationFilter();
 	GUI.state.productFilter = new ProductFilter();
 	GUI.state.componentFilter = new ComponentFilter();
 
 
-	GUI.showLastUpdated(showLastUpdated);
-	GenerateCustomFilters();
+	GUI.showLastUpdated(datasource);
 	GUI.AddParameters(parameters, relations); //ADD PARAM AND SET DEFAULTS
 	GUI.Parameter2State();			//UPDATE STATE OBJECT WITH THOSE DEFAULTS
 
@@ -86,6 +83,9 @@ GUI.setup = function(parameters, relations, showLastUpdated){
 	GUI.FixState();
 	GUI.State2URL();
 	GUI.State2Parameter();
+
+	aThread.run(GUI.refresh());
+
 };
 
 
@@ -154,7 +154,12 @@ GUI.State2URL.isEnabled=false;
 GUI.URL2State = function(){
 	var urlState = jQuery.bbq.getState();
 	forAllKey(urlState, function(k, v){
-		GUI.state[k] = v;
+		if (GUI.state[k]===undefined) return;
+		if (GUI.state[k].getSimpleState){
+			GUI.state[k].setSimpleState(v);
+		}else{
+			GUI.state[k] = v;
+		}//endif
 	});
 };
 
@@ -164,9 +169,10 @@ GUI.AddParameters=function(parameters, relations){
 
 
 	//INSERT HTML
-	var template='<span class="parameter_name">{NAME}</span><input type="{TYPE}" id="{ID}"><span class="parameter_error" id="{ID}_error"></span><br><br>\n';
+	var template='<span class="parameter_name">{NAME}</span><input type="{TYPE}" id="{ID}"><br><br>\n';
 	var html="";
 	parameters.forEach(function(param){
+		if (param.type.getSimpleState) return;  //HANDLES IT'S OWN HTML
 		html+=template.replaceVars({
 			"ID":param.id,
 			"NAME":param.name,
@@ -181,8 +187,14 @@ GUI.AddParameters=function(parameters, relations){
 		var defaultValue=param["default"];
 
 		////////////////////////////////////////////////////////////////////////
+		// SPECIAL
+		if (param.type.getSimpleState){
+			param.type.setSimpleState(defaultValue);
+			
+
+		////////////////////////////////////////////////////////////////////////
 		// DATE
-		if (param.type=="date" ||param.type=="time"){
+		}else if (param.type=="date" ||param.type=="time"){
 			$("#" + param.id).datepicker({ maxDate: "-0D" });
 			$("#" + param.id).datepicker("option", "dateFormat", "yy-mm-dd");
 
@@ -192,6 +204,7 @@ GUI.AddParameters=function(parameters, relations){
 				}
 			});
 			defaultValue=defaultValue.format("yyyy-MM-dd");
+			$("#" + param.id).val(defaultValue);
 		////////////////////////////////////////////////////////////////////////
 		// DURATION
 		} else if (param.type=="duration"){
@@ -210,15 +223,16 @@ GUI.AddParameters=function(parameters, relations){
 				}
 			});
 			defaultValue=defaultValue.toString();
+			$("#" + param.id).val(defaultValue);
 		}else{
 			$("#" + param.id).change(function(){
 				if (GUI.UpdateState()){
 					createChart();
 				}
 			});
+			$("#" + param.id).val(defaultValue);
 		}//endif
 
-		$("#" + param.id).val(defaultValue);
 	});//for
 
 
@@ -231,6 +245,7 @@ GUI.AddParameters=function(parameters, relations){
 //RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
 GUI.State2Parameter = function (){
 	GUI.parameters.forEach(function(param){
+		if (param.type.getSimpleState) return;  //param.type===GUI.state[param.id] NO ACTION REQUIRED
 		$("#" + param.id).val(GUI.state[param.id]);
 	});
 };
@@ -239,7 +254,11 @@ GUI.State2Parameter = function (){
 //RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
 GUI.Parameter2State = function(){
 	GUI.parameters.forEach(function(param){
-		GUI.state[param.id] = $("#" + param.id).val();
+		if (param.type.getSimpleState){
+			GUI.state[param.id]=param.type;
+		}else{
+			GUI.state[param.id] = $("#" + param.id).val();
+		}//endif
 	});
 };
 
@@ -323,15 +342,19 @@ GUI.UpdateSummary = function(){
 		html += "<br><br>";
 	}//endif
 
-	html += "Teams: ";
-	if (GUI.state.selectedTeams.length == 0){
-		html += "All";
-	} else{
-		html += GUI.state.selectedTeams.join(", ");
+	//teamFilter IS PART OF THE PARAMETERS, JUST LIKE THE OTHER HIERARCHIES SHOULD BE
+	//SHOULD LOOP THROUGH THE PARAMETERS AND ADD TO THIS SUMMARY (IF WE KEEP THIS SUMMARY)
+	if (GUI.state.teamFilter){
+		html += "Teams: ";
+		var teams=aThread.runSynchonously(GUI.state.teamFilter.getSelectedPeople());
+		if (teams.length == 0){
+			html += "All";
+		} else{
+			html +=teams.map(function(p, i){return p.name;}).join(", ");
+		}//endif
+
+		html += "<br><br>";
 	}//endif
-
-	html += "<br><br>";
-
 
 	html += "Programs: ";
 	if (GUI.state.selectedPrograms.length == 0){
@@ -365,11 +388,37 @@ GUI.UpdateSummary = function(){
 };
 
 GUI.refresh=function(){
+//	aThread.assertThreaded();
+
 	GUI.State2URL();
+
+	var threads=[];
+	threads.push(aThread.run(function(){
+		yield (GUI.state.classificationFilter.refresh());
+	}));
+	threads.push(aThread.run(function(){
+		yield (GUI.state.programFilter.refresh());
+	}));
+	threads.push(aThread.run(function(){
+		yield (GUI.state.productFilter.refresh());
+	}));
+	threads.push(aThread.run(function(){
+		yield (GUI.state.componentFilter.refresh());
+	}));
+
+	GUI.parameters.forall(function(param){
+		if (param.type.getSimpleState){
+			threads.push(aThread.run(param.type.refresh()));
+		}//endif
+	});
+
+	for(var i=0;i<threads.length;i++){
+		yield (aThread.join(threads[i]));
+	}//for
+
 	GUI.UpdateSummary();
-	GUI.state.programFilter.Refresh();
-	GUI.state.productFilter.Refresh();
-	GUI.state.componentFilter.Refresh();
+
+	createChart();
 };
 
 
@@ -378,7 +427,7 @@ GUI.refresh=function(){
 GUI.injectFilterss = function(chartRequests){
 	if (!(chartRequests instanceof Array)) D.error("Expecting an array of chartRequests");
 	for(var i = 0; i < chartRequests.length; i++){
-		GUI.injectFilters(chartRequests[i]);
+		yield (GUI.injectFilters(chartRequests[i]));
 	}//for
 };
 
@@ -389,8 +438,6 @@ GUI.injectFilters = function(chartRequest){
 	ElasticSearch.injectFilter(chartRequest.esQuery, ProgramFilter.makeFilter());
 	ElasticSearch.injectFilter(chartRequest.esQuery, ProductFilter.makeFilter());
 	ElasticSearch.injectFilter(chartRequest.esQuery, ComponentFilter.makeFilter());
-	ElasticSearch.injectFilter(chartRequest.esQuery, TeamFilter.makeFilter());
+	ElasticSearch.injectFilter(chartRequest.esQuery, GUI.state.teamFilter.makeFilter());
 
-
-	InjectCustomFilters(chartRequest);
 };

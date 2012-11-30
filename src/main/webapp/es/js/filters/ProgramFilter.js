@@ -5,7 +5,7 @@ importScript("../CNV.js");
 
 
 ProgramFilter = function(){
-	this.Refresh();
+	this.refresh();
 };
 
 ProgramFilter.allPrograms = CNV.Table2List(MozillaPrograms);
@@ -147,7 +147,7 @@ ProgramFilter.prototype.injectHTML = function(programs){
 };
 
 
-ProgramFilter.prototype.Refresh = function(){
+ProgramFilter.prototype.refresh = function(){
 	this.query = ProgramFilter.makeQuery([
 //		ProductFilter.makeFilter()
 	]);
@@ -195,20 +195,18 @@ ProgramFilter.prototype.success = function(data){
 			}//endif
 
 			if (didChange){
-				GUI.State2URL();
-				GUI.state.programFilter.Refresh();
-				GUI.state.productFilter.Refresh();
-				GUI.state.componentFilter.Refresh();
+				aThread.run(function(){
+					yield (GUI.refresh());
+				});
 			}//endif
 		},
 		unselected: function(event, ui){
 			var i = GUI.state.selectedPrograms.indexOf(ui.unselected.id.rightBut("program_".length));
 			if (i != -1){
 				GUI.state.selectedPrograms.splice(i, 1);
-				GUI.State2URL();
-				GUI.state.programFilter.Refresh();
-				GUI.state.productFilter.Refresh();
-				GUI.state.componentFilter.Refresh();
+				aThread.run(function(){
+					yield (GUI.refresh());
+				});
 			}
 		}
 	});
