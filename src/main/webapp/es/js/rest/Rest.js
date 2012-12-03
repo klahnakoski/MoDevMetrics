@@ -75,7 +75,10 @@ Rest.send=function(ajaxParam){
 
 // progress on transfers from the server to the client (downloads)
 
-	request.kill=request.abort;
+	request.kill=function(){
+		if (request.readyState==4) return;  //TOO LATE
+		request.abort();
+	};
 
 	request.send(ajaxParam.data);
 	yield( new aThread.Suspend(request));

@@ -84,11 +84,10 @@
 <div style="float:right;display: inline;">
 	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
 </div>
-<!--<h3>Personal Review Queues</h3>-->
+<!--<div style="height:30px;margin-top: -30px">-->
+<h3>Time to First Review</h3>
+<!--</div>-->
 
-
-
-<h3>Individual Review Intensity</h3>
 <div id="sidebar">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
@@ -135,7 +134,7 @@
 
 		var mainFilter={"and":[
 				{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
-				{"term":{"reviewer":GUI.state.requestee}}
+				{"term":{"is_first":"1"}}
 			]};
 		GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
 
@@ -164,10 +163,6 @@
 				"width":400,
 				xAxisSize: 70
 			});
-
-
-
-
 
 			status.message("Calc Stats");
 
@@ -206,6 +201,7 @@
 				],
 				"esfilter":mainFilter
 			});
+//			GUI.injectFilters(q);
 
 			var response=yield (q.run());
 
@@ -230,6 +226,7 @@
 			],
 			"esfilter":mainFilter
 		});
+//		GUI.injectFilters(q1);
 		var requested = yield (q1.run());
 
 
@@ -243,6 +240,7 @@
 			],
 			"esfilter":mainFilter
 		});
+//		GUI.injectFilters(q2);
 		var reviewed = yield (q2.run());
 
 
@@ -263,11 +261,11 @@
 				{"name":"review_time", "value":"coalesce(reviews.review_time,"+Date.eod().getMilli()+")"}
 			],
 			"esfilter":{"and":[
-				{"term":{"reviewer":GUI.state.requestee}},
 				{"script":{"script":	//NO NEED TO CONSIDER THE MINI-REVIEWS
 					MVEL.FUNCTIONS.coalesce+
 					"(coalesce(_source.review_time, "+Date.eod().getMilli()+")-_source.request_time > "+Duration.MILLI_VALUES.day+") ? 1 : 0;"
 				}},
+				{"term":{"is_first":"1"}},
 				{"range":{"request_time":{"lt":sampleMax.getMilli()}}},
 				{"or":[
 					{"range":{"review_time":{"gte":sampleMin.getMilli()}}}, //REVIEWED AFTER THE min
@@ -289,6 +287,7 @@
 							"time.min < request_time+"+Duration.MILLI_VALUES.week*18+" && "+  //JUST IGNORE THE REALLY OLD reviews
 							"request_time+"+Duration.MILLI_VALUES.day+" < time.max",
 					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+
 				}
 			]
 		}));
@@ -339,11 +338,11 @@
 
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"nobody@mozilla.org"},
 			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.today().add("-3month")},
 			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.today()},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("day")},
-			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
+			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000},
+			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("reviewer")}
 		],
 		[
 			"sampleMax=GUI.fixEndDate(new Date(sampleMin), new Date(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"

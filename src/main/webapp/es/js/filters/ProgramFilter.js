@@ -10,7 +10,10 @@ ProgramFilter = function(){
 
 ProgramFilter.allPrograms = CNV.Table2List(MozillaPrograms);
 
-ProgramFilter.makeFilter = function(selectedPrograms){
+ProgramFilter.makeFilter = function(indexName){
+	if (indexName===undefined) D.error("Must be provided with a valid ESQuery.INDEXES name");
+
+
 	if (GUI.state.selectedPrograms.length == 0) return ES.TrueFilter;
 
 	var or = [];
@@ -18,6 +21,9 @@ ProgramFilter.makeFilter = function(selectedPrograms){
 		for(var j=0;j<ProgramFilter.allPrograms.length;j++){
 			if (ProgramFilter.allPrograms[j].projectName == GUI.state.selectedPrograms[i]){
 				var name = ProgramFilter.allPrograms[j].attributeName;
+
+				if (indexName!="bugs") name="keywords";//ONLY THE ORIGINAL bugs INDEX HAS BOTH whiteboard AND keyword
+
 				var value = ProgramFilter.allPrograms[j].attributeValue;
 				var term = {};
 				term[name] = value;

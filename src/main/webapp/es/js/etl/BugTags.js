@@ -144,7 +144,7 @@ BUG_TAGS.get=function(minBug, maxBug){
 			{"name":"product", "value":"product", "operation":"one"},
 			{"name":"component", "value":"component", "operation":"one"},
 			{"name":"assigned_to", "value":"assigned_to", "operation":"one"},
-			{"name":"keywords", "value":"(Util.coalesce(keywords, '')+' '+BUG_TAGS.parseWhiteBoard(whiteboard)).trim()", "operation":"one"}
+			{"name":"keywords", "value":"(Util.coalesce(keywords, '')+' '+ETL.parseWhiteBoard(whiteboard)).trim()", "operation":"one"}
 		],
 		"edges":[
 			{"name":"date", "test":"modified_ts<=time.max.getMilli() && time.max.getMilli()<expires_on",
@@ -191,11 +191,3 @@ BUG_TAGS["delete"]=function(bugList){
 };//method
 
 
-BUG_TAGS.parseWhiteBoard=function(whiteboard){
-	return whiteboard.split("[").map(function(v, i){
-		var index=v.indexOf("]");
-		if (index==-1) index=v.indexOf(" ");
-		if (index==-1) index=v.length;
-		return v.substring(0, index).trim().toLowerCase();
-	}).join(" ");
-};

@@ -20,10 +20,10 @@ var ESQuery = function(query){
 };
 
 
-ESQuery.DEBUG=false;
+ESQuery.DEBUG=true;
 
 ////////////////////////////////////////////////////////////////////////////////
-// THESE ARE THE AVAILABLE ES INDEXES
+// THESE ARE THE AVAILABLE ES INDEXES/TYPES
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
 	"bugs":{"path":"/bugs"},
@@ -507,7 +507,10 @@ ESQuery.prototype.termsResults=function(data){
 			for(; t < parts.length-1; t++){
 				if (parts[t].dataIndex==d.length) continue II;  //IGNORE NULLS
 				d = d[parts[t].dataIndex];
+				if (d===undefined) continue II;		//WHEN NULLS ARE NOT ALLOWED d===undefined
 			}//for
+			if (d[parts[t].dataIndex]===undefined)
+				continue;			//WHEN NULLS ARE NOT ALLOWED d===undefined
 			d[parts[t].dataIndex] = terms[i].count;
 		}//for
 

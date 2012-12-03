@@ -6,6 +6,7 @@ TeamFilter = function(){};
 TeamFilter.newInstance=function(field_name){
 	var self=new TeamFilter();
 
+	self.disableUI=false;
 	self.field_name=field_name;
 	self.selectedEmails=[];
 
@@ -24,15 +25,21 @@ TeamFilter.newInstance=function(field_name){
 		//USE THIS TO SIMPLIFY THE TREE SELECTION
 		self.managers={};
 		people.forall(function(v, i){
+			v.id=v.id.between("mail=", ",");
+			v.manager=v.manager==null ?  null : v.manager.between("mail=", ",");
+			if (v.mail==null) v.email=v.id;
+
 			if (self.managers[v.id])
 				D.warning(v.id+" is not unique");
-			self.managers[v.id]=v.manager;
+			self.managers[v.id]= v.manager;
+
+			//USED BY TREE VIEW
+			v.data=v.name;
+			v.attr={"id":v.id};
 		});
 
 		var hier=CUBE.List2Hierarchy({
-			"from":people.map(function(p, i){
-				return {"data":p.name, "attr":{"id":p.id}, "manager":p.manager, "id":p.id};
-				}),
+			"from":people,
 			"id_field":"id",
 			"child_field":"children",
 			"parent_field":"manager"
@@ -43,6 +50,15 @@ TeamFilter.newInstance=function(field_name){
 		});
 
 		self.injectHTML(hier);
+
+		//JSTREE WILL NOT BE LOADED YET
+		//HOPEFULLY IT WILL EXIST WHEN THE HEAD EXISTS
+//		'#' + myid.replace(/(:|\.)/g,'\\$1');
+
+		while($("#"+CNV.String2JQuery("gkovacs@mozilla.com")).length==0){
+			yield (aThread.sleep(100));
+		}//while
+
 		self.people=people;
 	});
 	return self;
@@ -59,7 +75,7 @@ TeamFilter.prototype.getSelectedPeople=function(){
 	//CONVERT SELECTED LIST INTO PERSONS
 	var selected = this.selectedEmails.map(function(email){
 		for(var i = self.people.length; i--;){
-			if (self.people[i].id.startsWith("mail=" + email)) return self.people[i];
+			if (self.people[i].id==email) return self.people[i];
 		}//for
 	});
 	yield selected;
@@ -105,14 +121,17 @@ TeamFilter.prototype.makeFilter = function(){
 
 TeamFilter.prototype.refresh = function(){
 	//FIND WHAT IS IN STATE, AND UPDATE STATE
+	this.disableUI=true;
 	var selected=yield(this.getSelectedPeople());
 
 	var f=$('#teamList');
 	f.jstree("deselect_all");
 	selected.forall(function(p){
-		f.jstree("select_node", "#"+p.id);
+		f.jstree("select_node", ("#"+CNV.String2JQuery(p.id)));
+		f.jstree("check_node", ("#"+CNV.String2JQuery(p.id)));
 	});
 
+	this.disableUI=false;
 	yield null;
 };
 
@@ -133,6 +152,8 @@ TeamFilter.prototype.injectHTML = function(hier){
 		},
 		"plugins" : [ "themes", "json_data", "ui", "checkbox" ]
 	}).bind("change_state.jstree", function (e, data){
+		if (self.disableUI) return;
+	
 		//WE NOW HAVE A RIDICULOUS NUMBER OF CHECKED ITEMS, REDUCE TO MINIMUM COVER
 		var minCover=[];
 
@@ -145,7 +166,7 @@ TeamFilter.prototype.injectHTML = function(hier){
 		//IF MANAGER IS CHECKED, THEN DO NOT INCLUDE
 		forAllKey(checked, function(id, v, m){
 			if (checked[self.managers[id]]) return;
-			minCover.push(id.between("mail=", ","));
+			minCover.push(id);
 		});
 		minCover.sort();
 
@@ -158,10 +179,7 @@ TeamFilter.prototype.injectHTML = function(hier){
 
 		if (hasChanged){
 			self.selectedEmails=minCover;
-			aThread.run(function(){
-				yield (GUI.refresh());
-			});
-
+			aThread.run(GUI.refresh());
 		}//endif
 	});
 

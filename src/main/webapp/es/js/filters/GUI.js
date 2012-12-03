@@ -61,7 +61,7 @@ GUI.setup = function(parameters, relations, datasource){
 
 
 
-	GUI.makeSelectionPanel();
+
 
 
 	GUI.state.programFilter = new ProgramFilter();
@@ -74,6 +74,9 @@ GUI.setup = function(parameters, relations, datasource){
 	GUI.AddParameters(parameters, relations); //ADD PARAM AND SET DEFAULTS
 	GUI.Parameter2State();			//UPDATE STATE OBJECT WITH THOSE DEFAULTS
 
+	GUI.makeSelectionPanel();
+
+
 	GUI.relations=Util.coalesce(relations, []);
 	GUI.FixState();
 
@@ -84,7 +87,10 @@ GUI.setup = function(parameters, relations, datasource){
 	GUI.State2URL();
 	GUI.State2Parameter();
 
-	aThread.run(GUI.refresh());
+
+	aThread.run(function(){
+		yield (GUI.refresh());
+	});
 
 };
 
@@ -313,8 +319,10 @@ GUI.makeSelectionPanel = function (){
 		html += '<h4><a href="#">Custom Filters</a></h4>';
 		html += '<div id="GUI.state.customFilters"></div>';
 	}
-	html += '<h4><a href="#">Teams</a></h4>';
-	html += '<div id="teams"></div>';
+	if (GUI.state.teamFilter){
+		html += '<h4><a href="#">Teams</a></h4>';
+		html += '<div id="teams" style="300px"></div>';
+	}//endif
 	html += '<h4><a href="#">Classifications</a></h4>';
 	html += '<div id="classifications"></div>';
 	html += '<h4><a href="#">Programs</a></h4>';
@@ -435,9 +443,20 @@ GUI.injectFilters = function(chartRequest){
 	if (chartRequest.esQuery === undefined)
 		D.error("Expecting chart requests to have a \"esQuery\", not \"query\"");
 
-	ElasticSearch.injectFilter(chartRequest.esQuery, ProgramFilter.makeFilter());
+	
+	var indexName;
+	if (chartRequest.query!==undefined && chartRequest.query.from!==undefined){
+		indexName=chartRequest.query.from;
+	}else{
+		indexName="reviews";
+	}//endif
+	ElasticSearch.injectFilter(chartRequest.esQuery, ProgramFilter.makeFilter(indexName));
+	
+
 	ElasticSearch.injectFilter(chartRequest.esQuery, ProductFilter.makeFilter());
 	ElasticSearch.injectFilter(chartRequest.esQuery, ComponentFilter.makeFilter());
-	ElasticSearch.injectFilter(chartRequest.esQuery, GUI.state.teamFilter.makeFilter());
+	if (GUI.state.teamFilter){
+		ElasticSearch.injectFilter(chartRequest.esQuery, GUI.state.teamFilter.makeFilter());
+	}//endif
 
 };

@@ -119,7 +119,7 @@ ETL.resumeInsert=function(etl){
 	yield (ETL.insertBatches(etl, 0, toBatch, Math.floor(maxBug/etl.BATCH_SIZE)));
 
 	yield (ETL.updateAlias(etl));
-	D.error("update the ESQuery to handle new query paths");
+//	D.error("update the ESQuery to handle new query paths");
 	ESQuery.INDEXES.reviews={"path":"/"+etl.aliasName+"/"+etl.typeName};
 	status.message("Success!");
 };
@@ -225,3 +225,12 @@ ETL.chunk=function(insert, insertFunction){
 	insertFunction(data);
 };
 
+
+ETL.parseWhiteBoard=function(whiteboard){
+	return whiteboard.split("[").map(function(v, i){
+		var index=v.indexOf("]");
+		if (index==-1) index=v.indexOf(" ");
+		if (index==-1) index=v.length;
+		return v.substring(0, index).trim().toLowerCase();
+	}).join(" ");
+};

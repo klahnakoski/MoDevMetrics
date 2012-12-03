@@ -118,23 +118,20 @@ MVEL.prototype.select = function(selectList, fromPath, varName){
 //STATIC SO IT CAN BE USED ELSEWHERE
 MVEL.esFacet2List=function(facet, selectClause){
 	//ASSUME THE .term IS JSON OBJECT WITH ARRAY OF RESULT OBJECTS
+	var mod = selectClause.length;
 	var output = [];
-	var list = facet.terms;
-	for(var i = 0; i < list.length; i++){
-		var value=undefined;
-		if (list[i].term=="") continue;		//NO DATA
-		var values = list[i].term.split("|");
-		for(var v = 0; v < values.length; v++){
-			var s=v%selectClause.length;
-			if (s==0){
-				if (value!==undefined){
-					output.push(value);
-				}//endif
-				value={};
+	var T = facet.terms;
+	for(var i = T.length; i--;){
+		if (T[i].term == "") continue;		//NO DATA
+		var V = T[i].term.split("|");
+		var value = {};
+		for(var v = V.length; v--;){
+			value[selectClause[v % mod].name] = CNV.Pipe2Value(V[v]);
+			if ((v % mod) == 0){
+				output.push(value);
+				value = {};
 			}//endif
-			value[selectClause[s].name]=CNV.Pipe2Value(values[v]);
 		}//for
-		output.push(value);
 	}//for
 	return output;
 };//method

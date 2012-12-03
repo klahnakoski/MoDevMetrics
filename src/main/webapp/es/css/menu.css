@@ -109,31 +109,43 @@ a:hover, a:active {
   font-size: 72px;
   letter-spacing: -3px;
   line-height: 100%;
+     margin-top: 0;
 }
 h1 {
     font-family: 'Open Sans', sans-serif;
     font-size: 48px;
   letter-spacing: -2px;
   line-height: 100%;
+     margin-top: 0;
+  margin-bottom: 12px;
 }
 h2 {
     font-family: 'Open Sans', sans-serif;
     font-size: 32px;
   letter-spacing: -1px;
   line-height: 100%;
+     margin-top: 0;
+   margin-bottom: 8px;
+
 }
 h3 {
     font-family: 'Open Sans', sans-serif;
     font-size: 28px;
   letter-spacing: -0.5px;
   line-height: 100%;
+    margin-top: 0;
+    /*display:inline;*/
+   margin-bottom: 7px;
 }
 h4 {
     font-family: 'Open Sans', sans-serif;
     font-size: 24px;
   letter-spacing: -0.25px;
   line-height: 100%;
+     margin-top: 0;
+   margin-bottom: 6px;
 }
+
 .small, small {
     font-family: 'Open Sans', sans-serif;
     font-size: 12px;
@@ -159,7 +171,7 @@ h4 {
 }
 .new {
     border: 2px yellow solid;
-    background-image: url(../images/new.gif);
+    background-image: url(../images/New.gif);
     background-size:67px 45px;
     background-position:right;
     background-repeat:no-repeat;

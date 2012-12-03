@@ -88,18 +88,35 @@ CNV.String2Integer = function(value){
 
 
 CNV.Pipe2Value=function(value){
-//	if (value.indexOf("\\\\")!=-1){
-//		D.println("");
-//	}
-//	value=value.replaceAll("\\p", "|").replaceAll("\\\\", "\\");
-	value=value.replace(CNV.Pipe2Value.pipe, "|").replace(CNV.Pipe2Value.bs, "\\");
-
 	var type=value.charAt(0);
-	value=value.substring(1);
-	if (type=='n') return CNV.String2Integer(value);
-	if (type=='s') return value;
 	if (type=='0') return null;
-	D.error("unknown pipe type");
+	if (type=='n') return CNV.String2Integer(value.substring(1));
+	if (type!='s') D.error("unknown pipe type");
+
+	//EXPECTING MOST STRINGS TO NOT HAVE ESCAPED CHARS
+	var s=value.indexOf("\\", 1);
+	if (s>0){
+		var result="";
+		var e=1;
+		while(true){
+			var c=value.charAt(s+1);
+			if (c=='p'){
+				result=result+value.substring(e, s)+'|';
+				s+=2;
+				e=s;
+			}else if (c=='\\'){
+				result=result+value.substring(e, s)+'\\';
+				s+=2;
+				e=s;
+			}else{
+				s++;
+			}//endif
+			s=value.indexOf("\\", s);
+			if (s<0) break;
+		}//while
+		return result+value.substring(e);
+	}//endif
+	return value.substring(1);	//EXIT EARLY ON MOST LIKELY CASE
 };//method
 CNV.Pipe2Value.pipe = new RegExp("\\\\p", "g");
 CNV.Pipe2Value.bs = new RegExp("\\\\\\\\", "g");
@@ -254,4 +271,8 @@ CNV.int2hex = function(value, numDigits){
 
 CNV.hex2int = function(value){
 	return parseInt(value, 16);
+};//method
+
+CNV.String2JQuery=function(str){
+	return str.replace(/([;&,\.\+\*\~':"\!\^#$%@\[\]\(\)=>\|])/g, '\\$1');
 };//method

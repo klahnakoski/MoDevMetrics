@@ -10,7 +10,10 @@ aThread=function(gen){
 	}//endif
 	this.keepRunning=true;
 	this.stack = [gen];
+	this.nextYield=new Date().getMilli()+aThread.MAX_BLOCK_TIME;
 };
+
+aThread.MAX_BLOCK_TIME=200;	//200ms IS THE MAXMIMUM TIME A PIECE OF CODE SHOULD HOG THE MAIN THREAD
 
 aThread.run=function(gen){
 	var output=new aThread(gen);
@@ -26,7 +29,8 @@ aThread.runSynchonously=function(gen){
 
 	var thread=new aThread(gen);
 	var result=thread.start();
-	if (result===aThread.Suspend) D.error("Suspend was called while trying to synchronously run generator");
+	if (result===aThread.Suspend)
+		D.error("Suspend was called while trying to synchronously run generator");
 	return result;
 };//method
 
@@ -67,6 +71,16 @@ function aThread_prototype_resume(retval){
 		if (String(retval) === '[object Generator]'){
 			this.stack.push(retval);
 			retval = undefined
+		}else if (retval === aThread.Yield){
+			if (this.nextYield<Date.now().getMilli()){
+				var self_=this;
+				setTimeout(function(retval){
+					self_.nextYield=new Date().getMilli()+aThread.MAX_BLOCK_TIME;
+					self_.currentRequest=undefined;
+					self_.resume(retval);
+				}, 1);
+				return aThread.Suspend;
+			}//endif
 		}else if (retval === aThread.Suspend){
 			if (!this.keepRunning) this.kill(new Exception("thread aborted"));
 			return retval;
@@ -77,6 +91,7 @@ function aThread_prototype_resume(retval){
 		}else if (retval === aThread.Resume){
 			var self=this;
 			retval = function(retval){
+				self.nextYield=new Date().getMilli()+aThread.MAX_BLOCK_TIME;
 				self.currentRequest=undefined;
 				self.resume(retval);
 			};
@@ -127,9 +142,18 @@ aThread.prototype.resume=aThread_prototype_resume;
 aThread.prototype.kill=function(retval){
 	this.returnValue=retval;				//REMEMBER FO THREAD THAT JOINS WITH THIS
 	this.keepRunning=false;
-	if (this.currentRequest){
-		this.currentRequest.kill();
-		this.currentRequest=undefined;
+
+	//HOPEFULLY cr WILl BE UNDEFINED, OR NOT, (NOT CHANGING)
+	var cr=this.currentRequest;
+	this.currentRequest=undefined;
+
+	if (cr!==undefined){
+		//SOMETIMES this.currentRequest===undefined AT THIS POINT (LOOKS LIKE REAL MUTITHREADING?!)
+		try{
+			cr.kill();
+		}catch(e){
+			D.error("kill?", cr)
+		}
 	}//endif
 	for(var i=this.stack.length;i--;){
 		try{
@@ -158,8 +182,7 @@ aThread.sleep=function(millis) {
 
 //LET THE MAIN EVENT LOOP GET SOME ACTION
 aThread.yield=function() {
-    setTimeout((yield (aThread.Resume)), 1);
-    yield (aThread.Suspend);
+    yield (aThread.Yield);
 };
 
 //WAIT FOR OTHER THREAD TO FINISH
@@ -203,7 +226,9 @@ aThread.call=function(func, param){
 
 //YOU SHOULD NOT NEED THESE UNLESS YOU ARE CONVERTING ASYNCH CALLS TO SYNCH CALLS
 aThread.Resume = {"name":"resume"};
+aThread.Yield = {"name":"yield"};  //BE COOPERATIVE, WILL PAUSEE VERY MAX_TIME_BLOCK MILLISECONDS
 aThread.Suspend = function(request){
+	if (request.kill===undefined) D.error("Expecting an object with kill() function");
 	this.name="suspend";
 	this.request=request;	//KILLABLE OBJECT
 };

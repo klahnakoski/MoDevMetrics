@@ -18,7 +18,8 @@ importScript("trampoline.js");
 
 CUBE.compile = function(query, sourceColumns){
 //COMPILE COLUMN CALCULATION CODE
-	var columns = {};
+	var columns = [];
+	var uniqueColumns={};
 
 	var edges = query.edges;
 	for(var g = 0; g < edges.length; g++){
@@ -32,8 +33,9 @@ CUBE.compile = function(query, sourceColumns){
 		if (e.allowNulls === undefined) e.allowNulls = false;
 		e.columnIndex=g;
 
-		if (columns[e.name]!==undefined) D.error("All edges must have different names");
-		columns[e.name] = e;
+		if (uniqueColumns[e.name]!==undefined) D.error("All edges must have different names");
+		columns[e.columnIndex] = e;
+		uniqueColumns[e.name]=e;
 
 		CUBE.column.compile(sourceColumns, e);
 		CUBE.domain.compile(sourceColumns, e);
@@ -43,9 +45,10 @@ CUBE.compile = function(query, sourceColumns){
 	var select = CUBE.select2Array(query.select);
 	for(var s = 0; s < select.length; s++){
 		if (select[s].name===undefined) select[s].name=select[s].value.split(".").last();
-		if (columns[select[s].name]!==undefined) D.error("All columns must have different names");
+		if (uniqueColumns[select[s].name]!==undefined) D.error("All columns must have different names");
 		select[s].columnIndex=s+edges.length;
-		columns[select[s].name] = select[s];
+		columns[select[s].columnIndex] = select[s];
+		uniqueColumns[select[s].name] = select[s];
 		CUBE.column.compile(sourceColumns, select[s], edges);
 		CUBE.aggregate.compile(select[s]);
 	}//for
@@ -228,36 +231,43 @@ CUBE.calc2List = function(query){
 	yield (CUBE.calc2Tree(query));
 
 	var edges=query.edges;
-	var columns=query.columns;
 
 	var output = [];
 	CUBE.Tree2List(output, query.tree, select, edges, {}, 0);
 	yield (aThread.yield());
 
 	//ORDER THE OUTPUT
-	if (query.sort === undefined){
-		query.sort = [];
-		for(var f = 0; f < edges.length; f++) query.sort.push(edges[f].name);
-	}//endif
-	output = CUBE.sort(output, query.sort, columns);
+	if (query.sort === undefined) query.sort = [];
+	if (!(query.sort instanceof Array)) query.sort=[query.sort];
+	output = CUBE.sort(output, query.sort, query.columns);
 
 	//COLLAPSE OBJECTS TO SINGLE VALUE
-	for(var c in columns){
-		var s=columns[c];
-		if (s.domain===undefined){
+	for(var ci=0;ci<query.columns.length;ci++){
+		var col=query.columns[ci];
+		if (col.domain===undefined){
 			D.error("expecting all columns to have a domain");
 		}//endif
-		var d = columns[c].domain;
+		var d = col.domain;
 		if (d.end === undefined) continue;
 
 		//d.end() MAY REDEFINE ITSELF (COMPILE GIVEN CONTEXT)
 		for(var i = 0; i < output.length; i++){
 			var o = output[i];
-			o[s.name] = d.end(o[s.name]);
+			o[col.name] = d.end(o[col.name]);
 		}//for
 	}//for
 
 	query.list = output;
+
+	if (query.analytic){
+		if (!(query.analytic instanceof Array)) query.analytic=[query.analytic];
+		for(var a=query.analytic.length;a--;){
+			CUBE.analytic.add(query, query.analytic[a]);
+		}//for
+	}//endif
+
+
+
 	yield (query);
 };//method
 
@@ -374,7 +384,7 @@ CUBE.aggOP=function(query){
 	}//for
 
 	//TURN AGGREGATE OBJECTS TO SINGLE NUMBER
-	for(var c in columns){
+	for(var c=0;c<columns.length;c++){
 		var s=columns[c];
 		if (s.domain===undefined){
 			D.error("expectin all columns to have a domain");
@@ -497,7 +507,7 @@ CUBE.Cube2List=function(query){
 				row[query.edges[0].name]=query.edges[0].domain.end(parts0[p0]);
 				row[query.edges[1].name]=query.edges[1].domain.end(parts1[p1]);
 				output.push(row);
-				if (output.length%1000==0) yield(aThread.yield());
+				if (output.length%100==0) yield(aThread.yield());
 			}//for
 		}//for
 		yield (output);
@@ -516,7 +526,7 @@ CUBE.Cube2List=function(query){
 			}//endif
 			row[query.edges[0].name]=parts0[p0].value;  //ONLY FOR default DOMAIN
 			output.push(row);
-			if (output.length%1000==0)
+			if (output.length%100==0)
 				yield(aThread.yield());
 		}//for
 		yield (output);
@@ -684,10 +694,10 @@ CUBE.Tree2Cube = function(query, cube, tree, depth){
 // PULL COLUMN DEFINITIONS FROM LIST OF OBJECTS
 CUBE.getColumns = function(data){
 	var output = [];
-	for(var i = 0; i < (data).length; i++){
+	for(var i = 0; i < data.length; i++){
 		var keys = Object.keys(data[i]);
-		kk: for(var k = 0; k < (keys).length; k++){
-			for(var c = 0; c < (output).length; c++){
+		kk: for(var k = 0; k < keys.length; k++){
+			for(var c = 0; c < output.length; c++){
 				if (output[c].name == keys[k]) continue kk;
 			}//for
 			output.push({"name":keys[k]});
@@ -766,26 +776,33 @@ CUBE.join=function(query){
 ////////////////////////////////////////////////////////////////////////////////
 //TAKE data LIST OF OBJECTS AND ENSURE names ARE ORDERED
 CUBE.sort = function(data, sortOrder, columns){
-
-	var orderedColumns=sortOrder.map(function(v, i){
-		return columns[v];
-	});
-
-	var totalSort = function(a, b){
-		for(var o = 0; o < orderedColumns.length; o++){
-			var col=orderedColumns[o];
-			if (col.domain === undefined){
-				D.warning("what?");
-			}
-
-			var diff = col.domain.compare(a[col.name], b[col.name]);
-			if (diff != 0) return col.sortOrder * diff;
-		}//for
-		return 0;
-	};
-
+	if (sortOrder.length==0) return data;
+	var totalSort = CUBE.sort.compile(sortOrder, columns, true);
 	data.sort(totalSort);
-
 	return data;
 };//method
 
+
+CUBE.sort.compile=function(sortOrder, columns, useNames){
+	var orderedColumns = sortOrder.map(function(v){
+		for(var i=columns.length;i--;){
+			if (columns[i].name==v) return columns[i];
+		}//for
+	});
+
+	var f="totalSort = function(a, b){\nvar diff;\n";
+	for(var o = 0; o < orderedColumns.length; o++){
+		var col = orderedColumns[o];
+		if (col.domain === undefined){
+			D.warning("what?");
+		}//endif
+		var index=useNames ? CNV.String2Quote(col.name) : col.columnIndex;
+		f+="diff = col.domain.compare(a["+index+"], b["+index+"]);\n";
+		f+="if (diff != 0) return "+col.sortOrder+" * diff;\n";
+	}//for
+	f+="return 0;\n}";
+	
+	var totalSort;
+	eval(f);
+	return totalSort;
+};//method

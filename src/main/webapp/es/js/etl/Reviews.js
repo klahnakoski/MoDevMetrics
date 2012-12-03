@@ -14,6 +14,25 @@ REVIEWS.ALIASES=[
 ];
 
 
+REVIEWS.allFlags = aThread.runSynchonously(CUBE.calc2List({
+	"from":CNV.Table2List(MozillaPrograms),
+	"edges":["attributeName"],
+	"where":"attributeName.startsWith('cf_')"
+})).list.map(function(v){return v.attributeName;});
+//aThread.run(function(){
+//	REVIEWS.allFlags = yield (CUBE.calc2List({
+//		"from":CNV.Table2List(MozillaPrograms),
+//		"edges":["attributeName"],
+//		"where":"attributeName.startsWith('cf_')"
+//	}));
+//});
+
+
+//CNV.Table2List(MozillaPrograms).map(function(v){
+//	if (v.attributeName.startsWith("cf_")) return v.attributeName;
+//});
+
+
 REVIEWS.getLastUpdated=function(){
 	var url;
 	if (REVIEWS.newIndexName){
@@ -48,7 +67,11 @@ REVIEWS.makeSchema=function(successFunction){
 			"review_time":{"type":"long", "store":"yes", "index":"not_analyzed"},
 			"done_reason":{"type":"string", "store":"yes", "index":"not_analyzed"},
 			"component":{"type":"string", "store":"yes", "index":"not_analyzed"},
-			"product":{"type":"string", "store":"yes", "index":"not_analyzed"}
+			"product":{"type":"string", "store":"yes", "index":"not_analyzed"},
+			"is_first":{"type":"integer", "store":"yes", "index":"not_analyzed"},
+			"keywords":{"type":"string", "store":"yes", "index":"analyzed"}
+//			"status_whiteboard":{"type":"string", "store":"yes", "index":"not_analyzed"},
+//			"status_whiteboard.tokenized":{"type":"string", "store":"yes", "index":"analyzed"}
 		}
 	};
 
@@ -108,6 +131,11 @@ REVIEWS.get=function(minBug, maxBug){
 		esfilter={"range":{"bug_id":{"gte":minBug, "lt":maxBug}}};
 	}//endif
 
+	var getFlags="var output = \"\";\n";
+	REVIEWS.allFlags.map(function(v){
+		getFlags+="if (doc[\""+v+"\"]!=null && doc[\""+v+"\"].value!=null) output+=\""+v+"\"+doc[\""+v+"\"].value;\n";
+	});
+	getFlags+="output.trim();";
 
 
 	var esQuery=new ESQuery({
@@ -116,10 +144,13 @@ REVIEWS.get=function(minBug, maxBug){
 			{"name":"attach_id", "value":"bugs.attachments.attach_id"},
 			{"name":"modified_ts", "value":"bugs.modified_ts"},
 			{"name":"requestee", "value":"bugs.attachments.flags.requestee"},
-			{"name":"modified_by", "value":"bugs.attachments.flags.modified_by"},
+			{"name":"created_by", "value":"bugs.attachments.created_by"},
 			{"name":"product", "value":"bugs.product"},
 			{"name":"component", "value":"bugs.component"},
-			{"name":"bug_status", "value":"(bugs.bug_status=='resolved'||bugs.bug_status=='verified'||bugs.bug_status=='closed') ? 'closed':'open'"}
+			{"name":"bug_status", "value":"(bugs.bug_status=='resolved'||bugs.bug_status=='verified'||bugs.bug_status=='closed') ? 'closed':'open'"},
+			{"name":"keywords", "value":"doc[\"keywords\"].value"},
+			{"name":"whiteboard", "value":"bugs.status_whiteboard"},
+			{"name":"flags", "value":getFlags}
 		],
 		"from":
 			"bugs.attachments.flags",
@@ -133,6 +164,32 @@ REVIEWS.get=function(minBug, maxBug){
 		"esfilter":
 			esfilter
 	});
+
+//	var esQueryAttachments=new ESQuery({
+//		"select" : [
+//			{"name":"bug_id", "value":"bugs.bug_id"},
+//			{"name":"attach_id", "value":"bugs.attachments.attach_id"},
+//			{"name":"modified_ts", "value":"bugs.modified_ts"},
+//			{"name":"requestee", "value":"bugs.attachments.flags.requestee"},
+//			{"name":"modified_by", "value":"bugs.attachments.flags.modified_by"},
+//			{"name":"product", "value":"bugs.product"},
+//			{"name":"component", "value":"bugs.component"},
+//			{"name":"bug_status", "value":"(bugs.bug_status=='resolved'||bugs.bug_status=='verified'||bugs.bug_status=='closed') ? 'closed':'open'"}
+//		],
+//		"from":
+//			"bugs.attachments.flags",
+//		"where":
+//			{"and" : [
+//				{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
+//				{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+//				{"script" :{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}},
+//				{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
+//			]},
+//		"esfilter":
+//			esfilter
+//	});
+
+
 
 
 
@@ -206,14 +263,29 @@ REVIEWS.get=function(minBug, maxBug){
 	});
 
 
-	status.message("Get Review Requests");
-	var inReview=yield(esQuery.run());
+	var inReview;
+	var A=aThread.run(function(){
+		inReview=yield(esQuery.run());
+		status.message("Got Review Requests");
+	});
 
-	status.message("Get Review Ends");
-	var doneReview=yield(esQuery2.run());
+	var doneReview;
+	var B=aThread.run(function(){
+		doneReview=yield(esQuery2.run());
+		status.message("Got Review Ends");
+	});
 
-	status.message("Get Review Re-assignments");
-	var switchedReview=yield(esQuery3.run());
+	var switchedReview;
+	var C=aThread.run(function(){
+		switchedReview=yield(esQuery3.run());
+		status.message("Get Review Re-assignments");
+	});
+
+	status.message("Get Review Data");
+	yield (aThread.join(A));
+	yield (aThread.join(B));
+	yield (aThread.join(C));
+
 
 	status.message("processing Data...");
 	D.println("start processing "+Date.now().format("HH:mm:ss"));
@@ -228,18 +300,23 @@ REVIEWS.get=function(minBug, maxBug){
 	var reviewQueues = (yield (CUBE.calc2List({
 		"from":
 			inReview.list,
+		"analytic":[
+			{"name":"is_first", "value":"rownum==0 ? 1 : 0", "sort":"request_time", "edges":["bug_id"]}
+		],
 		"select":[
 			{"name":"bug_status", "value":"bug_status", "operation":"one"},
 			{"name":"review_time", "value":"Util.coalesce(doneReview.modified_ts, null)", "operation":"minimum"},
 			{"name":"product", "value":"Util.coalesce(doneReview.product, product)", "operation":"minimum"},
-			{"name":"component", "value":"Util.coalesce(doneReview.component, component)", "operation":"minimum"}
-//			{"name":"is_first", "value":"rownum==1", "groupby":"bug_id", "sort":"request_time"}
+			{"name":"component", "value":"Util.coalesce(doneReview.component, component)", "operation":"minimum"},
+			{"name":"keywords", "value":"(Util.coalesce(keywords, '')+' '+ETL.parseWhiteBoard(whiteboard)).trim()+' '+flags", "operation":"one"}
+//			{"name":"status_whiteboard", "value":"whiteboard", "operation":"one"},
+//			{"name":"status_whiteboard.tokenized", "value":"ETL.parseWhiteBoard(whiteboard)).trim()", "operation":"one"}
 		],
 		"edges":[
 			{"name":"bug_id", "value":"bug_id"},
 			{"name":"attach_id", "value":"attach_id"},
 			{"name":"reviewer", "value":"requestee"},
-			{"name":"requester", "value":"modified_by"},
+			{"name":"requester", "value":"created_by"},
 			{"name":"request_time", "value":"modified_ts"},
 			{"name":"close_record",
 				"test":

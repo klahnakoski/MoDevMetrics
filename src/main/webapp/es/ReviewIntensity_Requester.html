@@ -88,7 +88,7 @@
 
 
 
-<h3>Individual Review Intensity</h3>
+<h3>Review Requested by Individual</h3>
 <div id="sidebar">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
@@ -135,7 +135,7 @@
 
 		var mainFilter={"and":[
 				{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
-				{"term":{"reviewer":GUI.state.requestee}}
+				{"term":{"requester":GUI.state.requester}}
 			]};
 		GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
 
@@ -184,8 +184,8 @@
 			var numWeek=sampleMax.subtract(sampleMin).milli/Duration.MILLI_VALUES.week;
 			
 			$("#stats").html(
-				'<span class="parameter_name">Total Reviews:</span><b>'+stats.total+'</b><br>'+
-				'<span class="parameter_name">Reviews per week:</span><b>'+Math.round(stats.total/numWeek, 1)+'</b><br>'+
+				'<span class="parameter_name">Total Requests:</span><b>'+stats.total+'</b><br>'+
+				'<span class="parameter_name">Requested per week:</span><b>'+Math.round(stats.total/numWeek, 1)+'</b><br>'+
 				'<span class="parameter_name">% Under One Day:</span><b>'+Math.round(stats.under_24_hours/stats.total*100, 1)+'%</b><br>'
 			);
 
@@ -263,7 +263,7 @@
 				{"name":"review_time", "value":"coalesce(reviews.review_time,"+Date.eod().getMilli()+")"}
 			],
 			"esfilter":{"and":[
-				{"term":{"reviewer":GUI.state.requestee}},
+				{"term":{"reviewer":GUI.state.requester}},
 				{"script":{"script":	//NO NEED TO CONSIDER THE MINI-REVIEWS
 					MVEL.FUNCTIONS.coalesce+
 					"(coalesce(_source.review_time, "+Date.eod().getMilli()+")-_source.request_time > "+Duration.MILLI_VALUES.day+") ? 1 : 0;"
@@ -339,7 +339,7 @@
 
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"nobody@mozilla.org"},
+			{"id":"requester", "name":"Requester Email", "type":"text", "default":"nobody@mozilla.org"},
 			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.today().add("-3month")},
 			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.today()},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("day")},
