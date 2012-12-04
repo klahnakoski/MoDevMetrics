@@ -49,34 +49,32 @@ ClassificationFilter.prototype.injectHTML = function(){
 
 	$("#classifications").html(html);
 
-//	setTimeout(function(){
-		$("#classificationList").selectable({
-			selected: function(event, ui){
-				var didChange = false;
-				var selection=ui.selected.id.rightBut("classification_".length);
-				if (!include(GUI.state.selectedClassifications, selection)){
-					GUI.state.selectedClassifications.push(selection);
 
-					//ADD TO THE SELECTED PROGRAMS LIST
-					GUI.state.selectedProducts.appendArray(ClassificationFilter.products[selection]);
+	$("#classificationList").selectable({
+		selected: function(event, ui){
+			var didChange = false;
+			var selection=ui.selected.id.rightBut("classification_".length);
+			if (!include(GUI.state.selectedClassifications, selection)){
+				GUI.state.selectedClassifications.push(selection);
 
-					didChange = true;
-				}//endif
+				//ADD TO THE SELECTED PROGRAMS LIST
+				GUI.state.selectedProducts.appendArray(ClassificationFilter.products[selection]);
 
-				if (didChange){
-					GUI.refresh();
-				}//endif
-			},
-			unselected: function(event, ui){
-				var i = GUI.state.selectedClassifications.indexOf(ui.unselected.id.rightBut("classification_".length));
-				if (i != -1){
-					GUI.state.selectedClassifications.splice(i, 1);
-					GUI.state.classificationFilter.refresh();
-				}
+				didChange = true;
+			}//endif
+
+			if (didChange){
+				aThread.run(GUI.refresh());
+			}//endif
+		},
+		unselected: function(event, ui){
+			var i = GUI.state.selectedClassifications.indexOf(ui.unselected.id.rightBut("classification_".length));
+			if (i != -1){
+				GUI.state.selectedClassifications.splice(i, 1);
+				aThread.run(GUI.refresh());
 			}
-		});
-//	}, 300);
-
+		}
+	});
 
 
 };

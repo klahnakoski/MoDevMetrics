@@ -435,7 +435,7 @@ GUI.refresh=function(){
 GUI.injectFilterss = function(chartRequests){
 	if (!(chartRequests instanceof Array)) D.error("Expecting an array of chartRequests");
 	for(var i = 0; i < chartRequests.length; i++){
-		yield (GUI.injectFilters(chartRequests[i]));
+		(GUI.injectFilters(chartRequests[i]));
 	}//for
 };
 

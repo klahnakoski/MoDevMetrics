@@ -69,7 +69,7 @@ REVIEWS.makeSchema=function(successFunction){
 			"component":{"type":"string", "store":"yes", "index":"not_analyzed"},
 			"product":{"type":"string", "store":"yes", "index":"not_analyzed"},
 			"is_first":{"type":"integer", "store":"yes", "index":"not_analyzed"},
-			"keywords":{"type":"string", "store":"yes", "index":"analyzed"}
+			"keywords":{"type":"string", "store":"yes", "index":"analyzed", analyzer: 'whitespace'}
 //			"status_whiteboard":{"type":"string", "store":"yes", "index":"not_analyzed"},
 //			"status_whiteboard.tokenized":{"type":"string", "store":"yes", "index":"analyzed"}
 		}

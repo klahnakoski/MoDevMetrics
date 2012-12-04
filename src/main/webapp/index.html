@@ -1,9 +1,34 @@
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <HTML>
 
 <HEAD>
 	<link type="text/css" rel="stylesheet" href="es/css/menu.css"/>
 </HEAD>
 <BODY id="content">
+
+<script type="application/javascript;version=1.7" src="es/lib/webdetails/cdf/Base.js"></script>
+<script type="application/javascript;version=1.7" src="es/lib/webdetails/cdf/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="es/lib/jstree/jquery.jstree.js"></script>
+<link type="text/css" href="es/css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
+<script type="application/javascript;version=1.7" src="es/lib/js/jquery-ui-1.8.16.custom.min.js"></script>
+<script type="application/javascript;version=1.7" src="es/lib/js/jquery.ba-bbq.js"></script>
+
+<link type="text/css" rel="stylesheet" href="es/css/menu.css"/>
+
+
+
+
+<script type="application/javascript;version=1.7" src="es/js/CNV.js"></script>
+<script type="application/javascript;version=1.7" src="es/js/aDate.js"></script>
+
+<script type="application/javascript;version=1.7" src="es/js/util.js"></script>
+<script type="application/javascript;version=1.7" src="es/js/Debug.js"></script>
+<script type="application/javascript;version=1.7" src="es/js/aCompiler.js"></script>
+<script type="application/javascript;version=1.7" src="es/js/MVEL.js"></script>
+
+<script type="application/javascript;version=1.7" src="es/js/aThread.js"></script>
+
+
 
 <div id="sidebar">
 
@@ -71,12 +96,18 @@
 			<div class="items">
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity.html">ReviewIntensity</a>
-				<span class="info">Show total volume of reviews, and any review backlog</span><br>
+				<span class="info">Show total volume of reviews, and any review backlog, for an individual</span><br>
 				<br>
 
 				<div class="new">
-				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_B2G.html">ReviewIntensity_B2G</a>
-				<span class="info">Same as above for all B2G (only because Program filtering does not work right now)</span><br>
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_First.html">ReviewIntensity_First</a>
+				<span class="info">Same as above but only counting the first review for a bug</span><br>
+				<br>
+				</div>
+
+				<div class="new">
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_Requester.html">ReviewIntensity_Requester</a>
+				<span class="info">The the number of reviews requested</span><br>
 				<br>
 				</div>
 
@@ -114,6 +145,17 @@
 	</tr>
 </table>
 </div>
+<script type="application/javascript;version=1.7">
+	if (window.location.protocol=="file:"){
+		var a=$("a");
+		a.each(function(i, v){
+			var path=$(v).attr('href');
+			$(v).attr('href', path.replace("https://metrics.mozilla.com/bugzilla-analysis", "es"));
+
+		});
+	}
+	
+</script>
 
 </BODY>
 </HTML>

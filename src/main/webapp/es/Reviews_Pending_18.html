@@ -82,7 +82,6 @@
 
 
 
-<h3>Give me a name</h3>
 <div id="sidebar">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
@@ -139,7 +138,7 @@ var __createChart = function(){
 		}
 	});
 
-	yield (GUI.injectFilters(q));
+	GUI.injectFilters(q);
 
 	aThread.run(function(){
 		var old=yield (q.run());
@@ -191,7 +190,7 @@ var __createChart = function(){
 		}
 	});
 
-	yield (GUI.injectFilters(getReviews));
+	(GUI.injectFilters(getReviews));
 
 	status.message("Get Review Data");
 	var reviews=yield (getReviews.run());
