@@ -61,14 +61,14 @@ ComponentFilter.prototype.injectHTML = function(components){
 	var total = 0;
 	for(var i = 0; i < components.length; i++) total += components[i].count;
 	html += item.replaceVars({
-		"class" : ((GUI.state.selectedProducts.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
+		"class" : ((GUI.state.selectedComponents.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
 		"name" : "ALL",
 		"count" : total
 	});
 
 	for(var i = 0; i < components.length; i++){
 		html += item.replaceVars({
-			"class" : (GUI.state.selectedProducts.contains(components[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
+			"class" : (GUI.state.selectedComponents.contains(components[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
 			"name" : components[i].term,
 			"count" : components[i].count
 		});
