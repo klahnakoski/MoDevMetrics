@@ -76,6 +76,14 @@ REVIEWS.makeSchema=function(successFunction){
 	};
 
 	var setup={
+		"analysis": {
+			"analyzer": {
+				"whitespace":{
+					"type": "pattern",
+					"pattern":"\\s+"
+				}
+			}
+		},
 		"mappings":{
 		}
 	};

@@ -21,10 +21,13 @@ ProgramFilter.makeFilter = function(indexName){
 		for(var j=0;j<ProgramFilter.allPrograms.length;j++){
 			if (ProgramFilter.allPrograms[j].projectName == GUI.state.selectedPrograms[i]){
 				var name = ProgramFilter.allPrograms[j].attributeName;
-
-				if (indexName!="bugs") name="keywords";//ONLY THE ORIGINAL bugs INDEX HAS BOTH whiteboard AND keyword
-
 				var value = ProgramFilter.allPrograms[j].attributeValue;
+
+				if (indexName!="bugs"){//ONLY THE ORIGINAL bugs INDEX HAS BOTH whiteboard AND keyword
+					if (name.startsWith("cf_")) value=name+value;
+					name="keywords";
+				}//endif
+
 				var term = {};
 				term[name] = value;
 				or.push({"prefix":term});
