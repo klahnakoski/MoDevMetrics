@@ -20,7 +20,7 @@ var ESQuery = function(query){
 };
 
 
-ESQuery.DEBUG=true;
+ESQuery.DEBUG=false;
 
 ////////////////////////////////////////////////////////////////////////////////
 // THESE ARE THE AVAILABLE ES INDEXES/TYPES
@@ -28,6 +28,7 @@ ESQuery.DEBUG=true;
 ESQuery.INDEXES={
 	"bugs":{"path":"/bugs"},
 	"reviews":{"path":"/reviews/review"},
+//	"reviews":{"path":"/reviews121206_150602/review"},
 	"bug_summary":{"path":"/bug_summary/bug_summary"},
 	"bug_tags":{"path":"/bug_tags/bug_tags"},
 	"org_chart":{"path":"/org_chart/person"},
@@ -52,7 +53,11 @@ ESQuery.prototype.run = function(){
 		postResult=yield (Rest.post({
 			url: this.query.url,
 			data: JSON.stringify(this.esQuery),
-			dataType: "json"
+			dataType: "json",
+			headers:{
+				"Accept-Encoding": "gzip,deflate"
+//				"http.compress":"true"
+			}
 		}));
 
 		if (postResult._shards.failed>0){

@@ -40,12 +40,22 @@ Rest.send=function(ajaxParam){
 	//get WHEN URL DOES NOT MATCH CURRENT SITE.  jQuery ALSO FOLLOWS SPEC, AND
 	//DOES NOT ALLOW BODY CONTENT ON delete, ES DEMANDS IT  >:|  )
 	var request=new XMLHttpRequest();
+
 	if (ajaxParam.username){
 		request.withCredentials = true;
 		request.open(ajaxParam.type,ajaxParam.url,ajaxParam.async, ajaxParam.username, ajaxParam.password);
 	}else{
 		request.open(ajaxParam.type,ajaxParam.url,ajaxParam.async);
 	}//endif
+
+	//SET HEADERS
+	if (ajaxParam.headers!==undefined){
+		var headers=Object.keys(ajaxParam.headers);
+		for(var h=0;h<headers.length;h++){
+			request.setRequestHeader(headers[h], ajaxParam.headers[headers[h]]);
+		}//for
+	}//endif
+
 	request.onreadystatechange=function(){
   		if (request.readyState==4){
 			if (request.status==200){

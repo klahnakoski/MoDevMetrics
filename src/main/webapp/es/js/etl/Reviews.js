@@ -58,6 +58,7 @@ REVIEWS.makeSchema=function(successFunction){
 	var config={
 		"_source":{"enabled": true},
 		"_all" : {"enabled" : false},
+		"_id" : {"type":"string", "store" : "yes", "index": "not_analyzed"},
 		"properties":{
 			"bug_id":{"type":"integer", "store":"yes", "index":"not_analyzed"},
 			"attach_id":{"type":"integer", "store":"yes", "index":"not_analyzed"},
@@ -69,6 +70,7 @@ REVIEWS.makeSchema=function(successFunction){
 			"component":{"type":"string", "store":"yes", "index":"not_analyzed"},
 			"product":{"type":"string", "store":"yes", "index":"not_analyzed"},
 			"is_first":{"type":"integer", "store":"yes", "index":"not_analyzed"},
+			"requester_review_num":{"type":"integer", "store":"yes", "index":"not_analyzed"},
 			"keywords":{"type":"string", "store":"yes", "index":"analyzed", analyzer: 'whitespace'}
 //			"status_whiteboard":{"type":"string", "store":"yes", "index":"not_analyzed"},
 //			"status_whiteboard.tokenized":{"type":"string", "store":"yes", "index":"analyzed"}
@@ -316,7 +318,8 @@ REVIEWS.get=function(minBug, maxBug){
 			{"name":"review_time", "value":"Util.coalesce(doneReview.modified_ts, null)", "operation":"minimum"},
 			{"name":"product", "value":"Util.coalesce(doneReview.product, product)", "operation":"minimum"},
 			{"name":"component", "value":"Util.coalesce(doneReview.component, component)", "operation":"minimum"},
-			{"name":"keywords", "value":"(Util.coalesce(keywords, '')+' '+ETL.parseWhiteBoard(whiteboard)).trim()+' '+flags", "operation":"one"}
+			{"name":"keywords", "value":"(Util.coalesce(keywords, '')+' '+ETL.parseWhiteBoard(whiteboard)).trim()+' '+flags", "operation":"one"},
+			{"name":"requester_review_num", "value":"-1", "operation":"one"}
 //			{"name":"status_whiteboard", "value":"whiteboard", "operation":"one"},
 //			{"name":"status_whiteboard.tokenized", "value":"ETL.parseWhiteBoard(whiteboard)).trim()", "operation":"one"}
 		],
@@ -348,10 +351,10 @@ REVIEWS.get=function(minBug, maxBug){
 
 
 REVIEWS.insert=function(reviews){
-	var uid=Util.UID();
+	var uid=Date.now().getMilli()+"";
 	var insert=[];
 	reviews.forall(function(r, i){
-		insert.push(JSON.stringify({ "create" : { "_id" : uid+"-"+i } }));
+		insert.push(JSON.stringify({ "index" : { "_id" : r.bug_id+"-"+r.attach_id } }));
 		insert.push(JSON.stringify(r));
 	});
 	status.message("Push review queues to ES");
@@ -379,4 +382,146 @@ REVIEWS["delete"]=function(bugList){
 //	}//while
 
 //	yield (null);
+};//method
+
+
+
+
+REVIEWS.postMarkup=function(){
+
+//
+//	var knownTimes=yield(ESQuery.run({
+//		"from":"reviews",
+//		"select":{"name":"num", "value":"doc[\"is_first_outgoing_review\"].value", "operation":"maximum"},
+//		"edges":["requester"],
+//		esfilter:batchFilter
+//	}));
+
+	//FIND THE INDEX TO UPDATE
+	var data=yield(Rest.get({url: ElasticSearch.pushURL+"/_aliases"}));
+
+	var keys=Object.keys(data);
+	for(var k=keys.length;k--;){
+		var name=keys[k];
+		if (!name.startsWith(REVIEWS.aliasName)) continue;
+
+		if (Object.keys(data[name].aliases).length>0){
+			REVIEWS.oldIndexName=name;
+		}//endif
+
+		if (REVIEWS.newIndexName===undefined || name>REVIEWS.newIndexName){
+			REVIEWS.newIndexName=name;
+		}//endif
+	}//for
+
+	REVIEWS.newIndexName=Util.coalesce(REVIEWS.newIndexName, REVIEWS.oldIndexName);
+	ESQuery.INDEXES.reviews.path="/"+REVIEWS.newIndexName+"/review";
+
+	//UPDATE THE AUTO-INDEXING TO EVERY SECOND
+	data=yield (Rest.put({
+		"url": ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/_settings",
+		"data":{"index":{"refresh_interval":"1s"}}
+	}));
+
+
+	////////////////////////////////////////////////////////////////////////////
+	// MAIN UPDATE FUNCTION
+	////////////////////////////////////////////////////////////////////////////
+	var update=function(emails){
+		var firstTime=yield(ESQuery.run({
+			"from":"reviews",
+			"select":[
+				{"name":"_id", "value":"doc[\"_id\"].value"},
+				{"name":"bug_id", "value":"reviews.bug_id"},
+				{"name":"attach_id", "value":"reviews.attach_id"},
+				{"name":"requester", "value":"reviews.requester"},
+				{"name":"request_time", "value":"reviews.request_time"},
+				{"name":"old_requester_review_num", "value":"reviews.requester_review_num"}
+			],
+			esfilter:{"and":[
+				{"terms":{"requester":emails}}
+			]}
+		}));
+
+		var review_count=yield (CUBE.calc2List({//FIRST REVIEW FOR EACH BUG BY REQUESTER
+			"from":firstTime,
+			"analytic":[
+				{"name":"requester_first_review", "value":"rownum==0", "sort":["request_time"], "edges":["requester", "bug_id"]},
+				{"name":"requester_review_num", "value":"rownum+1", "sort":["request_time"], "edges":["requester"], "where":"requester_first_review"}
+			],
+			"sort":["requester_review_num"]
+		}));
+
+//		$("#results").html(CNV.List2HTMLTable(review_count.list));
+
+
+		status.message("Sending changes");
+		D.println("Sending "+review_count.list.length+" changes to "+ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName);
+		var maxPush=6;
+		for(var i=0;i<review_count.list.length;i++){
+			var v=review_count.list[i];
+			if (isNaN(v.requester_review_num)) continue;
+			if (v.requester_review_num==v.old_requester_review_num)
+				continue;
+
+			while(maxPush<=0) yield(aThread.sleep(100));
+			maxPush--;
+
+			aThread.run(function(){
+				try{
+					yield (Rest.post({
+						"url":ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName+"/"+v._id+"/_update",
+						"data":{
+							"script" : "ctx._source.requester_review_num = "+v.requester_review_num
+						}
+					}));
+				}catch(e){
+					D.error("problem updating review", e);
+				}//try
+				maxPush++;
+			});
+		}//for
+		D.println("Done sending "+review_count.list.length+" changes");
+
+		status.message("Done");
+	};
+
+
+
+
+
+
+
+
+
+
+	//MARK EACH PERSON'S FIRST REVIEW
+	var requesterCount=yield(ESQuery.run({
+		"from":"reviews",
+		"select":{"name":"num", "value":"1", "operation":"count"},
+		"edges":[
+			{"name":"requester", "value":"requester"}
+		]
+	}));
+
+	var BATCH_SIZE=90000;
+	var MAX_EMAIL=2000;
+
+	var numReviews=0;
+	var emails=[];
+	var num=requesterCount.edges[0].domain.partitions.length;
+
+	for(var c=num;c--;){
+		numReviews+=requesterCount.cube[c];
+		emails.push(requesterCount.edges[0].domain.partitions[c].value);
+
+		if (numReviews>BATCH_SIZE || emails.length>MAX_EMAIL){
+			yield (update(emails));
+			numReviews=0;
+			emails=[];
+		}//endif
+	}//for
+	yield (update(emails));
+
+
 };//method

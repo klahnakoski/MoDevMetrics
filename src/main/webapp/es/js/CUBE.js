@@ -38,7 +38,7 @@ CUBE.compile = function(query, sourceColumns){
 		uniqueColumns[e.name]=e;
 
 		CUBE.column.compile(sourceColumns, e);
-		CUBE.domain.compile(sourceColumns, e);
+		CUBE.domain.compile(e, sourceColumns);
 		e.outOfDomainCount = 0;
 	}//for
 
@@ -67,48 +67,40 @@ CUBE.select2Array = function(select){
 
 
 CUBE.calc2Tree = function(query){
-	if (query.edges.length==0) D.error("Tree processing requires an edge");
+	if (query.edges.length == 0) D.error("Tree processing requires an edge");
 
-	var sourceColumns;
-	var from=query.from;
-	if (query.from instanceof Array){
-		sourceColumns=CUBE.getColumns(query.from);
-		from=query.from;
-	}else if(query.from.list){
-		sourceColumns=query.columns;
-		from=query.from.list;
-	}else if (query.from.cube){
-		query.from.list=CUBE.Cube2List(query.from);
-		sourceColumns=query.columns;
-		from=query.from.list;
-	}//endif
-	if (sourceColumns===undefined) sourceColumns=CUBE.getColumns(from);
+	var __ret = CUBE.getColumnsFromQuery(query);
+	var sourceColumns = __ret.sourceColumns;
+	var from = __ret.from;
 
 	var select = CUBE.select2Array(query.select);
 	var edges = query.edges;
 	query.columns = CUBE.compile(query, sourceColumns);
 	var where = CUBE.where.compile(query.where, sourceColumns, edges);
-	var agg=CUBE.calcAgg;
+	var agg = CUBE.calcAgg;
 
 
-	var tree = {};  query.tree=tree;
-	var nextYield=new Date().getMilli()+200;
+	var tree = {};
+	query.tree = tree;
+	var nextYield = new Date().getMilli() + 200;
 	FROM: for(var i = 0; i < from.length; i++){
-		var now=new Date().getMilli();
+		var now = new Date().getMilli();
 		if (now > nextYield){
 			yield (aThread.yield());
-			nextYield=new Date().getMilli()+200;
+			nextYield = new Date().getMilli() + 200;
 		}//endif
 
 
 		var row = from[i];
 		//CALCULATE THE GROUP COLUMNS TO PLACE RESULT
-		var results = [[]];
+		var results = [
+			[]
+		];
 		for(var f = 0; f < edges.length; f++){
 			var edge = edges[f];
 
 
-			if (edge.test===undefined){
+			if (edge.test === undefined){
 				var v = edge.calc(row, null);
 
 				//STANDARD 1-1 MATCH VALUE TO DOMAIN
@@ -156,8 +148,8 @@ CUBE.calc2Tree = function(query){
 		}//for
 
 
-		for(var r=results.length;r--;){
-			var pass=where(row, results[r]);
+		for(var r = results.length; r--;){
+			var pass = where(row, results[r]);
 			if (pass){
 				agg(row, results[r], query, select);
 			}//for
@@ -215,13 +207,16 @@ CUBE.getAggregate = function(result, query, select){
 };//method
 
 
+
 CUBE.calc2List = function(query){
 	if (query.edges===undefined) query.edges=[];
 	var select = CUBE.select2Array(query.select);
 
 	//NO EDGES IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
 	if (query.edges.length==0){
-		if (select[0].operation===undefined){
+		if (select.length==0){
+			yield (CUBE.noOP(query));
+		}else if (select[0].operation===undefined){
 			yield (CUBE.setOP(query));
 		}else{
 			yield (CUBE.aggOP(query));
@@ -259,14 +254,7 @@ CUBE.calc2List = function(query){
 
 	query.list = output;
 
-	if (query.analytic){
-		if (!(query.analytic instanceof Array)) query.analytic=[query.analytic];
-		for(var a=query.analytic.length;a--;){
-			CUBE.analytic.add(query, query.analytic[a]);
-		}//for
-	}//endif
-
-
+	CUBE.analytic.run(query);
 
 	yield (query);
 };//method
@@ -361,7 +349,7 @@ CUBE.List2Cube=function(query){
 CUBE.aggOP=function(query){
 	var select = CUBE.select2Array(query.select);
 
-	var sourceColumns = CUBE.getColumns(query.from);
+	var sourceColumns = CUBE.getColumnsFromList(query.from);
 	var columns = CUBE.compile(query, sourceColumns);
 	var where = CUBE.where.compile(query.where, sourceColumns, []);
 
@@ -404,10 +392,52 @@ CUBE.aggOP=function(query){
 
 
 ////////////////////////////////////////////////////////////////////////////////
+//  DO NOTHING TO TRANSFORM LIST OF OBJECTS
+////////////////////////////////////////////////////////////////////////////////
+CUBE.noOP = function(query){
+	var __ret = CUBE.getColumnsFromQuery(query);
+	var sourceColumns = __ret.sourceColumns;
+	var from = __ret.from;
+
+
+	var output;
+	if (where===undefined){
+		output=from;
+	}else{
+		output = [];
+		var where = CUBE.where.compile(query.where, sourceColumns, []);
+
+		var from=query.from;
+		var output = [];
+		for(var t = from.length;t--;){
+			if (where(from[t], null)){
+				output.push(from[t]);
+			}//endif
+		}//for
+	}//endif
+
+
+	//ORDER THE OUTPUT
+	if (query.sort === undefined) query.sort = [];
+	output = CUBE.sort(output, query.sort, sourceColumns);
+
+	query.columns=sourceColumns;
+	query.list = output;
+
+	CUBE.analytic.run(query);
+
+	return query;
+
+};//method
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 //  SIMPLE TRANSFORMATION ON A LIST OF OBJECTS
 ////////////////////////////////////////////////////////////////////////////////
 CUBE.setOP = function(query){
-	var sourceColumns = CUBE.getColumns(query.from);
+	var sourceColumns = CUBE.getColumnsFromList(query.from);
 	var columns = {};
 
 	var select = CUBE.select2Array(query.select);
@@ -435,7 +465,11 @@ CUBE.setOP = function(query){
 	if (query.sort === undefined) query.sort = [];
 	output = CUBE.sort(output, query.sort, columns);
 
+	query.columns=columns;
 	query.list = output;
+	
+	CUBE.analytic.run(query);
+
 	return query;
 
 };//method
@@ -689,10 +723,27 @@ CUBE.Tree2Cube = function(query, cube, tree, depth){
 //};//method
 
 
+CUBE.getColumnsFromQuery=function(query){
+	var sourceColumns;
+	var from = query.from;
+	if (query.from instanceof Array){
+		sourceColumns = CUBE.getColumnsFromList(query.from);
+		from = query.from;
+	} else if (query.from.list){
+		sourceColumns = query.columns;
+		from = query.from.list;
+	} else if (query.from.cube){
+		query.from.list = CUBE.Cube2List(query.from);
+		sourceColumns = query.columns;
+		from = query.from.list;
+	}//endif
+	if (sourceColumns === undefined) sourceColumns = CUBE.getColumnsFromList(from);
+	return {sourceColumns:sourceColumns, from:from};
+};//method
 
 
 // PULL COLUMN DEFINITIONS FROM LIST OF OBJECTS
-CUBE.getColumns = function(data){
+CUBE.getColumnsFromList = function(data){
 	var output = [];
 	for(var i = 0; i < data.length; i++){
 		var keys = Object.keys(data[i]);
@@ -700,7 +751,8 @@ CUBE.getColumns = function(data){
 			for(var c = 0; c < output.length; c++){
 				if (output[c].name == keys[k]) continue kk;
 			}//for
-			output.push({"name":keys[k]});
+			var column={"name":keys[k], "domain":CUBE.domain.value};
+			output.push(column);
 		}//for
 	}//for
 	return output;
@@ -786,7 +838,7 @@ CUBE.sort = function(data, sortOrder, columns){
 CUBE.sort.compile=function(sortOrder, columns, useNames){
 	var orderedColumns = sortOrder.map(function(v){
 		for(var i=columns.length;i--;){
-			if (columns[i].name==v) return columns[i];
+			if (columns[i].name==v && !(columns[i].sortOrder==0)) return columns[i];
 		}//for
 	});
 
@@ -796,13 +848,82 @@ CUBE.sort.compile=function(sortOrder, columns, useNames){
 		if (col.domain === undefined){
 			D.warning("what?");
 		}//endif
+
 		var index=useNames ? CNV.String2Quote(col.name) : col.columnIndex;
 		f+="diff = col.domain.compare(a["+index+"], b["+index+"]);\n";
-		f+="if (diff != 0) return "+col.sortOrder+" * diff;\n";
+		if (o==orderedColumns.length-1){
+			if (col.sortOrder===undefined || col.sortOrder==1){
+				f+="return diff;\n";
+			}else{
+				f+="return "+col.sortOrder+" * diff;\n";
+			}//endif
+		}else{
+			if (col.sortOrder===undefined || col.sortOrder==1){
+				f+="if (diff != 0) return diff;\n";
+			}else{
+				f+="if (diff != 0) return "+col.sortOrder+" * diff;\n";
+			}//endif
+		}//endif
 	}//for
-	f+="return 0;\n}";
+	f+="\n}";
 	
 	var totalSort;
 	eval(f);
 	return totalSort;
 };//method
+
+
+
+//RETURN A NEW QUERY WITH ADDITIONAL FILTERS LIMITING VALUES
+//TO series AND category SELECTION *AND* TRANSFORMING TO AN SET OPERATION
+CUBE.specific=function(query, parts){
+
+	var newQuery=CUBE.drill(query, parts);
+	newQuery.select=CUBE.select2Array(query.select);
+	newQuery.select=CUBE.select2Array(query.select).map(function(s){
+		var newSelect={};
+		Util.copy(s, newSelect);
+		newSelect.operation=undefined;	//CHANGE SELECT FROM AGGREGATE TO SPECIFIC
+		return newSelect;
+	});
+
+	return newQuery;
+};
+
+//parts IS AN ARRAY OF PART NAMES CORRESPONDING TO EACH QUERY EDGE
+CUBE.drill=function(query, parts){
+	if (query.analytic) D.error("Do not know how to drill down on an anlytic");
+
+
+	var newQuery={};
+	newQuery.select=query.select;
+	newQuery.where=query.where;
+	newQuery.esfilter=query.esfilter;
+
+	query.edges.forall(function(edge, e){
+		if (parts[e]==undefined) return;
+
+		if (!MVEL.isKeyword(edge.value)) D.error("do not know how to drill this value");
+
+		if (edge.domain.type=="time"){
+			edge.domain.partitions.forall(function(part, p){
+				if (part.name==parts[e]){
+					var filter={"range":{}};
+					filter.range[edge.value]={"lt":part.max.getMilli(), "gte":part.min.getMilli()};
+					ElasticSearch.injectFilter(newQuery, filter);
+				}//endif
+			});
+		}else if (edge.domain.type=="duration"){
+		}else if (edge.domain.type=="default"){
+			
+
+		}else{
+			D.error("Do not know how to drill down on domain of type "+edge.domain.type);
+		}//endif
+
+
+
+	});
+
+};
+

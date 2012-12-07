@@ -64,6 +64,9 @@ ETL.newInsert=function(etl){
 	var maxBatches=Math.floor(maxBug/etl.BATCH_SIZE);
 
 	yield(ETL.insertBatches(etl, 0, maxBatches, maxBatches));
+
+	if (etl.postMarkup) yield (etl.postMarkup());
+
 	yield(ETL.updateAlias(etl));
 	status.message("Success!");
 };
@@ -118,9 +121,10 @@ ETL.resumeInsert=function(etl){
 
 	yield (ETL.insertBatches(etl, 0, toBatch, Math.floor(maxBug/etl.BATCH_SIZE)));
 
+	if (etl.postMarkup) yield (etl.postMarkup());
+
 	yield (ETL.updateAlias(etl));
-//	D.error("update the ESQuery to handle new query paths");
-	ESQuery.INDEXES.reviews={"path":"/"+etl.aliasName+"/"+etl.typeName};
+
 	status.message("Success!");
 };
 
@@ -164,10 +168,13 @@ ETL.incrementalInsert=function(etl){
 	//GET NEW RECORDS FOR THOSE BUGS
 	var bugSummaries=yield (etl.get(buglist, null));
 
-	status.message("remove changed bugs");
-	yield (etl["delete"](buglist));
+//	status.message("remove changed bugs");
+//	yield (etl["delete"](buglist));
 	status.message("insert changed bugs");
 	yield (etl.insert(bugSummaries));
+
+	if (etl.postMarkup) yield (etl.postMarkup());
+
 	status.message("Done");
 	D.println("Done incremental update");
 };

@@ -15,7 +15,7 @@ Stats.percentile=function(df, percentile){
 			return part+i+1;
 		}//endif
 	}//for
-	D.error("Summation problem");
+	return df.length;		//HAPPENS WHEN df[i]==0
 };//method
 
 //NORMALIZE TO A DISTRIBUTION FUNCTION

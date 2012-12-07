@@ -3,7 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 CUBE.domain = {};
 
-CUBE.domain.compile = function(sourceColumns, column){
+CUBE.domain.compile = function(column, sourceColumns){
 	if (column.domain === undefined){
 		CUBE.domain["default"](column, sourceColumns);
 		return;
@@ -682,7 +682,7 @@ CUBE.domain.compileEnd=function(domain){
 		domain.end=function(part){
 			//HOPEFULLY THE FIRST RUN WILL HAVE ENOUGH PARTITIONS TO DETERMINE A TYPE
 			if (!domain.columns){
-				domain.columns=CUBE.getColumns(domain.partitions);
+				domain.columns=CUBE.getColumnsFromList(domain.partitions);
 			}//endif
 			//RECOMPILE SELF WITH NEW INFO
 			domain.end=aCompile.expression(domain.value, domain);

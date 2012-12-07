@@ -52,6 +52,7 @@
 <a id="resume" class="button" href="#">Click to Resume</a>
 <a id="inc" class="button" href="#">Click for Incremental Update</a>
 <a id="test" class="button" href="#">Click for single test</a>
+<a id="markup" class="button" href="#">Click for post markup</a>
 <div id="results">No Results</div>
 
 
@@ -78,6 +79,14 @@
 		aThread.run((function(){
 			var reviews=yield (REVIEWS.get(749568, 749569));
 			$("#results").html(CNV.List2HTMLTable(reviews));
+			status.message("Done");
+		})());
+	});
+
+
+	$("#markup").click(function(){
+		aThread.run((function(){
+			var reviews=yield (REVIEWS.postMarkup());
 			status.message("Done");
 		})());
 	});

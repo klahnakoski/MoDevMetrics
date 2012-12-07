@@ -9,6 +9,16 @@ var forAllKey=function(map, func){
 	}//for
 };
 
+var mapAllKey=function(map, func){
+	var output={};
+	var keys=Object.keys(map);
+	for(var i=keys.length;i--;){
+		var key=keys[i];
+		var val=map[key];
+		output[key]=func(key, val);
+	}//for
+	return output;
+};
 
 if (window['importScript'] == undefined) importScript=function(){};
 

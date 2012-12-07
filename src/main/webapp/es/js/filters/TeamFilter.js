@@ -27,7 +27,7 @@ TeamFilter.newInstance=function(field_name){
 		people.forall(function(v, i){
 			v.id=v.id.between("mail=", ",");
 			v.manager=v.manager==null ?  null : v.manager.between("mail=", ",");
-			if (v.mail==null) v.email=v.id;
+			if (v.email==null) v.email=v.id;
 
 			if (self.managers[v.id])
 				D.warning(v.id+" is not unique");

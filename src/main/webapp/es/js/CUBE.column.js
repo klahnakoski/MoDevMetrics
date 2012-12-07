@@ -14,7 +14,6 @@ CUBE.column.compile = function(sourceColumns, resultColumn, edges){
 		D.error(resultColumn.name+' has unknown sort order, pick one of ["descending", "none", "ascending"]');
 	}//endif
 
-
 	//COMPILE THE CALCULATION OF THE DESTINATION COLUMN USING THE SOURCE COLUMNS
 	var f = "resultColumn.calc=function(__source, __result){\n";
 	for(var s = 0; s < sourceColumns.length; s++){

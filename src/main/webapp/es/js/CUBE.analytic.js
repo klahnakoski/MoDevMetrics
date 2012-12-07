@@ -2,27 +2,35 @@ CUBE.analytic={};
 
 CUBE.analytic.ROWNUM="__rownum";
 
-
-CUBE.analytic.add=function(query, analytic){
-	CUBE.analytic.calc(query, analytic);
+CUBE.analytic.run=function(query){
+	if (query.analytic){
+		if (!(query.analytic instanceof Array)) query.analytic = [query.analytic];
+		//ANALYTIC COLUMNS ARE ADDED IN ORDER SO EACH CAN REFER TO THE PREVIOUS
+		for(var a = 0; a < query.analytic.length; a++){
+			CUBE.analytic.add(query, query.analytic[a]);
+		}//for
+	}//endif
 };//method
 
 
-
-
-//from IS AN ARRAY OF TUPLES
+//from IS AN ARRAY OF OBJECTS
 //sourceColumns IS AN ARRAY OF COLUMNS DEFINING THE TUPLES IN from
-CUBE.analytic.calc = function(query, analytic){
-	var edges = analytic.edges;
+CUBE.analytic.add=function(query, analytic){
+
+	var edges = analytic.edges;		//ARRAY OF COLUMN NAMES 
 	var sourceColumns=query.columns;
 	var from=query.list;
 	
 	//FILL OUT THE ANALYTIC A BIT MORE
 	if (analytic.name===undefined) analytic.name=analytic.value.split(".").last();
-	sourceColumns.forall(function(v){ if (v.name==analytic.name) D.error("All columns must have different names");});
+	sourceColumns.forall(function(v){ if (v.name==analytic.name)
+		D.error("All columns must have different names");});
 	analytic.columnIndex=sourceColumns.length;
 	sourceColumns[analytic.columnIndex] = analytic;
-	CUBE.analytic.compile(sourceColumns, analytic, query.edges, false);
+	analytic.calc=CUBE.analytic.compile(sourceColumns, analytic.value);
+
+	if (analytic.where===undefined) analytic.where="true";
+	var where=CUBE.analytic.compile(sourceColumns, analytic.where);
 
 //	sourceColumns=sourceColumns.copy();
 
@@ -33,15 +41,22 @@ CUBE.analytic.calc = function(query, analytic){
 
 	var allGroups=[];
 	if (edges.length==0){
-		//ONLY ONE GROUP
-		allGroups.push(from);
+		allGroups.push([]);
+		for(var j = from.length; i --;){
+			var row = from[j];
+			if (!where(-1, row))
+				continue;  //where() IS COMPILED AS ANALYTIC, SO WE PASS IT A DUMMY rownum
+			allGroups[0].push(row);
+		}//for
 	}else{
 		var tree = {};  analytic.tree=tree;
 		for(var i = from.length; i --;){
 			var row = from[i];
+			if (!where(-1, row))
+				continue;  //where() IS COMPILED AS ANALYTIC, SO WE PASS IT A DUMMY rownum
 
 			//FIND RESULT IN tree
-			var trunk = analytic.tree;
+			var trunk = tree;
 			for(var f = 0; f < edges.length; f++){
 				var branch=trunk[row[edges[f]]];
 
@@ -87,26 +102,29 @@ CUBE.analytic.calc = function(query, analytic){
 };
 
 
-CUBE.analytic.compile = function(sourceColumns, resultColumn, edges){
-	if (resultColumn.value === undefined) D.error("Expecting "+resultColumn.name+" to have a value");
+CUBE.analytic.compile = function(sourceColumns, expression){
+	var func;
+
+
+	if (expression === undefined) D.error("Expecting expression");
 
 //COMPILE THE CALCULATION OF THE DESTINATION COLUMN USING THE SOURCE COLUMNS
-	var f = "resultColumn.calc=function(rownum, __source){\n";
+	var f = "func=function(rownum, __source){\n";
 	for(var s = 0; s < sourceColumns.length; s++){
 		var columnName = sourceColumns[s].name;
 //ONLY DEFINE VARS THAT ARE USED
-		if (resultColumn.value.indexOf(columnName) != -1){
+		if (expression.indexOf(columnName) != -1){
 			f += "var " + columnName + "=__source." + columnName + ";\n";
 		}//endif
 	}//for
 	f +=
 		"var output;\n" +
 			"try{ " +
-			" output=" + resultColumn.value + "; " +
-			" if (output===undefined) D.error(\"" + resultColumn.name + " returns undefined\");\n" +
+			" output=" + expression + "; " +
+			" if (output===undefined) D.error(\"analytic returns undefined\");\n" +
 			" return output;\n" +
 			"}catch(e){\n" +
-			" D.error(\"Problem with definition of name=\\\"" + resultColumn.name + "\\\" value=" + CNV.String2Quote(CNV.String2Quote(resultColumn.value)).leftBut(1).rightBut(1) + " when operating on __source=\"+CNV.Object2JSON(__source), e)+\" "+
+			" D.error(\"Problem with definition of value=" + CNV.String2Quote(CNV.String2Quote(expression)).leftBut(1).rightBut(1) + " when operating on __source=\"+CNV.Object2JSON(__source), e)+\" "+
 			"Are you trying to get an attribute value from a NULL part?\"" +
 			"}}";
 	try{
@@ -114,4 +132,5 @@ CUBE.analytic.compile = function(sourceColumns, resultColumn, edges){
 	} catch(e){
 		D.error("can not compile " + f, e);
 	}//try
+	return func;
 };//method

@@ -132,7 +132,7 @@ CNV.List2HTMLTable = function(data, options){
 
 	//WRITE HEADER
 	var header = "";
-	var columns = CUBE.getColumns(data);
+	var columns = CUBE.getColumnsFromList(data);
 	columns.forall(function(v, i){
 		header += "<td>" + CNV.String2HTML(v.name) + "</td>";
 	});
@@ -185,7 +185,7 @@ CNV.List2Tab = function(data){
 	var output = "";
 
 	//WRITE HEADER
-	var columns = CUBE.getColumns(data);
+	var columns = CUBE.getColumnsFromList(data);
 	for(var c = 0; c < columns.length; c++) output += CNV.String2Quote(columns[c].name) + "\t";
 	output = output.substring(0, output.length - 1) + "\n";
 
@@ -229,7 +229,7 @@ CNV.Table2List = function(table){
 
 
 CNV.List2Table = function(list, columnOrder){
-	var columns = CUBE.getColumns(list);
+	var columns = CUBE.getColumnsFromList(list);
 	if (columnOrder !== undefined){
 		var newOrder = [];
 		OO: for(var o = 0; o < columnOrder.length; o++){
