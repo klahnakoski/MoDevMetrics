@@ -26,19 +26,58 @@ ESQuery.DEBUG=false;
 // THESE ARE THE AVAILABLE ES INDEXES/TYPES
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
-	"bugs":{"path":"/bugs"},
+	"bugs":{"path":"/bugs/bug_version"},
 	"reviews":{"path":"/reviews/review"},
 //	"reviews":{"path":"/reviews121206_150602/review"},
 	"bug_summary":{"path":"/bug_summary/bug_summary"},
-	"bug_tags":{"path":"/bug_tags/bug_tags"},
+	"bug_tags":{"path":"/bug_tags121210_193729/bug_tags"},
 	"org_chart":{"path":"/org_chart/person"},
 	"temp":{"path":""}
 };
 
 
+ESQuery.getColumns=function(indexName){
+	var index=ESQuery.INDEXES[indexName];
+	if (index.columns===undefined) return [];//DEFAULT BEHAVIOUR IS TO WORK WITH NO KNOWN COLUMNS
+	return index.columns;
+};//method
+
+
+//ENSURE COLUMNS FOR GIVEN INDEX ARE LOADED, AND MVEL COMPILAITON WORKS BETTER
+ESQuery.loadColumns=function(query){
+	var indexName = query.from.split(".")[0];
+	var index = ESQuery.INDEXES[indexName];
+
+	if (index.columns === undefined){
+		var schema = yield(Rest.get({
+			"url":Util.coalesce(query.url, ElasticSearch.baseURL + index.path) + "/_mapping"
+		}));
+
+		var columns = [];
+		var properties = schema[index.path.split("/")[2]].properties;
+
+		forAllKey(properties, function(name, property){
+			if (property.dynamic!==undefined) return;
+			if (property.type===undefined) return;
+			if (property.type == "multi_field") property.type = property.fields[name].type;	//PULL DEFAULT TYPE
+
+			if (property.type["in"](["string", "boolean", "integer", "date", "long"])){
+				columns.push({"name":name, "type":property.type});
+			}//endif
+		});
+
+		index.columns = columns;
+	}//edif
+};//method
+
+
 ESQuery.run=function(query){
+	yield (ESQuery.loadColumns(query));
 	var esq=new ESQuery(query);
-	return esq.run();	//RETURN A GENERATOR
+	var output=yield (esq.run());
+	if (output===undefined)
+		D.error("what happened here?");
+	yield output;
 };
 
 
@@ -46,7 +85,7 @@ ESQuery.prototype.run = function(){
 	if (this.query.from=="org_chart")
 		D.println("hi");
 	if (!this.query.url) this.query.url=window.ElasticSearch.baseURL+ESQuery.INDEXES[this.query.from.split(".")[0]].path;
-	this.query.url+="/_search";
+	if (!this.query.url.endsWith("/_search")) this.query.url+="/_search";  //WHEN QUERIES GET RECYCLED, THIER url IS SOMETIMES STILL AROUND
 	//var URL=window.ElasticSearch.baseURL+ESQuery.INDEXES[this.query.from.split(".")[0]].path+"/_search";
 	var postResult;
 	try{
@@ -121,6 +160,7 @@ ESQuery.merge=function(){
 
 ESQuery.prototype.compile = function(){
 
+
 	if (this.query.essize===undefined) this.query.essize=200000;
 	if (ESQuery.DEBUG) this.query.essize=100;
 
@@ -192,14 +232,11 @@ ESQuery.prototype.compile = function(){
 				mvel='doc["'+select.value.rightBut(this.query.from.length+1)+'"].value';
 			} else if (select.value.indexOf('doc["')>=0){
 				//WE ASSUME THE PROGRAMMER IS PASSING MVEL DIRECTLY, NO NEED TO CONVERT
-				mvel=MVEL.addFunctions(select.value);
+				mvel=MVEL.compile.addFunctions(select.value);
 			}else{
 				//FOR ROBUSTNESS, WHEN SELECT IS AN EXPRESSION
-				mvel=MVEL.addFunctions(
-					"var cool_func = function("+this.query.from+"){\n"+
-					""+select.value+";\n"+
-					"};\n"+
-					"cool_func(_source)\n"
+				mvel=MVEL.compile.addFunctions(
+					MVEL.compile.expression(select.value, this.query)
 				);
 			}//endif
 
@@ -318,9 +355,13 @@ ESQuery.buildCondition = function(edge, partition){
 		} else if (edge.domain.type == "set"){
 			output.term = {};
 			output.term[edge.value] = partition.value;
+		} else if (edge.domain.type=="default"){
+			output.term = {};
+			output.term[edge.value] = partition.value;
 		} else{
 			D.error("Edge \"" + edge.name + "\" is not supported");
 		}//endif
+		return output;
 	} else{
 		//USE MVEL CODE
 		if (edge.domain.type == "time"){
@@ -333,6 +374,8 @@ ESQuery.buildCondition = function(edge, partition){
 			D.error("Edge \"" + edge.name + "\" is not supported");
 		}//endif
 	}//endif
+
+	output.script.script=MVEL.compile.addFunctions(output.script.script);
 	return output;
 };
 
@@ -407,7 +450,7 @@ ESQuery.prototype.compileEdges2Term=function(){
 		return output;
 	};
 
-	return MVEL.addFunctions(mvel);
+	return MVEL.compile.addFunctions(mvel);
 };
 
 

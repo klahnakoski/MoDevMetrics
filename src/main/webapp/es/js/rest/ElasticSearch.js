@@ -22,8 +22,8 @@ if (window.location.hostname=="metrics.mozilla.com"){
 	ElasticSearch.pushURL="http://localhost:9200";
 //	ElasticSearch.pushURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
 
-	ElasticSearch.baseURL="http://localhost:9200";
-//	ElasticSearch.baseURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
+//	ElasticSearch.baseURL="http://localhost:9200";
+	ElasticSearch.baseURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
 	ElasticSearch.queryURL = "http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search";
 
 
