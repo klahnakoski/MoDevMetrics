@@ -209,7 +209,7 @@ String.prototype.left = function(amount){
 };//method
 
 String.prototype.right = function(amount){
-	return this.substring(this.length - amount);
+	return this.substring(this.length - amount, this.length);
 };//method
 
 String.prototype.leftBut = function(amount){
@@ -218,17 +218,6 @@ String.prototype.leftBut = function(amount){
 
 String.prototype.rightBut = function(amount){
 	return this.substring(amount, this.length);
-};//method
-
-String.prototype.endsWith=function(value){
-	return this.substring(this.length - value.length)==value;
-};//method
-
-String.prototype["in"]=function(array){
-	for(var i=array.length;i--;){
-		if (array[i]==this) return true;
-	}//for
-	return false;
 };//method
 
 

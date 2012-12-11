@@ -106,9 +106,7 @@ aChart.showPie=function(params){
 //			xAxisScale_dateTickFormat: "%Y/%m/%d",
 //			xAxisScale_dateTickPrecision: xaxis.domain.interval.milli
 			//set in miliseconds
-		},
-		"clickable": true,
-		"clickAction":function(series, x, d, elem){bugClicker(chartCube, series, x, d, elem);}
+		}
 	};
 	Util.copy(params, chartParams);
 
@@ -231,11 +229,6 @@ aChart.show=function(params){
 //			xAxisScale_dateTickFormat: "%Y/%m/%d",
 //			xAxisScale_dateTickPrecision: xaxis.domain.interval.milli
 			//set in miliseconds
-		},
-		"clickable": true,
-		"clickAction":function(series, x, d, elem){
-			bugClicker(chartCube, series, x, d, elem);
-			return true;
 		}
 	};
 	Util.copy(params, chartParams);
@@ -270,22 +263,4 @@ aChart.show=function(params){
 	chart.render();
 
 
-};
-
-
-var bugClicker=function(query, series, x, d, elem){
-	try{
-		//We can decide to drilldown, or show a bug list.
-		//Someimes drill down is not available, and bug list is too big, so nothing happens
-		//When there is a drilldown, the decision to show bugs is made at a lower count (prefering drilldown)
-		if (d>300) D.alert("Too many bugs (>300)");
-		aThread.run(function(){
-			var specific=CUBE.specificBugs(query, [x]);
-			var buglist=(yield (ESQuery.run(specific)));
-			buglist=buglist.list.map(function(b){return b.bug_id;});
-			Bugzilla.showBugs(buglist);
-		});
-	}catch(e){
-		//DO NOTHING
-	}//try
 };

@@ -14,9 +14,13 @@ REVIEWS.ALIASES=[
 ];
 
 
-
+REVIEWS.allFlags = aThread.runSynchonously(CUBE.calc2List({
+	"from":CNV.Table2List(MozillaPrograms),
+	"edges":["attributeName"],
+	"where":"attributeName.startsWith('cf_')"
+})).list.map(function(v){return v.attributeName;});
 //aThread.run(function(){
-//	ETL.allFlags = yield (CUBE.calc2List({
+//	REVIEWS.allFlags = yield (CUBE.calc2List({
 //		"from":CNV.Table2List(MozillaPrograms),
 //		"edges":["attributeName"],
 //		"where":"attributeName.startsWith('cf_')"
@@ -69,7 +73,7 @@ REVIEWS.makeSchema=function(successFunction){
 			"requester_review_num":{"type":"integer", "store":"yes", "index":"not_analyzed"},
 			"keywords":{"type":"string", "store":"yes", "index":"analyzed", analyzer: 'whitespace'}
 //			"status_whiteboard":{"type":"string", "store":"yes", "index":"not_analyzed"},
-//			"status_whiteboard.tokenized":{"type":"string", "store":"yes", "index":"analyzed", analyzer: 'whitespace'}
+//			"status_whiteboard.tokenized":{"type":"string", "store":"yes", "index":"analyzed"}
 		}
 	};
 
@@ -123,6 +127,10 @@ REVIEWS.makeSchema=function(successFunction){
 };
 
 
+
+
+
+
 REVIEWS.get=function(minBug, maxBug){
 
 	//DETERMINE IF WE ARE LOOKING AT A RANGE, OR A SPECIFIC SET, OF BUGS
@@ -132,6 +140,12 @@ REVIEWS.get=function(minBug, maxBug){
 	}else{
 		esfilter={"range":{"bug_id":{"gte":minBug, "lt":maxBug}}};
 	}//endif
+
+	var getFlags="var output = \"\";\n";
+	REVIEWS.allFlags.map(function(v){
+		getFlags+="if (doc[\""+v+"\"]!=null && doc[\""+v+"\"].value!=null) output+=\""+v+"\"+doc[\""+v+"\"].value;\n";
+	});
+	getFlags+="output.trim();";
 
 
 	var esQuery=new ESQuery({
@@ -146,7 +160,7 @@ REVIEWS.get=function(minBug, maxBug){
 			{"name":"bug_status", "value":"(bugs.bug_status=='resolved'||bugs.bug_status=='verified'||bugs.bug_status=='closed') ? 'closed':'open'"},
 			{"name":"keywords", "value":"doc[\"keywords\"].value"},
 			{"name":"whiteboard", "value":"bugs.status_whiteboard"},
-			{"name":"flags", "value":getFlags()}
+			{"name":"flags", "value":getFlags}
 		],
 		"from":
 			"bugs.attachments.flags",
@@ -353,6 +367,25 @@ REVIEWS.insert=function(reviews){
 
 
 
+REVIEWS["delete"]=function(bugList){
+//	var count=0;
+
+//	for(var i=0;i<bugList.length;i++){
+	yield (Rest["delete"]({
+		url:ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName+"_query",
+		data:{"terms":{"bug_id":bugList}}
+	}));
+//	}//for
+
+//	while(count<bugList.length){
+//		yield (aThread.sleep(1000));
+//	}//while
+
+//	yield (null);
+};//method
+
+
+
 
 REVIEWS.postMarkup=function(){
 
@@ -395,9 +428,7 @@ REVIEWS.postMarkup=function(){
 	// MAIN UPDATE FUNCTION
 	////////////////////////////////////////////////////////////////////////////
 	var update=function(emails){
-		status.message("Get reviews by requester");
 		var firstTime=yield(ESQuery.run({
-			"url":ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName,
 			"from":"reviews",
 			"select":[
 				{"name":"_id", "value":"doc[\"_id\"].value"},
@@ -412,7 +443,6 @@ REVIEWS.postMarkup=function(){
 			]}
 		}));
 
-		status.message("Calculate request ordering");
 		var review_count=yield (CUBE.calc2List({//FIRST REVIEW FOR EACH BUG BY REQUESTER
 			"from":firstTime,
 			"analytic":[
@@ -467,7 +497,6 @@ REVIEWS.postMarkup=function(){
 
 	//MARK EACH PERSON'S FIRST REVIEW
 	var requesterCount=yield(ESQuery.run({
-		"url":ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName,
 		"from":"reviews",
 		"select":{"name":"num", "value":"1", "operation":"count"},
 		"edges":[

@@ -44,7 +44,6 @@
 <script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
-<script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script>
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
 <script type="application/javascript;version=1.7" src="js/Debug.js"></script>
@@ -166,7 +165,7 @@ var __createChart = function(){
 			"from":oldRequests,
 			"select":[
 				{"name":"Reviewer", value:"reviewer"},
-				{"name":"Average Response Time", value:"Math.round(avg_wait_time/Duration.MILLI_VALUES.day, 2)+'days'"},
+				{"name":"Average Wait Time", value:"Math.round(avg_wait_time/Duration.MILLI_VALUES.day, 2)+'days'"},
 				{"name":"Count", value:"count"},
 				{"name":"Bugs", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
 			]

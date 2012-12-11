@@ -64,20 +64,15 @@ aThread.run(function(){
 //	]}}},"from":0,"size":100,"sort":["bug_version_num"]
 //	};
 
-	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
-		{"or":[
-			{"prefix":{"keywords":"cf_blocking_basecamp"}}
-		]},
-		{"script":{"script":"true"}}
-	]}}},"from":0,"size":10,"sort":[],"facets":{"0":{"terms":{"script_field":"''+(((doc[\"date\"].value<1293840000000) || (doc[\"date\"].value>=1355184000000)) ? 710 : Math.floor((doc[\"date\"].value-1293840000000)/86400000))","size":100000}}}};
+	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[{"script":{"script":"true"}},{"and":[
+		{"term":{"requester_review_num":"1"}}
+	]}]}}},"from":0,"size":0,"sort":[]};
+
+
 
 	try{
 		var data=yield (Rest.post({
-//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping?pretty=true",
-//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping",
-
-//			"url":"http://localhost:9200/reviews/review/_search",
-			"url":"http://localhost:9200/bug_tags/bug_tags/_search",
+			"url":"http://localhost:9200/reviews/review/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews/review/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",

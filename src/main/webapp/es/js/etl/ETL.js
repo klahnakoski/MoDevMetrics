@@ -1,15 +1,6 @@
 ETL={};
 
 
-aThread.run(function(){
-	yield (ESQuery.loadColumns({"from":"bugs", "url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version"}));
-
-	ETL.allFlags = aThread.runSynchonously(CUBE.calc2List({
-		"from":ESQuery.INDEXES.bugs.columns,
-		"edges":["name"],
-		"where":"name.startsWith('cf_')"
-	})).list.map(function(v){return v.name;});
-});
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -113,10 +104,10 @@ ETL.resumeInsert=function(etl){
 	//GET THE MAX AND MIN TO FIND WHERE TO START
 	var maxResults=yield(ESQuery.run({
 		"url":ElasticSearch.pushURL+"/"+etl.newIndexName+"/"+etl.typeName,
-		"from":etl.aliasName,
+		"from":"temp",
 		"select":[
-			{"name":"maxBug", "value":"bug_id", "operation":"maximum"},
-			{"name":"minBug", "value":"bug_id", "operation":"minimum"}
+			{"name":"maxBug", "value":"temp.bug_id", "operation":"maximum"},
+			{"name":"minBug", "value":"temp.bug_id", "operation":"minimum"}
 			]
 	}));
 
@@ -178,7 +169,7 @@ ETL.incrementalInsert=function(etl){
 	var bugSummaries=yield (etl.get(buglist, null));
 
 //	status.message("remove changed bugs");
-//	yield (etl["delete"](buglist));				//NEVER DO THIS, ENSURE _id IS ALWAYS THE SAME
+//	yield (etl["delete"](buglist));
 	status.message("insert changed bugs");
 	yield (etl.insert(bugSummaries));
 
@@ -222,7 +213,6 @@ ETL.insertBatches=function(etl, fromBatch, toBatch, maxBatch){
 //LIMITED TO 10MEG CHUNKS AND SENT TO insertFunction FOR PROCESSING
 ETL.chunk=function(insert, insertFunction){
 //ES HAS 100MB LIMIT, BREAK INTO SMALLER CHUNKS
-	if (insert.length==0) yield(null);
 	var bytes = 0;
 	var e = insert.length;
 	for(var s = insert.length; s -= 2;){
@@ -231,7 +221,7 @@ ETL.chunk=function(insert, insertFunction){
 			s += 2;	//NOT THE PAIR THAT PUT IT OVER
 
 			var data = insert.substring(s, e).join("\n") + "\n";
-			yield (insertFunction(data));
+			insertFunction(data);
 
 			e = s;
 			bytes = 0;
@@ -239,7 +229,7 @@ ETL.chunk=function(insert, insertFunction){
 	}//for
 
 	data = insert.substring(0, e).join("\n") + "\n";
-	yield (insertFunction(data));
+	insertFunction(data);
 };
 
 
@@ -251,16 +241,3 @@ ETL.parseWhiteBoard=function(whiteboard){
 		return v.substring(0, index).trim().toLowerCase();
 	}).join(" ");
 };
-
-
-// GET THE cf_* FLAGS FROM THE bug_history DOCUMENTS
-ETL.getFlags=function(){
-	var getFlags = "var output = \"\";\n";
-	ETL.allFlags.map(function(v){
-		getFlags += "if (doc[\"" + v + "\"]!=null && doc[\"" + v + "\"].value!=null) output+=\" " + v + "\"+doc[\"" + v + "\"].value.trim();\n";
-	});
-	getFlags += "output.trim();";
-	return getFlags;
-};//method
-
-

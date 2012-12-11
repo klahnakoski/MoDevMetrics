@@ -39,7 +39,7 @@ BUG_TAGS.makeSchema=function(){
 			"product":{"type":"string", "store":"yes", "index":"not_analyzed"},
 			"component":{"type":"string", "store":"yes", "index":"not_analyzed"},
 			"assigned_to":{"type":"string", "store":"yes", "index":"not_analyzed"},
-			"keywords":{"type":"string", "store":"yes", "index":"analyzed", analyzer: 'whitespace'}
+			"keywords":{"type":"string", "store":"yes", "index":"analyzed"}
 		}
 	};
 
@@ -104,7 +104,7 @@ BUG_TAGS.get=function(minBug, maxBug){
 	}//endif
 
 	var dateFilter={"and":[
-		{"range":{"expires_on":{"gt":minDate.floorDay().getMilli()}}},
+		{"range":{"expires_on":{"gt":minDate.addDay(-1).getMilli()}}},
 		{"range":{"modified_ts":{"lt":maxDate.getMilli()}}},
 		bugFilter
 	]};
@@ -128,8 +128,7 @@ BUG_TAGS.get=function(minBug, maxBug){
 			{"name":"component", "value":"bugs.component"},
 			{"name":"assigned_to", "value":"bugs.assigned_to"},
 			{"name":"keywords", "value":"doc[\"keywords\"].value"},
-			{"name":"whiteboard", "value":"bugs.status_whiteboard"},
-			{"name":"flags", "value":ETL.getFlags()}
+			{"name":"whiteboard", "value":"bugs.status_whiteboard"}
 		],
 		"esfilter":
 			dateFilter
@@ -145,7 +144,7 @@ BUG_TAGS.get=function(minBug, maxBug){
 			{"name":"product", "value":"product", "operation":"one"},
 			{"name":"component", "value":"component", "operation":"one"},
 			{"name":"assigned_to", "value":"assigned_to", "operation":"one"},
-			{"name":"keywords", "value":"(Util.coalesce(keywords, '')+' '+ETL.parseWhiteBoard(whiteboard)).trim()+' '+flags", "operation":"one"}
+			{"name":"keywords", "value":"(Util.coalesce(keywords, '')+' '+ETL.parseWhiteBoard(whiteboard)).trim()", "operation":"one"}
 		],
 		"edges":[
 			{"name":"date", "test":"modified_ts<=time.max.getMilli() && time.max.getMilli()<expires_on",
@@ -161,15 +160,16 @@ BUG_TAGS.get=function(minBug, maxBug){
 
 
 
-BUG_TAGS.insert=function(tags){
+BUG_TAGS.insert=function(reviews){
+	var uid=Util.UID();
 	var insert=[];
-	tags.forall(function(r, i){
-		insert.push(JSON.stringify({ "index" : { "_id" : r.bug_id+"-"+new Date(r.date).format("yyMMdd") } }));
+	reviews.forall(function(r, i){
+		insert.push(JSON.stringify({ "create" : { "_id" : uid+"-"+i } }));
 		insert.push(JSON.stringify(r));
 	});
 
 	status.message("Push bug tags to ES");
-	yield ETL.chunk(insert, function(data){
+	ETL.chunk(insert, function(data){
 		try{
 			yield (Rest.post({
 				"url":ElasticSearch.pushURL + "/" + BUG_TAGS.newIndexName + "/" + BUG_TAGS.typeName + "/_bulk",
@@ -183,5 +183,11 @@ BUG_TAGS.insert=function(tags){
 };//method
 
 
+
+BUG_TAGS["delete"]=function(bugList){
+	for(var i=0;i<bugList.length;i++){
+		yield(Rest["delete"]({url: ElasticSearch.pushURL+"/"+BUG_TAGS.aliasName+"/"+BUG_TAGS.typeName+"?q=bug_id:"+bugList[i]}));
+	}//for
+};//method
 
 

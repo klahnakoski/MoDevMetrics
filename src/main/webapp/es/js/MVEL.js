@@ -2,8 +2,6 @@ var MVEL = function(){
 };
 
 
-
-
 MVEL.prototype.code = function(query){
 	var selectList = CUBE.select2Array(query.select);
 	var fromPath = query.from;			//FIRST NAME IS THE INDEX
@@ -12,26 +10,16 @@ MVEL.prototype.code = function(query){
 
 	//PARSE THE fromPath
 	var code = this.from(fromPath, indexName, "__loop");
-	var body =
-		"output=\"\";\n" +
-		code.replace(
-			"<CODE>",
-			"if (" + this.where(whereClause) + "){" +
-				this.select(selectList, fromPath, "output") +
-			"}\n"
-		)+
-		"output;\n";
-
-	//ADD REFERENCED CONTEXT VARIABLES
-	var context=MVEL.compile.getContextVariables(indexName, body);
-
-	if (body.indexOf("<BODY")>=0)
-		D.error();
-	
-	var output = MVEL.compile.addFunctions(
+	var output = MVEL.addFunctions(
 		'var cool_func = function('+indexName+'){\n' +
-			context+
-			body +
+			"output=\"\";\n" +
+			code.replace(
+				"<CODE>",
+				"if (" + this.where(whereClause) + "){" +
+					this.select(selectList, fromPath, "output") +
+				"}\n"
+			) +
+			'output;\n' +
 		'};\n' +
 		'cool_func(_source)\n'
 	);
@@ -39,53 +27,6 @@ MVEL.prototype.code = function(query){
 //	if (console !== undefined && D.println != undefined) D.println(output);
 	return output;
 };//method
-
-
-////////////////////////////////////////////////////////////////////////////////
-// WE ASSUME THE EXPRESSION COMES FROM A select.value EXPRESSION AND IS
-// VALID FROM WITHIN THE CONTEXT OF THE query
-////////////////////////////////////////////////////////////////////////////////
-MVEL.compile={};
-MVEL.compile.expression = function(expression, query){
-	var fromPath = query.from;			//FIRST NAME IS THE INDEX
-	var indexName=fromPath.split(".")[0];
-//	var whereClause = query.where;
-
-	var body = "output = "+expression+";\n";
-	var context = MVEL.compile.getContextVariables(indexName, body);
-
-	var output = MVEL.compile.addFunctions(
-		'var cool_func = function('+indexName+'){\n' +
-			context+
-			body +
-		'};\n' +
-		'cool_func(_source)\n'
-	);
-
-//	if (console !== undefined && D.println != undefined) D.println(output);
-	return output;
-};//method
-
-MVEL.compile.getContextVariables=function(indexName, body){
-	var context = "";
-	var columns = ESQuery.getColumns(indexName);
-	columns.forall(function(c, i){
-		var j=body.indexOf(c.name, 0);
-		while(j>=0){
-			var test=body.substring(j-5, j+c.name.length+2);
-			if (test!="doc[\"" + c.name + "\"]"){ //BUT NOT ALREADY IN USE By doc["x"]
-				context += "var " + c.name + " = doc[\"" + c.name + "\"].value;\n";
-				break;
-			}//endif
-			j=body.indexOf(c.name, j+1);
-		}//while
-
-	});
-	return context;
-};//method
-
-
-
 
 
 
@@ -125,6 +66,29 @@ MVEL.prototype.translate = function(variableName){
 	return shortForm;
 };//method
 
+
+// CREATE A JSON OBJECT FOR RETURN OF THE SELECTED
+// selectList HAS SIMPLE LIST OF VARIABLES TO BE ASSIGNED TO EACH RETURN OBJECT
+// prefixMap WILL MAP path TO A LOOP variable INDEX
+// varName THE VARIABLE USED TO ACCUMULATE THE STRING CONCATENATION
+//MVEL.prototype.select = function(selectList, varName){
+//
+//	var list = [];
+//	for(var s = 0; s < selectList.length; s++){
+//		var variable = selectList[s].name;
+//		var value = selectList[s].value;
+//		var shortForm = this.translate(value);
+//		list.push(MVEL.Value2Code(MVEL.Value2Code(variable) + ":") + "+String2Quote(" + shortForm + ")\n");
+//	}//for
+//
+//
+//	var output =
+//		'if (' + varName + '!="") ' + varName + '+=", ";\n' +
+//			varName + '+="{"+' + String.join(list, "+\",\"+") + '+"}";\n'
+//		;
+//
+//	return output;
+//};//method
 
 
 // CREATE A PIPE DELIMITED RESULT SET
@@ -298,7 +262,7 @@ MVEL.Value2Code = function(value){
 
 
 //PREPEND THE REQUIRED MVEL FUNCTIONS TO THE CODE
-MVEL.compile.addFunctions=function(mvel){
+MVEL.addFunctions=function(mvel){
 	var isAdded={};			//SOME FUNCTIONS DEPEND ON OTHERS 
 
 	var keepAdding=true;

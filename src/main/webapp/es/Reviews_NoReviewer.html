@@ -48,7 +48,6 @@
 <script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
-<script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script>
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
 <script type="application/javascript;version=1.7" src="js/Debug.js"></script>
@@ -151,7 +150,7 @@ var __createChart = function(){
 		"from":result,
 		"select":[
 			{"name":"Number Requested", value:"numPending"},
-			{"name":"Average Response Time", "value":"Math.round(average_wait_time/"+Duration.MILLI_VALUES.day+", 2)"},
+			{"name":"Average Wait Time", "value":"Math.round(average_wait_time/"+Duration.MILLI_VALUES.day+", 2)"},
 			{"name":"Bug List", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
 		]
 	}))).list;

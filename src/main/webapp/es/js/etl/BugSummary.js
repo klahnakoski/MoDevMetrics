@@ -264,7 +264,7 @@ BUG_SUMMARY.insert=function(reviews){
 	var uid=Util.UID();
 	var insert=[];
 	reviews.forall(function(r, i){
-		insert.push(JSON.stringify({ "create" : { "_id" : r.bug_id } }));
+		insert.push(JSON.stringify({ "create" : { "_id" : uid+"-"+i } }));
 		insert.push(JSON.stringify(r));
 	});
 	status.message("Push bug history to ES");
@@ -276,3 +276,9 @@ BUG_SUMMARY.insert=function(reviews){
 };//method
 
 
+
+BUG_SUMMARY["delete"]=function(bugList){
+	for(var i=0;i<bugList.length;i++){
+		yield(Rest["delete"]({url: ElasticSearch.pushURL+"/"+BUG_SUMMARY.aliasName+"/"+BUG_SUMMARY.typeName+"?q=bug_id:"+bugList[i]}));
+	}//for
+};//method
