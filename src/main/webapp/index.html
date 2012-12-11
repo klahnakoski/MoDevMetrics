@@ -99,17 +99,17 @@
 				<span class="info">Show total volume of incoming reviews, and any review backlog, by team</span><br>
 				<br>
 
-				<div class="new">
+				<!--<div class="new">-->
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_First.html">ReviewIntensity_First</a>
 				<span class="info">Same as above but only counting the first incoming review for a bug</span><br>
 				<br>
-				</div>
+				<!--</div>-->
 
-				<div class="new">
+				<!--<div class="new">-->
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_Requester.html">Outgoing Reviews</a>
 				<span class="info">The the number of outgoing reviews</span><br>
 				<br>
-				</div>
+				<!--</div>-->
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/NewAndClosed.html">NewAndClosed.html</a>
 				<span class="info">Show weekly totals for new bugs and closed bugs (new bugs by Program are artificailly low because not marked upon creation) </span><br>
@@ -154,7 +154,9 @@
 
 		});
 	}
-	
+
+
+	$('.new').effect("pulsate", { times:2000 }, 1000);
 </script>
 
 </BODY>

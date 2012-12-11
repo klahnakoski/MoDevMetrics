@@ -64,16 +64,25 @@ aThread.run(function(){
 //	]}}},"from":0,"size":100,"sort":["bug_version_num"]
 //	};
 
-	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[{"script":{"script":"true"}},{"and":[
-		{"term":{"requester_review_num":"1"}}
-	]}]}}},"from":0,"size":0,"sort":[]};
-
-
-
+	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
+		{"script":{"script":"true"}},
+		{"and":[
+			{"range":{"request_time":{"gte":1347321600000,"lt":1355270400000}}},
+			{"script":{"script":"true"}},
+			{"script":{"script":"true"}},
+			{"script":{"script":"true"}},
+			{"terms":{"reviewer":["msreckovic@mozilla.com","bgirard@mozilla.com","bjacob@mozilla.com","bas.schouten@live.nl","gwright@mozilla.com","joe@drew.ca","jmuizelaar@mozilla.com","nical.bugzilla@gmail.com"]}},
+			{"script":{"script":"((coalesce(zero2null(doc[\"review_time\"].value), 1355270400000)-doc[\"request_time\"].value)<0) || ((coalesce(zero2null(doc[\"review_time\"].value), 1355270400000)-doc[\"request_time\"].value)>=864000000)"}}
+		]}
+	]}}},"from":0,"size":0,"sort":[],"facets":{"mvel":{"terms":{"script_field":"var get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar Value2Pipe = function(value){\nif (value==null){ \"0\" }else if (value is ArrayList){ 's'+value.toString(); }else \nif (value is Long || value is Integer){ 'n'+value; }else \nif (!(value is String)){ 's'+value.getClass().getName(); }else \n\"s\"+value.replace(\"\\\\\", \"\\\\\\\\\").replace(\"|\", \"\\\\p\");};\nvar cool_func = function(reviews){\nvar bug_id = doc[\"bug_id\"].value;\noutput=\"\";\nif (true){output = Value2Pipe(bug_id)\n;\n}\noutput;\n};\ncool_func(_source)\n","size":100000}}}};
 	try{
 		var data=yield (Rest.post({
-			"url":"http://localhost:9200/reviews/review/_search",
-//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews/review/_search",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping?pretty=true",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping",
+
+//			"url":"http://localhost:9200/reviews/review/_search",
+//			"url":"http://localhost:9200/bug_tags/bug_tags/_search",
+			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews/review/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/org_chart/person/_search",

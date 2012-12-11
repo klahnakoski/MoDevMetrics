@@ -876,17 +876,12 @@ CUBE.sort.compile=function(sortOrder, columns, useNames){
 
 //RETURN A NEW QUERY WITH ADDITIONAL FILTERS LIMITING VALUES
 //TO series AND category SELECTION *AND* TRANSFORMING TO AN SET OPERATION
-CUBE.specific=function(query, parts){
+CUBE.specificBugs=function(query, filterParts){
 
-	var newQuery=CUBE.drill(query, parts);
-	newQuery.select=CUBE.select2Array(query.select);
-	newQuery.select=CUBE.select2Array(query.select).map(function(s){
-		var newSelect={};
-		Util.copy(s, newSelect);
-		newSelect.operation=undefined;	//CHANGE SELECT FROM AGGREGATE TO SPECIFIC
-		return newSelect;
-	});
+	var newQuery=CUBE.drill(query, filterParts);
+	newQuery.edges=[];
 
+	newQuery.select={"name":"bug_id", "value":"bug_id"};
 	return newQuery;
 };
 
@@ -896,34 +891,33 @@ CUBE.drill=function(query, parts){
 
 
 	var newQuery={};
-	newQuery.select=query.select;
-	newQuery.where=query.where;
-	newQuery.esfilter=query.esfilter;
+	Util.copy(query, newQuery);
+	newQuery.cube=undefined;
+	newQuery.list=undefined;
+	newQuery.url=undefined;			//REMOVE, MAY CAUSE PROBLEMS
+	newQuery.esfilter={};
+	Util.copy(query.esfilter, newQuery.esfilter);
 
 	query.edges.forall(function(edge, e){
 		if (parts[e]==undefined) return;
 
-		if (!MVEL.isKeyword(edge.value)) D.error("do not know how to drill this value");
-
-		if (edge.domain.type=="time"){
-			edge.domain.partitions.forall(function(part, p){
-				if (part.name==parts[e]){
-					var filter={"range":{}};
-					filter.range[edge.value]={"lt":part.max.getMilli(), "gte":part.min.getMilli()};
-					ElasticSearch.injectFilter(newQuery, filter);
-				}//endif
-			});
-		}else if (edge.domain.type=="duration"){
-		}else if (edge.domain.type=="default"){
-			
-
-		}else{
-			D.error("Do not know how to drill down on domain of type "+edge.domain.type);
+		for(var p=0;p<edge.domain.partitions.length;p++){
+			var part=edge.domain.partitions[p];
+			if (part.name==parts[e]){
+				var filter=ESQuery.buildCondition(edge, part);
+				newQuery.esfilter.and.push(filter);
+				return;  //CONTINUE
+			}//endif
+		}//for
+		if (edge.domain.NULL.name==parts[e]){
+			var filter={"script":{"script":MVEL.compile.expression(ESQuery.compileNullTest(edge), newQuery)}};
+			newQuery.esfilter.and.push(filter);
+			return;  //CONTINUE
 		}//endif
-
-
-
+		D.error("No drilling happening!");
 	});
+
+	return newQuery;
 
 };
 

@@ -5260,6 +5260,13 @@ pv.SvgScene.dispatch = pv.listener(function(e) {
       }
     }
 
+	try{
+		if (!type["in"](["mouseover","mousemove","mouseout","point","unpoint","mousedown", "mouseup"])){
+			D.println("");
+		}//endif
+	}catch(e){}
+
+
     if (pv.Mark.dispatch(type, t.scenes, t.index)) e.preventDefault();
   }
 });
@@ -7700,9 +7707,27 @@ pv.Mark.prototype.context = function(scene, index, f) {
 
 /** @private Execute the event listener, then re-render. */
 pv.Mark.dispatch = function(type, scene, index) {
+	try{
+		if (!type["in"](["mouseover","mousemove","mouseout","point","unpoint","mousedown", "mouseup"])){
+			D.println("");
+		}//endif
+	}catch(e){}
+
+
+
+
   var m = scene.mark, p = scene.parent, l = m.$handlers[type];
   if (!l) return p && pv.Mark.dispatch(type, p, scene.parentIndex);
   m.context(scene, index, function() {
+	  try{
+		  if (!type["in"](["mouseover","mousemove","mouseout","point","unpoint","mousedown", "mouseup"])){
+			  D.println("");
+		  }//endif
+	  }catch(e){}
+
+
+
+
       m = l.apply(m, pv.Mark.stack);
       if (m && m.render) m.render();
     });

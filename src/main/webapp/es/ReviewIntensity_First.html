@@ -44,6 +44,7 @@
 <script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script>
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
 <script type="application/javascript;version=1.7" src="js/Debug.js"></script>
@@ -142,19 +143,25 @@
 		//CHART OF AGGREGATE RESPONSE TIMES
 		aThread.run(function(){
 			var q=new ESQuery({
-				"name":"Wait Time Breakdown",
+				"name":"Response Time Breakdown",
 				"from":"reviews",
 				"select":{"name":"count", "value":"bug_id", "operation":"count"},
 				"edges":[
-					{"name":"wait_time", value:"(coalesce(zero2null(doc[\"review_time\"].value), "+Date.eod().getMilli()+")-doc[\"request_time\"].value)",
+					{"name":"wait_time", value:"(coalesce(zero2null(review_time), "+Date.eod().getMilli()+")-request_time)",
+						"allowNulls":true,
 						"domain":{"type":"duration", "min":0, "max":"10day", "interval":"day"}
 					}
 				],
 				"esfilter":mainFilter
 			});
 
+			q.edges[0].domain.NULL.name="Over 10 days";
+
 //			GUI.injectFilters(q);
 			var response=yield (q.run());
+
+
+
 
 			aChart.show({
 				"id":"chartResponse",
@@ -172,7 +179,7 @@
 					yield (CUBE.Cube2List(response)),
 				"select": [
 					{"name":"total", "value":"count", "operation":"sum"},
-					{"name":"under_24_hours", "value":"wait_time.milli<"+Duration.newInstance('24hour').milli+" ? count : 0", "operation":"sum"}
+					{"name":"under_24_hours", "value":"(wait_time==null || wait_time.milli<"+Duration.newInstance('24hour').milli+") ? count : 0", "operation":"sum"}
 				]
 			}))).cube;
 

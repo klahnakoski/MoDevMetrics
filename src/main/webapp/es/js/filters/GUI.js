@@ -123,6 +123,11 @@ GUI.showLastUpdated = function(type){
 			var time=yield (REVIEWS.getLastUpdated());
 			$("#testMessage").html("Reviews Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 		});
+	}else if (type=="bug_tags"){
+		aThread.run(function(){
+			var time=yield (BUG_TAGS.getLastUpdated());
+			$("#testMessage").html("Bugs Last Updated " + time.addTimezone().format("NNN dd"));
+		});
 	}else if (type="bug_summary"){
 		aThread.run(function(){
 			var time=new Date((yield(ESQuery.run({

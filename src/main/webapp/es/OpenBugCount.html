@@ -67,6 +67,7 @@
 <script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script>
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
 <script type="application/javascript;version=1.7" src="js/Debug.js"></script>
@@ -105,9 +106,11 @@
 <script type="application/javascript;version=1.7" src="js/filters/ProgramFilter.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/filters/GUI.js"></script>
+<script type="application/javascript;version=1.7" src="js/etl/BugTags.js"></script>
 
 
-<h3>Give me a name</h3>
+
+<h3>Open Bug Count</h3>
 <div id="sidebar">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
@@ -151,7 +154,6 @@ var __createChart = function(){
 
 	var sampleMin=new Date(GUI.state.sampleMin);
 	var sampleMax=new Date(GUI.state.sampleMax).ceilingDay();
-	var sampleInterval=new Duration.newInstance(GUI.state.sampleInterval);
 
 	$("#title").html("Open Bug Count");
 
@@ -160,42 +162,25 @@ var __createChart = function(){
 	var testValue=ProgramFilter.bugStatusMinimum_fromDoc();
 	
 	
-	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(doc[\"close_time\"].value), "+sampleMax.getMilli()+"))";
+	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
 
 
 	status.message("Request Bugs");
-	var openBugs=yield (ESQuery.run({
-		"from":"BUG_TAGS",
-		"select": [
-			{"name":"bug_id", "value":"BUG_TAGS.bug_id"},
-			{"name":"create_time", "value":"BUG_TAGS.create_time"},
-			{"name":"close_time", "value":"coalesce(get(BUG_TAGS, \"close_time\"), "+sampleMax.getMilli()+")"},
-			{"name":"id_time", "value":idTime}
+	var request=new ESQuery({
+		"name":"Open Bug Count",
+		"from":"bug_tags",
+		"select": {"name":"bug_id", "value":"bug_id", "operation":"count"},
+		"edges":[
+			{"name":"date", "value":"date", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":"day"}}
 		],
 		"esfilter":{"and":[
-			{"script":{"script":MVEL.addFunctions(sampleMin.getMilli()+" <= "+closeTime+" && "+createTime +" < "+sampleMax.getMilli())}},
-			{"script":{"script":MVEL.addFunctions(testValue+">0")}},
-			ProductFilter.makeFilter(),
-			ComponentFilter.makeFilter()
+			{"range":{"date":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
+			{"not":{"terms":{"bug_status":["resolved", "verified", "closed"]}}}
 		]}
-	}));
+	});
 
-	status.message("Count Bugs");
-	var chart=(yield (CUBE.calc2Cube({
-		"name":"Open Bug Count",
-		"from":openBugs.list,
-		"select":
-			{"name":"count", "value":"bug_id", "operation":"count"}
-		,
-		"edges":[
-			{"name":"date",
-				"test":"create_time<time.max.getMilli() && time.max.getMilli()<=close_time",
-				"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
-			}
-		]
-	})));
-
-
+	GUI.injectFilters(request);
+	var chart=yield(request.run());
 
 //	var stats = (yield(CUBE.calc2Cube({
 //		"from": (yield (CUBE.Cube2List(durations))),
@@ -216,7 +201,6 @@ var __createChart = function(){
 //		'<span class="parameter_name">Average Time Open:</span><b>'+Math.round(average.cube.duration/Duration.MILLI_VALUES.day, 2)+'days</b><br>'
 //	);
 
-//	durations.edges[1].domain.NULL.name="Over "+GUI.state.maxX;
 
 	status.message("Make chart");
 	aChart.show({
@@ -238,12 +222,12 @@ var __createChart = function(){
 		GUI.setup([
 			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
 			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today()},
-			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("day")}
+			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
 		],
 		[
-//			"sampleMax=new Date(sampleMax).add(Duration.newInstance(sampleInterval)).add(Duration.newInstance('-second')).floor(Duration.newInstance(sampleInterval)).toString()"
+//			"sampleMax=new Date(sampleMax).addDay(1).add(Duration.newInstance('-second')).floorDay().toString()"
 		],
-		"BUG_TAGS");
+		"bug_tags");
 	});
 
 </script>
