@@ -66,15 +66,55 @@ aThread.run(function(){
 
 	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
 		{"script":{"script":"true"}},
-		{"and":[
-			{"range":{"request_time":{"gte":1347321600000,"lt":1355270400000}}},
-			{"script":{"script":"true"}},
-			{"script":{"script":"true"}},
-			{"script":{"script":"true"}},
-			{"terms":{"reviewer":["msreckovic@mozilla.com","bgirard@mozilla.com","bjacob@mozilla.com","bas.schouten@live.nl","gwright@mozilla.com","joe@drew.ca","jmuizelaar@mozilla.com","nical.bugzilla@gmail.com"]}},
-			{"script":{"script":"((coalesce(zero2null(doc[\"review_time\"].value), 1355270400000)-doc[\"request_time\"].value)<0) || ((coalesce(zero2null(doc[\"review_time\"].value), 1355270400000)-doc[\"request_time\"].value)>=864000000)"}}
-		]}
-	]}}},"from":0,"size":0,"sort":[],"facets":{"mvel":{"terms":{"script_field":"var get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar Value2Pipe = function(value){\nif (value==null){ \"0\" }else if (value is ArrayList){ 's'+value.toString(); }else \nif (value is Long || value is Integer){ 'n'+value; }else \nif (!(value is String)){ 's'+value.getClass().getName(); }else \n\"s\"+value.replace(\"\\\\\", \"\\\\\\\\\").replace(\"|\", \"\\\\p\");};\nvar cool_func = function(reviews){\nvar bug_id = doc[\"bug_id\"].value;\noutput=\"\";\nif (true){output = Value2Pipe(bug_id)\n;\n}\noutput;\n};\ncool_func(_source)\n","size":100000}}}};
+		{"range":{"bug_id":{"gte":820000,"lt":840000}}}
+	]}}},"from":0,"size":0,"sort":[],"facets":{"mvel":{"terms":{"script_field":"var Value2Pipe = function(value){\n"+
+"if (value==null){ \"0\" }else if (value is ArrayList){ 's'+value.toString(); }else \n"+
+"if (value is Long || value is Integer){ 'n'+value; }else \n"+
+"if (!(value is String)){ 's'+value.getClass().getName(); }else \n"+
+"\"s\"+value.replace(\"\\\\\", \"\\\\\\\\\").replace(\"|\", \"\\\\p\");};\n"+
+"var get = function(hash, key){\n"+
+"if (hash==null) null; else hash[key];\n"+
+"};\n"+
+"var getDocValue = function(name){\n"+
+"if (doc[name]!=null && doc[name].value!=null)\" \"+name+doc[name].value.trim();\n"+
+"else \n"+
+"\"\";\n"+
+"};\n"+
+"var cool_func = function(bugs){\n"+
+"var status_whiteboard = doc[\"status_whiteboard\"].value;\n"+
+"var product = doc[\"product\"].value;\n"+
+"var modified_ts = doc[\"modified_ts\"].value;\n"+
+"var created_by = doc[\"created_by\"].value;\n"+
+"var component = doc[\"component\"].value;\n"+
+"var cf_status_seamonkey21 = doc[\"cf_status_seamonkey21\"].value;\n"+
+"var cf_blocking_fennec = doc[\"cf_blocking_fennec\"].value;\n"+
+"var bug_status = doc[\"bug_status\"].value;\n"+
+"var bug_id = doc[\"bug_id\"].value;\n"+
+"output=\"\";\n"+
+"if (bugs.attachments!=null){ for(bugs1 : bugs.attachments){\n"+
+"if (bugs1.?flags!=null){ for(bugs2 : bugs1.?flags){\n"+
+"if ((bugs2.?request_status==\"?\") && ((bugs2.?request_type==\"review\") || (bugs2.?request_type==\"superreview\")) && (bugs2.?modified_ts==bugs.modified_ts) && (bugs1[\"attachments.isobsolete\"]==0)){if (output!=\"\") output+=\"|\";\n"+
+"output+=Value2Pipe(bugs.bug_id)\n"+
+"+\"|\"+Value2Pipe(bugs1.?attach_id)\n"+
+"+\"|\"+Value2Pipe(bugs.modified_ts)\n"+
+"+\"|\"+Value2Pipe(bugs2.?requestee)\n"+
+"+\"|\"+Value2Pipe(bugs1.?created_by)\n"+
+"+\"|\"+Value2Pipe(bugs.product)\n"+
+"+\"|\"+Value2Pipe(bugs.component)\n"+
+"+\"|\"+Value2Pipe((bugs.bug_status=='resolved'||bugs.bug_status=='verified'||bugs.bug_status=='closed') ? 'closed':'open')\n"+
+"+\"|\"+Value2Pipe(doc[\"keywords\"].value)\n"+
+"+\"|\"+Value2Pipe(bugs.status_whiteboard)\n"+
+"+\"|\"+Value2Pipe((getDocValue(\"cf_tracking_thunderbird_esr17\")+getDocValue(\"cf_tracking_thunderbird_esr10\")+getDocValue(\"cf_tracking_thunderbird9\")+getDocValue(\"cf_tracking_thunderbird8\")+getDocValue(\"cf_tracking_thunderbird7\")+getDocValue(\"cf_tracking_thunderbird6\")+getDocValue(\"cf_tracking_thunderbird20\")+getDocValue(\"cf_tracking_thunderbird19\")+getDocValue(\"cf_tracking_thunderbird18\")+getDocValue(\"cf_tracking_thunderbird17\")+getDocValue(\"cf_tracking_thunderbird16\")+getDocValue(\"cf_tracking_thunderbird15\")+getDocValue(\"cf_tracking_thunderbird14\")+getDocValue(\"cf_tracking_thunderbird13\")+getDocValue(\"cf_tracking_thunderbird12\")+getDocValue(\"cf_tracking_thunderbird11\")+getDocValue(\"cf_tracking_thunderbird10\")+getDocValue(\"cf_tracking_seamonkey29\")+getDocValue(\"cf_tracking_seamonkey28\")+getDocValue(\"cf_tracking_seamonkey27\")+getDocValue(\"cf_tracking_seamonkey26\")+getDocValue(\"cf_tracking_seamonkey25\")+getDocValue(\"cf_tracking_seamonkey24\")+getDocValue(\"cf_tracking_seamonkey23\")+getDocValue(\"cf_tracking_seamonkey22\")+getDocValue(\"cf_tracking_seamonkey216\")+getDocValue(\"cf_tracking_seamonkey215\")+getDocValue(\"cf_tracking_seamonkey214\")+getDocValue(\"cf_tracking_seamonkey213\")+getDocValue(\"cf_tracking_seamonkey212\")+getDocValue(\"cf_tracking_seamonkey211\")+getDocValue(\"cf_tracking_seamonkey210\")+getDocValue(\"cf_tracking_firefox_esr17\")+getDocValue(\"cf_tracking_firefox9\")+getDocValue(\"cf_tracking_firefox8\")+getDocValue(\"cf_tracking_firefox7\")+getDocValue(\"cf_tracking_firefox6\")+getDocValue(\"cf_tracking_firefox5\")+getDocValue(\"cf_tracking_firefox20\")+getDocValue(\"cf_tracking_firefox19\")+getDocValue(\"cf_tracking_firefox18\")+getDocValue(\"cf_tracking_firefox17\")+getDocValue(\"cf_tracking_firefox16\")+getDocValue(\"cf_tracking_firefox15\")+getDocValue(\"cf_tracking_firefox14\")+getDocValue(\"cf_tracking_firefox13\")+getDocValue(\"cf_tracking_firefox12\")+getDocValue(\"cf_tracking_firefox11\")+getDocValue(\"cf_tracking_firefox10\")+getDocValue(\"cf_tracking_esr10\")+getDocValue(\"cf_status_thunderbird_esr17\")+getDocValue(\"cf_status_thunderbird_esr10\")+getDocValue(\"cf_status_thunderbird9\")+getDocValue(\"cf_status_thunderbird8\")+getDocValue(\"cf_status_thunderbird7\")+getDocValue(\"cf_status_thunderbird6\")+getDocValue(\"cf_status_thunderbird33\")+getDocValue(\"cf_status_thunderbird32\")+getDocValue(\"cf_status_thunderbird31\")+getDocValue(\"cf_status_thunderbird30\")+getDocValue(\"cf_status_thunderbird20\")+getDocValue(\"cf_status_thunderbird19\")+getDocValue(\"cf_status_thunderbird18\")+getDocValue(\"cf_status_thunderbird17\")+getDocValue(\"cf_status_thunderbird16\")+getDocValue(\"cf_status_thunderbird15\")+getDocValue(\"cf_status_thunderbird14\")+getDocValue(\"cf_status_thunderbird13\")+getDocValue(\"cf_status_thunderbird12\")+getDocValue(\"cf_status_thunderbird11\")+getDocValue(\"cf_status_thunderbird10\")+getDocValue(\"cf_status_seamonkey29\")+getDocValue(\"cf_status_seamonkey28\")+getDocValue(\"cf_status_seamonkey27\")+getDocValue(\"cf_status_seamonkey26\")+getDocValue(\"cf_status_seamonkey25\")+getDocValue(\"cf_status_seamonkey24\")+getDocValue(\"cf_status_seamonkey23\")+getDocValue(\"cf_status_seamonkey22\")+getDocValue(\"cf_status_seamonkey217\")+getDocValue(\"cf_status_seamonkey216\")+getDocValue(\"cf_status_seamonkey215\")+getDocValue(\"cf_status_seamonkey214\")+getDocValue(\"cf_status_seamonkey213\")+getDocValue(\"cf_status_seamonkey212\")+getDocValue(\"cf_status_seamonkey211\")+getDocValue(\"cf_status_seamonkey210\")+getDocValue(\"cf_status_seamonkey21\")+getDocValue(\"cf_status_firefox_esr17\")+getDocValue(\"cf_status_firefox9\")+getDocValue(\"cf_status_firefox8\")+getDocValue(\"cf_status_firefox7\")+getDocValue(\"cf_status_firefox6\")+getDocValue(\"cf_status_firefox5\")+getDocValue(\"cf_status_firefox20\")+getDocValue(\"cf_status_firefox19\")+getDocValue(\"cf_status_firefox18\")+getDocValue(\"cf_status_firefox17\")+getDocValue(\"cf_status_firefox16\")+getDocValue(\"cf_status_firefox15\")+getDocValue(\"cf_status_firefox14\")+getDocValue(\"cf_status_firefox13\")+getDocValue(\"cf_status_firefox12\")+getDocValue(\"cf_status_firefox11\")+getDocValue(\"cf_status_firefox10\")+getDocValue(\"cf_status_esr10\")+getDocValue(\"cf_status_20\")+getDocValue(\"cf_status_192\")+getDocValue(\"cf_status_191\")+getDocValue(\"cf_shadow_bug\")+getDocValue(\"cf_office\")+getDocValue(\"cf_locale\")+getDocValue(\"cf_last_resolved\")+getDocValue(\"cf_due_date\")+getDocValue(\"cf_crash_signature\")+getDocValue(\"cf_colo_site\")+getDocValue(\"cf_blocking_thunderbird33\")+getDocValue(\"cf_blocking_thunderbird32\")+getDocValue(\"cf_blocking_thunderbird31\")+getDocValue(\"cf_blocking_thunderbird30\")+getDocValue(\"cf_blocking_seamonkey21\")+getDocValue(\"cf_blocking_kilimanjaro\")+getDocValue(\"cf_blocking_fx\")+getDocValue(\"cf_blocking_fennec10\")+getDocValue(\"cf_blocking_fennec\")+getDocValue(\"cf_blocking_basecamp\")+getDocValue(\"cf_blocking_20\")+getDocValue(\"cf_blocking_192\")+getDocValue(\"cf_blocking_191\")).trim())\n"+
+";\n"+
+"}\n"+
+"\n"+
+"}}\n"+
+"\n"+
+"}}\n"+
+"output;\n"+
+"};\n"+
+"cool_func(_source)\n","size":100000}}}};
+
 	try{
 		var data=yield (Rest.post({
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping?pretty=true",
@@ -82,9 +122,9 @@ aThread.run(function(){
 
 //			"url":"http://localhost:9200/reviews/review/_search",
 //			"url":"http://localhost:9200/bug_tags/bug_tags/_search",
-			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews/review/_search",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews/review/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
-//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/org_chart/person/_search",
 			"data":esQuery
 		}));

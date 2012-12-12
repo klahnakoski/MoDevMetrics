@@ -146,7 +146,7 @@ REVIEWS.get=function(minBug, maxBug){
 			{"name":"bug_status", "value":"(bugs.bug_status=='resolved'||bugs.bug_status=='verified'||bugs.bug_status=='closed') ? 'closed':'open'"},
 			{"name":"keywords", "value":"doc[\"keywords\"].value"},
 			{"name":"whiteboard", "value":"bugs.status_whiteboard"},
-			{"name":"flags", "value":getFlags()}
+			{"name":"flags", "value":ETL.getFlags()}
 		],
 		"from":
 			"bugs.attachments.flags",

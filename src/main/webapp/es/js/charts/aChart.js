@@ -35,8 +35,9 @@ aChart.TIME_FORMAT="yyyy-MM-dd HH:mm:ss";
 aChart.getAxisLabels=function(axis){
 	var labels=[];
 	if (axis.domain.type == "time"){
-		var bestFormat = Date.getBestFormat(axis.domain.min, axis.domain.max, axis.domain.interval);
-//		var bestFormat=aChart.TIME_FORMAT;  //WILL NOT WORK UNTIL ALL NULL PARTS ARE REMOVED
+		if (axis.domain.allowNulls) D.error("Charting lib can not handle NULL domain value.");
+//		var bestFormat = Date.getBestFormat(axis.domain.min, axis.domain.max, axis.domain.interval);
+		var bestFormat=aChart.TIME_FORMAT;  //WILL NOT WORK UNTIL ALL NULL PARTS ARE REMOVED
 		axis.domain.partitions.forall(function(v, i){
 			if (v instanceof String){
 				labels.push(v);
@@ -55,6 +56,10 @@ aChart.getAxisLabels=function(axis){
 			} else{
 				labels.push(v.toString());
 			}//endif
+		});
+	} else if (axis.domain.type == "linear"){
+		axis.domain.partitions.forall(function(v, i){
+			labels.push(v.name);
 		});
 	} else{
 		axis.domain.partitions.forall(function(v, i){
@@ -179,7 +184,8 @@ aChart.show=function(params){
 	////////////////////////////////////////////////////////////////////////////
 	// SERIES (ONLY IF MORE THAN ONE EDGE)
 	////////////////////////////////////////////////////////////////////////////
-	var seriesLabels=aChart.getAxisLabels(chartCube.edges[chartCube.edges.length-1]);
+	var xaxis=chartCube.edges[chartCube.edges.length-1];
+	var seriesLabels=aChart.getAxisLabels(xaxis);
 
 	var categoryLabels;
 	if (chartCube.edges.length==1 || chartCube.edges[0].domain.partitions.length==0){
@@ -215,8 +221,8 @@ aChart.show=function(params){
 		legendAlign: "center",
 
 		orientation: 'vertical',
-		timeSeries: false, //(xaxis.domain.type=="time"),
-//		timeSeriesFormat: aChart.PVC_TIME_FORMAT,
+		timeSeries: (xaxis.domain.type=="time"),
+		timeSeriesFormat: aChart.PVC_TIME_FORMAT,
 //		showDots:true,
 		showValues: false,
 		originIsZero: this.originZero,

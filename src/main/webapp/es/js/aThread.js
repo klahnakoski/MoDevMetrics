@@ -108,6 +108,9 @@ function aThread_prototype_resume(retval){
 					aThread.hideWorking();
 				}//endif
 				this.kill(retval);
+				if (retval instanceof Exception){
+					D.println("Uncaught Error in thread: ", e.toString());
+				}//endif
 				return retval;
 			}//endif
 
@@ -163,6 +166,10 @@ aThread.prototype.kill=function(retval){
 		}//try
 	}//for
 	this.stack=[];
+};
+
+aThread.prototype.join=function(){
+	yield (aThread.join(this));
 };
 
 
@@ -225,6 +232,7 @@ aThread.call=function(func, param){
 
 
 //YOU SHOULD NOT NEED THESE UNLESS YOU ARE CONVERTING ASYNCH CALLS TO SYNCH CALLS
+//EVEN THEN, MAYBE YOU CAN USE aThread.call
 aThread.Resume = {"name":"resume"};
 aThread.Yield = {"name":"yield"};  //BE COOPERATIVE, WILL PAUSEE VERY MAX_TIME_BLOCK MILLISECONDS
 aThread.Suspend = function(request){
@@ -233,6 +241,8 @@ aThread.Suspend = function(request){
 	this.request=request;	//KILLABLE OBJECT
 };
 aThread.Suspend.name="suspend";
+
+
 
 
 
@@ -248,5 +258,107 @@ aThread_testFunction=function(){
 		var returnValue=yield (aThread.join(t));
 		D.println("this is the return value: "+returnValue);
 	});
-
 };
+
+
+//
+//
+////RUN A BUNDLE OF GENERATORS IN PARALLEL, UP TO A MAX OF maxThread CONCURRENTLY
+////join() WHEN YOU ARE READY TO ACCEPT RESULTS
+//aThread.parallel=function(maxThread){
+//	return new Parallel(maxThread);
+//};
+//
+//var Parallel=function(maxThread){
+//	this.maxThread=maxThread;
+//	this.num=0;
+//	this.index=0;
+//	this.threads=[];
+//	this.pending=[];
+//	this.results=[];
+//};
+//
+////ADD generator TO THE BUNDLE TO RUN, IT WILL BE STARTED IMMEDIATLY IF POSSIBLE
+//Parallel.prototype.add=function(gen){
+//	gen.__index=this.index;
+//	this.index++;
+//
+//	if (this.num<this.maxThread){
+//		D.println("call runNow on "+gen._index);
+//		this.runNow(gen);
+//	}else{
+//		D.println("pending "+gen._index);
+//		this.pending.push(gen);
+//	}//endif
+//};
+//
+////WAIT FOR ALL THREADS, RETURN AN ARRAY OF RESULTS (IN SAME ORDER add() WAS CALLLED)
+//Parallel.prototype.join=function(){
+//	while(this.threads.length>0 || this.pending.length>0){
+//		var t=this.threads.pop();
+//		aThread.join(t);
+//	}//while
+//	if (this.pending.length>0){
+//		D.error("should never happen");
+//	}//endif
+//	return this.results;
+//};
+//
+////INTERNAL FUNCTION
+//Parallel.prototype.runNow=function(gen){
+//	if (typeof(gen)=="function"){
+//		var i=gen.__index;
+//		gen=gen();	//MAYBE THE FUNCTION WILL CREATE A GENERATOR
+//		gen.__index=i;
+//	}
+//	if (String(gen) !== '[object Generator]'){
+//		D.error("You can not pass a function.  Pass a generator! (have function use the yield keyword instead)");
+//	}//endif
+//
+//	var self=this;
+//
+//	this.num++;
+//
+//	var t=new aThread(function(){
+//		try{
+//			self.results[gen.__index]=yield (gen);
+//		}catch(e){
+//			self.results[gen.__index]=e;
+//		}//try
+//		self.num--;
+//		if (self.pending.length>0)
+//			self.runNow(self.pending.pop());
+//	});
+//	this.threads.push(t);
+//
+//	t.__index=gen._index;
+//	D.println("Starting thread"+t.__index);
+//	t.start();
+//
+//	return;
+//};
+//
+//
+//
+//Parallel_test=function(){
+//
+//	aThread.run(function(){
+//		var p=aThread.parallel(1);
+//
+//		for(var i=0;i<2;i++){
+//			(function(i){
+//				D.println("adding "+i);
+//				p.add(function(){
+//					D.println("sleeping "+i);
+//					yield (aThread.sleep(Math.random()*1000));
+//					D.println("return "+i);
+//					yield i;
+//				});
+//			})(i);
+//		}//for
+//
+//		D.println("join");
+//		yield (p.join());
+//		D.println("success");
+//	});
+//};

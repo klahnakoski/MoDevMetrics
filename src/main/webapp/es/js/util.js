@@ -93,6 +93,7 @@ Array.prototype.forall=function(func){
 };//method
 
 
+
 Array.prototype.map=function(func){
 	var output=[];
 	for(var i=0;i<this.length;i++){

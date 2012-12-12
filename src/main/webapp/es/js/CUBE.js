@@ -759,14 +759,9 @@ CUBE.getColumnsFromList = function(data){
 };//method
 
 
-//({
-//	"domain":{"name":"category"},
-//	"partitions":[
-//		{"value":"Request", "from":requested, "edges":["time"]},
-//		{"value":"Review", "from":reviewed, "edges":["time"]},
-//		{"value":"Still Open", "from":open, "edges":["time"]}
-//	]
-//});
+
+
+
 CUBE.join=function(query){
 	var newEdge={
 		"name":query.domain.name,

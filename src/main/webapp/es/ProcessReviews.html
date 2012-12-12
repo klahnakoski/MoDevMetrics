@@ -174,9 +174,9 @@
 		//REVIEWS END WHEN REASSIGNED TO SOMEONE ELSE
 		var esQuery3 = new ESQuery({
 			"select" : [
-				{"name":"bug_id", "value":"bugs.bug_id"},
-				{"name":"attach_id", "value":"bugs.changes.attach_id"},
-				{"name":"modified_ts", "value":"bugs.modified_ts"},
+				{"name":"bug_id", "value":"bug_id"},
+				{"name":"attach_id", "value":"changes.attach_id"},
+				{"name":"modified_ts", "value":"modified_ts"},
 				{"name":"requestee", "value":"bugs.changes.field_value_removed"},
 				{"name":"modified_by", "value":"null"},
 				{"name":"done_reason", "value":"'reasigned'"}

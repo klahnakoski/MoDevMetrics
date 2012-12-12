@@ -48,7 +48,7 @@ ETL.updateAlias=function(etl){
 
 ETL.getMaxBugID=function(){
 	var maxResults=yield(ESQuery.run({
-		"select": {"name":"bug_id", "value":"bugs.bug_id", "operation":"maximum"},
+		"select": {"name":"bug_id", "value":"bug_id", "operation":"maximum"},
 		"from" : "bugs",
 		"edges" :[]
 	}));
@@ -126,6 +126,8 @@ ETL.resumeInsert=function(etl){
 		minBug=yield (ETL.getMaxBugID());
 		maxBug=minBug;
 	}//endif
+//D.warning("minbug set to 750000");
+//minBug=750000;
 	var toBatch=Math.floor(minBug/etl.BATCH_SIZE)-1;
 
 	yield (ETL.insertBatches(etl, 0, toBatch, Math.floor(maxBug/etl.BATCH_SIZE)));
@@ -138,12 +140,10 @@ ETL.resumeInsert=function(etl){
 };
 
 
+//SET THE etl.newIndexName TO THE INDEX BEING USED BY etl.aliasName
+ETL.getCurrentIndex=function(etl){
 
-//UPDATE BUG_TAGS THAT MAY HAVE HAPPENED AFTER startTime
-ETL.incrementalInsert=function(etl){
-
-	//FIND CURRENT ALIAS
-	data = yield(Rest.get({url: ElasticSearch.pushURL + "/_aliases"}));
+	var data = yield(Rest.get({url: ElasticSearch.pushURL + "/_aliases"}));
 	D.println(data);
 	var keys = Object.keys(data);
 	for(var k = keys.length; k--;){
@@ -154,6 +154,13 @@ ETL.incrementalInsert=function(etl){
 		}//endif
 	}//for
 
+};//method
+
+
+//UPDATE BUG_TAGS THAT MAY HAVE HAPPENED AFTER startTime
+ETL.incrementalInsert=function(etl){
+
+	yield (ETL.getCurrentIndex(etl));
 	var startTime=yield (etl.getLastUpdated());
 
 	//FIND RECENTLY TOUCHED BUGS
@@ -190,31 +197,11 @@ ETL.incrementalInsert=function(etl){
 
 
 ETL.insertBatches=function(etl, fromBatch, toBatch, maxBatch){
-//	var maxConcurrent=3;
-//	var numRemaining=maxBatch+1;
-
 	for(var b=toBatch;b>=fromBatch;b--){
-		//RUNNING MORE THAN ONE JUST CRASHES BROWSER
-//		while(numRemaining>b+maxConcurrent){
-//			//LIMIT REQUESTS
-//			yield (aThread.sleep(100));
-//		}//while
-
-//		(function(b){
-//			aThread.run(function(){
-				var data=yield (etl.get(b*etl.BATCH_SIZE, (b+1)*etl.BATCH_SIZE));
-				yield (etl.insert(data));
-				D.println("Done batch "+b+"/"+maxBatch+" into "+etl.newIndexName);
-//				numRemaining--;
-//			});
-//		})(b);
+		var data=yield (etl.get(b*etl.BATCH_SIZE, (b+1)*etl.BATCH_SIZE));
+		yield (etl.insert(data));
+		D.println("Done batch "+b+"/"+maxBatch+" (from "+(b*etl.BATCH_SIZE)+" to "+((b+1)*etl.BATCH_SIZE)+") into "+etl.newIndexName);
 	}//for
-
-//	while(numRemaining>0){
-//		yield (aThread.sleep(100));
-//	}//while
-
-	yield (null);
 };//method
 
 
@@ -222,16 +209,18 @@ ETL.insertBatches=function(etl, fromBatch, toBatch, maxBatch){
 //LIMITED TO 10MEG CHUNKS AND SENT TO insertFunction FOR PROCESSING
 ETL.chunk=function(insert, insertFunction){
 //ES HAS 100MB LIMIT, BREAK INTO SMALLER CHUNKS
+	var threads=[];
+
 	if (insert.length==0) yield(null);
 	var bytes = 0;
 	var e = insert.length;
 	for(var s = insert.length; s -= 2;){
 		bytes += insert[s].length + insert[s + 1].length + 2;
-		if (bytes > 10 * 1024 * 1024){//STOP AT 10 MEGS
+		if (bytes > 5 * 1024 * 1024){//STOP AT 10 MEGS
 			s += 2;	//NOT THE PAIR THAT PUT IT OVER
 
 			var data = insert.substring(s, e).join("\n") + "\n";
-			yield (insertFunction(data));
+			threads.push(aThread.run(insertFunction(data)));
 
 			e = s;
 			bytes = 0;
@@ -239,9 +228,13 @@ ETL.chunk=function(insert, insertFunction){
 	}//for
 
 	data = insert.substring(0, e).join("\n") + "\n";
-	yield (insertFunction(data));
-};
+	threads.push(aThread.run(insertFunction(data)));
 
+	for(var t=threads.length;t--;){
+		yield (aThread.join(threads[t]));
+	}//for
+
+};
 
 ETL.parseWhiteBoard=function(whiteboard){
 	return whiteboard.split("[").map(function(v, i){
@@ -255,12 +248,15 @@ ETL.parseWhiteBoard=function(whiteboard){
 
 // GET THE cf_* FLAGS FROM THE bug_history DOCUMENTS
 ETL.getFlags=function(){
-	var getFlags = "var output = \"\";\n";
+	var getFlags = "var _cf_ = \"\";\n";
 	ETL.allFlags.map(function(v){
-		getFlags += "if (doc[\"" + v + "\"]!=null && doc[\"" + v + "\"].value!=null) output+=\" " + v + "\"+doc[\"" + v + "\"].value.trim();\n";
+		getFlags += "_cf_+=getDocValue(" + MVEL.Value2Code(v) + ");\n";
+//		getFlags += "if (" + v + "\"]!=null && " + v + "\"].value!=null) output+=\" " + v + "\"+" + v + "\"].value.trim();\n";
 	});
-	getFlags += "output.trim();";
+	getFlags += "_cf_ = _cf_.trim();\n_cf_;";
 	return getFlags;
 };//method
+
+
 
 

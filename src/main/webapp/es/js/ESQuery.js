@@ -26,11 +26,11 @@ ESQuery.DEBUG=false;
 // THESE ARE THE AVAILABLE ES INDEXES/TYPES
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
-	"bugs":{"path":"/bugs/bug_version"},
+	"bugs":{"path":"/bugs"},
 	"reviews":{"path":"/reviews/review"},
 //	"reviews":{"path":"/reviews121206_150602/review"},
 	"bug_summary":{"path":"/bug_summary/bug_summary"},
-	"bug_tags":{"path":"/bug_tags121210_193729/bug_tags"},
+	"bug_tags":{"path":"/bug_tags/bug_tags"},
 	"org_chart":{"path":"/org_chart/person"},
 	"temp":{"path":""}
 };
@@ -47,19 +47,31 @@ ESQuery.getColumns=function(indexName){
 ESQuery.loadColumns=function(query){
 	var indexName = query.from.split(".")[0];
 	var index = ESQuery.INDEXES[indexName];
+	var indexPath=index.path;
+	if (indexName=="bugs" && !indexPath.endsWith("/bug_version")) indexPath+="/bug_version";
 
 	if (index.columns === undefined){
+		var URL=Util.coalesce(query.url, ElasticSearch.baseURL + indexPath) + "/_mapping";
+
 		var schema = yield(Rest.get({
-			"url":Util.coalesce(query.url, ElasticSearch.baseURL + index.path) + "/_mapping"
+			"url":URL
 		}));
 
 		var columns = [];
-		var properties = schema[index.path.split("/")[2]].properties;
+		var properties = schema[indexPath.split("/")[2]].properties;
 
+//var cfCount=0;
 		forAllKey(properties, function(name, property){
 			if (property.dynamic!==undefined) return;
 			if (property.type===undefined) return;
 			if (property.type == "multi_field") property.type = property.fields[name].type;	//PULL DEFAULT TYPE
+//if (name.startsWith("cf_")){
+//	if (name!="cf_last_resolved")
+//		return;
+//	if (cfCount>111)
+//		return;
+//	cfCount++
+//}//endif
 
 			if (property.type["in"](["string", "boolean", "integer", "date", "long"])){
 				columns.push({"name":name, "type":property.type});
@@ -206,7 +218,7 @@ ESQuery.prototype.compile = function(){
 		this.esMode = "terms_stats";
 		this.specialEdge = null;
 		for(var f = 0; f < this.edges.length; f++){
-			if ((["set", "duration", "time"].contains(this.edges[f].domain.type))){
+			if ((["set", "duration", "time", "linear"].contains(this.edges[f].domain.type))){
 				for(var p = this.edges[f].domain.partitions.length; p--;){
 					this.edges[f].domain.partitions[p].dataIndex = p;
 				}//for
@@ -331,12 +343,9 @@ ESQuery.buildCondition = function(edge, partition){
 	var output = {};
 	if (ESQuery.isKeyword(edge.value)){
 		//USE FAST ES SYNTAX
-		if (edge.domain.type == "time"){
+		if (["time", "duration", "linear"].contains(edge.domain.type)){
 			output.range = {};
-			output.range[edge.value] = {"gte":partition.min.getMilli(), "lt":+partition.max.getMilli()};
-		} else if (edge.domain.type == "duration"){
-			output.range = {};
-			output.range[edge.value] = {"gte":partition.min.milli, "lt":+partition.max.milli};
+			output.range[edge.value] = {"gte":MVEL.Value2Code(partition.min), "lt":MVEL.Value2Code(partition.max)};
 		} else if (edge.domain.type == "set"){
 			output.term = {};
 			output.term[edge.value] = partition.value;
@@ -349,10 +358,8 @@ ESQuery.buildCondition = function(edge, partition){
 		return output;
 	} else{
 		//USE MVEL CODE
-		if (edge.domain.type == "time"){
-			output.script = {script:edge.value + ">=" + partition.min.getMilli() + " && " + edge.value + "<" + partition.max.getMilli()};
-		} else if (edge.domain.type == "duration"){
-			output.script = {script:edge.value + ">=" + partition.min.milli + " && " + edge.value + "<" + partition.max.milli};
+		if (["time", "duration", "linear"].contains(edge.domain.type)){
+			output.script = {script:edge.value + ">=" + MVEL.Value2Code(partition.min) + " && " + edge.value + "<" + MVEL.Value2Code(partition.max)};
 		} else if (edge.domain.type == "set"){
 			output.script = {script:edge.value + "==" + MVEL.Value2Code(partition.value)};
 		} else{
@@ -416,8 +423,10 @@ ESQuery.prototype.compileEdges2Term=function(){
 	for(var i=0;i<edges.length;i++){
 		if (mvel===undefined) mvel="''+"; else mvel+="+'|'+";
 		var t;
-		if (edges[i].domain.type=="time" || edges[i].domain.type=="duration"){
+		if (["time", "duration"].contains(edges[i].domain.type)){
 			t=ESQuery.compileTime2Term(edges[i]);
+		}else if (edges[i].domain.type=="linear"){
+			t=ESQuery.compileLinear2Term(edges[i]);
 		}else{
 			t=ESQuery.compileString2Term(edges[i]);
 		}//for
@@ -455,7 +464,12 @@ ESQuery.compileString2Term=function(edge){
 //RETURN MVEL CODE THAT MAPS TIME AND DURATION DOMAINS DOWN TO AN INTEGER AND
 //AND THE JAVASCRIPT THAT WILL TURN THAT INTEGER BACK INTO A PARTITION (INCLUDING NULLS)
 ESQuery.compileTime2Term=function(edge){
-	if (edge.domain.type!="time" && edge.domain.type!="duration") D.error("can only translate time and duration domains");
+	if (edge.domain.interval.month!=0)
+		D.error("Month intervals are not supported");
+	
+
+	if (!["time", "duration"].contains(edge.domain.type))
+		D.error("can only translate time, duration, and linear domains");
 
 	//IS THERE A LIMIT ON THE DOMAIN?
 	var numPartitions=edge.domain.partitions.length;
@@ -467,35 +481,31 @@ ESQuery.compileTime2Term=function(edge){
 		if (edge.domain.min===undefined){
 			ref=Date.now().floor(edge.domain.interval);
 			ref=edge.domain.type=="time"?ref.getMilli():ref.milli;
-			partition2int="Math.floor(("+value+"-"+ref+")/"+edge.domain.interval.milli+")";
 			nullTest="false";
 		}else{
-			ref=edge.domain.min;
-			ref=edge.domain.type=="time"?ref.getMilli():ref.milli;
-			partition2int="Math.floor(("+value+"-"+ref+")/"+edge.domain.interval.milli+")";
+			ref=MVEL.Value2Code(edge.domain.min);
 			nullTest=""+value+"<"+ref;
 		}//endif
 	}else if (edge.domain.min===undefined){
-		ref=edge.domain.max;
-		ref=edge.domain.type=="time"?ref.getMilli():ref.milli;
-		partition2int="Math.floor(("+value+"-"+ref+")/"+edge.domain.interval.milli+")";
+		ref=MVEL.Value2Code(edge.domain.max);
 		nullTest=""+value+">="+ref;
 	}else{
-		var top=edge.domain.max; top=edge.domain.type=="time"?top.getMilli():top.milli;
-		    ref=edge.domain.min;ref=edge.domain.type=="time"?ref.getMilli():ref.milli;
-		partition2int="Math.floor(("+value+"-"+ref+")/"+edge.domain.interval.milli+")";
+		var top=MVEL.Value2Code(edge.domain.max);
+		    ref=MVEL.Value2Code(edge.domain.min);
 		nullTest="("+value+"<"+ref+") || ("+value+">="+top+")";
 	}//endif
 
+	partition2int="Math.floor(("+value+"-"+ref+")/"+edge.domain.interval.milli+")";
 	partition2int="(("+nullTest+") ? "+numPartitions+" : "+partition2int+")";
+
 	if (edge.domain.type=="time"){
-		var reference=new Date(ref);
+		var reference=new Date(CNV.String2Integer(ref));
 		int2Partition=function(value){
 			if (Math.round(value)==numPartitions) return edge.domain.NULL;
 			return edge.domain.getPartByKey(reference.add(edge.domain.interval.multiply(value)));
 		};
 	}else{
-		var offset=Duration.newInstance(ref);
+		var offset=Duration.newInstance(CNV.String2Integer(ref));
 		int2Partition=function(value){
 			if (Math.round(value)==numPartitions) return edge.domain.NULL;
 			return edge.domain.getPartByKey(offset.add(edge.domain.interval.multiply(value)));
@@ -505,9 +515,56 @@ ESQuery.compileTime2Term=function(edge){
 	return {"toTerm":partition2int, "fromTerm":int2Partition};
 };
 
+//RETURN MVEL CODE THAT MAPS THE LINEAR DOMAIN DOWN TO AN INTEGER AND
+//AND THE JAVASCRIPT THAT WILL TURN THAT INTEGER BACK INTO A PARTITION (INCLUDING NULLS)
+ESQuery.compileLinear2Term=function(edge){
+	if (edge.domain.type!="linear") D.error("can only translate linear domains");
+
+	var numPartitions=edge.domain.partitions.length;
+	var value=edge.value;
+	if (ESQuery.isKeyword(value)) value="doc[\""+value+"\"].value";
+
+	var ref, nullTest, partition2int, int2Partition;
+	if (edge.domain.max===undefined){
+		if (edge.domain.min===undefined){
+			ref=0;
+			partition2int="Math.floor("+value+")/"+MVEL.Value2Code(edge.domain.interval)+")";
+			nullTest="false";
+		}else{
+			ref=MVEL.Value2Code(edge.domain.min);
+			partition2int="Math.floor(("+value+"-"+ref+")/"+MVEL.Value2Code(edge.domain.interval)+")";
+			nullTest=""+value+"<"+ref;
+		}//endif
+	}else if (edge.domain.min===undefined){
+		ref=MVEL.Value2Code(edge.domain.max);
+		partition2int="Math.floor(("+value+"-"+ref+")/"+MVEL.Value2Code(edge.domain.interval)+")";
+		nullTest=""+value+">="+ref;
+	}else{
+		var top=MVEL.Value2Code(edge.domain.max);
+		    ref=MVEL.Value2Code(edge.domain.min);
+		partition2int="Math.floor(("+value+"-"+ref+")/"+MVEL.Value2Code(edge.domain.interval)+")";
+		nullTest="("+value+"<"+ref+") || ("+value+">="+top+")";
+	}//endif
+
+	partition2int="(("+nullTest+") ? "+numPartitions+" : "+partition2int+")";
+	var offset=CNV.String2Integer(ref);
+	int2Partition=function(value){
+		if (Math.round(value)==numPartitions) return edge.domain.NULL;
+		return edge.domain.getPartByKey((value * edge.domain.interval) + offset);
+	};
+
+	return {"toTerm":partition2int, "fromTerm":int2Partition};
+};
+
+
+
+
+
+
+
 //RETURN A MVEL EXPRESSIONT THAT WILL EVALUATE TO true FOR OUT-OF-BOUNDS
 ESQuery.compileNullTest=function(edge){
-	if (edge.domain.type!="time" && edge.domain.type!="duration") D.error("can only translate time and duration domains");
+	if (["duration", "time", "linear"].contains(edge.domain.type)) D.error("can only translate time and duration domains");
 
 	//IS THERE A LIMIT ON THE DOMAIN?
 	var value=edge.value;
@@ -516,14 +573,14 @@ ESQuery.compileNullTest=function(edge){
 	var top, bot, nullTest;
 	if (edge.domain.max===undefined){
 		if (edge.domain.min===undefined) return false;
-		bot=edge.domain.min; bot=edge.domain.type=="time"?bot.getMilli():bot.milli;
+		bot=MVEL.Value2Code(edge.domain.min);
 		nullTest=""+value+"<"+bot;
 	}else if (edge.domain.min===undefined){
-		top=edge.domain.max; top=edge.domain.type=="time"?top.getMilli():top.milli;
+		top=MVEL.Value2Code(edge.domain.max);
 		nullTest=                         ""+value+">="+top;
 	}else{
-		top=edge.domain.max; top=edge.domain.type=="time"?top.getMilli():top.milli;
-		bot=edge.domain.min; bot=edge.domain.type=="time"?bot.getMilli():bot.milli;
+		top=MVEL.Value2Code(edge.domain.max);
+		bot=MVEL.Value2Code(edge.domain.min);
 		nullTest="("+value+"<"+bot+") || ("+value+">="+top+")";
 	}//endif
 

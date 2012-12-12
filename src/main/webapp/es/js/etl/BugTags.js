@@ -4,7 +4,7 @@ importScript("../filters/ProgramFilter.js");
 
 
 var BUG_TAGS={};
-BUG_TAGS.BATCH_SIZE=5000;
+BUG_TAGS.BATCH_SIZE=1000;
 
 BUG_TAGS.aliasName="bug_tags";
 BUG_TAGS.newIndexName=undefined;  //CURRENT INDEX FOR INSERT
@@ -88,10 +88,10 @@ BUG_TAGS.makeSchema=function(){
 
 
 
-BUG_TAGS.get=function(minBug, maxBug){
+BUG_TAGS.get=function(minBug, maxBug, minDate, maxDate){
 
-	var minDate=new Date(2009,0,1);
-	var maxDate=Date.eod();
+	if (minDate===undefined) minDate=new Date(2009,0,1);
+	if (maxDate===undefined) maxDate=Date.eod();
 
 
 
@@ -122,13 +122,13 @@ BUG_TAGS.get=function(minBug, maxBug){
 					"coalesce(bugs.expires_on, "+Date.eod().getMilli()+"); "+
 				"}"
 			},
-			{"name":"bug_id", "value":"bugs.bug_id"},
-			{"name":"bug_status", "value":"bugs.bug_status"},
-			{"name":"product", "value":"bugs.product"},
-			{"name":"component", "value":"bugs.component"},
-			{"name":"assigned_to", "value":"bugs.assigned_to"},
-			{"name":"keywords", "value":"doc[\"keywords\"].value"},
-			{"name":"whiteboard", "value":"bugs.status_whiteboard"},
+			{"name":"bug_id", "value":"bug_id"},
+			{"name":"bug_status", "value":"bug_status"},
+			{"name":"product", "value":"product"},
+			{"name":"component", "value":"component"},
+			{"name":"assigned_to", "value":"assigned_to"},
+			{"name":"keywords", "value":"keywords"},
+			{"name":"whiteboard", "value":"status_whiteboard"},
 			{"name":"flags", "value":ETL.getFlags()}
 		],
 		"esfilter":
@@ -185,3 +185,41 @@ BUG_TAGS.insert=function(tags){
 
 
 
+BUG_TAGS.addMissing=function(){
+
+	yield (ETL.getCurrentIndex(BUG_TAGS));
+	var maxBug=yield (ETL.getMaxBugID());
+
+	var totals=(yield (ESQuery.run({
+		"url":ElasticSearch.pushURL + "/" + BUG_TAGS.newIndexName + "/" + BUG_TAGS.typeName,
+		"from":"bug_tags",
+		"select":{"name":"count", "value":"1", "operation":"count"},
+		"edges":[
+			{"name":"bug_id", "value":"bug_id", "domain":{"type":"linear", "min":0, "max":maxBug, "interval":10000}},
+			{"name":"date", "value":"date", "domain":{"type":"date", "min":new Date(2000, 0, 1), "max":Date.eod(), "interval":"8week"}}
+		]
+	})));
+
+
+//	var all=aThread.parallel(4);
+	var pid=totals.edges[0].domain.partitions.copy().reverse();
+	var mid=totals.edges[1].domain.partitions.copy().reverse();
+
+	for(var m=0;m<mid.length;m++){
+		var month=mid[m];
+		for(var p=0;p<pid.length;p++){
+			var part=pid[p];
+			if (totals.cube[p][m]==0){
+				D.println("Get tags for bugs from "+part.min+" to "+part.max+" between "+month.min.format("dd MMM yyyy")+" and "+month.max.format("dd MMM yyyy"));
+
+				//GET INFO FOR THIS RANGE OF BUGS
+				var tags=(yield (BUG_TAGS.get(part.min, part.max, month.min, month.max)));
+				D.println("Writing "+tags.length+" tags");
+				status.message("Writing Tags");
+				yield (BUG_TAGS.insert(tags));
+			}//endif
+		}//for
+	}//for
+
+	status.message("Done");
+};

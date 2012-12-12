@@ -51,7 +51,7 @@ MVEL.compile.expression = function(expression, query){
 	var indexName=fromPath.split(".")[0];
 //	var whereClause = query.where;
 
-	var body = "output = "+expression+";\n";
+	var body = "output = "+expression+";\noutput;\n";
 	var context = MVEL.compile.getContextVariables(indexName, body);
 
 	var output = MVEL.compile.addFunctions(
@@ -72,12 +72,14 @@ MVEL.compile.getContextVariables=function(indexName, body){
 	columns.forall(function(c, i){
 		var j=body.indexOf(c.name, 0);
 		while(j>=0){
-			var test=body.substring(j-5, j+c.name.length+2);
-			if (test!="doc[\"" + c.name + "\"]"){ //BUT NOT ALREADY IN USE By doc["x"]
-				context += "var " + c.name + " = doc[\"" + c.name + "\"].value;\n";
-				break;
-			}//endif
+			var test1=body.substring(j-5, j+c.name.length+2);
+			var test2=body.substring(j-13, j+c.name.length+2);
 			j=body.indexOf(c.name, j+1);
+
+			if (test1=="doc[\"" + c.name + "\"]") continue; //BUT NOT ALREADY IN USE By doc["x"]
+			if (test2=="getDocValue(\"" + c.name + "\")") continue;
+			context += "var " + c.name + " = doc[\"" + c.name + "\"].value;\n";
+			break;
 		}//while
 
 	});
@@ -292,6 +294,10 @@ MVEL.prototype.where = function(esFilter){
 
 
 MVEL.Value2Code = function(value){
+	if (value.getMilli) return ""+value.getMilli();		//TIME
+	if (value instanceof Duration)
+		return ""+value.milli;	//DURATION
+
 	if (Math.isNumeric(value)) return "" + value;
 	return CNV.String2Quote(value);
 };//method
@@ -367,5 +373,15 @@ MVEL.FUNCTIONS={
 	"get":	//MY OWN PERSONAL *FU* TO THE TWISTED MVEL PROPERTY ACCESS
 		"var get = function(hash, key){\n"+
 			"if (hash==null) null; else hash[key];\n"+
+		"};\n",
+
+
+	"getDocValue":  //SPECIFICALLY FOR cf_* FLAGS: CONCATENATE THE ATTRIBUTE NAME WITH ATTRIBUTE VALUE, IF EXISTS
+		"var getDocValue = function(name){\n"+
+			"if (doc[name]!=null && doc[name].value!=null)" +
+				"\" \"+name+doc[name].stringValue.trim();\n"+
+			"else \n"+
+				"\"\";\n"+
 		"};\n"
+
 };

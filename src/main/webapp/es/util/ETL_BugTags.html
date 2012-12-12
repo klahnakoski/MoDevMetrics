@@ -76,7 +76,8 @@
 	$("#resume").click(function(){
 
 		if (mainThread!==undefined) mainThread.kill();
-		mainThread=aThread.run(ETL.resumeInsert(BUG_TAGS));
+//		mainThread=aThread.run(ETL.resumeInsert(BUG_TAGS));
+		mainThread=aThread.run(BUG_TAGS.addMissing());
 	});
 
 	$("#inc").click(function(){
@@ -89,6 +90,9 @@
 
 	$("#test").click(function(){
 		if (mainThread!==undefined) mainThread.kill();
+
+//		Parallel_test();
+
 		mainThread=aThread.run(function(){
 //			var reviews=yield (BUG_TAGS.get([563491], undefined));
 			var reviews=yield (BUG_TAGS.get([812896], undefined));

@@ -28,10 +28,9 @@ D.println = function(message){
 };//method
 
 D.error = function(description, cause){
-	if (cause===undefined) cause="";
-	console.error(description+":"+cause);
-//	return;
-	throw new Exception(description, cause);
+	var e=new Exception(description, cause);
+	console.error(e.toString());
+	throw e;
 };//method
 
 D.warning = function(description, cause){
