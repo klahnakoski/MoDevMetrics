@@ -4,7 +4,7 @@ ETL={};
 aThread.run(function(){
 	yield (ESQuery.loadColumns({"from":"bugs", "url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version"}));
 
-	ETL.allFlags = aThread.runSynchonously(CUBE.calc2List({
+	ETL.allFlags = aThread.runSynchronously(CUBE.calc2List({
 		"from":ESQuery.INDEXES.bugs.columns,
 		"edges":["name"],
 		"where":"name.startsWith('cf_')"

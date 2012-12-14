@@ -134,13 +134,13 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 	var current=new ESQuery({
 		"from":"bugs",
 		"select":[
-			{"name":"bug_id", "value":"bugs.bug_id"},
-			{"name":"product", "value":"bugs.product"},
-			{"name":"product_time", "value":"coalesce(get(bugs.?previous_values, 'product_change_away_ts'), bugs.created_ts)"},
-			{"name":"component", "value":"bugs.component"},
-			{"name":"component_time", "value":"coalesce(get(bugs.?previous_values, 'component_change_away_ts'), bugs.created_ts)"},
-			{"name":"create_time", "value":"bugs.created_ts"},
-			{"name":"modified_time", "value":"bugs.modified_ts"}
+			{"name":"bug_id", "value":"bug_id"},
+			{"name":"product", "value":"product"},
+			{"name":"product_time", "value":"coalesce(get(bugs.?previous_values, 'product_change_away_ts'), created_ts)"},
+			{"name":"component", "value":"component"},
+			{"name":"component_time", "value":"coalesce(get(bugs.?previous_values, 'component_change_away_ts'), created_ts)"},
+			{"name":"create_time", "value":"created_ts"},
+			{"name":"modified_time", "value":"modified_ts"}
 		],
 		"esfilter":
 			{"range":{"expires_on":{"gt":Date.eod().getMilli()}}}

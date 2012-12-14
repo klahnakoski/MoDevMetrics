@@ -83,6 +83,7 @@ ESQuery.loadColumns=function(query){
 };//method
 
 
+
 ESQuery.run=function(query){
 	yield (ESQuery.loadColumns(query));
 	var esq=new ESQuery(query);
@@ -171,25 +172,25 @@ ESQuery.merge=function(){
 
 
 ESQuery.prototype.compile = function(){
-
-
 	if (this.query.essize===undefined) this.query.essize=200000;
 	if (ESQuery.DEBUG) this.query.essize=100;
 
+	this.columns = CUBE.compile(this.query, ESQuery.INDEXES[this.query.from.split(".")[0]].columns, true);
 
-	if (this.query.edges === undefined) this.query.edges=[];
+
 	this.edges = this.query.edges.copy();
 	this.select = CUBE.select2Array(this.query.select);
-	
+
+
 	//NO EDGES IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
 	if (this.edges.length==0){
-		if (this.select[0].operation===undefined){
+		if (this.select[0].operation==="none"){  //"none" IS GIVEN TO undefined OPERATIONS DURING COMPILE
 			this.esMode="setop";
 			return this.compileSetOp();
 		}else{
 			var value=this.select[0].value;
 			for(var k=this.select.length;k--;){
-				if (this.select[k].value!=value) D.error("ES Query with mutiple select columns must all have the same value");
+				if (this.select[k].value!=value) D.error("ES Query with multiple select columns must all have the same value");
 			}//for
 		}//endif
 	}else{
@@ -198,18 +199,15 @@ ESQuery.prototype.compile = function(){
 			D.error("Can not have an array of select columns, only one allowed");
 		}else if (this.select.length==0){
 			this.select=undefined;
-		}else{
-			this.select = this.select[0];
 		}//endif
 	}//endif
 	if (this.query.where)
 		D.error("ESQuery does not support the where clause, use esfilter instead");
 
 	
-	this.columns = CUBE.compile(this.query, []);
 	this.edges = this.query.edges.copy();
 
-	if (this.select===undefined || this.select.operation=="count"){
+	if (this.query.select===undefined || (this.select.length==1 && this.select[0].operation=="count")){
 		this.esMode="terms";
 		this.esQuery = this.buildESTermsQuery();
 	}else{
@@ -237,14 +235,14 @@ ESQuery.prototype.compile = function(){
 		var esFacets;
 		if (this.query.edges.length==0){
 			//ZERO DIMENSIONAL QUERY
-			var select=CUBE.select2Array(this.query.select)[0];
+//			var select=CUBE.select2Array(this.query.select)[0];
 
 			esFacets=[];
 			var q = {
 				"name":"0",
 				"value" : {
 					"statistical":{
-						"script":MVEL.compile.expression(select.value, this.query)
+						"script":MVEL.compile.expression(this.select[0].value, this.query)
 					}
 				}
 			};

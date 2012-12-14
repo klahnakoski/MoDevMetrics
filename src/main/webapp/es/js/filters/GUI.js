@@ -359,7 +359,7 @@ GUI.UpdateSummary = function(){
 	//SHOULD LOOP THROUGH THE PARAMETERS AND ADD TO THIS SUMMARY (IF WE KEEP THIS SUMMARY)
 	if (GUI.state.teamFilter){
 		html += "Teams: ";
-		var teams=aThread.runSynchonously(GUI.state.teamFilter.getSelectedPeople());
+		var teams=aThread.runSynchronously(GUI.state.teamFilter.getSelectedPeople());
 		if (teams.length == 0){
 			html += "All";
 		} else{

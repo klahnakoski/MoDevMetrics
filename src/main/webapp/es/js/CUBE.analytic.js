@@ -1,6 +1,8 @@
 CUBE.analytic={};
 
 CUBE.analytic.ROWNUM="__rownum";
+CUBE.analytic.ROWS="__rows";
+
 
 CUBE.analytic.run=function(query){
 	if (query.analytic){
@@ -44,7 +46,7 @@ CUBE.analytic.add=function(query, analytic){
 		allGroups.push([]);
 		for(var j = from.length; i --;){
 			var row = from[j];
-			if (!where(-1, row))
+			if (!where(null, -1, row))
 				continue;  //where() IS COMPILED AS ANALYTIC, SO WE PASS IT A DUMMY rownum
 			allGroups[0].push(row);
 		}//for
@@ -52,7 +54,7 @@ CUBE.analytic.add=function(query, analytic){
 		var tree = {};  analytic.tree=tree;
 		for(var i = from.length; i --;){
 			var row = from[i];
-			if (!where(-1, row))
+			if (!where(null, -1, row))
 				continue;  //where() IS COMPILED AS ANALYTIC, SO WE PASS IT A DUMMY rownum
 
 			//FIND RESULT IN tree
@@ -88,15 +90,17 @@ CUBE.analytic.add=function(query, analytic){
 		if (sortFunction) group.sort(sortFunction);
 
 		for(var rownum=group.length;rownum--;){
-			group[rownum][CUBE.analytic.ROWNUM]=rownum;
+			group[rownum][CUBE.analytic.ROWNUM]=rownum;		//ASSIGN ROWNUM TO EVERY ROW
+			group[rownum][CUBE.analytic.ROWS]=group;		//EVERY ROW HAS REFERENCE TO IT'S GROUP
 		}//for
 	}//for
 
 
 	//PERFORM CALC
 	for(var i=from.length;i--;){
-		from[i][analytic.name]=analytic.calc(from[i][CUBE.analytic.ROWNUM], from[i]);
+		from[i][analytic.name]=analytic.calc(from[i][CUBE.analytic.ROWS], from[i][CUBE.analytic.ROWNUM], from[i]);
 		from[i][CUBE.analytic.ROWNUM]=undefined;	//CLEANUP
+		from[i][CUBE.analytic.ROWS]=undefined;	//CLEANUP
 	}//for
 
 };
@@ -109,7 +113,7 @@ CUBE.analytic.compile = function(sourceColumns, expression){
 	if (expression === undefined) D.error("Expecting expression");
 
 //COMPILE THE CALCULATION OF THE DESTINATION COLUMN USING THE SOURCE COLUMNS
-	var f = "func=function(rownum, __source){\n";
+	var f = "func=function(rows, rownum, __source){\n";
 	for(var s = 0; s < sourceColumns.length; s++){
 		var columnName = sourceColumns[s].name;
 //ONLY DEFINE VARS THAT ARE USED
@@ -124,8 +128,10 @@ CUBE.analytic.compile = function(sourceColumns, expression){
 			" if (output===undefined) D.error(\"analytic returns undefined\");\n" +
 			" return output;\n" +
 			"}catch(e){\n" +
-			" D.error(\"Problem with definition of value=" + CNV.String2Quote(CNV.String2Quote(expression)).leftBut(1).rightBut(1) + " when operating on __source=\"+CNV.Object2JSON(__source), e)+\" "+
-			"Are you trying to get an attribute value from a NULL part?\"" +
+			" D.error("+
+				"\"Problem with definition of value=" + CNV.String2Quote(CNV.String2Quote(expression)).leftBut(1).rightBut(1) + " when operating on __source=\"+CNV.Object2JSON(__source)"+
+				"+\" Are you trying to get an attribute value from a NULL part?\"" +
+			", e)"+
 			"}}";
 	try{
 		eval(f);

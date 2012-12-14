@@ -1,6 +1,6 @@
 CUBE.column = {};
 
-CUBE.column.compile = function(sourceColumns, resultColumn, edges){
+CUBE.column.compile = function(sourceColumns, resultColumn, edges, useMVEL){  //useMVEL TO INDICATE THIS IS AN ES COLUMN
 
 	if (resultColumn.value === undefined){
 		resultColumn.calc = Util.returnNull;
@@ -13,6 +13,9 @@ CUBE.column.compile = function(sourceColumns, resultColumn, edges){
 	if (resultColumn.sort!=undefined && ["descending", "none", "ascending"].indexOf(resultColumn.sort)==-1){
 		D.error(resultColumn.name+' has unknown sort order, pick one of ["descending", "none", "ascending"]');
 	}//endif
+
+
+	if (useMVEL!==undefined && useMVEL) return;
 
 	//COMPILE THE CALCULATION OF THE DESTINATION COLUMN USING THE SOURCE COLUMNS
 	var f = "resultColumn.calc=function(__source, __result){\n";
@@ -46,8 +49,12 @@ CUBE.column.compile = function(sourceColumns, resultColumn, edges){
 			"	if (output===undefined) D.error(\"" + resultColumn.name + " returns undefined\");\n"+
 			"	return output;\n" +
 			"}catch(e){\n" +
-			"	D.error(\"Problem with definition of name=\\\"" + resultColumn.name + "\\\" value=" + CNV.String2Quote(CNV.String2Quote(resultColumn.value)).leftBut(1).rightBut(1) + " when operating on __source=\"+CNV.Object2JSON(__source)+\" and __result=\"+CNV.Object2JSON(__result), e)+\" "+
-			"Are you trying to get an attribute value from a NULL part?\"" +
+			"	D.error("+
+					"\"Problem with definition of name=\\\"" + resultColumn.name +
+					"\\\" value=" + CNV.String2Quote(CNV.String2Quote(resultColumn.value)).leftBut(1).rightBut(1) +
+					" when operating on __source=\"+CNV.Object2JSON(__source)+\" and __result=\"+CNV.Object2JSON(__result)"+
+					"+\" Are you trying to get an attribute value from a NULL part?\"" +
+				", e)"+
 			"}}";
 	try{
 		eval(f);

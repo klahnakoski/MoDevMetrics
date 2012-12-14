@@ -202,10 +202,10 @@ BUG_TAGS.addMissing=function(){
 
 
 //	var all=aThread.parallel(4);
-	var pid=totals.edges[0].domain.partitions.copy().reverse();
-	var mid=totals.edges[1].domain.partitions.copy().reverse();
+	var pid=totals.edges[0].domain.partitions;
+	var mid=totals.edges[1].domain.partitions;
 
-	for(var m=0;m<mid.length;m++){
+	for(var m=mid.length;m--;){
 		var month=mid[m];
 		for(var p=0;p<pid.length;p++){
 			var part=pid[p];
@@ -220,6 +220,8 @@ BUG_TAGS.addMissing=function(){
 			}//endif
 		}//for
 	}//for
+
+	yield (ETL.updateAlias(BUG_TAGS));
 
 	status.message("Done");
 };

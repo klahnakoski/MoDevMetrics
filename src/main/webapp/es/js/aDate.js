@@ -67,7 +67,7 @@ Date.diffMonth=function(endTime, startTime){
 	var numMonths=Math.floor((endTime.getMilli()-startTime.getMilli()+(Duration.MILLI_VALUES.day*31))/Duration.MILLI_VALUES.year*12);
 
 	var test = startTime.addMonth(numMonths);
-	while (test.getMilli()>=endTime.getMilli()){
+	while (test.getMilli()>endTime.getMilli()){
 		numMonths--;
 		test= startTime.addMonth(numMonths);
 	}//while
@@ -76,7 +76,7 @@ Date.diffMonth=function(endTime, startTime){
 	////////////////////////////////////////////////////////////////////////////
 	// TEST
 	var testMonth=0;
-	while(startTime.addMonth(testMonth).getMilli()<endTime.getMilli()){
+	while(startTime.addMonth(testMonth).getMilli()<=endTime.getMilli()){
 		testMonth++;
 	}//while
 	testMonth--;
@@ -88,6 +88,8 @@ Date.diffMonth=function(endTime, startTime){
 	var output=new Duration();
 	output.month=numMonths;
 	output.milli=endTime.getMilli()-startTime.addMonth(numMonths).getMilli()+(numMonths*Duration.MILLI_VALUES.month);
+//	if (output.milli>=Duration.MILLI_VALUES.day*31)
+//		D.error("problem");
 	return output;
 };//method
 
@@ -483,12 +485,35 @@ Duration.prototype.add = function(duration){
 Duration.prototype.multiply=function(amount){
 	var output=new Duration();
 	output.milli=this.milli*amount;
+//	if (output.milli==Duration.MILLI_VALUES.day*31)
+//		D.error("problem");
 	output.month=this.month*amount;
 	return output;
 };//method
 
 Duration.prototype.divideBy=function(amount){
-	if (amount.milli===undefined){
+	if (amount.month!==undefined && amount.month!=0){
+		var m=this.month;
+		var r=this.milli;
+
+		//DO NOT CONSIDER TIME OF DAY
+		var tod=r%Duration.MILLI_VALUES.day;
+		r=r-tod;
+
+		if (m==0 && r>(Duration.MILLI_VALUES.year/3)){
+			m=Math.floor(12 * this.milli / Duration.MILLI_VALUES.year);
+			r-=(m/12)*Duration.MILLI_VALUES.year;
+		}else{
+			r=(r-(this.month*Duration.MILLI_VALUES.month));
+			if (r>=Duration.MILLI_VALUES.day*31)
+				D.error("Do not know how to handle");
+		}//endif
+		r=Math.min(29/30, (r+tod)/(Duration.MILLI_VALUES.day*30));
+
+
+		var output=(m/amount.month)+r;
+		return output
+	}else if (amount.milli===undefined){
 		var output=new Duration();
 		output.milli=this.milli/amount;
 		output.month=this.month/amount;

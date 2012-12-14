@@ -22,7 +22,7 @@ aThread.run=function(gen){
 };//method
 
 //FEELING LUCKY?  MAYBE THIS GENERATOR WILL NOT DELAY AND RETURN A VALID VALUE
-aThread.runSynchonously=function(gen){
+aThread.runSynchronously=function(gen){
 	if (String(gen) !== '[object Generator]'){
 		D.error("You can not pass a function.  Pass a generator! (have function use the yield keyword instead)");
 	}//endif
@@ -109,7 +109,7 @@ function aThread_prototype_resume(retval){
 				}//endif
 				this.kill(retval);
 				if (retval instanceof Exception){
-					D.println("Uncaught Error in thread: ", e.toString());
+					D.println("Uncaught Error in thread: ", retval.toString());
 				}//endif
 				return retval;
 			}//endif
@@ -136,9 +136,8 @@ function aThread_prototype_resume(retval){
 			}//endif
 		}//try
 	}//while
-
-	D.error("Should not get here");
-	//if (!this.keepRunning) this.kill();
+	//CAN GET HERE WHEN THREAD IS KILLED AND aThread.Resume CALLS BACK
+	this.kill(retval);
 }
 aThread.prototype.resume=aThread_prototype_resume;
 

@@ -211,10 +211,16 @@ CUBE.domain.time = function(column, sourceColumns){
 		if (key == null  || key=="null") return this.NULL;
 		if (typeof(key)=="string")
 			key=new Date(key);
+		if (typeof(key)=="number")
+			key=new Date(key);
 		if (key < this.min || this.max <= key) return this.NULL;
+//if (key.getMilli()==new Date(2012, 3, 1).floorDay().getMilli())
+//	D.println("");
+
 		var i=Math.floor(key.subtract(this.min, this.interval).divideBy(this.interval));
 
-		if (this.partitions[i].min>key || key>=this.partitions[i].max) D.error("programmer error");
+		if (this.partitions[i].min>key || key>=this.partitions[i].max)
+			D.error("programmer error");
 		return this.partitions[i];
 	};//method
 

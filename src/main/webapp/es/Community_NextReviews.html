@@ -3,6 +3,22 @@
 <HEAD>
 </HEAD>
 <BODY>
+<!--&lt;!&ndash;[if lt IE 9]>-->
+<!--<script type="application/javascript;version=1.7" src="lib/jqplot/excanvas.js"></script>-->
+<!--<![endif]&ndash;&gt;-->
+<!--<script type="application/javascript;version=1.7" src="lib/jqplot/jquery.min.js"></script>-->
+<!--<script type="application/javascript;version=1.7" src="lib/jqplot/jquery.jqplot.js"></script>-->
+<!--<script type="application/javascript;version=1.7" src="lib/jqplot/plugins/jqplot.barRenderer.min.js"></script>-->
+<!--<script type="application/javascript;version=1.7" src="lib/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>-->
+<!--<script type="application/javascript;version=1.7" src="lib/jqplot/plugins/jqplot.pointLabels.js"></script>-->
+<!--<script type="application/javascript;version=1.7" src="lib/jqplot/plugins/jqplot.dateAxisRenderer.min.js"></script>-->
+<!--<script type="application/javascript;version=1.7" src="lib/jqplot/plugins/jqplot.canvasTextRenderer.min.js"></script>-->
+<!--<script type="application/javascript;version=1.7" src="lib/jqplot/plugins/jqplot.canvasAxisTickRenderer.js"></script>-->
+<!--<script type="application/javascript;version=1.7" src="lib/jqplot/plugins/jqplot.logAxisRenderer.js"></script>-->
+<!--<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>-->
+
+
+
 
 
 
@@ -91,116 +107,142 @@
 
 <script type="application/javascript;version=1.7" src="js/filters/GUI.js"></script>
 
-<table style="width: 100%;">
-	<tr>
-		<td style="width: 320px;  vertical-align:text-top;">
-			<div style="height: 30px; text-align: center;vertical-align:middle;">
-				<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
-			</div>
+<script type="application/javascript;version=1.7" src="js/etl/ETL.js"></script>
+<script type="application/javascript;version=1.7" src="js/etl/Reviews.js"></script>
 
-			<hr>
-			<div id="testMessage"></div>
-			<hr>
-			<div id="parameters" class="parameters">
-			</div>
-			<div id="filters" class="menu"></div>
-		</td>
-		<td>
-			<div style="float:right;display: inline;">
-				<a href="http://people.mozilla.com/~klahnakoski/">HOME</a></div>
-			<div id="chart"></div>
-		</td>
-	</tr>
-</table>
+<h3 id="title">Community First Outgoing Reviews</h3>
+
+<div id="sidebar">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div id="chart"></div>
+
 <div id="info"></div>
-<div id="description"></div>
 <div id="report"></div>
+
 
 <script type="application/javascript;version=1.7">
 
-var query;
+
+var CUTOFF=Duration.newInstance("3week");
+$("#description").html("Given the number of outgoing reviews from BZ members, what is the chance another review will be requested in the given window?  All values shown are percentages.  For each BZ email, only the first outgoing review per bug is considered.");
+
+var thread;
+var createChart=function(){
+	if (thread!==undefined)
+		thread.kill();
+	thread=aThread.run( __createChart());
+};
+
+var __createChart = function(){
+
+	var sampleMin=new Date(GUI.state.sampleMin);
+	var sampleMax=new Date(GUI.state.sampleMax).ceilingDay();
+	var windowSize=Duration.newInstance(GUI.state.window);
+	var maxRequest=20;
+
+	var sampleSize=sampleMax.subtract(sampleMin);
+	$("#title").html("Community First Outgoing Reviews ("+sampleSize.toString()+" sample)");
+
+	var mainFilter={"and":[
+		{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.add(windowSize).getMilli()}}},
+		{"range":{"requester_review_num":{"gte":0, "lte":maxRequest+1}}}	//ONLY ONE REVIEW PER BUG IS CONSIDERED
+	]};
+	GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
 
 
-var createChart = function(){
-	if (query!==undefined) query.kill();
-
-
-	query = new ESQuery({
-		"name":"Age of Open Bugs",
-		"from":"bugs",
-		"select":{"name":"Count", "value":"1", "operation":"count"},
-		"edges":[
-			{"name":"State", "value":"\"Open\""},
-			{"name":"Age",
-				"value":"("+Date.now().getMilli()+'-doc["created_ts"].value)',
-				allowNulls:true,
-				"domain":{"type":"duration", "min":GUI.state.minX, "max":GUI.state.maxX, "interval":GUI.state.intervalX}
-			}
+	status.message("Download Times");
+	var requestTimes=yield(ESQuery.run({
+		"from":"reviews",
+		"select":[
+			{"value":"requester_review_num"},
+			{"value":"request_time"},
+			{"value":"requester"}
 		],
-		"esfilter":{
-			"and":[
-				{"not":{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}},
-				{ "range" : { "expires_on" : { "gte" : Date.now().getMilli()} } }
-			]
-		},
-		"essize":GUI.state.esSize
-	});
+		"esfilter":mainFilter
+	}));
 
-	var queryClosed = new ESQuery({
-		"name":"Age of Closed Bugs",
-		"from":"bugs",
-		"select":{"name":"Count", "value":"1", "operation":"count"},
-		"edges":[
-			{"name":"State", "value":"\"Closed\""},
-			{"name":"Age",
-				"value":'doc["modified_ts"].value-doc["created_ts"].value',
-				allowNulls:true,
-				"domain":{"type":"duration", "min":GUI.state.minX, "max":GUI.state.maxX, "interval":GUI.state.intervalX}
-			}
+	var markup = yield(CUBE.calc2List({
+		"from":requestTimes,
+		"analytic":[
+			{"name":"time_to_next", "value":"rows[rownum+1]===undefined ? null : rows[rownum+1].request_time-request_time", "sort":"request_time", "edges":["requester"]}
+		]
+	}));
+
+
+	var totals=yield (CUBE.calc2Cube({
+		"from":markup,
+		"select":[
+			{"name":"num_next", "value":"(time_to_next!=null && time_to_next<"+windowSize.milli+") ? 1 : 0", "operation":"sum"},
+			{"name":"num_total", "value":"1", "operation":"count"}
 		],
-		"where":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value',  //ONLY THE DOCUMENT THAT CLOSES THE BUG
-		"esfilter":{"and":[
-			{"terms":{"bug_status":["resolved", "verified", "closed"]}},
-			{"range":{"modified_ts":{"gte":new Date(GUI.state.sampleMin).getMilli()}}},
-			{"range":{"modified_ts":{"lte":Date.today().getMilli()}}}
-		]},
-		"essize":GUI.state.esSize
+		"edges":[
+			{"name":"requester_review_num", "value":"requester_review_num", "domain":{"type":"linear", "min":0, "max":20, "interval":1, "value":"value"}}
+		],
+		"where":"request_time<"+sampleMax.getMilli()
+	}));
+
+	$("#stats").html(
+		'<span class="parameter_name"># First Reviews:</span><b>'+totals.cube[1].num_total+'</b><br>'+
+		'<span class="parameter_name"># Second < '+Math.round(windowSize.milli/Duration.MILLI_VALUES.day, 0)+' days:</span><b>'+totals.cube[1].num_next+'</b><br>'+
+		'<span class="parameter_name">Retention:</span><b>'+Math.round(100*totals.cube[1].num_next/Math.max(1, totals.cube[1].num_total))+'%</b><br>'
+	);
+
+
+	var chart=yield(CUBE.calc2Cube({
+		"from":totals, 
+		"select": {"name":"percent", "value":"Math.round(100*num_next/Math.max(1, num_total))", "operation":"one"},
+		"edges":[
+			{"value":"requester_review_num", "domain":{"type":"linear", "min":0, "max":20, "interval":1, "value":"value"}}
+		]
+	}));
+
+//	durations.edges[1].domain.NULL.name="Over "+GUI.state.maxX;
+
+	status.message("Make chart");
+	aChart.show({
+		"id":"chart",
+		"type":"bar",
+		"stacked":true,
+		"cube":chart,
+		"height":500,
+		showValues: true
 	});
-
-	(GUI.injectFilters(query));
-	(GUI.injectFilters(queryClosed));
-
-	info.message(CNV.Object2JSON(query.esQuery));
-
-	status.message("Calling ES");
-	query.run(function(chartCube){
-//		queryClosed.run(function(chartCubeClosed){
-
-//			chartCube=CUBE.cube.union(chartCube, chartCubeClosed);
-
-			status.message("Make chart");
-			aChart.show({
-				"id":"chart",
-				"type":"bar",
-				"cube":chartCube
-			});
-			status.message("Done");
-//		});
-	});
+	status.message("Done");
 
 
 };
 
 
+
+
+
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
-			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
-			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
-			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.today().add("-3month")},
-			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
-		]);
-		createChart();
+			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":new Date(2012, 1, 1)},
+			{"id":"sampleMax", "name":"End Date", "type":"time", "default":new Date(2012, 1, 1).add(Duration.newInstance("18week-day"))},
+			{"id":"window", "name":"Window Size", "type":"duration", "default":Duration.newInstance("13week")}
+		],
+		[
+		],
+		"reviews");
 	});
 
 </script>
@@ -208,3 +250,4 @@ var createChart = function(){
 
 </BODY>
 </HTML>
+

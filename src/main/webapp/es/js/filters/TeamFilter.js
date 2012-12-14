@@ -99,7 +99,7 @@ TeamFilter.prototype.setSimpleState=function(value){
 TeamFilter.prototype.makeFilter = function(){
 	if (this.selectedEmails.length == 0) return ES.TrueFilter;
 
-	var selected = aThread.runSynchonously(this.getSelectedPeople());
+	var selected = aThread.runSynchronously(this.getSelectedPeople());
 	if (selected.length == 0) return ES.TrueFilter;
 
 	//FIND BZ EMAILS THAT THE GIVEN LIST MAP TO

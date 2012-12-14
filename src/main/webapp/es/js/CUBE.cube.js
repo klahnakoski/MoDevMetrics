@@ -2,18 +2,21 @@
 CUBE.cube = {};
 
 CUBE.cube.newInstance = function(edges, depth, select){
-	var data = [];
 	if (depth == edges.length){
+		var element={};
+//		var element=[]
 		if (select instanceof Array){
 			for(var s = 0; s < select.length; s++){
-				data[s] = select[s].defaultValue();
+				element[select[s].name] = select[s].defaultValue();
+//				element[s] = select[s].defaultValue();
 			}//for
 		} else{
-			data = select.defaultValue();
+			element = select.defaultValue();
 		}//endif
-		return data;
+		return element;
 	}//for
 
+	var data = [];
 	var p = 0;
 	for(; p < edges[depth].domain.partitions.length; p++){
 		data[p] = CUBE.cube.newInstance(edges, depth + 1, select);

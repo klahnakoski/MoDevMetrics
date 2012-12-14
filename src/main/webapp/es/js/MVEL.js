@@ -27,7 +27,7 @@ MVEL.prototype.code = function(query){
 
 	if (body.indexOf("<BODY")>=0)
 		D.error();
-	
+
 	var output = MVEL.compile.addFunctions(
 		'var cool_func = function('+indexName+'){\n' +
 			context+
@@ -51,8 +51,10 @@ MVEL.compile.expression = function(expression, query){
 	var indexName=fromPath.split(".")[0];
 //	var whereClause = query.where;
 
-	var body = "output = "+expression+";\noutput;\n";
-	var context = MVEL.compile.getContextVariables(indexName, body);
+	var context = MVEL.compile.getContextVariables(indexName, expression);
+	if (context=="") return MVEL.compile.addFunctions(expression);
+
+	var body = "output = "+expression+"; output;\n";
 
 	var output = MVEL.compile.addFunctions(
 		'var cool_func = function('+indexName+'){\n' +
@@ -65,6 +67,7 @@ MVEL.compile.expression = function(expression, query){
 //	if (console !== undefined && D.println != undefined) D.println(output);
 	return MVEL.compile.addFunctions(output);
 };//method
+
 
 MVEL.compile.getContextVariables=function(indexName, body){
 	var context = "";
