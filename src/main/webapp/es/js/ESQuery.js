@@ -421,8 +421,10 @@ ESQuery.prototype.compileEdges2Term=function(){
 	for(var i=0;i<edges.length;i++){
 		if (mvel===undefined) mvel="''+"; else mvel+="+'|'+";
 		var t;
-		if (["time", "duration"].contains(edges[i].domain.type)){
+		if (edges[i].domain.type=="time"){
 			t=ESQuery.compileTime2Term(edges[i]);
+		}else if (edges[i].domain.type=="duration"){
+			t=ESQuery.compileDuration2Term(edges[i]);
 		}else if (edges[i].domain.type=="linear"){
 			t=ESQuery.compileLinear2Term(edges[i]);
 		}else{
@@ -462,53 +464,66 @@ ESQuery.compileString2Term=function(edge){
 //RETURN MVEL CODE THAT MAPS TIME AND DURATION DOMAINS DOWN TO AN INTEGER AND
 //AND THE JAVASCRIPT THAT WILL TURN THAT INTEGER BACK INTO A PARTITION (INCLUDING NULLS)
 ESQuery.compileTime2Term=function(edge){
-	if (edge.domain.interval.month!=0)
-		D.error("Month intervals are not supported");
-	
-
-	if (!["time", "duration"].contains(edge.domain.type))
-		D.error("can only translate time, duration, and linear domains");
-
 	//IS THERE A LIMIT ON THE DOMAIN?
 	var numPartitions=edge.domain.partitions.length;
 	var value=edge.value;
 	if (ESQuery.isKeyword(value)) value="doc[\""+value+"\"].value";
 
-	var ref, nullTest, partition2int, int2Partition;
-	if (edge.domain.max===undefined){
-		if (edge.domain.min===undefined){
-			ref=Date.now().floor(edge.domain.interval);
-			ref=edge.domain.type=="time"?ref.getMilli():ref.milli;
-			nullTest="false";
-		}else{
-			ref=MVEL.Value2Code(edge.domain.min);
-			nullTest=""+value+"<"+ref;
-		}//endif
-	}else if (edge.domain.min===undefined){
-		ref=MVEL.Value2Code(edge.domain.max);
-		nullTest=""+value+">="+ref;
-	}else{
-		var top=MVEL.Value2Code(edge.domain.max);
-		    ref=MVEL.Value2Code(edge.domain.min);
-		nullTest="("+value+"<"+ref+") || ("+value+">="+top+")";
-	}//endif
 
-	partition2int="Math.floor(("+value+"-"+ref+")/"+edge.domain.interval.milli+")";
-	partition2int="(("+nullTest+") ? "+numPartitions+" : "+partition2int+")";
+	var nullTest=ESQuery.compileNullTest(edge);
+	var ref=Util.coalesce(edge.domain.min, edge.domain.max, new Date(2000,0,1));
 
-	if (edge.domain.type=="time"){
-		var reference=new Date(CNV.String2Integer(ref));
+	var partition2int;
+	if (edge.domain.interval.month>0){
+		var offset=ref.subtract(ref.floorMonth(), Duration.DAY).milli;
+		if (offset>Duration.DAY.milli*28) offset=ref.subtract(ref.ceilingMonth(), Duration.DAY).milli;
+		partition2int="milli2Month("+value+", "+MVEL.Value2Code(offset)+")";
+		partition2int="(("+nullTest+") ? 0 : "+partition2int+")";
+
 		int2Partition=function(value){
-			if (Math.round(value)==numPartitions) return edge.domain.NULL;
-			return edge.domain.getPartByKey(reference.add(edge.domain.interval.multiply(value)));
+			if (Math.round(value)==0) return edge.domain.NULL;
+
+			var d=new Date((""+value).left(4), (""+value).right(2), 1);
+			d=d.addMilli(offset);
+			return edge.domain.getPartByKey(d);
 		};
 	}else{
-		var offset=Duration.newInstance(CNV.String2Integer(ref));
+		partition2int="Math.floor(("+value+"-"+MVEL.Value2Code(ref)+")/"+edge.domain.interval.milli+")";
+		partition2int="(("+nullTest+") ? "+numPartitions+" : "+partition2int+")";
+
 		int2Partition=function(value){
 			if (Math.round(value)==numPartitions) return edge.domain.NULL;
-			return edge.domain.getPartByKey(offset.add(edge.domain.interval.multiply(value)));
+			return edge.domain.getPartByKey(ref.add(edge.domain.interval.multiply(value)));
 		};
+
 	}//endif
+
+	return {"toTerm":partition2int, "fromTerm":int2Partition};
+};
+
+//RETURN MVEL CODE THAT MAPS DURATION DOMAINS DOWN TO AN INTEGER AND
+//AND THE JAVASCRIPT THAT WILL TURN THAT INTEGER BACK INTO A PARTITION (INCLUDING NULLS)
+ESQuery.compileDuration2Term=function(edge){
+	//IS THERE A LIMIT ON THE DOMAIN?
+	var numPartitions=edge.domain.partitions.length;
+	var value=edge.value;
+	if (ESQuery.isKeyword(value)) value="doc[\""+value+"\"].value";
+
+	var ref=Util.coalesce(edge.domain.min, edge.domain.max, Duration.ZERO);
+	var nullTest=ESQuery.compileNullTest(edge);
+
+
+	var ms=edge.domain.interval.milli;
+	if (edge.domain.interval.month>0)
+		ms=Duration.YEAR.milli/12*edge.domain.interval.month;
+
+	var partition2int="Math.floor(("+value+"-"+MVEL.Value2Code(ref)+")/"+ms+")";
+		partition2int="(("+nullTest+") ? "+numPartitions+" : "+partition2int+")";
+
+	int2Partition=function(value){
+		if (Math.round(value)==numPartitions) return edge.domain.NULL;
+		return edge.domain.getPartByKey(ref.add(edge.domain.interval.multiply(value)));
+	};
 
 	return {"toTerm":partition2int, "fromTerm":int2Partition};
 };
@@ -562,7 +577,8 @@ ESQuery.compileLinear2Term=function(edge){
 
 //RETURN A MVEL EXPRESSIONT THAT WILL EVALUATE TO true FOR OUT-OF-BOUNDS
 ESQuery.compileNullTest=function(edge){
-	if (["duration", "time", "linear"].contains(edge.domain.type)) D.error("can only translate time and duration domains");
+	if (!["duration", "time", "linear"].contains(edge.domain.type))
+		D.error("can only translate time and duration domains");
 
 	//IS THERE A LIMIT ON THE DOMAIN?
 	var value=edge.value;

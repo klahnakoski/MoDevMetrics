@@ -41,11 +41,11 @@
 
 
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
-<script type="application/javascript;version=1.7" src="js/aDate.js"></script>
+<script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
 <script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
-<script type="application/javascript;version=1.7" src="js/util.js"></script>
+
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
 <script type="application/javascript;version=1.7" src="js/Debug.js"></script>
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
@@ -362,7 +362,7 @@
 		GUI.setup([
 			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.today().add("-3month")},
 			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.today()},
-			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("day")},
+			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.DAY},
 			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("reviewer")}
 		],
 		[

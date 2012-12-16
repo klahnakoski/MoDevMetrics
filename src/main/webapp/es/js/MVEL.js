@@ -385,6 +385,26 @@ MVEL.FUNCTIONS={
 				"\" \"+name+doc[name].stringValue.trim();\n"+
 			"else \n"+
 				"\"\";\n"+
+		"};\n",
+
+	"milli2Month":  
+		"var milli2Month = function(value, milliOffset){\n"+
+			"g=new java.util.GregorianCalendar(new java.util.SimpleTimeZone(0, \"GMT\"));\n"+
+			"g.setTimeInMillis(value);\n"+
+			"g.add(java.util.GregorianCalendar.MILLISECOND, -milliOffset);\n"+
+			"m = g.get(java.util.GregorianCalendar.MONTH);\n"+
+			"output = \"\"+g.get(java.util.GregorianCalendar.YEAR)+(m>9?\"\":\"0\")+m;\n"+
+			"output;\n"+
 		"};\n"
+
+//		g.add(GregorianCalendar.DAY_OF_MONTH, +100);
+//		long t=g.getTime().getTime();
+//
+//		System.out.println(""+System.currentTimeMillis());
+//		System.out.println(""+t);
+//		int m=g.get(java.util.GregorianCalendar.MONTH);
+//
+//		String output=""+g.get(java.util.GregorianCalendar.YEAR)+(m>9?"":"0")+m;
+//		System.out.println(output);
 
 };

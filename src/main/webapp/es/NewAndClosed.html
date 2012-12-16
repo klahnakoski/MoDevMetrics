@@ -45,11 +45,11 @@
 
 
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
-<script type="application/javascript;version=1.7" src="js/aDate.js"></script>
+<script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
 <script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
-<script type="application/javascript;version=1.7" src="js/util.js"></script>
+
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
 <script type="application/javascript;version=1.7" src="js/Debug.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
@@ -198,7 +198,7 @@
 		GUI.setup([
 			{"id":"startDate", "name":"Min X-axis on Chart", "type":"time", "default":Date.today().add("-1year")},
 			{"id":"endDate", "name":"Max X-axis on Chart", "type":"time", "default":Date.today()},
-			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("week")},
+			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.WEEK},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		],
 		[

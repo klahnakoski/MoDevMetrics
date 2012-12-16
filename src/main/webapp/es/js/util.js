@@ -129,10 +129,12 @@ Array.prototype.substring=Array.prototype.slice;
 var Util = {};
 
 //RETURN FIRST NOT NULL, AND DEFINED VALUE
-Util.coalesce = function(a, b){
-	if (a === undefined) return b;
-	if (a == null) return b;
-	return a;
+Util.coalesce = function(){
+	for(var i=0;i<arguments.length;i++){
+		var a=arguments[i];
+		if (a!==undefined && a!=null) return a;
+	}//for
+	return undefined;
 };//method
 
 Util.nvl = Util.coalesce;

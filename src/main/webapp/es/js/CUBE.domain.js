@@ -364,7 +364,7 @@ CUBE.domain.duration = function(column, sourceColumns){
 		} else{
 			d.map = {};
 			for(var v = 0; v < d.partitions.length; v++){
-				d.map[d.partitions[v].value] = d.partitions[v];  //ASSMUE THE DOMAIN HAS THE value ATTRBUTE
+				d.map[d.partitions[v].value] = d.partitions[v];  //ASSUME THE DOMAIN HAS THE value ATTRIBUTE
 			}//for
 		}//endif
 	} else{

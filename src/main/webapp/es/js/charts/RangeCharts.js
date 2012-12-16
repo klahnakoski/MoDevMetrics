@@ -33,7 +33,7 @@ RangeChart.prototype.defaults=function(){
 	this.iterator = "date";
 	this.track = false;
 	this.baseline = [];
-	this.interval=Duration.newInstance("day");
+	this.interval=Duration.DAY;
 	this.useWindow=false;
 };//endif
 

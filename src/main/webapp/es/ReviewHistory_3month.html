@@ -55,11 +55,11 @@
 
 
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
-<script type="application/javascript;version=1.7" src="js/aDate.js"></script>
+<script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
 <script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
-<script type="application/javascript;version=1.7" src="js/util.js"></script>
+
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
 <script type="application/javascript;version=1.7" src="js/Debug.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
@@ -272,7 +272,7 @@
 					var numReviewsCompleted=0;
 					var numCompleteInWeek=0;
 					for(var r=reviewQueues.length;r--;){
-						if (reviewQueues[r].end_time.subtract(reviewQueues[r].start_time).milli<Duration.newInstance("week").milli)
+						if (reviewQueues[r].end_time.subtract(reviewQueues[r].start_time).milli<Duration.WEEK.milli)
 							numCompleteInWeek++;
 						
 						numReviewsRequested++;
@@ -325,7 +325,7 @@
 		GUI.setup([
 			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.today().add("-3month")},
 			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.today()},
-			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.newInstance("day")},
+			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.DAY},
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		]);
 	});

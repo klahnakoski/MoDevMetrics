@@ -216,6 +216,9 @@ Date.prototype.ceilingDay = function(){
 };//method
 
 
+Date.prototype.ceilingMonth = function(){
+	return this.floorMonth().addMonth(1);
+};//method
 
 
 
@@ -635,4 +638,12 @@ Duration.prototype.format=function(interval, rounding){
 	return output+interval;
 };//method
 
-
+Duration.ZERO=Duration.newInstance(0);
+Duration.SECOND=Duration.newInstance("second");
+Duration.MINUTE=Duration.newInstance("minute");
+Duration.HOUR=Duration.newInstance("hour");
+Duration.DAY=Duration.DAY;
+Duration.WEEK=Duration.WEEK;
+Duration.MONTH=Duration.newInstance("month");
+Duration.QUARTER=Duration.newInstance("quarter");
+Duration.YEAR=Duration.newInstance("year");
