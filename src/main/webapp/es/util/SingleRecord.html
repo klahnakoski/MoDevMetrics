@@ -5,10 +5,31 @@
 <BODY>
 
 
+<script type="application/javascript;version=1.7" src="../lib/webdetails/cdf/Base.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/webdetails/cdf/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/jstree/jquery.jstree.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/webdetails/cdf/jquery.tooltip.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/webdetails/data/q01-01.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/webdetails/lib/protovis-d3.3.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/webdetails/lib/jquery.tipsy.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/webdetails/lib/tipsy.js"></script>
+<link type="text/css" href="../lib/webdetails/lib/tipsy.css" rel="stylesheet"/>
 
+<script type="application/javascript;version=1.7" src="../lib/webdetails/pvc/pvc.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/webdetails/pvc/pvcPanel.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/webdetails/pvc/pvcLegend.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/webdetails/pvc/pvcWaterfall.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/webdetails/pvc/pvcPie.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/webdetails/pvc/pvcBar.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/webdetails/pvc/pvcLine.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/webdetails/pvc/pvcData.js"></script>
+<link type="text/css" rel="stylesheet" href="../lib/webdetails/cdf/jquery.tooltip.css"/>
+<link type="text/css" rel="stylesheet" href="../lib/webdetails/pvcComponent.css"/>
 
+<script type="application/javascript;version=1.7" src="../lib/webdetails/pvcDocUtils.js"></script>
 
-<script type="application/javascript;version=1.7" src="../lib/jquery.js"></script>
 <link type="text/css" href="../css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
 <script type="application/javascript;version=1.7" src="../lib/js/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="application/javascript;version=1.7" src="../lib/js/jquery.ba-bbq.js"></script>
@@ -49,6 +70,10 @@
 <script type="application/javascript;version=1.7" src="../js/etl/BugSummary.js"></script>
 
 <div id="info"></div>
+<h2>Some header</h2>
+<div id="chart" style="width:800px;height:400px;"></div>
+<div id="chart2" style="width:800px;height:400px;"></div>
+
 
 <script type="application/javascript;version=1.7">
 
@@ -64,64 +89,141 @@ aThread.run(function(){
 //	]}}},"from":0,"size":100,"sort":["bug_version_num"]
 //	};
 
-	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
-		{"script":{"script":"true"}},
-		{"and":[
-			{"script":{"script":"1344643200000 <= doc[\"create_time\"].value && doc[\"create_time\"].value < 1355529600000"}},
-			{"script":{"script":"true"}},
-			{"script":{"script":"true"}}
-		]}
-	]}}},"from":0,"size":100,"sort":[],"facets":{"0":{"terms_stats":{"key_field":"minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000)) < 1355529600000 ? \"Closed\" : \"Open\"","value_field":"bug_id","size":200000},"facet_filter":{"and":[
-		{"script":{"script":"var minimum = function(a, b){if (a==null) b; else if (b==null) a; else if (a<b) a; else b;\n};\nvar coalesce = function(a, b){if (a==null) b; else a; \n};\nvar zero2null = function(a){if (a==0) null; else a; \n};\nminimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value>=0 && minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value<604800000"}}
-	]}},"1":{"terms_stats":{"key_field":"minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000)) < 1355529600000 ? \"Closed\" : \"Open\"","value_field":"bug_id","size":200000},"facet_filter":{"and":[
-		{"script":{"script":"var minimum = function(a, b){if (a==null) b; else if (b==null) a; else if (a<b) a; else b;\n};\nvar coalesce = function(a, b){if (a==null) b; else a; \n};\nvar zero2null = function(a){if (a==0) null; else a; \n};\nminimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value>=604800000 && minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value<1209600000"}}
-	]}},"2":{"terms_stats":{"key_field":"minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000)) < 1355529600000 ? \"Closed\" : \"Open\"","value_field":"bug_id","size":200000},"facet_filter":{"and":[
-		{"script":{"script":"var minimum = function(a, b){if (a==null) b; else if (b==null) a; else if (a<b) a; else b;\n};\nvar coalesce = function(a, b){if (a==null) b; else a; \n};\nvar zero2null = function(a){if (a==0) null; else a; \n};\nminimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value>=1209600000 && minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value<1814400000"}}
-	]}},"3":{"terms_stats":{"key_field":"minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000)) < 1355529600000 ? \"Closed\" : \"Open\"","value_field":"bug_id","size":200000},"facet_filter":{"and":[
-		{"script":{"script":"var minimum = function(a, b){if (a==null) b; else if (b==null) a; else if (a<b) a; else b;\n};\nvar coalesce = function(a, b){if (a==null) b; else a; \n};\nvar zero2null = function(a){if (a==0) null; else a; \n};\nminimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value>=1814400000 && minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value<2419200000"}}
-	]}},"4":{"terms_stats":{"key_field":"minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000)) < 1355529600000 ? \"Closed\" : \"Open\"","value_field":"bug_id","size":200000},"facet_filter":{"and":[
-		{"script":{"script":"var minimum = function(a, b){if (a==null) b; else if (b==null) a; else if (a<b) a; else b;\n};\nvar coalesce = function(a, b){if (a==null) b; else a; \n};\nvar zero2null = function(a){if (a==0) null; else a; \n};\nminimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value>=2419200000 && minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value<3024000000"}}
-	]}},"5":{"terms_stats":{"key_field":"minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000)) < 1355529600000 ? \"Closed\" : \"Open\"","value_field":"bug_id","size":200000},"facet_filter":{"and":[
-		{"script":{"script":"var minimum = function(a, b){if (a==null) b; else if (b==null) a; else if (a<b) a; else b;\n};\nvar coalesce = function(a, b){if (a==null) b; else a; \n};\nvar zero2null = function(a){if (a==0) null; else a; \n};\nminimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value>=3024000000 && minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value<3628800000"}}
-	]}},"6":{"terms_stats":{"key_field":"minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000)) < 1355529600000 ? \"Closed\" : \"Open\"","value_field":"bug_id","size":200000},"facet_filter":{"and":[
-		{"script":{"script":"var minimum = function(a, b){if (a==null) b; else if (b==null) a; else if (a<b) a; else b;\n};\nvar coalesce = function(a, b){if (a==null) b; else a; \n};\nvar zero2null = function(a){if (a==0) null; else a; \n};\nminimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value>=3628800000 && minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value<4233600000"}}
-	]}},"7":{"terms_stats":{"key_field":"minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000)) < 1355529600000 ? \"Closed\" : \"Open\"","value_field":"bug_id","size":200000},"facet_filter":{"and":[
-		{"script":{"script":"var minimum = function(a, b){if (a==null) b; else if (b==null) a; else if (a<b) a; else b;\n};\nvar coalesce = function(a, b){if (a==null) b; else a; \n};\nvar zero2null = function(a){if (a==0) null; else a; \n};\nminimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value>=4233600000 && minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value<4838400000"}}
-	]}},"8":{"terms_stats":{"key_field":"minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000)) < 1355529600000 ? \"Closed\" : \"Open\"","value_field":"bug_id","size":200000},"facet_filter":{"and":[
-		{"script":{"script":"var minimum = function(a, b){if (a==null) b; else if (b==null) a; else if (a<b) a; else b;\n};\nvar coalesce = function(a, b){if (a==null) b; else a; \n};\nvar zero2null = function(a){if (a==0) null; else a; \n};\nminimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value>=4838400000 && minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value<5443200000"}}
-	]}},"9":{"terms_stats":{"key_field":"minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000)) < 1355529600000 ? \"Closed\" : \"Open\"","value_field":"bug_id","size":200000},"facet_filter":{"and":[
-		{"script":{"script":"var minimum = function(a, b){if (a==null) b; else if (b==null) a; else if (a<b) a; else b;\n};\nvar coalesce = function(a, b){if (a==null) b; else a; \n};\nvar zero2null = function(a){if (a==0) null; else a; \n};\nminimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value>=5443200000 && minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value<6048000000"}}
-	]}},"10":{"terms_stats":{"key_field":"minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000)) < 1355529600000 ? \"Closed\" : \"Open\"","value_field":"bug_id","size":200000},"facet_filter":{"and":[
-		{"script":{"script":"var minimum = function(a, b){if (a==null) b; else if (b==null) a; else if (a<b) a; else b;\n};\nvar coalesce = function(a, b){if (a==null) b; else a; \n};\nvar zero2null = function(a){if (a==0) null; else a; \n};\nminimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value>=6048000000 && minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value<6652800000"}}
-	]}},"11":{"terms_stats":{"key_field":"minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000)) < 1355529600000 ? \"Closed\" : \"Open\"","value_field":"bug_id","size":200000},"facet_filter":{"and":[
-		{"script":{"script":"var minimum = function(a, b){if (a==null) b; else if (b==null) a; else if (a<b) a; else b;\n};\nvar coalesce = function(a, b){if (a==null) b; else a; \n};\nvar zero2null = function(a){if (a==0) null; else a; \n};\nminimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value>=6652800000 && minimum(1355529600000, coalesce(zero2null(doc[\"close_time\"].value), 1355529600000))-doc[\"create_time\"].value<7257600000"}}
-	]}}}};
+	var esQuery = {};
 
-	try{
-		var data=yield (Rest.post({
-//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping?pretty=true",
-//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping",
+	var epoch=new Date();
+		epoch.setUTCFullYear(1970, 0, 1);
+		epoch.setUTCHours(0, 0, 0, 0);
+//	var four=400/365/24/60/60/1000;
+	var monthsPerDay=(400*12)/(4*(365*100+25)-3);
+	var daysPerYear=(4*(365*100+25)-3)/400;
 
-//			"url":"http://localhost:9200/reviews/review/_search",
-//			"url":"http://localhost:9200/bug_tags/bug_tags/_search",
-//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews/review/_search",
-			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
-//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_tags/bug_tags/_search",
-//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
-//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/org_chart/person/_search",
-			"data":esQuery
-		}));
+	var millisPerYear=(4*(365*100+25)-3)*Duration.MILLI_VALUES.day/400;
+	var monthsPerMilli=12/millisPerYear;
+	var millisPerMonth=millisPerYear/12;
+	var missingDaysInYear=(337/11)*12-daysPerYear;
 
-		D.println(CNV.Object2JSON(data));
 
-		var htmlSummary = CNV.ESResult2HTMLSummaries(data);
-		var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));
-		document.getElementById("info").innerHTML = htmlSummary + "<br><br>" + htmlResults;
+	var error=[];
+	var numYear=3;
+	var minYear=epoch.addDay(+(40*366));
 
-	}catch(e){
-		D.warning(errorData);
-		document.getElementById("info").innerHTML = "Response Error.  Make sure you are connected to the MPT network.";
+	function mod(n,m){
+		return ((n%m)+m)%m;
 	}
+
+	function milli2Month(milli){
+		output=(
+			+ (milli+Duration.MILLI_VALUES.day*7)
+			- mod(milli+Duration.MILLI_VALUES.day*3, millisPerMonth)
+			- mod(milli-Duration.MILLI_VALUES.day*59, millisPerYear)*missingDaysInYear/daysPerYear
+		)/millisPerMonth;
+		return Math.floor(output);
+	}//method
+
+
+
+	for(var d=0;d<numYear*366;d++){
+		var day=minYear.addDay(d);
+		var milli=day.getMilli();
+		var month=12*(day.getUTCFullYear()-1970)+day.getUTCMonth();
+		var dom=day.getUTCDate();
+//		month=month+(dom*monthsPerDay);
+
+
+		var   easy=  ((milli+Duration.MILLI_VALUES.day*7)/millisPerMonth);
+
+
+		var    est=  ((milli+Duration.MILLI_VALUES.day*2)/millisPerMonth);
+		var estDOM=mod(milli+Duration.MILLI_VALUES.day*15, millisPerMonth)/millisPerMonth;
+		var estDOY=mod(milli-Duration.MILLI_VALUES.day*59, millisPerYear)/millisPerMonth*missingDaysInYear/daysPerYear;
+//		var estDOY=mod(milli-Duration.MILLI_VALUES.day*59, millisPerYear)/millisPerYear*missingDaysInYear*monthsPerDay;
+
+//		est-=estDOY;
+		est-=estDOM;
+
+		error[d]={"date":day, "error":(est-month), "est":est, "month":month, "estDOY":estDOY, "estDOM":estDOM, "easy":easy};
+	}//for
+
+
+
+	var chart=yield (CUBE.calc2Cube({
+		"from":error,
+		"select":[
+//			{"value":"month"},
+//			{"value":"est"},
+//			{"value":"estDOY"},
+//			{"value":"estDOM"},
+			{"value":"error", "operation":"one"}
+//			{"name":"floor_error", "value":"Math.floor(error)", "operation":"one"}
+		],
+		"edges":[
+			{"value":"date", "domain":{"type":"time", "min":minYear, "max":minYear.add(numYear+"year"), "interval":"day"}}
+		]
+	}));
+
+	aChart.show({
+		"id":"chart",
+		"type":"line",
+		"cube":chart,
+		"height":400,
+		"width":800,
+		originIsZero: false
+	});
+
+
+	var stats=yield (CUBE.calc2Cube({
+		"from":error,
+		"select":
+		[
+			{"name":"min_error", "value":"error", "operation":"minimum"},
+			{"name":"max_error", "value":"error", "operation":"maximum"}
+		],
+		"edges":[
+			{"name":"month", "value":"(Math.floor(easy)%12)*1000+(1970+(Math.floor(easy)/12))", "domain":{"type":"linear", "min":0, "max":11, "interval":1}}
+		]
+	}));
+
+
+	D.println("Min error:"+stats.cube.min);
+	D.println("Max error:"+stats.cube.max);
+
+	aChart.show({
+		"id":"chart2",
+		"type":"line",
+		"cube":stats,
+		"height":400
+	});
+
+
+
+
+
+//	try{
+//		var data=yield (Rest.post({
+////			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping?pretty=true",
+////			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping",
+//
+////			"url":"http://localhost:9200/reviews/review/_search",
+////			"url":"http://localhost:9200/bug_tags/bug_tags/_search",
+////			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews/review/_search",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
+////			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_tags/bug_tags/_search",
+////			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+////			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/org_chart/person/_search",
+//			"data":esQuery
+//		}));
+//
+//		D.println(CNV.Object2JSON(data));
+//
+//		var htmlSummary = CNV.ESResult2HTMLSummaries(data);
+//		var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));
+//		document.getElementById("info").innerHTML = htmlSummary + "<br><br>" + htmlResults;
+//
+//	}catch(e){
+//		D.warning(errorData);
+//		document.getElementById("info").innerHTML = "Response Error.  Make sure you are connected to the MPT network.";
+//	}
 
 });
 

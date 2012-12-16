@@ -45,7 +45,7 @@ GUI.fixEndDate=function(startDate, endDate, interval){
 };
 
 
-GUI.setup = function(parameters, relations, datasource){
+GUI.setup = function(parameters, relations, indexName){
 
 	//SHOW SPINNER
 	var found=$('.loading');
@@ -70,7 +70,7 @@ GUI.setup = function(parameters, relations, datasource){
 	GUI.state.componentFilter = new ComponentFilter();
 
 
-	GUI.showLastUpdated(datasource);
+	GUI.showLastUpdated(indexName);
 	GUI.AddParameters(parameters, relations); //ADD PARAM AND SET DEFAULTS
 	GUI.Parameter2State();			//UPDATE STATE OBJECT WITH THOSE DEFAULTS
 
@@ -96,8 +96,8 @@ GUI.setup = function(parameters, relations, datasource){
 
 
 //SHOW THE LAST TIME ES WAS UPDATED
-GUI.showLastUpdated = function(type){
-	if (type===undefined || type=="bugs"){
+GUI.showLastUpdated = function(indexName){
+	if (indexName===undefined || indexName=="bugs"){
 		ElasticSearchQuery.Run({
 			"query":{//ES QUERY
 				"query" : {
@@ -118,17 +118,17 @@ GUI.showLastUpdated = function(type){
 				$("#testMessage").html("ES Last Updated " + Date.newInstance(data.facets.modified_ts.max).addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 			}
 		});
-	}else if (type=="reviews"){
+	}else if (indexName=="reviews"){
 		aThread.run(function(){
 			var time=yield (REVIEWS.getLastUpdated());
 			$("#testMessage").html("Reviews Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 		});
-	}else if (type=="bug_tags"){
+	}else if (indexName=="bug_tags"){
 		aThread.run(function(){
 			var time=yield (BUG_TAGS.getLastUpdated());
 			$("#testMessage").html("Bugs Last Updated " + time.addTimezone().format("NNN dd"));
 		});
-	}else if (type="bug_summary"){
+	}else if (indexName="bug_summary"){
 		aThread.run(function(){
 			var time=new Date((yield(ESQuery.run({
 				"from":"bug_summary",

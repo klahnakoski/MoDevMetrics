@@ -65,6 +65,8 @@ aChart.getAxisLabels=function(axis){
 		axis.domain.partitions.forall(function(v, i){
 			if (v instanceof String){
 				labels.push(v);
+			}else if (Math.isNumeric(v)){
+				labels.push(""+v);
 			}else{
 				labels.push(v.name);
 			}//endif
@@ -167,18 +169,7 @@ aChart.show=function(params){
 
 	var type=params.type;
 	var chartCube=params.cube;
-	var colours=params.colours;
-
-	if (chartCube.select instanceof Array) D.error("Can not chart when select clause is an array");
-
-
-	////////////////////////////////////////////////////////////////////////////
-	// COLOUR MANAGMENT
-	////////////////////////////////////////////////////////////////////////////
-	if (colours===undefined) colours=[aChart.FAVORITE_COLOUR];
-	if (!(colours instanceof Array)) colours=[colours];
-	var parts=chartCube.edges[0].domain.partitions;
-	for(var i=0;i<parts.length;parts++) parts[i].colour=colours[i%colours.length];
+//	var colours=params.colours;
 
 
 	////////////////////////////////////////////////////////////////////////////
@@ -189,10 +180,29 @@ aChart.show=function(params){
 
 	var categoryLabels;
 	if (chartCube.edges.length==1 || chartCube.edges[0].domain.partitions.length==0){
-		categoryLabels=["Category"];
+		categoryLabels=CUBE.select2Array(chartCube.select).map(function(v, i){
+			return v.name;
+		});
 	}else if (chartCube.edges.length==2){
+		if (chartCube.select instanceof Array){
+			D.error("Can not chart when select clause is an array");
+		}//endif
+		
 		categoryLabels=aChart.getAxisLabels(chartCube.edges[0]);
 	}//endif
+
+
+
+
+
+//	////////////////////////////////////////////////////////////////////////////
+//	// COLOUR MANAGMENT
+//	////////////////////////////////////////////////////////////////////////////
+//	if (colours===undefined) colours=[aChart.FAVORITE_COLOUR];
+//	if (!(colours instanceof Array)) colours=[colours];
+//	var parts=chartCube.edges[0].domain.partitions;
+//	for(var i=0;i<parts.length;parts++) parts[i].colour=colours[i%colours.length];
+
 
 	//STATIC MAP FROM MY CHART TYPES TO CCC CLASS NAMES
 	var chartTypes={
@@ -248,10 +258,26 @@ aChart.show=function(params){
 
 	var chart = new pvc[chartTypes[type]](chartParams);
 
-	//FILL THE CROSS TAB DATASTUCTURE TO THE FORMAT EXPECTED (2D array of rows
+	//FILL THE CROSS TAB DATA STRUCTURE TO THE FORMAT EXPECTED (2D array of rows
 	//first row is series names, first column of each row is category name
-	var data=chartCube.cube.copy();
-	if (chartCube.edges.length==1) data=[data];
+	var data;
+	if (chartCube.edges.length==1){
+		if (chartCube.select instanceof Array){
+			//GIVE EACH SELECT A ROW
+			data=[];
+			for(var s=0;s<chartCube.select.length;s++){
+				var row=chartCube.cube.map(function(v, i){
+					return v[chartCube.select[s].name];
+				});
+				data.push(row);
+			}//for
+		}else{
+			data=[chartCube.cube];
+		}//endif
+	}else{
+		data=chartCube.cube.copy();
+	}//endif
+	
 	data.forall(function(v,i,d){
 		v=v.copy();
 		v.splice(0,0, categoryLabels[i]);

@@ -559,6 +559,15 @@ CUBE.domain.set = function(column, sourceColumns){
 	var d = column.domain;
 	if (d.name === undefined) d.name = d.type;
 
+
+	if (d.partitions === undefined) D.error("Expecting domain " + d.name + " to have a 'partitions' attribute to define the set of partitions that compose the domain");
+
+	if (d.partitions.list!=undefined && d.partitions.columns!=undefined){
+		//THE PARTITIONS LOOK LIKE A QUERY, USE IT
+		d.columns=d.partitions.columns,
+		d.partitions=d.partitions.list
+	}
+		
 	d.NULL = {};
 	d.NULL.name="null";
 
@@ -586,7 +595,6 @@ CUBE.domain.set = function(column, sourceColumns){
 
 
 
-	if (d.partitions === undefined) D.error("Expecting domain " + d.name + " to have a 'partitions' attribute to define the set of partitions that compose the domain");
 
 	//DEFINE VALUE->PARTITION MAP
 	if (column.test===undefined){
@@ -841,8 +849,6 @@ CUBE.domain.compileEnd=function(domain){
 		};//method
 	}else if (domain.end===undefined){
 		domain.end=function(p){	return p;};
-
-		
 	}//endif
 };
 

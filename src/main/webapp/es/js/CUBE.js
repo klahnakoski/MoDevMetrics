@@ -310,6 +310,18 @@ CUBE.calc2Cube = function(query){
 
 	CUBE.Tree2Cube(query, query.cube, query.tree, 0);
 
+//DO NOT DO THIS: AT THE LEAST CHARTS REQUIRE THE PARTS TO BE NAMED
+//	//RUN end() ON THE EDGES' DOMAIN PARTITIONS
+//	for(var f = 0; f < edges.length; f++){
+//		var d=edges[f].domain;
+//		var p = 0;
+//		for(; p < (d.partitions).length; p++){
+//			d.partitions[p]=d.end(d.partitions[p]);
+//		}//for
+//		d.NULL=d.end(d.NULL);
+//		d.end=function(p){return p;};	//MAKE SURE end() STILL RETURNS THE SAME VALUE
+//	}//for
+
 	yield (query);
 };//method
 

@@ -144,21 +144,34 @@
 		console.info(CNV.Object2JSON(esQuery.esQuery));
 
 		status.message("Call ES");
-
-
 		var reviewQueues=yield (esQuery.run());
 
 		status.message("Prep Chart");
 
-D.println(CNV.List2Tab(reviewQueues));
+
+
+		var ordering=yield (CUBE.calc2List({
+			"from":reviewQueues,
+			"select":[
+				{"value":"request_time", "operation":"minimum"},
+				{"value":"review_time", "operation":"maximum"}
+			],
+			"edges":[
+				"bug_id"
+			],
+			"sort":["request_time", "review_time"]
+		}));
+
+
+//D.println(CNV.List2Tab(reviewQueues));
 
 		var chart=yield (CUBE.calc2Cube({
 			"name":
 				"Historical Review Queue for "+GUI.state.requestee,
-			"from":reviewQueues.list,
+			"from":reviewQueues,
 			"select":{"name":"Pending", "value":"1", operation:"sum"},
 			"edges":[
-				{"name":"Bug ID", "value":"bug_id"/*, "sort":["request_time", "review_time"]*/},
+				{"name":"Bug ID", "value":"bug_id", "domain":{"type":"set", "partitions":ordering, "key":"bug_id", "value":"bug_id"}},
 				{"name":"Date",
 					"test":"time.min<=Util.coalesce(Date.newInstance(review_time), Date.eod()) && new Date(request_time)<time.max",
 					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, value:"value"}
@@ -171,7 +184,8 @@ D.println(CNV.List2Tab(reviewQueues));
 		aChart.show({
 			"id":"chart",
 			"type":"stacked",
-			"cube":chart
+			"cube":chart,
+			"showLegend":false
 		});
 
 		status.message("Done");
@@ -189,7 +203,8 @@ D.println(CNV.List2Tab(reviewQueues));
 		],
 		[
 			"sampleMax=GUI.fixEndDate(new Date(sampleMin), new Date(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
-		]);
+		],
+		"reviews");
 	});
 
 //	createChart();
