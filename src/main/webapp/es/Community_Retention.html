@@ -3,19 +3,7 @@
 <HEAD>
 </HEAD>
 <BODY>
-<!--&lt;!&ndash;[if lt IE 9]>-->
-<!---->
-<!--<![endif]&ndash;&gt;-->
-<!---->
-<!---->
-<!---->
-<!---->
-<!---->
-<!---->
-<!---->
-<!---->
-<!---->
-<!--<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>-->
+
 
 
 
@@ -142,7 +130,9 @@
 
 
 var CUTOFF=Duration.newInstance("3week");
-$("#description").html("Given the number of outgoing reviews from BZ members, what is the chance another review will be requested in the next while?  All values are percentages, indicating the proportion of people going on to request another review within the window size.   For each BZ email, only the first outgoing review per bug is considered.");
+$("#description").html("Given the number of outgoing reviews from BZ members, what is the chance another review will be requested in the next while?  All values are percentages, indicating the proportion of people going on to request another review within the window size.   For each BZ email, only the first outgoing review per bug is considered."+
+"<br><span class='warning'>Please note this chart is in an early stage: I have not looked into if underlying date is polluted, or if this is a useful measure.</span>"
+);
 
 var thread;
 var createChart=function(){
@@ -228,7 +218,7 @@ var __createChart = function(){
 	aChart.show({
 		"id":"chart",
 		"type":"line",
-		"stacked":true,
+		"stacked":false,
 		"cube":chart,
 		"height":500,
 		showValues: false

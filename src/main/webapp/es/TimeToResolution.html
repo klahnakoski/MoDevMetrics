@@ -3,20 +3,6 @@
 <HEAD>
 </HEAD>
 <BODY>
-<!--&lt;!&ndash;[if lt IE 9]>-->
-<!---->
-<!--<![endif]&ndash;&gt;-->
-<!---->
-<!---->
-<!---->
-<!---->
-<!---->
-<!---->
-<!---->
-<!---->
-<!---->
-<!--<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>-->
-
 
 
 
@@ -168,7 +154,7 @@ var __createChart = function(){
 		,
 		"edges":[
 			{"name":"bug_status", "value":closeTime+" < "+sampleMax.getMilli()+" ? \"Closed\" : \"Open\""},
-			{"name":"duration", "value":closeTime+"-"+idTime, "domain":{"type":"duration", "min":"0", "max":GUI.state.maxX, "interval":GUI.state.intervalX}}
+			{"name":"duration", "value":closeTime+"-"+idTime, "allowNulls":true, "domain":{"type":"duration", "min":"0", "max":GUI.state.maxX, "interval":GUI.state.intervalX}}
 		],
 		"esfilter":{"and":[
 			{"script":{"script":sampleMin.getMilli()+" <= "+idTime+" && "+idTime +" < "+sampleMax.getMilli()}},
@@ -196,7 +182,7 @@ var __createChart = function(){
 			{"name":"total", "value":"count", "operation":"sum"},
 			{"name":"num_open", "value":"bug_status=='Open' ? count : 0", "operation":"sum"},
 			{"name":"num_closed", "value":"bug_status=='Closed' ? count : 0", "operation":"sum"},
-			{"name":"under", "value":"duration.value.milli<"+CUTOFF.milli+" ? count : 0", "operation":"sum"}
+			{"name":"under", "value":"(duration.value!=null && duration.value.milli<"+CUTOFF.milli+") ? count : 0", "operation":"sum"}
 		]
 	}))).cube;
 

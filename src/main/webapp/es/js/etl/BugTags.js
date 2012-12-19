@@ -19,7 +19,10 @@ BUG_TAGS.getLastUpdated=function(){
 		"from":BUG_TAGS.aliasName,
 		"select":[
 			{"name":"last_request", "value":BUG_TAGS.aliasName+".date", "operation":"maximum"}
-		]
+		],
+		"esfilter":{"and":[
+			{"range":{"date":{"gt":Date.now().subtract(Duration.MONTH).getMilli()}}}
+		]}
 	}));
 	yield (Date.newInstance(data.cube.last_request));
 };

@@ -150,6 +150,9 @@ TeamFilter.prototype.injectHTML = function(hier){
 			"icons":false,
 			"dots":false
 		},
+//		"checkbox":{
+//			"two_state":true
+//		},
 		"plugins" : [ "themes", "json_data", "ui", "checkbox" ]
 	}).bind("change_state.jstree", function (e, data){
 		if (self.disableUI) return;

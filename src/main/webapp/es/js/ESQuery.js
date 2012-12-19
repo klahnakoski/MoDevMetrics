@@ -107,7 +107,7 @@ ESQuery.prototype.run = function(){
 			data: JSON.stringify(this.esQuery),
 			dataType: "json",
 			headers:{
-				"Accept-Encoding": "gzip,deflate"
+				"Accept-Encoding": "gzip,deflate"//Accept-Encoding: gzip,deflate
 //				"http.compress":"true"
 			}
 		}));
@@ -358,10 +358,10 @@ ESQuery.buildCondition = function(edge, partition){
 		//USE MVEL CODE
 		if (["time", "duration", "linear"].contains(edge.domain.type)){
 			output.script = {script:edge.value + ">=" + MVEL.Value2Code(partition.min) + " && " + edge.value + "<" + MVEL.Value2Code(partition.max)};
-		} else if (edge.domain.type == "set"){
-			output.script = {script:edge.value + "==" + MVEL.Value2Code(partition.value)};
-		} else{
-			D.error("Edge \"" + edge.name + "\" is not supported");
+		} else {//if (edge.domain.type == "set"){
+			output.script = {script:"( "+edge.value + " ) ==" + MVEL.Value2Code(partition.value)};
+//		} else{
+//			D.error("Edge \"" + edge.name + "\" is not supported");
 		}//endif
 	}//endif
 

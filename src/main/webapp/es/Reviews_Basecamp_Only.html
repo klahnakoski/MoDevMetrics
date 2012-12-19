@@ -83,6 +83,20 @@
 
 <div id="info"></div>
 
+<div id="pending" style="align:left;"></div>
+
+<div id="complete"></div>
+
+<div id="open"></div>
+<!--<div id="info"></div>-->
+<!--<table><tr><td style="padding-left:40px;vertical-align: top;width:200px">-->
+	<!--<div id="open" style="align:left;display:inline;width:200px"></div>-->
+<!--</td><td style="padding-left:40px;vertical-align: top">-->
+	<!--<span id="pending" style="align:left;display:inline;"></span>-->
+<!--</td><td style="padding-left:40px;vertical-align: top">-->
+	<!--<span id="complete" style="align:left;display:inline;"></span>-->
+<!--</td></tr></table>-->
+
 <script type="application/javascript;version=1.7">
 
 	var query = {
@@ -95,18 +109,13 @@
 					"and":[
 						{ "range" : { "expires_on" : { "gt" : Date.now().addDay(1) } } },
 						{ "term" : {"cf_blocking_basecamp": "+"}},
-						{"not" : {
-							"terms" : {
-								"bug_status" : ["resolved", "verified", "closed"]
-							}
-						}
-						}
+						{"not" : { "terms" : {"bug_status" : ["resolved", "verified", "closed"]}}}
 					]
 				}
 			}
 		},
 		"from":0,
-		"size":100,
+		"size":0,
 		"sort":[
 			{ "bug_version_num" : {"sort" : "asc"} }
 		],
@@ -118,19 +127,15 @@
 							new MVEL().code({
 								"select" : [
 									{"name":"bug_id", "value":"bugs.bug_id"},
+									{"name":"modified_ts", "value":"bugs.modified_ts"},
 									{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
 								],
 								"from":
 										"bugs.attachments.flags",
 								"where":
 								{"and" : [
-									{"or" : [
-										{ "and" : [
-											{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
-											//, "D"]}},
-											{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}}
-										]}
-									]},
+									{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
+									{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
 									{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
 								]}
 							}),
@@ -147,6 +152,27 @@
 								],
 								"from":
 										"bugs"
+							}),
+					"size": 100000
+				}
+			},
+			"reviewed": {
+				"terms": {
+					"script_field":
+							new MVEL().code({
+								"select" : [
+									{"name":"bug_id", "value":"bugs.bug_id"},
+									{"name":"modified_ts", "value":"bugs.modified_ts"},
+									{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
+								],
+								"from":
+										"bugs.attachments.flags",
+								"where":
+								{"and" : [
+									{"terms" : {"bugs.attachments.flags.request_status" : ["+"]}},
+									{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+									{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
+								]}
 							}),
 					"size": 100000
 				}
@@ -168,24 +194,30 @@
 			aThread.run(function(){
 			var esResult = MVEL.esFacet2List(data.facets.pending, [
 									{"name":"bug_id", "value":"bugs.bug_id"},
+									{"name":"modified_ts", "value":"bugs.modified_ts"},
 									{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
 								]);
+
+			var pendingReview=(yield (CUBE.calc2List({
+				"from":
+					esResult,
+				"select":[
+					{"name":"request_time", "value":"modified_ts", "operation":"minimum"}
+				],
+				"edges":[
+					{"name":"requestee", "value":"requestee"},
+					{"name":"bug_id", "value":"bug_id"}
+				]
+			})));
+
 
 			var result = (yield (CUBE.calc2List({
 				"from":
 					//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
-					(yield (CUBE.calc2List({
-						"from":
-								esResult,
-						"select":[
-						],
-						"edges":[
-							{"name":"requestee", "value":"requestee"},
-							{"name":"bug_id", "value":"bug_id"}
-						]
-					}))).list,
+					pendingReview,
 				"select":[
 					{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
+					{"name":"maxWaitTime", "value":"Math.round(Date.now().subtract(new Date(request_time)).divideBy(Duration.DAY), 1)+\"days\"", "operation":"maximum"},
 					{"name":"bugs", "value":"bug_id", operation:"join", "separator":","}
 				],
 				"edges":[
@@ -201,10 +233,65 @@
 				"from":result,
 				"select":[
 					{"name":"requestee", "value":"requestee"},
-					{"name":"numPending", value:"numPending"},
-					{"name":"bugs", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
+					{"name":"Number Pending", value:"numPending"},
+					{"name":"Max Wait Time", "value":"maxWaitTime"},
+					{"name":"Bug List", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
 				]
 			}))).list;
+
+
+
+
+
+			var esResult3 = MVEL.esFacet2List(data.facets.reviewed, [
+				{"name":"bug_id", "value":"bugs.bug_id"},
+				{"name":"modified_ts", "value":"bugs.modified_ts"},
+				{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
+			]);
+
+			var doneReview=(yield (CUBE.calc2List({
+				"from":
+					esResult3,
+				"select":[
+					{"name":"wait_time", "value":"Math.round(Date.now().subtract(new Date(modified_ts)).divideBy(Duration.DAY), 1)+\"days\"", "operation":"minimum"}
+				],
+				"edges":[
+					{"name":"bug_id", "value":"bug_id"}
+				]
+			})));
+
+			//FILTER OUT review?
+			doneReview=doneReview.list.map(function(v, i){
+				for(var p=0;p<pendingReview.list.length;p++){
+					if (pendingReview.list[p].bug_id==v.bug_id) return undefined;
+				}//for
+				return v;
+			});
+
+
+			//ADD LINK TO BUGS
+			var result3=(yield (CUBE.calc2List({
+				"from":doneReview,
+				"select":[
+					{"name":"Wait Time", value:"wait_time"},
+					{"name":"Bug", "value":"\"<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=\"+bug_id+\"'>\"+bug_id+\"</a>\""}
+				]
+			}))).list;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 			var assigned = MVEL.esFacet2List(data.facets.assigned, [{"name":"bug_id"},{"name":"assigned_to"}]);
@@ -234,10 +321,10 @@
 				]
 			}))).list;
 
-			var htmlSummary = "<h2>Pending Review</h2>" + CNV.List2HTMLTable(result);
-			htmlSummary += "<h2>Assigned To</h2>" + CNV.List2HTMLTable(result2);
+			$("#pending").html("<h2>Pending Review (R?)</h2>" + CNV.List2HTMLTable(result));
+			$("#complete").html("<h2>Review Completed (R+)</h2>" + CNV.List2HTMLTable(result3));
+			$("#open").html("<h2>Assigned To</h2>" + CNV.List2HTMLTable(result2));
 
-			document.getElementById("info").innerHTML = htmlSummary;
 		});},
 
 		error: function (errorData, errorMsg, errorThrown){

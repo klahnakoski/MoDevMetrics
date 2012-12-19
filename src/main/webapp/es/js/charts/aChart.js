@@ -68,7 +68,7 @@ aChart.getAxisLabels=function(axis){
 			}else if (Math.isNumeric(v)){
 				labels.push(""+v);
 			}else{
-				labels.push(v.name);
+				labels.push(""+axis.domain.end(v));
 			}//endif
 		});
 	}//endif
@@ -310,9 +310,17 @@ var bugClicker=function(query, series, x, d, elem){
 		//We can decide to drilldown, or show a bug list.
 		//Someimes drill down is not available, and bug list is too big, so nothing happens
 		//When there is a drilldown, the decision to show bugs is made at a lower count (prefering drilldown)
-		if (d>300) D.alert("Too many bugs (>300)");
+		if (d>300){
+			D.alert("Too many bugs (>300)");
+			return;
+		}//endif
 		aThread.run(function(){
-			var specific=CUBE.specificBugs(query, [x]);
+			var specific;
+			if (query.edges.length==2){
+				specific=CUBE.specificBugs(query, [series, x]);
+			}else{
+				specific=CUBE.specificBugs(query, [x]);
+			}//endif
 			var buglist=(yield (ESQuery.run(specific)));
 			buglist=buglist.list.map(function(b){return b.bug_id;});
 			Bugzilla.showBugs(buglist);

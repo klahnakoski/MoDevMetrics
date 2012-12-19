@@ -41,7 +41,8 @@
 
 
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
-<script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
+<script type="application/javascript;version=1.7" src="js/util.js"></script>
+<script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
 <script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
@@ -138,30 +139,30 @@
 				{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
 				{"term":{"is_first":"1"}}
 			]};
+		var requesteeList=undefined;
+		if (GUI.state.requestee.trim().length>0){
+			requesteeList={"terms":{"reviewer": GUI.state.requestee.split(",").map(function(v){return v.trim();})}};
+			mainFilter.and.push(requesteeList);
+		}//endif
 		GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
 
 		//CHART OF AGGREGATE RESPONSE TIMES
 		aThread.run(function(){
-			var q=new ESQuery({
+			var response=yield (ESQuery.run({
 				"name":"Response Time Breakdown",
 				"from":"reviews",
 				"select":{"name":"count", "value":"bug_id", "operation":"count"},
 				"edges":[
-					{"name":"wait_time", value:"(coalesce(zero2null(review_time), "+Date.eod().getMilli()+")-request_time)",
-						"allowNulls":true,
+					{"name":"wait_time",
+						value:"(coalesce(zero2null(doc[\"review_time\"].value), "+Date.eod().getMilli()+")-doc[\"request_time\"].value)",
+						"allowNulls":"true",
 						"domain":{"type":"duration", "min":0, "max":"10day", "interval":"day"}
 					}
 				],
 				"esfilter":mainFilter
-			});
+			}));
 
-			q.edges[0].domain.NULL.name="Over 10 days";
-
-//			GUI.injectFilters(q);
-			var response=yield (q.run());
-
-
-
+			response.edges[0].domain.NULL.name="Over 10 days";
 
 			aChart.show({
 				"id":"chartResponse",
@@ -169,17 +170,38 @@
 				"cube":response,
 				"height":200,
 				"width":400,
-				xAxisSize: 70
+				"xAxisSize": 70
 			});
+		});
+
+
+		//CHART OF AGGREGATE RESPONSE TIMES
+		aThread.run(function(){
+			var df=(yield (ESQuery.run({
+				"name":"DF",
+				"from":"reviews",
+				"select":{"name":"count", "value":"bug_id", "operation":"count"},
+				"edges":[
+					{"name":"wait_time", "allowNulls":true, value:"(coalesce(zero2null(review_time), "+Date.eod().getMilli()+")-doc[\"request_time\"].value)",
+						"domain":{"type":"duration", "min":0, "max":"10day", "interval":"hour"}
+					}
+				],
+				"esfilter":mainFilter
+			})));
+
 
 			status.message("Calc Stats");
 
+			var pecentile90=Stats.percentile(df.cube, 0.90)/24;  //INTERVALS ARE IN HOURS, CONVERT TO DAYS
+
+
 			var stats=(yield (CUBE.calc2Cube({
 				"from":
-					yield (CUBE.Cube2List(response)),
+					yield (CUBE.Cube2List(df)),
 				"select": [
 					{"name":"total", "value":"count", "operation":"sum"},
-					{"name":"under_24_hours", "value":"(wait_time==null || wait_time.milli<"+Duration.newInstance('24hour').milli+") ? count : 0", "operation":"sum"}
+					{"name":"under_24_hours", "value":"(wait_time!=null && wait_time.milli<"+Duration.newInstance('24hour').milli+") ? count : 0", "operation":"sum"},
+					{"name":"over_10_days", "value":"wait_time==null ? count : 0", "operation":"sum"}
 				]
 			}))).cube;
 
@@ -189,7 +211,9 @@
 			$("#stats").html(
 				'<span class="parameter_name">Total Reviews:</span><b>'+stats.total+'</b><br>'+
 				'<span class="parameter_name">Reviews per week:</span><b>'+Math.round(stats.total/numWeek, 1)+'</b><br>'+
-				'<span class="parameter_name">% Under One Day:</span><b>'+Math.round(stats.under_24_hours/stats.total*100, 1)+'%</b><br>'
+				'<span class="parameter_name">% Under One Day:</span><b>'+Math.round(stats.under_24_hours/stats.total*100, 1)+'%</b><br>'+
+				'<span class="parameter_name">% Over 10days:</span><b>'+Math.round(stats.over_10_days/stats.total*100, 1)+'%</b><br>'+
+				'<span class="parameter_name">90th percentile:</span><b>'+Math.round(pecentile90, 1)+'days</b><br>'
 			);
 
 
@@ -273,6 +297,7 @@
 					MVEL.FUNCTIONS.coalesce+
 					"(coalesce(_source.review_time, "+Date.eod().getMilli()+")-_source.request_time > "+Duration.MILLI_VALUES.day+") ? 1 : 0;"
 				}},
+				requesteeList,
 				{"term":{"is_first":"1"}},
 				{"range":{"request_time":{"lt":sampleMax.getMilli()}}},
 				{"or":[
@@ -346,10 +371,10 @@
 
 	$(document).ready(function(){
 		GUI.setup([
+			{"id":"requestee", "name":"Specific Email List", "type":"text", "default":""},
 			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.today().add("-3month")},
 			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.today()},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.DAY},
-			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000},
 			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("reviewer")}
 		],
 		[

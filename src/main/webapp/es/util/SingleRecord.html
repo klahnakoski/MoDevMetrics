@@ -41,10 +41,10 @@
 
 
 <script type="application/javascript;version=1.7" src="../js/CNV.js"></script>
+<script type="application/javascript;version=1.7" src="../js/util.js"></script>
 <script type="application/javascript;version=1.7" src="../js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="../js/MozillaPrograms.js"></script>
-<script type="application/javascript;version=1.7" src="../js/util.js"></script>
 <script type="application/javascript;version=1.7" src="../js/Debug.js"></script>
 <script type="application/javascript;version=1.7" src="../js/MVEL.js"></script>
 <script type="application/javascript;version=1.7" src="../js/aCompiler.js"></script>
@@ -69,6 +69,7 @@
 <script type="application/javascript;version=1.7" src="../js/etl/Reviews.js"></script>
 <script type="application/javascript;version=1.7" src="../js/etl/BugSummary.js"></script>
 
+<div id="status"></div>
 <div id="info"></div>
 <h2>Some header</h2>
 <div id="chart" style="width:800px;height:400px;"></div>
@@ -81,149 +82,70 @@ aThread.run(function(){
 
 	D.println(new Date(1352207434236).format("yyyy-NNN-dd HHmmss"));
 
+	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
+		{"script":{"script":"true"}},
+		{"and":[
+			{"term":{"bug_id":"674239"}},
+//			{"term":{"attach_id":"688344"}}
+		]}
+	]}}},"from":0,"size":100,"sort":[]//"bug_version_num"]
+	};
+
+
+
+
+
 //	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
 //		{"script":{"script":"true"}},
 //		{"and":[
-//			{"term":{"bug_id":"740241"}}
+////			{"range":{"request_time":{"gte":1347926400000,"lt":1355875200000}}},
+//			{"term":{"bug_id":"674239"}},
+////			{"term":{"attach_id":"688344"}},
+////			{"terms":{"reviewer":["jpr@mozilla.com","blassey.bugs@lassey.us","chrislord.net@gmail.com","cpeterson@mozilla.com","gbrown@mozilla.com","gpascutto@mozilla.com","snorp@snorp.net","bugmail.mozilla@staktrace.com","nchen@mozilla.com","bugzilla@sherk.me","jdaggett@mozilla.com","jst@mozilla.org","continuation@gmail.com","overholt@mozilla.com","amarchesini@mozilla.com","aranganathan@mozilla.com","bent.mozilla@gmail.com","jan.varga@gmail.com","mounir@lamouri.fr","jonas@sicking.cc","bobbyholley+bmo@gmail.com","bzbarsky@mit.edu","bolterbugz@gmail.com","surkov.alexander@gmail.com","eitan@monotonous.org","hub@mozilla.com","marco.zehe@googlemail.com","trev.saunders@gmail.com","doug.turner@gmail.com","hsivonen@iki.fi","nsm.nikhil@gmail.com","bugs@pettay.fi","wchen@mozilla.com","justin.lebar+bug@gmail.com","josh@joshmatthews.net","jschoenick@mozilla.com","khuey@kylehuey.com","mrbkap@gmail.com","peterv@propagandism.org","bugs@junglecode.net","dbaron@dbaron.org","sjohnson@mozilla.com","dholbert@mozilla.com","ebassi@mozilla.com","fantasai.bugs@inkedblade.net","jfkthame@gmail.com","jwatt@jwatt.org","seth@mozilla.com","matspal@gmail.com","msreckovic@mozilla.com","bgirard@mozilla.com","bjacob@mozilla.com","bas.schouten@live.nl","gwright@mozilla.com","joe@drew.ca","jmuizelaar@mozilla.com","nical.bugzilla@gmail.com","smontagu@smontagu.org","tnikkel@gmail.com","roc@ocallahan.org","ajones@mozilla.com","chris.double@double.co.nz","cam@mcc.id.au","cpearce@mozilla.com","eflores@mozilla.com","jib@mozilla.com","jmvalin@mozilla.com","karlt@mozbugz.karlt.net","kinetik@flim.org","ventnor.bugzilla@gmail.com","matt.woodrow@gmail.com","ncameron@mozilla.com","paul@paul.cx","giles@mozilla.com","rjesup@jesup.org","tterribe@vt.edu","negge@mozilla.com"]}},
+////			{"script":{"script":"var coalesce = function(a, b){if (a==null) b; else a; \n};\nvar zero2null = function(a){if (a==0) null; else a; \n};\n((coalesce(zero2null(doc[\"review_time\"].value), 1355875200000)-doc[\"request_time\"].value)<0) || ((coalesce(zero2null(doc[\"review_time\"].value), 1355875200000)-doc[\"request_time\"].value)>=864000000)"}}
 //		]}
-//	]}}},"from":0,"size":100,"sort":["bug_version_num"]
-//	};
-
-	var esQuery = {};
-
-	var epoch=new Date();
-		epoch.setUTCFullYear(1970, 0, 1);
-		epoch.setUTCHours(0, 0, 0, 0);
-//	var four=400/365/24/60/60/1000;
-	var monthsPerDay=(400*12)/(4*(365*100+25)-3);
-	var daysPerYear=(4*(365*100+25)-3)/400;
-
-	var millisPerYear=(4*(365*100+25)-3)*Duration.MILLI_VALUES.day/400;
-	var monthsPerMilli=12/millisPerYear;
-	var millisPerMonth=millisPerYear/12;
-	var missingDaysInYear=(337/11)*12-daysPerYear;
-
-
-	var error=[];
-	var numYear=3;
-	var minYear=epoch.addDay(+(40*366));
-
-	function mod(n,m){
-		return ((n%m)+m)%m;
-	}
-
-	function milli2Month(milli){
-		output=(
-			+ (milli+Duration.MILLI_VALUES.day*7)
-			- mod(milli+Duration.MILLI_VALUES.day*3, millisPerMonth)
-			- mod(milli-Duration.MILLI_VALUES.day*59, millisPerYear)*missingDaysInYear/daysPerYear
-		)/millisPerMonth;
-		return Math.floor(output);
-	}//method
+//	]}}},"from":0,"size":100,"sort":[]};
 
 
 
-	for(var d=0;d<numYear*366;d++){
-		var day=minYear.addDay(d);
-		var milli=day.getMilli();
-		var month=12*(day.getUTCFullYear()-1970)+day.getUTCMonth();
-		var dom=day.getUTCDate();
-//		month=month+(dom*monthsPerDay);
+	try{
+		var data=yield (Rest.post({
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping?pretty=true",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping",
 
-
-		var   easy=  ((milli+Duration.MILLI_VALUES.day*7)/millisPerMonth);
-
-
-		var    est=  ((milli+Duration.MILLI_VALUES.day*2)/millisPerMonth);
-		var estDOM=mod(milli+Duration.MILLI_VALUES.day*15, millisPerMonth)/millisPerMonth;
-		var estDOY=mod(milli-Duration.MILLI_VALUES.day*59, millisPerYear)/millisPerMonth*missingDaysInYear/daysPerYear;
-//		var estDOY=mod(milli-Duration.MILLI_VALUES.day*59, millisPerYear)/millisPerYear*missingDaysInYear*monthsPerDay;
-
-//		est-=estDOY;
-		est-=estDOM;
-
-		error[d]={"date":day, "error":(est-month), "est":est, "month":month, "estDOY":estDOY, "estDOM":estDOM, "easy":easy};
-	}//for
-
-
-
-	var chart=yield (CUBE.calc2Cube({
-		"from":error,
-		"select":[
-//			{"value":"month"},
-//			{"value":"est"},
-//			{"value":"estDOY"},
-//			{"value":"estDOM"},
-			{"value":"error", "operation":"one"}
-//			{"name":"floor_error", "value":"Math.floor(error)", "operation":"one"}
-		],
-		"edges":[
-			{"value":"date", "domain":{"type":"time", "min":minYear, "max":minYear.add(numYear+"year"), "interval":"day"}}
-		]
-	}));
-
-	aChart.show({
-		"id":"chart",
-		"type":"line",
-		"cube":chart,
-		"height":400,
-		"width":800,
-		originIsZero: false
-	});
-
-
-	var stats=yield (CUBE.calc2Cube({
-		"from":error,
-		"select":
-		[
-			{"name":"min_error", "value":"error", "operation":"minimum"},
-			{"name":"max_error", "value":"error", "operation":"maximum"}
-		],
-		"edges":[
-			{"name":"month", "value":"(Math.floor(easy)%12)*1000+(1970+(Math.floor(easy)/12))", "domain":{"type":"linear", "min":0, "max":11, "interval":1}}
-		]
-	}));
-
-
-	D.println("Min error:"+stats.cube.min);
-	D.println("Max error:"+stats.cube.max);
-
-	aChart.show({
-		"id":"chart2",
-		"type":"line",
-		"cube":stats,
-		"height":400
-	});
-
-
-
-
-
-//	try{
-//		var data=yield (Rest.post({
-////			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping?pretty=true",
-////			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping",
-//
-////			"url":"http://localhost:9200/reviews/review/_search",
-////			"url":"http://localhost:9200/bug_tags/bug_tags/_search",
-////			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews/review/_search",
+//			"url":"http://localhost:9200/reviews/review/_search",
+//			"url":"http://localhost:9200/bug_tags/bug_tags/_search",
+			"url":"http://elasticsearch8.metrics.scl3.mozilla.com:9200/reviews/review/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
-////			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_tags/bug_tags/_search",
-////			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
-////			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/org_chart/person/_search",
-//			"data":esQuery
-//		}));
-//
-//		D.println(CNV.Object2JSON(data));
-//
-//		var htmlSummary = CNV.ESResult2HTMLSummaries(data);
-//		var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));
-//		document.getElementById("info").innerHTML = htmlSummary + "<br><br>" + htmlResults;
-//
-//	}catch(e){
-//		D.warning(errorData);
-//		document.getElementById("info").innerHTML = "Response Error.  Make sure you are connected to the MPT network.";
-//	}
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_tags/bug_tags/_search",
+//			"url":"http://elasticsearch8.metrics.scl3.mozilla.com:9200/bugs/_search",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/org_chart/person/_search",
+			"data":esQuery
+		}));
+
+		D.println(CNV.Object2JSON(data));
+
+		var htmlSummary = CNV.ESResult2HTMLSummaries(data);
+		var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));
+		$("#info").html(htmlSummary + "<br><br>" + htmlResults);
+
+
+		while(true){
+			if (ETL.allFlags!==undefined) break;
+			yield (aThread.sleep(200));
+		}//while
+
+
+		var reviews=yield (REVIEWS.get(674239, 674240));
+		$("#info").append(CNV.List2HTMLTable(reviews));
+
+
+
+
+	}catch(e){
+		D.warning(errorData);
+		document.getElementById("info").innerHTML = "Response Error.  Make sure you are connected to the MPT network.";
+	}
 
 });
 

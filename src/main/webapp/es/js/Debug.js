@@ -38,6 +38,10 @@ D.warning = function(description, cause){
 	D.println(new Exception("WARNING: "+description, cause).toString());
 };//method
 
+D.alert=function(message){
+	alert(message);
+};//method
+
 
 
 

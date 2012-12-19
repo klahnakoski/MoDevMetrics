@@ -20,7 +20,7 @@ var mapAllKey=function(map, func){
 	return output;
 };
 
-if (window['importScript'] == undefined) importScript=function(){};
+if (window['importScript'] === undefined) importScript=function(){};
 
 Math.isNumeric = function(n){
 	return !isNaN(parseFloat(n)) && isFinite(n);
@@ -130,11 +130,12 @@ var Util = {};
 
 //RETURN FIRST NOT NULL, AND DEFINED VALUE
 Util.coalesce = function(){
+	var a;
 	for(var i=0;i<arguments.length;i++){
-		var a=arguments[i];
+		a=arguments[i];
 		if (a!==undefined && a!=null) return a;
 	}//for
-	return undefined;
+	return a;
 };//method
 
 Util.nvl = Util.coalesce;

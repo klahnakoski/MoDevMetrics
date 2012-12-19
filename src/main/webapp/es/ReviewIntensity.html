@@ -41,7 +41,8 @@
 
 
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
-<script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
+<script type="application/javascript;version=1.7" src="js/util.js"></script>
+<script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
 <script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
@@ -138,6 +139,12 @@
 		var mainFilter={"and":[
 				{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}}
 			]};
+
+		var requesteeList=undefined;
+		if (GUI.state.requestee.trim().length>0){
+			requesteeList={"terms":{"reviewer": GUI.state.requestee.split(",").map(function(v){return v.trim();})}};
+			mainFilter.and.push(requesteeList);
+		}//endif
 		GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
 
 		aThread.run(function(){
@@ -175,7 +182,7 @@
 				"from":"reviews",
 				"select":{"name":"count", "value":"bug_id", "operation":"count"},
 				"edges":[
-					{"name":"wait_time", value:"(coalesce(zero2null(doc[\"review_time\"].value), "+Date.eod().getMilli()+")-doc[\"request_time\"].value)",
+					{"name":"wait_time", "allowNulls":true, value:"(coalesce(zero2null(review_time), "+Date.eod().getMilli()+")-doc[\"request_time\"].value)",
 						"domain":{"type":"duration", "min":0, "max":"10day", "interval":"hour"}
 					}
 				],
@@ -193,7 +200,8 @@
 					yield (CUBE.Cube2List(df)),
 				"select": [
 					{"name":"total", "value":"count", "operation":"sum"},
-					{"name":"under_24_hours", "value":"wait_time.milli<"+Duration.newInstance('24hour').milli+" ? count : 0", "operation":"sum"}
+					{"name":"under_24_hours", "value":"(wait_time!=null && wait_time.milli<"+Duration.newInstance('24hour').milli+") ? count : 0", "operation":"sum"},
+					{"name":"over_10_days", "value":"wait_time==null ? count : 0", "operation":"sum"}
 				]
 			}))).cube;
 
@@ -204,6 +212,7 @@
 				'<span class="parameter_name">Total Reviews:</span><b>'+stats.total+'</b><br>'+
 				'<span class="parameter_name">Reviews per week:</span><b>'+Math.round(stats.total/numWeek, 1)+'</b><br>'+
 				'<span class="parameter_name">% Under One Day:</span><b>'+Math.round(stats.under_24_hours/stats.total*100, 1)+'%</b><br>'+
+				'<span class="parameter_name">% Over 10days:</span><b>'+Math.round(stats.over_10_days/stats.total*100, 1)+'%</b><br>'+
 				'<span class="parameter_name">90th percentile:</span><b>'+Math.round(pecentile90, 1)+'days</b><br>'
 			);
 
@@ -288,6 +297,7 @@
 					MVEL.FUNCTIONS.coalesce+
 					"(coalesce(_source.review_time, "+Date.eod().getMilli()+")-_source.request_time > "+Duration.MILLI_VALUES.day+") ? 1 : 0;"
 				}},
+				requesteeList,
 				{"range":{"request_time":{"lt":sampleMax.getMilli()}}},
 				{"or":[
 					{"range":{"review_time":{"gte":sampleMin.getMilli()}}}, //REVIEWED AFTER THE min
@@ -360,6 +370,7 @@
 
 	$(document).ready(function(){
 		GUI.setup([
+			{"id":"requestee", "name":"Specific Email List", "type":"text", "default":""},
 			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.today().add("-3month")},
 			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.today()},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.DAY},

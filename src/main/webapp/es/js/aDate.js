@@ -1,3 +1,7 @@
+
+importScript("util.js");
+
+
 Date.now = function(){
 	return new Date();
 };//method
@@ -642,8 +646,8 @@ Duration.ZERO=Duration.newInstance(0);
 Duration.SECOND=Duration.newInstance("second");
 Duration.MINUTE=Duration.newInstance("minute");
 Duration.HOUR=Duration.newInstance("hour");
-Duration.DAY=Duration.DAY;
-Duration.WEEK=Duration.WEEK;
+Duration.DAY=Duration.newInstance("day");
+Duration.WEEK=Duration.newInstance("week");
 Duration.MONTH=Duration.newInstance("month");
 Duration.QUARTER=Duration.newInstance("quarter");
 Duration.YEAR=Duration.newInstance("year");

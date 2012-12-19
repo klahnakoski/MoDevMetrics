@@ -148,15 +148,16 @@
 				"from":"reviews",
 				"select":{"name":"count", "value":"bug_id", "operation":"count"},
 				"edges":[
-					{"name":"wait_time", value:"(coalesce(zero2null(doc[\"review_time\"].value), "+Date.eod().getMilli()+")-doc[\"request_time\"].value)",
+					{"name":"wait_time", "allowNulls":true,
+						value:"(coalesce(zero2null(doc[\"review_time\"].value), "+Date.eod().getMilli()+")-doc[\"request_time\"].value)",
 						"domain":{"type":"duration", "min":0, "max":"10day", "interval":"day"}
 					}
 				],
 				"esfilter":mainFilter
 			});
 
-//			GUI.injectFilters(q);
 			var response=yield (q.run());
+			response.edges[0].domain.NULL.name="Over 10 days";
 
 			aChart.show({
 				"id":"chartResponse",
@@ -178,7 +179,8 @@
 					yield (CUBE.Cube2List(response)),
 				"select": [
 					{"name":"total", "value":"count", "operation":"sum"},
-					{"name":"under_24_hours", "value":"wait_time.milli<"+Duration.newInstance('24hour').milli+" ? count : 0", "operation":"sum"}
+					{"name":"under_24_hours", "value":"(wait_time!=null && wait_time.milli<"+Duration.newInstance('24hour').milli+") ? count : 0", "operation":"sum"},
+					{"name":"over_10_days", "value":"wait_time==null ? count : 0", "operation":"sum"}
 				]
 			}))).cube;
 
@@ -188,7 +190,8 @@
 			$("#stats").html(
 				'<span class="parameter_name">Total Requests:</span><b>'+stats.total+'</b><br>'+
 				'<span class="parameter_name">Requested per week:</span><b>'+Math.round(stats.total/numWeek, 1)+'</b><br>'+
-				'<span class="parameter_name">% Under One Day:</span><b>'+Math.round(stats.under_24_hours/stats.total*100, 1)+'%</b><br>'
+				'<span class="parameter_name">% Under One Day:</span><b>'+Math.round(stats.under_24_hours/stats.total*100, 1)+'%</b><br>'+
+				'<span class="parameter_name">% Over 10days:</span><b>'+Math.round(stats.over_10_days/stats.total*100, 1)+'%</b><br>'
 			);
 
 

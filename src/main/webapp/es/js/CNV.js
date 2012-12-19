@@ -153,7 +153,12 @@ CNV.List2HTMLTable = function(data, options){
 			} else if (value == null){
 				row += "<td>&lt;null&gt;</td>";
 			} else if (Math.isNumeric(value)){
-				row += "<td style='text-align:right;'>" + value + "</td>";
+				if ((""+value).length==13){
+					//PROBABLY A TIMESTAMP
+					row += "<td>" + new Date(value).format("yyyy-MM-dd HH:mm:ss") + "</td>";
+				}else{
+					row += "<td style='text-align:right;'>" + value + "</td>";
+				}
 			} else if (value.toString !== undefined){
 				row += "<td>" + CNV.String2HTML(value.toString()) + "</td>";
 			} else{

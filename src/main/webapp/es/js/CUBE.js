@@ -931,8 +931,7 @@ CUBE.drill=function(query, parts){
 	newQuery.cube=undefined;
 	newQuery.list=undefined;
 	newQuery.url=undefined;			//REMOVE, MAY CAUSE PROBLEMS
-	newQuery.esfilter={};
-	Util.copy(query.esfilter, newQuery.esfilter);
+	newQuery.esfilter=Util.jsonCopy(query.esfilter);
 
 	query.edges.forall(function(edge, e){
 		if (parts[e]==undefined) return;
