@@ -98,7 +98,7 @@
 			var reviews=yield (BUG_TAGS.get([812896], undefined));
 //			var reviews=yield (BUG_TAGS.get([812896, 790640, 563491, 634724, 782603], undefined));
 			$("#results").html(CNV.List2HTMLTable(reviews));
-			status.message("Done");
+			D.action("Done");
 		});
 	});
 
@@ -109,7 +109,7 @@
 
 
 
-	status.message("Done");
+	D.action("Done");
 	D.addLog("results");
 </script>
 

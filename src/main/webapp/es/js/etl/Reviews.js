@@ -260,31 +260,32 @@ REVIEWS.get=function(minBug, maxBug){
 
 
 	var inReview;
+	var a=D.action("Get Review Requests");
 	var A=aThread.run(function(){
 		inReview=yield(esQuery.run());
-		status.message("Got Review Requests");
+		D.action("Got Review Requests");
 	});
 
 	var doneReview;
+	var b=D.action("Get Review Ends");
 	var B=aThread.run(function(){
 		doneReview=yield(esQuery2.run());
-		status.message("Got Review Ends");
+		D.actionDone(b, true);
 	});
 
 	var switchedReview;
+	var c=D.action("Get Review Re-assignments");
 	var C=aThread.run(function(){
 		switchedReview=yield(esQuery3.run());
-		status.message("Get Review Re-assignments");
+		D.actionDone(c, true);
 	});
 
-	status.message("Get Review Data");
 	yield (aThread.join(A));
 	yield (aThread.join(B));
 	yield (aThread.join(C));
 
 
-	status.message("processing Data...");
-	D.println("start processing "+Date.now().format("HH:mm:ss"));
+	a=D.action("processing Data...");
 
 //	D.println(CNV.List2Tab(inReview.list));
 //	D.println(CNV.List2Tab(doneReview.list));
@@ -330,8 +331,7 @@ REVIEWS.get=function(minBug, maxBug){
 
 	}))).list;
 
-	D.println("end processing "+Date.now().format("HH:mm:ss"));
-
+	D.actionDone(a);
 	yield (reviewQueues);
 };//method
 
@@ -343,12 +343,13 @@ REVIEWS.insert=function(reviews){
 		insert.push(JSON.stringify({ "index" : { "_id" : r.bug_id+"-"+r.attach_id } }));
 		insert.push(JSON.stringify(r));
 	});
-	status.message("Push review queues to ES");
+	var a=D.action("Push review queues to ES");
 	yield (Rest.post({
 		"url":ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName+"/_bulk",
 		"data":insert.join("\n")+"\n",
 		dataType: "text"
 	}));
+	D.actionDone(a, true);
 };//method
 
 
@@ -395,7 +396,7 @@ REVIEWS.postMarkup=function(){
 	// MAIN UPDATE FUNCTION
 	////////////////////////////////////////////////////////////////////////////
 	var update=function(emails){
-		status.message("Get reviews by requester");
+		D.action("Get reviews by requester");
 		var firstTime=yield(ESQuery.run({
 			"url":ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName,
 			"from":"reviews",
@@ -412,7 +413,7 @@ REVIEWS.postMarkup=function(){
 			]}
 		}));
 
-		status.message("Calculate request ordering");
+		D.action("Calculate request ordering");
 		var review_count=yield (CUBE.calc2List({//FIRST REVIEW FOR EACH BUG BY REQUESTER
 			"from":firstTime,
 			"analytic":[
@@ -425,7 +426,7 @@ REVIEWS.postMarkup=function(){
 //		$("#results").html(CNV.List2HTMLTable(review_count.list));
 
 
-		status.message("Sending changes");
+		D.action("Sending changes");
 		D.println("Sending "+review_count.list.length+" changes to "+ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName);
 		var maxPush=6;
 		for(var i=0;i<review_count.list.length;i++){
@@ -453,7 +454,7 @@ REVIEWS.postMarkup=function(){
 		}//for
 		D.println("Done sending "+review_count.list.length+" changes");
 
-		status.message("Done");
+		D.action("Done");
 	};
 
 

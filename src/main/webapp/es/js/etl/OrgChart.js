@@ -193,13 +193,13 @@ OrgChart.insert=function(people){
 		insert.push(JSON.stringify(r));
 	});
 
-	status.message("Push people to ES");
-	
+	var a=D.action("Push people to ES");
 	yield (Rest.post({
 		"url":ElasticSearch.pushURL + "/" + OrgChart.newIndexName + "/" + OrgChart.typeName + "/_bulk",
 		"data":insert.join("\n")+"\n",
 		"dataType":"text"
 	}));
+	D.actionDone(a);
 };//method
 
 

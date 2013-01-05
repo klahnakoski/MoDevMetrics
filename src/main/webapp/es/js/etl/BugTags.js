@@ -113,7 +113,7 @@ BUG_TAGS.get=function(minBug, maxBug, minDate, maxDate){
 	]};
 //{"terms" : { "bug_status" : ["resolved", "verified", "closed"] }}
 
-	status.message("Get Current Bug Info");
+	D.action("Get Current Bug Info");
 	var current=yield (ESQuery.run({
 		"from":"bugs",
 		"select":[
@@ -140,7 +140,7 @@ BUG_TAGS.get=function(minBug, maxBug, minDate, maxDate){
 
 //D.println(CNV.List2Tab(current.list));
 	
-	status.message("Generate per-day stats");
+	D.action("Generate per-day stats");
 	var results=(yield(CUBE.calc2List({
 		"from":current,
 		"select":[
@@ -171,7 +171,7 @@ BUG_TAGS.insert=function(tags){
 		insert.push(JSON.stringify(r));
 	});
 
-	status.message("Push bug tags to ES");
+	D.action("Push bug tags to ES");
 	yield ETL.chunk(insert, function(data){
 		try{
 			yield (Rest.post({
@@ -218,7 +218,7 @@ BUG_TAGS.addMissing=function(){
 				//GET INFO FOR THIS RANGE OF BUGS
 				var tags=(yield (BUG_TAGS.get(part.min, part.max, month.min, month.max)));
 				D.println("Writing "+tags.length+" tags");
-				status.message("Writing Tags");
+				D.action("Writing Tags");
 				yield (BUG_TAGS.insert(tags));
 			}//endif
 		}//for
@@ -226,5 +226,5 @@ BUG_TAGS.addMissing=function(){
 
 	yield (ETL.updateAlias(BUG_TAGS));
 
-	status.message("Done");
+	D.action("Done");
 };

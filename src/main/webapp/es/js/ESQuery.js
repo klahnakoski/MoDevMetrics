@@ -113,7 +113,7 @@ ESQuery.prototype.run = function(){
 		}));
 
 		if (postResult._shards.failed>0){
-			status.message("ES Failure! Retrying...");
+			D.action("ES Failure! Retrying...");
 			D.warning("Must resend query...");
 			yield aThread.sleep(1000);
 			yield this.run();
@@ -122,8 +122,7 @@ ESQuery.prototype.run = function(){
 		D.error("Error with ESQuery", e);
 	}//try
 
-	status.message("Process ES Terms");
-
+	var a=D.action("Process ES Terms");
 	if (this.esMode == "terms"){
 		this.termsResults(postResult);
 	} else if (this.esMode == "setop"){
@@ -133,6 +132,8 @@ ESQuery.prototype.run = function(){
 	} else{//statistical
 		this.statisticalResults(postResult);
 	}//endif
+	D.actionDone(a);
+
 
 	yield this.query;
 };//method
@@ -623,7 +624,26 @@ ESQuery.prototype.termsResults=function(data){
 
 	//MAKE CUBE
 	var select=CUBE.select2Array(this.query.select)[0];
-	if (select){
+	if (select && (this.query.select instanceof Array)){
+		select=this.query.select;
+		var cube = CUBE.cube.newInstance(this.query.edges, 0, select);
+
+		//FILL CUBE
+		II: for(var i=0;i<terms.length;i++){
+			var d = cube;
+			var parts=this.term2Parts(terms[i].term);
+			for(var t=0; t < parts.length; t++){
+				if (parts[t].dataIndex==d.length) continue II;  //IGNORE NULLS
+				d = d[parts[t].dataIndex];
+				if (d===undefined) continue II;		//WHEN NULLS ARE NOT ALLOWED d===undefined
+			}//for
+			for(var s=0;s<select.length;s++){
+				d[select[s].name] = terms[i][ESQuery.agg2es[select[s].operation]];
+			}//for
+		}//for
+
+		this.query.cube=cube;
+	}else if (select){
 		var cube = CUBE.cube.newInstance(this.query.edges, 0, select);
 
 		//FILL CUBE

@@ -802,51 +802,84 @@ CUBE.getColumnsFromList = function(data){
 
 
 
-
-CUBE.join=function(query){
-	var newEdge={
-		"name":query.domain.name,
-		"domain":{
-			"name":query.domain.name,
-			"type":"default",
-			"partitions":query.partitions.map(function(v, i){return {"name":v.value, "value":v.value, "dataIndex":i};}),
-			"end":function(p){return p.value}
-		}
-	};
-
+//
+// EXPECTING AN ARRAY OF CUBES, AND THE NAME OF THE EDGES TO MERGE
+// THERE IS NO LOGICAL DIFFERENCE BETWEEN A SET OF CUBES, WITH IDENTICAL EDGES, EACH CELL A VALUE AND
+// A SINGLE CUBE WITH EACH CELL BEING AN OBJECT: EACH ATTRIBUTE VALUE CORRESPONDING TO A CUBE IN THE SET
+//	var chart=CUBE.merge([
+//		{"from":requested, "edges":["time"]},
+//		{"from":reviewed, "edges":["time"]},
+//		{"from":open, "edges":["time"]}
+//	]);
+CUBE.merge=function(query){
 	//MAP THE EDGE NAMES TO ACTUAL EDGES IN THE from QUERY
-	query.partitions.forall(function(p){
-		if (p.edges.length!=p.from.edges.length) D.error("do not know how to join partial edges");
+	query.cubes.forall(function(item){
+		if (item.edges.length!=item.from.edges.length) D.error("do not know how to join just some of the edges");
 
-		p.edges.forall(function(pe, i, edges){
-			p.from.edges.forall(function(pfe, j){
+		item.edges.forall(function(pe, i, edges){
+			item.from.edges.forall(function(pfe, j){
 				if (pfe.name==pe) edges[i]=pfe;
 			});//for
 		});
 	});
 
-	var commonEdges=query.partitions[0].edges;
+	var commonEdges=query.cubes[0].edges;
 
 	var output={};
-	output.edges=[newEdge];
+	output.name=query.name;
+	output.from=query;
+	output.edges=[];
 	output.edges.appendArray(commonEdges);
-	output.cube=[];
+	output.select=[];
 
-	query.partitions.forall(function(p, index){
+	output.cube=CUBE.cube.newInstance(output.edges, 0, []);
+
+
+	query.cubes.forall(function(item, index){
+		//COPY SELECT DEFINITIONS
+		output.select.appendArray(CUBE.select2Array(item.from.select));
+
 		//VERIFY DOMAINS ARE IDENTICAL
-		if (p.edges.length!=commonEdges.length) D.error("Expecting all partitions to have same number of (common) edges declared");
-		p.edges.forall(function(pe, i){
-			if (typeof(pe)=="string") D.error("can not find edge named '"+pe+"'");
-			if (!CUBE.domain.equals(commonEdges[i].domain, p.edges[i].domain)) D.error("Edges domains ("+p.value+", edge="+pe.name+") and ("+query.partitions[0].value+", edge="+commonEdges[i].name+") are different");
+		if (item.edges.length!=commonEdges.length) D.error("Expecting all partitions to have same number of (common) edges declared");
+		item.edges.forall(function(edge, i){
+			if (typeof(edge)=="string") D.error("can not find edge named '"+edge+"'");
+			if (!CUBE.domain.equals(commonEdges[i].domain, edge.domain)) D.error("Edges domains ("+item.from.name+", edge="+edge.name+") and ("+cubes[0].from.name+", edge="+commonEdges[i].name+") are different");
 		});
 
-		//REFER TO
-		if (p.from.cube!==undefined){
-			output.cube[index]=p.from.cube;
-		}else if (p.from.list!==undefined){
-			output.cube[index]=CUBE.List2Cube(p.from).cube;
+
+		//CONVERT TO CUBE FOR COPYING
+		if (item.from.cube!==undefined){
+			//DO NOTHING
+		}else if (item.from.list!==undefined){
+			item.cube=CUBE.List2Cube(item.from).cube;
 		}else{
 			D.error("do not know how to handle");
+		}//endif
+
+
+		//COPY ATTRIBUTES TO NEW JOINED
+		if (output.edges.length!=1){
+			D.error("Can not copy more than one dimensional cube");
+		}//endif
+
+		var parts=output.edges[0].domain.partitions;
+		var num=parts.length;
+		if (!output.edges[0].allowNulls) num--;
+		
+		if (item.from.select instanceof Array){
+			for(var i=num;i--;){
+				if (item.edges[0].domain.partitions[i].dataIndex!=i)
+					D.error("do not know how to handle");
+				var row=output.cube[i];
+				Util.copy(item.from.cube[item.edges[0].domain.partitions[i].dataIndex], row);
+			}//for
+		}else{
+			//CUBE HAS VALUES, NOT OBJECTS
+			for(var i=num;i--;){
+				if (item.edges[0].domain.partitions[i].dataIndex!=i)
+					D.error("do not know how to handle");
+				output.cube[i][item.from.select.name]=item.from.cube[i];
+			}//for
 		}//endif
 	});
 

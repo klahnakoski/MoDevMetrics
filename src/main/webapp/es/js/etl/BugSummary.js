@@ -207,10 +207,10 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 
 
 
-	status.message("Get Current Bug Info");
+	D.action("Get Current Bug Info");
 	var currentData=yield (current.run());
 
-	status.message("Get Historical Timestamps");
+	D.action("Get Historical Timestamps");
 	var timesData=yield (Rest.post({
 		"url":window.ElasticSearch.queryURL,
 		"data":times
@@ -267,7 +267,7 @@ BUG_SUMMARY.insert=function(reviews){
 		insert.push(JSON.stringify({ "create" : { "_id" : r.bug_id } }));
 		insert.push(JSON.stringify(r));
 	});
-	status.message("Push bug history to ES");
+	D.action("Push bug history to ES");
 	yield (Rest.post({
 		"url":ElasticSearch.pushURL+"/"+BUG_SUMMARY.newIndexName+"/"+BUG_SUMMARY.typeName+"/_bulk",
 		"data":insert.join("\n")+"\n",

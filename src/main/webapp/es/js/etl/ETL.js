@@ -27,7 +27,7 @@ ETL.updateAlias=function(etl){
 
 
 
-	status.message("Done bulk load, change alias pointer");
+	D.action("Done bulk load, change alias pointer");
 	//MAKE ALIAS FROM reviews
 	var param={
 		"url":ElasticSearch.pushURL+"/_aliases",
@@ -77,7 +77,7 @@ ETL.newInsert=function(etl){
 	if (etl.postMarkup) yield (etl.postMarkup());
 
 	yield(ETL.updateAlias(etl));
-	status.message("Success!");
+	D.action("Success!");
 };
 
 
@@ -136,7 +136,7 @@ ETL.resumeInsert=function(etl){
 
 	yield (ETL.updateAlias(etl));
 
-	status.message("Success!");
+	D.action("Success!");
 };
 
 
@@ -184,14 +184,14 @@ ETL.incrementalInsert=function(etl){
 	//GET NEW RECORDS FOR THOSE BUGS
 	var bugSummaries=yield (etl.get(buglist, null));
 
-//	status.message("remove changed bugs");
+//	D.action("remove changed bugs");
 //	yield (etl["delete"](buglist));				//NEVER DO THIS, ENSURE _id IS ALWAYS THE SAME
-	status.message("insert changed bugs");
+	D.action("insert changed bugs");
 	yield (etl.insert(bugSummaries));
 
 	if (etl.postMarkup) yield (etl.postMarkup());
 
-	status.message("Done");
+	D.action("Done");
 	D.println("Done incremental update");
 };
 

@@ -84,7 +84,7 @@
 
 <script type="application/javascript;version=1.7" src="js/charts/HelperFunctions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/ElasticSearch.js"></script>
-<script type="application/javascript;version=1.7" src="js/charts/Status.js"></script>
+
 <script type="application/javascript;version=1.7" src="js/charts/DataSet.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/RangeCharts.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/RangeIterator.js"></script>
@@ -205,7 +205,7 @@
 
 		console.info(CNV.Object2JSON(esQuery));
 
-		status.message("Call ES");
+		D.action("Call ES");
 
 
 //		ElasticSearchQuery.Use(
@@ -321,7 +321,7 @@ D.println(CNV.Object2JSON(data));
 					};
 
 				console.info(CNV.Object2JSON(esQuery2));
-				status.message("Call ES, again");
+				D.action("Call ES, again");
 
 
 				ElasticSearchQuery.Run({
@@ -329,7 +329,7 @@ D.println(CNV.Object2JSON(data));
 					"success":function(data){
 
 //D.println(CNV.List2Tab(data.facets.doneReview));
-					status.message("processing Data");
+					D.action("processing Data");
 					var doneReview = MVEL.esFacet2List(data.facets.doneReview, [
 						{"name":"bug_id", "value":"bugs.bug_id"},
 						{"name":"attach_id", "value":"bugs.attachments.attach_id"},
@@ -400,7 +400,7 @@ D.println(CNV.List2Tab(reviewQueues));
 						"cube":chart
 					});
 
-					status.message("Done");
+					D.action("Done");
 
 
 					}//method

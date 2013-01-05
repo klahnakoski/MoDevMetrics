@@ -1,0 +1,7 @@
+{
+"from":"reviews",
+"select":[
+	{"name":"num", "value":"attach_id", "operation":"count"}
+],
+"edges":["bug_id"]
+}

@@ -76,7 +76,7 @@
 
 <script type="application/javascript;version=1.7" src="js/charts/HelperFunctions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/ElasticSearch.js"></script>
-<script type="application/javascript;version=1.7" src="js/charts/Status.js"></script>
+
 <script type="application/javascript;version=1.7" src="js/charts/DataSet.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/RangeCharts.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/RangeIterator.js"></script>
@@ -162,7 +162,7 @@ var __createChart = function(){
 
 
 	aThread.run(function(){
-		status.message("Bugs By Product");
+		D.action("Bugs By Product");
 		var chart=yield(ESQuery.run({
 			"name":"Components",
 			"from":"bug_tags",
@@ -175,7 +175,7 @@ var __createChart = function(){
 			"esfilter":mainFilter
 		}));
 
-		status.message("Make chart");
+		D.action("Make chart");
 		aChart.showPie({
 			"id":"chartComponents",
 			"type":"pie",
@@ -184,12 +184,12 @@ var __createChart = function(){
 			"height":200,
 			"width":400
 		});
-		status.message("Done");
+		D.action("Done");
 	});
 
 
 	aThread.run(function(){
-		status.message("Request Bugs");
+		D.action("Request Bugs");
 		var chart=yield(ESQuery.run({
 			"name":"Open Bug Count",
 			"from":"bug_tags",
@@ -207,14 +207,14 @@ var __createChart = function(){
 			"esfilter":mainFilter
 		}));
 
-		status.message("Make chart");
+		D.action("Make chart");
 		aChart.show({
 			"id":"chart",
 			"type":"line",
 			"stacked":true,
 			"cube":chart
 		});
-		status.message("Done");
+		D.action("Done");
 	});
 
 	yield (null);

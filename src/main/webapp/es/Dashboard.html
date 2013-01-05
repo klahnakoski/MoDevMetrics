@@ -75,7 +75,7 @@
 
 <script type="application/javascript;version=1.7" src="js/charts/HelperFunctions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/ElasticSearch.js"></script>
-<script type="application/javascript;version=1.7" src="js/charts/Status.js"></script>
+
 <script type="application/javascript;version=1.7" src="js/charts/DataSet.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/RangeCharts.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/RangeIterator.js"></script>
@@ -173,7 +173,7 @@ var createChart = function(){
 	(GUI.injectFilters(queryClosed));
 
 
-	status.message("Calling ES");
+	D.action("Calling ES");
 	query.run(function(openBugAges){
 		queryClosed.run(function(closedBugAges){
 
@@ -185,7 +185,7 @@ var createChart = function(){
 			$("#percentOverOpen").html("<h2>"+Math.round((openOUT)/(openOUT+closedOUT)*10000)/100+"%</h2><br>Open and Closed");
 			$("#percentOver").html("<h2>"+Math.round((openOUT+closedOUT)/(closedIN+closedOUT+openOUT+closedOUT)*10000)/100+"%</h2><br>Open");
 
-			status.message("Done");
+			D.action("Done");
 		});
 	});
 

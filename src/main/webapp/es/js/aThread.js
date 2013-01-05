@@ -21,6 +21,7 @@ aThread.run=function(gen){
 	return output;
 };//method
 
+
 //FEELING LUCKY?  MAYBE THIS GENERATOR WILL NOT DELAY AND RETURN A VALID VALUE
 aThread.runSynchronously=function(gen){
 	if (String(gen) !== '[object Generator]'){
@@ -193,6 +194,12 @@ aThread.yield=function() {
 
 //WAIT FOR OTHER THREAD TO FINISH
 aThread.join=function(otherThread){
+//	while(otherThread.keepRunning){
+//		yield (aThread.sleep(300));		//FOR SOME REASON FireFox20 NEVER RUNS THE PREPENDED GENERATOR
+//	}//while
+//	yield (otherThread.returnValue);
+
+
 	if (otherThread.keepRunning) {
 		//WE WILL SIMPLY MAKE THE JOINING THREAD LOOK LIKE THE otherThread's CALLER
 		//(WILL ALSO GRAB ANY EXCEPTIONS THAT ARE THROWN FROM otherThread)
@@ -210,8 +217,7 @@ aThread.join=function(otherThread){
 //THE SEND RUN FROM THE JOINING THREAD TO RETURN THE VALUE
 function aThread_join_resume(resumeFunction){
 	var result=yield;	
-	yield (resumeFunction(result));
-	D.error("You used this wrong");
+	resumeFunction(result);
 }//method
 
 //CALL THE funcTION WITH THE GIVEN PARAMETERS

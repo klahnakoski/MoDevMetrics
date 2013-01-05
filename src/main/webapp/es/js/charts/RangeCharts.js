@@ -367,7 +367,7 @@ RangeChart.prototype.success = function(data, id){
 
 	if (this.dataSet.currentIndex <= this.dataSet.maxIndex){
 
-		status.message("Processing: " + ( this.dataSet.currentIndex + 1 ) + " out of " + parseInt(this.dataSet.maxIndex + 1));
+		D.action("Processing: " + ( this.dataSet.currentIndex + 1 ) + " out of " + parseInt(this.dataSet.maxIndex + 1));
 
 		var progress = (this.dataSet.currentIndex + 1 ) / ( this.dataSet.maxIndex + 1 ) * 100;
 
@@ -375,7 +375,7 @@ RangeChart.prototype.success = function(data, id){
 			"value" : progress
 		});
 	}else{
-		status.message("Chart Rendering Complete");
+		D.action("Chart Rendering Complete");
 	}
 
 	this.renderChart();
@@ -386,4 +386,3 @@ RangeChart.prototype.error = function(requestObject, errorData, errorMsg, errorT
 };
 
 chart = null;
-report = new Status("report")

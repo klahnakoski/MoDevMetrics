@@ -304,16 +304,12 @@ aChart.show=function(params){
 
 };
 
-
+var BZ_SHOW_BUG_LIMIT=500;
 var bugClicker=function(query, series, x, d, elem){
 	try{
 		//We can decide to drilldown, or show a bug list.
 		//Someimes drill down is not available, and bug list is too big, so nothing happens
 		//When there is a drilldown, the decision to show bugs is made at a lower count (prefering drilldown)
-		if (d>300){
-			D.alert("Too many bugs (>300)");
-			return;
-		}//endif
 		aThread.run(function(){
 			var specific;
 			if (query.edges.length==2){
@@ -323,8 +319,19 @@ var bugClicker=function(query, series, x, d, elem){
 			}//endif
 			var buglist=(yield (ESQuery.run(specific)));
 			buglist=buglist.list.map(function(b){return b.bug_id;});
-			Bugzilla.showBugs(buglist);
+			
+			if (buglist.length>BZ_SHOW_BUG_LIMIT){
+				D.alert("Too many bugs. Truncating to "+BZ_SHOW_BUG_LIMIT+".", function(){
+					Bugzilla.showBugs(buglist.substring(0, BZ_SHOW_BUG_LIMIT));
+				});
+			}else{
+				Bugzilla.showBugs(buglist);
+			}//endif
+
 		});
+
+
+
 	}catch(e){
 		//DO NOTHING
 	}//try

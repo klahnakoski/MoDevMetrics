@@ -1,7 +1,7 @@
 {
 "from":"bugs",
 "select":[
-	{"name":"bug_version_num", "value":"bugs.bug_version_num"},
+	{"name":"bug_version_num", "value":"bug_version_num"},
 	{"name":"bug_id", "value":"bugs.bug_id"},
 	{"name":"product", "value":"bugs.product"},
 	{"name":"bug_status", "value":"bugs.bug_status"},

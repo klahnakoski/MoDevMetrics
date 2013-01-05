@@ -38,12 +38,82 @@ D.warning = function(description, cause){
 	D.println(new Exception("WARNING: "+description, cause).toString());
 };//method
 
-D.alert=function(message){
-	alert(message);
+D.alert=function(message, ok_callback, cancel_callback){
+
+	$(function() {
+		$(
+		'<div>'+message+"</div>"
+		).dialog({
+			title:"Alert",
+		 	draggable: false,
+			modal: true,
+			resizable: false,
+			buttons: {
+					"OK": function () { $(this).dialog("close"); ok_callback(); },
+					"Cancel": function () { $(this).dialog("close"); cancel_callback(); }
+				}
+		});
+	  });
+
+//  <div id="dialog" title="Basic dialog">
+//	  <p>This is the default dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the 'x' icon.</p>
+//  </div>
+
+
+
+//	alert(message);
 };//method
 
 
+//TRACK ALL THE ACTIONS IN PROGRESS
+D.actionStack=[];
+D.action=function(message, workload){
+	var action={"message":message, "workload":workload, "start":Date.now()};
+	D.actionStack.push(action);
+	$("#status").html(message);
+	if (message.toLowerCase()=="done" && $('.loading')!==undefined) $('.loading').hide();
 
+	D.println("start "+message+" "+action.start.format("HH:mm:ss"));
+
+	if (workload){
+
+		try{
+			workload();
+		}catch(e){
+			D.actionDone(action);
+			throw e;
+		}//try
+		D.actionDone(action);
+	}else{
+		//JUST SHOW MESSAGE FOR THREE SECONDS
+		$("#status").html(message);
+		setTimeout(function(){D.actionDone(action, true);}, 3000);
+		return action;		//RETURNED IF YOU WANT TO REMOVE IT SOONER
+	}//endif
+};//method
+
+
+D.actionDone=function(action, ignoreIfMissing){
+	action.end=Date.now();
+
+	if (D.actionStack.length==0 && !ignoreIfMissing){
+		D.error("Unexpected");
+	}//endif
+
+	var i=D.actionStack.indexOf(action);
+	if (i==-1 && !ignoreIfMissing)
+		D.error("Unexpected");
+	D.actionStack.splice(i, 1);
+
+	D.println("done "+action.message+" "+action.end.format("HH:mm:ss")+" ("+action.end.subtract(action.start).floor(Duration.SECOND).toString()+")");
+
+	if (D.actionStack.length==0){
+		if ($('.loading')!==undefined) $('.loading').hide();
+		$("#status").html("Done");
+	}else{
+		$("#status").html(D.actionStack[0].message);
+	}//endif
+};//method
 
 
 var Exception=function(description, cause){

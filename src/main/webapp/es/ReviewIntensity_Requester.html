@@ -41,7 +41,8 @@
 
 
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
-<script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
+<script type="application/javascript;version=1.7" src="js/util.js"></script>
+<script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
 <script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
@@ -65,7 +66,7 @@
 
 <script type="application/javascript;version=1.7" src="js/charts/HelperFunctions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/ElasticSearch.js"></script>
-<script type="application/javascript;version=1.7" src="js/charts/Status.js"></script>
+
 <script type="application/javascript;version=1.7" src="js/charts/DataSet.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/RangeCharts.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/RangeIterator.js"></script>
@@ -143,20 +144,20 @@
 
 		//CHART OF AGGREGATE RESPONSE TIMES
 		aThread.run(function(){
-			var q=new ESQuery({
+			var response=yield (ESQuery.run({
 				"name":"Response Time Breakdown",
 				"from":"reviews",
 				"select":{"name":"count", "value":"bug_id", "operation":"count"},
 				"edges":[
-					{"name":"wait_time", "allowNulls":true,
+					{"name":"wait_time",
 						value:"(coalesce(zero2null(doc[\"review_time\"].value), "+Date.eod().getMilli()+")-doc[\"request_time\"].value)",
+						"allowNulls":"true",
 						"domain":{"type":"duration", "min":0, "max":"10day", "interval":"day"}
 					}
 				],
 				"esfilter":mainFilter
-			});
+			}));
 
-			var response=yield (q.run());
 			response.edges[0].domain.NULL.name="Over 10 days";
 
 			aChart.show({
@@ -165,18 +166,36 @@
 				"cube":response,
 				"height":200,
 				"width":400,
-				xAxisSize: 70
+				"xAxisSize": 70
 			});
+		});
 
 
+		//CHART OF AGGREGATE RESPONSE TIMES
+		aThread.run(function(){
+			var df=(yield (ESQuery.run({
+				"name":"DF",
+				"from":"reviews",
+				"select":{"name":"count", "value":"bug_id", "operation":"count"},
+				"edges":[
+					{"name":"wait_time",
+						"allowNulls":true,
+						value:"(coalesce(zero2null(review_time), "+Date.eod().getMilli()+")-doc[\"request_time\"].value)",
+						"domain":{"type":"duration", "min":0, "max":"10day", "interval":"hour"}
+					}
+				],
+				"esfilter":mainFilter
+			})));
 
 
+			D.action("Calc Stats");
 
-			status.message("Calc Stats");
+			var percentile90=Stats.percentile(df.cube, 0.90)/24;  //INTERVALS ARE IN HOURS, CONVERT TO DAYS
+
 
 			var stats=(yield (CUBE.calc2Cube({
 				"from":
-					yield (CUBE.Cube2List(response)),
+					yield (CUBE.Cube2List(df)),
 				"select": [
 					{"name":"total", "value":"count", "operation":"sum"},
 					{"name":"under_24_hours", "value":"(wait_time!=null && wait_time.milli<"+Duration.newInstance('24hour').milli+") ? count : 0", "operation":"sum"},
@@ -186,12 +205,13 @@
 
 
 			var numWeek=sampleMax.subtract(sampleMin).milli/Duration.MILLI_VALUES.week;
-			
+
 			$("#stats").html(
 				'<span class="parameter_name">Total Requests:</span><b>'+stats.total+'</b><br>'+
 				'<span class="parameter_name">Requested per week:</span><b>'+Math.round(stats.total/numWeek, 1)+'</b><br>'+
 				'<span class="parameter_name">% Under One Day:</span><b>'+Math.round(stats.under_24_hours/stats.total*100, 1)+'%</b><br>'+
-				'<span class="parameter_name">% Over 10days:</span><b>'+Math.round(stats.over_10_days/stats.total*100, 1)+'%</b><br>'
+				'<span class="parameter_name">% Over 10days:</span><b>'+Math.round(stats.over_10_days/stats.total*100, 1)+'%</b><br>'+
+				'<span class="parameter_name">90th percentile:</span><b>'+Math.round(percentile90, 1)+'days</b><br>'
 			);
 
 
@@ -240,9 +260,7 @@
 
 		var q2= new ESQuery({
 			"from":"reviews",
-			"select":[
-				{"name":"review_count", "value":"bug_id", "operation":"count"}
-			],
+			"select": {"name":"review_count", "value":"bug_id", "operation":"count"},
 			"edges":[
 				{"name":"time", "value":"review_time", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}}
 			],
@@ -283,7 +301,7 @@
 		GUI.injectFilters(q3);
 		var stillOpen = (yield (q3.run())).list;
 
-		
+
 		var open=yield (CUBE.calc2Cube({
 			"from":stillOpen,
 			"select":{"name":"open_count", "value":"request_time", "operation":"count"},
@@ -294,6 +312,7 @@
 							"time.min < request_time+"+Duration.MILLI_VALUES.week*18+" && "+  //JUST IGNORE THE REALLY OLD reviews
 							"request_time+"+Duration.MILLI_VALUES.day+" < time.max",
 					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+
 				}
 			]
 		}));
@@ -302,29 +321,14 @@
 		//THE THREE ARE PARTS OF THE CATEGORY DIMENSION
 
 		//MERGE ALL RESULTS
-		var chart=CUBE.join({
-			"select":{"name":"Count"},
-			"domain":{"name":"category"},
-			"partitions":[
-				{"value":"Request", "from":requested, "edges":["time"]},
-				{"value":"Review", "from":reviewed, "edges":["time"]},
-				{"value":"Still Open", "from":open, "edges":["time"]}
+		var chart=CUBE.merge({
+			"cubes":[
+				{"from":requested, "edges":["time"]},
+				{"from":reviewed, "edges":["time"]},
+				{"from":open, "edges":["time"]}
 			]
 		});
 
-//		var chart=yield (CUBE.calc2Cube({
-//			"from":requested,
-//			"select":[
-//				{"value":"request_count", "operation":"one"},
-//				{"value":"r.review_count", "operation":"one"},
-//				{"value":"o.open_count", "operation":"one"}
-//			],
-//			"edges":[
-//				{"name":"domain",  "value":"time.value", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}},
-//				{"name":"domain2", "value":"time.value", "domain":{"name":"r", "key":"time.value", "value":"undefined", "partitions":reviewed}},
-//				{"name":"domain3", "value":"time.value", "domain":{"name":"o", "key":"time.value", "value":"undefined", "partitions":open}}
-//			]
-//		}));
 
 
 		aChart.show({
@@ -334,7 +338,7 @@
 			"height":400
 		});
 
-		status.message("Done");
+		D.action("Done");
 
 	};//createChart
 

@@ -92,7 +92,7 @@
 
 <script type="application/javascript;version=1.7" src="js/charts/HelperFunctions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/ElasticSearch.js"></script>
-<script type="application/javascript;version=1.7" src="js/charts/Status.js"></script>
+
 <script type="application/javascript;version=1.7" src="js/charts/DataSet.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/RangeCharts.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/RangeIterator.js"></script>
@@ -170,7 +170,7 @@ var __createChart = function(){
 	GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
 
 
-	status.message("Download Times");
+	var a=D.action("Download Times");
 	var requestTimes=yield(ESQuery.run({
 		"from":"reviews",
 		"select":[
@@ -180,6 +180,7 @@ var __createChart = function(){
 		],
 		"esfilter":mainFilter
 	}));
+	D.actionDone(a, true);
 
 	var markup = yield(CUBE.calc2List({
 		"from":requestTimes,
@@ -218,16 +219,16 @@ var __createChart = function(){
 
 //	durations.edges[1].domain.NULL.name="Over "+GUI.state.maxX;
 
-	status.message("Make chart");
-	aChart.show({
-		"id":"chart",
-		"type":"bar",
-		"stacked":true,
-		"cube":chart,
-		"height":500,
-		showValues: true
+	D.action("Make chart", function(){
+		aChart.show({
+			"id":"chart",
+			"type":"bar",
+			"stacked":true,
+			"cube":chart,
+			"height":500,
+			showValues: true
+		});
 	});
-	status.message("Done");
 
 
 };

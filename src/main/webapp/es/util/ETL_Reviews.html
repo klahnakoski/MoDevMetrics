@@ -79,7 +79,7 @@
 		aThread.run((function(){
 			var reviews=yield (REVIEWS.get(749568, 749569));
 			$("#results").html(CNV.List2HTMLTable(reviews));
-			status.message("Done");
+			D.action("Done");
 		})());
 	});
 
@@ -87,12 +87,12 @@
 	$("#markup").click(function(){
 		aThread.run((function(){
 			var reviews=yield (REVIEWS.postMarkup());
-			status.message("Done");
+			D.action("Done");
 		})());
 	});
 
 	D.addLog("results");
-	status.message("Done");
+	D.action("Done");
 </script>
 
 

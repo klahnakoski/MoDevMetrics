@@ -85,12 +85,12 @@ aThread.run(function(){
 	var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
 		{"script":{"script":"true"}},
 		{"and":[
-			{"term":{"bug_id":"674239"}},
+			{"term":{"bug_id":"713926"}},
+//			{"range":{"expires_on":{"gt":Date.now().getMilli()}}}
 //			{"term":{"attach_id":"688344"}}
 		]}
-	]}}},"from":0,"size":100,"sort":[]//"bug_version_num"]
+	]}}},"from":0,"size":10000,"sort":[]//"bug_version_num"]
 	};
-
 
 
 
@@ -115,10 +115,10 @@ aThread.run(function(){
 
 //			"url":"http://localhost:9200/reviews/review/_search",
 //			"url":"http://localhost:9200/bug_tags/bug_tags/_search",
-			"url":"http://elasticsearch8.metrics.scl3.mozilla.com:9200/reviews/review/_search",
+//			"url":"http://elasticsearch8.metrics.scl3.mozilla.com:9200/reviews/review/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_tags/bug_tags/_search",
-//			"url":"http://elasticsearch8.metrics.scl3.mozilla.com:9200/bugs/_search",
+			"url":"http://elasticsearch8.metrics.scl3.mozilla.com:9200/bugs/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/org_chart/person/_search",
 			"data":esQuery
 		}));
@@ -130,20 +130,18 @@ aThread.run(function(){
 		$("#info").html(htmlSummary + "<br><br>" + htmlResults);
 
 
-		while(true){
-			if (ETL.allFlags!==undefined) break;
-			yield (aThread.sleep(200));
-		}//while
-
-
-		var reviews=yield (REVIEWS.get(674239, 674240));
-		$("#info").append(CNV.List2HTMLTable(reviews));
-
+//		while(true){
+//			if (ETL.allFlags!==undefined) break;
+//			yield (aThread.sleep(200));
+//		}//while
+//		var reviews=yield (REVIEWS.get(674239, 674240));
+//		$("#info").append(CNV.List2HTMLTable(reviews));
+//
 
 
 
 	}catch(e){
-		D.warning(errorData);
+		D.warning("Error sending requests", e);
 		document.getElementById("info").innerHTML = "Response Error.  Make sure you are connected to the MPT network.";
 	}
 

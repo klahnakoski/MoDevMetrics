@@ -115,7 +115,6 @@ ElasticSearchQuery.prototype.Run = function(){
 		dataType: "json",
 
 		success: function(data){
-D.println("success");
 			self.success(data);
 		},
 		error: function(errorData, errorMsg, errorThrown){self.error(errorData, errorMsg, errorThrown);}
@@ -125,7 +124,7 @@ D.println("success");
 ElasticSearchQuery.prototype.success = function(data){
 	if (data==null){
 		try{
-			status.message("Not connected?");
+			D.action("Not connected?");
 		}catch(e){
 
 		}
@@ -141,7 +140,6 @@ ElasticSearchQuery.prototype.success = function(data){
 	}//endif
 
 	try{
-D.println("call the callback ");
 		this.callbackObject.success(data);
 	}catch(e){
 		D.warning("Problem calling success()", e);
