@@ -125,7 +125,7 @@
 
 
 var CUTOFF=Duration.newInstance("3week");
-$("#description").html("An attempt to get bug history to pull faster from ES");
+$("#description").html("An attempt to get bug history to pull faster from ES<br><br>The initial load my be slow, an the chart boring, but it gets really amazing when you start filtering by program and product!");
 
 var thread;
 var createChart=function(){
@@ -138,6 +138,7 @@ var __createChart = function(){
 
 	var sampleMin=new Date(GUI.state.sampleMin);
 	var sampleMax=new Date(GUI.state.sampleMax).ceilingDay();
+	var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
 
 	$("#title").html("Open Bug Count");
 
@@ -149,16 +150,38 @@ var __createChart = function(){
 	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
 
 
-	D.action("Request Bugs");
+	var a=D.action("Request Bugs", true);
+//	var request=new ESQuery({
+//		"name":"Open Bug Count",
+//		"from":"bug_tags",
+//		"select": {"name":"bug_id", "value":"bug_id", "operation":"count"},
+//		"edges":[
+//			{"name":"date", "value":"date", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":"day"}}
+//		],
+//		"esfilter":{"and":[
+//			{"range":{"date":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
+//			{"not":{"terms":{"bug_status":["resolved", "verified", "closed"]}}}
+//		]}
+//	});
+
+
 	var request=new ESQuery({
 		"name":"Open Bug Count",
-		"from":"bug_tags",
-		"select": {"name":"bug_id", "value":"bug_id", "operation":"count"},
+		"from":"bugs",
+		"select":{"name":"num_bug", "value":"bug_id", "operation":"count"},
 		"edges":[
-			{"name":"date", "value":"date", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":"day"}}
+			{"name":"date",
+				"range":{"min":"modified_ts", "max":"expires_on"},
+				"allowNulls":false,
+				"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+			}
 		],
 		"esfilter":{"and":[
-			{"range":{"date":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
+			{"and":[
+				{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},
+				{"range":{"expires_on":{"gte":sampleMin.getMilli()}}}
+			]},
+			{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-"+sampleMin.getMilli()+", "+sampleInterval.milli+")!=floorInterval(expires_on-"+sampleMin.getMilli()+", "+sampleInterval.milli+")", {"from":"bugs"})}},
 			{"not":{"terms":{"bug_status":["resolved", "verified", "closed"]}}}
 		]}
 	});
@@ -166,33 +189,17 @@ var __createChart = function(){
 	GUI.injectFilters(request);
 	var chart=yield(request.run());
 
-//	var stats = (yield(CUBE.calc2Cube({
-//		"from": (yield (CUBE.Cube2List(durations))),
-//		"select":[
-//			{"name":"total", "value":"count", "operation":"sum"},
-//			{"name":"num_open", "value":"bug_status=='Open' ? count : 0", "operation":"sum"},
-//			{"name":"num_closed", "value":"bug_status=='Closed' ? count : 0", "operation":"sum"},
-//			{"name":"under", "value":"duration.value.milli<"+CUTOFF.milli+" ? count : 0", "operation":"sum"}
-//		]
-//	}))).cube;
-//
-//
-//	$("#stats").html(
-//		'<span class="parameter_name">Current Open Bugs:</span><b>'+stats.total+'</b><br>'+
-//		'<span class="parameter_name">Bugs Closed per week:</span><b>'+Math.round(stats.num_closed/(sampleSize.milli/Duration.MILLI_VALUES.week), 0)+'</b><br>'+
-//		'<span class="parameter_name">Open Bugs Remaining:</span><b>'+Math.round(stats.num_open, 0)+'</b><br>'+
-//		'<span class="parameter_name">% Under '+CUTOFF.toString()+'</span><b>'+Math.round(stats.under/stats.total*100, 1)+'%</b><br>'+
-//		'<span class="parameter_name">Average Time Open:</span><b>'+Math.round(average.cube.duration/Duration.MILLI_VALUES.day, 2)+'days</b><br>'
-//	);
+	D.actionDone(a);
 
 
-	D.action("Make chart");
+	var a=D.action("Make chart", true);
 	aChart.show({
 		"id":"chart",
 		"type":"line",
 		"stacked":true,
 		"cube":chart
 	});
+	D.actionDone(a);
 	D.action("Done");
 
 
@@ -206,12 +213,14 @@ var __createChart = function(){
 		GUI.setup([
 			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
 			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today()},
+			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"week"},
 			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
 		],
 		[
 //			"sampleMax=new Date(sampleMax).addDay(1).add(Duration.newInstance('-second')).floorDay().toString()"
 		],
-		"bug_tags");
+		"bugs");
+		//"bug_tags");
 	});
 
 </script>

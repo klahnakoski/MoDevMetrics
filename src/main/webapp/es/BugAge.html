@@ -156,13 +156,13 @@ var __createChart = function(){
 	CUBE.normalizeByCohort(chartCube, 100);
 	chartCube.edges[1].domain.NULL.name="12 weeks and over";
 
-	D.action("Make chart", function(){
-		aChart.show({
-			"id":"chart",
-			"type":"bar",
-			"cube":chartCube
-		});
+	a=D.action("Make chart", true);
+	aChart.show({
+		"id":"chart",
+		"type":"bar",
+		"cube":chartCube
 	});
+	D.actionDone(a);
 };
 
 

@@ -67,8 +67,30 @@ CNV.JSON2Object = function(json){
 	return JSON.parse(json);
 };//method
 
+
+
 CNV.Object2JSON = function(json){
-	return JSON.stringify(json, null, "  ");
+//	return JSON.stringify(json);
+	if (json instanceof Array){
+		if (json.length==0) return "[]";
+		if (json.length==1) return "["+CNV.Object2JSON(json[0])+"]";
+
+		return "[\n"+json.map(function(v, i){
+			if (v===undefined) return "undefined";
+			return CNV.Object2JSON(v).indent(1);
+		}).join(",\n")+"\n]";
+	}else if (json instanceof Object){
+		var keys=Object.keys(json);
+		if (keys.length==0) return "{}";
+		if (keys.length==1) return "{\""+keys[0]+"\":"+CNV.Object2JSON(json[keys[0]]).indent(1).trim()+"}";
+
+		return "{\n\t"+mapAllKey(json, function(k, v){
+			if (v===undefined) return "";
+			return "\""+k+"\":"+CNV.Object2JSON(v).indent(1).trim();
+		}).join(",\n\t")+"\n}";
+	}else{
+		return JSON.stringify(json);
+	}//endif
 };//method
 
 

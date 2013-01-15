@@ -28,12 +28,13 @@ MVEL.prototype.code = function(query){
 	if (body.indexOf("<BODY")>=0)
 		D.error();
 
+	var func=MVEL.compile.uniqueFunction();
 	var output = MVEL.compile.addFunctions(
-		'var cool_func = function('+indexName+'){\n' +
+		'var '+func+' = function('+indexName+'){\n' +
 			context+
 			body +
 		'};\n' +
-		'cool_func(_source)\n'
+		func+'(_source)\n'
 	);
 
 //	if (console !== undefined && D.println != undefined) D.println(output);
@@ -46,6 +47,14 @@ MVEL.prototype.code = function(query){
 // VALID FROM WITHIN THE CONTEXT OF THE query
 ////////////////////////////////////////////////////////////////////////////////
 MVEL.compile={};
+MVEL.compile.UID=1000;
+
+MVEL.compile.uniqueFunction=function(){
+	return "_"+MVEL.compile.UID;
+	MVEL.compile.UID++;
+};//method
+
+
 MVEL.compile.expression = function(expression, query){
 	var fromPath = query.from;			//FIRST NAME IS THE INDEX
 	var indexName=fromPath.split(".")[0];
@@ -56,16 +65,17 @@ MVEL.compile.expression = function(expression, query){
 
 	var body = "output = "+expression+"; output;\n";
 
+	var func=MVEL.compile.uniqueFunction();
 	var output = MVEL.compile.addFunctions(
-		'var cool_func = function('+indexName+'){\n' +
+		'var '+func+' = function('+indexName+'){\n' +
 			context+
 			body +
 		'};\n' +
-		'cool_func(_source)\n'
+		func+'(_source)\n'
 	);
 
 //	if (console !== undefined && D.println != undefined) D.println(output);
-	return MVEL.compile.addFunctions(output);
+	return output;
 };//method
 
 
@@ -296,6 +306,17 @@ MVEL.prototype.where = function(esFilter){
 };//method
 
 
+
+//RETURN TRUE IF THE value IS JUST A NAME OF A FIELD (OR A VALUE)
+MVEL.isKeyword = function(value){
+	for(var c = 0; c < value.length; c++){
+		var cc = value.charAt(c);
+		if ("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.".indexOf(cc) == -1) return false;
+	}//for
+	return true;
+};//method
+
+
 MVEL.Value2Code = function(value){
 	if (value.getMilli) return ""+value.getMilli();		//TIME
 	if (value instanceof Duration)
@@ -359,7 +380,10 @@ MVEL.FUNCTIONS={
 //		'};\n',
 
 	"floorDay":
-		"var floorDay = function(value){ Math.floor(value/(24*60*60*1000))*(24*60*60*1000);};\n",
+		"var floorDay = function(value){ Math.floor(value/86400000))*86400000;};\n",
+
+	"floorInterval":
+		"var floorInterval = function(value, interval){ Math.floor(value/interval)*interval;};\n",
 
 	"maximum"://JUST BECAUSE MVEL'S Math.max ONLY USES Math.max(int, int).  G*DDA*NIT!
 		"var maximum = function(a, b){if (a==null) b; else if (b==null) a; else if (a>b) a; else b;\n};\n",
@@ -378,6 +402,13 @@ MVEL.FUNCTIONS={
 			"if (hash==null) null; else hash[key];\n"+
 		"};\n",
 
+	"concat":
+		"var concat = function(array){\n"+
+			"if (array==null) \"\"; else {\n"+
+			"var output = \"\";\n"+
+			"for (v : array){ output = output+'|'+v+'|'; };\n"+
+			"output;\n"+
+		"}};\n",
 
 	"getDocValue":  //SPECIFICALLY FOR cf_* FLAGS: CONCATENATE THE ATTRIBUTE NAME WITH ATTRIBUTE VALUE, IF EXISTS
 		"var getDocValue = function(name){\n"+

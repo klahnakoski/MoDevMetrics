@@ -260,24 +260,24 @@ REVIEWS.get=function(minBug, maxBug){
 
 
 	var inReview;
-	var a=D.action("Get Review Requests");
 	var A=aThread.run(function(){
+		var a=D.action("Get Review Requests", true);
 		inReview=yield(esQuery.run());
-		D.action("Got Review Requests");
+		D.actionDone(a);
 	});
 
 	var doneReview;
-	var b=D.action("Get Review Ends");
 	var B=aThread.run(function(){
+		var a=D.action("Get Review Ends", true);
 		doneReview=yield(esQuery2.run());
-		D.actionDone(b, true);
+		D.actionDone(a);
 	});
 
 	var switchedReview;
-	var c=D.action("Get Review Re-assignments");
 	var C=aThread.run(function(){
+		var a=D.action("Get Review Re-assignments", true);
 		switchedReview=yield(esQuery3.run());
-		D.actionDone(c, true);
+		D.actionDone(a);
 	});
 
 	yield (aThread.join(A));
@@ -285,7 +285,7 @@ REVIEWS.get=function(minBug, maxBug){
 	yield (aThread.join(C));
 
 
-	a=D.action("processing Data...");
+	var a=D.action("processing Data...", true);
 
 //	D.println(CNV.List2Tab(inReview.list));
 //	D.println(CNV.List2Tab(doneReview.list));

@@ -175,7 +175,7 @@ var __createChart = function(){
 			"esfilter":mainFilter
 		}));
 
-		D.action("Make chart");
+		var a=D.action("Make chart", true);
 		aChart.showPie({
 			"id":"chartComponents",
 			"type":"pie",
@@ -196,6 +196,7 @@ var __createChart = function(){
 			"select": {"name":"bug_id", "value":"bug_id", "operation":"count"},
 			"edges":[
 				{"name":"priority", "value":
+						"var keywords = doc[\"keywords\"].value;\n"+
 						"if (keywords.indexOf(\"sec-critical\") || keywords.indexOf(\"sg:crit\")) \"critical\"; "+
 						"else if (keywords.indexOf(\"sec-high\") || keywords.indexOf(\"sg:high\")) \"high\"; "+
 						"else if (keywords.indexOf(\"sec-moderate\") || keywords.indexOf(\"sg:mod\")) \"moderate\"; "+
@@ -207,13 +208,14 @@ var __createChart = function(){
 			"esfilter":mainFilter
 		}));
 
-		D.action("Make chart");
+		var a=D.action("Make chart", true);
 		aChart.show({
 			"id":"chart",
 			"type":"line",
 			"stacked":true,
 			"cube":chart
 		});
+		D.actionDone(a);
 		D.action("Done");
 	});
 

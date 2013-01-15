@@ -14,23 +14,19 @@ OrgChart.typeName="person";
 
 
 
+OrgChart.push=function(){
+	yield (ETL.newInsert(OrgChart));
+};
+
 
 
 OrgChart.get=function(minBug, maxBug){
 //	OrgChart.USERNAME=$("#username").val();
 //	OrgChart.PASSWORD=$("#password").val();
 
-//	var html=yield(Rest.get({
-//		"url":OrgChart.URL+"/tree.php",
-//		"username":"klahnakoski",
-//		"password":"password"
-//	}));
-
-
-	var people=OrgChart.people.map(function(v, i){
-		return {"id":v.dn, "name":v.cn, "manager":v.manager ? v.manager.dn : null, "email":v.bugzillaemail};
-	});
-	yield people;
+	var html=yield(Rest.get({
+		"url":OrgChart.URL+"/search.php?format=json&query=*"
+	}));
 
 
 //LOAD ALL USERS (SEE NETWORK RESPONSES IN DEBUG MODE)
@@ -39,7 +35,11 @@ OrgChart.get=function(minBug, maxBug){
 	var body=$("body");
 	body.append(html);
 
-
+//HERE WE JUST RETURN THE LOCAL COPY
+	var people=OrgChart.people.map(function(v, i){
+		return {"id":v.dn, "name":v.cn, "manager":v.manager ? v.manager.dn : null, "email":v.bugzillaemail};
+	});
+	yield (people);
 
 
 //JAVASCRIPT DOES NOT LOAD

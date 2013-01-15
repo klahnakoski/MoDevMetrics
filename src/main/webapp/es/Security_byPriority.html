@@ -6,7 +6,6 @@
 
 
 
-
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
 <script type="application/javascript;version=1.7" src="lib/jstree/jquery.jstree.js"></script>
@@ -33,6 +32,13 @@
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/pvcDocUtils.js"></script>
 
+
+
+
+
+
+
+
 <link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
 <script type="application/javascript;version=1.7" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="application/javascript;version=1.7" src="lib/js/jquery.ba-bbq.js"></script>
@@ -41,13 +47,11 @@
 
 
 
-
-
-
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
 <script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
@@ -87,16 +91,45 @@
 <script type="application/javascript;version=1.7" src="js/filters/ProgramFilter.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/filters/GUI.js"></script>
+<script type="application/javascript;version=1.7" src="js/etl/BugTags.js"></script>
 
 
-<div style="height: 30px; text-align: center;vertical-align:middle;">
-	<span id="status" style="height:30px">This will take many seconds to load</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+
+<h3>Security Bug Count - by Priority</h3>
+<div id="sidebar">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
 </div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div id="chart"></div>
+
 <div id="info"></div>
+<div id="report"></div>
+
 
 <script type="application/javascript;version=1.7">
 
 
+var CUTOFF=Duration.newInstance("3week");
+$("#description").html("<span class='warning'>This chart has already been filtered by the products important to the security team</span><br><br>"+
+		//" If you have a steady hand, you can click the values to get a new tab showing the bugs that makeup the value."+
+//		"<span class='warning'>The filters work, but the results may not be accurate:  They assume the filter value does not change until after the bug is closed.</span><br><br>"+
+		"");
 
 var thread;
 var createChart=function(){
@@ -107,78 +140,104 @@ var createChart=function(){
 
 var __createChart = function(){
 
+	var sampleMin=new Date(GUI.state.sampleMin);
+	var sampleMax=new Date(GUI.state.sampleMax).ceilingDay();
+	var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
+
+	$("#title").html("Open Bug Count");
+
+	var createTime="doc[\"create_time\"].value";
+	var idTime=ProgramFilter.bugStatusMinimum_fromSource();
+	var testValue=ProgramFilter.bugStatusMinimum_fromDoc();
+	
+	
+	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
 
 
+	var a=D.action("Request Bugs", true);
+//	var request=new ESQuery({
+//		"name":"Open Bug Count",
+//		"from":"bug_tags",
+//		"select": {"name":"bug_id", "value":"bug_id", "operation":"count"},
+//		"edges":[
+//			{"name":"date", "value":"date", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":"day"}}
+//		],
+//		"esfilter":{"and":[
+//			{"range":{"date":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
+//			{"not":{"terms":{"bug_status":["resolved", "verified", "closed"]}}}
+//		]}
+//	});
 
-	var reviews=(yield (ESQuery.run({
-		"from":"bugs.attachments.flags",
-		"select":[
-			{"name":"bug_id", "value":"bug_id"},
-			{"name":"request_time", "value":"bugs.modified_ts"}
-		],
-		"where":{"and":[
-			{"missing" : {
-				"field" : "bugs.attachments.flags.review_time",
-				"existence" : true,
-				"null_value" : true
-			}},
-			{"or":[
-				{"missing" : {
-					"field" : "bugs.attachments.flags.requestee",
-					"existence" : true,
-					"null_value" : true
-				}},
-				{"term":{"bugs.attachments.flags.requestee":"nobody@mozilla.org"}}
-			]},
-			{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
-			{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
-			{"script" :{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}},
-			{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
-		]},
-		"esfilter":{"and":[
-			{"not": {"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}}
-		]}
-	})));
 
-	var result = (yield (CUBE.calc2List({
-		"from":	reviews.list,
-		"select":[
-			{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
-			{"name":"average_wait_time", "value":"Date.eod().getMilli()-request_time", operation:"average", "sort":"descending"},
-			{"name":"bugs", "value":"bug_id", operation:"join", "separator":", "}
-		],
+	var request=new ESQuery({
+		"name":"Open Bug Count",
+		"from":"bugs",
+		"select": {"name":"total", "value":"bug_id", "operation":"count"},
 		"edges":[
-			{"name":"requester", "value":"requester"}
+			{"name":"Priority", "domain":Mozilla.Security.Priority},
+			{"name":"date",
+				"range":{"min":"modified_ts", "max":"expires_on"},
+				"allowNulls":false,
+				"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+			}
 		],
-		"sort":[
-			"numPending"
-		]
-	}))).list;
+		"esfilter":{"and":[
+			{"and":[
+				{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},
+				{"range":{"expires_on":{"gte":sampleMin.getMilli()}}}
+			]},
+			{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-"+(sampleMin.getMilli()%sampleInterval.milli)+", "+sampleInterval.milli+")!=floorInterval(expires_on-"+(sampleMin.getMilli()%sampleInterval.milli)+", "+sampleInterval.milli+")", {"from":"bugs"})}},
+			{"not":{"terms":{"bug_status":["resolved", "verified", "closed"]}}},
+//			{"or":[
+//				{"term":{"keywords":"sec-critical"}}
+//			]},
+			Mozilla.Security.Teams.esfilter
+//			{"terms":{"product":["firefox", "thunderbird", "seamonkey", "firefox for android", "firefox for metro", "boot2gecko", "core", "nspr", "nss", "toolkit"]}}
+		]}
+	});
 
-	//ALTER bugs LIST TO INCLUDE LINK
-	result=(yield (CUBE.calc2List({
-		"from":result,
-		"select":[
-			{"name":"Number Requested", value:"numPending"},
-			{"name":"Average Response Time", "value":"Math.round(average_wait_time/"+Duration.MILLI_VALUES.day+", 2)"},
-			{"name":"Bug List", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
-		]
-	}))).list;
+
+	GUI.injectFilters(request);
+	var chart=yield(request.run());
+
+	D.actionDone(a);
 
 
-
-	var htmlSummary = "<h2>Reviews Requested, but no Requestee</h2>" + CNV.List2HTMLTable(result);
+	var a=D.action("Make chart", true);
+	aChart.show({
+		"id":"chart",
+		"type":"stacked",
+		"stacked":true,
+		"cube":chart
+	});
+	D.actionDone(a);
 	D.action("Done");
-//	D.println(CNV.Object2JSON(data));
-
-	document.getElementById("info").innerHTML = htmlSummary;
 
 
 };
 
-	$(document).ready(createChart());
+
+
+
+
+	$(document).ready(function(){
+		GUI.setup([
+			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
+			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today()},
+			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"week"},
+			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
+		],
+		[
+			"sampleMin=new Date(sampleMin).addDay(1).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
+			"sampleMax=new Date(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+		],
+		"bugs");
+		//"bug_tags");
+	});
 
 </script>
 
+
 </BODY>
 </HTML>
+

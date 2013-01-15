@@ -149,8 +149,44 @@
 						},
 						"filter" : {
 							"and":[
-								{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}},
-								{"not": {"terms":{"previous_values.bug_status_value": ["resolved", "verified", "closed"]}}},
+								{"terms" : {"bug_status" : ["resolved"]}},//, "verified", "closed"]}},
+								{"not": {"terms":{"previous_values.bug_status_value": ["resolved"]}}},
+								{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}}
+							]
+						},
+						"from" : 0,
+						"size" : 0,
+						"sort" : []
+					},
+					"seriesName" : "Resolved"
+				},
+				{
+					"esQuery" : {
+						"query": {
+							"match_all" : {}
+						},
+						"filter" : {
+							"and":[
+								{"terms" : {"bug_status" : ["verified"]}},//, "verified", "closed"]}},
+								{"not": {"terms":{"previous_values.bug_status_value": ["verified"]}}},
+								{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}}
+							]
+						},
+						"from" : 0,
+						"size" : 0,
+						"sort" : []
+					},
+					"seriesName" : "Verified"
+				},
+				{
+					"esQuery" : {
+						"query": {
+							"match_all" : {}
+						},
+						"filter" : {
+							"and":[
+								{"terms" : {"bug_status" : ["closed"]}},//, "verified", "closed"]}},
+								{"not": {"terms":{"previous_values.bug_status_value": ["closed"]}}},
 								{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}}
 							]
 						},
@@ -175,7 +211,7 @@
 			"chartTitle" : "New Bugs and Old Bugs",
 			"canvas" : "chart",
 			"originZero" : true,
-			"chartType" : "LineChart",
+			"chartType" : "StackedAreaChart",
 			"interval": GUI.state.intervalX,
 //			"groupSize" : 7,
 			"startDate" : GUI.state.startDate,

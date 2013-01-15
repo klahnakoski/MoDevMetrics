@@ -214,7 +214,7 @@ var __createChart = function(){
 
 //	durations.edges[1].domain.NULL.name="Over "+GUI.state.maxX;
 
-	D.action("Make chart");
+	var a=D.action("Make chart", true);
 	aChart.show({
 		"id":"chart",
 		"type":"line",
@@ -223,6 +223,7 @@ var __createChart = function(){
 		"height":500,
 		showValues: false
 	});
+	D.actionDone(a);
 	D.action("Done");
 
 

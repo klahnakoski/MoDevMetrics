@@ -113,7 +113,7 @@ BUG_TAGS.get=function(minBug, maxBug, minDate, maxDate){
 	]};
 //{"terms" : { "bug_status" : ["resolved", "verified", "closed"] }}
 
-	D.action("Get Current Bug Info");
+	var a=D.action("Get Current Bug Info", true);
 	var current=yield (ESQuery.run({
 		"from":"bugs",
 		"select":[
@@ -137,6 +137,7 @@ BUG_TAGS.get=function(minBug, maxBug, minDate, maxDate){
 		"esfilter":
 			dateFilter
 	}));
+	D.actionDone(a);
 
 //D.println(CNV.List2Tab(current.list));
 	

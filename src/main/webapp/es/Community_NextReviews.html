@@ -3,23 +3,6 @@
 <HEAD>
 </HEAD>
 <BODY>
-<!--&lt;!&ndash;[if lt IE 9]>-->
-<!---->
-<!--<![endif]&ndash;&gt;-->
-<!---->
-<!---->
-<!---->
-<!---->
-<!---->
-<!---->
-<!---->
-<!---->
-<!---->
-<!--<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>-->
-
-
-
-
 
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
@@ -219,16 +202,16 @@ var __createChart = function(){
 
 //	durations.edges[1].domain.NULL.name="Over "+GUI.state.maxX;
 
-	D.action("Make chart", function(){
-		aChart.show({
-			"id":"chart",
-			"type":"bar",
-			"stacked":true,
-			"cube":chart,
-			"height":500,
-			showValues: true
-		});
+	var a=D.action("Make chart", true);
+	aChart.show({
+		"id":"chart",
+		"type":"bar",
+		"stacked":true,
+		"cube":chart,
+		"height":500,
+		showValues: true
 	});
+	D.actionDone(a);
 
 
 };

@@ -1,5 +1,5 @@
 
-importScript("charts/Status.js");
+
 importScript("CNV.js");
 importScript("aDate.js");
 importScript("util.js");
@@ -95,9 +95,9 @@ ESQuery.run=function(query){
 
 
 ESQuery.prototype.run = function(){
-	if (this.query.from=="org_chart")
-		D.println("hi");
-	if (!this.query.url) this.query.url=window.ElasticSearch.baseURL+ESQuery.INDEXES[this.query.from.split(".")[0]].path;
+	if (!this.query.url) this.query.url = window.ElasticSearch.baseURL + ESQuery.INDEXES[this.query.from.split(".")[0]].path;
+
+
 	if (!this.query.url.endsWith("/_search")) this.query.url+="/_search";  //WHEN QUERIES GET RECYCLED, THIER url IS SOMETIMES STILL AROUND
 	//var URL=window.ElasticSearch.baseURL+ESQuery.INDEXES[this.query.from.split(".")[0]].path+"/_search";
 	var postResult;
@@ -183,79 +183,92 @@ ESQuery.prototype.compile = function(){
 	this.select = CUBE.select2Array(this.query.select);
 
 
-	//NO EDGES IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
 	if (this.edges.length==0){
+		//NO EDGES IMPLIES SIMPLER QUERIES: EITHER A SET OPERATION, OR RETURN SINGLE AGGREGATE
 		if (this.select[0].operation==="none"){  //"none" IS GIVEN TO undefined OPERATIONS DURING COMPILE
 			this.esMode="setop";
-			return this.compileSetOp();
+			this.compileSetOp();
+			return;
 		}else{
 			var value=this.select[0].value;
 			for(var k=this.select.length;k--;){
 				if (this.select[k].value!=value) D.error("ES Query with multiple select columns must all have the same value");
 			}//for
-		}//endif
-	}else{
-		//PICK FIRST AND ONLY SELECT
-		if (this.select.length>1){
-			D.error("Can not have an array of select columns, only one allowed");
-		}else if (this.select.length==0){
-			this.select=undefined;
+
+			if (this.query.select===undefined || (this.select.length==1 && this.select[0].operation=="count")){
+				this.esMode="terms";
+				this.esQuery = this.buildESCountQuery(value);
+				return;
+			}else{
+				this.esMode="statistical";
+				this.esQuery=this.buildESStatisticalQuery(value);
+				return;
+			}//endif
 		}//endif
 	}//endif
+
+
+	//PICK FIRST AND ONLY SELECT
+	if (this.select.length>1){
+		D.error("Can not have an array of select columns, only one allowed");
+	}else if (this.select.length==0){
+		this.select=undefined;
+	}//endif
+
 	if (this.query.where)
 		D.error("ESQuery does not support the where clause, use esfilter instead");
 
-	
+	//EXPECTING MORE THAN ONE EDGE
 	this.edges = this.query.edges.copy();
 
+
+	//VERY IMPORTANT!! ES CAN ONLY USE TERM PACKING ON terms FACETS, THE OTHERS WILL REQUIRE EVERY PARTITION BEING A FACET
+	this.esMode = "terms_stats";
 	if (this.query.select===undefined || (this.select.length==1 && this.select[0].operation=="count")){
 		this.esMode="terms";
-		this.esQuery = this.buildESTermsQuery();
-	}else{
-		//A SPECIAL EDGE IS ONE THAT HAS AN UNDEFINED NUMBER OF PARTITIONS AT QUERY TIME
-		//FIND THE specialEdge, IF ONE
-		this.esMode = "terms_stats";
-		this.specialEdge = null;
-		for(var f = 0; f < this.edges.length; f++){
-			if ((["set", "duration", "time", "linear"].contains(this.edges[f].domain.type))){
-				for(var p = this.edges[f].domain.partitions.length; p--;){
-					this.edges[f].domain.partitions[p].dataIndex = p;
-				}//for
-			} else{
-				if (this.specialEdge != null) D.error("There is more than one open-ended edge: this can not be handled");
-				this.specialEdge = this.edges.splice(f, 1)[0];
+	}//endif
+
+	this.facetEdges=[];	//EDGES THAT WILL REQUIRE A FACET
+
+	//A SPECIAL EDGE IS ONE THAT HAS AN UNDEFINED NUMBER OF PARTITIONS AT QUERY TIME
+	//FIND THE specialEdge, IF ONE
+	this.specialEdge = null;
+	for(var f = 0; f < this.edges.length; f++){
+		if ((["set", "duration", "time", "linear"].contains(this.edges[f].domain.type))){
+			for(var p = this.edges[f].domain.partitions.length; p--;){
+				this.edges[f].domain.partitions[p].dataIndex = p;
+			}//for
+
+			//FACETS ARE ONLY REQUIRED IF SQL JOIN ON DOMAIN IS REQUIRED (RANGE QUERY)
+			//OR IF WE ARE NOT SIMPLY COUNTING
+			//OR IF WE JUST WANT TO FORCE IT :)
+			if (this.edges[f].range || this.esMode!="terms" || this.edges[f].domain.isFacet){
+				this.facetEdges.push(this.edges[f]);
+				this.edges.splice(f, 1);
 				f--;
 			}//endif
-		}//for
-		if (this.specialEdge == null){
-			this.esMode = "statistical";
+		} else if (this.esMode=="terms"){
+			//NO SPECIAL EDGES FOR terms FACETS (ALL ARE SPECIAL!!)
+		} else{
+			if (this.specialEdge != null) D.error("There is more than one open-ended edge: this can not be handled");
+			this.specialEdge = this.edges[f];
+			this.edges.splice(f, 1);
+			f--;
 		}//endif
+	}//for
 
-		this.esQuery = this.buildESQuery();
-
-		var esFacets;
-		if (this.query.edges.length==0){
-			//ZERO DIMENSIONAL QUERY
-//			var select=CUBE.select2Array(this.query.select)[0];
-
-			esFacets=[];
-			var q = {
-				"name":"0",
-				"value" : {
-					"statistical":{
-						"script":MVEL.compile.expression(this.select[0].value, this.query)
-					}
-				}
-			};
-			esFacets.push(q);
-		}else{
-			esFacets = this.buildFacetQueries();
-		}//endif
-
-		for(var i = 0; i < esFacets.length; i++){
-			this.esQuery.facets[esFacets[i].name] = esFacets[i].value;
-		}//for
+	if (this.specialEdge == null && this.esMode=="term_stats"){
+		this.esMode = "statistical";
 	}//endif
+
+	this.esQuery = this.buildESQuery();
+
+	var esFacets;
+	esFacets = this.buildFacetQueries();
+
+	for(var i = 0; i < esFacets.length; i++){
+		this.esQuery.facets[esFacets[i].name] = esFacets[i].value;
+	}//for
 
 };
 
@@ -268,37 +281,63 @@ ESQuery.prototype.buildFacetQueries = function(){
 	for(var i = 0; i < this.esFacets.length; i++){
 		var condition = [];
 		var name = "";
-		for(var f = 0; f < this.edges.length; f++){
-			if (name != "") name += ",";
-			name += this.esFacets[i][f].dataIndex;
-			condition.push(ESQuery.buildCondition(this.edges[f], this.esFacets[i][f]));
+		if (this.facetEdges.length==0){
+			name="default";
+		}else{
+			for(var f = 0; f < this.facetEdges.length; f++){
+				if (name != "") name += ",";
+				name += this.esFacets[i][f].dataIndex;
+				condition.push(ESQuery.buildCondition(this.facetEdges[f], this.esFacets[i][f], this.query));
+			}//for
 		}//for
 		var q = {"name":name};
 
-		if (this.esMode == "terms_stats"){
-			q.value = {
-				"terms_stats":{
-					"key_field":this.specialEdge.value,
-					"value_field":ESQuery.isKeyword(this.select.value)?this.select.value:undefined,
-					"value_script":ESQuery.isKeyword(this.select.value)?undefined:this.select.value,
-					"size":this.query.essize
-				},
-				"facet_filter":{
-					"and":condition
-				}
-			};
+		var value=this.compileEdges2Term();
+
+		if (this.esMode=="terms"){
+			if (value.type=="field"){
+				q.value={
+					"terms":{
+						"field":value.value,
+						"size": this.query.essize
+					}
+				};
+			}else{
+				q.value={
+					"terms":{
+						"script_field":value.value,
+						"size": this.query.essize
+					}
+				};
+			}//endif
+		}else if (this.esMode == "terms_stats"){
+			if (value.type=="field"){
+				q.value = {
+					"terms_stats":{
+						"key_field":this.specialEdge.value,
+						"value_field":value.value,
+						"size":this.query.essize
+					}
+				};
+			}else{
+				q.value = {
+					"terms_stats":{
+						"key_field":this.specialEdge.value,
+						"value_script":value.value,
+						"size":this.query.essize
+					}
+				};
+
+			}
 		} else{//statistical
 			q.value = {
 				"statistical":{
-					"script":this.select.value
-				},
-				"facet_filter":{
-					"and":condition
+					"script":value.value
 				}
 			};
 		}//endif
 
-		if (condition.length==0) q.value.facet_filter=undefined;
+		if (condition.length>0) q.value.facet_filter={"and":condition};
 
 		output.push(q);
 	}//for
@@ -309,10 +348,10 @@ ESQuery.prototype.buildFacetQueries = function(){
 
 //RETURN ALL PARTITION COMBINATIONS:  A LIST OF ORDERED TUPLES
 ESQuery.prototype.getAllEdges = function(edgeDepth){
-	if (edgeDepth == this.edges.length) return [
+	if (edgeDepth == this.facetEdges.length) return [
 		[]
 	];
-	var edge = this.edges[edgeDepth];
+	var edge = this.facetEdges[edgeDepth];
 
 	var output = [];
 	var partitions = edge.domain.partitions;
@@ -327,20 +366,65 @@ ESQuery.prototype.getAllEdges = function(edgeDepth){
 };//method
 
 
-ESQuery.isKeyword = function(value){
-	for(var c = 0; c < value.length; c++){
-		var cc = value.charAt(c);
-		if ("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.".indexOf(cc) == -1) return false;
-	}//for
-	return true;
-};//method
+
 
 
 //RETURN AN ES FILTER OBJECT
-ESQuery.buildCondition = function(edge, partition){
+ESQuery.buildCondition = function(edge, partition, query){
 	//RETURN AN ES FILTER OBJECT
 	var output = {};
-	if (ESQuery.isKeyword(edge.value)){
+
+	if (edge.domain.isFacet){
+		//MUST USE THIS' esFacet, AND NOT(ALL THOSE ABOVE)
+		var condition={"and":[
+			partition.esfilter
+		]};
+
+		//ES WILL FREAK OUT IF WE SEND {"not":{"and":x}} (OR SOMETHING LIKE THAT)
+//		var parts=edge.domain.partitions;
+//		for(var i=0;i<parts.length;i++){
+//			var p=parts[i];
+//			if (p==partition) break;
+//			condition.and.push({"not":p.esfilter});
+//		}//for
+
+		return ESFilter.simplify(condition);
+	} else if (edge.range){
+		//THESE REALLY NEED FACETS TO PERFORM THE JOIN-TO-DOMAIN
+		//USE MVEL CODE
+		if (["time", "duration", "linear"].contains(edge.domain.type)){
+			output={"and":[]};
+
+			//I WISH THIS WAS GLOBAL, BUT I WILL FORGET AND MAKE IT AGAIN NEXT TIME
+			var map=function(key, value){
+				var output={};
+				output[key]=value;
+				return output;
+			};//method
+
+			if (MVEL.isKeyword(edge.range.min)){
+				output.and.push({"range":map(edge.range.min,{"lt":MVEL.Value2Code(partition.min)})});
+			}else{
+				//WHOA!! SUPER SLOW!!
+				output.and.push({"script":{"script":MVEL.compile.expression(
+					edge.range.min + "<" + MVEL.Value2Code(partition.max)
+				, query)}})
+			}//endif
+
+			if (MVEL.isKeyword(edge.range.max)){
+				output.and.push({"range":map(edge.range.max,{"gte":MVEL.Value2Code(partition.min)})});
+			}else{
+				//WHOA!! SUPER SLOW!!
+				output.and.push({"script":{"script":MVEL.compile.expression(
+					MVEL.Value2Code(partition.min) +" <= "+ edge.range.max
+				, query)}})
+			}//endif
+
+			return output;
+		} else {
+			D.error("Do not know how to handle range query on non-continuous domain");
+		}//endif
+	}else if (MVEL.isKeyword(edge.value)){
 		//USE FAST ES SYNTAX
 		if (["time", "duration", "linear"].contains(edge.domain.type)){
 			output.range = {};
@@ -361,13 +445,11 @@ ESQuery.buildCondition = function(edge, partition){
 			output.script = {script:edge.value + ">=" + MVEL.Value2Code(partition.min) + " && " + edge.value + "<" + MVEL.Value2Code(partition.max)};
 		} else {//if (edge.domain.type == "set"){
 			output.script = {script:"( "+edge.value + " ) ==" + MVEL.Value2Code(partition.value)};
-//		} else{
-//			D.error("Edge \"" + edge.name + "\" is not supported");
 		}//endif
+		output.script.script=MVEL.compile.addFunctions(output.script.script);
+		return output;
 	}//endif
 
-	output.script.script=MVEL.compile.addFunctions(output.script.script);
-	return output;
 };
 
 ESQuery.prototype.buildESQuery = function(){
@@ -400,22 +482,95 @@ ESQuery.prototype.buildESQuery = function(){
 };//method
 
 
-ESQuery.prototype.buildESTermsQuery=function(){
+
+//RETURN SINGLE COUNT
+ESQuery.prototype.buildESCountQuery=function(value){
 	var output=this.buildESQuery();
-	output.facets["0"]={
-		"terms":{
-			"script_field":this.compileEdges2Term(),
-			"size": 100000
-		}
-	};
+
+	if (MVEL.isKeyword(value)){
+		output.facets["0"]={
+			"terms":{
+				"field":value,
+				"size": 200000
+			}
+		};
+	}else{
+		//COMPLICATED value IS PROBABLY A SCRIPT, USE IT
+		output.facets["0"]={
+			"terms":{
+				"script_field":MVEL.compile.expression(value, this.query),
+				"size": 200000
+			}
+		};
+	}//endif
+
 	return output;
 };
 
 
+//RETURN A SINGLE SET OF STATISTICAL VALUES, NO GROUPING
+ESQuery.prototype.buildESStatisticalQuery=function(value){
+	var output = this.buildESQuery();
+
+	if (MVEL.isKeyword(value)){
+		output.facets["0"] = {
+			"statistical":{
+				"field":value
+			}
+		};
+	}else{
+		output.facets["0"] = {
+			"statistical":{
+				"script":MVEL.compile.expression(value, this.query)
+			}
+		};
+	}//endif
+
+	return output;
+};//method
+
+
 //GIVE MVEL CODE THAT REDUCES A UNIQUE TUPLE OF PARTITIONS DOWN TO A UNIQUE TERM
 //GIVE JAVASCRIPT THAT WILL CONVERT THE TERM BACK INTO THE TUPLE
+//RETURNS TUPLE OBJECT WITH "type" and "value" ATTRIBUTES.  "type" CAN HAVE A VALUE OF "script" OR "field"
 ESQuery.prototype.compileEdges2Term=function(){
 	var edges=this.edges;
+
+	if (edges.length==0){
+		if (this.specialEdge){
+			var specialEdge=this.specialEdge;
+			this.term2Parts=function(term){
+				return [specialEdge.domain.getPartByKey(term)];
+			};
+			if (MVEL.isKeyword(specialEdge.value)){
+				return {"type":"field", "value":specialEdge.value};
+			}else{
+				return {"type":"script", "value":MVEL.compile.expression(specialEdge.value)};
+			}//endif
+		}else{
+			//REGISTER THE DECODE FUNCTION
+			this.term2Parts=function(term){
+				return [];
+			};
+			return {"type":"script", "value":"1"};
+		}//endif
+	}//endif
+
+	//IF THE QUERY IS SIMPLE ENOUGH, THEN DO NOT USE TERM PACKING
+	if (edges.length==1 && ["set", "default"].contains(edges[0].domain.type)){
+		//THE TERM RETURNED WILL BE A MEMBER OF THE GIVEN SET
+		this.term2Parts=function(term){
+			return [edges[0].domain.getPartByKey(term)];
+		};
+
+		if (edges[0].esscript){
+			return {"type":"script", "value":MVEL.compile.addFunctions(edges[0].esscript)};
+		}else if (MVEL.isKeyword(edges[0].value)){
+			return {"type":"field", "value":edges[0].value};
+		}else{
+			return {"type":"script", "value":MVEL.compile.expression(edges[0].value, this.query)};
+		}//endif
+	}//endif
 
 	var mvel=undefined;
 	var fromTerm2Part=[];
@@ -445,30 +600,19 @@ ESQuery.prototype.compileEdges2Term=function(){
 		return output;
 	};
 
-	return MVEL.compile.expression(mvel, this.query);
+	return {"type":"script", "value":MVEL.compile.expression(mvel, this.query)};
 };
-
-
-ESQuery.compileString2Term=function(edge){
-	var value=edge.value;
-	if (ESQuery.isKeyword(value)) value="doc[\""+value+"\"].value";
-
-	return {
-		"toTerm":'Value2Pipe('+value+')',
-		"fromTerm":function(value){
-			return edge.domain.getPartByKey(CNV.Pipe2Value(value));
-		}
-	};
-};//method
 
 
 //RETURN MVEL CODE THAT MAPS TIME AND DURATION DOMAINS DOWN TO AN INTEGER AND
 //AND THE JAVASCRIPT THAT WILL TURN THAT INTEGER BACK INTO A PARTITION (INCLUDING NULLS)
 ESQuery.compileTime2Term=function(edge){
+	if (edge.esscript) D.error("edge script not supported yet");
+
 	//IS THERE A LIMIT ON THE DOMAIN?
 	var numPartitions=edge.domain.partitions.length;
 	var value=edge.value;
-	if (ESQuery.isKeyword(value)) value="doc[\""+value+"\"].value";
+	if (MVEL.isKeyword(value)) value="doc[\""+value+"\"].value";
 
 
 	var nullTest=ESQuery.compileNullTest(edge);
@@ -505,10 +649,12 @@ ESQuery.compileTime2Term=function(edge){
 //RETURN MVEL CODE THAT MAPS DURATION DOMAINS DOWN TO AN INTEGER AND
 //AND THE JAVASCRIPT THAT WILL TURN THAT INTEGER BACK INTO A PARTITION (INCLUDING NULLS)
 ESQuery.compileDuration2Term=function(edge){
+	if (edge.esscript) D.error("edge script not supported yet");
+
 	//IS THERE A LIMIT ON THE DOMAIN?
 	var numPartitions=edge.domain.partitions.length;
 	var value=edge.value;
-	if (ESQuery.isKeyword(value)) value="doc[\""+value+"\"].value";
+	if (MVEL.isKeyword(value)) value="doc[\""+value+"\"].value";
 
 	var ref=Util.coalesce(edge.domain.min, edge.domain.max, Duration.ZERO);
 	var nullTest=ESQuery.compileNullTest(edge);
@@ -532,11 +678,13 @@ ESQuery.compileDuration2Term=function(edge){
 //RETURN MVEL CODE THAT MAPS THE LINEAR DOMAIN DOWN TO AN INTEGER AND
 //AND THE JAVASCRIPT THAT WILL TURN THAT INTEGER BACK INTO A PARTITION (INCLUDING NULLS)
 ESQuery.compileLinear2Term=function(edge){
+	if (edgeesscript) D.error("edge script not supported yet");
+
 	if (edge.domain.type!="linear") D.error("can only translate linear domains");
 
 	var numPartitions=edge.domain.partitions.length;
 	var value=edge.value;
-	if (ESQuery.isKeyword(value)) value="doc[\""+value+"\"].value";
+	if (MVEL.isKeyword(value)) value="doc[\""+value+"\"].value";
 
 	var ref, nullTest, partition2int, int2Partition;
 	if (edge.domain.max===undefined){
@@ -572,6 +720,41 @@ ESQuery.compileLinear2Term=function(edge){
 
 
 
+ESQuery.compileString2Term=function(edge){
+	if (edge.esscript) D.error("edge script not supported yet");
+
+	var value=edge.value;
+	if (MVEL.isKeyword(value)) value="doc[\""+value+"\"].value";
+
+	return {
+		"toTerm":'Value2Pipe('+value+')',
+		"fromTerm":function(value){
+			return edge.domain.getPartByKey(CNV.Pipe2Value(value));
+		}
+	};
+};//method
+
+
+//EXPECT A ElasticSearch DEFINED EDGE, AND RETURN EXPRESSION TO RETURN EDGE NAMES
+ESQuery.compileES2Term=function(edge){
+//		"var keywords = concat(_source.keywords);\n"+
+//		"var white = _source.status_whiteboard;\n"+
+//		"     if (keywords.indexOf(\"sec-critical\")>=0 ) \"critical\"; "+
+//		"else if (   white.indexOf(\"[sg:critical]\")   >=0 ) \"critical\"; "+
+//		"else if (keywords.indexOf(\"sec-high\")    >=0 ) \"high\"; "+
+//		"else if (   white.indexOf(\"[sg:high]\")   >=0 ) \"high\"; "+
+//		"else if (keywords.indexOf(\"sec-moderate\")>=0 ) \"moderate\"; "+
+//		"else if (   white.indexOf(\"[sg:moderate]\")    >=0 ) \"moderate\"; "+
+//		"else if (keywords.indexOf(\"sec-low\")     >=0 ) \"low\"; "+
+//		"else if (   white.indexOf(\"[sg:low]\")    >=0 ) \"low\"; "+
+//		"else \"other\";",
+//		//"else \"other\"; ",  CAN NOT DO THIS (SPACE AT AND OF else RESULTS IN null VALUES RETURNED
+//		"allowNulls":false,
+//		"domain":{"type":"set", "partitions":["critical", "high", "moderate", "low"]}},
+
+
+
+};//method
 
 
 
@@ -583,7 +766,7 @@ ESQuery.compileNullTest=function(edge){
 
 	//IS THERE A LIMIT ON THE DOMAIN?
 	var value=edge.value;
-	if (ESQuery.isKeyword(value)) value="doc[\""+value+"\"].value";
+	if (MVEL.isKeyword(value)) value="doc[\""+value+"\"].value";
 
 	var top, bot, nullTest;
 	if (edge.domain.max===undefined){
@@ -604,89 +787,79 @@ ESQuery.compileNullTest=function(edge){
 
 
 ESQuery.prototype.termsResults=function(data){
-	var terms=data.facets["0"].terms;
+	//THE FACET EDGES MUST BE RE-INTERLACED WITH THE PACKED EDGES
 
 	//GETTING ALL PARTS WILL EXPAND THE EDGES' DOMAINS
-	for(var i=0;i<terms.length;i++)
-		this.term2Parts(terms[i].term);
+	//REALLY WE SHOULD ONLY BE INSPECTING THE specialEdge, WHICH IS THE ONLY UNKNOWN DOMAIN
+	//BUT HOW TO UNPACK IT FROM THE term FASTER IS UNKNOWN
+	var facetNames = Object.keys(data.facets);
+	for(var k = 0; k < facetNames.length; k++){
+		var terms=data.facets[facetNames[k]].terms;
+		for(var i=0;i<terms.length;i++){
+			this.term2Parts(terms[i].term);
+		}//for
+	}//for
 
 	//NUMBER ALL EDGES FOR CUBE INDEXING
-	for(var f=0;f<this.edges.length;f++){
-		var parts=this.edges[f].domain.partitions;
+	for(var f=0;f<this.query.edges.length;f++){
+		this.query.edges[f].index=f;
+		var parts=this.query.edges[f].domain.partitions;
 		var p=0;
 		for(;p<parts.length;p++){
 			parts[p].dataIndex=p;
 		}//for
-		this.edges[f].domain.NULL.dataIndex=p;
+		this.query.edges[f].domain.NULL.dataIndex=p;
 	}//for
 
 
 
 	//MAKE CUBE
-	var select=CUBE.select2Array(this.query.select)[0];
-	if (select && (this.query.select instanceof Array)){
-		select=this.query.select;
-		var cube = CUBE.cube.newInstance(this.query.edges, 0, select);
+	var select=this.query.select;
+	if (select===undefined) select=[];
+	var cube= CUBE.cube.newInstance(this.query.edges, 0, select);
 
-		//FILL CUBE
+	
+	//FILL CUBE
+	//PROBLEM HERE IS THE INTERLACED EDGES
+	for(var k = 0; k < facetNames.length; k++){
+		var coord = facetNames[k].split(",");
+		//MAKE THE INSERT LIST
+		var interlaceList=[];
+		this.facetEdges.forall(function(f,i){
+			interlaceList.push({"index":f.index, "value": f.domain.partitions[coord[i]]});
+		});
+
+		var terms=data.facets[facetNames[k]].terms;
 		II: for(var i=0;i<terms.length;i++){
 			var d = cube;
 			var parts=this.term2Parts(terms[i].term);
-			for(var t=0; t < parts.length; t++){
+			for(var j=0;j<interlaceList.length;j++){
+				parts.insert(interlaceList[j].index, interlaceList[j].value);
+			}//for
+			//INTERLACE DONE: NOW parts SHOULD CORRESPOND WITH this.query.edges
+
+			var t = 0;
+			var length=(select instanceof Array)?parts.length:parts.length-1;
+			for(; t < length; t++){
 				if (parts[t].dataIndex==d.length) continue II;  //IGNORE NULLS
 				d = d[parts[t].dataIndex];
 				if (d===undefined) continue II;		//WHEN NULLS ARE NOT ALLOWED d===undefined
 			}//for
-			for(var s=0;s<select.length;s++){
-				d[select[s].name] = terms[i][ESQuery.agg2es[select[s].operation]];
-			}//for
+
+			if (select instanceof Array){
+				for(var s=0;s<select.length;s++){
+					d[select[s].name] = terms[i][ESQuery.agg2es[select[s].operation]];
+				}//for
+			}else{
+				if (d[parts[t].dataIndex]===undefined)
+					continue;			//WHEN NULLS ARE NOT ALLOWED d===undefined
+				d[parts[t].dataIndex] = terms[i].count;
+			}//endif
+
 		}//for
+	}//for
 
-		this.query.cube=cube;
-	}else if (select){
-		var cube = CUBE.cube.newInstance(this.query.edges, 0, select);
-
-		//FILL CUBE
-		II: for(var i=0;i<terms.length;i++){
-			var d = cube;
-			var parts=this.term2Parts(terms[i].term);
-			var t = 0;
-			for(; t < parts.length-1; t++){
-				if (parts[t].dataIndex==d.length) continue II;  //IGNORE NULLS
-				d = d[parts[t].dataIndex];
-				if (d===undefined) continue II;		//WHEN NULLS ARE NOT ALLOWED d===undefined
-			}//for
-			if (d[parts[t].dataIndex]===undefined)
-				continue;			//WHEN NULLS ARE NOT ALLOWED d===undefined
-			d[parts[t].dataIndex] = terms[i].count;
-		}//for
-
-		this.query.cube=cube;
-	}else{
-		if (this.edges.length>1)
-			D.error("Do not know how to deal with more then one edge, and no select");
-		//NO SELECT MEANS USE THE EDGES
-		//A DUMMY SELECT FOR FILLING DEFAULT CUBE
-		select=this.query.edges[0];
-		select.defaultValue=function(){return 0;};
-		
-		var cube = CUBE.cube.newInstance(this.query.edges, 0, select);
-
-		//FILL CUBE
-		II: for(var i=0;i<terms.length;i++){
-			var d = cube;
-			var parts=this.term2Parts(terms[i].term);
-			var t = 0;
-			for(; t < parts.length-1; t++){
-				if (parts[t].dataIndex==d.length) continue II;  //IGNORE NULLS
-				d = d[parts[t].dataIndex];
-			}//for
-			d[parts[t].dataIndex] = CNV.Pipe2Value(terms[i].term);
-		}//for
-
-		this.query.cube=cube;
-	}//endif
-
+	this.query.cube=cube;
 };
 
 //MAP THE SELECT OPERATION NAME TO ES FACET AGGREGATE NAME
@@ -811,3 +984,202 @@ ESQuery.prototype.compileSetOp=function(){
 ESQuery.prototype.mvelResults=function(data){
  	this.query.list =  MVEL.esFacet2List(data.facets.mvel, this.select);
 };//method
+
+
+
+
+
+
+var ESFilter={};
+
+ESFilter.simplify=function(esfilter){
+	return esfilter;
+
+	//THIS DOES NOT WORK BECAUSE "[and] filter does not support [product]"
+	//THIS DOES NOT WORK BECAUSE "[and] filter does not support [component]"
+	//return ESFilter.removeOr(esfilter);
+
+//THIS TAKES TOO LONG TO TRANSLATE ALL THE LOGIC FOR THOUSANDS OF FACETS
+//	var normal=ESFilter.normalize(esfilter);
+//	if (normal.or && normal.or.length==1) normal=normal.or[0];
+//	var clean=CNV.JSON2Object(JSON.stringify(normal).replaceAll('"isNormal":true,', '').replaceAll(',"isNormal":true', '').replaceAll('"isNormal":true', ''));
+//
+//	//REMOVE REDUNDANT FACTORS
+//	//REMOVE false TERMS
+//	return clean;
+};
+
+ESFilter.removeOr=function(esfilter){
+	if (esfilter.not) return {"not":ESFilter.removeOr(esfilter.not)};
+
+	if (esfilter.and){
+		return {"and":esfilter.and.map(function(v, i){
+			return ESFilter.removeOr(v);
+		})};
+	}//endif
+
+	if (esfilter.or){  //CONVERT OR TO NOT.AND.NOT
+		return {"not":{"and":esfilter.or.map(function(v, i){
+			return {"not":ESFilter.removeOr(v)};
+		})}};
+	}//endif
+
+	return esfilter;
+};//method
+
+
+//ENSURE NO ES-FORBIDDEN COMBINATIONS APPEAR (WHY?!?!?!?!?!  >:| )
+//NORMALIZE BOOLEAN EXPRESSION TO OR.AND.NOT FORM
+ESFilter.normalize=function(esfilter){
+	if (esfilter.isNormal) return esfilter;
+
+D.println("from: "+CNV.Object2JSON(esfilter));
+	var output=esfilter;
+
+	while(output!=null){
+		esfilter=output;
+		output=null;
+
+		if (esfilter.terms){									//TERMS -> OR.TERM
+
+			var map=function(name, value){
+				var output={};
+				output[name]=value;
+				return output;
+			};
+
+			var fieldname=Object.keys(esfilter.terms)[0];
+			output={};
+			output.or=esfilter.terms[fieldname].map(function(t, i){
+				return {"and":[{"term":map(fieldname, t)}], "isNormal":true};
+			});
+		}else if (esfilter.not && esfilter.not.or){				//NOT.OR -> AND.NOT
+			output={};
+			output.and=esfilter.not.or.map(function(e, i){
+				return ESFilter.normalize({"not":e});
+			});
+		}else if (esfilter.not && esfilter.not.and){			//NOT.AND
+			output={};
+			output.or=esfilter.not.and.map(function(e, i){
+				return ESFilter.normalize({"not":e});
+			});
+		}else if (esfilter.not && esfilter.not.not){			//NOT.NOT
+			output=ESFilter.normalize(esfilter.not.not);
+		}else if (esfilter.not){
+			if (esfilter.not.isNormal){
+				esfilter.isNormal=true;
+			}else{
+				output={"not":ESFilter.normalize(esfilter.not)};
+			}//endif
+		}else if (esfilter.and){
+			output={"and":[]};
+
+			esfilter.and.forall(function(a, i){
+				a=ESFilter.normalize(a);
+				if (a.or && a.or.length==1) a=a.or[0];
+
+				if (a.and){										//AND.AND
+					output.and.appendArray(a.and);
+				}else if (a.script && a.script.script=="true"){
+					//DO NOTHING
+				}else{
+					output.and.push(a);
+				}//endif
+			});
+
+			var mult=function(and, d){							//AND.OR
+				if (and[d].or === undefined){
+					if (d==and.length-1)
+						return {"or":[{"and":[and[d]], "isNormal":true}]};
+					var out=mult(and, d+1);
+					for(var o=0;o<out.or.length;o++){
+						out.or[o].and.prepend(and[d]);
+					}//for
+					return out;
+				}//endif
+
+				if (d==and.length-1){
+					var or=and[d].or;
+					for(var i=0;i<or.length;i++){
+						if (!or[i].and) or[i]={"and":[or[i]], "isNormal":true};
+					}//for
+					return {"or":or};
+				}//endif
+
+				var child=mult(and, d+1);
+				var or=[];
+				for(var i=0;i<and[d].or.length;i++){
+					for(var c=0;c<child.or.length;c++){
+						var temp={"and":[], "isNormal":true};
+						if (and[d].or[i].and){
+							temp.and.appendArray(and[d].or[i].and);
+						}else{
+							temp.and.push(and[d].or[i]);
+						}//endif
+						temp.and.appendArray(child.or[c].and);
+						or.push(temp);
+					}//for
+				}//for
+				return {"or":or};
+			};
+			output=mult(output.and, 0);
+			output.isNormal=true;
+			esfilter=output;
+			break;
+		}else if (esfilter.or){
+			output={"or":[]};
+			esfilter.or.forall(function(o, i){
+				var k=ESFilter.normalize(o);
+				if (k.or){
+					output.or.appendArray(k.or);
+				}else{
+					output.or.push(k);
+				}//endif
+			});
+			esfilter=output;
+			break;
+		}//endif
+	}//while
+D.println("  to: "+CNV.Object2JSON(esfilter));
+
+	esfilter.isNormal=true;
+	return esfilter;
+};//method
+
+ESFilter.simplify(
+	{"and":[
+		{"and":[
+				{"term":{"product":"core"}},
+				{"or":[
+						{"prefix":{"component":"javascript"}},
+						{"prefix":{"component":"nanojit"}}
+					]}
+			]},
+		{"not":{"and":[
+					{
+						"isNormal":true,
+						"term":{"product":"core"}
+					},
+					{"or":[
+							{
+								"isNormal":true,
+								"prefix":{"component":"layout"}
+							},
+							{
+								"isNormal":true,
+								"prefix":{"component":"printing"}
+							},
+							{
+								"isNormal":true,
+								"prefix":{"component":"webrtc"}
+							},
+							{"terms":{"component":[
+										"style system (css)",
+										"svg",
+										"video/audio",
+										"internationalization"
+									]}}
+						]}
+				]}}
+	]}
+);

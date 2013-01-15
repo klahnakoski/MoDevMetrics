@@ -146,7 +146,8 @@ var __createChart = function(){
 	var idTime=ProgramFilter.bugStatusMinimum_fromDoc();
 	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(doc[\"close_time\"].value), "+sampleMax.getMilli()+"))";
 
-	D.action("Download Times");
+	
+	var a=D.action("Download Times", true);
 	var durations=yield(ESQuery.run({
 		"from":"bug_summary",
 		"select":
@@ -162,6 +163,7 @@ var __createChart = function(){
 			ComponentFilter.makeFilter()
 		]}
 	}));
+	D.actionDone(a);
 
 	var average=yield(ESQuery.run({
 		"from":"bug_summary",
@@ -197,13 +199,14 @@ var __createChart = function(){
 
 	durations.edges[1].domain.NULL.name="Over "+GUI.state.maxX;
 
-	D.action("Make chart");
+	var a=D.action("Make chart", true);
 	aChart.show({
 		"id":"chart",
 		"type":"bar",
 		"stacked":true,
 		"cube":durations
 	});
+	D.actionDone(a);
 	D.action("Done");
 
 

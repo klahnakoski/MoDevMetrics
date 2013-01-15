@@ -10,12 +10,12 @@ var forAllKey=function(map, func){
 };
 
 var mapAllKey=function(map, func){
-	var output={};
+	var output=[];
 	var keys=Object.keys(map);
 	for(var i=keys.length;i--;){
 		var key=keys[i];
 		var val=map[key];
-		output[key]=func(key, val);
+		output.push(func(key, val));
 	}//for
 	return output;
 };
@@ -92,6 +92,10 @@ Array.prototype.forall=function(func){
 	}//for
 };//method
 
+Array.prototype.insert=function(index, value){
+	this.splice(index, 0, value);
+};//method
+
 
 
 Array.prototype.map=function(func){
@@ -164,14 +168,7 @@ Util.UID=function(){
 
 /// REPLACE ALL INSTANCES OF find WITH REPLACE, ONLY ONCE
 String.prototype.replaceAll = function(find, replace){
-	var output=this;
-	var s=0;
-	while(true){
-		s = output.indexOf(find, s);
-		if (s < 0) return output;
-		output=output.replace(find, replace);
-		s=s-find.length+replace.length;
-	}//while
+	return this.split(find).join(replace);
 };//method
 
 

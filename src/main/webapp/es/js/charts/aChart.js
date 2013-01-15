@@ -37,14 +37,15 @@ aChart.getAxisLabels=function(axis){
 	if (axis.domain.type == "time"){
 		if (axis.domain.allowNulls) D.error("Charting lib can not handle NULL domain value.");
 //		var bestFormat = Date.getBestFormat(axis.domain.min, axis.domain.max, axis.domain.interval);
-		var bestFormat=aChart.TIME_FORMAT;  //WILL NOT WORK UNTIL ALL NULL PARTS ARE REMOVED
+//		var bestFormat=aChart.TIME_FORMAT;  //WILL NOT WORK UNTIL ALL NULL PARTS ARE REMOVED
 		axis.domain.partitions.forall(function(v, i){
 			if (v instanceof String){
 				labels.push(v);
 			} else if (v instanceof Date){
-				labels.push(v.format(bestFormat));
+				labels.push(v.format(aChart.TIME_FORMAT));
 			} else{
-				labels.push(v.value.format(bestFormat));
+				 var v2=v.name;
+				labels.push(v2); 
 			}//endif
 		});
 	} else if (axis.domain.type == "duration"){
@@ -232,8 +233,8 @@ aChart.show=function(params){
 
 		orientation: 'vertical',
 		timeSeries: (xaxis.domain.type=="time"),
-		timeSeriesFormat: aChart.PVC_TIME_FORMAT,
-//		showDots:true,
+		timeSeriesFormat: aChart.JavaDateFormat2ProtoVisDateFormat(xaxis.domain.format),
+		showDots:true,
 		showValues: false,
 		originIsZero: this.originZero,
 		yAxisPosition: "right",
@@ -243,10 +244,13 @@ aChart.show=function(params){
 			noDataMessage_text: "No Data To Chart",
 			xAxisLabel_textAngle: Math.PI/4,
 			xAxisLabel_textAlign: "left",
-			xAxisLabel_textBaseline: "top"
+			xAxisLabel_textBaseline: "top",
 //			xAxisScale_dateTickFormat: "%Y/%m/%d",
 //			xAxisScale_dateTickPrecision: xaxis.domain.interval.milli
 			//set in miliseconds
+		    dot_shapeRadius: 1,
+            dot_shape:"circle",
+			line_lineWidth: 4,
 		},
 		"clickable": true,
 		"clickAction":function(series, x, d, elem){
@@ -254,8 +258,16 @@ aChart.show=function(params){
 			return true;
 		}
 	};
-	Util.copy(params, chartParams);
 
+	{//COPY EXTENSION POINTS TO PARAMETERS
+		var extPoints={};
+		Util.copy(chartParams.extensionPoints, extPoints);
+		if (params.extensionPoints) Util.copy(params.extensionPoints, extPoints);
+		if (params.timeSeriesFormat) chartParams.timeSeriesFormat=aChart.JavaDateFormat2ProtoVisDateFormat(params.timeSeriesFormat);
+
+		Util.copy(params, chartParams);
+		chartParams.extensionPoints=extPoints;
+	}
 	var chart = new pvc[chartTypes[type]](chartParams);
 
 	//FILL THE CROSS TAB DATA STRUCTURE TO THE FORMAT EXPECTED (2D array of rows
@@ -317,6 +329,10 @@ var bugClicker=function(query, series, x, d, elem){
 			}else{
 				specific=CUBE.specificBugs(query, [x]);
 			}//endif
+
+
+
+//			var specific=CUBE.specificBugs(query, [series, x]);
 			var buglist=(yield (ESQuery.run(specific)));
 			buglist=buglist.list.map(function(b){return b.bug_id;});
 			
@@ -335,4 +351,17 @@ var bugClicker=function(query, series, x, d, elem){
 	}catch(e){
 		//DO NOTHING
 	}//try
+};
+
+
+aChart.JavaDateFormat2ProtoVisDateFormat=function(format){
+	if (format===undefined) return undefined;
+	return format
+		.replaceAll('yyyy', '%y')
+		.replaceAll('MM', '%m')
+		.replaceAll('dd', '%d')
+		.replaceAll('HH', '%H')
+		.replaceAll('mm', '%M')
+		.replaceAll('ss', '%S')
+	;
 };

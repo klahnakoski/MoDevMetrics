@@ -173,6 +173,8 @@
 
 		//CHART OF AGGREGATE RESPONSE TIMES
 		aThread.run(function(){
+			var a=D.action("Grab Stats", true);
+
 			var df=(yield (ESQuery.run({
 				"name":"DF",
 				"from":"reviews",
@@ -181,15 +183,14 @@
 					{"name":"wait_time",
 						"allowNulls":true,
 						value:"(coalesce(zero2null(review_time), "+Date.eod().getMilli()+")-doc[\"request_time\"].value)",
-						"domain":{"type":"duration", "min":0, "max":"10day", "interval":"hour"}
+						"domain":{"type":"duration", "min":0, "max":"10day", "interval":"hour", "value":"value"}
 					}
 				],
 				"esfilter":mainFilter
 			})));
+			D.actionDone(a);
 
-
-			D.action("Calc Stats");
-
+			a=D.action("Calc Stats", true);
 			var percentile90=Stats.percentile(df.cube, 0.90)/24;  //INTERVALS ARE IN HOURS, CONVERT TO DAYS
 
 
@@ -203,7 +204,6 @@
 				]
 			}))).cube;
 
-
 			var numWeek=sampleMax.subtract(sampleMin).milli/Duration.MILLI_VALUES.week;
 
 			$("#stats").html(
@@ -213,11 +213,7 @@
 				'<span class="parameter_name">% Over 10days:</span><b>'+Math.round(stats.over_10_days/stats.total*100, 1)+'%</b><br>'+
 				'<span class="parameter_name">90th percentile:</span><b>'+Math.round(percentile90, 1)+'days</b><br>'
 			);
-
-
-
-
-
+			D.actionDone(a);
 		});
 
 		//CHART PRODUCT BREAKDOWN

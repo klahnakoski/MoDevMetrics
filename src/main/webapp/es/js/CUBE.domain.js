@@ -151,18 +151,10 @@ CUBE.domain.time = function(column, sourceColumns){
 	};//method
 
 	//PROVIDE FORMATTING FUNCTION
-	if (d.format === undefined){
-		d.format = function(value){
-			if (value.toString===undefined) return CNV.Object2JSON(value);
-			return value.toString();
-		};//method
-	} else{
-		var formatValue = d.format;
-		d.format = function(value){
-			return value.format(formatValue);
-		};//method
-	}//endif
-
+	if (d.format === undefined) d.format="yyyy-MM-dd HH:mm:ss";
+	d.formatValue = function(value){
+		return value.format(d.format);
+	};//method
 
 	if (column.test === undefined){
 		d.getCanonicalPart = function(part){
@@ -176,7 +168,7 @@ CUBE.domain.time = function(column, sourceColumns){
 					"value":v,
 					"min":v,
 					"max":v.add(d.interval),
-					"name":d.format(v)
+					"name":d.formatValue(v)
 				};
 				d.partitions.push(partition);
 			}//for
@@ -263,7 +255,7 @@ CUBE.domain.time.addRange = function(min, max, domain){
 			"value":v,
 			"min":v,
 			"max":v.add(domain.interval),
-			"name":domain.format(v)
+			"name":domain.formatValue(v)
 		};
 		domain.map[v] = partition;
 		domain.partitions.push(partition);
@@ -303,12 +295,12 @@ CUBE.domain.duration = function(column, sourceColumns){
 	};//method
 
 	//PROVIDE FORMATTING FUNCTION
-	if (d.format === undefined){
-		d.format = function(value){
+//	if (d.format === undefined){
+		d.formatValue = function(value){
 			if (value.toString===undefined) return CNV.Object2JSON(value);
 			return value.toString();
 		};//method
-	}//endif
+//	}//endif
 
 
 	if (column.test === undefined){
@@ -402,7 +394,7 @@ CUBE.domain.duration.addRange = function(min, max, domain){
 			"value":v,
 			"min":v,
 			"max":v.add(domain.interval),
-			"name":domain.format(v)
+			"name":domain.formatValue(v)
 		};
 		domain.map[v] = partition;
 		domain.partitions.push(partition);
@@ -442,12 +434,12 @@ CUBE.domain.linear = function(column, sourceColumns){
 	};//method
 
 	//PROVIDE FORMATTING FUNCTION
-	if (d.format === undefined){
-		d.format = function(value){
+//	if (d.format === undefined){
+		d.formatValue = function(value){
 			if (value.toString===undefined) return CNV.Object2JSON(value);
 			return value.toString();
 		};//method
-	}//endif
+//	}//endif
 
 
 	if (column.test === undefined){
@@ -541,7 +533,7 @@ CUBE.domain.linear.addRange = function(min, max, domain){
 			"value":v,
 			"min":v,
 			"max":v+domain.interval,
-			"name":domain.format(v)
+			"name":domain.formatValue(v)
 		};
 		domain.map[v] = partition;
 		domain.partitions.push(partition);
@@ -576,7 +568,7 @@ CUBE.domain.set = function(column, sourceColumns){
 		return CUBE.domain.value.compare(d.getKey(a), d.getKey(b));
 	};//method
 
-	d.format = function(part){
+	d.formatValue = function(part){
 		if (part.toString===undefined) return CNV.Object2JSON(part);
 		return part.toString();
 	};//method
@@ -593,19 +585,29 @@ CUBE.domain.set = function(column, sourceColumns){
 	};//method
 
 
+	//ALL PARTS MUST BE FORMAL OBJECTS SO THEY CAN BE ANNOTATED
+	if (typeof(d.partitions[0])=="string"){
+		d.partitions.forall(function(part, i){
+			if (typeof(part)!="string") D.error("Partition list can not be heterogeneous");
+			part={"name":part, "value":part};
+			d.partitions[i]=part;
+		});
+		d.value="name";
+		d.key="value";
+	}//endif
 
 
 
 	//DEFINE VALUE->PARTITION MAP
 	if (column.test===undefined){
-		if (d.key === undefined) d.key = "value";
-		CUBE.domain.set.compileKey(d.key, d);
+		CUBE.domain.set.compileKey(d);
 
 		d.map = {};
 
 		//ENSURE PARTITIONS HAVE UNIQUE KEYS
 		for(var i = 0; i < d.partitions.length; i++){
 			var part = d.partitions[i];
+
 			var key=d.getKey(part);
 			if (key === undefined) D.error("Expecting object to have '" + d.key + "' attribute:" + CNV.Object2JSON(part));
 			if (d.map[key] !== undefined){
@@ -782,9 +784,10 @@ CUBE.domain.set.compileMappedLookup2 = function(column, d, sourceColumns, lookup
 
 
 
-CUBE.domain.set.compileKey=function(key, domain){
-	//HOW TO GET THE ATTRIBUTES OF DOMAIN LOCAL, IN GENERAL?
-	//SEE FIRST PARTITION WILL INDICATE THE AVAILABLE FIELDS
+CUBE.domain.set.compileKey=function(domain){
+	if (domain.key === undefined) domain.key = "value";
+	var key=domain.key;
+
 
 	if (key instanceof Array){
 		domain.getKey=function(partition){

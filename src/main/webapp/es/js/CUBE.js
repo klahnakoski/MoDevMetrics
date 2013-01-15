@@ -538,67 +538,67 @@ CUBE.toTable=function(query){
 CUBE.Cube2List=function(query){
 	var name=CUBE.select2Array(query.select)[0].name;
 	if (query.select instanceof Array) name=undefined;
-
-
 	if (query.cube===undefined) D.error("Can only turn a cube into a table at this time");
+	var sample=query.cube; for(var i=0;i<query.edges.length;i++) sample=sample[0];
+	var isArray=(sample instanceof Array);
 
-	var output=[];
-	if (query.edges.length==2){
-		var isArray=(query.cube[0][0] instanceof Array);	//CUBE ELEMENTS VCCAN BE OBJECTS, OR ARRAYS
-		var parts0=query.edges[0].domain.partitions.copy();
-		if (query.edges[0].allowNulls) parts0.push(query.edges[0].domain.NULL);
-		var parts1=query.edges[1].domain.partitions.copy();
-		if (query.edges[1].allowNulls) parts1.push(query.edges[1].domain.NULL);
 
-		for(var p0=0;p0<parts0.length;p0++){
-			for(var p1=0;p1<parts1.length;p1++){
-				var row={};
-				if (name===undefined){
-					if (isArray){
-						row={};
-						for(var s=0;s<query.select.length;s++){
-							row[query.select[s].name]=query.cube[p0][p1][s];
-						}//for
-					}else{
-						row=Util.copy(query.cube[p0][p1], row);
-					}//endif
-				}else{
-					row[name]=query.cube[p0][p1];
-				}//endif
-				row[query.edges[0].name]=query.edges[0].domain.end(parts0[p0]);
-				row[query.edges[1].name]=query.edges[1].domain.end(parts1[p1]);
-				output.push(row);
-				if (output.length%100==0) yield(aThread.yield());
-			}//for
-		}//for
-		yield (output);
-	}else if (query.edges.length==1){
-		var isArray=(query.cube[0] instanceof Array);	//CUBE ELEMENTS VCCAN BE OBJECTS, OR ARRAYS
-		var parts0=query.edges[0].domain.partitions.copy();
-		if (query.edges[0].allowNulls) parts0.push(query.edges[0].domain.NULL);
+	var prep=
+		"var parts<NUM>=query.edges[<NUM>].domain.partitions.copy();\n"+
+		"if (query.edges[<NUM>].allowNulls) parts<NUM>.push(query.edges[<NUM>].domain.NULL);\n"+
+		"var end<NUM>=query.edges[<NUM>].domain.end;\n"+
+		"var name<NUM>=query.edges[<NUM>].name;\n"
+	;
 
-		for(var p0=0;p0<parts0.length;p0++){
-			var row={};
-			if (name===undefined){
-				if (isArray){
-					for(var s=0;s<query.select.length;s++){
-						row[query.select[s].name]=query.cube[p0][s];
-					}//for
-				}else{
-					row=Util.copy(query.cube[p0], row);
-				}//endif
-			}else{
-				row[name]=query.cube[p0];
-			}//endif
-			row[query.edges[0].name]=parts0[p0].value;  //ONLY FOR default DOMAIN
-			output.push(row);
-			if (output.length%100==0)
-				yield(aThread.yield());
-		}//for
-		yield (output);
+	var loop=
+		"for(var p<NUM>=0;p<NUM> < parts<NUM>.length;p<NUM>++){\n"+
+			"<BODY>"+
+		"}\n";
+
+	var assignEdge="row[<EDGE_NAME>]=end<NUM>(parts<NUM>[p<NUM>]);\n";
+
+	var accessCube="query.cube";
+	var loops="<BODY>";
+	var pre="";
+	var assignEdges="";
+	for(var i=0;i<query.edges.length;i++){
+		pre+=prep.replaceAll("<NUM>", ""+i);
+		loops=loops.replace("<BODY>", loop.replaceAll("<NUM>", ""+i));
+		assignEdges+=assignEdge.replaceAll("<NUM>", ""+i).replaceAll("<EDGE_NAME>", CNV.String2Quote(query.edges[i].name));
+		accessCube+="[p"+i+"]";
+	}//for
+
+
+	var assignSelect;
+	if (name){
+		assignSelect="var row={}; row["+CNV.String2Quote(name)+"]="+accessCube+";";
+	}else if (isArray){
+		assignSelect=
+			"var row={};"+
+			"for(var s=0;s<query.select.length;s++){"+
+			"	row[query.select[s].name]="+accessCube+"[s];"+
+			"}";
 	}else{
-		D.error("can only handle 2D cubes right now.");
+		assignSelect="var row={}; Util.copy("+accessCube+", row);";
 	}//endif
+
+	var code=
+		"cube2list=function(query){\n"+
+			"var output=[];\n"+
+			pre+
+			loops.replace("<BODY>",
+				assignSelect+
+				assignEdges+
+				"output.push(row);\n"
+			)+
+			"return output;"+
+		"};"
+	;
+
+	var cube2list;
+	eval(code);
+	yield (cube2list(query));
+
 };//method
 
 
@@ -959,12 +959,45 @@ CUBE.drill=function(query, parts){
 	if (query.analytic) D.error("Do not know how to drill down on an anlytic");
 
 
+//IN THE CASE OF REVIEW QUEUES, WHICH IS WHERE I COULD USE THIS, THE LOGIC IS
+//TOO COMPLICATED TO SIMPLY DRILL.  WE WILL NEED A DRILL QUERY THAT WILL TAKE
+//THE parts
+//	if (query.from.cubes){
+//		//A MERGE OF CUBES, FIND WHICH WAS CLICKED
+//
+//		//FIND THE SOURCE SELECT
+//		var select=CUBE.select2Array(query.select)[0];
+//		for(var i=0;i<select.length;i++){
+//			if (select[i].name==parts[0]){
+//				select=select[i];
+//				break;
+//			}//endif
+//		}//for
+//
+//		//FIND THE CUBE
+//		for(var i=0;i<query.from.cubes.length;i++){
+//			var q=query.from.cubes[i].from;
+//			if (q.)
+//
+//
+//		}
+//	}//endif
+
+
 	var newQuery={};
 	Util.copy(query, newQuery);
 	newQuery.cube=undefined;
 	newQuery.list=undefined;
 	newQuery.url=undefined;			//REMOVE, MAY CAUSE PROBLEMS
-	newQuery.esfilter=Util.jsonCopy(query.esfilter);
+	if (query.esfilter){
+		if (query.esfilter.and){
+			newQuery.esfilter=query.esfilter;
+		}else{
+			newQuery.esfilter={"and":[query.esfilter]};
+		}//endif
+	}else{
+		newQuery.esfilter={"and":[]};
+	}//endif
 
 	query.edges.forall(function(edge, e){
 		if (parts[e]==undefined) return;
@@ -972,7 +1005,7 @@ CUBE.drill=function(query, parts){
 		for(var p=0;p<edge.domain.partitions.length;p++){
 			var part=edge.domain.partitions[p];
 			if (part.name==parts[e]){
-				var filter=ESQuery.buildCondition(edge, part);
+				var filter=ESQuery.buildCondition(edge, part, query);
 				newQuery.esfilter.and.push(filter);
 				return;  //CONTINUE
 			}//endif

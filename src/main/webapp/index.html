@@ -36,7 +36,7 @@
 	<br><br>
 
 	<h4>Contact Info</h4>
-	Phone: 647 834 8431 <br>
+	Phone: 647 608 8068 <br>
 	Email: <a href="mailto://klahnakoski@mozilla.com">klahnakoski@mozilla.com</a>
 	<br><br>
 
@@ -60,10 +60,43 @@
 <table>
 	<tr >
 		<td>
+			<h3>January 14th 2012</h3>
+			I am starting a new format so that I can describe the features that are being added, and point out specific charts that are affected.<br><br>
+
+			<div class="items">
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Security_byPriority.html">Security_byPriority</a>
+				<span class="info">Replicating the Security's counts to ensure my code is correct.</span><br>
+				<br>
+
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Security_byRisk.html">Security_byRisk.html</a>
+				<span class="info">Mimicking Security's risk assessment.  This one is a little slower because the facet logic is too complex.</span><br>
+				<br>
+
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/OpenBugCount.html">OpenBugCount.html</a>
+				<span class="info">Finally, I can produce bug counts over time fast.</span><br>
+				<br>
+
+			</div>
+		</td>
+	</tr>
+	<tr>
+		<td>
 			<h3>Working Charts</h3>
 			(Programs are defined in <a href="http://people.mozilla.com/~klahnakoski/es/js/MozillaPrograms.js">http://people.mozilla.com/~klahnakoski/es/js/MozillaPrograms.js</a> )<br>
 			<br>
 			<div class="items">
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity.html">ReviewIntensity</a>
+				<span class="info">Show total volume of incoming reviews, and any review backlog, by team</span><br>
+				<br>
+
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_First.html">ReviewIntensity_First</a>
+				<span class="info">Same as above but only counting the FIRST incoming review for a bug</span><br>
+				<br>
+
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_Requester.html">Outgoing Reviews</a>
+				<span class="info">The the number of outgoing reviews</span><br>
+				<br>
+
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/TimeToResolution.html">TimeToResolution.html</a>
 				<span class="info">SLOW (about 30sec) - Same as bug age, only measurment stars when bug is marked as belonging to Program, Product or Component</span><br>
@@ -94,50 +127,36 @@
 			<span class="warning"> Please note:  There are still known issues with these charts.</span> (see <a href="https://metrics.mozilla.com/projects/browse/BA">https://metrics.mozilla.com/projects/browse/BA</a>)<br><br>
 			<div class="items">
 
-				<div class="new">
+				<!--<div class="new">-->
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Community_ReviewIntensity.html">Community_ReviewIntensity</a>
-				<span class="info">An attempt to show MoCo response time to first-time incoming review requests</span><br>
+				<span class="info"><span class="warning">BROKEN - </span>An attempt to show MoCo response time to first-time incoming review requests</span><br>
 				<br>
-				</div>
+				<!--</div>-->
 
-				<div class="new">
+				<!--<div class="new">-->
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Community_NextReviews.html">Community_NextReviews</a>
-				<span class="info">An attempt to show community retention rates by looking at outgoing review requests</span><br>
+				<span class="info"><span class="warning">BROKEN - </span>An attempt to show community retention rates by looking at outgoing review requests</span><br>
 				<br>
-				</div>
+				<!--</div>-->
 
-				<div class="new">
+				<!--<div class="new">-->
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Community_Retention.html">Community_Retention</a>
-				<span class="info">Same as above, but looking at change over time</span><br>
-				<br>
-				</div>
-
-				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity.html">ReviewIntensity</a>
-				<span class="info">Show total volume of incoming reviews, and any review backlog, by team</span><br>
-				<br>
-
-				<!--<div class="new">-->
-				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_First.html">ReviewIntensity_First</a>
-				<span class="info">Same as above but only counting the first incoming review for a bug</span><br>
+				<span class="info"><span class="warning">BROKEN - </span>Same as above, but looking at change over time</span><br>
 				<br>
 				<!--</div>-->
 
-				<!--<div class="new">-->
-				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_Requester.html">Outgoing Reviews</a>
-				<span class="info">The the number of outgoing reviews</span><br>
-				<br>
-				<!--</div>-->
+
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/NewAndClosed.html">NewAndClosed.html</a>
-				<span class="info">Show weekly totals for new bugs and closed bugs (new bugs by Program are artificailly low because not marked upon creation) </span><br>
+				<span class="info">Show weekly totals for new bugs and closed bugs (new bugs by Program are artificially low because not marked upon creation) </span><br>
 				<br>
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/BugAge.html">BugAge.html</a>
-				<span class="info">FAST! - Age of closed bugs - Uses ES term packing</span><br>
+				<span class="info">Age of closed bugs</span><br>
 				<br>
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/ResolutionsOverTime.html">ResolutionsOverTime.html</a>
-				<span class="info">FAST! - Show number of each Resolution by the age of the bug.  This query packs mutiple data partitions into a single &quot;term&quot; facet</span><br>
+				<span class="info">Show number of each Resolution by the age of the bug.</span><br>
 				<br>
 			</div>
 		</td>

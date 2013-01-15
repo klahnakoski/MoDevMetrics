@@ -3,7 +3,6 @@
 importScript("../charts/HelperFunctions.js");
 
 importScript("../rest/ElasticSearchQuery.js");
-importScript("../charts/Status.js");
 importScript("../Test2.js");
 
 importScript("../charts/DataSet.js");
@@ -97,48 +96,45 @@ GUI.setup = function(parameters, relations, indexName){
 
 //SHOW THE LAST TIME ES WAS UPDATED
 GUI.showLastUpdated = function(indexName){
-	if (indexName===undefined || indexName=="bugs"){
-		ElasticSearchQuery.Run({
-			"query":{//ES QUERY
-				"query" : {
-					"match_all":{}
-				},
-				"from" : 0,
-				"size" : 0,
-				"sort" : [],
-				"facets":{
-					"modified_ts":{
-						"statistical" : {
-							"field" : "modified_ts"
-						}
-					}
-				}
-			},
-			"success" : function(data){
-				$("#testMessage").html("ES Last Updated " + Date.newInstance(data.facets.modified_ts.max).addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
-			}
-		});
-	}else if (indexName=="reviews"){
-		aThread.run(function(){
-			var time=yield (REVIEWS.getLastUpdated());
+	aThread.run(function(){
+		var time;
+
+
+		if (indexName===undefined || indexName=="bugs"){
+			var result=yield (ESQuery.run({
+				"from":"bugs",
+				"select":{"name":"max_date", "value":"modified_ts", "operation":"maximum"}
+			}));
+
+			time=new Date(result.cube.max_date);
+			$("#testMessage").html("ES Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
+		}else if (indexName=="reviews"){
+			time=yield (REVIEWS.getLastUpdated());
 			$("#testMessage").html("Reviews Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
-		});
-	}else if (indexName=="bug_tags"){
-		aThread.run(function(){
-			var time=yield (BUG_TAGS.getLastUpdated());
+		}else if (indexName=="bug_tags"){
+			time=yield (BUG_TAGS.getLastUpdated());
 			$("#testMessage").html("Bugs Last Updated " + time.addTimezone().format("NNN dd"));
-		});
-	}else if (indexName="bug_summary"){
-		aThread.run(function(){
-			var time=new Date((yield(ESQuery.run({
+		}else if (indexName="bug_summary"){
+			time=new Date((yield(ESQuery.run({
 				"from":"bug_summary",
-				"select":{"name":"max_date", "value":"doc[\"modified_time\"].value", "operation":"maximum"}
+				"select":{"name":"max_date", "value":"modified_time", "operation":"maximum"}
 			}))).cube.max_date);
 			$("#testMessage").html("Reviews Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
-		})
+		}//endif
 
-	}//endif
+
+		var age=Math.round(Date.now().subtract(time).divideBy(Duration.DAY), 1);
+		if (age>1){
+			GUI.bigWarning("#testMessage", Math.max(3, Math.floor(age)));
+		}//endif
+
+	});
 };//method
+
+
+GUI.bigWarning=function(elem, blinkCount){
+	$(elem).addClass("warning").effect("pulsate", { times:blinkCount }, 1000);
+};
 
 
 GUI.State2URL = function(){
@@ -395,7 +391,6 @@ GUI.UpdateSummary = function(){
 	}//endif
 
 	html += "<br><br><br><b>Hold CTRL while clicking to multi-select and deselect from the lists below.</b>";
-	html += '<br><br><a href="http://people.mozilla.com/~klahnakoski/">Return to Query List</a>';
 
 	$("#summary").html(html);
 };

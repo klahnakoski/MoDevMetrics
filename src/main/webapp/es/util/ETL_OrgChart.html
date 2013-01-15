@@ -15,7 +15,7 @@
 <link type="text/css" rel="stylesheet" href="../css/menu.css"/>
 
 
-<script type="application/javascript;version=1.7" src="../js/charts/Status.js"></script>
+
 
 
 <script type="application/javascript;version=1.7" src="../js/CNV.js"></script>
@@ -52,7 +52,8 @@
 	<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="../images/spinner.gif" alt=""></span>
 	<div id="progress"></div>
 </div>
-<a id="start" class="button" href="#">Click to Start</a>
+<a id="get" class="button" href="#">Get from Phonebook</a>
+<a id="push" class="button" href="#">Push to ES</a>
 <a id="kill" class="button" href="#">Click to Kill</a>
 <!--<form>-->
 	<!--USERNAME: <input name="username" id="username" type="text"/><br>-->
@@ -71,9 +72,14 @@
 
 	var mainThread;
 
-	$("#start").click(function(){
+	$("#get").click(function(){
 		if (mainThread!==undefined) mainThread.kill();
-		mainThread=aThread.run(ETL.newInsert(OrgChart));
+		mainThread=aThread.run(OrgChart.get());
+	});
+
+	$("#push").click(function(){
+		if (mainThread!==undefined) mainThread.kill();
+		mainThread=aThread.run(OrgChart.push());
 	});
 
 	$("#kill").click(function(){

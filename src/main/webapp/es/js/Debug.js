@@ -67,43 +67,32 @@ D.alert=function(message, ok_callback, cancel_callback){
 
 //TRACK ALL THE ACTIONS IN PROGRESS
 D.actionStack=[];
-D.action=function(message, workload){
-	var action={"message":message, "workload":workload, "start":Date.now()};
+D.action=function(message, waitForDone){
+	var action={"message":message, "start":Date.now()};
 	D.actionStack.push(action);
 	$("#status").html(message);
 	if (message.toLowerCase()=="done" && $('.loading')!==undefined) $('.loading').hide();
 
 	D.println("start "+message+" "+action.start.format("HH:mm:ss"));
 
-	if (workload){
-
-		try{
-			workload();
-		}catch(e){
-			D.actionDone(action);
-			throw e;
-		}//try
-		D.actionDone(action);
-	}else{
-		//JUST SHOW MESSAGE FOR THREE SECONDS
-		$("#status").html(message);
-		setTimeout(function(){D.actionDone(action, true);}, 3000);
-		return action;		//RETURNED IF YOU WANT TO REMOVE IT SOONER
-	}//endif
+	//JUST SHOW MESSAGE FOR THREE SECONDS
+	$("#status").html(message);
+	if (!waitForDone) setTimeout(function(){D.actionDone(action, true);}, 3000);
+	return action;		//RETURNED IF YOU WANT TO REMOVE IT SOONER
 };//method
 
 
-D.actionDone=function(action, ignoreIfMissing){
+D.actionDone=function(action){
 	action.end=Date.now();
 
-	if (D.actionStack.length==0 && !ignoreIfMissing){
-		D.error("Unexpected");
+	if (D.actionStack.length==0) {
+		if ($('.loading')!==undefined) $('.loading').hide();
+		$("#status").html("Done");
+		return;
 	}//endif
 
 	var i=D.actionStack.indexOf(action);
-	if (i==-1 && !ignoreIfMissing)
-		D.error("Unexpected");
-	D.actionStack.splice(i, 1);
+	if (i>=0) D.actionStack.splice(i, 1);
 
 	D.println("done "+action.message+" "+action.end.format("HH:mm:ss")+" ("+action.end.subtract(action.start).floor(Duration.SECOND).toString()+")");
 
@@ -111,7 +100,7 @@ D.actionDone=function(action, ignoreIfMissing){
 		if ($('.loading')!==undefined) $('.loading').hide();
 		$("#status").html("Done");
 	}else{
-		$("#status").html(D.actionStack[0].message);
+		$("#status").html(D.actionStack[D.actionStack.length-1].message);
 	}//endif
 };//method
 
