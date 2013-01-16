@@ -217,10 +217,9 @@ var __createChart = function(){
 			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
 		],
 		[
-//			"sampleMax=new Date(sampleMax).addDay(1).add(Duration.newInstance('-second')).floorDay().toString()"
+			"sampleMax=GUI.fixEndDate(new Date(sampleMin), new Date(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
 		],
 		"bugs");
-		//"bug_tags");
 	});
 
 </script>

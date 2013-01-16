@@ -189,7 +189,8 @@ MVEL.esFacet2List=function(facet, selectClause){
 
 
 
-// esFilter SIMPLIFIED ElasticSearch FILTER OBJECT
+// PASS esFilter SIMPLIFIED ElasticSearch FILTER OBJECT
+// RETURN MVEL EXPRESSION
 MVEL.prototype.where = function(esFilter){
 	if (esFilter === undefined) return "true";
 

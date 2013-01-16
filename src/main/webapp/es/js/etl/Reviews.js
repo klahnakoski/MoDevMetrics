@@ -343,13 +343,13 @@ REVIEWS.insert=function(reviews){
 		insert.push(JSON.stringify({ "index" : { "_id" : r.bug_id+"-"+r.attach_id } }));
 		insert.push(JSON.stringify(r));
 	});
-	var a=D.action("Push review queues to ES");
+	var a=D.action("Push review queues to ES", true);
 	yield (Rest.post({
 		"url":ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName+"/_bulk",
 		"data":insert.join("\n")+"\n",
 		dataType: "text"
 	}));
-	D.actionDone(a, true);
+	D.actionDone(a);
 };//method
 
 
@@ -380,6 +380,7 @@ REVIEWS.postMarkup=function(){
 		if (REVIEWS.newIndexName===undefined || name>REVIEWS.newIndexName){
 			REVIEWS.newIndexName=name;
 		}//endif
+
 	}//for
 
 	REVIEWS.newIndexName=Util.coalesce(REVIEWS.newIndexName, REVIEWS.oldIndexName);
@@ -396,7 +397,7 @@ REVIEWS.postMarkup=function(){
 	// MAIN UPDATE FUNCTION
 	////////////////////////////////////////////////////////////////////////////
 	var update=function(emails){
-		D.action("Get reviews by requester");
+		var a=D.action("Get reviews by requester", true);
 		var firstTime=yield(ESQuery.run({
 			"url":ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName,
 			"from":"reviews",
@@ -412,8 +413,9 @@ REVIEWS.postMarkup=function(){
 				{"terms":{"requester":emails}}
 			]}
 		}));
+		D.actionDone(a);
 
-		D.action("Calculate request ordering");
+		a=D.action("Calculate request ordering", true);
 		var review_count=yield (CUBE.calc2List({//FIRST REVIEW FOR EACH BUG BY REQUESTER
 			"from":firstTime,
 			"analytic":[
@@ -422,12 +424,12 @@ REVIEWS.postMarkup=function(){
 			],
 			"sort":["requester_review_num"]
 		}));
+		D.actionDone(a);
 
 //		$("#results").html(CNV.List2HTMLTable(review_count.list));
 
 
-		D.action("Sending changes");
-		D.println("Sending "+review_count.list.length+" changes to "+ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName);
+		a=D.action("Sending "+review_count.list.length+" changes to "+ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName, true);
 		var maxPush=6;
 		for(var i=0;i<review_count.list.length;i++){
 			var v=review_count.list[i];
@@ -452,9 +454,7 @@ REVIEWS.postMarkup=function(){
 				maxPush++;
 			});
 		}//for
-		D.println("Done sending "+review_count.list.length+" changes");
-
-		D.action("Done");
+		D.actionDone(a);
 	};
 
 
@@ -494,6 +494,8 @@ REVIEWS.postMarkup=function(){
 		}//endif
 	}//for
 	yield (update(emails));
+
+	yield (ETL.updateAlias(REVIEWS));
 
 
 };//method

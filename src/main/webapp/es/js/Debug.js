@@ -71,7 +71,11 @@ D.action=function(message, waitForDone){
 	var action={"message":message, "start":Date.now()};
 	D.actionStack.push(action);
 	$("#status").html(message);
-	if (message.toLowerCase()=="done" && $('.loading')!==undefined) $('.loading').hide();
+	if (message.toLowerCase()=="done"){
+		if ($('.loading')!==undefined) $('.loading').hide();
+		$("#status").html(message);
+		return;
+	}//endif
 
 	D.println("start "+message+" "+action.start.format("HH:mm:ss"));
 

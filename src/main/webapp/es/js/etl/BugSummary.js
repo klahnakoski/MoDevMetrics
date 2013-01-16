@@ -130,7 +130,6 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 		esfilter={"range":{"bug_id":{"gte":minBug, "lt":maxBug}}};
 	}//endif
 
-
 	var current=new ESQuery({
 		"from":"bugs",
 		"select":[

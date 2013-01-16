@@ -37,7 +37,7 @@ Date.prototype.add = function(interval){
 
 	var i = Duration.newInstance(interval);
 
-	var addMilli = i.milli - (Duration.MILLI_VALUES["month"] * i.month);
+	var addMilli = i.milli - (Duration.MILLI_VALUES.month * i.month);
 	return this.addMonth(i.month).addMilli(addMilli);
 };//method
 
@@ -50,7 +50,7 @@ Date.prototype.subtract=function(time, interval){
 			return Duration.newInstance(this.getMilli()-time.getMilli());
 		}else{
 			//SUBTRACT DURATION
-			var residue = time.milli - (Duration.MILLI_VALUES["month"] * time.month);
+			var residue = time.milli - (Duration.MILLI_VALUES.month * time.month);
 			return this.addMonth(-time.month).addMilli(-residue);
 		}//endif
 	}else{
@@ -414,7 +414,7 @@ Duration.MONTH_VALUES = {
 };
 
 //A REAL MONTH IS LARGER THAN THE CANONICAL MONTH
-Duration.MONTH_SKEW = Duration.MILLI_VALUES["year"] / 12 - Duration.MILLI_VALUES["month"];
+Duration.MONTH_SKEW = Duration.MILLI_VALUES["year"] / 12 - Duration.MILLI_VALUES.month;
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONVERT SIMPLE <float><type> TO A DURATION OBJECT
@@ -434,7 +434,7 @@ Duration.String2Duration = function(text){
 	if (Duration.MONTH_VALUES[interval] == 0){
 		output.milli = amount * Duration.MILLI_VALUES[interval];
 	} else{
-		output.milli = amount * Duration.MONTH_VALUES[interval] * Duration.MILLI_VALUES["month"];
+		output.milli = amount * Duration.MONTH_VALUES[interval] * Duration.MILLI_VALUES.month;
 		output.month = amount * Duration.MONTH_VALUES[interval];
 	}//endif
 
@@ -545,23 +545,23 @@ Duration.prototype.floor = function(interval){
 
 	if (interval.month != 0){
 		if (this.month!=0){
-			output.month = Math.round(this.month/interval.month)*interval.month;
-			var rest=(this.milli - (Duration.MILLI_VALUES.month * output.month));
-			if (rest>Duration.MILLI_VALUES.day*31){	//WE HOPE THIS BIGGER VALUE WILL STILL CATCH POSSIBLE LOGIC PROBLEMS
-				D.error("This duration has more than a month's worth of millis, can not handle this rounding");
-			}//endif
-			while (rest<0){
-				output.month-=interval.month;
-				rest=(this.milli - (Duration.MILLI_VALUES.month * output.month));
-			}//while
-//			if (rest>Duration.MILLI_VALUES["month"]){ //WHEN FLOORING xmonth-1day, THE rest CAN BE 4week+1day, OR MORE.
-			output.milli = output.month * Duration.MILLI_VALUES["month"];
+			output.month = Math.floor(this.month/interval.month)*interval.month;
+//			var rest=(this.milli - (Duration.MILLI_VALUES.month * output.month));
+//			if (rest>Duration.MILLI_VALUES.day*31){	//WE HOPE THIS BIGGER VALUE WILL STILL CATCH POSSIBLE LOGIC PROBLEMS
+//				D.error("This duration has more than a month's worth of millis, can not handle this rounding");
+//			}//endif
+//			while (rest<0){
+//				output.month-=interval.month;
+//				rest=(this.milli - (Duration.MILLI_VALUES.month * output.month));
+//			}//while
+////			if (rest>Duration.MILLI_VALUES.month){ //WHEN FLOORING xmonth-1day, THE rest CAN BE 4week+1day, OR MORE.
+			output.milli = output.month * Duration.MILLI_VALUES.month;
 			return output;
 		}//endif
 
 		//A MONTH OF DURATION IS BIGGER THAN A CANONICAL MONTH
 		output.month = Math.floor(this.milli * 12 / Duration.MILLI_VALUES["year"] / interval.month)*interval.month;
-		output.milli = output.month * Duration.MILLI_VALUES["month"];
+		output.milli = output.month * Duration.MILLI_VALUES.month;
 	} else{
 		output.milli = Math.floor(this.milli / (interval.milli)) * (interval.milli);
 	}//endif
@@ -574,7 +574,7 @@ Duration.prototype.toString = function(){
 
 
 	var output = "";
-	var rest = (this.milli - (Duration.MILLI_VALUES["month"] * this.month)); //DO NOT INCLUDE THE MONTH'S MILLIS
+	var rest = (this.milli - (Duration.MILLI_VALUES.month * this.month)); //DO NOT INCLUDE THE MONTH'S MILLIS
 	var isNegative = (rest < 0);
 	rest=Math.abs(rest);
 

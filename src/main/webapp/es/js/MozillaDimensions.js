@@ -1,8 +1,18 @@
 var Mozilla =
 	{"name":"Mozilla", "edges":[
-		{"name":"BugState", "partitions":[
-			{"name":"Open", "esfilter":{"not":{"terms":{"bug_status":["resolved", "verified", "closed"]}}}},
-			{"name":"Closed", "esfilter":{"terms":{"bug_status":["resolved", "verified", "closed"]}}},
+		{"name":"BugStatus", "partitions":[
+			{"name":"Open", "partitions":[
+				{"name":"New", "esfilter":{"term":{"bug_status":"new"}}},
+				{"name":"Assigned", "esfilter":{"term":{"bug_status":"assigned"}}},
+				{"name":"Unconfirmed", "esfilter":{"term":{"bug_status":"unconfirmed"}}},
+				{"name":"Reopened", "esfilter":{"term":{"bug_status":"reopened"}}},
+				//{"name":"Other", "esfilter":{"not":{"terms":{"bug_status":["resolved", "verified", "closed"]}}}}
+			]},
+			{"name":"Closed", "partitions":[
+				{"name":"Resolved", "esfilter":{"term":{"bug_status":"resolved"}}},
+				{"name":"Verified", "esfilter":{"term":{"bug_status":"verified"}}},
+				{"name":"Closed", "esfilter":{"term":{"bug_status":"closed"}}}
+			]}
 		]},
 
 		{"name":"People", "partitions":[
