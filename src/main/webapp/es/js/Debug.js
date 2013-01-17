@@ -29,13 +29,13 @@ D.println = function(message){
 
 D.error = function(description, cause){
 	var e=new Exception(description, cause);
+	D.alert(description);
 	console.error(e.toString());
 	throw e;
 };//method
 
 D.warning = function(description, cause){
-	console.error(description); return;
-	D.println(new Exception("WARNING: "+description, cause).toString());
+	console.warn(description);
 };//method
 
 D.alert=function(message, ok_callback, cancel_callback){
@@ -49,19 +49,12 @@ D.alert=function(message, ok_callback, cancel_callback){
 			modal: true,
 			resizable: false,
 			buttons: {
-					"OK": function () { $(this).dialog("close"); ok_callback(); },
-					"Cancel": function () { $(this).dialog("close"); cancel_callback(); }
+					"OK": function () { $(this).dialog("close"); if (ok_callback) ok_callback(); },
+					"Cancel": function () { $(this).dialog("close"); if (cancel_callback) cancel_callback(); }
 				}
 		});
 	  });
 
-//  <div id="dialog" title="Basic dialog">
-//	  <p>This is the default dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the 'x' icon.</p>
-//  </div>
-
-
-
-//	alert(message);
 };//method
 
 

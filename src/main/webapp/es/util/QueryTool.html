@@ -40,6 +40,12 @@
 
 
 
+<script type="application/javascript;version=1.7" src="../lib/jsonlint/jsl.format.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/jsonlint/jsl.parser.js"></script>
+<link type="text/css" rel="stylesheet" href="../lib/jquery-linedtextarea/jquery-linedtextarea.css"/>
+<script type="application/javascript;version=1.7" src="../lib/jquery-linedtextarea/jquery-linedtextarea.js"></script>
+
+
 
 <script type="application/javascript;version=1.7" src="../js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="../js/util.js"></script>
@@ -76,11 +82,11 @@
 <script type="application/javascript;version=1.7" src="../js/filters/ComponentFilter.js"></script>
 <script type="application/javascript;version=1.7" src="../js/filters/ProductFilter.js"></script>
 <script type="application/javascript;version=1.7" src="../js/filters/ProgramFilter.js"></script>
-<script type="application/javascript;version=1.7" src="../js/filters/CustomFilters.js"></script>
+
 <script type="application/javascript;version=1.7" src="../js/filters/GUI.js"></script>
 
 
-<h3>Give me a name</h3>
+<h3>BA Query Tool</h3>
 <div id="sidebar">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Ready</span><span class="loading"><img src="../images/spinner.gif" alt=""></span>
@@ -123,6 +129,10 @@
 
 <script type="application/javascript;version=1.7">
 
+	//STYLE AS LINED TEXT AREA
+	$("#cube").linedtextarea();
+	$("#esquery").linedtextarea();
+
 	//SHOW SPINNER
 	var found=$('.loading');
 	found
@@ -157,6 +167,11 @@
 
 		var cubeQuery;
 		try{
+			//USE JSONLINT TO FORMAT AND TEST-COMPILE THE code
+			code=jsl.format.formatJson(code);
+			$("#cube").val(code);
+			jsl.parser.parse(code);
+
 			var query;
 			eval("query="+code);
 			cubeQuery = new ESQuery(query);

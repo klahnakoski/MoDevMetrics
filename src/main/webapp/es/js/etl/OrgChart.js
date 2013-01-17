@@ -5,7 +5,9 @@ var OrgChart={};
 importScript("ETL.js");
 
 
-OrgChart.URL="https://phonebook.mozilla.org"
+OrgChart.URL="https://phonebook.mozilla.org";
+//OrgChart.URL="https://phonebook-dev.allizom.org/search.php";
+OrgChart.JSONP_CALLBACK="workit";
 OrgChart.BATCH_SIZE=1000000000;		//ETL IS BUG BASED, BIG ENOUGH TO DO IN ONE BATCH
 OrgChart.aliasName="org_chart";
 OrgChart.newIndexName=undefined;  //CURRENT INDEX FOR INSERT
@@ -21,109 +23,43 @@ OrgChart.push=function(){
 
 
 OrgChart.get=function(minBug, maxBug){
-//	OrgChart.USERNAME=$("#username").val();
-//	OrgChart.PASSWORD=$("#password").val();
 
-	var html=yield(Rest.get({
-		"url":OrgChart.URL+"/search.php?format=json&query=*"
-	}));
+	//AFTER MUCH PAIN, I DECIDED TO TRY SUBMITTING A BUG TO THE WEB PEOPLE TO
+	//SOLVE ACCESS PROBLEMS ON THE SERVER SIDE:
+	//
+	//https://bugzilla.mozilla.org/show_bug.cgi?id=831405
+	//
+	//THAT WAS FAST!  I LOVE WORKING HERE!
 
+	var people;
+//	var temp=window[OrgChart.JSONP_CALLBACK];
+	{
+		window[OrgChart.JSONP_CALLBACK]=function(json){
+			OrgChart.people=json;
+		};//method
 
-//LOAD ALL USERS (SEE NETWORK RESPONSES IN DEBUG MODE)
-	var url=OrgChart.URL+"/search.php?format=json&query=*";
-	var html=$("<script type=\"application/javascript;version=1.9\" src=\""+url+"\"></script>");
-	var body=$("body");
-	body.append(html);
+		yield (aThread.yield());  //YIELD TO ALLOW FUNCTION TO BE ASSIGNED TO window
 
-//HERE WE JUST RETURN THE LOCAL COPY
-	var people=OrgChart.people.map(function(v, i){
-		return {"id":v.dn, "name":v.cn, "manager":v.manager ? v.manager.dn : null, "email":v.bugzillaemail};
-	});
+		var url=OrgChart.URL+"/search.php?format=jsonp&callback="+OrgChart.JSONP_CALLBACK+"&query=*";
+		var html=$("<script type=\"application/javascript;version=1.9\" src=\""+url+"\"></script>");
+		var body=$("body");
+		body.append(html);
+
+		yield (aThread.sleep(1000));  //YIELD TO ALLOW SCRIPT TO LOAD AND EXECUTE
+
+		//HERE WE JUST RETURN THE LOCAL COPY
+		people=OrgChart.people.map(function(v, i){
+			return {"id":v.dn, "name":v.cn, "manager":v.manager ? v.manager.dn : null, "email":v.bugzillaemail};
+		});
+
+		D.println(people.length+" people found")
+
+	}
+//	window[OrgChart.JSONP_CALLBACK]=temp;
+
 	yield (people);
 
-
-//JAVASCRIPT DOES NOT LOAD
-//	var html=OrgChart.html;
-//	var list=$(html).find("#orgchart").find("li").find("a").map(function(i){
-//		var email=$(this).attr("href").substring(8);
-//		return email;
-//	});
-//
-//	for(var i=list.length;i--;){
-//		OrgChart.addPerson(list[i]);
-//	}//for
-//
-//
-//	yield (aThread.sleep(4000));
-//
-//	$("body").find("script").each(function(i){
-//		if ($(this).attr("id")){
-//			var content=$(this).html();
-//			D.println(content);
-//		}//endif
-//	});
-
 };//method
-
-
-
-OrgChart.addPerson=function(email){
-	//I CAN NOT GET THE DATA OUT OF THE SCRIPT ELEMENT (NOT JAVASCRIPT, SO NO LOAD)
-	//RUN IN DEBUG MODE, AND SEE THE RESPONSE WILL HAVE *ALL* PEOPLE
-	var id=email;
-	var url=OrgChart.URL+"/search.php?format=json&query=";
-//	var url=OrgChart.URL+"/search.php?format=json&query="+email;
-
-	var html=$("<script id=\""+id+"\" type=\"application/javascript;version=1.9\" src=\""+url+"\"></script>");
-	var body=$("body");
-	body.append(html);
-
-//WORKS, BUT ORG CHART DOES NOT SERVE JSONP
-//	var data2=$.ajax({
-//		"type":"get",
-//		"url":OrgChart.URL+"/search.php?callback=?",
-//		"dataType":"jsonp",
-//		"data":{"format":"json", "query":email},
-//		"success": function() {
-//			  console.log(arguments);
-//			  var temp=data.length;
-//			  D.println(CNV.Object2JSON(data));
-//		},
-//		"error":function(data){
-//			console.log(arguments);
-//		}
-//  });
-
-
-
-//	$.getJSON({
-//		url:OrgChart.URL+"/search.php?jsoncallback=?",
-//		data:{"format":"json", "query":email},
-//		success:function(data){
-//			D.println(data);
-//
-//		},
-//		error:function(data){
-//			D.println(data);
-//		}
-//
-//	});
-//
-
-//
-//	var html=yield(Rest.get({
-//		"url":OrgChart.URL+"/tree.php"+url,
-//		"dataType":"jsonp",
-//		"username":OrgChart.USERNAME,
-//		"password":OrgChart.PASSWORD
-//	}));
-//
-//	D.println(html);
-
-//	yield (null);
-};
-
-
 
 
 OrgChart.getLastUpdated=function(){
@@ -193,7 +129,7 @@ OrgChart.insert=function(people){
 		insert.push(JSON.stringify(r));
 	});
 
-	var a=D.action("Push people to ES");
+	var a=D.action("Push people to ES", true);
 	yield (Rest.post({
 		"url":ElasticSearch.pushURL + "/" + OrgChart.newIndexName + "/" + OrgChart.typeName + "/_bulk",
 		"data":insert.join("\n")+"\n",

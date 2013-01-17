@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 CUBE.domain = {};
 
+
 CUBE.domain.compile = function(column, sourceColumns){
 	if (column.domain === undefined){
 		CUBE.domain["default"](column, sourceColumns);

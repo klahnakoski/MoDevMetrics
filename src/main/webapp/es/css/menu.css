@@ -370,9 +370,84 @@ SIDE BAR
     /*margin-left: 20px;*/
 /*}*/
 
+
+
+/*******************************************************************************
+TOOLBAR
+*******************************************************************************/
+
+.toolbutton, .toolbutton:link, .toolbutton:visited {
+    display: inline-block;
+    *display: inline;
+    *zoom: 1;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.1), inset 0 -2px 0 0 rgba(0, 0, 0, 0.2);
+    background-color: #3c88cc;
+    background-color: #276195;
+    background-repeat: repeat-x;
+    background-image: -khtml-gradient(linear, left top, left bottom, from(#3c88cc), to(#276195));
+    background-image: -moz-linear-gradient(#3c88cc, #276195);
+    background-image: -ms-linear-gradient(#3c88cc, #276195);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #3c88cc), color-stop(100%, #276195));
+    background-image: -webkit-linear-gradient(#3c88cc, #276195);
+    background-image: -o-linear-gradient(#3c88cc, #276195);
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#3c88cc', endColorstr='#276195', GradientType=0)";
+    background-image: linear-gradient(#3c88cc, #276195);
+    color: #fff;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 14px;
+    /*margin: 4px 4px 4px 4px;*/
+    padding: 4px 0px 0px 0px;
+    height: 36px;
+    width: 40px;
+    line-height: 20px;
+    text-decoration: none;
+    border: 0;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+    font-family: 'Open Sans', sans-serif;
+    -webkit-transition: all linear .25s;
+    -moz-transition: all linear .25s;
+    -o-transition: all linear .25s;
+    -ms-transition: all linear .25s;
+    transition: all linear .25s
+}
+
+.toolbutton:hover, .toolbutton:link:hover, .toolbutton:visited:hover, .toolbutton.hover, .toolbutton:link.hover, .toolbutton:visited.hover, .toolbutton:focus, .toolbutton:link:focus, .toolbutton:visited:focus, .toolbutton.focus, .toolbutton:link.focus, .toolbutton:visited.focus {
+    -webkit-box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.1), inset 0 -2px 0 0 rgba(0, 0, 0, 0.2), inset 0 12px 24px 2px #3089d8;
+    -moz-box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.1), inset 0 -2px 0 0 rgba(0, 0, 0, 0.2), inset 0 12px 24px 2px #3089d8;
+    box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.1), inset 0 -2px 0 0 rgba(0, 0, 0, 0.2), inset 0 12px 24px 2px #3089d8;
+    color: #fff;
+    text-decoration: none;
+    -webkit-transition: all linear .25s;
+    -moz-transition: all linear .25s;
+    -o-transition: all linear .25s;
+    -ms-transition: all linear .25s;
+    transition: all linear .25s
+}
+
+.toolbutton:focus, .toolbutton:link:focus, .toolbutton:visited:focus, .toolbutton.focus, .toolbutton:link.focus, .toolbutton:visited.focus {
+    outline-color: #484848
+}
+
+
 /*******************************************************************************
 BUTTONS
 *******************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 .button, .button:link, .button:visited {

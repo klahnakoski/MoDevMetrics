@@ -115,7 +115,8 @@ ESQuery.prototype.run = function(){
 		if (postResult._shards.failed>0){
 			D.action("ES Failure! Retrying...");
 			D.warning("Must resend query...");
-			yield aThread.sleep(1000);
+			this.nextDelay=Util.coalesce(this.nextDelay, 500)*2;
+			yield (aThread.sleep(this.nextDelay));
 			yield this.run();
 		}//endif
 	}catch(e){
@@ -179,11 +180,11 @@ ESQuery.prototype.compile = function(){
 	this.columns = CUBE.compile(this.query, ESQuery.INDEXES[this.query.from.split(".")[0]].columns, true);
 
 
-	this.edges = this.query.edges.copy();
+	this.termsEdges = this.query.edges.copy();
 	this.select = CUBE.select2Array(this.query.select);
 
 
-	if (this.edges.length==0){
+	if (this.termsEdges.length==0){
 		//NO EDGES IMPLIES SIMPLER QUERIES: EITHER A SET OPERATION, OR RETURN SINGLE AGGREGATE
 		if (this.select[0].operation==="none"){  //"none" IS GIVEN TO undefined OPERATIONS DURING COMPILE
 			this.esMode="setop";
@@ -219,7 +220,7 @@ ESQuery.prototype.compile = function(){
 		D.error("ESQuery does not support the where clause, use esfilter instead");
 
 	//EXPECTING MORE THAN ONE EDGE
-	this.edges = this.query.edges.copy();
+	this.termsEdges = this.query.edges.copy();
 
 
 	//VERY IMPORTANT!! ES CAN ONLY USE TERM PACKING ON terms FACETS, THE OTHERS WILL REQUIRE EVERY PARTITION BEING A FACET
@@ -233,26 +234,26 @@ ESQuery.prototype.compile = function(){
 	//A SPECIAL EDGE IS ONE THAT HAS AN UNDEFINED NUMBER OF PARTITIONS AT QUERY TIME
 	//FIND THE specialEdge, IF ONE
 	this.specialEdge = null;
-	for(var f = 0; f < this.edges.length; f++){
-		if ((["set", "duration", "time", "linear"].contains(this.edges[f].domain.type))){
-			for(var p = this.edges[f].domain.partitions.length; p--;){
-				this.edges[f].domain.partitions[p].dataIndex = p;
+	for(var f = 0; f < this.termsEdges.length; f++){
+		if ((["set", "duration", "time", "linear"].contains(this.termsEdges[f].domain.type))){
+			for(var p = this.termsEdges[f].domain.partitions.length; p--;){
+				this.termsEdges[f].domain.partitions[p].dataIndex = p;
 			}//for
 
 			//FACETS ARE ONLY REQUIRED IF SQL JOIN ON DOMAIN IS REQUIRED (RANGE QUERY)
 			//OR IF WE ARE NOT SIMPLY COUNTING
 			//OR IF WE JUST WANT TO FORCE IT :)
-			if (this.edges[f].range || this.esMode!="terms" || this.edges[f].domain.isFacet){
-				this.facetEdges.push(this.edges[f]);
-				this.edges.splice(f, 1);
+			if (this.termsEdges[f].range || this.esMode!="terms" || this.termsEdges[f].domain.isFacet){
+				this.facetEdges.push(this.termsEdges[f]);
+				this.termsEdges.splice(f, 1);
 				f--;
 			}//endif
 		} else if (this.esMode=="terms"){
 			//NO SPECIAL EDGES FOR terms FACETS (ALL ARE SPECIAL!!)
 		} else{
 			if (this.specialEdge != null) D.error("There is more than one open-ended edge: this can not be handled");
-			this.specialEdge = this.edges[f];
-			this.edges.splice(f, 1);
+			this.specialEdge = this.termsEdges[f];
+			this.termsEdges.splice(f, 1);
 			f--;
 		}//endif
 	}//for
@@ -534,7 +535,7 @@ ESQuery.prototype.buildESStatisticalQuery=function(value){
 //GIVE JAVASCRIPT THAT WILL CONVERT THE TERM BACK INTO THE TUPLE
 //RETURNS TUPLE OBJECT WITH "type" and "value" ATTRIBUTES.  "type" CAN HAVE A VALUE OF "script" OR "field"
 ESQuery.prototype.compileEdges2Term=function(){
-	var edges=this.edges;
+	var edges=this.termsEdges;
 
 	if (edges.length==0){
 		if (this.specialEdge){
@@ -875,7 +876,7 @@ ESQuery.agg2es = {
 ESQuery.prototype.statisticalResults = function(data){
 	var cube;
 
-	if (this.edges.length==0){ //ZERO DIMENSIONS
+	if (this.termsEdges.length==0){ //ZERO DIMENSIONS
 		if (this.select.length==0){
 			cube = data.facets["0"][ESQuery.agg2es[this.select[i].operation]];
 		}else{

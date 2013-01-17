@@ -116,8 +116,8 @@
 	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
 </div>
 <h3 id="title"></h3>
-<div id="chart"></div>
-
+<div id="chart" style="position:relative;"></div>
+<div id="sheet"></div>
 <div id="info"></div>
 <div id="report"></div>
 
@@ -202,6 +202,8 @@ var __createChart = function(){
 	var a=D.action("Make chart", true);
 	aChart.show({
 		"id":"chart",
+		"sheetDiv":"info",
+		"sheetDiv":"sheet",
 		"type":"bar",
 		"stacked":true,
 		"cube":durations

@@ -40,7 +40,7 @@ REVIEWS.getLastUpdated=function(){
 		"url":url,
 		"from":REVIEWS.aliasName,
 		"select":[
-			{"name":"last_request", "value":"reviews.request_time", "operation":"maximum"}
+			{"name":"last_request", "value":"request_time", "operation":"maximum"}
 		]
 	}));
 	yield Date.newInstance(result.cube.last_request);

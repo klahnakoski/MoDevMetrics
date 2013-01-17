@@ -52,8 +52,9 @@
 	<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="../images/spinner.gif" alt=""></span>
 	<div id="progress"></div>
 </div>
-<a id="get" class="button" href="#">Get from Phonebook</a>
+<a id="get" class="button" href="#">Pull from Phonebook</a>
 <a id="push" class="button" href="#">Push to ES</a>
+<a id="both" class="button" href="#">Do Both</a>
 <a id="kill" class="button" href="#">Click to Kill</a>
 <!--<form>-->
 	<!--USERNAME: <input name="username" id="username" type="text"/><br>-->
@@ -82,17 +83,27 @@
 		mainThread=aThread.run(OrgChart.push());
 	});
 
+	$("#both").click(function(){
+		if (mainThread!==undefined) mainThread.kill();
+		mainThread=aThread.run(function(){
+			yield (OrgChart.get());
+			yield (OrgChart.push());
+		});
+	});
+
+
 	$("#kill").click(function(){
 		if (mainThread!==undefined) mainThread.kill();
 	});
 
-//var testit=function(data){
-//	D.println(data);
-//};
-
-
-	D.action("Done");
 	D.addLog("results");
+
+	//ALLOW URL PARAMETER TO PRESS ONE OF THE BUTTON
+	var urlState = jQuery.bbq.getState();
+	if (urlState.pressButton){
+		$("#"+urlState.pressButton).click();
+	}//endif
+
 </script>
 
 <!--<script type="application/javascript;version=1.7" src="https://phonebook.mozilla.org/search.php?callback=testit&format=json&query=dbisgeier@mozilla.com"></script>-->

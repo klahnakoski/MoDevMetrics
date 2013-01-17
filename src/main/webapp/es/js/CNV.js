@@ -80,6 +80,9 @@ CNV.Object2JSON = function(json){
 			return CNV.Object2JSON(v).indent(1);
 		}).join(",\n")+"\n]";
 	}else if (json instanceof Object){
+		var singleLine=JSON.stringify(json);
+		if (singleLine.length<60) return singleLine;
+
 		var keys=Object.keys(json);
 		if (keys.length==0) return "{}";
 		if (keys.length==1) return "{\""+keys[0]+"\":"+CNV.Object2JSON(json[keys[0]]).indent(1).trim()+"}";
@@ -88,6 +91,8 @@ CNV.Object2JSON = function(json){
 			if (v===undefined) return "";
 			return "\""+k+"\":"+CNV.Object2JSON(v).indent(1).trim();
 		}).join(",\n\t")+"\n}";
+	}else if (json instanceof Date){
+		return json.format("yyyy-NNN-dd HH:mm:ss");
 	}else{
 		return JSON.stringify(json);
 	}//endif
@@ -144,6 +149,93 @@ CNV.Pipe2Value.pipe = new RegExp("\\\\p", "g");
 CNV.Pipe2Value.bs = new RegExp("\\\\\\\\", "g");
 
 
+CNV.Cube2HTMLTable=function(query){
+
+	//WRITE HEADER
+
+	var header = "";
+	if (query.name) header+=HTML.tag("h2", query.name);
+	var content = "";
+
+	if (query.edges.length==1){
+		header += "<td>" + CNV.String2HTML(query.edges[0].name) + "</td>";
+
+		if (query.select instanceof Array){
+			header+=query.select.map(function(s, i){
+				return HTML.tag("td", s.name);
+			}).join("");
+
+			content=query.edges[0].domain.partitions.map(function(v, i){
+				return "<tr>"+
+					HTML.tag("th", v.name)+
+					query.select.map(function(s, j){
+						return HTML.tag("td", query.cube[i][s.name])
+					}).join("")+
+					"</tr>";
+			}).join("\n");
+		}else{
+			header += HTML.tag("th", query.select.name);
+
+			content=query.edges[0].domain.partitions.map(function(p, i){
+				return "<tr>"+HTML.tag("th", p.name)+HTML.tag("td", query.cube[i])+"</tr>";
+			}).join("\n");
+		}//endif
+	}else if (query.edges.length==2){
+		if (query.select instanceof Array){
+			D.error("Can not display cube: select clause can not be array, or there can be only one edge");
+		}else{
+
+			header+=HTML.tag("td", query.edges[1].name);	//COLUMN FOR SECOND EDGE
+			query.edges[0].domain.partitions.forall(function(v, i){
+				header += "<td>" + CNV.String2HTML(v.name) + "</td>";
+			});
+
+			content="";
+			for (var r=0;r<query.edges[1].domain.partitions.length;r++){
+				content+="<tr>"+HTML.tag("th", query.edges[1].domain.partitions[r].name);
+				for(var c=0;c<query.cube.length;c++){
+					content+=HTML.tag("td", query.cube[c][r]);
+				}//for
+				content+="</tr>";
+			}//for
+			if (query.edges[1].allowNulls){
+				content+="<tr>"+HTML.tag("th", query.edges[1].domain.NULL.name);
+				for(var c=0;c<query.cube.length;c++){
+					content+=HTML.tag("td", query.cube[c][r]);
+				}//for
+				content+="</tr>";
+			}//endif
+
+
+
+			//SHOW FIRST EDGE AS ROWS, SECOND AS COLUMNS
+//			header+=HTML.tag(query.edges[0].name);	//COLUMN FOR FIRST EDGE
+//			query.edges[1].domain.partitions.forall(function(v, i){
+//				header += "<td>" + CNV.String2HTML(v.name) + "</td>";
+//			});
+//
+//			content=query.cube.map(function(r, i){
+//				return "<tr>"+
+//					HTML.tag(query.edges[0].domain.partitions[i].name, "th")+
+//					r.map(function(c, j){
+//						return HTML.tag(c);
+//					}).join("")+
+//					"</tr>";
+//			}).join("");
+		}//endif
+	}else{
+		D.error("Actual cubes not supported !!")
+	}//endif
+
+	return "<table class='table'>" +
+		"<thead>" + header + "</thead>\n" +
+		"<tbody>" + content + "</tbody>" +
+		"</table>"
+		;
+
+
+};//method
+
 
 
 CNV.List2HTMLTable = function(data, options){
@@ -156,7 +248,7 @@ CNV.List2HTMLTable = function(data, options){
 	var header = "";
 	var columns = CUBE.getColumnsFromList(data);
 	columns.forall(function(v, i){
-		header += "<td>" + CNV.String2HTML(v.name) + "</td>";
+		header += HTML.tag("td", v.name);
 	});
 	header = "<thead><tr>" + header + "</tr></thead>";
 
@@ -169,29 +261,7 @@ CNV.List2HTMLTable = function(data, options){
 		var row = "";
 		for(var c = 0; c < columns.length; c++){
 			var value = data[i][columns[c].name];
-
-			if (value === undefined){
-				row += "<td>&lt;undefined&gt;</td>";
-			} else if (value == null){
-				row += "<td>&lt;null&gt;</td>";
-			} else if (Math.isNumeric(value)){
-				if ((""+value).length==13){
-					//PROBABLY A TIMESTAMP
-					row += "<td>" + new Date(value).format("yyyy-MM-dd HH:mm:ss") + "</td>";
-				}else{
-					row += "<td style='text-align:right;'>" + value + "</td>";
-				}
-			} else if (value.toString !== undefined){
-				row += "<td>" + CNV.String2HTML(value.toString()) + "</td>";
-			} else{
-				var json = CNV.Object2JSON(value);
-				if (json.indexOf("\n") == -1){
-					row += "<td>" + CNV.String2HTML(json) + "</td>";
-				} else{
-					row += "<td>&lt;json not included&gt;</td>";
-				}//endif
-			}//endif
-
+			row += HTML.tag("td", value);
 		}//for
 		output += "<tr>" + row + "</tr>\n";
 	}//for
@@ -202,6 +272,37 @@ CNV.List2HTMLTable = function(data, options){
 		"</table>"
 		;
 };//method
+
+
+var HTML={};
+HTML.tag=function(tagName, value){
+	if (tagName===undefined) tagName="td";
+
+	if (value === undefined){
+		return "<"+tagName+">&lt;undefined&gt;</"+tagName+">";
+	} else if (value == null){
+		return "<"+tagName+">&lt;null&gt;</"+tagName+">";
+	} else if (Math.isNumeric(value)){
+		if ((""+value).length==13){
+			//PROBABLY A TIMESTAMP
+			return "<"+tagName+">" + new Date(value).format("yyyy-NNN-dd HH:mm:ss") + "</"+tagName+">";
+		}else{
+			return "<"+tagName+" style='text-align:right;'>" + value + "</"+tagName+">";
+		}
+	} else if (value.getTime){
+		return "<"+tagName+">" + value.format("yyyy-NNN-dd HH:mm:ss") + "</"+tagName+">";
+	} else if (value.toString !== undefined){
+		return "<"+tagName+">" + CNV.String2HTML(value.toString()) + "</"+tagName+">";
+	}//endif
+
+	var json = CNV.Object2JSON(value);
+	if (json.indexOf("\n") == -1){
+		return "<"+tagName+">" + CNV.String2HTML(json) + "</"+tagName+">";
+	} else{
+		return "<"+tagName+">&lt;json not included&gt;</"+tagName+">";
+	}//endif
+};
+
 
 
 

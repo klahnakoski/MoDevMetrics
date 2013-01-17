@@ -79,12 +79,17 @@
 		aThread.run(function(){
 			var reviews=yield (BUG_SUMMARY.get([790640, 563491], undefined));
 			$("#results").html(CNV.List2HTMLTable(reviews));
-			D.action("Done");
 		});
 	});
 
-	D.action("Done");
 	D.addLog("results");
+
+	//ALLOW URL PARAMETER TO PRESS ONE OF THE BUTTON
+	var urlState = jQuery.bbq.getState();
+	if (urlState.pressButton){
+		$("#"+urlState.pressButton).click();
+	}//endif
+
 </script>
 
 

@@ -119,7 +119,7 @@
 <div id="chartResponse" style="width:400px;height:200px;float:left;display: inline;"></div>
 <div id="chartComponents" style="width:400px;height:200px;float:left;display: inline;"></div>
 
-<div id="chart"></div>
+<div id="chart" style="position:relative;"></div>
 
 <div id="info"></div>
 <div id="report"></div>
@@ -211,6 +211,7 @@ var __createChart = function(){
 		var a=D.action("Make chart", true);
 		aChart.show({
 			"id":"chart",
+		"sheetDiv":"info",
 			"type":"line",
 			"stacked":true,
 			"cube":chart

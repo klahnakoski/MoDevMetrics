@@ -250,7 +250,7 @@ aChart.show=function(params){
 			//set in miliseconds
 		    dot_shapeRadius: 1,
             dot_shape:"circle",
-			line_lineWidth: 4,
+			line_lineWidth: 4
 		},
 		"clickable": true,
 		"clickAction":function(series, x, d, elem){
@@ -312,6 +312,18 @@ aChart.show=function(params){
 	chart.setData(cccData, {crosstabMode: true, seriesInRows: true});
 
 	chart.render();
+
+	//ADD BUTTON TO SHOW SHEET
+	if (params.sheetDiv){
+		var sheetButtonID=divName+"-showSheet";
+		var html='<div id='+CNV.String2Quote(sheetButtonID)+' class="toolbutton" title="Show Table" style="position: absolute;right: 0;bottom: 0;"><img src="./images/Spreadsheet.png"></div>';
+		$("#"+divName).append(html);
+		$("#"+sheetButtonID).click(function(){
+			$("#"+params.sheetDiv).html(
+				CNV.Cube2HTMLTable(chartCube)
+			);
+		});
+	}//endif
 
 
 };
