@@ -1,3 +1,8 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
 var Colour = function(r, g, b){
 	this.r = Math.pow(r / 255, Colour.BASE);
 	this.g = Math.pow(g / 255, Colour.BASE);

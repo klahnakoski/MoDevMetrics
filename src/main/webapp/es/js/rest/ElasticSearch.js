@@ -1,5 +1,3 @@
-
-
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -8,7 +6,7 @@
 ElasticSearch={};
 
 
-//THE CONTENT FOUDN AT https://metrics.mozilla.com/bugzilla-analysis IS ACTUALLY
+//THE CONTENT FOUNDNAT https://metrics.mozilla.com/bugzilla-analysis IS ACTUALLY
 //A PROXY OF WHAT CAN BE FOUND AT http://people.mozilla.com/~klahnakoski/es
 //THIS ALLOWS THE BROWSER TO ACCESS METRIC'S ES DOCUMENT STORE.
 
