@@ -137,8 +137,8 @@ var createChart=function(){
 
 var __createChart = function(){
 
-	var sampleMin=new Date(GUI.state.sampleMin);
-	var sampleMax=new Date(GUI.state.sampleMax).ceilingDay();
+	var sampleMin=Date.newInstance(GUI.state.sampleMin);
+	var sampleMax=Date.newInstance(GUI.state.sampleMax).ceilingDay();
 
 	var sampleSize=sampleMax.subtract(sampleMin, Duration.newInstance(GUI.state.intervalX));
 	$("#title").html("Time to Resolution ("+sampleSize.toString()+" sample)");

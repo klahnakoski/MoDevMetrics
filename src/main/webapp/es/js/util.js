@@ -112,6 +112,7 @@ Array.prototype.appendArray=function(arr){
 	for(var i=0;i<arr.length;i++){
 		this.push(arr[i]);
 	}//for
+	return this;
 };//method
 
 Array.prototype.prepend=Array.prototype.unshift;

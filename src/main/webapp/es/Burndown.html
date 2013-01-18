@@ -202,7 +202,7 @@
 			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.WEEK}
 		],
 		[
-			"endDate=GUI.fixEndDate(new Date(startDate), new Date(endDate).addDay(-1), Duration.newInstance(intervalX)).addDay(1).format('yyyy-MM-dd')"
+			"endDate=GUI.fixEndDate(Date.newInstance(startDate), Date.newInstance(endDate).addDay(-1), Duration.newInstance(intervalX)).addDay(1).format('yyyy-MM-dd')"
 		]);
 
 		createChart();

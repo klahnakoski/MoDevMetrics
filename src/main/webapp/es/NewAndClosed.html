@@ -238,7 +238,7 @@
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		],
 		[
-			"endDate=GUI.fixEndDate(new Date(startDate), new Date(endDate), Duration.newInstance(intervalX)).format('yyyy-MM-dd')"
+			"endDate=GUI.fixEndDate(Date.newInstance(startDate), Date.newInstance(endDate), Duration.newInstance(intervalX)).format('yyyy-MM-dd')"
 		]);
 		createChart();
 	});

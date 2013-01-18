@@ -217,7 +217,7 @@
 					pendingReview,
 				"select":[
 					{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
-					{"name":"maxWaitTime", "value":"Math.round(Date.now().subtract(new Date(request_time)).divideBy(Duration.DAY), 1)+\"days\"", "operation":"maximum"},
+					{"name":"maxWaitTime", "value":"Math.round(Date.now().subtract(Date.newInstance(request_time)).divideBy(Duration.DAY), 1)+\"days\"", "operation":"maximum"},
 					{"name":"bugs", "value":"bug_id", operation:"join", "separator":","}
 				],
 				"edges":[
@@ -253,7 +253,7 @@
 				"from":
 					esResult3,
 				"select":[
-					{"name":"wait_time", "value":"Math.round(Date.now().subtract(new Date(modified_ts)).divideBy(Duration.DAY), 1)+\"days\"", "operation":"minimum"}
+					{"name":"wait_time", "value":"Math.round(Date.now().subtract(Date.newInstance(modified_ts)).divideBy(Duration.DAY), 1)+\"days\"", "operation":"minimum"}
 				],
 				"edges":[
 					{"name":"bug_id", "value":"bug_id"}

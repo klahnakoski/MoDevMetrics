@@ -78,7 +78,7 @@
 
 	aThread.run(function(){
 
-		D.println(new Date(1352207434236).format("yyyy-NNN-dd HHmmss"));
+		D.println(Date.newInstance(1352207434236).format("yyyy-NNN-dd HHmmss"));
 
 
 		var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[

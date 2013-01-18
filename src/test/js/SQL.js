@@ -199,8 +199,8 @@ Test.ReviewQueuesOverTime = function(){
 		"from" :
 			esResult,
 		"select" : [
-			{"name":"max", "operation": "maximum", "value": "Date.newInstance(modified_ts).floorWeek()"},
-			{"name":"min", "operation": "minimum", "value": "Date.newInstance(modified_ts).floorWeek()"}
+			{"name":"max", "operation": "maximum", "value": "new Date(modified_ts).floorWeek()"},
+			{"name":"min", "operation": "minimum", "value": "new Date(modified_ts).floorWeek()"}
 		],
 		"edges" : [
 			{"name":"interval", "value" : "'week'"},
@@ -219,7 +219,7 @@ Test.ReviewQueuesOverTime = function(){
 			{"name":"count", "operation":"count", "value":"1"}
 		],
 		"edges" : [
-			{"name" : "week", "value": "Date.newInstance(modified_ts)", "domain" : range}
+			{"name" : "week", "value": "new Date(modified_ts)", "domain" : range}
 		],
 		"order":[
 			"week"
@@ -852,7 +852,7 @@ Test.burndown = function(){
 			{"name":"best_date", "value":"modified_ts", "operation":"maximum", "sort":"descending"}
 		],
 		"edges":[
-			{"name":"date", "test":"Date.newInstance(modified_ts)<time.max", domain:{"type": "time", "min":startDate, "max": Date.today(), interval:"day"}},
+			{"name":"date", "test":"new Date(modified_ts)<time.max", domain:{"type": "time", "min":startDate, "max": Date.today(), interval:"day"}},
 			{"name":"bug_id", "value":"bug_id"}
 		],
 		"order":[

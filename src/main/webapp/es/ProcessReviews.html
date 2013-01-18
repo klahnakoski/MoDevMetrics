@@ -224,14 +224,14 @@
 				inReview.list,
 			"select":[
 //				{"name":"close_record", "sort":["doneReview.end_time", ""]},
-				{"name":"review_time", "value":"new Date(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "operation":"minimum"}
+				{"name":"review_time", "value":"Date.newInstance(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "operation":"minimum"}
 			],
 			"edges":[
 				{"name":"bug_id", "value":"bug_id"},
 				{"name":"attach_id", "value":"attach_id"},
 				{"name":"reviewer", "value":"requestee"},
 				{"name":"requester", "value":"modified_by"},
-				{"name":"request_time", "value":"new Date(modified_ts)"},
+				{"name":"request_time", "value":"Date.newInstance(modified_ts)"},
 				{"name":"close_record",
 					"test":"bug_id==doneReview.bug_id && attach_id==doneReview.attach_id && requestee==doneReview.requestee && modified_ts<=doneReview.modified_ts",
 					allowNulls:true,

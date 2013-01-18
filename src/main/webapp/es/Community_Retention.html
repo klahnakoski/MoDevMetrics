@@ -143,8 +143,8 @@ var createChart=function(){
 
 var __createChart = function(){
 
-	var sampleMin=new Date(GUI.state.sampleMin);
-	var sampleMax=new Date(GUI.state.sampleMax).ceilingDay();
+	var sampleMin=Date.newInstance(GUI.state.sampleMin);
+	var sampleMax=Date.newInstance(GUI.state.sampleMax).ceilingDay();
 	var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
 
 	var windowSize=Duration.newInstance(GUI.state.window);
@@ -234,13 +234,13 @@ var __createChart = function(){
 
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":new Date(2008, 0, 1)},
+			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.newInstance(2008, 0, 1)},
 			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.eod().subtract(Duration.newInstance("13week"))},
 			{"id":"sampleInterval", "name":"Sample Interval", "type":"duration", "default":"month"},
 			{"id":"window", "name":"Window Size", "type":"duration", "default":Duration.newInstance("13week")}
 		],
 		[
-			"sampleMax=GUI.fixEndDate(new Date(sampleMin), new Date(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+			"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
 		],
 		"reviews");
 	});

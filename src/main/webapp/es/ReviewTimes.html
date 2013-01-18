@@ -128,8 +128,8 @@
 					},
 					"filter" : {
 						"and":[
-							{"range":{"modified_ts":{"gte":new Date(GUI.state.sampleMin).getMilli()}}},
-							{"range":{"modified_ts":{"lt":new Date(GUI.state.sampleMax).getMilli()}}}
+							{"range":{"modified_ts":{"gte":Date.newInstance(GUI.state.sampleMin).getMilli()}}},
+							{"range":{"modified_ts":{"lt":Date.newInstance(GUI.state.sampleMax).getMilli()}}}
 						]
 					}
 				}},

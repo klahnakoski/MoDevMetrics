@@ -191,7 +191,7 @@ D.println(CNV.List2Tab(reviewQueues));
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		],
 		[
-			"sampleMax=GUI.fixEndDate(new Date(sampleMin), new Date(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+			"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
 		]);
 	});
 

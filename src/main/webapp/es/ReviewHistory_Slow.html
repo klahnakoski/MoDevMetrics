@@ -356,13 +356,13 @@ D.println(CNV.Object2JSON(data));
 							inReview,
 						"select":[
 //							{"name":"close_record", "sort":["doneReview.end_time", ""]},
-							{"name":"end_time", "value":"new Date(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "operation":"minimum"}
+							{"name":"end_time", "value":"Date.newInstance(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "operation":"minimum"}
 						],
 						"edges":[
 							{"name":"bug_id", "value":"bug_id"},
 							{"name":"attach_id", "value":"attach_id"},
 							{"name":"requestee", "value":"requestee"},
-							{"name":"start_time", "value":"new Date(modified_ts)"},
+							{"name":"start_time", "value":"Date.newInstance(modified_ts)"},
 							{"name":"close_record",
 								"test":"bug_id==doneReview.bug_id && attach_id==doneReview.attach_id && requestee==doneReview.requestee && modified_ts<=doneReview.modified_ts",
 								allowNulls:true,
@@ -388,7 +388,7 @@ D.println(CNV.List2Tab(reviewQueues));
 								"domain":{"type":"time", "min":GUI.state.sampleMin, "max":sampleMax, "interval":flooring, "format":"NNN dd"}
 							}
 						],
-						"where":new Date(GUI.state.sampleMin).getMilli()+"<=end_time.getMilli() && start_time.getMilli()<"+sampleMax.getMilli()
+						"where":Date.newInstance(GUI.state.sampleMin).getMilli()+"<=end_time.getMilli() && start_time.getMilli()<"+sampleMax.getMilli()
 //							"sort":["Date"]
 					});
 
@@ -420,7 +420,7 @@ D.println(CNV.List2Tab(reviewQueues));
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		],
 		[
-			"sampleMax=GUI.fixEndDate(new Date(sampleMin), new Date(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+			"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
 		]);
 	});
 

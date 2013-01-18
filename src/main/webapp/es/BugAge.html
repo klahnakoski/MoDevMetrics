@@ -127,7 +127,7 @@ var createChart=function(){
 };
 
 var __createChart = function(){
-	var interval = Date.today().subtract(new Date(GUI.state.cohortMin)).multiply(1 / GUI.state.cohortNum);
+	var interval = Date.today().subtract(Date.newInstance(GUI.state.cohortMin)).multiply(1 / GUI.state.cohortNum);
 
 	var query = new ESQuery({
 		"name":"Age of Closed Bugs (%)",
@@ -139,7 +139,7 @@ var __createChart = function(){
 		],
 		"esfilter":{"and":[
 			{"terms":{"bug_status":["resolved", "verified", "closed"]}},
-			{"range":{"modified_ts":{"gte":new Date(GUI.state.cohortMin).getMilli()}}},
+			{"range":{"modified_ts":{"gte":Date.newInstance(GUI.state.cohortMin).getMilli()}}},
 			{"range":{"modified_ts":{"lte":Date.today().getMilli()}}},
 			{"script":{"script":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value'}}  //ONLY THE DOCUMENT THAT CLOSES THE BUG
 		]},

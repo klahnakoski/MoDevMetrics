@@ -183,9 +183,9 @@ var createChart = function(){
 				"from":marked,
 				"select":[
 					{"name":"bug_id", "value":"bug_id", "operation":"one"},
-					{"name":"marked_time", "value":"new Date(marked_time)", "operation":"one"},
+					{"name":"marked_time", "value":"Date.newInstance(marked_time)", "operation":"one"},
 					{"name":"is_closed", "value":"closed.bug_id", "operation":"binary"},
-					{"name":"closed_time", "value":"new Date(closed.closed_time)", "operation":"minimum"},
+					{"name":"closed_time", "value":"Date.newInstance(closed.closed_time)", "operation":"minimum"},
 					{"name":"is_good", "value":"closed.closed_time-marked_time<"+mark.milli+" ? 1 : 0", "operation":"one"}
 				],
 				"edges":[

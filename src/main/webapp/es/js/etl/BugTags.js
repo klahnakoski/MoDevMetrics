@@ -168,7 +168,7 @@ BUG_TAGS.get=function(minBug, maxBug, minDate, maxDate){
 BUG_TAGS.insert=function(tags){
 	var insert=[];
 	tags.forall(function(r, i){
-		insert.push(JSON.stringify({ "index" : { "_id" : r.bug_id+"-"+new Date(r.date).format("yyMMdd") } }));
+		insert.push(JSON.stringify({ "index" : { "_id" : r.bug_id+"-"+Date.newInstance(r.date).format("yyMMdd") } }));
 		insert.push(JSON.stringify(r));
 	});
 

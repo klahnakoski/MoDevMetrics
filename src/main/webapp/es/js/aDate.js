@@ -18,8 +18,7 @@ Date.today=function(){
 
 Date.newInstance = function(value){
 	if (value === undefined || value == null) return null;
-	if (value instanceof String){
-	}//endif
+	if (typeof(value)=="string") return Date.tryParse(value);
 	return new Date(value);
 };//method
 
@@ -380,6 +379,289 @@ Date.getBestFormat=function(minDate, maxDate, interval){
 	[      "",      "",         "", ""                , ""                ,        "yyyy"         ]
 	][minFormat][maxFormat];
 };//method
+
+
+// ------------------------------------------------------------------
+// Utility functions for parsing in getDateFromFormat()
+// ------------------------------------------------------------------
+function _isInteger(val){
+	var digits = "1234567890";
+	for(var i = 0; i < val.length; i++){
+		if (digits.indexOf(val.charAt(i)) == -1){
+			return false;
+		}
+	}
+	return true;
+}
+function _getInt(str, i, minlength, maxlength){
+	for(var x = maxlength; x >= minlength; x--){
+		var token = str.substring(i, i + x);
+		if (token.length < minlength){
+			return null;
+		}
+		if (_isInteger(token)){
+			return token;
+		}
+	}
+	return null;
+}
+
+
+function internalChecks(year, month, date, hh, mm, ss, ampm){
+	// Is date valid for month?
+	if (month == 2){
+		//LEAP YEAR
+		if (((year % 4 == 0) && (year % 100 != 0) ) || (year % 400 == 0)){
+			if (date > 29) return 0;
+		} else{
+			if (date > 28) return 0;
+		}//endif
+	}//endif
+	if ((month == 4) || (month == 6) || (month == 9) || (month == 11)){
+		if (date > 30) return 0;
+	}//endif
+
+	// Correct hours value
+	if (hh < 12 && ampm == "PM"){
+		hh = hh - 0 + 12;
+	} else if (hh > 11 && ampm == "AM"){
+		hh -= 12;
+	}//endif
+
+	var newDate = new Date(year, month - 1, date, hh, mm, ss);
+	//newDate=newDate.addMinutes(new Date().getTimezoneOffset());
+	return newDate;
+}//method
+
+
+
+
+
+
+// ------------------------------------------------------------------
+// getDateFromFormat( date_string , format_string, isPastDate )
+//
+// This function takes a date string and a format string. It matches
+// If the date string matches the format string, it returns the
+// getTime() of the date. If it does not match, it returns 0.
+// isPastDate ALLOWS DATES WITHOUT YEAR TO GUESS THE RIGHT YEAR
+// THE DATE IS EITHER EXPECTED TO BE IN THE PAST (true) WHEN FILLING
+// OUT A TIMESHEET (FOR EXAMPLE) OR IN THE FUTURE (false) WHEN
+// SETTING AN APPOINTMENT DATE
+// ------------------------------------------------------------------
+Date.getDateFromFormat=function(val, format, isPastDate){
+	val = val + "";
+	format = format + "";
+	var valueIndex = 0;
+	var formatIndex = 0;
+	var token = "";
+	var token2 = "";
+	var x, y;
+	var now = new Date();
+
+	//DATE BUILDING VARIABLES
+	var year = null;
+	var month = now.getMonth() + 1;
+	var dayOfMonth = 1;
+	var hh = 0;
+	var mm = 0;
+	var ss = 0;
+	var ampm = "";
+
+	while(formatIndex < format.length){
+		// Get next token from format string
+		token = "";
+		var c = format.charAt(formatIndex);
+		while((format.charAt(formatIndex) == c) && (formatIndex < format.length)){
+			token += format.charAt(formatIndex++);
+		}//while
+
+		// Extract contents of value based on format token
+		if (token == "yyyy" || token == "yy" || token == "y"){
+			if (token == "yyyy"){
+				x = 4;
+				y = 4;
+			}
+			if (token == "yy"){
+				x = 2;
+				y = 2;
+			}
+			if (token == "y"){
+				x = 2;
+				y = 4;
+			}
+			year = _getInt(val, valueIndex, x, y);
+			if (year == null) return 0;
+			valueIndex += year.length;
+			if (year.length == 2){
+				if (year > 70){
+					year = 1900 + (year - 0);
+				} else{
+					year = 2000 + (year - 0);
+				}
+			}
+
+		} else if (token == "MMM" || token == "NNN"){
+			month = 0;
+			for(var i = 0; i < Date.MONTH_NAMES.length; i++){
+				var month_name = Date.MONTH_NAMES[i];
+				var prefixLength = 0;
+				while(val.charAt(valueIndex + prefixLength).toLowerCase() == month_name.charAt(prefixLength).toLowerCase()){
+					prefixLength++;
+				}//while
+				if (prefixLength >= 3){
+					if (token == "MMM" || (token == "NNN" && i > 11)){
+						month = i + 1;
+						if (month > 12){
+							month -= 12;
+						}
+						valueIndex += prefixLength;
+						break;
+					}
+				}
+			}
+			if ((month < 1) || (month > 12)){
+				return 0;
+			}
+
+		} else if (token == "EE" || token == "E"){
+			for(var i = 0; i < Date.DAY_NAMES.length; i++){
+				var day_name = Date.DAY_NAMES[i];
+				if (val.substring(valueIndex, valueIndex + day_name.length).toLowerCase() == day_name.toLowerCase()){
+					valueIndex += day_name.length;
+					break;
+				}
+			}
+
+		} else if (token == "MM" || token == "M"){
+			month = _getInt(val, valueIndex, token.length, 2);
+			if (month == null || (month < 1) || (month > 12)){
+				return 0;
+			}
+			valueIndex += month.length;
+		} else if (token == "dd" || token == "d"){
+			dayOfMonth = _getInt(val, valueIndex, token.length, 2);
+			if (dayOfMonth == null || (dayOfMonth < 1) || (dayOfMonth > 31)){
+				return 0;
+			}
+			valueIndex += dayOfMonth.length;
+		} else if (token == "hh" || token == "h"){
+			hh = _getInt(val, valueIndex, token.length, 2);
+			if (hh == null || (hh < 1) || (hh > 12)){
+				return 0;
+			}
+			valueIndex += hh.length;
+		} else if (token == "HH" || token == "H"){
+			hh = _getInt(val, valueIndex, token.length, 2);
+			if (hh == null || (hh < 0) || (hh > 23)){
+				return 0;
+			}
+			valueIndex += hh.length;
+		} else if (token == "KK" || token == "K"){
+			hh = _getInt(val, valueIndex, token.length, 2);
+			if (hh == null || (hh < 0) || (hh > 11)){
+				return 0;
+			}
+			valueIndex += hh.length;
+		} else if (token == "kk" || token == "k"){
+			hh = _getInt(val, valueIndex, token.length, 2);
+			if (hh == null || (hh < 1) || (hh > 24)){
+				return 0;
+			}
+			valueIndex += hh.length;
+			hh--;
+		} else if (token == "mm" || token == "m"){
+			mm = _getInt(val, valueIndex, token.length, 2);
+			if (mm == null || (mm < 0) || (mm > 59)){
+				return 0;
+			}
+			valueIndex += mm.length;
+		} else if (token == "ss" || token == "s"){
+			ss = _getInt(val, valueIndex, token.length, 2);
+			if (ss == null || (ss < 0) || (ss > 59)){
+				return 0;
+			}
+			valueIndex += ss.length;
+		} else if (token == "a"){
+			if (val.substring(valueIndex, valueIndex + 2).toLowerCase() == "am"){
+				ampm = "AM";
+			} else if (val.substring(valueIndex, valueIndex + 2).toLowerCase() == "pm"){
+				ampm = "PM";
+			} else{
+				return 0;
+			}
+			valueIndex += 2;
+		} else if (token.trim() == ""){
+			while(val.charCodeAt(valueIndex) <= 32) valueIndex++;
+		} else{
+			if (val.substring(valueIndex, valueIndex + token.length) != token){
+				return 0;
+			} else{
+				valueIndex += token.length;
+			}
+		}//endif
+	}
+	// If there are any trailing characters left in the value, it doesn't match
+	if (valueIndex != val.length) return 0;
+
+	if (year == null){
+		//WE HAVE TO GUESS THE YEAR
+		year = now.getFullYear();
+		var oldDate = (now.getTime()) - 86400000;
+		var newDate = internalChecks(year, month, dayOfMonth, hh, mm, ss, ampm);
+		if (isPastDate){
+			if (newDate != 0 && (newDate + "") < (oldDate + "")) return newDate;
+			return internalChecks(year - 1, month, dayOfMonth, hh, mm, ss, ampm);
+		} else{
+			if (newDate != 0 && (newDate + "") > (oldDate + "")) return newDate;
+			return internalChecks(year + 1, month, dayOfMonth, hh, mm, ss, ampm);
+		}//endif
+	}//endif
+
+	return internalChecks(year, month, dayOfMonth, hh, mm, ss, ampm);
+};//method
+
+// ------------------------------------------------------------------
+// parseDate( date_string [,isPastDate] [, prefer_euro_format] )
+//
+// This function takes a date string and tries to match it to a
+// number of possible date formats to get the value. It will try to
+// match against the following international formats, in this order:
+// y-M-d   MMM d, y   MMM d,y   y-MMM-d   d-MMM-y  MMM d
+// M/d/y   M-d-y      M.d.y     MMM-d     M/d      M-d
+// d/M/y   d-M-y      d.M.y     d-MMM     d/M      d-M
+// A second argument may be passed to instruct the method to search
+// for formats like d/M/y (european format) before M/d/y (American).
+// Returns a Date object or null if no patterns match.
+// ------------------------------------------------------------------
+{
+	var generalFormats = ['EE MMM d, yyyy', 'EE MMM d, yyyy @ hh:mm a', 'y - M - d', 'MMM d, y', 'MMM d y', 'MMM d', 'y - MMM - d', 'd - MMM - y', 'd MMM y'];
+	var monthFirst = ['M / d / y', 'M - d - y', 'M . d . y', 'MMM - d', 'M / d', 'M - d'];
+	var dateFirst = ['d / M / y', 'd - M - y', 'd . M . y', 'd - MMM', 'd / M', 'd - M'];
+
+	Date.CheckList = [].appendArray(generalFormats).appendArray(dateFirst).appendArray(monthFirst);
+}
+
+
+
+Date.tryParse=function(val, isFutureDate){
+	val = val.trim();
+
+	var d = null;
+	for(var i = 0; i < Date.CheckList.length; i++){
+		d = Date.getDateFromFormat(val, Date.CheckList[i], !Util.coalesce(isFutureDate, false));
+		if (d != 0){
+			var temp=Date.CheckList[i];
+			Date.CheckList.splice(i, 1);
+			Date.CheckList.prepend(temp);
+			return d;
+		}//endif
+	}//for
+	return null;
+};//method
+
+
+
 
 
 

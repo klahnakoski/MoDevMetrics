@@ -58,8 +58,8 @@
 
 
 <script type="application/javascript;version=1.7">
-	D.println(""+new Date(1351473569000	).format("yy-MM-dd HH:mm:ss"));
-	D.println(""+new Date(1351604852000).format("yy-MM-dd HH:mm:ss"));
+	D.println(""+Date.newInstance(1351473569000	).format("yy-MM-dd HH:mm:ss"));
+	D.println(""+Date.newInstance(1351604852000).format("yy-MM-dd HH:mm:ss"));
 
 	$("#start").click(function(){
 		aThread.run(ETL.newInsert(REVIEWS));

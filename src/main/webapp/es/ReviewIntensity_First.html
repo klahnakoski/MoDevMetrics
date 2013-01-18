@@ -359,7 +359,7 @@
 			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("reviewer")}
 		],
 		[
-			"sampleMax=GUI.fixEndDate(new Date(sampleMin), new Date(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+			"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
 		],
 		"reviews");
 	});

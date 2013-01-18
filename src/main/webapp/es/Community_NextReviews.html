@@ -138,8 +138,8 @@ var createChart=function(){
 
 var __createChart = function(){
 
-	var sampleMin=new Date(GUI.state.sampleMin);
-	var sampleMax=new Date(GUI.state.sampleMax).ceilingDay();
+	var sampleMin=Date.newInstance(GUI.state.sampleMin);
+	var sampleMax=Date.newInstance(GUI.state.sampleMax).ceilingDay();
 	var windowSize=Duration.newInstance(GUI.state.window);
 	var maxRequest=20;
 
@@ -223,8 +223,8 @@ var __createChart = function(){
 
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":new Date(2012, 1, 1)},
-			{"id":"sampleMax", "name":"End Date", "type":"time", "default":new Date(2012, 1, 1).add(Duration.newInstance("18week-day"))},
+			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.newInstance(2012, 1, 1)},
+			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.newInstance(2012, 1, 1).add(Duration.newInstance("18week-day"))},
 			{"id":"window", "name":"Window Size", "type":"duration", "default":Duration.newInstance("13week")}
 		],
 		[

@@ -176,7 +176,7 @@
 			"edges":[
 				{"name":"Bug ID", "value":"bug_id", "domain":{"type":"set", "partitions":ordering, "key":"bug_id", "value":"bug_id"}},
 				{"name":"Date",
-					"test":"time.min<=Util.coalesce(Date.newInstance(review_time), Date.eod()) && new Date(request_time)<time.max",
+					"test":"time.min<=Util.coalesce(Date.newInstance(review_time), Date.eod()) && Date.newInstance(request_time)<time.max",
 					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, value:"value"}
 				}
 			]
@@ -206,7 +206,7 @@
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		],
 		[
-			"sampleMax=GUI.fixEndDate(new Date(sampleMin), new Date(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+			"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
 		],
 		"reviews");
 	});

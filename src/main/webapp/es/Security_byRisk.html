@@ -140,8 +140,8 @@ var createChart=function(){
 
 var __createChart = function(){
 
-	var sampleMin=new Date(GUI.state.sampleMin);
-	var sampleMax=new Date(GUI.state.sampleMax).ceilingDay();
+	var sampleMin=Date.newInstance(GUI.state.sampleMin);
+	var sampleMax=Date.newInstance(GUI.state.sampleMax).ceilingDay();
 	var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
 
 	$("#title").html("Open Bug Count");
@@ -247,8 +247,8 @@ var __createChart = function(){
 			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
 		],
 		[
-			"sampleMin=new Date(sampleMin).addDay(1).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
-			"sampleMax=new Date(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+			"sampleMin=Date.newInstance(sampleMin).addDay(1).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
+			"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
 		],
 		"bugs");
 		//"bug_tags");

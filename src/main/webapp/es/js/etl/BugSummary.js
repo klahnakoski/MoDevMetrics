@@ -33,7 +33,7 @@ BUG_SUMMARY.getLastUpdated=function(){
 			{"name":"last_request", "value":BUG_SUMMARY.aliasName+".last_modified", "operation":"maximum"}
 		]
 	}));
-	yield (Date.newInstance(data.cube.last_request));
+	yield (new Date(data.cube.last_request));
 };
 
 

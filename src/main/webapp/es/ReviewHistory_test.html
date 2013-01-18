@@ -182,7 +182,7 @@
 						},
 						"facet_filter":{//HOPEFULLY THIS HELPS
 							"and":[
-								{"range":{"modified_ts":{"lt":new Date(GUI.state.sampleMax).getMilli()}}}
+								{"range":{"modified_ts":{"lt":Date.newInstance(GUI.state.sampleMax).getMilli()}}}
 							]
 						}
 					},
@@ -228,7 +228,7 @@
 						},
 						"facet_filter":{//HOPEFULLY THIS HELPS
 							"and":[
-								{"range":{"modified_ts":{"lt":new Date(GUI.state.sampleMax).getMilli()}}}
+								{"range":{"modified_ts":{"lt":Date.newInstance(GUI.state.sampleMax).getMilli()}}}
 							]
 						}
 					}
@@ -270,16 +270,16 @@ D.println(CNV.List2Tab(doneReview));
 						"select":[
 							{"name":"bug_id", "value":"bug_id", "operation":"one"},
 							{"name":"attach_id", "value":"attach_id", "operation":"one"},
-							{"name":"end_time", "value":"new Date(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "operation":"minimum"}
+							{"name":"end_time", "value":"Date.newInstance(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "operation":"minimum"}
 						],
 						"edges":[
 							{"name":"close_record", "test":"bug_id==doneReview.bug_id && attach_id==doneReview.attach_id && requestee==doneReview.requestee && modified_ts<=doneReview.modified_ts", allowNulls:true,
 								"domain":{"type":"set", "name":"doneReview", "key":["bug_id", "attach_id", "modified_ts", "requestee"], "partitions":doneReview}
 							},
 							{"name":"requestee", "value":"requestee"},
-							{"name":"start_time", "value":"new Date(modified_ts)"}
+							{"name":"start_time", "value":"Date.newInstance(modified_ts)"}
 						],
-						"where":"modified_ts<"+new Date(GUI.state.sampleMax).getMilli()+"  && (doneReview.bug_id==null || doneReview.modified_ts>="+new Date(GUI.state.sampleMin).getMilli()+")\n"
+						"where":"modified_ts<"+Date.newInstance(GUI.state.sampleMax).getMilli()+"  && (doneReview.bug_id==null || doneReview.modified_ts>="+Date.newInstance(GUI.state.sampleMin).getMilli()+")\n"
 					}))).list;
 D.println(CNV.List2Tab(reviewQueues));
 

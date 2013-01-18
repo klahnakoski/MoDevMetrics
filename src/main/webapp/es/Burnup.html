@@ -199,7 +199,7 @@
 			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
 		],
 		[
-			"endDate=GUI.fixEndDate(new Date(startDate), new Date(endDate).addDay(-1), Duration.newInstance(intervalX)).addDay(+1).format('yyyy-MM-dd')"
+			"endDate=GUI.fixEndDate(Date.newInstance(startDate), Date.newInstance(endDate).addDay(-1), Duration.newInstance(intervalX)).addDay(+1).format('yyyy-MM-dd')"
 		]);
 	});
 </script>

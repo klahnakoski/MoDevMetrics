@@ -116,12 +116,8 @@
 </div>
 
 <div style="width:800px;float: left;">
-	<div style="width:800px;height:250px;">
-		<textarea name="cube" id="cube" style="width:100%;height:100%;"></textarea>
-	</div>
-	<div style="width:800px;height:250px;">
-		<textarea name="esquery" id="esquery" style="width:100%;height:100%;"></textarea>
-	</div>
+	<textarea name="cube" id="cube" style="width:800px;height:250px;"></textarea>
+	<textarea name="esquery" id="esquery" style="width:800px;height:250px;"></textarea>
 	<div id="result" style="overflow: scroll;width:800px;height:250px;"></div>
 
 </div>
@@ -147,7 +143,7 @@
 
 	$("#long2date").change(function(){
 		var value=$(this).val();
-		$("#long2dateResult").html(new Date(CNV.String2Integer(value)).format("yyyy-NNN-dd HH:mm:ss"));
+		$("#long2dateResult").html(Date.newInstance(CNV.String2Integer(value)).format("yyyy-NNN-dd HH:mm:ss"));
 	});
 
 
