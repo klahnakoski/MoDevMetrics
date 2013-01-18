@@ -100,6 +100,7 @@ CNV.Object2JSON = function(json){
 
 
 CNV.String2HTML = function(value){
+	value=value.replaceAll("\n", "<br>").replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
 	return value;
 };//method
 

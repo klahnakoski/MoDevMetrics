@@ -1,5 +1,10 @@
 
 
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
 importScript("CNV.js");
 importScript("aDate.js");
 importScript("util.js");
@@ -27,8 +32,9 @@ ESQuery.DEBUG=false;
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
 	"bugs":{"path":"/bugs"},
+	"bugs.attachments":{},
+	"bugs.attachments.flags":{},
 	"reviews":{"path":"/reviews/review"},
-//	"reviews":{"path":"/reviews121206_150602/review"},
 	"bug_summary":{"path":"/bug_summary/bug_summary"},
 	"bug_tags":{"path":"/bug_tags/bug_tags"},
 	"org_chart":{"path":"/org_chart/person"},
@@ -40,6 +46,32 @@ ESQuery.getColumns=function(indexName){
 	var index=ESQuery.INDEXES[indexName];
 	if (index.columns===undefined) return [];//DEFAULT BEHAVIOUR IS TO WORK WITH NO KNOWN COLUMNS
 	return index.columns;
+};//method
+
+
+//RETURN THE COLUMN DEFINITIONS IN THE GIVEN esProperties OBJECT
+ESQuery.parseColumns=function(indexName, esProperties){
+	var columns = [];
+	forAllKey(esProperties, function(name, property){
+		if (property.type == "nested"){
+			//NESTED TYPE IS A NEW TYPE DEFINITION
+			var nestedName=indexName+"."+name;
+			if (ESQuery.INDEXES[nestedName]===undefined) ESQuery.INDEXES[nestedName]={};
+			ESQuery.INDEXES[nestedName].columns=ESQuery.parseColumns(nestedName, property.properties);
+			return;
+		}//endif
+
+		if (property.dynamic !== undefined) return;
+		if (property.type === undefined) return;
+		if (property.type == "multi_field") property.type = property.fields[name].type;	//PULL DEFAULT TYPE
+
+		if (["string", "boolean", "integer", "date", "long"].contains(property.type)){
+			columns.push({"name":name, "type":property.type});
+		}else{
+			D.error("unknown type "+property.type);
+		}//endif
+	});
+	return columns;
 };//method
 
 
@@ -57,28 +89,9 @@ ESQuery.loadColumns=function(query){
 			"url":URL
 		}));
 
-		var columns = [];
 		var properties = schema[indexPath.split("/")[2]].properties;
 
-//var cfCount=0;
-		forAllKey(properties, function(name, property){
-			if (property.dynamic!==undefined) return;
-			if (property.type===undefined) return;
-			if (property.type == "multi_field") property.type = property.fields[name].type;	//PULL DEFAULT TYPE
-//if (name.startsWith("cf_")){
-//	if (name!="cf_last_resolved")
-//		return;
-//	if (cfCount>111)
-//		return;
-//	cfCount++
-//}//endif
-
-			if (property.type["in"](["string", "boolean", "integer", "date", "long"])){
-				columns.push({"name":name, "type":property.type});
-			}//endif
-		});
-
-		index.columns = columns;
+		index.columns = ESQuery.parseColumns(indexName, properties);
 	}//edif
 };//method
 

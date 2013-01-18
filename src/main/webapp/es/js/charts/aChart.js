@@ -1,5 +1,10 @@
 
 
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
 importScript("../../lib/webdetails/cdf/Base.js");
 importScript("../../lib/webdetails/cdf/jquery.tooltip.js");
 importScript("../../lib/webdetails/data/q01-01.js");
@@ -227,7 +232,7 @@ aChart.show=function(params){
 		height: height,
 		animate:false,
 		title: chartCube.name,
-		legend: chartCube.edges.length!=1,		//DO NOT SHOW LEGEND IF NO CATEGORIES
+		legend: (chartCube.edges.length!=1 || CUBE.select2Array(chartCube.select).length>1),		//DO NOT SHOW LEGEND IF NO CATEGORIES
 		legendPosition: "bottom",
 		legendAlign: "center",
 

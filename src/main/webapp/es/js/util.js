@@ -1,5 +1,10 @@
 
 
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
 var forAllKey=function(map, func){
 	var keys=Object.keys(map);
 	for(var i=keys.length;i--;){
@@ -224,13 +229,6 @@ String.prototype.rightBut = function(amount){
 
 String.prototype.endsWith=function(value){
 	return this.substring(this.length - value.length)==value;
-};//method
-
-String.prototype["in"]=function(array){
-	for(var i=array.length;i--;){
-		if (array[i]==this) return true;
-	}//for
-	return false;
 };//method
 
 
