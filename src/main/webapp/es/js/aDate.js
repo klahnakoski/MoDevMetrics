@@ -432,7 +432,7 @@ function internalChecks(year, month, date, hh, mm, ss, ampm){
 		hh -= 12;
 	}//endif
 
-	var newDate = new Date(year, month - 1, date, hh, mm, ss);
+	var newDate = new Date(Date.UTC(year, month - 1, date, hh, mm, ss));
 	//newDate=newDate.addMinutes(new Date().getTimezoneOffset());
 	return newDate;
 }//method

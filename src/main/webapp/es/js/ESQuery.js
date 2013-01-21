@@ -124,17 +124,17 @@ ESQuery.prototype.run = function(){
 		}));
 
 		if (postResult._shards.failed>0){
-			D.action("ES Failure! Retrying...");
-			D.warning("Must resend query...");
+			D.action(postResult._shards.failed+"of"+postResult._shards.total+" shards failed.");
 			this.nextDelay=Util.coalesce(this.nextDelay, 500)*2;
 			yield (aThread.sleep(this.nextDelay));
+			D.action("Retrying Query...");
 			yield this.run();
 		}//endif
 	}catch(e){
 		D.error("Error with ESQuery", e);
 	}//try
 
-	var a=D.action("Process ES Terms");
+	var a=D.action("Process ES Terms", true);
 	if (this.esMode == "terms"){
 		this.termsResults(postResult);
 	} else if (this.esMode == "setop"){
@@ -736,7 +736,7 @@ ESQuery.compileString2Term=function(edge){
 	if (edge.esscript) D.error("edge script not supported yet");
 
 	var value=edge.value;
-	if (MVEL.isKeyword(value)) value="doc[\""+value+"\"].value";
+	if (MVEL.isKeyword(value)) value="getDocValue(\""+value+"\")";
 
 	return {
 		"toTerm":'Value2Pipe('+value+')',

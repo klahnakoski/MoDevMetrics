@@ -154,7 +154,7 @@ var __createChart = function(){
 	var maxRequest=3;
 
 	var sampleSize=sampleMax.subtract(sampleMin, Duration.newInstance(GUI.state.intervalX));
-	$("#title").html("% Retention Rates ("+sampleMax.subtract(sampleMin, sampleInterval).divideBy(sampleInterval)+""+sampleInterval.toString().rightBut(1)+" sample)");
+	$("#title").html("% Retention Rates ("+Math.round(sampleMax.subtract(sampleMin, sampleInterval).divideBy(sampleInterval))+""+sampleInterval.toString().rightBut(1)+" sample)");
 
 	var mainFilter={"and":[
 		{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.add(windowSize).getMilli()}}},
@@ -237,7 +237,7 @@ var __createChart = function(){
 
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.newInstance(2008, 0, 1)},
+			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":new Date(2008, 0, 1)},
 			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.eod().subtract(Duration.newInstance("13week"))},
 			{"id":"sampleInterval", "name":"Sample Interval", "type":"duration", "default":"month"},
 			{"id":"window", "name":"Window Size", "type":"duration", "default":Duration.newInstance("13week")}

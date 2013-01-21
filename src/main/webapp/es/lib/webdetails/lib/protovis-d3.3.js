@@ -5261,7 +5261,7 @@ pv.SvgScene.dispatch = pv.listener(function(e) {
     }
 
 	try{
-		if (!type["in"](["mouseover","mousemove","mouseout","point","unpoint","mousedown", "mouseup"])){
+		if (!["mouseover","mousemove","mouseout","point","unpoint","mousedown", "mouseup"].contains(type)){
 			D.println("");
 		}//endif
 	}catch(e){}
@@ -7708,7 +7708,7 @@ pv.Mark.prototype.context = function(scene, index, f) {
 /** @private Execute the event listener, then re-render. */
 pv.Mark.dispatch = function(type, scene, index) {
 	try{
-		if (!type["in"](["mouseover","mousemove","mouseout","point","unpoint","mousedown", "mouseup"])){
+		if (!(["mouseover","mousemove","mouseout","point","unpoint","mousedown", "mouseup"].contains(type))){
 			D.println("");
 		}//endif
 	}catch(e){}
@@ -7720,7 +7720,7 @@ pv.Mark.dispatch = function(type, scene, index) {
   if (!l) return p && pv.Mark.dispatch(type, p, scene.parentIndex);
   m.context(scene, index, function() {
 	  try{
-		  if (!type["in"](["mouseover","mousemove","mouseout","point","unpoint","mousedown", "mouseup"])){
+		  if (!(["mouseover","mousemove","mouseout","point","unpoint","mousedown", "mouseup"].contains(type))){
 			  D.println("");
 		  }//endif
 	  }catch(e){}

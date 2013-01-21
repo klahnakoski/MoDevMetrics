@@ -2,9 +2,6 @@
 <!-- This Source Code Form is subject to the terms of the Mozilla Public
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
-<!-- This Source Code Form is subject to the terms of the Mozilla Public
-   - License, v. 2.0. If a copy of the MPL was not distributed with this
-   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
 </HEAD>
@@ -108,8 +105,8 @@
 <div id="chart" style="position:relative;"></div>
 
 <div id="info"></div>
-<div id="report"></div>
-
+<div id="results"></div>
+<table id="theTable"><thead><tr><td>Field Name</td><td>Value(s)</td></tr></thead><tbody></tbody></table>
 
 <script type="application/javascript;version=1.7">
 
@@ -117,6 +114,8 @@ var createChart=function(){
 	aThread.run(function(){
 
 		yield (ESQuery.loadColumns({"from":"bugs"}));
+
+		D.addLog("results");
 
 //EXTRACT ALL DOMAIN VALUES TO CHARACTERIZE THE ES STORE
 
@@ -128,37 +127,48 @@ var createChart=function(){
 		indexes.forall(function(index, i){
 			var columns=ESQuery.INDEXES[index].columns;
 			columns.forall(function(col, j){
+				if (col.name.indexOf(".")>0){
+					addToTable(index+".\""+col.name+"\"", "has '.' in name");
+					return;
+				}//endif
+				
+				if (j>=3) return;
+
+				
 				if (col.name=="status_whiteboard"){
 					//DO NOTHING
 				}else if (col.name.startsWith("keyword")){
 					//DO NOTHING
 				}else if (col.type=="string"){
-					var query={
-						"from":index,
-						"select":{"value":col.name}
-					};
-					var result=yield (ESQuery.run(query));
-
-					var result2=yield (CUBE.calc2List({
-						"from":result,
-						"edges":[
-							col.name
-						]
-					}));
-
-					D.println(index+"."+col.name+"="+result2.list.map(function(v){return v[col.name];}));
-
-				}else if (["boolean", "integer", "date", "long"].contains(col.type)){
-					var query={
-						"from":index,
-						"select":[
-							{"name":"min", "value":col.name, "operation":"minimum"},
-							{"name":"max", "value":col.name, "operation":"maximum"}
-						]
-					};
 					aThread.run(function(){
+						var query={
+							"from":index,
+							"select":{"value":index+"."+col.name}
+						};
 						var result=yield (ESQuery.run(query));
-						D.println(index+"."+col.name+"={min:"+result.min+",max:"+result.max+"}");
+
+						var result2=yield (CUBE.calc2List({
+							"from":result,
+							"edges":[
+								col.name
+							]
+						}));
+
+						addToTable(index+"."+col.name, JSON.stringify(result2.list.map(function(v){return v[col.name];})).left(3000));
+					});
+				}else if (["boolean", "integer", "date", "long"].contains(col.type)){
+					aThread.run(function(){
+						var query={
+							"from":index,
+							"select":[
+								{"name":"min", "value":index+"."+col.name, "operation":"minimum"},
+								{"name":"max", "value":index+"."+col.name, "operation":"maximum"}
+							]
+						};
+
+						var result=yield (ESQuery.run(query));
+						
+						addToTable(index+"."+col.name, "{min:"+result.min+",max:"+result.max+"}");
 					});
 				}else{
 					D.error("do not know what to do here");
@@ -179,7 +189,10 @@ var createChart=function(){
 
 };
 
-
+var addToTable=function(name, value){
+	var tbody=$("#theTable tbody");
+	tbody.append("<tr>"+CNV.tag("td", name)+CNV.tag("td", value)+"</tr>");
+};//method
 
 
 

@@ -132,7 +132,7 @@ ElasticSearchQuery.prototype.success = function(data){
 		}catch(e){
 
 		}
-		D.error("Maybe you are not connected to Mozilla-MPT?");
+		D.warning("Maybe you are not connected to Mozilla-MPT?");
 	}//endif
 	if (this.callbackObject===undefined) return;
 	if (this.callbackObject.success===undefined) D.error("ElasticSearchQuery - Can not report back success!!");

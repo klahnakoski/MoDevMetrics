@@ -139,22 +139,38 @@ var __createChart = function(){
 			{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
 		]},
 		"esfilter":{"and":[
-			{"not": {"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}}
+			{"not": {"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}},
+			{"range":{"expires_on":{"gt":Date.now().getMilli()}}},
+			{ "nested": {
+				"path" : "attachments.flags",
+				"query": {
+					"filtered" : {
+						"query" : {
+							"match_all" : {}
+						},
+						"filter" : {
+							"and":[
+								{"terms" : {"attachments.flags.request_type" : ["review", "superreview"]}},
+								{"terms" : {"attachments.flags.request_status" : ["?"]}},
+								{"missing" : {"field" : "attachments.flags.review_time"}}
+							]
+						}
+					}
+				}
+			}}
 		]}
 	})));
 
 	var result = (yield (CUBE.calc2List({
 		"from":	reviews.list,
 		"select":[
-			{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
-			{"name":"average_wait_time", "value":"Date.eod().getMilli()-request_time", operation:"average", "sort":"descending"},
-			{"name":"bugs", "value":"bug_id", operation:"join", "separator":", "}
+			{"name":"wait_time", "value":"Date.eod().getMilli()-request_time", operation:"maximum", "sort":"descending"}
 		],
 		"edges":[
-			{"name":"requester", "value":"requester"}
+			"bug_id"
 		],
 		"sort":[
-			"numPending"
+			"wait_time"
 		]
 	}))).list;
 
@@ -162,9 +178,8 @@ var __createChart = function(){
 	result=(yield (CUBE.calc2List({
 		"from":result,
 		"select":[
-			{"name":"Number Requested", value:"numPending"},
-			{"name":"Average Response Time", "value":"Math.round(average_wait_time/"+Duration.MILLI_VALUES.day+", 2)"},
-			{"name":"Bug List", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
+			{"name":"Bug ID", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bug_id).replaceAll(', ', '%2C')+\"'>\"+bug_id+\"</a>\""},
+			{"name":"Wait Time", "value":"Math.round(wait_time/"+Duration.MILLI_VALUES.day+", 2)+\"days\""}
 		]
 	}))).list;
 

@@ -210,7 +210,7 @@ String.prototype.replaceVars = function(values){
 };//method
 
 String.prototype.left = function(amount){
-	return this.substring(0, amount);
+	return this.substring(0, Math.min(this.length, amount));
 };//method
 
 String.prototype.right = function(amount){
