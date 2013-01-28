@@ -1,16 +1,18 @@
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <!-- This Source Code Form is subject to the terms of the Mozilla Public
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
+	<script type="application/javascript;version=1.7" src="../js/Settings.js"></script>
 </HEAD>
 <BODY>
 
 
 
-
 <script type="application/javascript;version=1.7" src="../lib/webdetails/cdf/Base.js"></script>
-<script type="application/javascript;version=1.7" src="../lib/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/webdetails/cdf/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/jstree/jquery.jstree.js"></script>
 <script type="application/javascript;version=1.7" src="../lib/webdetails/cdf/jquery.tooltip.js"></script>
 <script type="application/javascript;version=1.7" src="../lib/webdetails/data/q01-01.js"></script>
 <script type="application/javascript;version=1.7" src="../lib/webdetails/lib/protovis-d3.3.js"></script>
@@ -34,6 +36,13 @@
 
 <script type="application/javascript;version=1.7" src="../lib/webdetails/pvcDocUtils.js"></script>
 
+
+
+
+
+
+
+
 <link type="text/css" href="../css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
 <script type="application/javascript;version=1.7" src="../lib/js/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="application/javascript;version=1.7" src="../lib/js/jquery.ba-bbq.js"></script>
@@ -42,12 +51,14 @@
 
 
 
-
 <script type="application/javascript;version=1.7" src="../js/CNV.js"></script>
-<script type="application/javascript;version=1.7" src="../js/util.js"></script>
-<script type="application/javascript;version=1.7" src="../js/aDate.js"></script>
+<script type="application/javascript;version=1.7" src="../js/util.js"></script><script type="application/javascript;version=1.7" src="../js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="../js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="../js/MozillaDimensions.js"></script>
+<script type="application/javascript;version=1.7" src="../js/Bugzilla.js"></script>
+
+<script type="application/javascript;version=1.7" src="../js/Stats.js"></script>
 <script type="application/javascript;version=1.7" src="../js/Debug.js"></script>
 <script type="application/javascript;version=1.7" src="../js/MVEL.js"></script>
 <script type="application/javascript;version=1.7" src="../js/aCompiler.js"></script>
@@ -78,13 +89,18 @@
 
 <script type="application/javascript;version=1.7" src="../js/gui/Filter.js"></script>
 <script type="application/javascript;version=1.7" src="../js/gui/ComponentFilter.js"></script>
+<script type="application/javascript;version=1.7" src="../js/gui/TeamFilter.js"></script>
 <script type="application/javascript;version=1.7" src="../js/gui/ProductFilter.js"></script>
+<script type="application/javascript;version=1.7" src="../js/gui/ClassificationFilter.js"></script>
 <script type="application/javascript;version=1.7" src="../js/gui/ProgramFilter.js"></script>
-<script type="application/javascript;version=1.7" src="../js/gui/CustomFilters.js"></script>
+
 <script type="application/javascript;version=1.7" src="../js/gui/GUI.js"></script>
+<script type="application/javascript;version=1.7" src="../js/etl/BugTags.js"></script>
+<script type="application/javascript;version=1.7" src="../js/gui/PickDim.js"></script>
 
 
-<h3>Give me a name</h3>
+
+<h3>Security Bug Count - by Priority</h3>
 <div id="sidebar">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="../images/spinner.gif" alt=""></span>
@@ -95,85 +111,133 @@
 	<hr>
 	<div id="testMessage"></div>
 	<hr>
+	<div id="stats"></div>
+	<hr>
 	<div id="parameters" class="parameters">
 	</div>
 	<div id="filters" class="menu"></div>
 </div>
 
 <div style="float:right;display: inline;">
-	<a href="../http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
 </div>
-<div id="chart" style="position:relative;"></div>
-
+<div style="position:relative;">
+	<div id="chart" style="position:relative;"></div>
+	<div id="selector" style="position:relative;width:700px"></div>
+</div>
 <div id="info"></div>
 <div id="report"></div>
 
 
-
-
 <script type="application/javascript;version=1.7">
 
-	//GUI.GetURLState();
 
-	var results = null;
+var CUTOFF=Duration.newInstance("3week");
+$("#description").html("<span class='warning'>This chart has already been filtered by the products important to the security team</span><br><br>"+
+		//" If you have a steady hand, you can click the values to get a new tab showing the bugs that makeup the value."+
+//		"<span class='warning'>The filters work, but the results may not be accurate:  They assume the filter value does not change until after the bug is closed.</span><br><br>"+
+		"");
 
-	var createChart = function(){
-		var chartRequest = {
-			"requests" :[
-				{
-					"query" : {
-						"query" : {
-							"wildcard" :{
-								"status_whiteboard.tokenized" : "in-test*"
-							}
-
-						},
-						"from" : 0,
-						"size" : 0,
-						"sort" : [],
-						"facets":{
-							"Whiteboard Items": {
-								"terms": {
-									"field": "status_whiteboard.tokenized",
-									"size": 1000000
-								}
-							}
-						}
-					},
-					"seriesName" : "Whiteboard"
-				}
-
-			]
-		};
-
-		//ES.InjectFilters( chartRequest.requests );
+var thread;
+var pickDim;
 
 
-		ElasticSearchQuery.Run({
-			"query":chartRequest.requests[0].query,
+var createChart=function(query){
+	if (thread!==undefined) thread.kill();
+	thread=aThread.run( __createChart(query));
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// paramQuery HAS THE esfilter AND ONE DIMENSION TO SPLIT ON
+////////////////////////////////////////////////////////////////////////////////
+var __createChart = function(paramQuery){
+
+	var sampleMin=Date.newInstance(GUI.state.sampleMin);
+	var sampleMax=Date.newInstance(GUI.state.sampleMax).ceilingDay();
+	var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
+
+	$("#title").html("Open Bug Count");
+
+	var createTime="doc[\"create_time\"].value";
+	var idTime=ProgramFilter.bugStatusMinimum_fromSource();
+	var testValue=ProgramFilter.bugStatusMinimum_fromDoc();
+	
+	
+	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
 
 
-			success: function(data){
-				var html = "<ul>";
 
-				var terms = data.facets['Whiteboard Items'].terms;
 
-				$("#chart").html(CNV.List2HTMLTable(terms));
+	var q={
+		"name":"Open Bug Count",
+		"from":"bugs",
+		"select": {"name":"total", "value":"bug_id", "operation":"count"},
+		"edges":[
+			{"name":"date",
+				"range":{"min":"modified_ts", "max":"expires_on"},
+				"allowNulls":false,
+				"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
 			}
-		});
+		],
+		"esfilter":{"and":[
+			{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},
+			{"range":{"expires_on":{"gte":sampleMin.getMilli()}}},
+			{"script":{"script":
+				MVEL.compile.expression(
+					"floorInterval(modified_ts-"+(sampleMin.getMilli()%sampleInterval.milli)+", "+sampleInterval.milli+")!=floorInterval(expires_on-"+(sampleMin.getMilli()%sampleInterval.milli)+", "+sampleInterval.milli+")",
+					{"from":"bugs"}
+				)
+			}}
+		]}
 	};
 
-	//var filterUI = null;
+	if (!paramQuery) paramQuery=pickDim.getQuery();
+	if (paramQuery.edges.length>0) q.edges.prepend(paramQuery.edges[0]);
+	q.esfilter.and.appendArray(paramQuery.esfilter);
+	q.esfilter.and.appendArray(GUI.getFilters("bugs").and);
+
+
+	var a=D.action("Request Bugs", true);
+	var chart=yield(ESQuery.run(q));
+	D.actionDone(a);
+
+
+	a=D.action("Make chart", true);
+	aChart.show({
+		"id":"chart",
+		"sheetDiv":"info",
+		"type":"stacked",
+		"stacked":true,
+		"cube":chart
+	});
+	D.actionDone(a);
+
+
+};
+
+
+
+
 
 	$(document).ready(function(){
-		//filterUI = new ProductFilter();
-		//UpdateTextFields();
-		createChart();
+		GUI.setup([
+			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
+			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today()},
+			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"week"},
+			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
+		],
+		[
+			"sampleMin=Date.newInstance(sampleMin).addDay(1).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
+			"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+		],
+		"bugs");
+
+		pickDim=new PickDim($("#selector"), Mozilla, window.createChart);
 	});
 
-	//Code for updating URL paramaters: window.location('address_goes_here');
 </script>
 
 
 </BODY>
 </HTML>
+

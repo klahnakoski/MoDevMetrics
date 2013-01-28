@@ -121,7 +121,7 @@ CUBE.aggregate.none = function(select){
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// THE AGGREGATE MAY BE ACCUMULATED MANY TIMES< BUT ONLY ONE VALUE IS SET
+// THE AGGREGATE MAY BE ACCUMULATED MANY TIMES BUT ONLY ONE VALUE IS SET
 CUBE.aggregate.one = function(select){
 	select.defaultValue = function(){
 		return null;
@@ -211,4 +211,66 @@ CUBE.aggregate.minimum = function(select){
 	};//method
 
 	select.domain = CUBE.domain.value;
+};
+
+
+CUBE.aggregate.percentile = function(select){
+	select.defaultValue = function(){
+		return {list:[]};
+	};//method
+
+	select.add = function(total, v){
+		if (v === undefined || v == null) return total;
+
+		total.list.push(v);
+
+		return total;
+	};//method
+
+	select.domain = {
+		//HOPEFULLY WE WILL NEVER NEED TO SORT PERCENTILES!!!
+		compare:function(a, b){
+			D.error("Please, NO!");
+
+			a = select.end(a);
+			b = select.end(b);
+
+			if (a == null){
+				if (b == null) return 0;
+				return -1;
+			} else if (b == null){
+				return 1;
+			}//endif
+
+			return ((a < b) ? -1 : ((a > b) ? +1 : 0));
+		},
+
+		NULL:null,
+
+		getCanonicalPart:function(value){
+			return value;
+		},
+
+		getKey:function(partition){
+			return partition;
+		},
+
+		end :function(total){
+			var l=total.list;
+			if (l.length == 0) return null;
+
+			//THE Stats CAN ONLY HANDLE NUMBERS, SO WE CONVERT TYPES TO NUMBERS AND BACK AGAIN WHEN DONE
+			if (l[0].milli){
+				for(let i=l.length;i--;) l[i]=l[i].milli;
+				let output=Stats.percentile(l, select.percentile);
+				return Duration.newInstance(output);
+			}else if (total.list[0].getMilli){
+				for(let i=l.length;i--;) l[i]=l[i].getMilli();
+				let output=Stats.percentile(l, select.percentile);
+				return Date.newInstance(output);
+			}else{
+				return Stats.percentile(l, select.percentile);
+			}//endif
+		}
+	};
 };

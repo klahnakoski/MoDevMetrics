@@ -36,7 +36,7 @@ Rest.send=function(ajaxParam){
 			callback(new Exception(errorData));
 		};
 	}//endif
-	if (typeof(ajaxParam.data)!="string") ajaxParam.data=JSON.stringify(ajaxParam.data);
+	if (typeof(ajaxParam.data)!="string") ajaxParam.data=CNV.Object2JSON(ajaxParam.data);
 	if (!ajaxParam.async) ajaxParam.async=true;
 	ajaxParam.success=callback;
 

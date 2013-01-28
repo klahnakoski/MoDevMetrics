@@ -165,7 +165,7 @@ h4 {
 
 .warning {
     font-family: 'Open Sans', sans-serif;
-      font-size:1.0em;
+    font-size:1.0em;
     font-weight: bold;
     color: red;
 }
@@ -185,8 +185,8 @@ h4 {
 
 .table th, .table td {
     border-top: 1px solid rgba(0, 0, 0, 0.2);
-    padding: 10px 20px 10px 0;
-    text-align: left
+    padding: 5px 20px 5px 0;
+    text-align: left;
 }
 
 .table thead th, .table thead td {
@@ -196,6 +196,89 @@ h4 {
     font-family: 'Open Sans Light', sans-serif;
     font-weight: normal
 }
+
+
+
+table.layout, tr, td, tbody, thead {
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+
+.chart {
+    width: 800px;
+    height: 300px;
+    float: left;
+    position: relative;
+    border: 1px solid #aaaaaa;
+    border-bottom-color: white;
+    border-right-color: white;
+    margin: -1px;
+    paddin: 10px;
+}
+
+
+
+/*******************************************************************************
+ * DIMENSION SELECTOR
+ ******************************************************************************/
+
+.dim-container {
+    position: relative;
+    overflow: hidden;
+    width:100%;
+    height:40px;
+}
+
+.dim-container .position {
+    position: absolute;
+    height:40px;
+    top:0px;
+    margin: 0;
+    padding: 0;
+    white-space:nowrap;
+}
+
+
+.dim-container .position span {
+    display: inline-block;
+    border-radius: .25em;
+    border: 0;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+
+    height:16px;
+    background-image: linear-gradient(#3c88cc, #276195);
+    margin: 4px 4px 4px 4px;
+    padding: 8px 8px;
+
+    color: #fff;
+    text-align: center;
+    font-size: 16px;
+    line-height: 16px;
+    text-decoration: none;
+    font-family: 'Open Sans', sans-serif;
+
+}
+
+.dim-container .position span:hover {
+    box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.1), inset 0 -2px 0 0 rgba(0, 0, 0, 0.2), inset 0 -12px 24px -12px #ffffff
+}
+
+
+.dim-container .position span.selected{
+    background-image: linear-gradient(#81bc2e, #659324);
+    color: #fff;
+    text-decoration: none;
+}
+
+
+.dim-addremove {
+    width:40px;
+    text-align:center;
+}
+
+
 
 
 
@@ -210,6 +293,16 @@ span.parameter_name {
     width: 150px;
     text-align: right;
     margin-right: 10px;
+}
+
+span.parameter_value {
+    font-weight:bold;
+}
+
+
+
+span.parameter_value:hover {
+    box-shadow: 2px 2px 2px 2px rgb(0,0,0);
 }
 
 span.parameter_error {
@@ -394,6 +487,7 @@ TOOLBAR
     background-image: -o-linear-gradient(#3c88cc, #276195);
     -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#3c88cc', endColorstr='#276195', GradientType=0)";
     background-image: linear-gradient(#3c88cc, #276195);
+
     color: #fff;
     text-align: center;
     vertical-align: middle;
@@ -405,6 +499,10 @@ TOOLBAR
     line-height: 20px;
     text-decoration: none;
     border: 0;
+    position: absolute;
+    /*right: 0;*/
+    /*bottom: 0;*/
+
     text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
     font-family: 'Open Sans', sans-serif;
     -webkit-transition: all linear .25s;
@@ -428,6 +526,64 @@ TOOLBAR
 }
 
 .toolbutton:focus, .toolbutton:link:focus, .toolbutton:visited:focus, .toolbutton.focus, .toolbutton:link.focus, .toolbutton:visited.focus {
+    outline-color: #484848
+}
+
+
+.smalltoolbutton, .smalltoolbutton:link, .smalltoolbutton:visited {
+    display: inline-block;
+    *display: inline;
+    *zoom: 1;
+    box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.1), inset 0 -2px 0 0 rgba(0, 0, 0, 0.2);
+    background-color: #3c88cc;
+    background-color: #276195;
+    background-repeat: repeat-x;
+    background-image: -khtml-gradient(linear, left top, left bottom, from(#3c88cc), to(#276195));
+    background-image: -moz-linear-gradient(#3c88cc, #276195);
+    background-image: -ms-linear-gradient(#3c88cc, #276195);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #3c88cc), color-stop(100%, #276195));
+    background-image: -webkit-linear-gradient(#3c88cc, #276195);
+    background-image: -o-linear-gradient(#3c88cc, #276195);
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#3c88cc', endColorstr='#276195', GradientType=0)";
+    background-image: linear-gradient(#3c88cc, #276195);
+
+    color: #fff;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 14px;
+    /*margin: 4px 4px 4px 4px;*/
+    padding: 2px 0px 0px 0px;
+    height: 20px;
+    width: 20px;
+    line-height: 10px;
+    text-decoration: none;
+    border: 0;
+    right: 0;
+    bottom: 0;
+
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+    font-family: 'Open Sans', sans-serif;
+    -webkit-transition: all linear .25s;
+    -moz-transition: all linear .25s;
+    -o-transition: all linear .25s;
+    -ms-transition: all linear .25s;
+    transition: all linear .25s
+}
+
+.smalltoolbutton:hover, .smalltoolbutton:link:hover, .smalltoolbutton:visited:hover, .smalltoolbutton.hover, .smalltoolbutton:link.hover, .smalltoolbutton:visited.hover, .smalltoolbutton:focus, .smalltoolbutton:link:focus, .smalltoolbutton:visited:focus, .smalltoolbutton.focus, .smalltoolbutton:link.focus, .smalltoolbutton:visited.focus {
+    -webkit-box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.1), inset 0 -2px 0 0 rgba(0, 0, 0, 0.2), inset 0 12px 24px 2px #3089d8;
+    -moz-box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.1), inset 0 -2px 0 0 rgba(0, 0, 0, 0.2), inset 0 12px 24px 2px #3089d8;
+    box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.1), inset 0 -2px 0 0 rgba(0, 0, 0, 0.2), inset 0 12px 24px 2px #3089d8;
+    color: #fff;
+    text-decoration: none;
+    -webkit-transition: all linear .25s;
+    -moz-transition: all linear .25s;
+    -o-transition: all linear .25s;
+    -ms-transition: all linear .25s;
+    transition: all linear .25s
+}
+
+.smalltoolbutton:focus, .smalltoolbutton:link:focus, .smalltoolbutton:visited:focus, .smalltoolbutton.focus, .smalltoolbutton:link.focus, .smalltoolbutton:visited.focus {
     outline-color: #484848
 }
 

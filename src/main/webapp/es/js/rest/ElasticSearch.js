@@ -3,7 +3,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-ElasticSearch={};
+ElasticSearch=function(esquery){
+	this.esquery=esquery;
+};
 
 
 //THE CONTENT FOUNDNAT https://metrics.mozilla.com/bugzilla-analysis IS ACTUALLY
@@ -33,6 +35,24 @@ if (window.location.hostname=="metrics.mozilla.com"){
 
 }//endif
 
+
+
+ElasticSearch.search=function(esquery){
+	var output=yield (Rest.post({
+		url: window.ElasticSearch.queryURL,
+		data: CNV.Object2JSON(esquery),
+		dataType: "json"
+	}));
+
+	yield (output);
+};
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// THE REST OF THIS FILE IS DEPRECIATED
+////////////////////////////////////////////////////////////////////////////////
 
 
 ElasticSearch.makeBasicQuery=function(esfilter){
@@ -115,7 +135,7 @@ ElasticSearchQuery.prototype.Run = function(){
 	this.request = $.ajax({
 		url: window.ElasticSearch.queryURL,
 		type: "POST",
-		data: JSON.stringify(this.query),
+		data: CNV.Object2JSON(this.query),
 		dataType: "json",
 
 		success: function(data){
@@ -127,12 +147,14 @@ ElasticSearchQuery.prototype.Run = function(){
 
 ElasticSearchQuery.prototype.success = function(data){
 	if (data==null){
-		try{
-			D.action("Not connected?");
-		}catch(e){
-
-		}
+		D.action("Not connected?");
 		D.warning("Maybe you are not connected to Mozilla-MPT?");
+		try{
+			this.callbackObject.success(data);
+		}catch(e){
+			D.warning("Problem calling success()", e);
+		}//try
+		return;
 	}//endif
 	if (this.callbackObject===undefined) return;
 	if (this.callbackObject.success===undefined) D.error("ElasticSearchQuery - Can not report back success!!");

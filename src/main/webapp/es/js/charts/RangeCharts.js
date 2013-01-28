@@ -341,7 +341,7 @@ RangeChart.prototype.ConvertToChartData = function(){
 		}
 	}
 
-	//D.println( JSON.stringify( chartData ));
+	//D.println( CNV.Object2JSON( chartData ));
 
 	return chartData;
 };

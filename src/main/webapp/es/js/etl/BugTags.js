@@ -4,7 +4,7 @@
 
 
 importScript("ETL.js");
-importScript("../filters/ProgramFilter.js");
+importScript("../gui/ProgramFilter.js");
 
 
 var BUG_TAGS={};
@@ -231,5 +231,4 @@ BUG_TAGS.addMissing=function(){
 
 	yield (ETL.updateAlias(BUG_TAGS));
 
-	D.action("Done");
-};
+	};

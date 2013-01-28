@@ -4,7 +4,7 @@
 
 
 importScript("ETL.js");
-importScript("../filters/ProgramFilter.js");
+importScript("../gui/ProgramFilter.js");
 
 
 

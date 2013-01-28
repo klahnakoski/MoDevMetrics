@@ -76,6 +76,9 @@ CNV.JSON2Object = function(json){
 CNV.Object2JSON = function(json){
 //	return JSON.stringify(json);
 	if (json instanceof Array){
+		let singleLine=JSON.stringify(json);
+		if (singleLine.length<60) return singleLine;
+
 		if (json.length==0) return "[]";
 		if (json.length==1) return "["+CNV.Object2JSON(json[0])+"]";
 
@@ -84,12 +87,12 @@ CNV.Object2JSON = function(json){
 			return CNV.Object2JSON(v).indent(1);
 		}).join(",\n")+"\n]";
 	}else if (json instanceof Object){
-		var singleLine=JSON.stringify(json);
+		let singleLine=JSON.stringify(json);
 		if (singleLine.length<60) return singleLine;
 
 		var keys=Object.keys(json);
 		if (keys.length==0) return "{}";
-		if (keys.length==1) return "{\""+keys[0]+"\":"+CNV.Object2JSON(json[keys[0]]).indent(1).trim()+"}";
+		if (keys.length==1) return "{\""+keys[0]+"\":"+CNV.Object2JSON(json[keys[0]]).trim()+"}";
 
 		return "{\n\t"+mapAllKey(json, function(k, v){
 			if (v===undefined) return "";
@@ -97,6 +100,14 @@ CNV.Object2JSON = function(json){
 		}).join(",\n\t")+"\n}";
 	}else if (json instanceof Date){
 		return json.format("yyyy-NNN-dd HH:mm:ss");
+//TOO BAD: CAN NOT PROVIDE FORMATTED STRINGS
+//	}else if (typeof(json)=="string"){
+//		var output=JSON.stringify(json);
+//		if (json.length>40 && json.indexOf("\n")>=0){
+//			return "\n\t"+output.split("\\n").join("\\n\"+\n\t\"");
+//		}else{
+//			return output;
+//		}//endif
 	}else{
 		return JSON.stringify(json);
 	}//endif
@@ -294,6 +305,9 @@ HTML.tag=function(tagName, value){
 		}else{
 			return "<"+tagName+" style='text-align:right;'>" + value + "</"+tagName+">";
 		}
+	}else if (value.milli){
+		//DURATION
+		"<"+tagName+">" + value.toString() + "</"+tagName+">";
 	} else if (value.getTime){
 		return "<"+tagName+">" + value.format("yyyy-NNN-dd HH:mm:ss") + "</"+tagName+">";
 	} else if (value.toString !== undefined){

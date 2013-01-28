@@ -76,6 +76,10 @@ CUBE.domain.value = {
 
 	getKey:function(part){
 		return part;
+	},
+
+	end:function(value){
+		return value;
 	}
 
 };
@@ -162,24 +166,7 @@ CUBE.domain.time = function(column, sourceColumns){
 		return value.format(d.format);
 	};//method
 
-	if (column.test === undefined){
-		d.getCanonicalPart = function(part){
-			return this.getPartByKey(part.value);
-		};//method
-
-		if (d.partitions === undefined){
-			d.partitions = [];
-			for(var v = d.min; v < d.max; v = v.add(d.interval)){
-				var partition = {
-					"value":v,
-					"min":v,
-					"max":v.add(d.interval),
-					"name":d.formatValue(v)
-				};
-				d.partitions.push(partition);
-			}//for
-		}//endif
-	} else{
+	if (column.test){
 		d.getCanonicalPart = undefined;  //DO NOT USE WHEN MULTIVALUED
 
 		var f =
@@ -203,7 +190,60 @@ CUBE.domain.time = function(column, sourceColumns){
 			"	return output;\n " +
 			"}";
 		eval(f);
+	}else if (column.range){
+		if (!column.range.min && !column.range.max){
+			D.error("Expecting the range parameter to have a min, or max, or both");
+		}//endif
+
+
+		d.getCanonicalPart = undefined;  //DO NOT USE WHEN MULTIVALUED
+
+		var f =
+			"d.getMatchingParts=function(__source){\n" +
+			"	if (__source==null) return [];\n";
+
+		for(var s = 0; s < sourceColumns.length; s++){
+			var v = sourceColumns[s].name;
+			//ONLY DEFINE VARS THAT ARE USED
+			if (column.range.min && column.range.min.indexOf(v) != -1){
+				f += "var " + v + "=__source." + v + ";\n";
+			}//endif
+			if (column.range.max && column.range.max.indexOf(v) != -1){
+				f += "var " + v + "=__source." + v + ";\n";
+			}//endif
+		}//for
+
+		var condition=[];
+		if (column.range.min){
+			condition.push(column.range.min+" <" + d.name + ".min");
+		}//endif
+		if (column.range.max){
+			condition.push(d.name + ".min" + " <= "+ column.range.max );
+		}//endif
+
+
+		f +=
+			"	var output=[];\n" +
+			"	for(var i=0;i<this.partitions.length;i++){\n" +
+			"		var " + d.name + "=this.partitions[i];\n" +
+			"		if ("+condition.join(" && ")+") output.push(" + d.name + ");\n " +
+			"	}\n " +
+			"	return output;\n " +
+			"}";
+		eval(f);
+
+	}else{
+		d.getCanonicalPart = function(part){
+			return this.getPartByKey(part.value);
+		};//method
+
+		if (d.partitions === undefined){
+			d.map={};
+			d.partitions = [];
+			CUBE.domain.time.addRange(d.min, d.max, d);
+		}//endif
 	}//endif
+
 
 	d.getPartByKey=function(key){
 		if (key == null  || key=="null") return this.NULL;
@@ -231,7 +271,7 @@ CUBE.domain.time = function(column, sourceColumns){
 		}//endif
 	} else{
 		d.map = {};
-		for(var v = 0; v < d.partitions.length; v++){
+		for(let v = 0; v < d.partitions.length; v++){
 			d.map[d.partitions[v].value] = d.partitions[v];  //ASSMUE THE DOMAIN HAS THE value ATTRBUTE
 		}//for
 	}//endif
@@ -309,7 +349,9 @@ CUBE.domain.duration = function(column, sourceColumns){
 //	}//endif
 
 
-	if (column.test === undefined){
+	if (column.range){
+		D.error("duration ranges not supported yet");
+	}else if (column.test === undefined){
 		d.getPartByKey = function(key){
 			if (key == null || key=="null") return this.NULL;
 			if (typeof(key)=="string") key=Duration.newInstance(key);

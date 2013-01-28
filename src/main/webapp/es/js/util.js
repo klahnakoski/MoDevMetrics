@@ -3,13 +3,30 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
+var MAP=function(key, value){
+	var output={};
+	output[key]=value;
+	return output;
+};//method
+
 var forAllKey=function(map, func){
 	var keys=Object.keys(map);
 	for(var i=keys.length;i--;){
 		var key=keys[i];
 		var val=map[key];
-		func(key, val);
+		if (val!==undefined) func(key, val);
 	}//for
+};
+
+var countAllKey=function(map){
+	var count=0;
+	var keys=Object.keys(map);
+	for(var i=keys.length;i--;){
+		var key=keys[i];
+		var val=map[key];
+		if (val!==undefined) count++;
+	}//for
+	return count;
 };
 
 var mapAllKey=function(map, func){

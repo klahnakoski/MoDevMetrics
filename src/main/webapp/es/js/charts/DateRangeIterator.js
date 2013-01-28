@@ -21,12 +21,11 @@ DateRangeIterator.prototype.NextQuery = function(){
 		this.request = new MultiElasticSearchQuery(this, queries);
 		this.request.Run();
 	}else{
-		D.action("Done");
-	}//endif
+			}//endif
 };
 
 DateRangeIterator.prototype.InjectDate = function(){
-	//D.println("InjuectDate: " + JSON.stringify( this.chartRequest ));
+	//D.println("InjuectDate: " + CNV.Object2JSON( this.chartRequest ));
 
 	var chartRequest = Util.jsonCopy(this.queries);
 
@@ -41,7 +40,7 @@ DateRangeIterator.prototype.InjectDate = function(){
 		}//endif
 	}//for
 
-	//D.println("InjuectDate: " + JSON.stringify( chartRequest ));
+	//D.println("InjuectDate: " + CNV.Object2JSON( chartRequest ));
 
 	return chartRequest;
 };

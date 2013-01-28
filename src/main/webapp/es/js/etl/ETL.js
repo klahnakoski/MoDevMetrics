@@ -182,7 +182,7 @@ ETL.incrementalInsert=function(etl){
 	var buglist=[]=data.edges[0].domain.partitions.map(function(v,i){
 		return v.value;
 	});
-	D.println(buglist.length+" bugs found: "+JSON.stringify(buglist));
+	D.println(buglist.length+" bugs found: "+CNV.Object2JSON(buglist));
 	//FIND EXISTING RECORDS FOR THOSE BUGS
 
 	//GET NEW RECORDS FOR THOSE BUGS

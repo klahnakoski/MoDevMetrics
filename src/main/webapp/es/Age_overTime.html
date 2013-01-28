@@ -4,6 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
+	<script type="application/javascript;version=1.7" src="js/Settings.js"></script>
 </HEAD>
 <BODY>
 
@@ -98,6 +99,8 @@
 
 
 
+<h3 id="title"></h3>
+
 <div id="sidebar">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
@@ -118,8 +121,11 @@
 <div style="float:right;display: inline;">
 	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
 </div>
-<h3 id="title"></h3>
-<div id="chart" style="position:relative;"></div>
+
+<div id="chart" class="chart" style="height:400px;width:800px;"></div>
+<br><br>
+<div id="timechart" class="chart" style="height:400px;width:800px;"></div>
+
 <div id="sheet"></div>
 <div id="info"></div>
 <div id="report"></div>
@@ -129,22 +135,30 @@
 
 
 var CUTOFF=Duration.newInstance("3week");
-$("#description").html("This chart includes all bugs <i>identified</i> between the Start and End Dates.  For closed bugs, the duration is defined from the time the bug is identified, to the time the bug is closed.  For open bugs, the duration is defined from the time the bug is identified, to the end of today (GMT).  These durations are partitioned into intervals, counted, and charted here.");
+$("#description").html("This chart includes all bugs <i>identified</i> in the given sample size, ending on Stats End Date.  For closed bugs, the duration is defined from the time the bug is identified, to the time the bug is closed.  For open bugs, the duration is defined from the time the bug is identified, to the end of today (GMT).  These durations are partitioned into weeks, counted, and charted here.<br><br>Percentile ages includes <i>both</i> ages of open and closed bugs that have been identified in the given sample size, ending on the date shown");
+
+var allBugs;
+
 
 var thread;
+var threadPercentiles;
+
 var createChart=function(){
-	if (thread!==undefined)
-		thread.kill();
+	if (thread!==undefined) thread.kill();
+	if (threadPercentiles!==undefined) threadPercentiles.kill();
 	thread=aThread.run( __createChart());
 };
 
 var __createChart = function(){
 
-	var sampleMin=Date.newInstance(GUI.state.sampleMin);
-	var sampleMax=Date.newInstance(GUI.state.sampleMax).ceilingDay();
+	var sampleSize=Duration.newInstance(GUI.state.sampleSize);
+	var sampleMax=Date.newInstance(GUI.state.endX).ceilingDay();
+	var sampleMin=sampleMax.subtract(sampleSize);
+	var startX=Date.newInstance(GUI.state.startX);
+	var endX=Date.newInstance(GUI.state.endX);
 
-	var sampleSize=sampleMax.subtract(sampleMin, Duration.newInstance(GUI.state.intervalX));
-	$("#title").html("Time to Resolution ("+sampleSize.toString()+" sample)");
+
+	$("#title").html("Time to Resolution over Time ("+sampleSize.toString()+" sample)");
 
 	var idTime=ProgramFilter.bugStatusMinimum_fromDoc();
 	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(doc[\"close_time\"].value), "+sampleMax.getMilli()+"))";
@@ -158,7 +172,7 @@ var __createChart = function(){
 		,
 		"edges":[
 			{"name":"bug_status", "value":closeTime+" < "+sampleMax.getMilli()+" ? \"Closed\" : \"Open\""},
-			{"name":"duration", "value":closeTime+"-"+idTime, "allowNulls":true, "domain":{"type":"duration", "min":"0", "max":GUI.state.maxX, "interval":GUI.state.intervalX}}
+			{"name":"duration", "value":closeTime+"-"+idTime, "allowNulls":true, "domain":{"type":"duration", "min":"0", "max":GUI.state.chartMax, "interval":Duration.WEEK}}
 		],
 		"esfilter":{"and":[
 			{"script":{"script":sampleMin.getMilli()+" <= "+idTime+" && "+idTime +" < "+sampleMax.getMilli()}},
@@ -168,68 +182,200 @@ var __createChart = function(){
 	}));
 	D.actionDone(a);
 
-	var average=yield(ESQuery.run({
-		"from":"bug_summary",
-		"select":[
-			{"name":"duration", "value":closeTime+"-"+idTime, "operation":"average"}
-		],
-		"esfilter":{"and":[
-			{"script":{"script":sampleMin.getMilli()+" <= "+idTime+" && "+idTime +" < "+sampleMax.getMilli()}},
-			ProductFilter.makeFilter(),
-			ComponentFilter.makeFilter()
-		]}
-	}));
+	aThread.run(function(){
+		var average=yield(ESQuery.run({
+			"from":"bug_summary",
+			"select":[
+				{"name":"duration", "value":closeTime+"-"+idTime, "operation":"average"}
+			],
+			"esfilter":{"and":[
+				{"script":{"script":sampleMin.getMilli()+" <= "+idTime+" && "+idTime +" < "+sampleMax.getMilli()}},
+				ProductFilter.makeFilter(),
+				ComponentFilter.makeFilter()
+			]}
+		}));
 
 
-	var stats = (yield(CUBE.calc2Cube({
-		"from": (yield (CUBE.Cube2List(durations))),
-		"select":[
-			{"name":"total", "value":"count", "operation":"sum"},
-			{"name":"num_open", "value":"bug_status=='Open' ? count : 0", "operation":"sum"},
-			{"name":"num_closed", "value":"bug_status=='Closed' ? count : 0", "operation":"sum"},
-			{"name":"under", "value":"(duration.value!=null && duration.value.milli<"+CUTOFF.milli+") ? count : 0", "operation":"sum"}
-		]
-	}))).cube;
+		var stats = (yield(CUBE.calc2Cube({
+			"from": (yield (CUBE.Cube2List(durations))),
+			"select":[
+				{"name":"total", "value":"count", "operation":"sum"},
+				{"name":"num_open", "value":"bug_status=='Open' ? count : 0", "operation":"sum"},
+				{"name":"num_closed", "value":"bug_status=='Closed' ? count : 0", "operation":"sum"},
+				{"name":"under", "value":"(duration.value!=null && duration.value.milli<"+CUTOFF.milli+") ? count : 0", "operation":"sum"}
+			]
+		}))).cube;
 
 
-	$("#stats").html(
-		'<span class="parameter_name">Total Bugs:</span><b>'+stats.total+'</b><br>'+
-		'<span class="parameter_name">Bugs Closed per week:</span><b>'+Math.round(stats.num_closed/(sampleSize.milli/Duration.MILLI_VALUES.week), 0)+'</b><br>'+
-		'<span class="parameter_name">Open Bugs Remaining:</span><b>'+Math.round(stats.num_open, 0)+'</b><br>'+
-		'<span class="parameter_name">% Under '+CUTOFF.toString()+'</span><b>'+Math.round(stats.under/stats.total*100, 1)+'%</b><br>'+
-		'<span class="parameter_name">Average Time Open:</span><b>'+Math.round(average.cube.duration/Duration.MILLI_VALUES.day, 2)+'days</b><br>'
-	);
+		$("#stats").html(
+			'<span class="parameter_name">Total Bugs:</span><b>'+stats.total+'</b><br>'+
+			'<span class="parameter_name">Bugs Closed per week:</span><b>'+Math.round(stats.num_closed/(sampleSize.milli/Duration.MILLI_VALUES.week), 0)+'</b><br>'+
+			'<span class="parameter_name">Open Bugs Remaining:</span><b>'+Math.round(stats.num_open, 0)+'</b><br>'+
+			'<span class="parameter_name">% Under '+CUTOFF.toString()+'</span><b>'+Math.round(stats.under/stats.total*100, 1)+'%</b><br>'+
+			'<span class="parameter_name">Average Time Open:</span><b>'+Math.round(average.cube.duration/Duration.MILLI_VALUES.day, 2)+'days</b><br>'
+		);
 
-	durations.edges[1].domain.NULL.name="Over "+GUI.state.maxX;
 
-	var a=D.action("Make chart", true);
+	});
+
+
+	threadPercentiles=aThread.run(function(){
+
+		var a=D.action("Get Time Stats", true);
+		allBugs=yield(ESQuery.run({
+			"from":"bug_summary",
+			"select":[
+				{"value":"bug_id"},
+				{"name":"birth", "value":ProgramFilter.bugStatusMinimum_fromDoc()},
+				{"name":"death", "value":closeTime}
+			],
+			"esfilter":{"and":[
+				{"range":MAP(ProgramFilter.bugStatusMinimum(), {"gte":startX.subtract(sampleSize).getMilli(), "lt":endX.getMilli()})},
+				ProductFilter.makeFilter(),
+				ComponentFilter.makeFilter()
+			]}
+//			"sort":[birth]
+		}));
+		D.actionDone(a);
+
+
+
+		chartStat(
+			"Percentile Age (days)",
+			{"type":"time", "min":startX, "max":endX, "interval":Duration.newInstance(GUI.state.intervalX)},
+			sampleSize
+		);
+
+
+
+
+//		$("#90").click(function(){
+//			chartStat(
+//				"Percentiles days)",
+//				{"type":"time", "min":startX, "max":endX, "interval":Duration.newInstance(GUI.state.intervalX)},
+//				sampleSize
+//			);
+//		});
+
+	});
+
+
+
+
+
+	durations.edges[1].domain.NULL.name="Over "+Math.floor(Duration.newInstance(GUI.state.chartMax).divideBy(Duration.WEEK))+"weeks";
+
+	a=D.action("Make chart", true);
 	aChart.show({
 		"id":"chart",
-		"sheetDiv":"info",
 		"sheetDiv":"sheet",
 		"type":"bar",
 		"stacked":true,
-		"cube":durations
+		"cube":durations,
+		"height":400,
+		"width":800
 	});
 	D.actionDone(a);
+
+
+
+};
+
+var chartStat=function(description, timeDomain, sampleSize){
+
+	if (allBugs==null) D.error("Please wait for data collection");
+
+	aThread.run(function(){
+
+		//SOME BUGS HAVE NEGATIVE AGE!!
+		allBugs.list=allBugs.list.map(function(v, i){
+			if (v.birth<v.death) return v
+		});
+//		for(var b=0;b<allBugs.list.length;b++){
+//			if (allBugs.list[b].birth>allBugs.list[b].death)
+//				allBugs.list[b].death=allBugs.list[b].birth+Duration.DAY.milli;
+////				D.error();
+//		}//for
+		yield (aThread.yield());
+
+//		Stats.calc2List({
+//			"from":allBugs,
+//			"select":[
+//				{"name":"average", "value":"Duration.newInstance(death-birth)", "operation":"average", "window":sampleSize},
+//				{"name":"_25_", "value":"Duration.newInstance(Math.min(death, time.min.getMilli())-birth)", "operation":"percentile", "percentile":0.25, "window":sampleSize},
+//				{"name":"_50_", "value":"Duration.newInstance(Math.min(death, time.min.getMilli())-birth)", "operation":"percentile", "percentile":0.5, "window":sampleSize},
+//				{"name":"_90_", "value":"Duration.newInstance(Math.min(death, time.min.getMilli())-birth)", "operation":"percentile", "percentile":0.9, "window":sampleSize}
+//			],
+//			"edges":[
+//				{"name":"birth_date", "value":"Date.newInstance(birth)", domain:timeDomain}
+//			]
+//		});
+
+		var values=Stats.ageOverTime(
+			allBugs.list,
+			timeDomain,
+			sampleSize,
+			function(values){
+				return Stats.percentiles(values, [
+					{"name":"_25_", "percentile":0.25},
+					{"name":"_50_", "percentile":0.5},
+					{"name":"_90_", "percentile":0.9}
+					]);
+			}
+		);
+
+		timeDomain.value="value";
+		values=yield (CUBE.calc2Cube({
+			"name":description,
+			"from":values,
+			"select":[
+				{"name":"25percentile", "value":"Math.round(Duration.newInstance(_25_).milli/Duration.DAY.milli,1)"},
+				{"name":"50percentile", "value":"Math.round(Duration.newInstance(_50_).milli/Duration.DAY.milli,1)"},
+				{"name":"90percentile", "value":"Math.round(Duration.newInstance(_90_).milli/Duration.DAY.milli,1)"}
+			],
+			"edges":[
+				{"value":"time", "domain":timeDomain}
+			]
+		}));
+
+		yield (aThread.yield());
+
+
+		$("#stats").append(
+			'<span class="parameter_name">90th percentile Age:</span><span id="90">'+values.cube[values.cube.length-1]["90percentile"]+'days</span><br>'
+		);
+
+
+		a=D.action("Make chart", true);
+		aChart.show({
+			"id":"timechart",
+			"sheetDiv":"sheet",
+			"type":"line",
+			"stacked":false,
+			"cube":values,
+			"height":400,
+			"width":800
+		});
+		D.actionDone(a);
+
+	});
+
 
 
 };
 
 
 
-
-
 	$(document).ready(function(){
 		GUI.setup([
-			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
-			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
-			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.WEEK},
-			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
-			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today()}
+			{"id":"sampleSize", "name":"Sample Size", "type":"duration", "default":Duration.newInstance("18week")},
+			{"id":"chartMax", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
+			{"id":"startX", "name":"Stats Start Date", "type":"time", "default":Date.eod().add("-1month")},
+			{"id":"endX", "name":"Stats End Date", "type":"time", "default":Date.today()},
+			{"id":"intervalX", "name":"Stats Interval", "type":"duration", "default":Duration.DAY}
 		],
 		[
-			"maxX=Duration.newInstance(maxX).add(Duration.newInstance(intervalX)).add(Duration.newInstance('-second')).floor(Duration.newInstance(intervalX)).toString()"
+			"endX=GUI.fixEndDate(startX, endX, intervalX).format('yyyy-MM-dd')"
 		],
 		"bug_summary");
 	});

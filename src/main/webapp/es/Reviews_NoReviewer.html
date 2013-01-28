@@ -82,14 +82,14 @@
 <script type="application/javascript;version=1.7" src="js/charts/RangeIterator.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/DateRangeIterator.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/filters/Filter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ComponentFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/TeamFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ClassificationFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ProgramFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/Filter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ComponentFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/TeamFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ProductFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ClassificationFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ProgramFilter.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/filters/GUI.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script>
 
 
 <div style="height: 30px; text-align: center;vertical-align:middle;">
@@ -179,15 +179,14 @@ var __createChart = function(){
 		"from":result,
 		"select":[
 			{"name":"Bug ID", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bug_id).replaceAll(', ', '%2C')+\"'>\"+bug_id+\"</a>\""},
-			{"name":"Wait Time", "value":"Math.round(wait_time/"+Duration.MILLI_VALUES.day+", 2)+\"days\""}
+			{"name":"Wait Time", "value":"Math.round(wait_time/"+Duration.MILLI_VALUES.day+", 1)+\"days\""}
 		]
 	}))).list;
 
 
 
 	var htmlSummary = "<h2>Reviews Requested, but no Requestee</h2>" + CNV.List2HTMLTable(result);
-	D.action("Done");
-//	D.println(CNV.Object2JSON(data));
+	//	D.println(CNV.Object2JSON(data));
 
 	document.getElementById("info").innerHTML = htmlSummary;
 

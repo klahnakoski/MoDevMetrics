@@ -70,7 +70,6 @@ D.action=function(message, waitForDone){
 	D.actionStack.push(action);
 	$("#status").html(message);
 	if (message.toLowerCase()=="done"){
-		if ($('.loading')!==undefined) $('.loading').hide();
 		$("#status").html(message);
 		return;
 	}//endif
@@ -88,7 +87,6 @@ D.actionDone=function(action){
 	action.end=Date.now();
 
 	if (D.actionStack.length==0) {
-		if ($('.loading')!==undefined) $('.loading').hide();
 		$("#status").html("Done");
 		return;
 	}//endif
@@ -99,7 +97,6 @@ D.actionDone=function(action){
 	D.println("done "+action.message+" "+action.end.format("HH:mm:ss")+" ("+action.end.subtract(action.start).floor(Duration.SECOND).toString()+")");
 
 	if (D.actionStack.length==0){
-		if ($('.loading')!==undefined) $('.loading').hide();
 		$("#status").html("Done");
 	}else{
 		$("#status").html(D.actionStack[D.actionStack.length-1].message);
@@ -129,7 +126,7 @@ Exception.prototype.toString=function(){
 	}else if (this.cause instanceof Exception){
 		return this.description + " caused by (\n" + this.cause.toString().indent(1) + "\n)\n";
 	}else{
-		return this.description + " caused by (" + this.cause + ")";
+		return this.description + " caused by (" + this.cause.message + ")";
 	}//endif
 };
 

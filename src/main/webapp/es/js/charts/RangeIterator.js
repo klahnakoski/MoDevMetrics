@@ -20,8 +20,7 @@ RangeIterator.prototype.NextQuery = function(){
 		this.request = new MultiElasticSearchQuery(this, queries);
 		this.request.Run();
 	}else{
-		D.action("Done");
-	}//endif
+			}//endif
 
 };
 

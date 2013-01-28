@@ -10,7 +10,7 @@ var Mozilla =
 				{"name":"New", "esfilter":{"term":{"bug_status":"new"}}},
 				{"name":"Assigned", "esfilter":{"term":{"bug_status":"assigned"}}},
 				{"name":"Unconfirmed", "esfilter":{"term":{"bug_status":"unconfirmed"}}},
-				{"name":"Reopened", "esfilter":{"term":{"bug_status":"reopened"}}},
+				{"name":"Reopened", "esfilter":{"term":{"bug_status":"reopened"}}}
 				//{"name":"Other", "esfilter":{"not":{"terms":{"bug_status":["resolved", "verified", "closed"]}}}}
 			]},
 			{"name":"Closed", "partitions":[

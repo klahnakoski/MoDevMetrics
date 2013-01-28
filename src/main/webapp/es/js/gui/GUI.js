@@ -35,11 +35,20 @@ GUI.state.customFilters = [];
 
 
 
+
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // GIVEN THE THREE, RETURN AN END DATE THAT WILL MAKE THE LAST PARTITION
 // INCLUDE A WHOLE INTERVAL, AND IS *INSIDE* THAT INTERVAL
 ////////////////////////////////////////////////////////////////////////////////
 GUI.fixEndDate=function(startDate, endDate, interval){
+	startDate=Date.newInstance(startDate);
+	endDate=Date.newInstance(endDate);
+	interval=Duration.newInstance(interval);
+	
 	var diff=endDate.add(interval).subtract(startDate, interval);
 
 	var newEnd=startDate.add(diff.floor(interval));
@@ -48,23 +57,6 @@ GUI.fixEndDate=function(startDate, endDate, interval){
 
 
 GUI.setup = function(parameters, relations, indexName){
-
-	//SHOW SPINNER
-	var found=$('.loading');
-	found
-		.hide()  // hide it initially
-		.ajaxStart(function() {
-			$(this).show();
-		})
-		.ajaxStop(function() {
-			$(this).hide();
-		})
-	;
-
-
-
-
-
 
 	GUI.state.programFilter = new ProgramFilter();
 	GUI.state.classificationFilter = new ClassificationFilter();
@@ -102,7 +94,7 @@ GUI.showLastUpdated = function(indexName){
 	aThread.run(function(){
 		var time;
 
-
+		var a=D.action("Get Status of ES Index", true);
 		if (indexName===undefined || indexName=="bugs"){
 			var result=yield (ESQuery.run({
 				"from":"bugs",
@@ -131,6 +123,7 @@ GUI.showLastUpdated = function(indexName){
 			GUI.bigWarning("#testMessage", Math.max(3, Math.floor(age)));
 		}//endif
 
+		D.actionDone(a);
 	});
 };//method
 
@@ -462,4 +455,16 @@ GUI.injectFilters = function(chartRequest){
 		ElasticSearch.injectFilter(chartRequest.esQuery, GUI.state.teamFilter.makeFilter());
 	}//endif
 
+};
+
+
+GUI.getFilters=function(indexName){
+	var output={"and":[]};
+	output.and.push(ProgramFilter.makeFilter(indexName));
+	output.and.push(ProductFilter.makeFilter());
+	output.and.push(ComponentFilter.makeFilter());
+	if (GUI.state.teamFilter){
+		output.and.push(GUI.state.teamFilter.makeFilter());
+	}//endif
+	return output;
 };

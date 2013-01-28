@@ -55,7 +55,7 @@
 		src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="application/javascript;version=1.7" src="lib/js/jquery.ba-bbq.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/GUIFunctions.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/GUI.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script>
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 <h2>This is very old, and broken</h2>
 <script type="application/javascript;version=1.7">
@@ -221,7 +221,7 @@
 
 		GUI.injectFilterss(chartRequest.requests);
 
-		console.log("chartRequest: " + JSON.stringify(chartRequest));
+		console.log("chartRequest: " + CNV.Object2JSON(chartRequest));
 
 		rangeChart = new RangeChart(chartRequest);
 		rangeChart.run();

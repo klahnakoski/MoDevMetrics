@@ -85,14 +85,14 @@
 <script type="application/javascript;version=1.7" src="js/charts/RangeIterator.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/DateRangeIterator.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/filters/Filter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ComponentFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/TeamFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ClassificationFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ProgramFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/Filter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ComponentFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/TeamFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ProductFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ClassificationFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ProgramFilter.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/filters/GUI.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script>
 <script type="application/javascript;version=1.7" src="js/etl/BugTags.js"></script>
 
 
@@ -118,7 +118,10 @@
 <div style="float:right;display: inline;">
 	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
 </div>
-<div id="chart" style="position:relative;"></div>
+
+<div id="chartResponse" style="width:400px;height:200px;float:left;display: inline;"></div>
+<div id="chartProducts" style="width:400px;height:200px;float:left;display: inline;"></div>
+<div id="chart" style="position: relative;"></div>
 
 <div id="info"></div>
 <div id="report"></div>
@@ -128,7 +131,7 @@
 
 
 var CUTOFF=Duration.newInstance("3week");
-$("#description").html("An attempt to get bug history to pull faster from ES<br><br>The initial load my be slow, an the chart boring, but it gets really amazing when you start filtering by program and product!");
+$("#description").html("An attempt to get bug history to pull faster from ES<br><br>The initial load my be slow, and the chart boring, but it gets really amazing when you start filtering by program and product!");
 
 var thread;
 var createChart=function(){
@@ -152,24 +155,51 @@ var __createChart = function(){
 	
 	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
 
+	var mainFilter={"and":[
+			{"and":[
+				{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},
+				{"range":{"expires_on":{"gte":sampleMin.getMilli()}}}
+			]},
+			{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-"+sampleMin.getMilli()+", "+sampleInterval.milli+")!=floorInterval(expires_on-"+sampleMin.getMilli()+", "+sampleInterval.milli+")", {"from":"bugs"})}},
+			{"not":{"terms":{"bug_status":["resolved", "verified", "closed"]}}},
+			GUI.getFilters("bugs")
+		]};
+
+
+
+	//CHART PRODUCT BREAKDOWN
+	aThread.run(function(){
+		var q=new ESQuery({
+			"name":"Product Breakdown",
+			"from":"bugs",
+			"select":{"name":"count", "value":"bug_id", "operation":"count"},
+			"edges":[
+				{"name":"product", "value":"product"}
+			],
+			"esfilter":{"and":[
+				mainFilter,
+				{"range":{"expires_on":{"gte":sampleMax.getMilli()}}}  //JUST PICK THE LAST DAY
+			]}
+		});
+
+		var response=yield (q.run());
+
+		aChart.showPie({
+			"id":"chartProducts",
+			"cube":response,
+			"height":200,
+			"width":400
+		});
+
+	});
+
+
+
+
+
 
 	var a=D.action("Request Bugs", true);
-//	var request=new ESQuery({
-//		"name":"Open Bug Count",
-//		"from":"bug_tags",
-//		"select": {"name":"bug_id", "value":"bug_id", "operation":"count"},
-//		"edges":[
-//			{"name":"date", "value":"date", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":"day"}}
-//		],
-//		"esfilter":{"and":[
-//			{"range":{"date":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
-//			{"not":{"terms":{"bug_status":["resolved", "verified", "closed"]}}}
-//		]}
-//	});
-
-
-	var request=new ESQuery({
-		"name":"Open Bug Count",
+	var chart=yield (ESQuery.run({
 		"from":"bugs",
 		"select":{"name":"num_bug", "value":"bug_id", "operation":"count"},
 		"edges":[
@@ -179,18 +209,9 @@ var __createChart = function(){
 				"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
 			}
 		],
-		"esfilter":{"and":[
-			{"and":[
-				{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},
-				{"range":{"expires_on":{"gte":sampleMin.getMilli()}}}
-			]},
-			{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-"+sampleMin.getMilli()+", "+sampleInterval.milli+")!=floorInterval(expires_on-"+sampleMin.getMilli()+", "+sampleInterval.milli+")", {"from":"bugs"})}},
-			{"not":{"terms":{"bug_status":["resolved", "verified", "closed"]}}}
-		]}
-	});
+		"esfilter":mainFilter
+	}));
 
-	GUI.injectFilters(request);
-	var chart=yield(request.run());
 
 	D.actionDone(a);
 
@@ -204,8 +225,6 @@ var __createChart = function(){
 		"cube":chart
 	});
 	D.actionDone(a);
-	D.action("Done");
-
 };
 
 

@@ -115,13 +115,25 @@ ESQuery.prototype.run = function(){
 	try{
 		postResult=yield (Rest.post({
 			url: this.query.url,
-			data: JSON.stringify(this.esQuery),
+			data: CNV.Object2JSON(this.esQuery),
 			dataType: "json",
 			headers:{
 				"Accept-Encoding": "gzip,deflate"//Accept-Encoding: gzip,deflate
 //				"http.compress":"true"
 			}
 		}));
+
+		var self=this;
+		forAllKey(postResult.facets, function(facetName, f){
+			if (f._type=="statistical") return;
+			if (!f.terms) return;
+			
+			if (f.terms.length==self.query.essize){
+				D.error("Not all data delivered ("+f.terms.length+"/"+f.total+") try smaller range");
+			}//endif
+		});
+
+		
 
 		if (postResult._shards.failed>0){
 			D.action(postResult._shards.failed+"of"+postResult._shards.total+" shards failed.");
@@ -407,15 +419,8 @@ ESQuery.buildCondition = function(edge, partition, query){
 		if (["time", "duration", "linear"].contains(edge.domain.type)){
 			output={"and":[]};
 
-			//I WISH THIS WAS GLOBAL, BUT I WILL FORGET AND MAKE IT AGAIN NEXT TIME
-			var map=function(key, value){
-				var output={};
-				output[key]=value;
-				return output;
-			};//method
-
 			if (MVEL.isKeyword(edge.range.min)){
-				output.and.push({"range":map(edge.range.min,{"lt":MVEL.Value2Code(partition.min)})});
+				output.and.push({"range":MAP(edge.range.min,{"lt":MVEL.Value2Code(partition.min)})});
 			}else{
 				//WHOA!! SUPER SLOW!!
 				output.and.push({"script":{"script":MVEL.compile.expression(
@@ -424,7 +429,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 			}//endif
 
 			if (MVEL.isKeyword(edge.range.max)){
-				output.and.push({"range":map(edge.range.max,{"gte":MVEL.Value2Code(partition.min)})});
+				output.and.push({"range":MAP(edge.range.max,{"gte":MVEL.Value2Code(partition.min)})});
 			}else{
 				//WHOA!! SUPER SLOW!!
 				output.and.push({"script":{"script":MVEL.compile.expression(
@@ -987,7 +992,7 @@ ESQuery.prototype.compileSetOp=function(){
 	this.esQuery.facets.mvel={
 		"terms":{
 			"script_field": new MVEL().code(this.query),
-			"size": 100000
+			"size": this.query.essize
 		}
 	};
 };
@@ -1014,7 +1019,7 @@ ESFilter.simplify=function(esfilter){
 //THIS TAKES TOO LONG TO TRANSLATE ALL THE LOGIC FOR THOUSANDS OF FACETS
 //	var normal=ESFilter.normalize(esfilter);
 //	if (normal.or && normal.or.length==1) normal=normal.or[0];
-//	var clean=CNV.JSON2Object(JSON.stringify(normal).replaceAll('"isNormal":true,', '').replaceAll(',"isNormal":true', '').replaceAll('"isNormal":true', ''));
+//	var clean=CNV.JSON2Object(CNV.Object2JSON(normal).replaceAll('"isNormal":true,', '').replaceAll(',"isNormal":true', '').replaceAll('"isNormal":true', ''));
 //
 //	//REMOVE REDUNDANT FACTORS
 //	//REMOVE false TERMS
@@ -1053,17 +1058,10 @@ D.println("from: "+CNV.Object2JSON(esfilter));
 		output=null;
 
 		if (esfilter.terms){									//TERMS -> OR.TERM
-
-			var map=function(name, value){
-				var output={};
-				output[name]=value;
-				return output;
-			};
-
 			var fieldname=Object.keys(esfilter.terms)[0];
 			output={};
 			output.or=esfilter.terms[fieldname].map(function(t, i){
-				return {"and":[{"term":map(fieldname, t)}], "isNormal":true};
+				return {"and":[{"term":MAP(fieldname, t)}], "isNormal":true};
 			});
 		}else if (esfilter.not && esfilter.not.or){				//NOT.OR -> AND.NOT
 			output={};

@@ -33,9 +33,7 @@ ProgramFilter.makeFilter = function(indexName){
 					name="keywords";
 				}//endif
 
-				var term = {};
-				term[name] = value;
-				or.push({"prefix":term});
+				or.push({"term":MAP(name, value)});
 			}//endif
 		}//for
 	}//for
@@ -59,23 +57,7 @@ ProgramFilter.makeQuery = function(filters){
 		}//endif
 
 		programCompares[project]=Util.coalesce(programCompares[project], []);
-		var filter={"prefix":{}};
-		filter.prefix[name]=value;
-		programCompares[project].push(filter);
-
-
-		//FOR THE SINGLE FACET AND ALL TERMS
-//		if (name.indexOf(".tokenized") >= 0){
-//			name = name.leftBut(10);
-//			compare="if (_source." + name + ".indexOf(" + CNV.String2Quote(value) + ")>=0) return " + CNV.String2Quote(project) + ";\n";
-//			allCompares += compare;
-//		} else if (name=="keywords"){
-//			compare="if (_source." + name + ".indexOf(" + CNV.String2Quote(value) + ")>=0) return " + CNV.String2Quote(project) + ";\n";
-//			allCompares += compare;
-//		} else{
-//			compare="if (bugs." + name + "==" + CNV.String2Quote(value) + ") return " + CNV.String2Quote(project) + ";\n";
-//			allCompares += compare;
-//		}//enidf
+		programCompares[project].push({"term":MAP(name, value)});
 	}//for
 
 
@@ -237,6 +219,7 @@ ProgramFilter.bugStatusMinimum_fromDoc=function(){
 
 	return idTime;
 };//method
+
 //RETURN MINIMUM VALUE OF ALL SELECTED PROGRAMS
 ProgramFilter.bugStatusMinimum_fromSource=function(){
 	var idTime;
@@ -244,6 +227,17 @@ ProgramFilter.bugStatusMinimum_fromSource=function(){
 		idTime="bug_summary.create_time";
 	}else{
 		idTime=ProgramFilter.minimum(GUI.state.selectedPrograms.map(function(v, i){return "bug_summary[\""+v+"_time\"]"}));
+	}//endif
+
+	return idTime;
+};//method
+
+ProgramFilter.bugStatusMinimum=function(){
+	var idTime;
+	if (GUI.state.selectedPrograms.length==0){
+		idTime="create_time";
+	}else{
+		idTime=GUI.state.selectedPrograms[0]+"_time";
 	}//endif
 
 	return idTime;

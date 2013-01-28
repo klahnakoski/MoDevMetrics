@@ -92,7 +92,7 @@ IntegrityTest.prototype.success = function(data){
 };
 
 IntegrityTest.prototype.successBugzilla = function(data){
-//	info.addMessage( "Bugzilla Result: " + JSON.stringify( data ) );
+//	info.addMessage( "Bugzilla Result: " + CNV.Object2JSON( data ) );
 	this.dataSet.bugzilla.raw = data;
 
 
@@ -103,14 +103,14 @@ IntegrityTest.prototype.successBugzilla = function(data){
 };
 
 IntegrityTest.prototype.successElastic = function(data){
-//	info.addMessage( "Elastic Result: " + JSON.stringify( data ) );
+//	info.addMessage( "Elastic Result: " + CNV.Object2JSON( data ) );
 
 	this.dataSet.elastic.raw = data;
 	this.dataSet.elastic.found = data.hits.total;
 };
 
 IntegrityTest.prototype.error = function(errorData, errorMsg, errorThrown){
-	info.addMessage(errorMsg + ": " + JSON.stringify(errorData) + ", " + errorThrown);
+	info.addMessage(errorMsg + ": " + CNV.Object2JSON(errorData) + ", " + errorThrown);
 };
 
 IntegrityTest.prototype.statusUpdate = function(){
@@ -156,7 +156,7 @@ IntegrityTest.prototype.ParseBugzillaIDs = function(){
 	}
 
 	this.dataSet.bugzilla.raw = {};
-//	D.println( JSON.stringify(this.dataSet))
+//	D.println( CNV.Object2JSON(this.dataSet))
 }
 
 IntegrityTest.prototype.ParseElasticIDs = function(){
@@ -168,7 +168,7 @@ IntegrityTest.prototype.ParseElasticIDs = function(){
 	}
 
 	this.dataSet.elastic.raw = {};
-	D.println(JSON.stringify(this.dataSet))
+	D.println(CNV.Object2JSON(this.dataSet))
 }
 
 function arr_diff(a1, a2){

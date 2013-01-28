@@ -108,10 +108,6 @@ function aThread_prototype_resume(retval){
 			this.stack.pop();
 
 			if (this.stack.length==0){
-				aThread.numRunning--;
-				if (aThread.numRunning==0){
-					aThread.hideWorking();
-				}//endif
 				this.kill(retval);
 				if (retval instanceof Exception){
 					D.println("Uncaught Error in thread: ", retval.toString());
@@ -150,6 +146,12 @@ aThread.prototype.kill=function(retval){
 	this.returnValue=retval;				//REMEMBER FO THREAD THAT JOINS WITH THIS
 	this.keepRunning=false;
 
+	aThread.numRunning--;
+	if (aThread.numRunning==0){
+		aThread.hideWorking();
+	}//endif
+
+	
 	//HOPEFULLY cr WILl BE UNDEFINED, OR NOT, (NOT CHANGING)
 	var cr=this.currentRequest;
 	this.currentRequest=undefined;

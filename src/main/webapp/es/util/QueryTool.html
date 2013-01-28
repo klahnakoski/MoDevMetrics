@@ -81,12 +81,12 @@
 <script type="application/javascript;version=1.7" src="../js/charts/RangeIterator.js"></script>
 <script type="application/javascript;version=1.7" src="../js/charts/DateRangeIterator.js"></script>
 
-<script type="application/javascript;version=1.7" src="../js/filters/Filter.js"></script>
-<script type="application/javascript;version=1.7" src="../js/filters/ComponentFilter.js"></script>
-<script type="application/javascript;version=1.7" src="../js/filters/ProductFilter.js"></script>
-<script type="application/javascript;version=1.7" src="../js/filters/ProgramFilter.js"></script>
+<script type="application/javascript;version=1.7" src="../js/gui/Filter.js"></script>
+<script type="application/javascript;version=1.7" src="../js/gui/ComponentFilter.js"></script>
+<script type="application/javascript;version=1.7" src="../js/gui/ProductFilter.js"></script>
+<script type="application/javascript;version=1.7" src="../js/gui/ProgramFilter.js"></script>
 
-<script type="application/javascript;version=1.7" src="../js/filters/GUI.js"></script>
+<script type="application/javascript;version=1.7" src="../js/gui/GUI.js"></script>
 
 
 <h3>BA Query Tool</h3>
@@ -132,17 +132,6 @@
 	$("#cube").linedtextarea();
 	$("#esquery").linedtextarea();
 
-	//SHOW SPINNER
-	var found=$('.loading');
-	found
-		.hide()  // hide it initially
-		.ajaxStart(function() {
-			$(this).show();
-		})
-		.ajaxStop(function() {
-			$(this).hide();
-		})
-	;
 
 	$("#long2date").change(function(){
 		var value=$(this).val();
@@ -181,7 +170,7 @@
 			yield (null);
 		}//try
 
-		D.action("Sending query");
+		var a=D.action("Sending query", true);
 
 		try{
 			var data=yield (cubeQuery.run());
@@ -201,11 +190,12 @@
 			$("#result").html(e.data.response);
 		}//try
 
-		D.action("Done");
-
+		D.actionDone(a);
 	};
 
-
+	aThread.run(function(){
+		yield (aThread.yield());
+	});
 </script>
 
 

@@ -12,11 +12,11 @@ CUBE.cube.newInstance = function(edges, depth, select){
 //		var element=[]
 		if (select instanceof Array){
 			for(var s = 0; s < select.length; s++){
-				element[select[s].name] = select[s].defaultValue();
+				element[select[s].name] = select[s].domain.end(select[s].defaultValue());
 //				element[s] = select[s].defaultValue();
 			}//for
 		} else{
-			element = select.defaultValue();
+			element = select.domain.end(select.defaultValue());
 		}//endif
 		return element;
 	}//for

@@ -75,14 +75,14 @@
 <script type="application/javascript;version=1.7" src="js/charts/RangeIterator.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/DateRangeIterator.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/filters/Filter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ComponentFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/TeamFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ProductFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ClassificationFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/filters/ProgramFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/Filter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ComponentFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/TeamFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ProductFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ClassificationFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ProgramFilter.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/filters/GUI.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/etl/Reviews.js"></script>
 
@@ -201,7 +201,7 @@
 			D.actionDone(a);
 
 			a=D.action("Calc Stats", true);
-			var percentile90=Stats.percentile(df.cube, 0.90)/24;  //INTERVALS ARE IN HOURS, CONVERT TO DAYS
+			var percentile90=Stats.df.percentile(df.cube, 0.90)/24;  //INTERVALS ARE IN HOURS, CONVERT TO DAYS
 
 
 			var stats=(yield (CUBE.calc2Cube({
@@ -346,7 +346,6 @@
 			"height":400
 		});
 
-		D.action("Done");
 
 	};//createChart
 

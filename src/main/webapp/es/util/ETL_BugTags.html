@@ -42,7 +42,7 @@
 <script type="application/javascript;version=1.7" src="../js/ESQuery.js"></script>
 <script type="application/javascript;version=1.7" src="../js/charts/aChart.js"></script>
 
-<script type="application/javascript;version=1.7" src="../js/filters/ProgramFilter.js"></script>
+<script type="application/javascript;version=1.7" src="../js/gui/ProgramFilter.js"></script>
 <script type="application/javascript;version=1.7" src="../js/charts/HelperFunctions.js"></script>
 <script type="application/javascript;version=1.7" src="../js/rest/ElasticSearch.js"></script>
 
@@ -101,8 +101,7 @@
 			var reviews=yield (BUG_TAGS.get([812896], undefined));
 //			var reviews=yield (BUG_TAGS.get([812896, 790640, 563491, 634724, 782603], undefined));
 			$("#results").html(CNV.List2HTMLTable(reviews));
-			D.action("Done");
-		});
+					});
 	});
 
 	$("#kill").click(function(){
@@ -112,8 +111,7 @@
 
 
 
-	D.action("Done");
-	D.addLog("results");
+		D.addLog("results");
 </script>
 
 

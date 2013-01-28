@@ -415,15 +415,21 @@ MVEL.FUNCTIONS={
 			"output;\n"+
 		"}};\n",
 
+//	"getDocValue":  //SPECIFICALLY FOR cf_* FLAGS: CONCATENATE THE ATTRIBUTE NAME WITH ATTRIBUTE VALUE, IF EXISTS
+//		"var getDocValue = function(name){\n"+
+//			"if (doc[name]!=null && doc[name].value!=null)" +
+//				"\" \"+name+doc[name].stringValue.trim();\n"+
+//			"else \n"+
+//				"\"\";\n"+
+//		"};\n",
+
 	"getDocValue":  //SPECIFICALLY FOR cf_* FLAGS: CONCATENATE THE ATTRIBUTE NAME WITH ATTRIBUTE VALUE, IF EXISTS
 		"var getDocValue = function(name){\n"+
-			"if (doc[name]!=null && doc[name].value!=null)" +
-				"\" \"+name+doc[name].stringValue.trim();\n"+
-			"else \n"+
-				"\"\";\n"+
+			"var v = doc[name];\n"+
+			"(v!=null && v.value!=null) ? v.value : null;"+
 		"};\n",
 
-	"milli2Month":  
+	"milli2Month":
 		"var milli2Month = function(value, milliOffset){\n"+
 			"g=new java.util.GregorianCalendar(new java.util.SimpleTimeZone(0, \"GMT\"));\n"+
 			"g.setTimeInMillis(value);\n"+

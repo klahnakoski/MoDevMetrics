@@ -99,14 +99,37 @@ CUBE.calc2Tree = function(query){
 
 		var row = from[i];
 		//CALCULATE THE GROUP COLUMNS TO PLACE RESULT
-		var results = [
-			[]
-		];
+		var results = [[]];
 		for(var f = 0; f < edges.length; f++){
 			var edge = edges[f];
 
 
-			if (edge.test === undefined){
+			if (edge.test || edge.range){
+				//MULTIPLE MATCHES EXIST
+				let matches= edge.domain.getMatchingParts(row);
+
+				if (matches.length == 0){
+					edge.outOfDomainCount++;
+					if (edge.allowNulls){
+						for(let t = results.length; t--;){
+							results[t][f] = edge.domain.NULL;
+						}//for
+					} else{
+						continue FROM;
+					}//endif
+				} else{
+					//WE MUTIPLY THE NUMBER OF MATCHES TO THE CURRENT NUMBER OF RESULTS (SQUARING AND CUBING THE RESULT-SET)
+					for(let t = results.length; t--;){
+						result = results[t];
+						result[f] = matches[0];
+						for(var p = 1; p < matches.length; p++){
+							result = result.copy();
+							results.push(result);
+							result[f] = matches[p];
+						}//for
+					}//for
+				}//endif
+			} else{
 				var v = edge.calc(row, null);
 
 				//STANDARD 1-1 MATCH VALUE TO DOMAIN
@@ -117,38 +140,14 @@ CUBE.calc2Tree = function(query){
 				if (p == edge.domain.NULL){
 					edge.outOfDomainCount++;
 					if (edge.allowNulls){
-						for(var t = results.length; t--;){
+						for(let t = results.length; t--;){
 							results[t][f] = edge.domain.NULL;
 						}//for
 					} else{
 						continue FROM;
 					}//endif
 				} else{
-					for(var t = results.length; t--;) results[t][f] = p;
-				}//endif
-			} else{ //test is DEFINED ON EDGE
-				//MULTIPLE MATCHES EXIST
-				var matches = edge.domain.getMatchingParts(row);
-				if (matches.length == 0){
-					edge.outOfDomainCount++;
-					if (edge.allowNulls){
-						for(var t = results.length; t--;){
-							results[t][f] = edge.domain.NULL;
-						}//for
-					} else{
-						continue FROM;
-					}//endif
-				} else{
-					//WE MUTIPLY THE NUMBER OF MATCHES TO THE CURRENT NUMBER OF RESULTS (SQUARING AND CUBING THE RESULT-SET)
-					for(var t = results.length; t--;){
-						result = results[t];
-						result[f] = matches[0];
-						for(var p = 1; p < matches.length; p++){
-							result = result.copy();
-							results.push(result);
-							result[f] = matches[p];
-						}//for
-					}//for
+					for(let t = results.length; t--;) results[t][f] = p;
 				}//endif
 			}//endif
 		}//for
@@ -276,7 +275,7 @@ CUBE.calc2List = function(query){
 //	if (query.select instanceof Array) D.error("Expecting select to not be an array");
 //	if (query.edges !== undefined && query.edges.length > 0) D.error("Expecting zero edges");
 //
-//	var temp = query.select.name;
+//	let temp = query.select.name;
 //	query.select.name = 0;
 //	var list = CUBE.setOP(query).list;
 //	query.select.name = temp;
@@ -432,7 +431,7 @@ CUBE.noOP = function(query){
 		var where = CUBE.where.compile(query.where, sourceColumns, []);
 
 		var output = [];
-		for(var t = from.length;t--;){
+		for(let t = from.length;t--;){
 			if (where(from[t], null)){
 				output.push(from[t]);
 			}//endif
@@ -473,7 +472,7 @@ CUBE.setOP = function(query){
 	var where = CUBE.where.compile(query.where, sourceColumns, []);
 
 	var output = [];
-	for(var t = 0; t < from.length; t++){
+	for(let t = 0; t < from.length; t++){
 		var result = {};
 		for(var s = 0; s < select.length; s++){
 			var ss = select[s];
@@ -739,7 +738,7 @@ CUBE.Tree2Cube = function(query, cube, tree, depth){
 //			}//for
 			var tuple={};
 			for(var s = 0; s < query.select.length; s++){
-				tuple[query.select[s].name] = tree[keys[k]][s];
+				tuple[query.select[s].name] = query.select[s].domain.end(tree[keys[k]][s]);
 			}//for
 			cube[p]=tuple;
 		}//for
@@ -747,7 +746,7 @@ CUBE.Tree2Cube = function(query, cube, tree, depth){
 		var keys=Object.keys(tree);
 		for(var k=keys.length;k--;){
 			var p=domain.getPartByKey(keys[k]).dataIndex;
-			cube[p]=tree[keys[k]][0];
+			cube[p]=query.select[s].domain.end(tree[keys[k]][0]);
 		}//for
 	}//endif
 
@@ -1006,7 +1005,7 @@ CUBE.drill=function(query, parts){
 	query.edges.forall(function(edge, e){
 		if (parts[e]==undefined) return;
 
-		for(var p=0;p<edge.domain.partitions.length;p++){
+		for(let p=0;p<edge.domain.partitions.length;p++){
 			var part=edge.domain.partitions[p];
 			if (part.name==parts[e]){
 				var filter=ESQuery.buildCondition(edge, part, query);

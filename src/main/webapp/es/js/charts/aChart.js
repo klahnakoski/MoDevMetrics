@@ -319,7 +319,7 @@ aChart.show=function(params){
 	//ADD BUTTON TO SHOW SHEET
 	if (params.sheetDiv){
 		var sheetButtonID=divName+"-showSheet";
-		var html='<div id='+CNV.String2Quote(sheetButtonID)+' class="toolbutton" title="Show Table" style="position: absolute;right: 0;bottom: 0;"><img src="./images/Spreadsheet.png"></div>';
+		var html='<div id='+CNV.String2Quote(sheetButtonID)+' class="toolbutton" style="right:3;bottom:3" title="Show Table"><img src="'+Settings.imagePath+'/Spreadsheet.png"></div>';
 		$("#"+divName).append(html);
 		$("#"+sheetButtonID).click(function(){
 			$("#"+params.sheetDiv).html(
@@ -331,7 +331,7 @@ aChart.show=function(params){
 
 };
 
-var BZ_SHOW_BUG_LIMIT=500;
+var BZ_SHOW_BUG_LIMIT=1000;
 var bugClicker=function(query, series, x, d, elem){
 	try{
 		//We can decide to drilldown, or show a bug list.
