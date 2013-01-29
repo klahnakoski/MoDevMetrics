@@ -167,7 +167,9 @@ ETL.incrementalInsert=function(etl){
 	yield (ETL.getCurrentIndex(etl));
 	var startTime=yield (etl.getLastUpdated());
 
+
 	//FIND RECENTLY TOUCHED BUGS
+	var a=D.action("Get changed bugs", true);
 	var data=yield (ESQuery.run({
 		"from":"bugs",
 		"select": {"name":"bug_id", "value":"bug_id", "operation":"count"},
@@ -175,14 +177,16 @@ ETL.incrementalInsert=function(etl){
 			{"name":"bug_ids", "value":"bug_id"}
 		],
 		"esfilter":{
-			"range":{"modified_ts":{"gte":startTime.getMilli()}}
+			"range":{"modified_ts":{"gte":startTime.addHour(-1).getMilli()}}
 		}
 	}));
+	D.actionDone(a);
+
 
 	var buglist=[]=data.edges[0].domain.partitions.map(function(v,i){
 		return v.value;
 	});
-	D.println(buglist.length+" bugs found: "+CNV.Object2JSON(buglist));
+	D.println(buglist.length+" bugs found: "+JSON.(buglist));
 	//FIND EXISTING RECORDS FOR THOSE BUGS
 
 	//GET NEW RECORDS FOR THOSE BUGS
@@ -190,12 +194,12 @@ ETL.incrementalInsert=function(etl){
 
 //	D.action("remove changed bugs");
 //	yield (etl["delete"](buglist));				//NEVER DO THIS, ENSURE _id IS ALWAYS THE SAME
-	var a=D.action("insert changed bugs", true);
+	a=D.action("insert changed bugs", true);
 	yield (etl.insert(bugSummaries));
+	D.actionDone(a);
 
 	if (etl.postMarkup) yield (etl.postMarkup());
 
-	D.actionDone(a);
 	D.println("Done incremental update");
 };
 

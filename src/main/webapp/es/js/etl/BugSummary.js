@@ -34,7 +34,7 @@ BUG_SUMMARY.getLastUpdated=function(){
 	var data=yield (ESQuery.run({
 		"from":BUG_SUMMARY.aliasName,
 		"select":[
-			{"name":"last_request", "value":BUG_SUMMARY.aliasName+".last_modified", "operation":"maximum"}
+			{"name":"last_request", "value":"modified_time", "operation":"maximum"}
 		]
 	}));
 	yield (new Date(data.cube.last_request));

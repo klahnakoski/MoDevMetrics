@@ -6,7 +6,8 @@
 <HTML>
 
 <HEAD>
-</HEAD>
+<script type="application/javascript;version=1.7" src="js/Settings.js">
+</script></HEAD>
 <BODY>
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
@@ -142,7 +143,7 @@
 				{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}}
 			]};
 
-		var requesteeList=undefined;
+		var requesteeList={"script":{"script":"true"}};
 		if (GUI.state.requestee.trim().length>0){
 			requesteeList={"terms":{"reviewer": GUI.state.requestee.split(",").map(function(v){return v.trim();})}};
 			mainFilter.and.push(requesteeList);
@@ -247,6 +248,7 @@
 		});
 
 
+		var a=D.action("Get Review Data", true);
 
 		var q1=new ESQuery({
 			"from":"reviews",
@@ -319,6 +321,8 @@
 				}
 			]
 		}));
+		D.actionDone(a);
+
 
 		//WE HAVE THREE SERIES, ALL DEFINED OVER THE SAME DOMAIN, WHAT TO DO?
 		//THE THREE ARE PARTS OF THE CATEGORY DIMENSION
@@ -332,11 +336,9 @@
 			]
 		});
 
-
-
 		aChart.show({
 			"id":"chart",
-		"sheetDiv":"info",
+			"sheetDiv":"info",
 			"type":"line",
 			"cube":chart,
 			"height":400

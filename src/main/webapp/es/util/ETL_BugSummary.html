@@ -4,7 +4,8 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-</HEAD>
+<script type="application/javascript;version=1.7" src="../js/Settings.js">
+</script></HEAD>
 <BODY>
 
 
@@ -74,13 +75,13 @@
 	$("#inc").click(function(){
 		aThread.run(function(){
 			var startTime=yield (BUG_SUMMARY.getLastUpdated());
-			ETL.incrementalInsert(BUG_SUMMARY, startTime);
+			yield (ETL.incrementalInsert(BUG_SUMMARY, startTime));
 		});
 	});
 
 	$("#test").click(function(){
 		aThread.run(function(){
-			var reviews=yield (BUG_SUMMARY.get([790640, 563491], undefined));
+			var reviews=yield (BUG_SUMMARY.get([718121, 790640, 563491], undefined));
 			$("#results").html(CNV.List2HTMLTable(reviews));
 		});
 	});

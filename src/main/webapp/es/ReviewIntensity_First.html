@@ -6,7 +6,8 @@
 <HTML>
 
 <HEAD>
-</HEAD>
+<script type="application/javascript;version=1.7" src="js/Settings.js">
+</script></HEAD>
 <BODY>
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
@@ -143,7 +144,7 @@
 				{"term":{"is_first":"1"}}
 			]};
 
-		var requesteeList=undefined;
+		var requesteeList={"script":{"script":"true"}};
 		if (GUI.state.requestee.trim().length>0){
 			requesteeList={"terms":{"reviewer": GUI.state.requestee.split(",").map(function(v){return v.trim();})}};
 			mainFilter.and.push(requesteeList);
@@ -361,6 +362,7 @@
 			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("reviewer")}
 		],
 		[
+			"sampleMin=Date.newInstance(sampleMin).format(\"yyyy-MM-dd\")",
 			"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
 		],
 		"reviews");

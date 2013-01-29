@@ -3,9 +3,7 @@
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
-<HEAD>
-	<script type="application/javascript;version=1.7" src="js/Settings.js"></script>
-</HEAD>
+<HEAD><script type="application/javascript;version=1.7" src="js/Settings.js"></script></HEAD>
 <BODY>
 
 
@@ -120,7 +118,7 @@
 	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
 </div>
 
-<div id="chartResponse" class="chart" style="border:0;margin:0;width:400px;height:200px;"></div>
+<div id="chartResponse" class="chart" style="width:400px;height:200px;"></div>
 <div id="chartProducts" class="chart" style="width:400px;height:200px;"></div>
 <br>
 <div id="chart" class="chart" style="height:300px;width:800px;"></div>
@@ -201,6 +199,49 @@ var __createChart = function(){
 	});
 
 
+	//CHART AGE BREAKDOWN
+	aThread.run(function(){
+		var a=D.action("Get Age Distribution", true);
+		var durations=yield(ESQuery.run({
+			"name":"Age Distribution",
+			"from":"bug_summary",
+			"select":
+				{"name":"count", "value":"bug_id", "operation":"count"}
+			,
+			"edges":[
+				{"name":"bug_status", "value":closeTime+" < "+sampleMax.getMilli()+" ? \"Closed\" : \"Open\""},
+				{"name":"duration", "value":closeTime+"-"+ProgramFilter.bugStatusMinimum_fromDoc(), "allowNulls":true, "domain":{"type":"duration", "min":"0", "max":"12week", "interval":Duration.WEEK}}
+			],
+			"esfilter":{"and":[
+				{"script":{"script":sampleMin.getMilli()+" <= "+ProgramFilter.bugStatusMinimum_fromDoc()+" && "+ProgramFilter.bugStatusMinimum_fromDoc() +" < "+sampleMax.getMilli()}},
+				ProductFilter.makeFilter(),
+				ComponentFilter.makeFilter()
+			]}
+		}));
+		D.actionDone(a);
+
+
+		durations.edges[1].domain.NULL.name="Over 12weeks";
+
+		a=D.action("Make chart", true);
+		aChart.show({
+			"id":"chartResponse",
+			"sheetDiv":"sheet",
+			"type":"bar",
+			"stacked":true,
+			"cube":durations,
+			"height":200,
+			"width":400,
+			xAxisSize: 50
+		});
+		D.actionDone(a);
+
+	});
+
+
+
+
+
 
 	//CHART AGE PERCENTILES
 	threadPercentiles=aThread.run(function(){
@@ -233,9 +274,10 @@ var __createChart = function(){
 			"name":"Age (Days)",
 			"from":allBugs,
 			"select":[
-				{"name":"average", "value":"(death-birth)/Duration.DAY.milli", "operation":"average"},
+				{"name":"average", "value":"(Math.min(death, time.min.getMilli())-birth)/Duration.DAY.milli", "operation":"average"},
 				{"name":"25th percentile", "value":"(Math.min(death, time.min.getMilli())-birth)/Duration.DAY.milli", "operation":"percentile", "percentile":0.25},
 				{"name":"50th percentile", "value":"(Math.min(death, time.min.getMilli())-birth)/Duration.DAY.milli", "operation":"percentile", "percentile":0.5},
+				{"name":"75th percentile", "value":"(Math.min(death, time.min.getMilli())-birth)/Duration.DAY.milli", "operation":"percentile", "percentile":0.75},
 				{"name":"90th percentile", "value":"(Math.min(death, time.min.getMilli())-birth)/Duration.DAY.milli", "operation":"percentile", "percentile":0.9}
 			],
 			"edges":[
@@ -265,7 +307,8 @@ var __createChart = function(){
 			"stacked":false,
 			"cube":chart,
 			"height":300,
-			"width":800
+			"width":800,
+			xAxisSize: 50
 		});
 		D.actionDone(a);
 

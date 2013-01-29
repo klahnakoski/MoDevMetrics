@@ -746,7 +746,7 @@ CUBE.Tree2Cube = function(query, cube, tree, depth){
 		var keys=Object.keys(tree);
 		for(var k=keys.length;k--;){
 			var p=domain.getPartByKey(keys[k]).dataIndex;
-			cube[p]=query.select[s].domain.end(tree[keys[k]][0]);
+			cube[p]=query.select.domain.end(tree[keys[k]][0]);
 		}//for
 	}//endif
 
@@ -994,7 +994,7 @@ CUBE.drill=function(query, parts){
 	newQuery.url=undefined;			//REMOVE, MAY CAUSE PROBLEMS
 	if (query.esfilter){
 		if (query.esfilter.and){
-			newQuery.esfilter=query.esfilter;
+			newQuery.esfilter=query.esfilter.copy();
 		}else{
 			newQuery.esfilter={"and":[query.esfilter]};
 		}//endif

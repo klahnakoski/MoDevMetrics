@@ -4,7 +4,8 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-</HEAD>
+<script type="application/javascript;version=1.7" src="js/Settings.js">
+</script></HEAD>
 <BODY>
 
 
@@ -149,6 +150,7 @@ var __createChart = function(){
 	aThread.run(function(){
 		var old=yield (q.run());
 
+		var a=D.action("Get Old Reviews", true);
 		var oldRequests=(yield (CUBE.calc2List({
 			"from":old.list,
 			"select":[
@@ -175,6 +177,8 @@ var __createChart = function(){
 			]
 		}))).list;
 
+		D.actionDone(a);
+
 		$("#oldReviews").html(CNV.List2HTMLTable(show));
 	});
 
@@ -182,6 +186,7 @@ var __createChart = function(){
 	////////////////////////////////////////////////////////////////////////
 	//SHOW CHART OF REMAINING TIMES
 	////////////////////////////////////////////////////////////////////////
+	var a=D.action("Get Review Durations", true);
 	var getReviews=new ESQuery({
 		"from":"reviews",
 		"select":[
@@ -195,10 +200,7 @@ var __createChart = function(){
 			]
 		}
 	});
-
 	(GUI.injectFilters(getReviews));
-
-	D.action("Get Review Data");
 	var reviews=yield (getReviews.run());
 
 	var chart=yield (CUBE.calc2Cube({
@@ -214,6 +216,8 @@ var __createChart = function(){
 		]
 	}));
 
+	D.actionDone(a);
+
 	chart.edges[1].domain.NULL.name="over 10 days";
 	chart.edges[1].domain.partitions.forall(function(v, i){
 		v.name=v.name.replaceAll("+", ",");
@@ -228,7 +232,7 @@ var __createChart = function(){
 		"height":300
 	});
 
-	D.action("Calc Stats");
+	a=D.action("Calc Stats", false);
 
 	var wait_times=(yield (CUBE.calc2List({
 		"from":reviews.list,
@@ -253,7 +257,7 @@ var __createChart = function(){
 		'<span class="parameter_name">Average Review Time:</span><b>'+Math.round(stats.average/Duration.MILLI_VALUES.day, 2)+'days</b><br>'
 	);
 
-
+	D.actionDone(a);
 
 
 

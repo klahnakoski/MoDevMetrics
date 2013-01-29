@@ -6,7 +6,8 @@
 <HTML>
 
 <HEAD>
-</HEAD>
+<script type="application/javascript;version=1.7" src="js/Settings.js">
+</script></HEAD>
 <BODY>
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
@@ -145,7 +146,7 @@
 				{"term":{"requester_review_num":"1"}}
 			]};
 
-		var requesteeList=undefined;
+		var requesteeList={"script":{"script":"true"}};
 		if (GUI.state.requestee.trim().length>0){
 			requesteeList={"terms":{"reviewer": GUI.state.requestee.split(",").map(function(v){return v.trim();})}};
 			mainFilter.and.push(requesteeList);
@@ -250,6 +251,7 @@
 		});
 
 
+		var a=D.action("Get Review Data", true);
 
 		var q1=new ESQuery({
 			"from":"reviews",
@@ -323,6 +325,8 @@
 				}
 			]
 		}));
+		D.actionDone(a);
+
 
 		//WE HAVE THREE SERIES, ALL DEFINED OVER THE SAME DOMAIN, WHAT TO DO?
 		//THE THREE ARE PARTS OF THE CATEGORY DIMENSION
@@ -335,8 +339,6 @@
 				{"from":open, "edges":["time"]}
 			]
 		});
-
-
 
 		aChart.show({
 			"id":"chart",
@@ -362,6 +364,7 @@
 			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("reviewer")}
 		],
 		[
+			"sampleMin=Date.newInstance(sampleMin).format(\"yyyy-MM-dd\")",
 			"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
 		],
 		"reviews");

@@ -6,7 +6,8 @@
 <HTML>
 
 <HEAD>
-</HEAD>
+<script type="application/javascript;version=1.7" src="js/Settings.js">
+</script></HEAD>
 <BODY>
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
@@ -312,6 +313,7 @@
 				}
 			]
 		}));
+		D.actionDone(a);
 
 		//WE HAVE THREE SERIES, ALL DEFINED OVER THE SAME DOMAIN, WHAT TO DO?
 		//THE THREE ARE PARTS OF THE CATEGORY DIMENSION
@@ -324,8 +326,6 @@
 				{"from":open, "edges":["time"]}
 			]
 		});
-
-
 
 		aChart.show({
 			"id":"chart",
@@ -351,6 +351,7 @@
 			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("reviewer")}
 		],
 		[
+			"sampleMin=Date.newInstance(sampleMin).format(\"yyyy-MM-dd\")",
 			"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
 		],
 		"reviews");
