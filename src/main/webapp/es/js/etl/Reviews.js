@@ -65,7 +65,8 @@ REVIEWS.makeSchema=function(successFunction){
 			"reviewer":{"type":"string", "store":"yes", "index":"not_analyzed"},
 			"request_time":{"type":"long", "store":"yes", "index":"not_analyzed"},
 			"review_time":{"type":"long", "store":"yes", "index":"not_analyzed"},
-			"done_reason":{"type":"string", "store":"yes", "index":"not_analyzed"},
+			"review_end_reason":{"type":"string", "store":"yes", "index":"not_analyzed"},
+			"review_result":{"type":"string", "store":"yes", "index":"not_analyzed"},
 			"component":{"type":"string", "store":"yes", "index":"not_analyzed"},
 			"product":{"type":"string", "store":"yes", "index":"not_analyzed"},
 			"is_first":{"type":"integer", "store":"yes", "index":"not_analyzed"},
@@ -201,7 +202,8 @@ REVIEWS.get=function(minBug, maxBug){
 			{"name":"modified_by", "value":"bugs.attachments.flags.modified_by"},
 			{"name":"product", "value":"bugs.product"},
 			{"name":"component", "value":"bugs.component"},
-			{"name":"done_reason", "value":"bugs.attachments.flags.request_status!='?' ? 'done' : (bugs.attachments[\"attachments.isobsolete\"]==1 ? 'obsolete' : 'closed')"}
+			{"name":"review_end_reason", "value":"bugs.attachments.flags.request_status!='?' ? 'done' : (bugs.attachments[\"attachments.isobsolete\"]==1 ? 'obsolete' : 'closed')"},
+			{"name":"review_result", "value":"bugs.attachments.flags.request_status=='+' ? '+' : (bugs.attachments.flags.request_status=='-' ? '-' : '?')"}
 		],
 		"from":
 			"bugs.attachments.flags",
@@ -241,7 +243,7 @@ REVIEWS.get=function(minBug, maxBug){
 			{"name":"modified_by", "value":"null"},
 			{"name":"product", "value":"bugs.product"},
 			{"name":"component", "value":"bugs.component"},
-			{"name":"done_reason", "value":"'reasigned'"}
+			{"name":"review_end_reason", "value":"'reasigned'"}
 		],
 		"from":
 			"bugs.changes",
@@ -306,6 +308,7 @@ REVIEWS.get=function(minBug, maxBug){
 		"select":[
 			{"name":"bug_status", "value":"bug_status", "operation":"one"},
 			{"name":"review_time", "value":"Util.coalesce(doneReview.modified_ts, null)", "operation":"minimum"},
+			{"name":"review_result", "value":"Util.coalesce(doneReview.review_result, null)", "operation":"minimum"},
 			{"name":"product", "value":"Util.coalesce(doneReview.product, product)", "operation":"minimum"},
 			{"name":"component", "value":"Util.coalesce(doneReview.component, component)", "operation":"minimum"},
 			{"name":"keywords", "value":"(Util.coalesce(keywords, '')+' '+ETL.parseWhiteBoard(whiteboard)).trim()+' '+flags", "operation":"one"},
@@ -324,11 +327,11 @@ REVIEWS.get=function(minBug, maxBug){
 					"bug_id==doneReview.bug_id && "+
 					"attach_id==doneReview.attach_id && "+
 					"requestee==doneReview.requestee && "+
-					"!(bug_status=='closed' && doneReview.done_reason=='closed') && "+
+					"!(bug_status=='closed' && doneReview.review_end_reason=='closed') && "+
 					"modified_ts<=doneReview.modified_ts",
 				"allowNulls":true,
 				"value":undefined,
-				"domain":{"type":"set", "name":"doneReview", "key":[], "partitions":doneReview.list}
+				"domain":{"type":"set", "name":"doneReview", "key":[], "partitions":doneReview}
 			}
 		]
 

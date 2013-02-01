@@ -33,23 +33,24 @@ CUBE.aggregate.compile = function(select){
 
 
 
-CUBE.aggregate.join = function(column){
-	if (column.separator === undefined) column.separator = '';
+CUBE.aggregate.join = function(select){
+	if (select.separator === undefined) select.separator = '';
 
-	column.defaultValue = function(){
+	select.defaultValue = function(){
 		return [];
 	};//method
 
-	column.add = function(total, v){
+	select.add = function(total, v){
 		if (v === undefined || v == null) return total;
 		total.push(v);
 		return total;
 	};//method
 
-	column.domain = CUBE.domain.value;
+	select.domain = {};
+	Util.copy(CUBE.domain.value, select.domain);
 
-	column.end=function(total){
-		return total.join(column.separator);
+	select.domain.end=function(total){
+		return total.join(select.separator);
 	};//method
 
 
@@ -116,7 +117,8 @@ CUBE.aggregate.none = function(select){
 		return null;
 	};//method
 
-	select.domain = CUBE.domain.value;
+	select.domain = {};
+	Util.copy(CUBE.domain.value, select.domain);
 };
 
 
@@ -135,7 +137,8 @@ CUBE.aggregate.one = function(select){
 		return null;
 	};//method
 
-	select.domain = CUBE.domain.value;
+	select.domain = {};
+	Util.copy(CUBE.domain.value, select.domain);
 };
 
 
@@ -150,7 +153,8 @@ CUBE.aggregate.sum = function(select){
 		return total + v;
 	};//method
 
-	select.domain = CUBE.domain.value;
+	select.domain = {};
+	Util.copy(CUBE.domain.value, select.domain);
 };
 
 
@@ -165,9 +169,10 @@ CUBE.aggregate.binary = function(select){
 		return 1;
 	};//method
 
-	select.domain = CUBE.domain.value;
+	select.domain = {};
+	Util.copy(CUBE.domain.value, select.domain);
 };
-
+CUBE.aggregate.exists=CUBE.aggregate.binary;
 
 
 
@@ -182,7 +187,8 @@ CUBE.aggregate.count = function(select){
 		return total + 1;
 	};//method
 
-	select.domain = CUBE.domain.value;
+	select.domain = {};
+	Util.copy(CUBE.domain.value, select.domain);
 };
 
 CUBE.aggregate.maximum = function(select){
@@ -196,7 +202,8 @@ CUBE.aggregate.maximum = function(select){
 		return total;
 	};//method
 
-	select.domain = CUBE.domain.value;
+	select.domain = {};
+	Util.copy(CUBE.domain.value, select.domain);
 };
 
 CUBE.aggregate.minimum = function(select){
@@ -210,7 +217,7 @@ CUBE.aggregate.minimum = function(select){
 		return total;
 	};//method
 
-	select.domain = CUBE.domain.value;
+	select.domain=Util.copy(CUBE.domain.value, {});
 };
 
 

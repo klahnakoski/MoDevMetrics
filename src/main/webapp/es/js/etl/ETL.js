@@ -186,7 +186,7 @@ ETL.incrementalInsert=function(etl){
 	var buglist=[]=data.edges[0].domain.partitions.map(function(v,i){
 		return v.value;
 	});
-	D.println(buglist.length+" bugs found: "+JSON.(buglist));
+	D.println(buglist.length+" bugs found: "+JSON.stringify(buglist));
 	//FIND EXISTING RECORDS FOR THOSE BUGS
 
 	//GET NEW RECORDS FOR THOSE BUGS
@@ -258,7 +258,7 @@ ETL.parseWhiteBoard=function(whiteboard){
 ETL.getFlags=function(){
 	var getFlags = "var _cf_ = \"\";\n";
 	ETL.allFlags.map(function(v){
-		getFlags += "_cf_+=getDocValue(" + MVEL.Value2Code(v) + ");\n";
+		getFlags += "_cf_+=getFlagValue(" + MVEL.Value2Code(v) + ");\n";
 //		getFlags += "if (" + v + "\"]!=null && " + v + "\"].value!=null) output+=\" " + v + "\"+" + v + "\"].value.trim();\n";
 	});
 	getFlags += "_cf_ = _cf_.trim();\n_cf_;";

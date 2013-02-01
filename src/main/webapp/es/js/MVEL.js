@@ -388,7 +388,7 @@ MVEL.FUNCTIONS={
 		"var floorDay = function(value){ Math.floor(value/86400000))*86400000;};\n",
 
 	"floorInterval":
-		"var floorInterval = function(value, interval){ Math.floor(value/interval)*interval;};\n",
+		"var floorInterval = function(value, interval){ Math.floor((double)value/(double)interval)*interval;};\n",
 
 	"maximum"://JUST BECAUSE MVEL'S Math.max ONLY USES Math.max(int, int).  G*DDA*NIT!
 		"var maximum = function(a, b){if (a==null) b; else if (b==null) a; else if (a>b) a; else b;\n};\n",
@@ -415,13 +415,13 @@ MVEL.FUNCTIONS={
 			"output;\n"+
 		"}};\n",
 
-//	"getDocValue":  //SPECIFICALLY FOR cf_* FLAGS: CONCATENATE THE ATTRIBUTE NAME WITH ATTRIBUTE VALUE, IF EXISTS
-//		"var getDocValue = function(name){\n"+
-//			"if (doc[name]!=null && doc[name].value!=null)" +
-//				"\" \"+name+doc[name].stringValue.trim();\n"+
-//			"else \n"+
-//				"\"\";\n"+
-//		"};\n",
+	"getFlagValue":  //SPECIFICALLY FOR cf_* FLAGS: CONCATENATE THE ATTRIBUTE NAME WITH ATTRIBUTE VALUE, IF EXISTS
+		"var getFlagValue = function(name){\n"+
+			"if (doc[name]!=null && doc[name].value!=null)" +
+				"\" \"+name+doc[name].stringValue.trim();\n"+
+			"else \n"+
+				"\"\";\n"+
+		"};\n",
 
 	"getDocValue":  //SPECIFICALLY FOR cf_* FLAGS: CONCATENATE THE ATTRIBUTE NAME WITH ATTRIBUTE VALUE, IF EXISTS
 		"var getDocValue = function(name){\n"+

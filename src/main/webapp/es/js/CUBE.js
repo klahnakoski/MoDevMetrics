@@ -50,6 +50,7 @@ CUBE.compile = function(query, sourceColumns, useMVEL){
 
 	var select = CUBE.select2Array(query.select);
 	for(var s = 0; s < select.length; s++){
+		if (typeof(select[s])=="string") select[s]={"value":select[s]};
 		if (select[s].name===undefined) select[s].name=select[s].value.split(".").last();
 		if (uniqueColumns[select[s].name]!==undefined) D.error("All columns must have different names");
 		select[s].columnIndex=s+edges.length;
@@ -75,6 +76,8 @@ CUBE.select2Array = function(select){
 CUBE.calc2Tree = function(query){
 	if (query.edges.length == 0)
 		D.error("Tree processing requires an edge");
+	if (query.where=="bug!=null")
+		D.println("");
 
 	var sourceColumns  = yield (CUBE.getColumnsFromQuery(query));
 	var from = query.from.list;
@@ -424,7 +427,7 @@ CUBE.noOP = function(query){
 
 
 	var output;
-	if (where===undefined){
+	if (query.where===undefined){
 		output=from;
 	}else{
 		output = [];
@@ -461,12 +464,11 @@ CUBE.noOP = function(query){
 CUBE.setOP = function(query){
 	var sourceColumns = yield (CUBE.getColumnsFromQuery(query));
 	var from=query.from.list;
-	var columns = {};
 
 	var select = CUBE.select2Array(query.select);
+	var columns = select;
 
-	for(var s = 0; s < select.length; s++){
-		columns[select[s].name] = select[s];
+	for(let s = 0; s < select.length; s++){
 		CUBE.column.compile(sourceColumns, select[s], undefined);
 	}//for
 	var where = CUBE.where.compile(query.where, sourceColumns, []);
@@ -912,17 +914,18 @@ CUBE.sort.compile=function(sortOrder, columns, useNames){
 		for(var i=columns.length;i--;){
 			if (columns[i].name==v && !(columns[i].sortOrder==0)) return columns[i];
 		}//for
+		D.error("Can not find column named '"+v+"'");
 	});
 
 	var f="totalSort = function(a, b){\nvar diff;\n";
 	for(var o = 0; o < orderedColumns.length; o++){
 		var col = orderedColumns[o];
-		if (col.domain === undefined){
+		if (orderedColumns[o].domain === undefined){
 			D.warning("what?");
 		}//endif
 
 		var index=useNames ? CNV.String2Quote(col.name) : col.columnIndex;
-		f+="diff = col.domain.compare(a["+index+"], b["+index+"]);\n";
+		f+="diff = orderedColumns["+o+"].domain.compare(a["+index+"], b["+index+"]);\n";
 		if (o==orderedColumns.length-1){
 			if (col.sortOrder===undefined || col.sortOrder==1){
 				f+="return diff;\n";
@@ -994,7 +997,7 @@ CUBE.drill=function(query, parts){
 	newQuery.url=undefined;			//REMOVE, MAY CAUSE PROBLEMS
 	if (query.esfilter){
 		if (query.esfilter.and){
-			newQuery.esfilter=query.esfilter.copy();
+			newQuery.esfilter={"and":query.esfilter.and.copy()};
 		}else{
 			newQuery.esfilter={"and":[query.esfilter]};
 		}//endif

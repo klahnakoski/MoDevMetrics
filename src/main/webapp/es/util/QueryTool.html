@@ -136,7 +136,8 @@
 
 	$("#long2date").change(function(){
 		var value=$(this).val();
-		$("#long2dateResult").html(Date.newInstance(CNV.String2Integer(value)).format("yyyy-NNN-dd HH:mm:ss"));
+		$("#long2dateResult").html(Date.newInstance(CNV.String2Integer(value)).format("yyyy-NNN-dd HH:mm:ss")+"<br>"+
+		Date.newInstance(CNV.String2Integer(value)).toString());
 	});
 
 

@@ -53,6 +53,9 @@ CUBE.domain.equals=function(a, b){
 ////////////////////////////////////////////////////////////////////////////////
 CUBE.domain.value = {
 
+	"name":"value",
+	"type":"value",
+
 	compare:function(a, b){
 		if (a == null){
 			if (b == null) return 0;
@@ -325,8 +328,8 @@ CUBE.domain.duration = function(column, sourceColumns){
 	if (d.interval===undefined) D.error("Expecting domain '"+d.name+"' to have an interval defined");
 	d.NULL = {"value":null, "name":"null"};
 	d.interval = Duration.newInstance(d.interval);
-	d.min = Duration.newInstance(d.min).floor(d.interval);
-	d.max = Duration.newInstance(d.max).floor(d.interval);
+	d.min = d.min ? Duration.newInstance(d.min).floor(d.interval) : undefined;
+	d.max = d.max ? Duration.newInstance(d.max).floor(d.interval) : undefined;
 
 
 	d.compare = function(a, b){
@@ -361,8 +364,8 @@ CUBE.domain.duration = function(column, sourceColumns){
 				D.error();
 
 			}
-			if (this.min === undefined){//NO MINIMUM REQUESTED
-				if (this.min === undefined && this.max === undefined){
+			if (!this.min){//NO MINIMUM REQUESTED
+				if (!this.min && !this.max){
 					this.min = floor;
 					this.max = Util.coalesce(this.max, floor.add(this.interval));
 					CUBE.domain.duration.addRange(this.min, this.max, this);
@@ -606,10 +609,15 @@ CUBE.domain.set = function(column, sourceColumns){
 		//THE PARTITIONS LOOK LIKE A QUERY, USE IT
 		d.columns=d.partitions.columns,
 		d.partitions=d.partitions.list
-	}
+	}else if (d.partitions instanceof Array){
+		d.columns=CUBE.getColumnsFromList(d.partitions);
+	}//endif
 		
 	d.NULL = {};
 	d.NULL.name="null";
+	d.columns.forall(function(v, i){
+		d.NULL[v.name]=null;
+	});
 
 
 	d.compare = function(a, b){

@@ -72,7 +72,7 @@
 
 <div id="status"></div>
 <div id="info"></div>
-<h2>Some header</h2>
+<h2>Simple Query</h2>
 
 <div id="chart" style="width:800px;height:400px;"></div>
 <div id="chart2" style="width:800px;height:400px;"></div>
@@ -85,9 +85,30 @@
 		D.println(Date.newInstance(1352207434236).format("yyyy-NNN-dd HHmmss"));
 
 
-		var esQuery = {"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
-			{"script":{"script":"true"}}
-		]}}},"from":0,"size":0,"sort":[],"facets":{"0":{"statistical":{"field":"request_time"}}}};
+		var esQuery = { "facets":{ "reviewed":{"terms":{ "size":100000,
+			"script_field":"var get = function(hash, key){\n"+
+					"if (hash==null) null; else hash[key];\n};\n"+
+					"var Value2Pipe = function(value){\n"+
+					"if (value==null){ \"0\" }else if (value is ArrayList){ 's'+value.toString(); }else \nif (value is Long || value is Integer){ 'n'+value; }else \n"+
+					"if (!(value is String)){ 's'+value.getClass().getName(); }else \n"+
+					"\"s\"+value.replace(\"\\\\\", \"\\\\\\\\\").replace(\"|\", \"\\\\p\");};\n"+
+					"var _1000 = function(bugs){\nvar modified_ts = doc[\"modified_ts\"].value;\n"+
+					"var bug_id = doc[\"bug_id\"].value;\n"+
+					"var assigned_to = doc[\"assigned_to\"].value;\n"+
+					"output=\"\";\nif (bugs.attachments!=null){"+
+					" for(bugs1 : bugs.attachments){\nif (bugs1.?flags!=null){ for(bugs2 : bugs1.?flags){\nif ((bugs2.?request_status==\"+\") && ((bugs2.?request_type==\"review\") || (bugs2.?request_type==\"superreview\")) && (bugs1[\"attachments.isobsolete\"]==0) && ((assigned_to==\"msreckovic@mozilla.com\") || (assigned_to==\"bgirard@mozilla.com\") || (assigned_to==\"bjacob@mozilla.com\") || (assigned_to==\"bas.schouten@live.nl\") || (assigned_to==\"gwright@mozilla.com\") || (assigned_to==\"joe@drew.ca\") || (assigned_to==\"jmuizelaar@mozilla.com\") || (assigned_to==\"nical.bugzilla@gmail.com\"))){if (output!=\"\") output+=\"|\";\noutput+=Value2Pipe(bugs.bug_id)\n+\"|\"+Value2Pipe(bugs.modified_ts)\n+\"|\"+Value2Pipe(bugs2.?requestee)\n;\n}\n\n}}\n\n}}\noutput;\n};\n_1000(_source)\n" }}, "assigned":{"terms":{ "size":100000, "script_field":"var get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar Value2Pipe = function(value){\nif (value==null){ \"0\" }else if (value is ArrayList){ 's'+value.toString(); }else \nif (value is Long || value is Integer){ 'n'+value; }else \nif (!(value is String)){ 's'+value.getClass().getName(); }else \n\"s\"+value.replace(\"\\\\\", \"\\\\\\\\\").replace(\"|\", \"\\\\p\");};\nvar _1000 = function(bugs){\nvar bug_id = doc[\"bug_id\"].value;\nvar assigned_to = doc[\"assigned_to\"].value;\noutput=\"\";\nif ((assigned_to==\"msreckovic@mozilla.com\") || (assigned_to==\"bgirard@mozilla.com\") || (assigned_to==\"bjacob@mozilla.com\") || (assigned_to==\"bas.schouten@live.nl\") || (assigned_to==\"gwright@mozilla.com\") || (assigned_to==\"joe@drew.ca\") || (assigned_to==\"jmuizelaar@mozilla.com\") || (assigned_to==\"nical.bugzilla@gmail.com\")){output = Value2Pipe(bugs.bug_id)\n+\"|\"+Value2Pipe(bugs.assigned_to)\n;\n}\noutput;\n};\n_1000(_source)\n" }}, "pending":{"terms":{ "size":100000, "script_field":"var get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar Value2Pipe = function(value){\nif (value==null){ \"0\" }else if (value is ArrayList){ 's'+value.toString(); }else \nif (value is Long || value is Integer){ 'n'+value; }else \nif (!(value is String)){ 's'+value.getClass().getName(); }else \n\"s\"+value.replace(\"\\\\\", \"\\\\\\\\\").replace(\"|\", \"\\\\p\");};\nvar _1000 = function(bugs){\nvar modified_ts = doc[\"modified_ts\"].value;\nvar bug_id = doc[\"bug_id\"].value;\noutput=\"\";\nif (bugs.attachments!=null){ for(bugs1 : bugs.attachments){\nif (bugs1.?flags!=null){ for(bugs2 : bugs1.?flags){\nif ((bugs2.?request_status==\"?\") && ((bugs2.?request_type==\"review\") || (bugs2.?request_type==\"superreview\")) && (bugs1[\"attachments.isobsolete\"]==0) && ((bugs2.?requestee==\"msreckovic@mozilla.com\") || (bugs2.?requestee==\"bgirard@mozilla.com\") || (bugs2.?requestee==\"bjacob@mozilla.com\") || (bugs2.?requestee==\"bas.schouten@live.nl\") || (bugs2.?requestee==\"gwright@mozilla.com\") || (bugs2.?requestee==\"joe@drew.ca\") || (bugs2.?requestee==\"jmuizelaar@mozilla.com\") || (bugs2.?requestee==\"nical.bugzilla@gmail.com\"))){if (output!=\"\") output+=\"|\";\noutput+=Value2Pipe(bugs.bug_id)\n+\"|\"+Value2Pipe(bugs.modified_ts)\n+\"|\"+Value2Pipe(bugs2.?requestee)\n;\n}\n\n}}\n\n}}\noutput;\n};\n_1000(_source)\n" }} },
+			"sort":[
+			{"bug_version_num":{"sort":"asc"}}
+		], "size":0, "from":0, "query":{"filtered":{ "filter":{"and":[
+			{"range":{"expires_on":{"gt":"2013-02-02T13:58:54.000Z"}}},
+			{"not":{"terms":{"bug_status":["resolved","verified","closed"]}}},
+			{"and":[
+				{"script":{"script":"true"}},
+				{"script":{"script":"true"}},
+				{"script":{"script":"true"}},
+				{"terms":{"null":[ "msreckovic@mozilla.com", "bgirard@mozilla.com", "bjacob@mozilla.com", "bas.schouten@live.nl", "gwright@mozilla.com", "joe@drew.ca", "jmuizelaar@mozilla.com", "nical.bugzilla@gmail.com" ]}}
+			]}
+		]}, "query":{"match_all":{}} }} };
 
 
 		try{

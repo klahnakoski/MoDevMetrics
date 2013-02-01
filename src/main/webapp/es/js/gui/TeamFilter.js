@@ -99,8 +99,9 @@ TeamFilter.prototype.setSimpleState=function(value){
 };
 
 
-TeamFilter.prototype.makeFilter = function(){
+TeamFilter.prototype.makeFilter = function(field_name){
 	if (this.selectedEmails.length == 0) return ES.TrueFilter;
+	if (this.field_name==null && field_name===undefined) return ES.TrueFilter;
 
 	var selected = aThread.runSynchronously(this.getSelectedPeople());
 	if (selected.length == 0) return ES.TrueFilter;
@@ -117,7 +118,7 @@ TeamFilter.prototype.makeFilter = function(){
 	var bzEmails=[];
 	getEmail(bzEmails, selected);
 
-	return ES.makeFilter(this.field_name, bzEmails);
+	return ES.makeFilter(Util.coalesce(field_name, this.field_name), bzEmails);
 };//method
 
 

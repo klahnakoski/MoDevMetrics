@@ -47,8 +47,10 @@ Date.prototype.add = function(interval){
 
 
 Date.prototype.subtract=function(time, interval){
+	if (typeof(time)=="string") D.error("expecting to subtract a Duration or Date object, not a string");
+
 	if (interval===undefined || interval.month==0){
-		if (time.getMilli!==undefined){
+		if (time.getMilli){
 			//SUBTRACT TIME
 			return Duration.newInstance(this.getMilli()-time.getMilli());
 		}else{
@@ -57,7 +59,7 @@ Date.prototype.subtract=function(time, interval){
 			return this.addMonth(-time.month).addMilli(-residue);
 		}//endif
 	}else{
-		if (time.getMilli!==undefined){
+		if (time.getMilli){
 			//SUBTRACT TIME
 			return Date.diffMonth(this, time);
 		}else{
@@ -196,7 +198,7 @@ Date.prototype.floorMonth = function(){
 
 Date.prototype.floorWeek = function(){
 	var output = new Date(this);
-	output.setUTCDate(this.getDate() - this.getDay());
+	output.setUTCDate(this.getUTCDate() - this.getUTCDay());
 	output.setUTCHours(0, 0, 0, 0);
 	return output;
 };//method
@@ -220,6 +222,11 @@ Date.prototype.floorHour = function(){
 
 Date.prototype.ceilingDay = function(){
 	return this.floorDay().addDay(1);
+};//method
+
+
+Date.prototype.ceilingWeek = function(){
+	return this.floorWeek().addWeek(1);
 };//method
 
 
@@ -665,6 +672,19 @@ Date.tryParse=function(val, isFutureDate){
 };//method
 
 
+Date.max=function(a, b){
+	if (a.getMilli()<b.getMilli()) return b;
+	return a;
+};
+
+
+
+
+
+
+
+
+
 
 
 
@@ -674,6 +694,14 @@ var Duration = function(){
 	this.month = 0;
 };
 
+
+Duration.DOMAIN={
+	"type":"duration",
+	"compare":function(a, b){
+		return a.milli-b.milli;
+	}
+
+};
 
 
 

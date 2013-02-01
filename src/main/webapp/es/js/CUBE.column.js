@@ -19,20 +19,23 @@ CUBE.column.compile = function(sourceColumns, resultColumn, edges, useMVEL){  //
 		D.error(resultColumn.name+' has unknown sort order, pick one of ["descending", "none", "ascending"]');
 	}//endif
 
+//	if (resultColumn.domain){
+//		CUBE.domain.compile(resultColumn, sourceColumns);
+//	}//endif
 
 	if (useMVEL!==undefined && useMVEL) return;
 
 	//COMPILE THE CALCULATION OF THE DESTINATION COLUMN USING THE SOURCE COLUMNS
 	var f = "resultColumn.calc=function(__source, __result){\n";
 	for(var s = 0; s < sourceColumns.length; s++){
-		var columnName = sourceColumns[s].name;
+		let columnName = sourceColumns[s].name;
 		//ONLY DEFINE VARS THAT ARE USED
 		if (resultColumn.value.indexOf(columnName) != -1){
 			f += "var " + columnName + "=__source." + columnName + ";\n";
 		}//endif
 	}//for
 	if (edges !== undefined) for(var i = 0; i < edges.length; i++){
-		var columnName = edges[i].name;
+//		let columnName = edges[i].name;
 		var domainName = edges[i].domain.name;
 		//ONLY DEFINE VARS THAT ARE USED
 		if (domainName!==undefined){
