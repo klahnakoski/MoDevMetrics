@@ -5,7 +5,6 @@
 
 //INSPIRED FROM  https://github.com/airportyh/trampoline.js/blob/master/6_add_exception.html
 
-importScript("util.js");
 
 aThread=function(gen){
 	if (typeof(gen)=="function") gen=gen();	//MAYBE THE FUNCTION WILL CREATE A GENERATOR
@@ -179,7 +178,7 @@ aThread.prototype.join=function(){
 };
 
 
-//PUT AT THE BEGINNING OF A GNERATOR TO ENSURE IT WILL ONLY BE CALLED USING yield()
+//PUT AT THE BEGINNING OF A GENERATOR TO ENSURE IT WILL ONLY BE CALLED USING yield()
 aThread.assertThreaded=function(){
 	//GET CALLER AND DETERMINE IF RUNNING IN THREADED MODE
 	if (arguments.callee.caller.caller.name!="aThread_prototype_resume")

@@ -138,7 +138,7 @@ REVIEWS.get=function(minBug, maxBug){
 	}//endif
 
 
-	var esQuery=new ESQuery({
+	var reviewQuery=new ESQuery({
 		"select" : [
 			{"name":"bug_id", "value":"bugs.bug_id"},
 			{"name":"attach_id", "value":"bugs.attachments.attach_id"},
@@ -193,7 +193,7 @@ REVIEWS.get=function(minBug, maxBug){
 
 
 
-	var esQuery2 = new ESQuery({
+	var doneQuery = new ESQuery({
 		"select" : [
 			{"name":"bug_id", "value":"bugs.bug_id"},
 			{"name":"attach_id", "value":"bugs.attachments.attach_id"},
@@ -234,7 +234,7 @@ REVIEWS.get=function(minBug, maxBug){
 	});
 
 	//REVIEWS END WHEN REASSIGNED TO SOMEONE ELSE
-	var esQuery3 = new ESQuery({
+	var switchedQuery = new ESQuery({
 		"select" : [
 			{"name":"bug_id", "value":"bugs.bug_id"},
 			{"name":"attach_id", "value":"bugs.changes.attach_id"},
@@ -243,7 +243,7 @@ REVIEWS.get=function(minBug, maxBug){
 			{"name":"modified_by", "value":"null"},
 			{"name":"product", "value":"bugs.product"},
 			{"name":"component", "value":"bugs.component"},
-			{"name":"review_end_reason", "value":"'reasigned'"}
+			{"name":"review_end_reason", "value":"'reassigned'"}
 		],
 		"from":
 			"bugs.changes",
@@ -267,21 +267,21 @@ REVIEWS.get=function(minBug, maxBug){
 	var inReview;
 	var A=aThread.run(function(){
 		var a=D.action("Get Review Requests", true);
-		inReview=yield(esQuery.run());
+		inReview=yield(reviewQuery.run());
 		D.actionDone(a);
 	});
 
 	var doneReview;
 	var B=aThread.run(function(){
 		var a=D.action("Get Review Ends", true);
-		doneReview=yield(esQuery2.run());
+		doneReview=yield(doneQuery.run());
 		D.actionDone(a);
 	});
 
 	var switchedReview;
 	var C=aThread.run(function(){
 		var a=D.action("Get Review Re-assignments", true);
-		switchedReview=yield(esQuery3.run());
+		switchedReview=yield(switchedQuery.run());
 		D.actionDone(a);
 	});
 
@@ -333,8 +333,8 @@ REVIEWS.get=function(minBug, maxBug){
 				"value":undefined,
 				"domain":{"type":"set", "name":"doneReview", "key":[], "partitions":doneReview}
 			}
-		]
-
+		],
+		"where":"doneReview.review_end_reason=='reassigned'"
 	}))).list;
 
 	D.actionDone(a);

@@ -231,7 +231,7 @@ var __createChart = function(){
 		var data=yield (ElasticSearch.search(query));
 	}catch(e){
 		D.warning("Problem with ES request");
-	}
+	}//try
 	D.actionDone(a);
 
 	if (GUI.state.selectedPrograms.length==0){

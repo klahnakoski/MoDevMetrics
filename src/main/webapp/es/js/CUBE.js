@@ -790,6 +790,9 @@ CUBE.getColumnsFromQuery=function(query){
 
 // PULL COLUMN DEFINITIONS FROM LIST OF OBJECTS
 CUBE.getColumnsFromList = function(data){
+	if (data.length==0 || typeof(data[0])=="string")
+		return [];
+
 	var output = [];
 	for(var i = 0; i < data.length; i++){
 		var keys = Object.keys(data[i]);

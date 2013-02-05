@@ -4,22 +4,33 @@
 
 $.holdReady(true);
 
+if (!D){
+	D={
+		"println":function(message){
+			Console.log(message);
+		},
 
-var D;
+		"error":function(message){
+			Console.error(message);
+			throw message;
+		}
+
+	};
+}//endif
+
 var aScript={};
 
 
-var readfile=function(path){
-	//DECODE RELATIVE PATHS
+var readfile=function(path, callback){
 	var client = new XMLHttpRequest();
 	try{
-		client.open('GET', path, false);
+		client.open('GET', path);
+		client.success=function(){callback(client.responseText);};
+		client.error=function(){callback(null);};
 		client.send(null);
 	}catch(e){
-		if(D===undefined) throw  "Can not read file "+path+": "+e;
-		D.error("Problem loading file "+path, e);
+		callback(null);
 	}//try
-	return client.responseText;
 };
 
 
@@ -54,7 +65,7 @@ var getFullPath=function(parentScriptPath, relativePath){
 
 	absPath=absPath.replace("/./", "/");
 	if (absPath.substring(0,2)=="./") absPath=absPath.substring(2);
-	
+
 	var e=absPath.indexOf("/../");
 	if (e>=0){
 		var s=absPath.lastIndexOf("/", e-1);
@@ -68,56 +79,62 @@ var getFullPath=function(parentScriptPath, relativePath){
 
 };
 
-var scriptLoadStates={};
-var scriptNumPending=0;
+aScript.loadState={};
+aScript.numPending=0;
+aScript.parentPath=".";
 
-//var scripts = document.getElementsByTagName("script");
-//var src = scripts[scripts.length-1].getAttribute("src");
-//var scriptPath=getFullPath(getFullPath("", window.location.pathname), src);
-var scriptParentPath=".";//getFullPath(".", src);
 
-var importScript=function(path){
-	return;
+var importScript=function(paths){
+
+	if (typeof(paths)=="string") paths=[paths];
 
 	//BATCH IMPORT WILL DELAY document.ready() UNTIL ALL ARE IMPORTED (INCLUDING DEPENDENCIES)
-	if (path instanceof Array){
-		scriptNumPending++;
-		for(var i=0;i<path.length;i++) importScript(path[i]);
-		aScript.done();
-		return;
-	}//endif
-
-	var fullPath=getFullPath(scriptParentPath, path);
-	var content=readfile(fullPath);
-	console.info("getFullPath("+scriptParentPath+", "+path+")="+fullPath);
-
-
-	if (scriptLoadStates[fullPath]=="loaded") return;
-	if (scriptLoadStates[fullPath]=="pending") D.error("Import dependency loop detected");
-
-	scriptLoadStates[fullPath]="pending";
-	scriptNumPending++;
-
-	var currPath=scriptParentPath;
-	try{
-		scriptParentPath=fullPath;
-		globalEval(fullPath, content);
-		scriptParentPath=currPath;
-	}catch(e){
-		scriptLoadStates[fullPath]="error";
-		aScript.done();
-		if (D === undefined) throw "Can not load script "+fullPath+": "+e;
-		D.error("Can not load script "+fullPath, e);
-	}//try
-	scriptParentPath=currPath;
-	scriptLoadStates[fullPath]="loaded";
+	aScript.numPending++;
+	for(var i=0;i<paths.length;i++) aScript._importScript_(paths[i]);
 	aScript.done();
 };
 
+////////////////////////////////////////////////////////////////////////////////
+//IMPORT A SCRIPT
+////////////////////////////////////////////////////////////////////////////////
+aScript._importScript_=function(path){
+	var parentPath=aScript.parentPath;
+
+	var fullPath=getFullPath(parentPath, path);
+
+
+	D.println("getFullPath("+parentPath+", "+path+")="+fullPath);
+
+	if (aScript.loadState[fullPath]=="loaded") return;
+	if (aScript.loadState[fullPath]=="pending") D.error("Import dependency loop detected");
+	aScript.loadState[fullPath]="pending";
+	aScript.numPending++;
+
+	readfile(fullPath, function(content){
+		try{
+			aScript.parentPath=fullPath;
+			globalEval(fullPath, content);
+			aScript.parentPath=parentPath;
+		}catch(e){
+			aScript.loadState[fullPath]="error";
+			aScript.done();
+			D.error("Can not load script "+fullPath, e);
+		}//try
+		aScript.parentPath=parentPath;
+		aScript.loadState[fullPath]="loaded";
+		aScript.done();
+	});
+
+};
+
+
+
+
+//LIST OF DOCUMENT READY HANDLERS, I HOPE TO NEVER NEED THIS
 var scriptWaiting=[];
 
 aScript.ready=function(func){
-	if (scriptNumPending==-1){
+	if (aScript.numPending==-1){
 		func();
 		return;
 	}//endif
@@ -127,9 +144,9 @@ aScript.ready=function(func){
 
 
 aScript.done=function(){
-	scriptNumPending--;
-	if (scriptNumPending<=0){
-		scriptNumPending=-1;
+	aScript.numPending--;
+	if (aScript.numPending<=0){
+		aScript.numPending=-1;
 		for(var i=0;i<scriptWaiting.length;i++){
 			scriptWaiting[i]();
 		}//for
@@ -138,13 +155,13 @@ aScript.done=function(){
 
 
 
-scriptNumPending++;
+aScript.numPending++;
 
 importScript("lib/js/jquery-1.7.js");
 
 jQuery.get('PageTemplate.html', function(data, success, raw) {
 	$("body").append(raw.responseText);
-	scriptNumPending--;//DO NOT TRIGGER done()
+	aScript.numPending--;//DO NOT TRIGGER done()
 	if ($.holdReady!==undefined) $.holdReady(false);
 
 });

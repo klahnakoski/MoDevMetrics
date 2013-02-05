@@ -29,8 +29,8 @@ if (window.location.hostname=="metrics.mozilla.com"){
 //
 //	ElasticSearch.baseURL="http://localhost:9200";
 //	ElasticSearch.queryURL = "http://localhost:9200/bugs/_search";
-	ElasticSearch.baseURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
-	ElasticSearch.queryURL = "http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search";
+	ElasticSearch.baseURL="http://elasticsearch8.metrics.scl3.mozilla.com:9200";
+	ElasticSearch.queryURL = "http://elasticsearch8.metrics.scl3.mozilla.com:9200/bugs/_search";
 
 
 }//endif
@@ -161,7 +161,10 @@ ElasticSearchQuery.prototype.success = function(data){
 
 	if (data._shards.failed>0){
 		D.warning("Must resend query...");
-		this.Run();
+		var self=this;
+		self.timeout=Util.coalesce(self.timeout, 1000)*2;
+		setTimeout(function(){self.Run();}, self.timeout);
+//		this.Run();
 		return;
 	}//endif
 

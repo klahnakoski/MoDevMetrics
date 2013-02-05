@@ -7,6 +7,10 @@ var MozillaPrograms = {
 	"columns":
 		["projectName", "attributeName", "attributeValue"],
 	"rows":[
+		["B2G 1.0.0 (TEF)", "cf_blocking_b2g", "tef+"],
+		["B2G 1.0.1 (Shira)", "cf_blocking_b2g", "shira+"],
+		["B2G 1.1.0 (Leo)", "cf_blocking_b2g", "leo+"],
+		["Build Duty", "status_whiteboard.tokenized", "buildduty"],
 		["Boot2Gecko (B2G)", "cf_blocking_basecamp", "+"],
 		["Metro MVP", "status_whiteboard.tokenized", "metro-mvp"],
 		["Security", "status_whiteboard.tokenized", "sg:dos"],

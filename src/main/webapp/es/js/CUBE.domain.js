@@ -194,7 +194,7 @@ CUBE.domain.time = function(column, sourceColumns){
 			"}";
 		eval(f);
 	}else if (column.range){
-		if (!column.range.min && !column.range.max){
+		if (column.range.min===undefined && column.range.max===undefined){
 			D.error("Expecting the range parameter to have a min, or max, or both");
 		}//endif
 
@@ -328,8 +328,8 @@ CUBE.domain.duration = function(column, sourceColumns){
 	if (d.interval===undefined) D.error("Expecting domain '"+d.name+"' to have an interval defined");
 	d.NULL = {"value":null, "name":"null"};
 	d.interval = Duration.newInstance(d.interval);
-	d.min = d.min ? Duration.newInstance(d.min).floor(d.interval) : undefined;
-	d.max = d.max ? Duration.newInstance(d.max).floor(d.interval) : undefined;
+	d.min = d.min!==undefined ? Duration.newInstance(d.min).floor(d.interval) : undefined;
+	d.max = d.max!==undefined ? Duration.newInstance(d.max).floor(d.interval) : undefined;
 
 
 	d.compare = function(a, b){
@@ -364,8 +364,8 @@ CUBE.domain.duration = function(column, sourceColumns){
 				D.error();
 
 			}
-			if (!this.min){//NO MINIMUM REQUESTED
-				if (!this.min && !this.max){
+			if (this.min===undefined){//NO MINIMUM REQUESTED
+				if (this.min===undefined && this.max===undefined){
 					this.min = floor;
 					this.max = Util.coalesce(this.max, floor.add(this.interval));
 					CUBE.domain.duration.addRange(this.min, this.max, this);
@@ -614,10 +614,10 @@ CUBE.domain.set = function(column, sourceColumns){
 	}//endif
 		
 	d.NULL = {};
-	d.NULL.name="null";
 	d.columns.forall(function(v, i){
 		d.NULL[v.name]=null;
 	});
+	d.NULL.name="null";
 
 
 	d.compare = function(a, b){
@@ -650,6 +650,10 @@ CUBE.domain.set = function(column, sourceColumns){
 		});
 		d.value="name";
 		d.key="value";
+
+		//COLUMNS FOR PARTITIONS MUST BE PROPERLY UPDATED
+		d.columns=[{"name":"name"}, {"name":"value"}, {"name":"dataIndex"}];
+		d.NULL.value=null;
 	}//endif
 
 

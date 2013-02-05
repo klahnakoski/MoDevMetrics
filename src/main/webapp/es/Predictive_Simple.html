@@ -289,8 +289,9 @@ var __createChart = function(){
 //			var startValue;
 		//COPY UP TO THE POINT OF PREDICTION (BECAUSE CHARTING LIB SUCKS)
 		for(var i = 0; i < minDomain; i++){
-			data[i]["date"] = startDate.addDay(i);
 //			data[i][predictName] = null;
+//			if (i==0)
+			data[i]["date"] = startDate.addDay(i);
 			data[i][predictName] = data[i][sourceName];
 		}//for
 
@@ -312,10 +313,10 @@ var __createChart = function(){
 	chartP = yield(CUBE.calc2Cube({
 		"from":flat.cube,
 		"select":[
-			"total",
+			{"value":"total", "color":"gray"},
 //			"required",
-			"estimate",
-			"open"
+			{"value":"estimate", "color":"red"},
+			{"value":"open", "color":"blue"}
 		],
 		"edges":[
 			{"name":"date", "value":"date", "domain":{"type":"time", "min":sampleMin, "max":MAX_CHART_DATE, "interval":"day", "value":"value"}}
@@ -330,7 +331,12 @@ var __createChart = function(){
 		"type":"line",
 		"stacked":false,
 		"cube":chartP,
-		"height":400
+		"height":400,
+		extensionPoints: {
+		    dot_shapeRadius: 0,
+            dot_shape:"circle",
+			line_lineWidth: 2
+		}
 	});
 	D.actionDone(a);
 
@@ -346,7 +352,7 @@ $(document).ready(function(){
 			],
 			"bugs");
 
-	GUI.productFilter = ["B2G 1.0.0 (TEF)"];
+//	GUI.productFilter = ["B2G 1.0.0 (TEF)"];
 
 });
 

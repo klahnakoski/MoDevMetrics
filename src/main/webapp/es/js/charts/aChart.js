@@ -199,14 +199,24 @@ aChart.show=function(params){
 
 
 
-//	////////////////////////////////////////////////////////////////////////////
-//	// COLOUR MANAGMENT
-//	////////////////////////////////////////////////////////////////////////////
-//	if (colours===undefined) colours=[aChart.FAVORITE_COLOUR];
-//	if (!(colours instanceof Array)) colours=[colours];
-//	var parts=chartCube.edges[0].domain.partitions;
-//	for(var i=0;i<parts.length;parts++) parts[i].colour=colours[i%colours.length];
-
+	////////////////////////////////////////////////////////////////////////////
+	// COLOUR MANAGMENT
+	////////////////////////////////////////////////////////////////////////////
+	var colors=["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"];
+	if (chartCube.edges.length==1){
+		if (chartCube.select instanceof Array){
+			for(let i=0;i<chartCube.select.length;i++){
+				if (chartCube.select[i].color!==undefined) colors[i]=chartCube.select[i].color;
+			}//for
+		}else{
+			if (chartCube.select.color!==undefined) colors[0]=chartCube.select.color;
+		}//endif
+	}else{
+		let parts=chartCube.edges[0].domain.partitions;
+		for(let i=0;i<parts.length;i++){
+			if (parts[i].color!==undefined) colors[i]=parts[i].color;
+		}//for
+	}//endif
 
 	//STATIC MAP FROM MY CHART TYPES TO CCC CLASS NAMES
 	var chartTypes={
@@ -243,6 +253,7 @@ aChart.show=function(params){
 		yAxisPosition: "right",
 		yAxisSize: 50,
 		xAxisSize: 100,
+		"colors":colors,
 		extensionPoints: {
 			noDataMessage_text: "No Data To Chart",
 			xAxisLabel_textAngle: Math.PI/4,
@@ -253,7 +264,8 @@ aChart.show=function(params){
 			//set in miliseconds
 		    dot_shapeRadius: 1,
             dot_shape:"circle",
-			line_lineWidth: 4
+			line_lineWidth: 4,
+//			line_strokeStyle:
 		},
 		"clickable": true,
 		"clickAction":function(series, x, d, elem){

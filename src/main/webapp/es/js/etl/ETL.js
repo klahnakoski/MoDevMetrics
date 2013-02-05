@@ -42,7 +42,7 @@ ETL.updateAlias=function(etl){
 		}
 	};
 
-	if (etl.oldIndexName!==undefined){
+	if (!etl.oldIndexName && etl.oldIndexName!=etl.newIndexName){
 		param.data.actions.push({"remove":{"index":etl.oldIndexName, "alias":etl.aliasName}});
 	}//endif
 
