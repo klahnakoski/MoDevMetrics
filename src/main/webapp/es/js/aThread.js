@@ -51,7 +51,8 @@ aThread.getStackTrace=function(depth){
 
 
 
-aThread.numRunning=0;
+//aThread.numRunning=0;
+aThread.isRunning=[];
 
 aThread.showWorking=function(){
 	var l=$(".loading");
@@ -64,7 +65,8 @@ aThread.hideWorking=function(){
 
 
 aThread.prototype.start=function(){
-	aThread.numRunning++;
+//	aThread.numRunning++;
+	aThread.isRunning.push(this);
 	aThread.showWorking();
 	return this.resume(this.stack.pop());
 };
@@ -99,26 +101,26 @@ function aThread_prototype_resume(retval){
 				self.currentRequest=undefined;
 				self.resume(retval);
 			};
-		}else{
-			if (this.stack.length==0){
-				D.error("what happened here?");
-			}//endif
-			this.stack.last().close();			//CLOSE THE GENERATOR
-			this.stack.pop();
+		}else{ //RETURNING A VALUE/OBJECT/FUNCTION TO CALLER
+//			if (this.stack.length==0 && aThread.numRunning==0){
+//				D.error("what happened here?");
+//			}//endif
+			this.stack.pop().close(); //CLOSE THE GENERATOR
 
 			if (this.stack.length==0){
+//				if (aThread.numRunning==0)
+//					D.error("Thread already dead!");
+
 				this.kill(retval);
 				if (retval instanceof Exception){
 					D.println("Uncaught Error in thread: ", retval.toString());
 				}//endif
 				return retval;
 			}//endif
-
 		}//endif
 
-
-		var gen = this.stack.last();
 		try{
+			let gen = this.stack.last();
 			if (gen.history===undefined) gen.history=[];
 
 //			gen.history.push(retval===undefined ? "undefined" : retval);
@@ -137,6 +139,7 @@ function aThread_prototype_resume(retval){
 		}//try
 	}//while
 	//CAN GET HERE WHEN THREAD IS KILLED AND aThread.Resume CALLS BACK
+//	aThread.numRunning++;	//TO CANCEL THE aThread.numRunning-- IN kill();
 	this.kill(retval);
 }
 aThread.prototype.resume=aThread_prototype_resume;
@@ -145,8 +148,25 @@ aThread.prototype.kill=function(retval){
 	this.returnValue=retval;				//REMEMBER FO THREAD THAT JOINS WITH THIS
 	this.keepRunning=false;
 
-	aThread.numRunning--;
-	if (aThread.numRunning==0){
+//D.println("kill when numRunning="+aThread.numRunning);
+
+	var self;
+	for(let i=0;i<aThread.isRunning.length;i++){
+		if (aThread.isRunning[i]==this){
+			self=aThread.isRunning.splice(i,1)[0];
+			break;
+		}//endif
+	}//for
+	if (self===undefined){
+		//HAPPENS WHEN CODE HAS A HANDLE, AND WANT TO ENSURE THREAD IS DEAD
+//		D.error("Double call of kill!");
+		return;
+	}//endif
+
+//	aThread.numRunning--;
+//	if (aThread.numRunning<0)
+//		D.error("Thread already dead!");
+	if (aThread.isRunning.length==0){
 		aThread.hideWorking();
 	}//endif
 

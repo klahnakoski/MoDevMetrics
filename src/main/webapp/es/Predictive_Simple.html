@@ -163,21 +163,28 @@ var __createChart = function(){
 
 
 	var a = D.action("Request Bugs", true);
-	var chart = yield(ESQuery.run({
-		"from":"bugs",
-		"select":{"name":"num_bug", "value":"bug_id", "operation":"count"},
-		"edges":[
-			{"name":"status", "value":'(bug_status=="resolved" || bug_status=="verified" || bug_status=="closed") ? "closed" : "open"',
-				"domain":{"type":"set", "partitions":["open", "closed"]}
-			},
-			{"name":"date",
-				"range":{"min":"modified_ts", "max":"expires_on"},
-				"allowNulls":false,
-				"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
-			}
-		],
-		"esfilter":mainFilter
-	}));
+	try{
+		var chart = yield(ESQuery.run({
+			"from":"bugs",
+			"select":{"name":"num_bug", "value":"bug_id", "operation":"count"},
+			"edges":[
+				{"name":"status", "value":'(bug_status=="resolved" || bug_status=="verified" || bug_status=="closed") ? "closed" : "open"',
+					"domain":{"type":"set", "partitions":["open", "closed"]}
+				},
+				{"name":"date",
+					"range":{"min":"modified_ts", "max":"expires_on"},
+					"allowNulls":false,
+					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+				}
+			],
+			"esfilter":mainFilter
+		}));
+	}catch(e){
+		D.warning("Thread killed", e);
+		D.actionDone(a);
+		return;
+	}//try
+
 	D.actionDone(a);
 
 

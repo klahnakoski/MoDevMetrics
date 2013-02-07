@@ -417,6 +417,7 @@ REVIEWS.postMarkup=function(){
 			],
 			esfilter:{"and":[
 				{"terms":{"requester":emails}}
+//				,{"term":{"requester":"artpar@gmail.com"}}
 			]}
 		}));
 		D.actionDone(a);

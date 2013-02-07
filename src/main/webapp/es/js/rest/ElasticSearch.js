@@ -8,7 +8,7 @@ ElasticSearch=function(esquery){
 };
 
 
-//THE CONTENT FOUNDNAT https://metrics.mozilla.com/bugzilla-analysis IS ACTUALLY
+//THE CONTENT FOUNDN AT https://metrics.mozilla.com/bugzilla-analysis IS ACTUALLY
 //A PROXY OF WHAT CAN BE FOUND AT http://people.mozilla.com/~klahnakoski/es
 //THIS ALLOWS THE BROWSER TO ACCESS METRIC'S ES DOCUMENT STORE.
 

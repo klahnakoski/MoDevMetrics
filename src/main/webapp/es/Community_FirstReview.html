@@ -152,6 +152,7 @@ var __createChart = function(){
 	var mainFilter={"and":[
 		{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
 		{"range":{"requester_review_num":{"gte":0, "lte":2}}}	//ONLY CARE FOR FIRST REVIEW, AND IF ONE FOLLOWS
+//		,{"term":{"bug_id":"110894"}}
 	]};
 	GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
 
