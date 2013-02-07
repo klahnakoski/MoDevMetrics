@@ -330,13 +330,22 @@ aChart.show=function(params){
 
 	//ADD BUTTON TO SHOW SHEET
 	if (params.sheetDiv){
+
+
 		var sheetButtonID=divName+"-showSheet";
 		var html='<div id='+CNV.String2Quote(sheetButtonID)+' class="toolbutton" style="right:3;bottom:3" title="Show Table"><img src="'+Settings.imagePath+'/Spreadsheet.png"></div>';
+
+
 		$("#"+divName).append(html);
 		$("#"+sheetButtonID).click(function(){
-			$("#"+params.sheetDiv).html(
-				CNV.Cube2HTMLTable(chartCube)
-			);
+			var oldHtml=$("#"+params.sheetDiv).html();
+			var newHtml=CNV.Cube2HTMLTable(chartCube);
+			
+			if (oldHtml!=""){
+				$("#"+params.sheetDiv).html("");
+			}else{
+				$("#"+params.sheetDiv).html(newHtml);
+			}//endif
 		});
 	}//endif
 

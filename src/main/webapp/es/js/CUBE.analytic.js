@@ -23,7 +23,8 @@ CUBE.analytic.run=function(query){
 //sourceColumns IS AN ARRAY OF COLUMNS DEFINING THE TUPLES IN from
 CUBE.analytic.add=function(query, analytic){
 
-	var edges = analytic.edges;		//ARRAY OF COLUMN NAMES 
+	var edges = analytic.edges;		//ARRAY OF COLUMN NAMES
+	if (edges===undefined) D.error("Analytic expects 'edges' to be defined, even if empty");
 	var sourceColumns=query.columns;
 	var from=query.list;
 	
@@ -34,6 +35,7 @@ CUBE.analytic.add=function(query, analytic){
 	analytic.columnIndex=sourceColumns.length;
 	sourceColumns[analytic.columnIndex] = analytic;
 	analytic.calc=CUBE.analytic.compile(sourceColumns, analytic.value);
+	analytic.domain=CUBE.domain.value;
 
 	if (analytic.where===undefined) analytic.where="true";
 	var where=CUBE.analytic.compile(sourceColumns, analytic.where);
@@ -45,21 +47,26 @@ CUBE.analytic.add=function(query, analytic){
 //		columns[v.name]=v;
 //	});
 
+	var nullGroup=[];
 	var allGroups=[];
 	if (edges.length==0){
 		allGroups.push([]);
 		for(var j = from.length; i --;){
 			var row = from[j];
-			if (!where(null, -1, row))
-				continue;  //where() IS COMPILED AS ANALYTIC, SO WE PASS IT A DUMMY rownum
+			if (!where(null, -1, row)){
+				nullGroup.push(row);
+				continue;
+			}//endif
 			allGroups[0].push(row);
 		}//for
 	}else{
 		var tree = {};  analytic.tree=tree;
 		for(var i = from.length; i --;){
 			var row = from[i];
-			if (!where(null, -1, row))
-				continue;  //where() IS COMPILED AS ANALYTIC, SO WE PASS IT A DUMMY rownum
+			if (!where(null, -1, row)){
+				nullGroup.push(row);
+				continue;
+			}//endif
 
 			//FIND RESULT IN tree
 			var trunk = tree;
@@ -93,16 +100,29 @@ CUBE.analytic.add=function(query, analytic){
 		var group=allGroups[g];
 		if (sortFunction) group.sort(sortFunction);
 
-		for(var rownum=group.length;rownum--;){
+		for(let rownum=group.length;rownum--;){
 			group[rownum][CUBE.analytic.ROWNUM]=rownum;		//ASSIGN ROWNUM TO EVERY ROW
 			group[rownum][CUBE.analytic.ROWS]=group;		//EVERY ROW HAS REFERENCE TO IT'S GROUP
 		}//for
 	}//for
+	{//NULL GROUP
+		if (sortFunction) nullGroup.sort(sortFunction);
+
+		for(let rownum=nullGroup.length;rownum--;){
+			nullGroup[rownum][CUBE.analytic.ROWNUM]=null;
+			nullGroup[rownum][CUBE.analytic.ROWS]=null;
+		}//for
+	}
 
 
 	//PERFORM CALC
 	for(var i=from.length;i--;){
 		from[i][analytic.name]=analytic.calc(from[i][CUBE.analytic.ROWS], from[i][CUBE.analytic.ROWNUM], from[i]);
+
+		if (isNaN(from[i][analytic.name])){
+			D.println("");
+		}//enidf
+
 		from[i][CUBE.analytic.ROWNUM]=undefined;	//CLEANUP
 		from[i][CUBE.analytic.ROWS]=undefined;	//CLEANUP
 	}//for

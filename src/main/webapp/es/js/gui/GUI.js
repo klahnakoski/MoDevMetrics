@@ -140,11 +140,9 @@ GUI.State2URL = function(){
 	forAllKey(GUI.state, function(k, v){
 		if (v.getSimpleState){
 			simplestate[k] = v.getSimpleState();
-		}else if (
-			jQuery.isArray(v) ||
-			typeof(v) == "string" ||
-			Math.isNumeric(k)
-		){
+		}else if (jQuery.isArray(v)){
+			if (v.length>0) simplestate[k] = v.join(",");
+		}else if ( typeof(v) == "string" || Math.isNumeric(k)){
 			simplestate[k] = v;
 		}//endif
 	});
@@ -161,7 +159,7 @@ GUI.URL2State = function(){
 		if (GUI.state[k].getSimpleState){
 			GUI.state[k].setSimpleState(v);
 		}else{
-			GUI.state[k] = v;
+			GUI.state[k] = v.split(",");
 		}//endif
 	});
 };
@@ -198,7 +196,7 @@ GUI.AddParameters=function(parameters, relations){
 		////////////////////////////////////////////////////////////////////////
 		// DATE
 		}else if (param.type=="date" ||param.type=="time"){
-			$("#" + param.id).datepicker({ maxDate: "-0D" });
+			$("#" + param.id).datepicker({ });
 			$("#" + param.id).datepicker("option", "dateFormat", "yy-mm-dd");
 
 			$("#" + param.id).change(function(){

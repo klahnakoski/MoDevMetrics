@@ -333,8 +333,8 @@ REVIEWS.get=function(minBug, maxBug){
 				"value":undefined,
 				"domain":{"type":"set", "name":"doneReview", "key":[], "partitions":doneReview}
 			}
-		],
-		"where":"doneReview.review_end_reason=='reassigned'"
+		]
+//		"where":"doneReview.review_end_reason!='reassigned'"
 	}))).list;
 
 	D.actionDone(a);

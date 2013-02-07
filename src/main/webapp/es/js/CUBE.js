@@ -440,16 +440,15 @@ CUBE.noOP = function(query){
 			}//endif
 		}//for
 	}//endif
+	query.list = output;
 
+	query.columns=sourceColumns.copy();
+	CUBE.analytic.run(query);
 
 	//ORDER THE OUTPUT
 	if (query.sort === undefined) query.sort = [];
-	output = CUBE.sort(output, query.sort, sourceColumns);
 
-	query.columns=sourceColumns;
-	query.list = output;
-
-	CUBE.analytic.run(query);
+	query.list = CUBE.sort(query.list, query.sort, query.columns);
 
 	yield (query);
 

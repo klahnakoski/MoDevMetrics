@@ -42,7 +42,7 @@ ETL.updateAlias=function(etl){
 		}
 	};
 
-	if (!etl.oldIndexName && etl.oldIndexName!=etl.newIndexName){
+	if (etl.oldIndexName!==undefined && etl.oldIndexName!=etl.newIndexName){
 		param.data.actions.push({"remove":{"index":etl.oldIndexName, "alias":etl.aliasName}});
 	}//endif
 
@@ -207,7 +207,9 @@ ETL.incrementalInsert=function(etl){
 ETL.insertBatches=function(etl, fromBatch, toBatch, maxBatch){
 	for(var b=toBatch;b>=fromBatch;b--){
 		var data=yield (etl.get(b*etl.BATCH_SIZE, (b+1)*etl.BATCH_SIZE));
-		yield (etl.insert(data));
+		if (data.length>0){
+			yield (etl.insert(data));
+		}//endif
 		D.println("Done batch "+b+"/"+maxBatch+" (from "+(b*etl.BATCH_SIZE)+" to "+((b+1)*etl.BATCH_SIZE)+") into "+etl.newIndexName);
 	}//for
 };//method

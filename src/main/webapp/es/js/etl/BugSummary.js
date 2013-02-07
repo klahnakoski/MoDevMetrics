@@ -143,12 +143,29 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 			{"name":"component", "value":"component"},
 			{"name":"component_time", "value":"coalesce(get(bugs.?previous_values, 'component_change_away_ts'), created_ts)"},
 			{"name":"create_time", "value":"created_ts"},
-			{"name":"modified_time", "value":"modified_ts"}
+			{"name":"modified_time", "value":"modified_ts"},
+			{"name":"expires_on", "value":"getDocValue(\"expires_on\")"}
 		],
-		"esfilter":
+		"esfilter":{"and":[
 			{"range":{"expires_on":{"gt":Date.eod().getMilli()}}}
+		]}
 	});
 	ElasticSearch.injectFilter(current.esQuery, esfilter);
+
+	var a=D.action("Get Current Bug Info", true);
+	var currentData=yield (current.run());
+	D.actionDone(a);
+
+
+	//WE SOMETIMES GET MORE THAN ONE "CURRENT" RECORD FROM ES, THIS WILL FIND
+	//THE YOUNGEST, AND FILTER OUT THE REST
+	currentData=yield (CUBE.calc2List({
+		"from":{
+			"from":currentData,
+			"analytic":{"name":"num", "value":"(rows.length-1)-rownum", "edges":["bug_id"], "sort":["modified_time"]}
+		},
+		"where":"num==0"
+	}));
 
 
 
@@ -210,9 +227,7 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 
 
 
-	var a=D.action("Get Current Bug Info", true);
-	var currentData=yield (current.run());
-	D.actionDone(a);
+
 
 	a=D.action("Get Historical Timestamps", true);
 	var timesData=yield (Rest.post({
@@ -224,14 +239,19 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 
 	var joinItAll={
 		"from":currentData.list,
-		"select":[],
+		"select":[
+			{"name":"bug_id", "value":"bug_id", "operation":"one"},
+			{"name":"product", "value":"product", "operation":"one"},
+			{"name":"product_time", "value":"product_time", "operation":"minimum"},
+			{"name":"component", "value":"component", "operation":"one"},
+			{"name":"component_time", "value":"component_time", "operation":"minimum"},
+			{"name":"create_time", "value":"create_time", "operation":"one"},
+			{"name":"modified_time", "value":"modified_time", "operation":"maximum"}
+		],
 		"edges":[]
 	};
 
-	currentData.select.forall(function(v, i){
-		joinItAll.select.push({"name":v.name, "value":v.name});
-	});
-
+	
 	//JOIN IN ALL TIME FACETS
 	var edgeList=[];
 	forAllKey(timesData.facets, function(k, v){
@@ -244,22 +264,37 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 		joinItAll.edges.push(e);
 	});
 
+//	{
+//		var f=joinItAll.from;
+//		joinItAll.from=undefined;
+//		var j=Util.jsonCopy(joinItAll);
+//		joinItAll.from=f;
+//
+//		j.edges.forall(function(v, i){
+//			v.domain.partitions=undefined;
+//		});
+//		D.println(CNV.Object2JSON(j));
+//	}
+
+	a=D.action("Process Data", true);
+
 	var r=(yield (CUBE.calc2List(joinItAll))).list;
 
 	//REMOVE EDGES
-	for(var e=edgeList.length;e--;){
-		var k=edgeList[e];
-		for(var i=r.length;i--;) r[i][k]=undefined;
+	for(let e=edgeList.length;e--;){
+		let k=edgeList[e];
+		for(let i=r.length;i--;) r[i][k]=undefined;
 	}//for
 
 	//REMOVE NULL VALUES
 	var keys=Object.keys(r[0]);
-	for(var e=keys.length;e--;){
-		var k=keys[e];
+	for(let e=keys.length;e--;){
+		let k=keys[e];
 		for(var i=r.length;i--;){
 			if (r[i][k]==null) r[i][k]=undefined;
 		}//for
 	}//for
+	D.actionDone(a);
 
 	yield r;
 };//method
