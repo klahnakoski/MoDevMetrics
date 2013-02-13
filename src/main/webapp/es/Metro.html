@@ -1,0 +1,580 @@
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="application/javascript;version=1.7" src="js/Settings.js">
+	</script>
+</HEAD>
+<BODY>
+
+
+<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="lib/jstree/jquery.jstree.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/lib/protovis-d3.3.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/lib/jquery.tipsy.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/lib/tipsy.js"></script>
+<link type="text/css" href="lib/webdetails/lib/tipsy.css" rel="stylesheet"/>
+
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvc.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcPanel.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcLegend.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcWaterfall.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcPie.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcBar.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcLine.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcData.js"></script>
+
+<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
+
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvcDocUtils.js"></script>
+
+
+<link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
+<script type="application/javascript;version=1.7" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
+<script type="application/javascript;version=1.7" src="lib/js/jquery.ba-bbq.js"></script>
+
+<link type="text/css" rel="stylesheet" href="css/menu.css"/>
+
+
+<script type="application/javascript;version=1.7" src="js/CNV.js"></script>
+<script type="application/javascript;version=1.7" src="js/util.js"></script>
+<script type="application/javascript;version=1.7" src="js/aDate.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script>
+<script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/Stats.js"></script>
+<script type="application/javascript;version=1.7" src="js/Debug.js"></script>
+<script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
+<script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
+<script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/aThread.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.analytic.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script>
+<script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
+<script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
+
+
+<script type="application/javascript;version=1.7" src="js/charts/HelperFunctions.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/ElasticSearch.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/charts/DataSet.js"></script>
+<script type="application/javascript;version=1.7" src="js/charts/RangeCharts.js"></script>
+<script type="application/javascript;version=1.7" src="js/charts/RangeIterator.js"></script>
+<script type="application/javascript;version=1.7" src="js/charts/DateRangeIterator.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/gui/Filter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ComponentFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/TeamFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ProductFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ClassificationFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ProgramFilter.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script>
+<script type="application/javascript;version=1.7" src="js/etl/BugTags.js"></script>
+
+
+
+<h3 id="title">Metro Iterations</h3>
+
+<div id="sidebar">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+
+<div id="chart" class="chart" style="position: relative;"></div>
+<div id="metro_open" class="chart" style="position: relative;"></div>
+<div id="iter_open" class="chart" style="position: relative;"></div>
+<div id="iter_total" class="chart" style="position: relative;"></div>
+
+<div id="info" style="float:left;"></div>
+<div id="report"></div>
+
+
+<script type="application/javascript;version=1.7">
+
+
+var CUTOFF = Duration.newInstance("3week");
+
+var thread;
+var createChart = function(){
+	if (thread !== undefined)
+		thread.kill();
+	thread = aThread.run(__createChart());
+};
+
+var __createChart = function(){
+
+	var metro=831997;
+//	var bugs = getDescendants(metro);
+	//GRAB PUBLIC DESCRIPTIONS FROM BZ
+
+
+	//WRITE DEPENDENCY AND CLOSURE TO ES
+
+
+	//CALCULATE BACKLOG OVER TIME??  OR JUST USE ALL OTHER DEPENDENCIES?
+	var backlog=838081;
+	var iterationParent=838829;
+	var startDate=Date.newInstance("2012-12-01");
+	var endDate=Date.newInstance("2013-03-01");
+
+
+
+//	var bugs={"838829":{"bug_id":838829, "dependson":["837155", "837145", "839392"]}};
+	var bugs=yield(getDescendants(metro));
+
+	D.println(Object.keys(bugs));
+
+	var metroSummary=yield (CUBE.calc2Cube({
+		"from":Map.codomain(bugs),
+		"select": [
+			{"name":"total", "value":"bug_id", "operation":"count"},
+			{"name":"open", "value":"time.value.between(open_time, close_time) ? 1 : 0", "operation":"sum"}
+		],
+		"edges":[
+			{"name":"date",
+				"range":{"min":"open_time"},
+				"domain":{"type":"time", "min":startDate, "max":endDate, "interval":"day", "value":"value"}
+			}
+		]
+	}));
+
+	aChart.show({
+		"id":"metro_open",
+		"sheetDiv":"info",
+		"type":"line",
+		"cube":metroSummary,
+		"height":400
+	});
+
+
+	//
+
+
+
+	var iter=yield(getIterationRanges(bugs[iterationParent].dependson));
+	iter=yield(CUBE.Cube2List(iter));
+
+	//MATCH ASSINGED BUGS TO bugs TO FIND AGES
+	//I AM VERY SAD I COULD NOT DO THIS RELATIONALLY, MAYBE WHEN I HAVE MORE TIME TO THINK ABOUT IT.
+	var byDay=[];
+	for(var date=startDate;date.getMilli()<endDate.getMilli();date=date.add(Duration.DAY)){
+		var iterations={};
+		iter.forall(function(iteration, i){
+			var work=iterations[iteration.iteration];
+			if (work===undefined){
+				work={
+					"date":date,
+					"iteration":iteration.iteration,
+					"open_count":0,
+					"open_points":0,
+					"total_count":0,
+					"total_points":0,
+					"descendants":{}
+				};
+				iterations[iteration.iteration]=work;
+			}//endif
+
+			//WE ONLY COUNT ASSIGNED ITERATIONS
+			if (iteration.min<=date.getMilli() && date.getMilli()<iteration.max){
+				var child=bugs[iteration.bug_id];
+
+				child.descendants.forall(function(b, i){
+					if (work.descendants[b.bug_id]) return;	//ALREADY PART OF ITERATION
+					work.descendants[b.bug_id]=b;
+					if ((b.open_time<=date.getMilli() && date.getMilli()<b.close_time)){
+						work.open_count++;
+						work.open_points+=b.points;
+					}//endif
+					if (b.open_time<=date.getMilli()){
+						work.total_count++;
+						work.total_points+=b.points;
+					}//endif
+				});
+
+				//UNFORTUNATELY DESCENDANTS DO NOT INCLUDE SELF
+				if (!work.descendants[child.bug_id]){
+					work.descendants[child.bug_id]=child;
+					if ((child.open_time<=date.getMilli() && date.getMilli()<child.close_time)){
+						work.open_count++;
+						work.open_points+=child.points;
+					}//endif
+					if (child.open_time<=date.getMilli()){
+						work.total_count++;
+						work.total_points+=child.points;
+					}//endif
+				}//endif
+			}//endif
+		});
+		var dayInfo=Map.codomain(iterations);
+		byDay.appendArray(dayInfo);
+	}//for
+
+
+
+
+
+
+	
+	var open=yield (CUBE.calc2Cube({
+		"from":byDay,
+		"select":{"name":"num", "value":"open_points", "operation":"sum"},
+		"edges":[
+			{"value":"iteration", domain:{"type":"default", "value":"value"}},
+			{"value":"date",
+				"allowNulls":false,
+				"domain":{"type":"time", "min":startDate, "max":endDate, "interval":"day", "value":"value"}
+			}//,
+			//{"name":"bug", "value":""
+		]
+	}));
+
+	aChart.show({
+		"id":"iter_open",
+		"sheetDiv":"info",
+		"type":"line",
+		"cube":open,
+		"height":400
+	});
+
+	var total=yield (CUBE.calc2Cube({
+		"from":byDay,
+		"select":{"name":"num", "value":"total_points", "operation":"sum"},
+		"edges":[
+			{"value":"iteration", domain:{"type":"default", "value":"value"}},
+			{"value":"date",
+				"allowNulls":false,
+				"domain":{"type":"time", "min":startDate, "max":endDate, "interval":"day", "value":"value"}
+			}//,
+			//{"name":"bug", "value":""
+		]
+	}));
+
+	aChart.show({
+		"id":"iter_total",
+		"sheetDiv":"info",
+		"type":"line",
+		"cube":total,
+		"height":400
+	});
+
+
+
+
+//	var t = yield(getBacklogMembers(backlog, startDate, endDate));
+//
+//	var c=yield (CUBE.calc2Cube({
+//		"from":t,
+//		"select": {"name":"num_bugs", "value":"exists", "operation":"sum"},
+//		"edges":[
+//			"iteration",
+//			"date"
+//		]
+//	}));
+//
+//	aChart.show({
+//		"id":"chart",
+//		"sheetDiv":"info",
+//		"type":"line",
+//		"cube":c,
+//		"height":400
+//	});
+
+
+
+//	$("#info").html(CNV.List2HTMLTable(yield(CUBE.Cube2List(t))));
+
+
+
+	//	$("#info").html(CNV.List2HTMLTable(yield(CUBE.Cube2List(u))));
+
+//	$("#info").html(CNV.List2HTMLTable(bugs));
+
+};
+
+
+
+
+
+function getDescendants(parent){
+//FIND DEPENDENCY FIXPOINT
+	var bugs = {};
+//	var orderedBugs=[];
+	var lookFor = [parent];
+
+	var metroMVP = (yield(ElasticSearch.search({
+		"query":{
+			"filtered":{
+				"query":{"match_all":{}},
+				"filter":{"and":[
+					{"term":{"status_whiteboard.tokenized":"metro-mvp"}},
+					{"range":{"expires_on":{"gt":Date.now().getMilli()}}}
+				]}
+			}
+		},
+		"fields" : ["bug_id"],
+		"sort":[],
+		"size":200000,
+		"from":0
+	})));
+
+	metroMVP.hits.hits.forall(function(v, i){
+		if (lookFor.contains(v.fields.bug_id)) return;
+		lookFor.push(v.fields.bug_id);
+	});
+
+
+
+//	var found={};
+	while(true){
+		var numBugs = Object.keys(bugs).length;
+
+		var moreBugs = (yield(ElasticSearch.search({
+			"query":{
+				"filtered":{
+					"query":{"match_all":{}},
+					"filter":{"and":[
+						{"terms":{"bug_id":lookFor}},
+						{"range":{"expires_on":{"gt":Date.now().getMilli()}}}
+					]}
+				}
+			},
+			"fields" : ["bug_id", "dependson", "status_whiteboard", "bug_version_num"],
+			"sort":[],
+			"size":200000,
+			"from":0
+		})));
+
+		lookFor = [];
+		moreBugs.hits.hits.forall(function(v, i){
+			//KEEP BUG
+			var b=v.fields;
+			b.bug_id = b.bug_id - 0;
+
+			//THERE IS A RISK THERE IS MORE THAN ONE "CURRENT" RECORD
+			if (bugs[b.bug_id]===undefined || bugs[b.bug_id].bug_version_num<b.bug_version_num){
+				bugs[b.bug_id] = b;
+			}//endif
+
+				if (b.bug_id==836963){
+					D.println("");
+				}
+
+			var deps=Util.coalesce(b.dependson, []);
+			deps.forall(function(w, i){
+				w = w - 0;
+				if (!bugs[w]){
+					lookFor.push(w);
+				}//endif
+			});
+		});
+		D.println(Object.keys(bugs).length + " bugs");
+
+		if (lookFor.length == 0) break;
+
+	}//while
+
+	//GO TO BZ TO GET DESCRIPTIONS
+	var getBZ=aThread.run(function(){
+		var temp=yield (Bugzilla.search(Object.keys(bugs), ["id", "summary"]));
+		temp.forall(function(v, i){
+			bugs[v.id].summary=v.summary;
+		});
+	});
+
+	//AGE OF ALL BUGS FROM ES
+	var getAges=aThread.run(function(){
+		var ages = yield (getMinMax({"and":[
+			{"terms":{"bug_id":Object.keys(bugs)}},
+			Mozilla.BugStatus.Open.esfilter
+		]}));
+
+		ages=yield (CUBE.Cube2List(ages));
+
+		ages.forall(function(v,i){
+			bugs[v.bug_id].open_time=v.min;
+			bugs[v.bug_id].close_time=v.max;
+		});
+
+		yield (true);
+	});
+
+
+	var orderedBugs=Hierarchy.topologicalSort({
+		"from":bugs,
+		"id_field":"bug_id",
+		"children_id_field":"dependson"
+	});
+
+	var dummy=yield (aThread.join(getBZ));
+	dummy=yield (aThread.join(getAges));
+
+	//GO IN REVERSE DEPENDENCY ORDER
+	for(var i=orderedBugs.length;i--;){
+		var b=orderedBugs[i];
+
+		if (!b.summary) b.summary="";
+		if (b.summary.toLowerCase().trim().startsWith("epic ") || b.status_whiteboard.indexOf("feature=epic")>=0) b.type="epic";
+		if (b.summary.toLowerCase().trim().startsWith("story " || b.status_whiteboard.indexOf("feature=story")>=0)) b.type="story";
+
+		//ADD DESCENDANTS TO ALL BUGS
+		if (b.dependson===undefined) b.dependson=[];
+		var allD={};//OBJCET TO MAINTAIN JUST ONE RECORD PER BUG
+		b.dependson.forall(function(c, i){
+			if (bugs[c].descendants==undefined) return; //HAPPENS WHEN ES DOES NOT HAVE CURRENT RECORD
+			bugs[c].descendants.forall(function(d, i){
+				allD[d.bug_id]=d;
+			});
+			allD[c]=bugs[c];
+		});
+		b.descendants=mapAllKey(allD, function(k,v){return v;});
+
+		b.count=b.descendants.length+1;
+
+		//CALC THE POINT COUNT
+		var points=(b.status_whiteboard+" ").between("p=", " ");
+		b.points=points-0;
+
+		//DANGER!  WILL DOUBLE COUNT IF A DAG OF DEPENDENCIES
+		b.pointTotal=0;
+		b.dependson.forall(function(c, i){
+			b.pointTotal+=bugs[c].pointTotal;
+		});
+		b.pointTotal=Math.max(b.pointTotal, b.points);
+
+	}//for
+
+
+	yield (bugs);
+}//method
+
+
+//"BACKLOG" bug_id, AND RANGE FO DATES TO SAMPLE
+function getBacklogMembers(backlog, startDate, endDate){
+//BUILD ITERATION FILTERS
+	//INCLUDE BACKLOG AS AN 'ITERATION' FOR PURPOSES OF EXTRACTING POPULATION OUT OF ES
+	var iterations=[{
+		"name":"backlog",
+		"bug_id":backlog,
+		"esfilter":{"term":{"blocked":838081}}
+	}];
+
+
+	//ALL BUGS ATTACHED TO ITERATION OVER THE DAYS
+	//MAKE GRID OF ITERATION x BUG x DAY
+	//ONLY NEED iStart and iEnd FOR EVERY BUG
+	var t = yield(ESQuery.run({
+		"from":"bugs",
+		"select":{"name":"exists", "value":"1", "operation":"count"},
+		"edges":[
+			{"name":"date",
+				"range":{"min":"modified_ts", "max":"expires_on"},
+				"allowNulls":false,
+				"domain":{"type":"time", "min":startDate, "max":endDate, "interval":"day", "value":"value"}
+			},
+			{"name":"iteration",
+				"allowNulls":true,
+				"domain":{"type":"set", "key":"name", "isFacet":true, "partitions":iterations}
+			},
+			"bug_id"
+		]
+	}));
+	yield t;
+}//method
+
+
+//REQUIRES LIST OF ITERATIONS
+function getIterationRanges(iterations){
+//BUILD ITERATION FILTERS
+	iterations = iterations.map(function(v, i){
+		return {
+			"name":v,
+			"bug_id":v,
+			"esfilter":{"term":{"blocked":v}}
+		};
+	});
+
+	//GET DATE RANGE THAT EACH BUG IS PART OF EACH ITERATION
+	//MUST CALL ES TWICE BECAUSE WE CAN ONLY HAVE ONE SELECT COLUMN IF WE HAVE EDGES
+	var u1 = yield(ESQuery.run({
+		"from":"bugs",
+		"select": {"name":"min", "value":"modified_ts", "operation":"minimum"},
+		"edges":[
+			{"name":"iteration",
+				"allowNulls":false,
+				"domain":{"type":"set", "key":"name", "isFacet":true, "partitions":iterations, "value":"name"}
+			},
+			"bug_id"
+		]
+	}));
+
+	var u2 = yield(ESQuery.run({
+		"from":"bugs",
+		"select": {"name":"max", "value":"expires_on", "operation":"maximum"},
+		"edges":[
+			{"name":"iteration",
+				"allowNulls":false,
+				"domain":{"type":"set", "key":"name", "isFacet":true, "partitions":iterations, "value":"name"}
+			},
+			"bug_id"
+		]
+	}));
+
+	var u = CUBE.merge({"cubes":[
+		{"from":u1, "edges":["iteration", "bug_id"]},
+		{"from":u2, "edges":["iteration", "bug_id"]}
+	]});
+	yield u;
+}//method
+
+
+
+
+
+
+
+
+$(document).ready(function(){
+	createChart();
+
+});
+
+</script>
+
+
+</BODY>
+</HTML>
+

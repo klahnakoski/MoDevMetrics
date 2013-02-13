@@ -47,6 +47,41 @@ ElasticSearch.search=function(esquery){
 	yield (output);
 };
 
+//ONLY BECAUSE I AM TOO LAZY TO ENHANCE THE ESQuery WITH MORE FACETS (A BATTERY OF FACETS PER SELECT COLUMN)
+//RETURN ALL BUGS THAT MATCH FILTER ALONG WITH THE TIME RANGE THEY MATCH
+//EXPECTING esfilter
+ElasticSearch.getMinMax=function(esfilter){
+
+	//MUST CALL ES TWICE BECAUSE WE CAN ONLY HAVE ONE SELECT COLUMN IF WE HAVE EDGES
+	var u1 = yield(ESQuery.run({
+		"from":"bugs",
+		"select": {"name":"min", "value":"modified_ts", "operation":"minimum"},
+		"edges":[
+			"bug_id"
+		],
+		"esfilter":esfilter
+	}));
+
+	var u2 = yield(ESQuery.run({
+		"from":"bugs",
+		"select": {"name":"max", "value":"expires_on", "operation":"maximum"},
+		"edges":[
+			"bug_id"
+		],
+		"esfilter":esfilter
+	}));
+
+	//REMOVE HIGH EXPIRY, WHICH MEANS null
+	u2.cube.forall(function(v, i){
+		if (v>9990000000000) u2.cube[i]=null;
+	});
+
+	var u = CUBE.merge({"cubes":[
+		{"from":u1, "edges":["bug_id"]},
+		{"from":u2, "edges":["bug_id"]}
+	]});
+	yield u;
+}//method
 
 
 

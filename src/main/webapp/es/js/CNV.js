@@ -255,6 +255,12 @@ CNV.Cube2HTMLTable=function(query){
 
 
 CNV.List2HTMLTable = function(data, options){
+	if (data.list && data.columns){
+		//CONVERT FROM QUERY TO EXPECTED FORM
+		options=data;
+		data=data.list;
+	}//endif
+
 
 	if (data.length==0){
 		return "<table class='table'><tbody><tr><td>no records to show</td></tr></tbody></table>";
@@ -300,9 +306,11 @@ HTML.tag=function(tagName, value){
 	if (tagName===undefined) tagName="td";
 
 	if (value === undefined){
-		return "<"+tagName+">&lt;undefined&gt;</"+tagName+">";
+//		return "<"+tagName+">&lt;undefined&gt;</"+tagName+">";
+		return "<"+tagName+"></"+tagName+">";
 	} else if (value == null){
-		return "<"+tagName+">&lt;null&gt;</"+tagName+">";
+//		return "<"+tagName+">&lt;null&gt;</"+tagName+">";
+		return "<"+tagName+"></"+tagName+">";
 	} else if (Math.isNumeric(value)){
 		if ((""+value).length==13){
 			//PROBABLY A TIMESTAMP

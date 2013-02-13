@@ -73,7 +73,7 @@ IntegrityTest.prototype.sendBugzillaRequest = function(query){
 
 		error: function (errorData, errorMsg, errorThrown){
 			localObject.error(errorData, errorMsg, errorThrown);
-		},
+		}
 	});
 };
 

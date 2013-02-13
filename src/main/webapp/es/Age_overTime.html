@@ -57,12 +57,12 @@
 <script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
-<script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
 <script type="application/javascript;version=1.7" src="js/Debug.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
-<script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
+<script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/aThread.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
@@ -230,7 +230,7 @@ var __createChart = function(){
 				{"name":"death", "value":closeTime}
 			],
 			"esfilter":{"and":[
-				{"range":MAP(ProgramFilter.bugStatusMinimum(), {"gte":startX.subtract(sampleSize).getMilli(), "lt":endX.getMilli()})},
+				{"range":Map.newInstance(ProgramFilter.bugStatusMinimum(), {"gte":startX.subtract(sampleSize).getMilli(), "lt":endX.getMilli()})},
 				ProductFilter.makeFilter(),
 				ComponentFilter.makeFilter()
 			]}

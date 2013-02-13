@@ -87,9 +87,15 @@
 <script type="application/javascript;version=1.7" src="js/etl/BugTags.js"></script>
 
 
-<h3 id="title"></h3>
+
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">More Charts</a>
+</div>
 
 <div id="sidebar">
+	<br>
+	<br>
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 	</div>
@@ -106,13 +112,11 @@
 	<div id="filters" class="menu"></div>
 </div>
 
-<div style="float:right;display: inline;">
-	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
-</div>
+<h3 id="title"></h3>
 
 <div id="chart" class="chart" style="position: relative;"></div>
-
-<div id="info" style="float:left;"></div>
+<br><br>
+<div id="info" style="width:800px;float:left;"></div>
 <div id="report"></div>
 
 
@@ -129,17 +133,23 @@ var createChart = function(){
 };
 
 var __createChart = function(){
+	$("#title").html("<b>"+GUI.state.forTitle+"</b>");
+
 
 	var sampleMin = Date.newInstance(GUI.state.sampleMin);
 	var sampleMax =Date.eod().addDay(1);
-
+	var customFilter;
+	try{
+		eval("customFilter="+GUI.state.filter);
+	}catch(e){
+		D.error("Trouble assigning the ES filter", e);
+	}//try
 
 	var sampleInterval = Duration.DAY;
 
 	var DUE_DATE = Date.newInstance(GUI.state.dueDate);
 	var MAX_CHART_DATE=DUE_DATE.addDay(1);
-	
-	$("#title").html("Burndown Prediction using Linear Estimation for "+GUI.state.selectedPrograms.join(", ")+"");
+
 
 	var createTime = "doc[\"create_time\"].value";
 	var idTime = ProgramFilter.bugStatusMinimum_fromSource();
@@ -147,7 +157,6 @@ var __createChart = function(){
 
 
 	var closeTime = "minimum(" + sampleMax.getMilli() + ", coalesce(zero2null(close_time), " + sampleMax.getMilli() + "))";
-
 	yield (ESQuery.loadColumns({"from":"bugs"}));
 
 	var mainFilter = {"and":[
@@ -156,9 +165,47 @@ var __createChart = function(){
 			{"range":{"expires_on":{"gte":sampleMin.getMilli()}}}
 		]},
 		{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-" + sampleMin.getMilli() + ", " + sampleInterval.milli + ")!=floorInterval(expires_on-" + sampleMin.getMilli() + ", " + sampleInterval.milli + ")", {"from":"bugs"})}},
-
+		customFilter,
 		GUI.getFilters("bugs")
 	]};
+
+
+
+	
+	aThread.run(function(){
+		//FIND ALL BUGS
+		var historyBugs=yield (ElasticSearch.getMinMax({"and":[mainFilter, {"not":{"terms":{"bug_status":["resolved","verified","closed"]}}}]}));
+
+		//I WOULD LIKE TO SEND BZ QUERIES LIKE THIS, SO I CAN MERGE ON EDGES
+		//{
+		//   "select":"id"
+		//   "edges":[{"name":"bug_id", "value":"id"}]
+		//}
+		//CURRENT STATUS
+		var currentBugs=yield (Bugzilla.search(historyBugs.edges[0].domain.partitions.map(function(v){return v.value;}), ["id", "summary", "assignee", "status", "resolution" ]));
+
+		//ADD CURRENT BUGS DATA TO HISTORY (MERGE ON bug_id)
+		currentBugs.forall(function(v){
+			var i=historyBugs.edges[0].domain.getPartByKey(v.id).dataIndex;
+			Util.copy(v, historyBugs.cube[i])
+		});
+
+		//FORMAT THE BUGS FOR TABLE
+		var showBugs=yield(CUBE.calc2List({
+			"from":historyBugs.cube,
+//			"analytic":{"name":"Order","value":"rownum+1", "sort":["Close Date", "ID"]},
+			"select":[
+				{"name":"ID", "value":"Bugzilla.linkToBug(id)"},
+				{"name":"Close Date", "value":"(max===null) ? null : Date.newInstance(max).floorDay()"},
+				{"name":"Status", "value":"status"},
+				{"name":"Resolution", "value":"Util.coalesce(resolution, null)"},
+				{"name":"Summary", "value":"summary"}
+			],
+			"sort":["Close Date", "ID"]
+		}));
+
+		$("#info").html(CNV.List2HTMLTable(showBugs));
+	});
 
 
 
@@ -208,85 +255,89 @@ var __createChart = function(){
 	//ADD PREDICTOR LINE
 
 	//LAST 6 WEEKS
-	var statsMax = sampleMax.addDay(-1);
-	var numWeek=Math.min(6, Math.floor((statsMax.getMilli()-sampleMin.getMilli())/Duration.WEEK.milli));
-	var statsMin = statsMax.addWeek(-numWeek);
+//	var statsMax = sampleMax;
+//	var numWeek=Math.min(6, Math.floor((statsMax.getMilli()-sampleMin.getMilli())/Duration.WEEK.milli));
+//	var statsMin = statsMax.addWeek(-numWeek);
 
-	$("#description").html("Simple chart of open bugs, plus linear estimate of when the project will be completed.<br><br>Pick your program, your due date and BOOKMARK the result for next time.<br><br>"+
-			"<span class=\"warning\">Estimates are generated from a "+statsMax.subtract(statsMin).toString()+" sample from "+statsMin.format("EE MMM dd")+" to "+statsMax.addDay(-1).format("EE MMM dd")+"</span>");
+	$("#description").html(
+		"Simple chart of OPEN bugs matching the given ES filter, plus a linear projection of ideal burn down.<br><br>"
+		+"This is best used in the last few weeks of a project, where the number of remaining open bugs is small, and must be all be closed by the due date.<br><br>"
+		+"Please look at the <a href='./js/etl/bug_version.json'>ES Schema</a> to get a full listing of fields available.  They are a little different then in BZ. "
+//		+"<span class=\"warning\">Estimates are generated from a "+statsMax.subtract(statsMin).toString()+" sample from "+statsMin.format("EE MMM dd")+" to "+statsMax.addDay(-1).format("EE MMM dd")+"</span>"
+	 );
 //	$("#stats").html("<br>");
 
 
 
 
 
-	var stats = yield(CUBE.calc2Cube({
-		"from":flat,
-		"select":[
-			{"name":"closed", value:"Util.coalesce(closed, 0)"},
-			{"name":"total", value:"Util.coalesce(total, 0)"}
-		],
-		"edges":[
-			{"name":"date", "value":"date",
-				"allowNulls":false,
-				"domain":{"type":"time", "min":statsMin, "max":statsMax, "interval":Duration.DAY, "value":"value"}
-			}
-		]
-	}));
+//	var stats = yield(CUBE.calc2Cube({
+//		"from":flat,
+//		"select":[
+//			{"name":"closed", value:"Util.coalesce(closed, 0)"},
+//			{"name":"total", value:"Util.coalesce(total, 0)"}
+//		],
+//		"edges":[
+//			{"name":"date", "value":"date",
+//				"allowNulls":false,
+//				"domain":{"type":"time", "min":statsMin, "max":statsMax, "interval":Duration.DAY, "value":"value"}
+//			}
+//		]
+//	}));
 
 	//DIFF TOTAL==NET NEW BUGS
 	//DIFF CLOSED==NET CLOSED BUGS
-	var diff = stats.cube.map(function(v, i){
-		if (i == stats.cube.length-1) return undefined;
-		return {
-			"net_new":stats.cube[i + 1].total-v.total,
-			"net_closed":stats.cube[i + 1].closed-v.closed
-		};
-	});
+//	var diff = stats.cube.map(function(v, i){
+//		if (i == stats.length-1) return undefined;
+//		return {
+//			"net_new":stats.cube[i + 1].total-v.total,
+//			"net_closed":stats.cube[i + 1].closed-v.closed
+//		};
+//	});
+//
+//	var perDay = (yield(CUBE.calc2List({
+//		"from":diff,
+//		"select":[
+//			{"value":"net_new", "operation":"average"},
+//			{"value":"net_closed", "operation":"average"}
+//		]
+//	}))).list[0];
+//
+//	$("#stats").html(
+//		'<span class="parameter_name">New Bugs Per Day:</span>' + Math.round(perDay.net_new, 1) + '<br>' +
+//		'<span class="parameter_name">Closed Per Day:</span>' + Math.round(perDay.net_closed, 1) + '<br>' +
+//		''
+//	);
 
-	var perDay = (yield(CUBE.calc2List({
-		"from":diff,
-		"select":[
-			{"value":"net_new", "operation":"average"},
-			{"value":"net_closed", "operation":"average"}
-		]
-	}))).list[0];
 
-	$("#stats").html(
-		'<span class="parameter_name">New Bugs Per Day:</span>' + Math.round(perDay.net_new, 1) + '<br>' +
-		'<span class="parameter_name">Closed Per Day:</span>' + Math.round(perDay.net_closed, 1) + '<br>' +
-		''
-	);
-
-
-	var stillOpen = flat.cube[flat.edges[0].domain.getPartByKey(Date.now().floorDay()).dataIndex].open;
+	var stillOpen = flat.cube[flat.edges[0].domain.getPartByKey(sampleMin).dataIndex].open;
 	var requiredNetCloseRatePerDay;
 	{
-		let daysLeft=Date.diffWeekday(DUE_DATE, Date.now().floorDay());
-		//let	daysLeft = DUE_DATE.subtract(sampleMax).divideBy(Duration.DAY);
+		let daysLeft=Date.diffWeekday(DUE_DATE, sampleMin);
+		//let	daysLeft = DUE_DATE.subtract(sampleMin).divideBy(Duration.DAY);
 		daysLeft = Math.max(1, daysLeft);
 		requiredNetCloseRatePerDay = stillOpen / daysLeft;
 	}
 
-	$("#stats").append('<span class="parameter_name">Required Closed/Day:</span>' + Math.round(requiredNetCloseRatePerDay + perDay.net_new, 1) + '<br>');
+	$("#stats").append('<span class="parameter_name">Required Closed/Day:</span>' + Math.round(requiredNetCloseRatePerDay, 1) + '<br>');
 
 
 	//
-	var expectedEndDate;
-	{
-		var openAtStartOfEstimate = flat.cube[flat.edges[0].domain.getPartByKey(statsMax).dataIndex-1].open;
-		var netCloseRatePerDay = (perDay.net_closed-perDay.net_new);
-		let daysLeft = openAtStartOfEstimate / netCloseRatePerDay;
-		expectedEndDate = statsMax.addWeekday(daysLeft);
-		netCloseRatePerDay = Math.max(0, netCloseRatePerDay);
-	}
+//	var expectedEndDate;
+//	{
+//		var openAtStartOfEstimate = flat.cube[flat.edges[0].domain.getPartByKey(statsMax).dataIndex-1].open;
+//		var netCloseRatePerDay = (perDay.net_closed-perDay.net_new);
+//		let daysLeft = openAtStartOfEstimate / netCloseRatePerDay;
+//		expectedEndDate = statsMax.addDay(daysLeft);
+//		netCloseRatePerDay = Math.max(0, netCloseRatePerDay);
+//	}
 
 //	$("#stats").append('<span class="parameter_name">DUE Date:</span>' + DUE_DATE.format("dd MMM yyyy") + '<br>');
-	if (netCloseRatePerDay <= 0){
-		$("#stats").append('<span class="parameter_name">Expected End:</span>NEVER<br>');
-	} else{
-		$("#stats").append('<span class="parameter_name">Expected End:</span>' + expectedEndDate.format("dd MMM yyyy") + '<br>');
-	}//endif
+//	if (netCloseRatePerDay <= 0){
+//		$("#stats").append('<span class="parameter_name">Expected End:</span>NEVER<br>');
+//	} else{
+//		$("#stats").append('<span class="parameter_name">Expected End:</span>' + expectedEndDate.format("dd MMM yyyy") + '<br>');
+//	}//endif
 
 
 	//MAKE THE PREDICTION LINE (slope should be negative, of course)
@@ -315,18 +366,16 @@ var __createChart = function(){
 	};
 
 	//REQUIRED
-	addPredictionLine(sampleMin, MAX_CHART_DATE, flat.cube, "open", "required", Date.now().floorDay(), Date.now().floorDay(), stillOpen, -requiredNetCloseRatePerDay);
+	addPredictionLine(sampleMin, MAX_CHART_DATE, flat.cube, "open", "ideal", sampleMin, sampleMin, stillOpen, -requiredNetCloseRatePerDay);
 
-	//ESTIMATE
-	addPredictionLine(sampleMin, MAX_CHART_DATE, flat.cube, "open", "estimate", statsMax, statsMax, openAtStartOfEstimate, -netCloseRatePerDay);
 
 	chartP = yield(CUBE.calc2Cube({
 		"from":flat.cube,
 		"select":[
-			{"value":"total", "color":"gray"},
-			{"value":"required", "color":"brown"},
-			{"value":"estimate", "color":"red"},
-			{"value":"open", "color":"blue"}
+//			{"value":"total", "color":"gray"},
+			{"value":"ideal", "color":"gray"},
+//			{"value":"estimate", "color":"red"},
+			{"value":"open", "color":"red"}
 		],
 		"edges":[
 			{"name":"date", "value":"date", "domain":{"type":"time", "min":sampleMin, "max":MAX_CHART_DATE, "interval":"day", "value":"value"}}
@@ -355,12 +404,16 @@ var __createChart = function(){
 
 $(document).ready(function(){
 	GUI.setup([
-		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":new Date(2013, 0, 1)},
-		{"id":"dueDate", "name":"Due Date", "type":"time", "default":Date.now().addMonth(1).floorDay()}
+		{"id":"forTitle", "name":"Title", "type":"text", "default":"TEF UX Critical"},
+		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.newInstance("2013-02-05")},//Date.now().addDay(-15).floorMonth()},
+		{"id":"dueDate", "name":"Due Date", "type":"time", "default":Date.newInstance("2013-02-15")},//Date.now().addMonth(1).floorDay()},
+		{"id":"filter", "name":"ES Filter", "type":"text", "default":'{"terms":{"bug_id":[803809, 808576, 809076, 817603, 822671, 824626, 827854, 828222, 828915, 829520, 832269, 834653, 834680, 834712, 834718, 834734, 835364, 835410, 835414]}}'},
 		],
-			[
-			],
-			"bugs");
+		[
+		],
+		"bugs",
+		false		//DO NOT SHOW DEFAULT FILTERS
+	);
 
 //	GUI.productFilter = ["B2G 1.0.0 (TEF)"];
 

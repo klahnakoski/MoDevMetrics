@@ -14,16 +14,21 @@ CUBE.domain.compile = function(column, sourceColumns){
 		CUBE.domain["default"](column, sourceColumns);
 		return;
 	}//endif
+
+	if (column.domain.type==false)
+		D.error();
 	if (column.domain.type=="date") column.domain.type="time";
 	if (column.domain.type===undefined && column.domain.partitions!==undefined){
 		column.domain.type="set";
 		if (column.domain.name==="undefined") D.warning("it is always good to name your domain");
 	}//endif
 
-	if (CUBE.domain[column.domain.type] === undefined){
-		D.error("Do not know how to compile a domain of type '" + column.domain.type + "'");
-	} else{
+	if (column.domain.type=="value"){
+		column.domain=CUBE.domain.value;
+	}else if (CUBE.domain[column.domain.type]){
 		CUBE.domain[column.domain.type](column, sourceColumns);
+	} else{
+		D.error("Do not know how to compile a domain of type '" + column.domain.type + "'");
 	}//endif
 };//method
 
@@ -31,7 +36,17 @@ CUBE.domain.compile = function(column, sourceColumns){
 //COMPARE TWO DOMAINS, RETURN true IF IDENTICAL
 CUBE.domain.equals=function(a, b){
 	if ((a.type=="default" || a.type=="set") && (b.type=="default" || b.type=="set")){
-		D.error("not completed");
+		if (a.partitions.length!=b.partitions.length) return false;
+		for(let i=0;i<a.partitions.length;i++){
+			if (b.getPartByKey(a.getKey(a.partitions[i]))==b.NULL) return false;
+		}//for
+		return true;
+	}else if (a.type=="value" && b.type=="value"){
+		if (a.partitions.length!=b.partitions.length) return false;
+		for(let i=0;i<a.partitions.length;i++){
+			if (a[i]!=b[i]) return false;
+		}//for
+		return true;
 	}else if (a.type=="time" && b.type=="time"){
 		if (a.interval.milli!=b.interval.milli) return false;
 		if (a.min.getMilli()!=b.min.getMilli()) return false;

@@ -33,7 +33,7 @@ ProgramFilter.makeFilter = function(indexName){
 					name="keywords";
 				}//endif
 
-				or.push({"term":MAP(name, value)});
+				or.push({"term":Map.newInstance(name, value)});
 			}//endif
 		}//for
 	}//for
@@ -57,7 +57,7 @@ ProgramFilter.makeQuery = function(filters){
 		}//endif
 
 		programCompares[project]=Util.coalesce(programCompares[project], []);
-		programCompares[project].push({"term":MAP(name, value)});
+		programCompares[project].push({"term":Map.newInstance(name, value)});
 	}//for
 
 

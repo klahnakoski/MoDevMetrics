@@ -427,7 +427,7 @@ REVIEWS.postMarkup=function(){
 			"from":firstTime,
 			"analytic":[
 				{"name":"requester_first_review", "value":"rownum==0", "sort":["request_time"], "edges":["requester", "bug_id"]},
-				{"name":"requester_review_num", "value":"rownum+1", "sort":["request_time"], "edges":["requester"], "where":"requester_first_review"}
+				{"name":"requester_review_num", "value":"rownum==null ? null : rownum+1", "sort":["request_time"], "edges":["requester"], "where":"requester_first_review"}
 			],
 			"sort":["requester_review_num"]
 		}));

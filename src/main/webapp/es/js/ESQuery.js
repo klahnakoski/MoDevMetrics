@@ -252,7 +252,7 @@ ESQuery.prototype.compile = function(){
 		this.esMode="terms";
 	}//endif
 
-	this.facetEdges=[];	//EDGES THAT WILL REQUIRE A FACET
+	this.facetEdges=[];	//EDGES THAT WILL REQUIRE A FACET FOR EACH PART
 
 	//A SPECIAL EDGE IS ONE THAT HAS AN UNDEFINED NUMBER OF PARTITIONS AT QUERY TIME
 	//FIND THE specialEdge, IF ONE
@@ -338,7 +338,7 @@ ESQuery.prototype.buildFacetQueries = function(){
 			if (value.type=="field"){
 				q.value = {
 					"terms_stats":{
-						"key_field":this.specialEdge.value,
+						"key_field":value.field,
 						"value_field":value.value,
 						"size":this.query.essize
 					}
@@ -346,7 +346,7 @@ ESQuery.prototype.buildFacetQueries = function(){
 			}else{
 				q.value = {
 					"terms_stats":{
-						"key_field":this.specialEdge.value,
+						"key_field":value.field,
 						"value_script":value.value,
 						"size":this.query.essize
 					}
@@ -420,7 +420,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 			output={"and":[]};
 
 			if (MVEL.isKeyword(edge.range.min)){
-				output.and.push({"range":MAP(edge.range.min,{"lt":MVEL.Value2Code(partition.min)})});
+				output.and.push({"range":Map.newInstance(edge.range.min,{"lt":MVEL.Value2Code(partition.min)})});
 			}else{
 				//WHOA!! SUPER SLOW!!
 				output.and.push({"script":{"script":MVEL.compile.expression(
@@ -429,7 +429,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 			}//endif
 
 			if (MVEL.isKeyword(edge.range.max)){
-				output.and.push({"range":MAP(edge.range.max,{"gte":MVEL.Value2Code(partition.min)})});
+				output.and.push({"range":Map.newInstance(edge.range.max,{"gte":MVEL.Value2Code(partition.min)})});
 			}else{
 				//WHOA!! SUPER SLOW!!
 				output.and.push({"script":{"script":MVEL.compile.expression(
@@ -559,10 +559,13 @@ ESQuery.prototype.compileEdges2Term=function(){
 			this.term2Parts=function(term){
 				return [specialEdge.domain.getPartByKey(term)];
 			};
-			if (MVEL.isKeyword(specialEdge.value)){
-				return {"type":"field", "value":specialEdge.value};
+
+			//ONLY USED BY term_stats, AND VALUE IS IN THE SELECT CLAUSE
+			if (!MVEL.isKeyword(specialEdge.value)) D.error("Can not handle complex edge value with "+this.select[0].operation);
+			if (MVEL.isKeyword(this.select[0].value)){
+				return {"type":"field", "field":specialEdge.value, "value":this.select[0].value};
 			}else{
-				return {"type":"script", "value":MVEL.compile.expression(specialEdge.value)};
+				return {"type":"script", "field":specialEdge.value, "value":MVEL.compile.expression(this.select[0].value, this.query)};
 			}//endif
 		}else{
 			//REGISTER THE DECODE FUNCTION
@@ -885,6 +888,8 @@ ESQuery.agg2es = {
 	"count":"count",
 	"maximum":"max",
 	"minimum":"min",
+	"max":"max",
+	"min":"min",
 	"average":"mean"
 };
 
@@ -946,6 +951,8 @@ ESQuery.prototype.terms_statsResults = function(data){
 	}//for
 	partitions.sort(this.specialEdge.domain.compare);
 	for(var p = 0; p < partitions.length; p++) partitions[p].dataIndex = p;
+//	partitions[p]=this.specialEdge.domain.NULL;
+//	partitions[p].dataIndex = p;
 
 	this.specialEdge.domain.map = map;
 	this.specialEdge.domain.partitions = partitions;
@@ -971,7 +978,7 @@ ESQuery.prototype.terms_statsResults = function(data){
 					c++;
 				}//endif
 			}//for
-			var value = terms[t][ESQuery.agg2es[this.select.operation]];
+			var value = terms[t][ESQuery.agg2es[this.select[0].operation]];
 			if (this.query.edges[f] == this.specialEdge){
 				d[this.specialEdge.domain.map[terms[t].term].dataIndex] = value;
 			} else{
@@ -1061,7 +1068,7 @@ D.println("from: "+CNV.Object2JSON(esfilter));
 			var fieldname=Object.keys(esfilter.terms)[0];
 			output={};
 			output.or=esfilter.terms[fieldname].map(function(t, i){
-				return {"and":[{"term":MAP(fieldname, t)}], "isNormal":true};
+				return {"and":[{"term":Map.newInstance(fieldname, t)}], "isNormal":true};
 			});
 		}else if (esfilter.not && esfilter.not.or){				//NOT.OR -> AND.NOT
 			output={};

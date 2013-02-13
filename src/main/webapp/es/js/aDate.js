@@ -31,7 +31,12 @@ Date.newInstance = function(value){
 Date.prototype.getMilli = Date.prototype.getTime;
 
 
+Date.prototype.between=function(min, max){
+	if (min.getMilli) min=min.getMilli();
+	if (max.getMilli) max=max.getMilli();
 
+	return (min<=this.getMilli() && this.getMilli()<max);
+};//method
 
 Date.prototype.add = function(interval){
 	if (interval===undefined || interval==null){
@@ -69,6 +74,43 @@ Date.prototype.subtract=function(time, interval){
 	}//endif
 };//method
 
+//RETURN THE NUMBER OF WEEKDAYS BETWWEN GIVEN TIMES
+Date.diffWeekday=function(endTime, startTime){
+	var out=0;
+	var s=startTime;
+	var e=endTime;
+	for(let d=startTime;d.getMilli()<endTime.getMilli();d=d.addDay(1)){
+		if (![6,0].contains(d.dow())) out++;
+	}//for
+
+
+
+	//SHIFT SO SATURDAY IS START OF WEEK
+	endTime=endTime.addDay(1);
+	startTime=startTime.addDay(1);
+
+
+	if ([0,1].contains(startTime.dow())){
+		startTime=startTime.floorWeek().addDay(2);
+	}//endif
+
+	if ([0,1].contains(endTime.dow())){
+		endTime=endTime.floorWeek();
+	}//endif
+
+	var startWeek=startTime.addWeek(1).floorWeek();
+	var endWeek=endTime.addMilli(-1).floorWeek();
+
+
+	var output=((startWeek.getMilli()-startTime.getMilli())+((endWeek.getMilli()-startWeek.getMilli())/7)*5+(endTime.getMilli()-endWeek.addDay(2).getMilli()))/Duration.DAY.milli;
+
+
+	if (out!=Math.ceil(output))
+		D.error("");
+
+
+	return output;
+};//method
 
 
 Date.diffMonth=function(endTime, startTime){
@@ -104,7 +146,7 @@ Date.diffMonth=function(endTime, startTime){
 
 
 
-
+Date.prototype.dow=Date.prototype.getUTCDay;
 
 
 //CONVERT THIS GMT DATE TO LOCAL DATE
@@ -138,10 +180,27 @@ Date.prototype.addHour = function(value){
 
 
 Date.prototype.addDay = function(value){
+	if (value===undefined) value=1;
 	var output = new Date(this);
 	output.setUTCDate(this.getUTCDate() + value);
 	return output;
 };//method
+
+
+Date.prototype.addWeekday = function(value){
+	var output=this.addDay(1);
+	if ([0,1].contains(output.dow())) output.floorWeek().addDay(2);
+
+	var weeks=Math.floor(value/5*7);
+	value=value-(weeks*7);
+	output=output.addDay(value);
+	if ([0,1].contains(output.dow())) output.floorWeek().addDay(2);
+
+	output=output.addWeek(weeks).addDay(-1);
+	return output;
+};//method
+
+
 
 Date.prototype.addWeek = function(value){
 	var output = new Date(this);

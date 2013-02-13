@@ -411,9 +411,17 @@ MVEL.FUNCTIONS={
 		"var concat = function(array){\n"+
 			"if (array==null) \"\"; else {\n"+
 			"var output = \"\";\n"+
-			"for (v : array){ output = output+'|'+v+'|'; };\n"+
+			"for (v : array){ output = output+\"|\"+v+\"|\"; };\n"+
 			"output;\n"+
 		"}};\n",
+
+//	"contains":
+//		"var contains = function(array, value){\n"+
+//			"if (array==null) false; else {\n"+
+//			"var good = false;\n"+
+//			"for (v : array){ if (v==value) good=true; };\n"+
+//			"good;\n"+
+//		"}};\n",
 
 	"getFlagValue":  //SPECIFICALLY FOR cf_* FLAGS: CONCATENATE THE ATTRIBUTE NAME WITH ATTRIBUTE VALUE, IF EXISTS
 		"var getFlagValue = function(name){\n"+

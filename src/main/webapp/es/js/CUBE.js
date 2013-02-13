@@ -43,8 +43,9 @@ CUBE.compile = function(query, sourceColumns, useMVEL){
 		columns[e.columnIndex] = e;
 		uniqueColumns[e.name]=e;
 
-		CUBE.column.compile(sourceColumns, e, undefined, useMVEL);
-		CUBE.domain.compile(e, sourceColumns);
+		//EDGES DEFAULT TO A STRUCTURED TYPE, OTHER COLUMNS DEFAULT TO VALUE TYPE
+		if (e.domain === undefined) e.domain={"type":"default"};
+		CUBE.column.compile(e, sourceColumns, undefined, useMVEL);
 		e.outOfDomainCount = 0;
 	}//for
 
@@ -56,7 +57,7 @@ CUBE.compile = function(query, sourceColumns, useMVEL){
 		select[s].columnIndex=s+edges.length;
 		columns[select[s].columnIndex] = select[s];
 		uniqueColumns[select[s].name] = select[s];
-		CUBE.column.compile(sourceColumns, select[s], edges, useMVEL);
+		CUBE.column.compile(select[s], sourceColumns, edges, useMVEL);
 		CUBE.aggregate.compile(select[s]);
 	}//for
 
@@ -121,7 +122,7 @@ CUBE.calc2Tree = function(query){
 						continue FROM;
 					}//endif
 				} else{
-					//WE MUTIPLY THE NUMBER OF MATCHES TO THE CURRENT NUMBER OF RESULTS (SQUARING AND CUBING THE RESULT-SET)
+					//WE MULTIPLY THE NUMBER OF MATCHES TO THE CURRENT NUMBER OF RESULTS (SQUARING AND CUBING THE RESULT-SET)
 					for(let t = results.length; t--;){
 						result = results[t];
 						result[f] = matches[0];
@@ -468,7 +469,7 @@ CUBE.setOP = function(query){
 	var columns = select;
 
 	for(let s = 0; s < select.length; s++){
-		CUBE.column.compile(sourceColumns, select[s], undefined);
+		CUBE.column.compile(select[s], sourceColumns, undefined);
 	}//for
 	var where = CUBE.where.compile(query.where, sourceColumns, []);
 
@@ -654,41 +655,6 @@ CUBE.normalizeByX=function(query, multiple){
 
 
 
-// CONVERT FROM AN ARRAY OF OBJECTS WITH A parent_field DEFINED TO A TREE OF
-// THE SAME, BUT WITH child_field CONTAINING AN ARRAY OF CHILDREN
-// ALL OBJECTS MUST HAVE id_field DEFINED
-// RETURNS AN ARRAY OF ROOT NODES.
-CUBE.List2Hierarchy=function(args){
-	var childList={};
-	var roots=[];
-
-	args.from.forall(function(p, i){
-		if (p[args.parent_field]!=null){
-			var peers=childList[p[args.parent_field]];
-			if (!peers){
-				peers=[];
-				childList[p[args.parent_field]]=peers;
-			}//endif
-			peers.push(p);
-		}else{
-			roots.push(p);
-		}//endif
-	});
-
-	var heir=function(children){
-		children.forall(function(child, i){
-			var grandchildren=childList[child[args.id_field]];
-			if (grandchildren){
-				child[args.child_field]=grandchildren;
-				heir(grandchildren);
-			}//endif
-		});
-	};
-	heir(roots);
-
-	return roots;
-};
-
 
 
 // CONVERT THE tree STRUCTURE TO A FLAT LIST FOR output
@@ -838,6 +804,8 @@ CUBE.merge=function(query){
 	output.edges=[];
 	output.edges.appendArray(commonEdges);
 	output.select=[];
+	output.columns=[];
+	output.columns.appendArray(commonEdges);
 
 	output.cube=CUBE.cube.newInstance(output.edges, 0, []);
 
@@ -845,8 +813,10 @@ CUBE.merge=function(query){
 	query.cubes.forall(function(item, index){
 		//COPY SELECT DEFINITIONS
 		output.select.appendArray(CUBE.select2Array(item.from.select));
+		output.columns.appendArray(CUBE.select2Array(item.from.select));
+		
 
-		//VERIFY DOMAINS ARE IDENTICAL
+		//VERIFY DOMAINS ARE IDENTICAL, AND IN SAME ORDER
 		if (item.edges.length!=commonEdges.length) D.error("Expecting all partitions to have same number of (common) edges declared");
 		item.edges.forall(function(edge, i){
 			if (typeof(edge)=="string") D.error("can not find edge named '"+edge+"'");
@@ -865,29 +835,82 @@ CUBE.merge=function(query){
 
 
 		//COPY ATTRIBUTES TO NEW JOINED
-		if (output.edges.length!=1){
-			D.error("Can not copy more than one dimensional cube");
+		if (output.edges.length==1){
+
+			let parts=output.edges[0].domain.partitions;
+			let num=parts.length;
+			if (output.edges[0].allowNulls){
+				if (parts[parts.length-1]!=output.edges[0].domain.NULL) D.error("Expecting NULL in the partitions");
+			}else{
+				if (parts[parts.length-1]==output.edges[0].domain.NULL){
+					D.error("When !allowNulls, then there should be no NULL in the partitions");
+					num--;
+				}//endif
+			}//endif
+
+			if (item.from.select instanceof Array){
+				for(let i=num;i--;){
+					if (item.edges[0].domain.partitions[i].dataIndex!=i)
+						D.error("do not know how to handle");
+					var row=output.cube[i];
+					Util.copy(item.from.cube[i], row);
+				}//for
+			}else{
+				//CUBE HAS VALUES, NOT OBJECTS
+				for(let i=num;i--;){
+					if (item.edges[0].domain.partitions[i].dataIndex!=i)
+						D.error("do not know how to handle");
+					output.cube[i][item.from.select.name]=item.from.cube[i];
+				}//for
+			}//endif
+
+
+		}else if (output.edges.length==2){
+
+			var parts0=output.edges[0].domain.partitions;
+			var num0=parts0.length;
+			var parts1=output.edges[1].domain.partitions;
+			var num1=parts1.length;
+
+			if (output.edges[0].allowNulls){
+				if (parts0[parts0.length-1]!=output.edges[0].domain.NULL) D.error("Expecting NULL in the partitions");
+			}else{
+				if (parts0[parts0.length-1]==output.edges[0].domain.NULL){
+					D.error("When !allowNulls, then there should be no NULL in the partitions");
+					num0--;
+				}//endif
+			}//endif
+
+			if (output.edges[1].allowNulls){
+				if (parts1[parts1.length-1]!=output.edges[1].domain.NULL) D.error("Expecting NULL in the partitions");
+			}else{
+				if (parts1[parts1.length-1]==output.edges[1].domain.NULL){
+					D.error("When !allowNulls, then there should be no NULL in the partitions");
+					num1--;
+				}//endif
+			}//endif
+
+
+
+			if (item.from.select instanceof Array){
+				for(let i=num0;i--;){
+					for(let j=num1;j--;){
+						Util.copy(item.from.cube[i][j], output.cube[i][j]);
+					}//for
+				}//for
+			}else{
+				//CUBE HAS VALUES, NOT OBJECTS
+				for(let i=num0;i--;){
+					for(let j=num1;j--;){
+						output.cube[i][j][item.from.select.name]=item.from.cube[i][j];
+					}//for
+				}//for
+			}//endif
+
+		}else{
+			D.error("Can not copy more than two dimensional cube");
 		}//endif
 
-		var parts=output.edges[0].domain.partitions;
-		var num=parts.length;
-		if (!output.edges[0].allowNulls) num--;
-		
-		if (item.from.select instanceof Array){
-			for(var i=num;i--;){
-				if (item.edges[0].domain.partitions[i].dataIndex!=i)
-					D.error("do not know how to handle");
-				var row=output.cube[i];
-				Util.copy(item.from.cube[item.edges[0].domain.partitions[i].dataIndex], row);
-			}//for
-		}else{
-			//CUBE HAS VALUES, NOT OBJECTS
-			for(var i=num;i--;){
-				if (item.edges[0].domain.partitions[i].dataIndex!=i)
-					D.error("do not know how to handle");
-				output.cube[i][item.from.select.name]=item.from.cube[i];
-			}//for
-		}//endif
 	});
 
 //	output.select=query.partitions[0].from.select;	//I AM TIRED, JUST MAKE A BUNCH OF ASSUMPTIONS

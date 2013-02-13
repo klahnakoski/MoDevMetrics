@@ -95,19 +95,31 @@
 //			"query":{"match_all":{}} }}
 //		};
 
-		var esQuery = {
-			"query":{"filtered":{"query":{"match_all":{}},"filter":{"and":[
-				{"script":{"script":"true"}},
-				{"or":[
-					{"term":{"bug_id":"831958"}}
-//					{"term":{"bug_id":"674239"}},
-//					{"term":{"bug_id":"793841"}}
-				]}
-			]}}},
-			"from":0,
-			"size":10000,
-			"sort":["modified_ts"]
-		};
+		yield (ESQuery.loadColumns({"from":"bugs"}));
+
+		var esQuery = { "facets":{"default":{"terms_stats":{ "size":200000,
+			"value_script":"(doc[\"expires_on\"].value > 1356998400000 ? 0 : doc[\"expires_on\"].value)",
+//			"value_script":"var _1000 = function(bugs){\nvar expires_on = doc[\"expires_on\"].value;\noutput = (expires_on>1360800000000) ? null : expires_on; output;\n};\n_1000(_source)\n",
+			"key_field":"bug_id" }}}, "sort":[], "size":0, "from":0, "query":{"filtered":{ "filter":{"and":[
+			{"script":{"script":"true"}},
+			{"and":[
+				{"and":[
+					{"and":[
+						{"range":{"modified_ts":{"lt":1360800000000}}},
+						{"range":{"expires_on":{"gte":1356998400000}}}
+					]},
+					{"script":{"script":"var floorInterval = function(value, interval){ Math.floor((double)value/(double)interval)*interval;};\nvar _1000 = function(bugs){\nvar modified_ts = doc[\"modified_ts\"].value;\nvar expires_on = doc[\"expires_on\"].value;\noutput = floorInterval(modified_ts-1356998400000, 86400000)!=floorInterval(expires_on-1356998400000, 86400000); output;\n};\n_1000(_source)\n"}},
+					{"terms":{"bug_id":[ 803809, 808576, 809076, 817603, 822671, 824626, 827854, 828222, 828915, 829520, 832269, 834653, 834680, 834712, 834718, 834734, 835364, 835410, 835414 ]}},
+					{"and":[
+						{"script":{"script":"true"}},
+						{"script":{"script":"true"}},
+						{"script":{"script":"true"}}
+					]}
+				]},
+				{"not":{"terms":{"bug_status":["resolved","verified","closed"]}}}
+			]}
+		]}, "query":{"match_all":{}} }} }
+	;
 
 
 		try{

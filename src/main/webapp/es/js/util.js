@@ -3,11 +3,28 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-var MAP=function(key, value){
+var Map={};
+
+Map.newInstance=function(key, value){
 	var output={};
 	output[key]=value;
 	return output;
 };//method
+
+Map.codomain=function(map){
+	var output=[];
+	var keys=Object.keys(map);
+	for(var i=keys.length;i--;){
+		var val=map[keys[i]];
+		if (val!==undefined) output.push(val);
+	}//for
+	return output;
+};//method
+
+
+Map.domain=Object.keys;
+
+
 
 var forAllKey=function(map, func){
 	var keys=Object.keys(map);

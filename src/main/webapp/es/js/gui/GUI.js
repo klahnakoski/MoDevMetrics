@@ -56,7 +56,7 @@ GUI.fixEndDate=function(startDate, endDate, interval){
 };
 
 
-GUI.setup = function(parameters, relations, indexName){
+GUI.setup = function(parameters, relations, indexName, showDefaultFilters){
 
 	GUI.state.programFilter = new ProgramFilter();
 	GUI.state.classificationFilter = new ClassificationFilter();
@@ -68,8 +68,7 @@ GUI.setup = function(parameters, relations, indexName){
 	GUI.AddParameters(parameters, relations); //ADD PARAM AND SET DEFAULTS
 	GUI.Parameter2State();			//UPDATE STATE OBJECT WITH THOSE DEFAULTS
 
-	GUI.makeSelectionPanel();
-
+	if (showDefaultFilters===undefined || showDefaultFilters) GUI.makeSelectionPanel();
 
 	GUI.relations=Util.coalesce(relations, []);
 	GUI.FixState();
@@ -156,7 +155,12 @@ GUI.URL2State = function(){
 	var urlState = jQuery.bbq.getState();
 	forAllKey(urlState, function(k, v){
 		if (GUI.state[k]===undefined) return;
-		if (GUI.state[k].getSimpleState){
+
+		var p=GUI.parameters.map(function(v, i){if (v.id==k) return v;})[0];
+
+		if (p && ["time", "duration", "text"].contains(p.type)){
+			GUI.state[k] = v;
+		}else if (GUI.state[k].getSimpleState){
 			GUI.state[k].setSimpleState(v);
 		}else{
 			GUI.state[k] = v.split(",");

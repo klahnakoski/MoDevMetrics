@@ -5,13 +5,14 @@
 
 CUBE.column = {};
 
-CUBE.column.compile = function(sourceColumns, resultColumn, edges, useMVEL){  //useMVEL TO INDICATE THIS IS AN ES COLUMN
+CUBE.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //useMVEL TO INDICATE THIS IS AN ES COLUMN
 
-	if (resultColumn.value === undefined){
-		resultColumn.calc = Util.returnNull;
-		return;
+	if (resultColumn.domain){
+		if (resultColumn.domain.compare===undefined)
+			CUBE.domain.compile(resultColumn, sourceColumns);
+	}else{
+		resultColumn.domain=CUBE.domain.value;
 	}//endif
-
 
 	resultColumn.sortOrder = 1;
 	if (resultColumn.sort== "descending") resultColumn.sortOrder = -1;
@@ -19,11 +20,13 @@ CUBE.column.compile = function(sourceColumns, resultColumn, edges, useMVEL){  //
 		D.error(resultColumn.name+' has unknown sort order, pick one of ["descending", "none", "ascending"]');
 	}//endif
 
-//	if (resultColumn.domain){
-//		CUBE.domain.compile(resultColumn, sourceColumns);
-//	}//endif
-
 	if (useMVEL!==undefined && useMVEL) return;
+
+	if (resultColumn.value === undefined){
+		//NO NEED TO COMPILE THE value IF THERE IS NONE
+		resultColumn.calc = Util.returnNull;
+		return;
+	}//endif
 
 	//COMPILE THE CALCULATION OF THE DESTINATION COLUMN USING THE SOURCE COLUMNS
 	var f = "resultColumn.calc=function(__source, __result){\n";

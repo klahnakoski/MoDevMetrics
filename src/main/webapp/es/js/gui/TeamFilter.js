@@ -41,7 +41,7 @@ TeamFilter.newInstance=function(field_name){
 			v.attr={"id":v.id};
 		});
 
-		var hier=CUBE.List2Hierarchy({
+		var hier=Hierarchy.fromList({
 			"from":people,
 			"id_field":"id",
 			"child_field":"children",

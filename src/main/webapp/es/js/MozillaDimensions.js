@@ -106,25 +106,25 @@ var Mozilla =
 
 		{"name":"Security", "edges":[
 			{"name":"Priority", "partitions":[
-				{"name":"Critical", "weight":5, "esfilter":
+				{"name":"Critical", "weight":5, "color":"red", "esfilter":
 					{"or":[
 						{"term":{"status_whiteboard.tokenized": "sg:critical"}},
 						{"term":{"keywords": "sec-critical"}}
 					]}
 				},
-				{"name":"High", "weight":4, "esfilter":
+				{"name":"High", "weight":4, "color":"orange", "esfilter":
 					{"or":[
 						{"term":{"status_whiteboard.tokenized": "sg:high"}},
 						{"term":{"keywords": "sec-high"}}
 					]}
 				},
-				{"name":"Moderate", "weight":2, "esfilter":
+				{"name":"Moderate", "weight":2, "color":"yellow", "esfilter":
 					{"or":[
 						{"term":{"status_whiteboard.tokenized": "sg:moderate"}},
 						{"term":{"keywords": "sec-moderate"}}
 					]}
 				},
-				{"name":"Low", "weight":1, "esfilter":
+				{"name":"Low", "weight":1, "color":"green", "esfilter":
 					{"or":[
 						{"term":{"status_whiteboard.tokenized": "sg:low"}},
 						{"term":{"keywords": "sec-low"}}
@@ -224,7 +224,7 @@ var Mozilla =
 							{"terms":{"component":['document navigation','editor','embedding: docshell','event handling','html: form submission','html: parser','rdf','security','security: caps','selection','serializers','spelling checker','web services','xbl','xforms','xml','xpconnect','xslt','xul']}}
 						]}
 					]}
-				},
+				}
 
 
 //				{"name": "Other", "esfilter":
