@@ -173,8 +173,13 @@ var __createChart = function(){
 
 	
 	aThread.run(function(){
+		var a=D.action("Get Bug Details", true);
 		//FIND ALL BUGS
 		var historyBugs=yield (ElasticSearch.getMinMax({"and":[mainFilter, {"not":{"terms":{"bug_status":["resolved","verified","closed"]}}}]}));
+		//ASSIGN bug_id AS OBJECT ATTRIBUTE
+		historyBugs.edges[0].domain.partitions.forall(function(p,i){
+			historyBugs.cube[i].bug_id=p.value;
+		});
 
 		//I WOULD LIKE TO SEND BZ QUERIES LIKE THIS, SO I CAN MERGE ON EDGES
 		//{
@@ -182,7 +187,9 @@ var __createChart = function(){
 		//   "edges":[{"name":"bug_id", "value":"id"}]
 		//}
 		//CURRENT STATUS
+		var aa=D.action("Pull from BZ", true);
 		var currentBugs=yield (Bugzilla.search(historyBugs.edges[0].domain.partitions.map(function(v){return v.value;}), ["id", "summary", "assignee", "status", "resolution" ]));
+		D.actionDone(aa);
 
 		//ADD CURRENT BUGS DATA TO HISTORY (MERGE ON bug_id)
 		currentBugs.forall(function(v){
@@ -195,16 +202,17 @@ var __createChart = function(){
 			"from":historyBugs.cube,
 //			"analytic":{"name":"Order","value":"rownum+1", "sort":["Close Date", "ID"]},
 			"select":[
-				{"name":"ID", "value":"Bugzilla.linkToBug(id)"},
-				{"name":"Close Date", "value":"(max===null) ? null : Date.newInstance(max).floorDay()"},
-				{"name":"Status", "value":"status"},
+				{"name":"ID", "value":"Bugzilla.linkToBug(Util.coalesce(id, bug_id))"},
+				{"name":"Close Date", "value":"(max==null) ? null : Date.newInstance(max).floorDay()"},
+				{"name":"Status", "value":"Util.coalesce(status, null)"},
 				{"name":"Resolution", "value":"Util.coalesce(resolution, null)"},
-				{"name":"Summary", "value":"summary"}
+				{"name":"Summary", "value":"Util.coalesce(summary, null)"}
 			],
-			"sort":["Close Date", "ID"]
+			"sort":["Close Date", "Status", "ID"]
 		}));
 
 		$("#info").html(CNV.List2HTMLTable(showBugs));
+		D.actionDone(a);
 	});
 
 
@@ -261,8 +269,8 @@ var __createChart = function(){
 
 	$("#description").html(
 		"Simple chart of OPEN bugs matching the given ES filter, plus a linear projection of ideal burn down.<br><br>"
-		+"This is best used in the last few weeks of a project, where the number of remaining open bugs is small, and must be all be closed by the due date.<br><br>"
-		+"Please look at the <a href='./js/etl/bug_version.json'>ES Schema</a> to get a full listing of fields available.  They are a little different then in BZ. "
+		+"This is best used in the last few weeks of a project, where the number of remaining open bugs is small, and must be closed by the due date.<br><br>"
+		+"Please look at the <a href='./js/etl/bug_version.json'>ES Schema</a> to get a full listing of fields available.  Field names are a little different from BZ. "
 //		+"<span class=\"warning\">Estimates are generated from a "+statsMax.subtract(statsMin).toString()+" sample from "+statsMin.format("EE MMM dd")+" to "+statsMax.addDay(-1).format("EE MMM dd")+"</span>"
 	 );
 //	$("#stats").html("<br>");
@@ -319,7 +327,7 @@ var __createChart = function(){
 		requiredNetCloseRatePerDay = stillOpen / daysLeft;
 	}
 
-	$("#stats").append('<span class="parameter_name">Required Closed/Day:</span>' + Math.round(requiredNetCloseRatePerDay, 1) + '<br>');
+	$("#stats").html('<span class="parameter_name">Required Closed/Day:</span>' + Math.round(requiredNetCloseRatePerDay, 1) + '<br>');
 
 
 	//
