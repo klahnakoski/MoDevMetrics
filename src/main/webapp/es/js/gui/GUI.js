@@ -116,15 +116,41 @@ GUI.showLastUpdated = function(indexName){
 			$("#testMessage").html("Reviews Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 		}//endif
 
+		var is_error=yield(GUI.corruptionCheck());
+		if (is_error){
+			$("#testMessage").append("<br>ES IS CORRUPTED!!!");
+		}//endif
+
 
 		var age=Math.round(Date.now().subtract(time).divideBy(Duration.DAY), 1);
-		if (age>1){
+		if (age>1 || is_error){
 			GUI.bigWarning("#testMessage", Math.max(3, Math.floor(age)));
 		}//endif
 
 		D.actionDone(a);
 	});
 };//method
+
+GUI.corruptionCheck=function(){
+	var result=yield (ESQuery.run({
+		"from":"bugs",
+		"select":{"name":"num_null", "value":"expires_on>"+Date.eod().getMilli()+" ? 1 : 0", "operation":"add"},
+		"edges":["bug_id"],
+		"esfilter":{"range":{"modified_ts":{"gte":Date.now().addMonth(-3).getMilli()}}}
+	}));
+
+	var is_error=yield (CUBE.calc2List({
+		"from":{
+			"from":result,
+			"select": {"value":"bug_id"},
+			"where":"num_null!=1"
+		},
+		"select":{"name":"is_error", "value":"bug_id", "operation":"exists"}
+	}));
+
+	yield (is_error.list[0].is_error==1)
+};//method
+
 
 
 GUI.bigWarning=function(elem, blinkCount){

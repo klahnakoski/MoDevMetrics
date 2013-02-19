@@ -468,7 +468,10 @@ CUBE.setOP = function(query){
 	var select = CUBE.select2Array(query.select);
 	var columns = select;
 
+
+
 	for(let s = 0; s < select.length; s++){
+		if (typeof(s)=='string') select[s]={"value":s};
 		CUBE.column.compile(select[s], sourceColumns, undefined);
 	}//for
 	var where = CUBE.where.compile(query.where, sourceColumns, []);
@@ -939,7 +942,7 @@ CUBE.sort.compile=function(sortOrder, columns, useNames){
 		for(var i=columns.length;i--;){
 			if (columns[i].name==v && !(columns[i].sortOrder==0)) return columns[i];
 		}//for
-		D.error("Can not find column named '"+v+"'");
+		D.error("Sorting can not find column named '"+v+"'");
 	});
 
 	var f="totalSort = function(a, b){\nvar diff;\n";

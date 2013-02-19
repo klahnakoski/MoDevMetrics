@@ -131,7 +131,9 @@ var Mozilla =
 					]}
 				}
 			]},
-			{"name":"Teams", "partitions":[
+			{"name":"Teams", "esfilter":
+					{"terms":{"product":['Fennec','Firefox for Android', "Mozilla Services", "Boot2Gecko", "thunderbird", "mailnews core", 'JSS','NSS','NSPR', "core"]}},
+				"partitions":[
 				{"name": "Mobile", "esfilter":
 					{"terms":{"product":['Fennec','Firefox for Android']}}
 				},

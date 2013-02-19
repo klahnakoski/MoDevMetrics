@@ -36,7 +36,8 @@ ESQuery.INDEXES={
 	"bug_summary":{"path":"/bug_summary/bug_summary"},
 	"bug_tags":{"path":"/bug_tags/bug_tags"},
 	"org_chart":{"path":"/org_chart/person"},
-	"temp":{"path":""}
+	"temp":{"path":""},
+	"telemetry":{"path":"/telemetry"}
 };
 
 
@@ -250,6 +251,9 @@ ESQuery.prototype.compile = function(){
 	this.esMode = "terms_stats";
 	if (this.query.select===undefined || (this.select.length==1 && this.select[0].operation=="count")){
 		this.esMode="terms";
+	}//endif
+	if (ESQuery.agg2es[this.select[0].operation]===undefined){
+		D.error("ES can not aggregate "+this.select[0].name+" because '"+this.select[0].operation+"' is not a recognized operation");
 	}//endif
 
 	this.facetEdges=[];	//EDGES THAT WILL REQUIRE A FACET FOR EACH PART
@@ -885,6 +889,7 @@ ESQuery.prototype.termsResults=function(data){
 //MAP THE SELECT OPERATION NAME TO ES FACET AGGREGATE NAME
 ESQuery.agg2es = {
 	"sum":"total",
+	"add":"total",
 	"count":"count",
 	"maximum":"max",
 	"minimum":"min",

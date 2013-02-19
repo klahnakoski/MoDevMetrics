@@ -7,6 +7,12 @@ CUBE.column = {};
 
 CUBE.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //useMVEL TO INDICATE THIS IS AN ES COLUMN
 
+		if (typeof(resultColumn)=='string'){
+			D.error("expecting a column definition, not a string");
+		}//endif
+		if (resultColumn.name===undefined) resultColumn.name=resultColumn.value;
+
+
 	if (resultColumn.domain){
 		if (resultColumn.domain.compare===undefined)
 			CUBE.domain.compile(resultColumn, sourceColumns);

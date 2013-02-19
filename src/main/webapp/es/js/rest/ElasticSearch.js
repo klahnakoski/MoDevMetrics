@@ -73,7 +73,7 @@ ElasticSearch.getMinMax=function(esfilter){
 
 	//REMOVE HIGH EXPIRY, WHICH MEANS null
 	u2.cube.forall(function(v, i){
-		if (v>9990000000000) u2.cube[i]=null;
+		u2.cube[i]=Date.newInstance(v);
 	});
 
 	var u = CUBE.merge({"cubes":[

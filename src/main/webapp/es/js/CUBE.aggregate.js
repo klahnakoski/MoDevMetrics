@@ -156,6 +156,7 @@ CUBE.aggregate.sum = function(select){
 	select.domain = {};
 	Util.copy(CUBE.domain.value, select.domain);
 };
+CUBE.aggregate.add=CUBE.aggregate.sum;
 
 
 //RETURN ZERO (FOR NO DATA) OR ONE (FOR DATA)

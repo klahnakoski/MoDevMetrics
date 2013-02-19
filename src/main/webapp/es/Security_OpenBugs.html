@@ -215,7 +215,7 @@ var __createChart = function(){
 		var a=D.action("Make chart", true);
 		aChart.show({
 			"id":"chart",
-		"sheetDiv":"info",
+			"sheetDiv":"info",
 			"type":"line",
 			"stacked":true,
 			"cube":chart
@@ -234,7 +234,7 @@ var __createChart = function(){
 		GUI.setup([
 			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
 			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today()},
-			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
+			{"id":"teamFilter", "name":"Org Chart", "type":TeamFilter.newInstance("assigned_to")}
 		],
 		[
 //			"sampleMax=Date.newInstance(sampleMax).addDay(1).add(Duration.newInstance('-second')).floorDay().toString()"

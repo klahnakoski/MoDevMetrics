@@ -61,7 +61,7 @@ CNV.ESResult2HTMLSummaries = function(esResult){
 
 CNV.ESResult2HTMLSummary = function(esResult, name){
 	var output = "";
-	output += "<h2>" + name + "</h2>";
+	output += "<h3>" + name + "</h3>";
 	output += CNV.List2HTMLTable(esResult.facets[name].terms);
 	return output;
 };//method
@@ -332,16 +332,16 @@ HTML.tag=function(tagName, value){
 		}else{
 			return "<"+tagName+">" + new Date(value).format("yyyy-NNN-dd HH:mm:ss") + "</"+tagName+">";
 		}//endif
-	} else if (value.toString !== undefined){
-		return "<"+tagName+">" + CNV.String2HTML(value.toString()) + "</"+tagName+">";
+//	} else if (value.toString !== undefined){
+//		return "<"+tagName+">" + CNV.String2HTML(value.toString()) + "</"+tagName+">";
 	}//endif
 
 	var json = CNV.Object2JSON(value);
-	if (json.indexOf("\n") == -1){
+//	if (json.indexOf("\n") == -1){
 		return "<"+tagName+">" + CNV.String2HTML(json) + "</"+tagName+">";
-	} else{
-		return "<"+tagName+">&lt;json not included&gt;</"+tagName+">";
-	}//endif
+//	} else{
+//		return "<"+tagName+">&lt;json not included&gt;</"+tagName+">";
+//	}//endif
 };
 
 

@@ -23,6 +23,7 @@ Date.today=function(){
 Date.newInstance = function(value){
 	if (value === undefined || value == null) return null;
 	if (typeof(value)=="string") return Date.tryParse(value);
+	if (Math.isNumeric(value) && (value-0)>9990000000000) return null;
 	return new Date(value);
 };//method
 
