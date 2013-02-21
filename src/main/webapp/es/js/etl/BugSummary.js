@@ -193,9 +193,7 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 			"value_field": "modified_ts",
 			"size": 100000
 		},
-		"facet_filter": {
-			"terms":{"bug_status":["resolved", "verified", "closed"]}
-		}
+		"facet_filter": Mozilla.BugStatus.Closed.esfilter
 	};
 
 	//ADD FACETS TO COUNT ALL MOZILLA PROGRAMS
@@ -209,23 +207,11 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 				"value_field": "modified_ts",
 				"size": 100000
 			},
-			"facet_filter":{"or":[]}
+			"facet_filter":ProgramFilter.makeFilter("bugs", [v.projectName])
 		};
 
-		var or=times.facets[v.projectName+"_time"].facet_filter.or;
-		for(var j=0;j<BUG_SUMMARY.allPrograms.length;j++){
-			if (BUG_SUMMARY.allPrograms[j].projectName == v.projectName){
-				var name = BUG_SUMMARY.allPrograms[j].attributeName;
-				var value = BUG_SUMMARY.allPrograms[j].attributeValue;
-				var term = {};
-				term[name] = value;
-				or.push({"prefix":term});
-			}//endif
-		}//for
 	});
 	ElasticSearch.injectFilter(times, esfilter);
-
-
 
 
 

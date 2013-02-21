@@ -15,7 +15,7 @@ RangeChart = function(chartRequest){
 	if (this.iterator == 'date'){
 		this.startDate = convertStringToDate(chartRequest.startDate + "T00:00:00.000Z");
 		this.endDate = convertStringToDate(chartRequest.endDate + "T00:00:00.000Z");
-		this.dataSet.maxIndex = Math.floor(this.endDate.subtract(this.startDate, this.interval).divideBy(this.interval))-1;
+		this.dataSet.maxIndex = aMath.floor(this.endDate.subtract(this.startDate, this.interval).divideBy(this.interval))-1;
 
 	}
 	else if (this.iterator == "integer"){
@@ -179,7 +179,7 @@ RangeChart.prototype.BuildEquationString = function(seriesName){
 			continue;
 
 		if (isEven(i)){
-			if (Math.isNumeric(element)){
+			if (aMath.isNumeric(element)){
 				equationString += element;
 			} else{
 				equationString += "this.dataSet.store['" + element + "'][i].total ";

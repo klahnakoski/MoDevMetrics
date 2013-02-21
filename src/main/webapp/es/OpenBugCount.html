@@ -54,7 +54,7 @@
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
@@ -162,7 +162,7 @@ var __createChart = function(){
 				{"range":{"expires_on":{"gte":sampleMin.getMilli()}}}
 			]},
 			{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-"+sampleMin.getMilli()+", "+sampleInterval.milli+")!=floorInterval(expires_on-"+sampleMin.getMilli()+", "+sampleInterval.milli+")", {"from":"bugs"})}},
-			{"not":{"terms":{"bug_status":["resolved", "verified", "closed"]}}},
+			Mozilla.BugStatus.Open.esfilter,
 			GUI.getFilters("bugs")
 		]};
 

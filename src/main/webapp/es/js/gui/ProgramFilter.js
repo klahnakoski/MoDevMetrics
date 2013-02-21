@@ -15,16 +15,16 @@ ProgramFilter = function(){
 
 ProgramFilter.allPrograms = CNV.Table2List(MozillaPrograms);
 
-ProgramFilter.makeFilter = function(indexName){
-	if (indexName===undefined) D.error("Must be provided with a valid ESQuery.INDEXES name");
+ProgramFilter.makeFilter = function(indexName, selectedPrograms){
+	if (indexName===undefined) D.error("'"+indexName+"' is not a valid ESQuery.INDEXES name");
+	if (selectedPrograms===undefined) selectedPrograms=GUI.state.selectedPrograms;
 
-
-	if (GUI.state.selectedPrograms.length == 0) return ES.TrueFilter;
+	if (selectedPrograms.length == 0) return ES.TrueFilter;
 
 	var or = [];
-	for(var i=0;i<GUI.state.selectedPrograms.length;i++){
+	for(var i=0;i<selectedPrograms.length;i++){
 		for(var j=0;j<ProgramFilter.allPrograms.length;j++){
-			if (ProgramFilter.allPrograms[j].projectName == GUI.state.selectedPrograms[i]){
+			if (ProgramFilter.allPrograms[j].projectName == selectedPrograms[i]){
 				var name = ProgramFilter.allPrograms[j].attributeName;
 				var value = ProgramFilter.allPrograms[j].attributeValue;
 

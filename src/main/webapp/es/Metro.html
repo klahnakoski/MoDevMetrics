@@ -48,7 +48,7 @@
 <script type="application/javascript;version=1.7" src="js/util.js"></script>
 <script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
 <script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script>
 <script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
@@ -473,7 +473,7 @@ function getDescendants(parent){
 		b.dependson.forall(function(c, i){
 			b.pointTotal+=bugs[c].pointTotal;
 		});
-		b.pointTotal=Math.max(b.pointTotal, b.points);
+		b.pointTotal=aMath.max(b.pointTotal, b.points);
 
 	}//for
 

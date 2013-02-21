@@ -48,7 +48,7 @@
 <script type="application/javascript;version=1.7" src="js/util.js"></script>
 <script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
@@ -145,7 +145,7 @@ var __createChart = function(){
 					"and":[
 						{ "range" : { "expires_on" : { "gt" : Date.now().addDay(1) } } },
 //						{ "term" : {"status_whiteboard.tokenized": "metro-mvp"}},
-						{"not" : { "terms" : {"bug_status" : ["resolved", "verified", "closed"]}}},
+						Mozilla.BugStatus.Open.esfilter,
 						GUI.getFilters("bugs")
 					]
 				}
@@ -274,7 +274,7 @@ var __createChart = function(){
 				pendingReview,
 			"select":[
 				{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
-				{"name":"maxWaitTime", "value":"Math.round(Date.now().subtract(Date.newInstance(request_time)).divideBy(Duration.DAY), 1)+\"days\"", "operation":"maximum"},
+				{"name":"maxWaitTime", "value":"aMath.round(Date.now().subtract(Date.newInstance(request_time)).divideBy(Duration.DAY), 1)+\"days\"", "operation":"maximum"},
 				{"name":"bugs", "value":"bug_id", operation:"join", "separator":","}
 			],
 			"edges":[
@@ -336,7 +336,7 @@ var __createChart = function(){
 		var result3=(yield (CUBE.calc2List({
 			"from":doneReview,
 			"select":[
-				{"name":"Wait Time", value:"Math.round(Duration.newInstance(wait_time).divideBy(Duration.DAY), 1)+'days'"},
+				{"name":"Wait Time", value:"aMath.round(Duration.newInstance(wait_time).divideBy(Duration.DAY), 1)+'days'"},
 				{"name":"Bug", "value":"Bugzilla.linkToBug(bug_id)"}
 			]
 		}))).list;

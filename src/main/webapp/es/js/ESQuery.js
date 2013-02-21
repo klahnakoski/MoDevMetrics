@@ -650,7 +650,7 @@ ESQuery.compileTime2Term=function(edge){
 		partition2int="(("+nullTest+") ? 0 : "+partition2int+")";
 
 		int2Partition=function(value){
-			if (Math.round(value)==0) return edge.domain.NULL;
+			if (aMath.round(value)==0) return edge.domain.NULL;
 
 			var d=new Date((""+value).left(4), (""+value).right(2), 1);
 			d=d.addMilli(offset);
@@ -661,7 +661,7 @@ ESQuery.compileTime2Term=function(edge){
 		partition2int="(("+nullTest+") ? "+numPartitions+" : "+partition2int+")";
 
 		int2Partition=function(value){
-			if (Math.round(value)==numPartitions) return edge.domain.NULL;
+			if (aMath.round(value)==numPartitions) return edge.domain.NULL;
 			return edge.domain.getPartByKey(ref.add(edge.domain.interval.multiply(value)));
 		};
 
@@ -692,7 +692,7 @@ ESQuery.compileDuration2Term=function(edge){
 		partition2int="(("+nullTest+") ? "+numPartitions+" : "+partition2int+")";
 
 	int2Partition=function(value){
-		if (Math.round(value)==numPartitions) return edge.domain.NULL;
+		if (aMath.round(value)==numPartitions) return edge.domain.NULL;
 		return edge.domain.getPartByKey(ref.add(edge.domain.interval.multiply(value)));
 	};
 
@@ -735,7 +735,7 @@ ESQuery.compileLinear2Term=function(edge){
 	partition2int="(("+nullTest+") ? "+numPartitions+" : "+partition2int+")";
 	var offset=CNV.String2Integer(ref);
 	int2Partition=function(value){
-		if (Math.round(value)==numPartitions) return edge.domain.NULL;
+		if (aMath.round(value)==numPartitions) return edge.domain.NULL;
 		return edge.domain.getPartByKey((value * edge.domain.interval) + offset);
 	};
 

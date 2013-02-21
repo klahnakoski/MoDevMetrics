@@ -48,7 +48,7 @@
 <script type="application/javascript;version=1.7" src="js/util.js"></script>
 <script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
@@ -212,10 +212,10 @@
 
 			$("#stats").html(
 				'<span class="parameter_name">Total Requests:</span><b>'+stats.total+'</b><br>'+
-				'<span class="parameter_name">Requested per week:</span><b>'+Math.round(stats.total/numWeek, 1)+'</b><br>'+
-				'<span class="parameter_name">% Under One Day:</span><b>'+Math.round(stats.under_24_hours/stats.total*100, 1)+'%</b><br>'+
-				'<span class="parameter_name">% Over 10days:</span><b>'+Math.round(stats.over_10_days/stats.total*100, 1)+'%</b><br>'+
-				'<span class="parameter_name">90th percentile:</span><b>'+Math.round(percentile90, 1)+'days</b><br>'
+				'<span class="parameter_name">Requested per week:</span><b>'+aMath.round(stats.total/numWeek, 1)+'</b><br>'+
+				'<span class="parameter_name">% Under One Day:</span><b>'+aMath.round(stats.under_24_hours/stats.total*100, 1)+'%</b><br>'+
+				'<span class="parameter_name">% Over 10days:</span><b>'+aMath.round(stats.over_10_days/stats.total*100, 1)+'%</b><br>'+
+				'<span class="parameter_name">90th percentile:</span><b>'+aMath.round(percentile90, 1)+'days</b><br>'
 			);
 			D.actionDone(a);
 		});

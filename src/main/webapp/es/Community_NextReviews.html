@@ -53,7 +53,7 @@
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
@@ -191,14 +191,14 @@ var __createChart = function(){
 
 	$("#stats").html(
 		'<span class="parameter_name"># First Reviews:</span><b>'+totals.cube[1].num_total+'</b><br>'+
-		'<span class="parameter_name"># Second < '+Math.round(windowSize.milli/Duration.MILLI_VALUES.day, 0)+' days:</span><b>'+totals.cube[1].num_next+'</b><br>'+
-		'<span class="parameter_name">Retention:</span><b>'+Math.round(100*totals.cube[1].num_next/Math.max(1, totals.cube[1].num_total))+'%</b><br>'
+		'<span class="parameter_name"># Second < '+aMath.round(windowSize.milli/Duration.MILLI_VALUES.day, 0)+' days:</span><b>'+totals.cube[1].num_next+'</b><br>'+
+		'<span class="parameter_name">Retention:</span><b>'+aMath.round(100*totals.cube[1].num_next/aMath.max(1, totals.cube[1].num_total))+'%</b><br>'
 	);
 
 
 	var chart=yield(CUBE.calc2Cube({
 		"from":totals, 
-		"select": {"name":"percent", "value":"Math.round(100*num_next/Math.max(1, num_total))", "operation":"one"},
+		"select": {"name":"percent", "value":"aMath.round(100*num_next/aMath.max(1, num_total))", "operation":"one"},
 		"edges":[
 			{"value":"requester_review_num", "domain":{"type":"linear", "min":0, "max":20, "interval":1, "value":"value"}}
 		]

@@ -54,7 +54,7 @@
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
@@ -143,7 +143,7 @@ var createChart = function(){
 		"edges":[
 			{"name":"bug_id", "value":"bug_id"}
 		],
-		"esfilter":{"not" : {"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}},
+		"esfilter":Mozilla.BugStatus.Open.esfilter,
 		"essize":GUI.state.esSize
 	});
 
@@ -158,7 +158,7 @@ var createChart = function(){
 		],
 		"where":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value',  //ONLY THE DOCUMENT THAT CLOSES THE BUG
 		"esfilter":{"and":[
-			{"terms":{"bug_status":["resolved", "verified", "closed"]}},
+			Mozilla.BugStatus.Closed.esfilter,
 			{"range":{"modified_ts":{"gte":sampleMin.getMilli()}}},
 			{"range":{"modified_ts":{"lte":sampleMax.getMilli()}}}
 //			{"script":{"script":'doc["modified_ts"].value-doc["created_ts"].value>'+Duration.newInstance("439day").milli}}
@@ -215,7 +215,7 @@ var createChart = function(){
 				"Number marked in sample:"+summary.total+"<br>"+
 				"Number marked and closed in sample:"+summary.numClosed+"<br>"+
 				"Number closed within "+mark.toString()+":"+summary.numGood+"<br>"+
-				"% closed within "+mark.toString()+":"+Math.round(summary.numGood/summary.total*100, 1)+"%"+
+				"% closed within "+mark.toString()+":"+aMath.round(summary.numGood/summary.total*100, 1)+"%"+
 				"</h3>"
 			);
 

@@ -74,7 +74,7 @@ ETL.newInsert=function(etl){
 	D.println("Turn off indexing: "+CNV.Object2JSON(data));
 
 	var maxBug=yield(ETL.getMaxBugID());
-	var maxBatches=Math.floor(maxBug/etl.BATCH_SIZE);
+	var maxBatches=aMath.floor(maxBug/etl.BATCH_SIZE);
 
 	yield(ETL.insertBatches(etl, 0, maxBatches, maxBatches));
 
@@ -132,9 +132,9 @@ ETL.resumeInsert=function(etl){
 	}//endif
 //D.warning("minbug set to 750000");
 //minBug=750000;
-	var toBatch=Math.floor(minBug/etl.BATCH_SIZE)-1;
+	var toBatch=aMath.floor(minBug/etl.BATCH_SIZE)-1;
 
-	yield (ETL.insertBatches(etl, 0, toBatch, Math.floor(maxBug/etl.BATCH_SIZE)));
+	yield (ETL.insertBatches(etl, 0, toBatch, aMath.floor(maxBug/etl.BATCH_SIZE)));
 
 	if (etl.postMarkup) yield (etl.postMarkup());
 

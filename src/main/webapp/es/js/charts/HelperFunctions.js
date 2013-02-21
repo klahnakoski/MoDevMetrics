@@ -100,7 +100,7 @@ function addLeadingZero(number){
 
 function getNumberOfDays(startDate, endDate){
 	var difference = endDate - startDate;
-	return Math.floor(difference / (1000 * 60 * 60 * 24));
+	return aMath.floor(difference / (1000 * 60 * 60 * 24));
 }
 ;
 

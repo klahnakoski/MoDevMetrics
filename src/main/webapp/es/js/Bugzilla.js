@@ -35,11 +35,11 @@ Bugzilla.search=function(bugList, fields){
 
 	var resume=yield (aThread.Resume);
 	var result=[];
-	var numCalls=Math.floor((bugList.length+BLOCK_SIZE-1)/BLOCK_SIZE);
+	var numCalls=aMath.floor((bugList.length+BLOCK_SIZE-1)/BLOCK_SIZE);
 
 	for(let i=0;i<numCalls;i++){
 		new BugzillaClient({}).searchBugs({
-			"id":bugList.substring(i*BLOCK_SIZE, Math.min(bugList.length, i*BLOCK_SIZE+BLOCK_SIZE)),
+			"id":bugList.substring(i*BLOCK_SIZE, aMath.min(bugList.length, i*BLOCK_SIZE+BLOCK_SIZE)),
 			"include_fields":fields.join(",")
 		}, function(status, data){
 			if (status=="error"){

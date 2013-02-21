@@ -46,8 +46,9 @@
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
-<script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script>
+<script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
 <script type="application/javascript;version=1.7" src="js/Debug.js"></script>
@@ -113,7 +114,7 @@
 					"and":[
 						{ "range" : { "expires_on" : { "gt" : Date.now().addDay(1) } } },
 						{ "term" : {"cf_blocking_basecamp": "+"}},
-						{"not" : { "terms" : {"bug_status" : ["resolved", "verified", "closed"]}}}
+						Mozilla.BugStatus.Open.esfilter
 					]
 				}
 			}
@@ -221,7 +222,7 @@
 					pendingReview,
 				"select":[
 					{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
-					{"name":"maxWaitTime", "value":"Math.round(Date.now().subtract(Date.newInstance(request_time)).divideBy(Duration.DAY), 1)+\"days\"", "operation":"maximum"},
+					{"name":"maxWaitTime", "value":"aMath.round(Date.now().subtract(Date.newInstance(request_time)).divideBy(Duration.DAY), 1)+\"days\"", "operation":"maximum"},
 					{"name":"bugs", "value":"bug_id", operation:"join", "separator":","}
 				],
 				"edges":[
@@ -257,7 +258,7 @@
 				"from":
 					esResult3,
 				"select":[
-					{"name":"wait_time", "value":"Math.round(Date.now().subtract(Date.newInstance(modified_ts)).divideBy(Duration.DAY), 1)+\"days\"", "operation":"minimum"}
+					{"name":"wait_time", "value":"aMath.round(Date.now().subtract(Date.newInstance(modified_ts)).divideBy(Duration.DAY), 1)+\"days\"", "operation":"minimum"}
 				],
 				"edges":[
 					{"name":"bug_id", "value":"bug_id"}

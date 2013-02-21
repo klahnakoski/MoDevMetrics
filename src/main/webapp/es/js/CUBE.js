@@ -625,7 +625,7 @@ CUBE.normalizeByCohort=function(query, multiple){
 
 	for(var c=0;c<query.cube.length;c++){
 		var total=0;
-		for(var e=0;e<query.cube[c].length;e++) total+=Math.abs(query.cube[c][e]);
+		for(var e=0;e<query.cube[c].length;e++) total+=aMath.abs(query.cube[c][e]);
 		if (total!=0){
 			for(var e=0;e<query.cube[c].length;e++) query.cube[c][e]*=(multiple/total);
 		}//endif
@@ -648,7 +648,7 @@ CUBE.normalizeByX=function(query, multiple){
 		var total=0;
 		for(var c=0;c<query.cube.length;c++){
 			if (query.cube[c][e]===undefined) query.cube[c][e]=0;
-			total+=Math.abs(query.cube[c][e]);
+			total+=aMath.abs(query.cube[c][e]);
 		}//for
 		if (total!=0){
 			for(var c=0;c<query.cube.length;c++) query.cube[c][e]*=(multiple/total);
@@ -708,6 +708,9 @@ CUBE.Tree2Cube = function(query, cube, tree, depth){
 //			}//for
 			var tuple={};
 			for(var s = 0; s < query.select.length; s++){
+if (new Date(keys[k]).getMilli()==Date.newInstance("2013-01-16").getMilli()){
+	D.println("");
+}//endif
 				tuple[query.select[s].name] = query.select[s].domain.end(tree[keys[k]][s]);
 			}//for
 			cube[p]=tuple;
@@ -823,7 +826,7 @@ CUBE.merge=function(query){
 		if (item.edges.length!=commonEdges.length) D.error("Expecting all partitions to have same number of (common) edges declared");
 		item.edges.forall(function(edge, i){
 			if (typeof(edge)=="string") D.error("can not find edge named '"+edge+"'");
-			if (!CUBE.domain.equals(commonEdges[i].domain, edge.domain)) D.error("Edges domains ("+item.from.name+", edge="+edge.name+") and ("+cubes[0].from.name+", edge="+commonEdges[i].name+") are different");
+			if (!CUBE.domain.equals(commonEdges[i].domain, edge.domain)) D.error("Edges domains ("+item.from.name+", edge="+edge.name+") and ("+query.cubes[0].from.name+", edge="+commonEdges[i].name+") are different");
 		});
 
 

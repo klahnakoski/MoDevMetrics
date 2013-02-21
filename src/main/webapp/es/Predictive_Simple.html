@@ -48,7 +48,7 @@
 <script type="application/javascript;version=1.7" src="js/util.js"></script>
 <script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
@@ -209,7 +209,7 @@ var __createChart = function(){
 
 	//LAST 6 WEEKS
 	var statsMax = sampleMax.addDay(-1);
-	var numWeek=Math.min(6, Math.floor((statsMax.getMilli()-sampleMin.getMilli())/Duration.WEEK.milli));
+	var numWeek=aMath.min(6, aMath.floor((statsMax.getMilli()-sampleMin.getMilli())/Duration.WEEK.milli));
 	var statsMin = statsMax.addWeek(-numWeek);
 
 	$("#description").html("Simple chart of open bugs, plus linear estimate of when the project will be completed.<br><br>Pick your program, your due date and BOOKMARK the result for next time.<br><br>"+
@@ -253,8 +253,8 @@ var __createChart = function(){
 	}))).list[0];
 
 	$("#stats").html(
-		'<span class="parameter_name">New Bugs Per Day:</span>' + Math.round(perDay.net_new, 1) + '<br>' +
-		'<span class="parameter_name">Closed Per Day:</span>' + Math.round(perDay.net_closed, 1) + '<br>' +
+		'<span class="parameter_name">New Bugs Per Day:</span>' + aMath.round(perDay.net_new, 1) + '<br>' +
+		'<span class="parameter_name">Closed Per Day:</span>' + aMath.round(perDay.net_closed, 1) + '<br>' +
 		''
 	);
 
@@ -264,11 +264,11 @@ var __createChart = function(){
 	{
 		let daysLeft=Date.diffWeekday(DUE_DATE, Date.now().floorDay());
 		//let	daysLeft = DUE_DATE.subtract(sampleMax).divideBy(Duration.DAY);
-		daysLeft = Math.max(1, daysLeft);
+		daysLeft = aMath.max(1, daysLeft);
 		requiredNetCloseRatePerDay = stillOpen / daysLeft;
 	}
 
-	$("#stats").append('<span class="parameter_name">Required Closed/Day:</span>' + Math.round(requiredNetCloseRatePerDay + perDay.net_new, 1) + '<br>');
+	$("#stats").append('<span class="parameter_name">Required Closed/Day:</span>' + aMath.round(requiredNetCloseRatePerDay + perDay.net_new, 1) + '<br>');
 
 
 	//
@@ -278,7 +278,7 @@ var __createChart = function(){
 		var netCloseRatePerDay = (perDay.net_closed-perDay.net_new);
 		let daysLeft = openAtStartOfEstimate / netCloseRatePerDay;
 		expectedEndDate = statsMax.addWeekday(daysLeft);
-		netCloseRatePerDay = Math.max(0, netCloseRatePerDay);
+		netCloseRatePerDay = aMath.max(0, netCloseRatePerDay);
 	}
 
 //	$("#stats").append('<span class="parameter_name">DUE Date:</span>' + DUE_DATE.format("dd MMM yyyy") + '<br>');
@@ -309,7 +309,7 @@ var __createChart = function(){
 			if (data[i] === undefined) data[i] = {"open":null, "closed":null, "total":null};
 			data[i]["date"] = date;
 //			data[i][predictName] = Date.diffWeekday(date, domainStart);
-			data[i][predictName] = Math.round(startPredictValue + (slope * (Date.diffWeekday(date, domainStart))));
+			data[i][predictName] = aMath.round(startPredictValue + (slope * (Date.diffWeekday(date, domainStart))));
 			if (data[i][predictName] < 0) data[i][predictName] = 0;
 		}//for
 	};

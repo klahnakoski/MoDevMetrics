@@ -124,6 +124,38 @@ CNV.String2Quote = function(str){
 	return "\"" + (str + '').replaceAll("\n", "\\n").replace(/([\n\\"'])/g, "\\$1").replace(/\0/g, "\\0") + "\"";
 };//method
 
+CNV.Value2Quote=function(value){
+	if (value === undefined){
+		return "";
+	} else if (value == null){
+		return "null";
+	} else if (aMath.isNumeric(value)){
+		if ((""+value).length==13){
+			//PROBABLY A TIMESTAMP
+			value=new Date(value);
+			if (value.floorDay().getMilli()==value.getMilli()){
+				return value.format("yyyy/MM/dd");
+			}else{
+				return value.format("yyyy/MM/dd HH:mm:ss");
+			}//endif
+		}else{
+			return ""+value;
+		}
+	} else if (value.milli){
+		//DURATION
+		return "\""+value.toString()+"\"";
+	} else if (value.getTime){
+		if (value.floorDay().getMilli()==value.getMilli()){
+			return value.format("yyyy/MM/dd");
+		}else{
+			return value.format("yyyy/MM/dd HH:mm:ss");
+		}//endif
+	}//endif
+
+	var json = CNV.Object2JSON(value);
+	return CNV.String2Quote(json);
+};//method
+
 
 CNV.String2Integer = function(value){
 	return value - 0;
@@ -311,7 +343,7 @@ HTML.tag=function(tagName, value){
 	} else if (value == null){
 //		return "<"+tagName+">&lt;null&gt;</"+tagName+">";
 		return "<"+tagName+"></"+tagName+">";
-	} else if (Math.isNumeric(value)){
+	} else if (aMath.isNumeric(value)){
 		if ((""+value).length==13){
 			//PROBABLY A TIMESTAMP
 			value=new Date(value);
@@ -361,7 +393,7 @@ CNV.List2Tab = function(data){
 	//WRITE DATA
 	for(var i = 0; i < data.length; i++){
 		for(var c = 0; c < columns.length; c++){
-			output += CNV.String2Quote(data[i][columns[c].name]) + "\t";
+			output += CNV.Value2Quote(data[i][columns[c].name]) + "\t";
 		}//for
 		output = output.substring(0, output.length - 1) + "\n";
 	}//for

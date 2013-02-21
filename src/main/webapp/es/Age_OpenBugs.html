@@ -53,7 +53,9 @@
 <script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
-<script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script>
+<script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
 <script type="application/javascript;version=1.7" src="js/Debug.js"></script>
@@ -133,7 +135,7 @@
 
 
 var CUTOFF=Duration.newInstance("3week");
-$("#description").html("Shows both the number of open bugs, and their age distribution (below).<br><br>Please filter by Program or Product for faster response.<br><br><span class=\"warning\">Age distribution has not been verified, it might be wrong.</span>");
+$("#description").html("Shows both the number of open bugs, and their age distribution (below).<br><br><span class='warning'>This dashboard will error out without first adding a filter by Program or Product.</span><br><br>Age distribution calculations are based on the assumption that the bug meets criterion during one continuous period in it's whole lifespan.  Discrete periods are simplified to one by choosing one smallest range that covers all said periods.");
 
 var thread;
 var threadPercentiles;
@@ -166,7 +168,7 @@ var __createChart = function(){
 				{"range":{"expires_on":{"gte":sampleMin.getMilli()}}}
 			]},
 			{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-"+sampleMin.getMilli()+", "+sampleInterval.milli+")!=floorInterval(expires_on-"+sampleMin.getMilli()+", "+sampleInterval.milli+")", {"from":"bugs"})}},
-			{"not":{"terms":{"bug_status":["resolved", "verified", "closed"]}}},
+			Mozilla.BugStatus.Open.esfilter,
 			GUI.getFilters("bugs")
 		]};
 
@@ -251,38 +253,54 @@ var __createChart = function(){
 		yield (ESQuery.loadColumns({"from":"bug_summary"}));
 
 		var a=D.action("Get Time Stats", true);
-		var allBugs=yield(ESQuery.run({
-			"from":"bug_summary",
-			"select":[
-				{"value":"bug_id"},
-				{"name":"birth", "value":ProgramFilter.bugStatusMinimum_fromDoc()},
-				{"name":"death", "value":closeTime}
-			],
-			"esfilter":{"and":[
-				{"range":Map.newInstance(ProgramFilter.bugStatusMinimum(), {"lt":sampleMax.getMilli()})},
-				{"range":{"close_time":{"gt":sampleMin.getMilli()}}},
-				{"script":{"script":MVEL.compile.expression(ProgramFilter.bugStatusMinimum_fromDoc()+" < "+closeTime, {"from":"bug_summary"})}},
-				ProductFilter.makeFilter(),
-				ComponentFilter.makeFilter()
-			]}
-//			"sort":[birth]
-		}));
+
+		var allBugs=yield (ElasticSearch.getMinMax({"and":[
+			GUI.getFilters("bugs"),
+			Mozilla.BugStatus.Open.esfilter,
+			{"range":{"modified_ts":{"gte":Date.min(sampleMin, Date.now()).addYear(-1).getMilli()}}}	//FOR THE SAKE OF SPEED
+//			{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},	//CAN NOT INCLUDE DATE LIMITS, EARLY CUTOFF WILL CATCH BOUNCY INDICATORS AT 0,
+//			{"range":{"expires_on":{"gte":sampleMin.getMilli()}}} 	//AND SHOW AS RESOLVED, WHEN IN FACT THE INDICATOR RETURNS TO 1 FOR SOME REASON
+		]}));
+
+
+//		var allBugs=yield(ESQuery.run({
+//			"from":"bug_summary",
+//			"select":[
+//				{"value":"bug_id"},
+//				{"name":"birth", "value":ProgramFilter.bugStatusMinimum_fromDoc()},
+//				{"name":"death", "value":closeTime}
+//			],
+//			"esfilter":{"and":[
+//				{"range":Map.newInstance(ProgramFilter.bugStatusMinimum(), {"lt":sampleMax.getMilli()})},
+//				{"or":[
+//					{"range":{"close_time":{"gt":sampleMin.getMilli()}}},
+//					{"missing":{"field":"close_time"}}
+//				]},
+//				{"script":{"script":MVEL.compile.expression(ProgramFilter.bugStatusMinimum_fromDoc()+" < "+closeTime, {"from":"bug_summary"})}},
+//				ProductFilter.makeFilter(),
+//				ComponentFilter.makeFilter(),
+////				{"term":{"bug_id":635852}}
+//			]}
+////			"sort":[birth]
+//		}));
 		D.actionDone(a);
+//var temp=yield (CUBE.Cube2List(allBugs));
+//D.println(CNV.List2Tab(temp));
 
 
 		var chart=yield(CUBE.calc2Cube({
 			"name":"Age (Days)",
 			"from":allBugs,
 			"select":[
-				{"name":"average", "value":"(Math.min(death, time.min.getMilli())-birth)/Duration.DAY.milli", "operation":"average"},
-				{"name":"25th percentile", "value":"(Math.min(death, time.min.getMilli())-birth)/Duration.DAY.milli", "operation":"percentile", "percentile":0.25},
-				{"name":"50th percentile", "value":"(Math.min(death, time.min.getMilli())-birth)/Duration.DAY.milli", "operation":"percentile", "percentile":0.5},
-				{"name":"75th percentile", "value":"(Math.min(death, time.min.getMilli())-birth)/Duration.DAY.milli", "operation":"percentile", "percentile":0.75},
-				{"name":"90th percentile", "value":"(Math.min(death, time.min.getMilli())-birth)/Duration.DAY.milli", "operation":"percentile", "percentile":0.9}
+				{"name":"average", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"average", "default":0},
+				{"name":"25th percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"percentile", "percentile":0.25, "default":0},
+				{"name":"50th percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"percentile", "percentile":0.5, "default":0},
+				{"name":"75th percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"percentile", "percentile":0.75, "default":0},
+				{"name":"90th percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"percentile", "percentile":0.9, "default":0}
 			],
 			"edges":[
 				{"name":"date",
-					"range":{"min":"birth", "max":"death"},
+					"range":{"min":"min", "max":"max"},
 					"allowNulls":false,
 					domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
 				}
@@ -334,6 +352,23 @@ var __createChart = function(){
 		"esfilter":mainFilter
 	}));
 
+//	var a=D.action("Request Bugs", true);
+//	var chart=yield (ESQuery.run({
+//		"name":"Open Bug Count",
+//		"from":"bugs",
+//		"select":{"name":"num_bug", "value":"bug_id", "operation":"maximum"},
+//		"edges":[
+//			{"value":"bug_id"},
+//			{"name":"date",
+//				"range":{"min":"modified_ts", "max":"expires_on"},
+//				"allowNulls":false,
+//				"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+//			}
+//		],
+//		"esfilter":mainFilter
+//	}));
+
+
 
 	D.actionDone(a);
 
@@ -355,9 +390,12 @@ var __createChart = function(){
 
 
 
-
+//file:///C:/Users/klahnakoski/git/Bugzilla%20Anthropology/src/main/webapp/es/Age_OpenBugs.html#sampleInterval=day&sampleMax=2013-01-18&sampleMin=2013-01-15&selectedPrograms=Security+%28High+and+Critical+Only%29&selectedProducts=core,firefox,thunderbird,toolkit,mailnews+core
 	$(document).ready(function(){
 		GUI.setup([
+//			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.newInstance("2013-01-15")},
+//			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.newInstance("2013-01-18")},
+//			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"day"},
 			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
 			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today()},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"week"},

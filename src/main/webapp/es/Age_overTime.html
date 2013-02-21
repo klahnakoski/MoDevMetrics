@@ -56,7 +56,7 @@
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
@@ -209,10 +209,10 @@ var __createChart = function(){
 
 		$("#stats").html(
 			'<span class="parameter_name">Total Bugs:</span><b>'+stats.total+'</b><br>'+
-			'<span class="parameter_name">Bugs Closed per week:</span><b>'+Math.round(stats.num_closed/(sampleSize.milli/Duration.MILLI_VALUES.week), 0)+'</b><br>'+
-			'<span class="parameter_name">Open Bugs Remaining:</span><b>'+Math.round(stats.num_open, 0)+'</b><br>'+
-			'<span class="parameter_name">% Under '+CUTOFF.toString()+'</span><b>'+Math.round(stats.under/stats.total*100, 1)+'%</b><br>'+
-			'<span class="parameter_name">Average Time Open:</span><b>'+Math.round(average.cube.duration/Duration.MILLI_VALUES.day, 2)+'days</b><br>'
+			'<span class="parameter_name">Bugs Closed per week:</span><b>'+aMath.round(stats.num_closed/(sampleSize.milli/Duration.MILLI_VALUES.week), 0)+'</b><br>'+
+			'<span class="parameter_name">Open Bugs Remaining:</span><b>'+aMath.round(stats.num_open, 0)+'</b><br>'+
+			'<span class="parameter_name">% Under '+CUTOFF.toString()+'</span><b>'+aMath.round(stats.under/stats.total*100, 1)+'%</b><br>'+
+			'<span class="parameter_name">Average Time Open:</span><b>'+aMath.round(average.cube.duration/Duration.MILLI_VALUES.day, 2)+'days</b><br>'
 		);
 
 
@@ -263,7 +263,7 @@ var __createChart = function(){
 
 
 
-	durations.edges[1].domain.NULL.name="Over "+Math.floor(Duration.newInstance(GUI.state.chartMax).divideBy(Duration.WEEK))+"weeks";
+	durations.edges[1].domain.NULL.name="Over "+aMath.floor(Duration.newInstance(GUI.state.chartMax).divideBy(Duration.WEEK))+"weeks";
 
 	a=D.action("Make chart", true);
 	aChart.show({
@@ -302,9 +302,9 @@ var chartStat=function(description, timeDomain, sampleSize){
 //			"from":allBugs,
 //			"select":[
 //				{"name":"average", "value":"Duration.newInstance(death-birth)", "operation":"average", "window":sampleSize},
-//				{"name":"_25_", "value":"Duration.newInstance(Math.min(death, time.min.getMilli())-birth)", "operation":"percentile", "percentile":0.25, "window":sampleSize},
-//				{"name":"_50_", "value":"Duration.newInstance(Math.min(death, time.min.getMilli())-birth)", "operation":"percentile", "percentile":0.5, "window":sampleSize},
-//				{"name":"_90_", "value":"Duration.newInstance(Math.min(death, time.min.getMilli())-birth)", "operation":"percentile", "percentile":0.9, "window":sampleSize}
+//				{"name":"_25_", "value":"Duration.newInstance(aMath.min(death, time.min.getMilli())-birth)", "operation":"percentile", "percentile":0.25, "window":sampleSize},
+//				{"name":"_50_", "value":"Duration.newInstance(aMath.min(death, time.min.getMilli())-birth)", "operation":"percentile", "percentile":0.5, "window":sampleSize},
+//				{"name":"_90_", "value":"Duration.newInstance(aMath.min(death, time.min.getMilli())-birth)", "operation":"percentile", "percentile":0.9, "window":sampleSize}
 //			],
 //			"edges":[
 //				{"name":"birth_date", "value":"Date.newInstance(birth)", domain:timeDomain}
@@ -329,9 +329,9 @@ var chartStat=function(description, timeDomain, sampleSize){
 			"name":description,
 			"from":values,
 			"select":[
-				{"name":"25percentile", "value":"Math.round(Duration.newInstance(_25_).milli/Duration.DAY.milli,1)"},
-				{"name":"50percentile", "value":"Math.round(Duration.newInstance(_50_).milli/Duration.DAY.milli,1)"},
-				{"name":"90percentile", "value":"Math.round(Duration.newInstance(_90_).milli/Duration.DAY.milli,1)"}
+				{"name":"25percentile", "value":"aMath.round(Duration.newInstance(_25_).milli/Duration.DAY.milli,1)"},
+				{"name":"50percentile", "value":"aMath.round(Duration.newInstance(_50_).milli/Duration.DAY.milli,1)"},
+				{"name":"90percentile", "value":"aMath.round(Duration.newInstance(_90_).milli/Duration.DAY.milli,1)"}
 			],
 			"edges":[
 				{"value":"time", "domain":timeDomain}

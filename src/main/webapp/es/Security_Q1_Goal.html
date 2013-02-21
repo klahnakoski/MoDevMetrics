@@ -1,7 +1,7 @@
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <!-- This Source Code Form is subject to the terms of the Mozilla Public
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <HTML>
 <HEAD>
 <script type="application/javascript;version=1.7" src="js/Settings.js">
@@ -54,8 +54,10 @@
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
-<script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script>
+<script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
 <script type="application/javascript;version=1.7" src="js/Debug.js"></script>
@@ -146,8 +148,9 @@ var __createChart = function(){
 
 	var sampleMin=Date.newInstance(GUI.state.sampleMin);
 	var sampleMax=Date.newInstance(GUI.state.sampleMax).ceilingDay();
+	var sampleInterval=Duration.DAY;
 
-	$("#title").html("Security Bug Count");
+	$("#title").html("Security - Age of High+ Bugs");
 
 	var createTime="doc[\"create_time\"].value";
 	var idTime=ProgramFilter.bugStatusMinimum_fromSource();
@@ -157,60 +160,76 @@ var __createChart = function(){
 	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
 
 	var mainFilter={"and":[
-				{"range":{"date":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
-				{"not":{"terms":{"bug_status":["resolved", "verified", "closed"]}}},
-				{"or":[{"prefix":{"keywords":"sec-"}}, {"prefix":{"keywords":"sg:"}}]},
-				GUI.getFilters("bug_tags")
-			]};
+		{"range":{"date":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
+		Mozilla.BugStatus.Open.esfilter,
+		{"or":[
+			Mozilla.Security.Priority.High.esfilter,
+			Mozilla.Security.Priority.Critical.esfilter
+		]},
+		Mozilla.Security.Teams.esfilter,
+		GUI.getFilters("bugs")
+	]};
 
-	GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
 
 
-	aThread.run(function(){
-		D.action("Bugs By Product");
-		var chart=yield(ESQuery.run({
-			"name":"Components",
-			"from":"bug_tags",
-			"select": {"name":"bug_id", "value":"bug_id", "operation":"count"},
-			"edges":[
-				{"name":"product", "value":"product"}
-//				{"name":"component", "value":"component.split(\" \")[0]"}
-	//			{"name":"date", "value":"date", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":"day"}}
-			],
-			"esfilter":mainFilter
-		}));
-
-		var a=D.action("Make chart", true);
-		aChart.showPie({
-			"id":"chartComponents",
-			"type":"pie",
-			"stacked":true,
-			"cube":chart,
-			"height":200,
-			"width":400
-		});
-			});
+//	aThread.run(function(){
+//		D.action("Bugs By Product");
+//		var chart=yield(ESQuery.run({
+//			"name":"Components",
+//			"from":"bug_tags",
+//			"select": {"name":"bug_id", "value":"bug_id", "operation":"count"},
+//			"edges":[
+//				{"name":"product", "value":"product"}
+//	//			{"name":"component", "value":"component.split(\" \")[0]"}
+//	//			{"name":"date", "value":"date", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":"day"}}
+//			],
+//			"esfilter":mainFilter
+//		}));
+//
+//		var a=D.action("Make chart", true);
+//		aChart.showPie({
+//			"id":"chartComponents",
+//			"type":"pie",
+//			"stacked":true,
+//			"cube":chart,
+//			"height":200,
+//			"width":400
+//		});
+//	});
 
 
 	aThread.run(function(){
 		D.action("Request Bugs");
-		var chart=yield(ESQuery.run({
-			"name":"Open Bug Count",
-			"from":"bug_tags",
-			"select": {"name":"bug_id", "value":"bug_id", "operation":"count"},
-			"edges":[
-				{"name":"priority", "value":
-						"var keywords = doc[\"keywords\"].value;\n"+
-						"if (keywords.indexOf(\"sec-critical\") || keywords.indexOf(\"sg:crit\")) \"critical\"; "+
-						"else if (keywords.indexOf(\"sec-high\") || keywords.indexOf(\"sg:high\")) \"high\"; "+
-						"else if (keywords.indexOf(\"sec-moderate\") || keywords.indexOf(\"sg:mod\")) \"moderate\"; "+
-						"else if (keywords.indexOf(\"sec-low\") || keywords.indexOf(\"sg:low\")) \"low\"; "+
-						"else \"other\"; "
-				},
-				{"name":"date", "value":"date", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":"day"}}
+
+		var allBugs=yield (ElasticSearch.getMinMax({"and":[
+			GUI.getFilters("bugs"),
+			Mozilla.BugStatus.Open.esfilter
+//			{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},	//CAN NOT INCLUDE DATE LIMITS, EARLY CUTOFF WILL CATCH BOUNCY INDICATORS AT 0,
+//			{"range":{"expires_on":{"gte":sampleMin.getMilli()}}} 	//AND SHOW AS RESOLVED, WHEN IN FACT THE INDICATOR RETURNS TO 1 FOR SOME REASON
+		]}));
+
+
+		var allBugs=yield (ElasticSearch.getMinMax(mainFilter));
+
+		var chart=yield(CUBE.calc2Cube({
+			"name":"Age (Days)",
+			"from":allBugs,
+			"select":[
+				{"name":"75th percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"percentile", "percentile":0.75},
+				{"name":"maximum", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"maximum"}
 			],
-			"esfilter":mainFilter
+			"edges":[
+				{"name":"date",
+					"range":{"min":"min", "max":"max"},
+					"allowNulls":false,
+					domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+				}
+			]
 		}));
+
+
+		//ADD THE Q1 GOAL LIMIT
+
 
 		var a=D.action("Make chart", true);
 		aChart.show({
@@ -221,7 +240,7 @@ var __createChart = function(){
 			"cube":chart
 		});
 		D.actionDone(a);
-			});
+	});
 
 	yield (null);
 };
@@ -239,7 +258,7 @@ var __createChart = function(){
 		[
 //			"sampleMax=Date.newInstance(sampleMax).addDay(1).add(Duration.newInstance('-second')).floorDay().toString()"
 		],
-		"bug_tags");
+		"bugs");
 	});
 
 </script>

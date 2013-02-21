@@ -71,7 +71,10 @@ ElasticSearch.getMinMax=function(esfilter){
 		"esfilter":esfilter
 	}));
 
-	//REMOVE HIGH EXPIRY, WHICH MEANS null
+	//CONVERT TO DATE VALUES (ALSO CONVERTS HIGH DATE VALUE TO null)
+	u1.cube.forall(function(v, i){
+		u1.cube[i]=Date.newInstance(v);
+	});
 	u2.cube.forall(function(v, i){
 		u2.cube[i]=Date.newInstance(v);
 	});

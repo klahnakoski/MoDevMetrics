@@ -380,7 +380,7 @@ aThread_testFunction=function(){
 //				D.println("adding "+i);
 //				p.add(function(){
 //					D.println("sleeping "+i);
-//					yield (aThread.sleep(Math.random()*1000));
+//					yield (aThread.sleep(aMath.random()*1000));
 //					D.println("return "+i);
 //					yield i;
 //				});

@@ -25,7 +25,7 @@ Stats.df.percentile=function(df, percentile){
 //NORMALIZE TO A DISTRIBUTION FUNCTION
 Stats.df.normalize=function(df){
 	var total=0;
-	for(var t=df.length;t--;) total+=Math.abs(df[t]);
+	for(var t=df.length;t--;) total+=aMath.abs(df[t]);
 	if (total==0 || (1-epsilon)<total && total<(1+epsilon)) return df;
 
 	var output=[];
@@ -56,12 +56,12 @@ Stats.percentileAgeOverTime=function(data, timeEdge, sampleSize, percentile){
 
 		var ages=[];
 		for(var d=0;d<newdata.length;d++){
-			if (newdata[d][0]>=min) ages.push(Math.min(max, newdata[d][1])-newdata[d][0]);
+			if (newdata[d][0]>=min) ages.push(aMath.min(max, newdata[d][1])-newdata[d][0]);
 		}//for
 
 		ages.sort();
-		var smaller=Math.floor(ages.length*percentile);
-		var larger=Math.max(smaller+1, ages.length-1);
+		var smaller=aMath.floor(ages.length*percentile);
+		var larger=aMath.max(smaller+1, ages.length-1);
 		var r=(ages.length*percentile) - smaller;
 		var value=ages[smaller]*(1-r)+(ages[larger]*r);
 
@@ -102,7 +102,7 @@ Stats.ageOverTime=function(data, timeEdge, sampleSize, statFunction){
 			}//endif
 			if (newdata[d][0]>=max) break;
 
-			var age=Math.min(max, newdata[d][1]) - newdata[d][0];
+			var age=aMath.min(max, newdata[d][1]) - newdata[d][0];
 			ages.push(age);
 		}//for
 
@@ -121,8 +121,8 @@ Stats.percentiles=function(values, selectColumns){
 	values.sort(function(a, b){return a-b;});
 	var output={};
 	for(var i=0;i<selectColumns.length;i++){
-		var smaller=Math.floor(values.length*selectColumns[i].percentile);
-		var larger=Math.min(smaller+1, values.length-1);
+		var smaller=aMath.floor(values.length*selectColumns[i].percentile);
+		var larger=aMath.min(smaller+1, values.length-1);
 		var r=(values.length*selectColumns[i].percentile) - smaller;
 		output[selectColumns[i].name]=values[smaller]*(1-r)+(values[larger]*r);
 
@@ -136,8 +136,8 @@ Stats.percentiles=function(values, selectColumns){
 //values IS AN ARRAY OF RAW NUMBERS
 Stats.percentile=function(values, percentile){
 	values.sort(function(a, b){return a-b;});
-	var smaller=Math.floor(values.length*percentile);
-	var larger=Math.min(smaller+1, values.length-1);
+	var smaller=aMath.floor(values.length*percentile);
+	var larger=aMath.min(smaller+1, values.length-1);
 	var r=(values.length*percentile) - smaller;
 	return values[smaller]*(1-r)+(values[larger]*r);
 };

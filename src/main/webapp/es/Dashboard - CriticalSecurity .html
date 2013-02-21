@@ -54,7 +54,7 @@
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
@@ -143,7 +143,7 @@ var createChart = function(){
 		],
 		"esfilter":{
 			"and":[
-				{"not":{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}},
+				Mozilla.BugStatus.Open.esfilter,
 				{ "range" : { "expires_on" : { "gte" : Date.now().getMilli()} } }
 			]
 		}
@@ -160,7 +160,7 @@ var createChart = function(){
 		],
 		"where":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value',  //ONLY THE DOCUMENT THAT CLOSES THE BUG
 		"esfilter":{"and":[
-			{"terms":{"bug_status":["resolved", "verified", "closed"]}},
+			Mozilla.BugStatus.Closed.esfilter,
 			{"range":{"modified_ts":{"gte":Date.today().subtract(GUI.state.sampleSize).getMilli()}}},
 			{"range":{"modified_ts":{"lte":Date.today().getMilli()}}}
 //			{"script":{"script":'doc["modified_ts"].value-doc["created_ts"].value>'+Duration.newInstance("439day").milli}}

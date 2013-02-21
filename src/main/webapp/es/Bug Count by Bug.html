@@ -24,10 +24,7 @@
 				},
 				"filter" : {
 					"and" : [
-						{"not" : {
-							"terms" : { "bug_status" : ["resolved", "verified", "closed"] }
-						}
-						}
+						Mozilla.BugStatus.Open.esfilter
 					]
 				}
 			}

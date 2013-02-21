@@ -231,12 +231,15 @@ CUBE.domain.time = function(column, sourceColumns){
 			}//endif
 		}//for
 
+//if (column.range.max=="max"){
+//	D.println("");
+//}//endif
 		var condition=[];
 		if (column.range.min){
-			condition.push(column.range.min+" <" + d.name + ".min");
+			condition.push("(" + column.range.min + "!=null && " + column.range.min + "< " + d.name + ".min)");
 		}//endif
 		if (column.range.max){
-			condition.push(d.name + ".min" + " <= "+ column.range.max );
+			condition.push("(" + column.range.max + "!=null && " + d.name + ".min" + "<= " + column.range.max + ")");
 		}//endif
 
 
@@ -273,7 +276,7 @@ CUBE.domain.time = function(column, sourceColumns){
 //if (key.getMilli()==new Date(2012, 3, 1).floorDay().getMilli())
 //	D.println("");
 
-		var i=Math.floor(key.subtract(this.min, this.interval).divideBy(this.interval));
+		var i=aMath.floor(key.subtract(this.min, this.interval).divideBy(this.interval));
 
 		if (this.partitions[i].min>key || key>=this.partitions[i].max)
 			D.error("programmer error");
@@ -476,7 +479,7 @@ CUBE.domain.duration.addRange = function(min, max, domain){
 
 CUBE.domain.linear = function(column, sourceColumns){
 	function _floor(value, mod){
-		return Math.floor(value/mod)*mod;
+		return aMath.floor(value/mod)*mod;
 	}
 
 	var d = column.domain;

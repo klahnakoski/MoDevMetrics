@@ -189,7 +189,7 @@ var isEmpty = function(obj){
 }
 
 var twoDec = function(value){
-	return Math.round(value * 100) / 100
+	return aMath.round(value * 100) / 100
 }
 
 testMessage = new Status("testMessage");

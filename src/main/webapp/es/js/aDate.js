@@ -23,9 +23,30 @@ Date.today=function(){
 Date.newInstance = function(value){
 	if (value === undefined || value == null) return null;
 	if (typeof(value)=="string") return Date.tryParse(value);
-	if (Math.isNumeric(value) && (value-0)>9990000000000) return null;
+	if (aMath.isNumeric(value) && (value-0)>9990000000000) return null;
 	return new Date(value);
 };//method
+
+
+Date.min=function(){
+	var min=null;
+	for(var i=0;i<arguments.length;i++){
+		if (arguments[i]==null) continue;
+		if (min==null || min>arguments[i]) min=arguments[i];
+	}//for
+	return min;
+};//method
+
+
+Date.max=function(){
+	var max=null;
+	for(var i=0;i<arguments.length;i++){
+		if (arguments[i]==null) continue;
+		if (max==null || max<arguments[i]) max=arguments[i];
+	}//for
+	return max;
+};//method
+
 
 
 
@@ -106,7 +127,7 @@ Date.diffWeekday=function(endTime, startTime){
 	var output=((startWeek.getMilli()-startTime.getMilli())+((endWeek.getMilli()-startWeek.getMilli())/7)*5+(endTime.getMilli()-endWeek.addDay(2).getMilli()))/Duration.DAY.milli;
 
 
-	if (out!=Math.ceil(output))
+	if (out!=aMath.ceil(output))
 		D.error("");
 
 
@@ -116,7 +137,7 @@ Date.diffWeekday=function(endTime, startTime){
 
 Date.diffMonth=function(endTime, startTime){
 	//MAKE SURE WE HAVE numMonths THAT IS TOO BIG;
-	var numMonths=Math.floor((endTime.getMilli()-startTime.getMilli()+(Duration.MILLI_VALUES.day*31))/Duration.MILLI_VALUES.year*12);
+	var numMonths=aMath.floor((endTime.getMilli()-startTime.getMilli()+(Duration.MILLI_VALUES.day*31))/Duration.MILLI_VALUES.year*12);
 
 	var test = startTime.addMonth(numMonths);
 	while (test.getMilli()>endTime.getMilli()){
@@ -192,7 +213,7 @@ Date.prototype.addWeekday = function(value){
 	var output=this.addDay(1);
 	if ([0,1].contains(output.dow())) output.floorWeek().addDay(2);
 
-	var weeks=Math.floor(value/5*7);
+	var weeks=aMath.floor(value/5*7);
 	value=value-(weeks*7);
 	output=output.addDay(value);
 	if ([0,1].contains(output.dow())) output.floorWeek().addDay(2);
@@ -369,7 +390,7 @@ Date.prototype.format = function(format){
 	v["KK"] = Date.LZ(v["K"]);
 	v["k"] = H + 1;
 	v["kk"] = Date.LZ(v["k"]);
-	v["a"] = ["AM","PM"][Math.floor(H / 12)];
+	v["a"] = ["AM","PM"][aMath.floor(H / 12)];
 	v["m"] = m;
 	v["mm"] = Date.LZ(m);
 	v["s"] = s;
@@ -413,7 +434,7 @@ Date.getTimezone = function(){
 		//CHEAT AND SIMPLY GUESS
 		if (offset == 240 || offset == 300) return "EDT";
 		if (offset == 420 || offset == 480) return "PDT";
-		return "(" + Math.round(offset / 60) + "GMT)"
+		return "(" + aMath.round(offset / 60) + "GMT)"
 	};
 	return Date.getTimezone();
 };
@@ -837,7 +858,7 @@ Duration.newInstance = function(obj){
 	if (obj === undefined) return undefined;
 	if (obj == null) return null;
 	var output = null;
-	if (Math.isNumeric(obj)){
+	if (aMath.isNumeric(obj)){
 		output = new Duration();
 		output.milli = obj;
 	} else if (typeof(obj) == "string"){
@@ -882,14 +903,14 @@ Duration.prototype.divideBy=function(amount){
 		r=r-tod;
 
 		if (m==0 && r>(Duration.MILLI_VALUES.year/3)){
-			m=Math.floor(12 * this.milli / Duration.MILLI_VALUES.year);
+			m=aMath.floor(12 * this.milli / Duration.MILLI_VALUES.year);
 			r-=(m/12)*Duration.MILLI_VALUES.year;
 		}else{
 			r=(r-(this.month*Duration.MILLI_VALUES.month));
 			if (r>=Duration.MILLI_VALUES.day*31)
 				D.error("Do not know how to handle");
 		}//endif
-		r=Math.min(29/30, (r+tod)/(Duration.MILLI_VALUES.day*30));
+		r=aMath.min(29/30, (r+tod)/(Duration.MILLI_VALUES.day*30));
 
 
 		var output=(m/amount.month)+r;
@@ -919,7 +940,7 @@ Duration.prototype.floor = function(interval){
 
 	if (interval.month != 0){
 		if (this.month!=0){
-			output.month = Math.floor(this.month/interval.month)*interval.month;
+			output.month = aMath.floor(this.month/interval.month)*interval.month;
 //			var rest=(this.milli - (Duration.MILLI_VALUES.month * output.month));
 //			if (rest>Duration.MILLI_VALUES.day*31){	//WE HOPE THIS BIGGER VALUE WILL STILL CATCH POSSIBLE LOGIC PROBLEMS
 //				D.error("This duration has more than a month's worth of millis, can not handle this rounding");
@@ -934,10 +955,10 @@ Duration.prototype.floor = function(interval){
 		}//endif
 
 		//A MONTH OF DURATION IS BIGGER THAN A CANONICAL MONTH
-		output.month = Math.floor(this.milli * 12 / Duration.MILLI_VALUES["year"] / interval.month)*interval.month;
+		output.month = aMath.floor(this.milli * 12 / Duration.MILLI_VALUES["year"] / interval.month)*interval.month;
 		output.milli = output.month * Duration.MILLI_VALUES.month;
 	} else{
-		output.milli = Math.floor(this.milli / (interval.milli)) * (interval.milli);
+		output.milli = aMath.floor(this.milli / (interval.milli)) * (interval.milli);
 	}//endif
 	return output;
 };//method
@@ -950,27 +971,27 @@ Duration.prototype.toString = function(){
 	var output = "";
 	var rest = (this.milli - (Duration.MILLI_VALUES.month * this.month)); //DO NOT INCLUDE THE MONTH'S MILLIS
 	var isNegative = (rest < 0);
-	rest=Math.abs(rest);
+	rest=aMath.abs(rest);
 
 	//MILLI
 	var rem = rest % 1000;
 	if (rem != 0) output = "+" + rem + "milli" + output;
-	rest = Math.floor(rest / 1000);
+	rest = aMath.floor(rest / 1000);
 
 	//SECOND
 	rem = rest % 60;
 	if (rem != 0) output = "+" + rem + "second" + output;
-	rest = Math.floor(rest / 60);
+	rest = aMath.floor(rest / 60);
 
 	//MINUTE
 	rem = rest % 60;
 	if (rem != 0) output = "+" + rem + "minute" + output;
-	rest = Math.floor(rest / 60);
+	rest = aMath.floor(rest / 60);
 
 	//HOUR
 	rem = rest % 24;
 	if (rem != 0) output = "+" + rem + "hour" + output;
-	rest = Math.floor(rest / 24);
+	rest = aMath.floor(rest / 24);
 
 	//DAY
 	if (rest<11 && rest!=7){
@@ -978,7 +999,7 @@ Duration.prototype.toString = function(){
 		rest = 0;
 	}else{
 		rem = rest % 7;
-		rest = Math.floor(rest / 7);
+		rest = aMath.floor(rest / 7);
 	}//endif
 	if (rem != 0) output = "+" + rem + "day" + output;
 
@@ -991,14 +1012,14 @@ Duration.prototype.toString = function(){
 	//MONTH AND YEAR
 	if (this.month != 0){
 		var sign=(this.month<0 ? "-" : "+");
-		var month=Math.abs(this.month);
+		var month=aMath.abs(this.month);
 
 		if (month <= 18 && month != 12){
 			output = sign + month + "month" + output;
 		} else{
 			var m = month % 12;
 			if (m != 0) output = sign + m + "month" + output;
-			var y = Math.floor(month / 12);
+			var y = aMath.floor(month / 12);
 			output = sign + y + "year" + output;
 		}//endif
 	}//endif
@@ -1012,7 +1033,7 @@ Duration.prototype.toString = function(){
 Duration.prototype.format=function(interval, rounding){
 	if (rounding===undefined) rounding=0;
 	var output=this.divideBy(Duration.newInstance(interval));
-	output=Math.round(output, rounding);
+	output=aMath.round(output, rounding);
 	return output+interval;
 };//method
 

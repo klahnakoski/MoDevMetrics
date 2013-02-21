@@ -59,14 +59,6 @@ var mapAllKey=function(map, func){
 
 if (window['importScript'] === undefined) importScript=function(){};
 
-Math.isNumeric = function(n){
-	return !isNaN(parseFloat(n)) && isFinite(n);
-};
-
-Math.sign = function(value){
-	return value > 0.0 ? 1.0 : (value < 0.0 ? -1.0 : 0.0);
-};
-
 String.join = function(list, seperator){
 	var output = "";
 
@@ -198,7 +190,7 @@ Util.returnNull = function(__row){
 
 Util.UID=function(){
 	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-		var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+		var r = aMath.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
 		return v.toString(16);
 	});
 };//method
@@ -244,7 +236,7 @@ String.prototype.replaceVars = function(values){
 };//method
 
 String.prototype.left = function(amount){
-	return this.substring(0, Math.min(this.length, amount));
+	return this.substring(0, aMath.min(this.length, amount));
 };//method
 
 String.prototype.right = function(amount){
@@ -281,12 +273,48 @@ List.intersect = function(a, b){
 };//method
 
 
+aMath={};
+aMath.PI=Math.PI;
 
-if (Math.oldRound) throw "You can not call this util.js twice!!!"
-Math.oldRound=Math.round;
+aMath.isNumeric = function(n){
+	if (n==null) return null;
+	return !isNaN(parseFloat(n)) && isFinite(n);
+};
 
-Math.round=function(value, rounding){
-	if (rounding===undefined) return Math.oldRound(value);
+aMath.sign = function(n){
+	if (n==null) return null;
+	return n > 0.0 ? 1.0 : (n < 0.0 ? -1.0 : 0.0);
+};
+
+aMath.abs=function(n){
+	if (n==null) return null;
+	return Math.abs(n);
+};
+
+aMath.round=function(value, rounding){
+	if (rounding===undefined) return Math.round(value);
 	var d=Math.pow(10, rounding);
-	return Math.oldRound(value*d)/d;
+	return Math.round(value*d)/d;
 };//method
+
+aMath.min=function(){
+	var min=null;
+	for(var i=0;i<arguments.length;i++){
+		if (arguments[i]==null) continue;
+		if (min==null || min>arguments[i]) min=arguments[i];
+	}//for
+	return min;
+};//method
+
+
+aMath.max=function(){
+	var max=null;
+	for(var i=0;i<arguments.length;i++){
+		if (arguments[i]==null) continue;
+		if (max==null || max<arguments[i]) max=arguments[i];
+	}//for
+	return max;
+};//method
+
+aMath.floor=Math.floor;
+aMath.ceil=Math.ceil;

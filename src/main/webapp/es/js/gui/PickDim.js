@@ -177,9 +177,9 @@ PickDim.prototype.addPart=function(edge){
 			var eX=e.pageX;
 			var oX=row.offset().left;
 			var dx=eX-oX-left;
-			dx=Math.max(0, Math.min(dx, oWidth-left-right));
+			dx=aMath.max(0, aMath.min(dx, oWidth-left-right));
 
-			var offset=Math.round(oX + (oWidth - iWidth) * (dx) / (oWidth-left-right));
+			var offset=aMath.round(oX + (oWidth - iWidth) * (dx) / (oWidth-left-right));
 //			pos.animate({"left":offset}, 400, function(){
 				pos.offset({"left":offset});
 //			});
@@ -202,7 +202,7 @@ PickDim.prototype.addPart=function(edge){
 				var iWidth=pos.width();
 				var offset=(oWidth-leftPos-rightPos)/2;
 
-				offset=Math.min(0, Math.max(offset, oWidth-iWidth));
+				offset=aMath.min(0, aMath.max(offset, oWidth-iWidth));
 				pos.animate({"left":offset}, 700, function(){
 					pos.position({"left":offset});
 				});

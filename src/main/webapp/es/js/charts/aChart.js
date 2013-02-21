@@ -69,7 +69,7 @@ aChart.getAxisLabels=function(axis){
 		axis.domain.partitions.forall(function(v, i){
 			if (v instanceof String){
 				labels.push(v);
-			}else if (Math.isNumeric(v)){
+			}else if (aMath.isNumeric(v)){
 				labels.push(""+v);
 			}else{
 				labels.push(""+axis.domain.end(v));
@@ -111,7 +111,7 @@ aChart.showPie=function(params){
 		showValues: false,
 		extensionPoints: {
 			noDataMessage_text: "No Data To Chart"
-//			xAxisLabel_textAngle: Math.PI/4,
+//			xAxisLabel_textAngle: aMath.PI/4,
 //			xAxisLabel_textAlign: "left",
 //			xAxisLabel_textBaseline: "top"
 //			xAxisScale_dateTickFormat: "%Y/%m/%d",
@@ -256,7 +256,7 @@ aChart.show=function(params){
 		"colors":colors,
 		extensionPoints: {
 			noDataMessage_text: "No Data To Chart",
-			xAxisLabel_textAngle: Math.PI/4,
+			xAxisLabel_textAngle: aMath.PI/4,
 			xAxisLabel_textAlign: "left",
 			xAxisLabel_textBaseline: "top",
 //			xAxisScale_dateTickFormat: "%Y/%m/%d",

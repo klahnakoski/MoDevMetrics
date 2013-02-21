@@ -43,7 +43,7 @@
       },
       "filter": {
 		"and":[
-			{"terms" : {"bug_status" : ["resolved", "verified", "closed"]}},
+			Mozilla.BugStatus.Closed.esfilter,
 			{"not": {"terms":{"previous_values.bug_status_value": ["resolved", "verified", "closed"]}}},  //JUST SWITCHED TO CLOSED
 			{"script":{"script":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value'}},
 //			{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}},

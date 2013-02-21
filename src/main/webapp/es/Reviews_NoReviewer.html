@@ -51,7 +51,7 @@
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
@@ -140,7 +140,7 @@ var __createChart = function(){
 			{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
 		]},
 		"esfilter":{"and":[
-			{"not": {"terms" : {"bug_status" : ["resolved", "verified", "closed"]}}},
+			Mozilla.BugStatus.Open.esfilter,
 			{"range":{"expires_on":{"gt":Date.now().getMilli()}}},
 			{ "nested": {
 				"path" : "attachments.flags",
@@ -180,7 +180,7 @@ var __createChart = function(){
 		"from":result,
 		"select":[
 			{"name":"Bug ID", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bug_id).replaceAll(', ', '%2C')+\"'>\"+bug_id+\"</a>\""},
-			{"name":"Wait Time", "value":"Math.round(wait_time/"+Duration.MILLI_VALUES.day+", 1)+\"days\""}
+			{"name":"Wait Time", "value":"aMath.round(wait_time/"+Duration.MILLI_VALUES.day+", 1)+\"days\""}
 		]
 	}))).list;
 

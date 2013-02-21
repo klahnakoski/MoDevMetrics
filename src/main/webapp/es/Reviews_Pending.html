@@ -46,7 +46,7 @@
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
@@ -105,11 +105,7 @@
 					"and":[
 //													{"terms":{"bug_id":[505741]}},
 						{ "range" : { "expires_on" : { "gt" : Date.now().getMilli() } } },
-						{"not" : {
-							"terms" : {
-								"bug_status" : ["resolved", "verified", "closed"]
-							}
-						}}
+						Mozilla.BugStatus.Open.esfilter
 					]
 				}
 			}
@@ -198,7 +194,7 @@
 
 			$("#summary").html(
 				"<h2>Average Review Queue Length: "+average+"s</h2><br>"+
-				"<h3>("+(over+under)+" pending reviews, "+Math.round(over/(over+under)*100, 1)+"% over one week)</h3>"
+				"<h3>("+(over+under)+" pending reviews, "+aMath.round(over/(over+under)*100, 1)+"% over one week)</h3>"
 			);
 
 

@@ -327,7 +327,7 @@ MVEL.Value2Code = function(value){
 	if (value instanceof Duration)
 		return ""+value.milli;	//DURATION
 
-	if (Math.isNumeric(value)) return "" + value;
+	if (aMath.isNumeric(value)) return "" + value;
 	return CNV.String2Quote(value);
 };//method
 

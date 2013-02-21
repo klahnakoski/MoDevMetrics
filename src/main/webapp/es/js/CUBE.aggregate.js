@@ -97,7 +97,10 @@ CUBE.aggregate.average = function(select){
 		},
 
 		end :function(total){
-			if (total.count == 0) return null;
+			if (total.count == 0){
+				if (select["default"]!==undefined) return select["default"];
+				return null;
+			}//endif
 			return total.total / total.count;
 		}
 	};
@@ -265,7 +268,10 @@ CUBE.aggregate.percentile = function(select){
 
 		end :function(total){
 			var l=total.list;
-			if (l.length == 0) return null;
+			if (l.length == 0){
+				if (select["default"]!==undefined) return select["default"];
+				return null;
+			}//endif
 
 			//THE Stats CAN ONLY HANDLE NUMBERS, SO WE CONVERT TYPES TO NUMBERS AND BACK AGAIN WHEN DONE
 			if (l[0].milli){

@@ -3,11 +3,11 @@ function rcmp(a, b){
 }
 function age(date){
 	var t = date.match(/(....)-(..)-(..) (..)/);
-	return Math.round((Date.now() - (new Date(t[1], t[2] - 1, t[3], t[4]))) / 86400000);
+	return aMath.round((Date.now() - (new Date(t[1], t[2] - 1, t[3], t[4]))) / 86400000);
 }
 function median(a){
-	var mid = Math.floor(a.length / 2);
-	return(a.length % 2) ? a[mid] : Math.floor((a[mid] + a[mid - 1]) / 2);
+	var mid = aMath.floor(a.length / 2);
+	return(a.length % 2) ? a[mid] : aMath.floor((a[mid] + a[mid - 1]) / 2);
 }
 function agecalc(buglist){
 	var bugs = buglist.split('\n');

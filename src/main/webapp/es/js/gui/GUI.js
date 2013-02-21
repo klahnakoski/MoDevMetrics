@@ -122,9 +122,9 @@ GUI.showLastUpdated = function(indexName){
 		}//endif
 
 
-		var age=Math.round(Date.now().subtract(time).divideBy(Duration.DAY), 1);
+		var age=aMath.round(Date.now().subtract(time).divideBy(Duration.DAY), 1);
 		if (age>1 || is_error){
-			GUI.bigWarning("#testMessage", Math.max(3, Math.floor(age)));
+			GUI.bigWarning("#testMessage", aMath.max(3, aMath.floor(age)));
 		}//endif
 
 		D.actionDone(a);
@@ -167,7 +167,7 @@ GUI.State2URL = function(){
 			simplestate[k] = v.getSimpleState();
 		}else if (jQuery.isArray(v)){
 			if (v.length>0) simplestate[k] = v.join(",");
-		}else if ( typeof(v) == "string" || Math.isNumeric(k)){
+		}else if ( typeof(v) == "string" || aMath.isNumeric(k)){
 			simplestate[k] = v;
 		}//endif
 	});

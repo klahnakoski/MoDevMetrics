@@ -81,7 +81,7 @@
 
 	$("#test").click(function(){
 		aThread.run(function(){
-			var reviews=yield (BUG_SUMMARY.get([718121, 790640, 563491], undefined));
+			var reviews=yield (BUG_SUMMARY.get([635852 , 718121, 790640, 563491], undefined));
 			$("#results").html(CNV.List2HTMLTable(reviews));
 		});
 	});

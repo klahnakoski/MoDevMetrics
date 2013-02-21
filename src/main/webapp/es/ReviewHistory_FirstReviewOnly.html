@@ -61,7 +61,7 @@
 <script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
@@ -288,7 +288,7 @@
 						"Number requested = "+numReviewsRequested+"<br>"+
 						"Number completed = "+numReviewsCompleted+"<br>"+
 						"Number completed in week = "+numCompleteInWeek+"<br>"+
-						"% completed in a "+GUI.state.benchmark+" = "+Math.round(numCompleteInWeek/numReviewsRequested*100, 2)+"%<br>"+
+						"% completed in a "+GUI.state.benchmark+" = "+aMath.round(numCompleteInWeek/numReviewsRequested*100, 2)+"%<br>"+
 						"Unique Bugs Reviewed = "+uniqueBugs
 //						CNV.List2HTMLTable(reviewQueues)
 					);
