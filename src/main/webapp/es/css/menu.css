@@ -24,7 +24,9 @@ html {
     background: url(../images/bg-gradient-sand.png) repeat-x 0 0, url(../images/bg-sand.png) repeat 0 0, #f6f5f1
 }
 
-
+b {
+    font-weight: bold;
+}
 
 .widget {
     display:inline;

@@ -5,6 +5,8 @@
 
 var Mozilla =
 	{"name":"Mozilla", "edges":[
+		{"name":"CurrentRecords", esfilter:{"range":{"expires_on":{"gt" :Date.now().addDay(1).getMilli()}}}},
+		
 		{"name":"BugStatus", "partitions":[
 			{"name":"Open", "partitions":[
 				{"name":"New", "esfilter":{"term":{"bug_status":"new"}}},
@@ -131,8 +133,8 @@ var Mozilla =
 					]}
 				}
 			]},
-			{"name":"Teams", "esfilter":
-					{"terms":{"product":['Fennec','Firefox for Android', "Mozilla Services", "Boot2Gecko", "thunderbird", "mailnews core", 'JSS','NSS','NSPR', "core"]}},
+			{"name":"Teams",
+				"esfilter": {"terms":{"product":['Fennec','Firefox for Android', "Mozilla Services", "Boot2Gecko", "thunderbird", "mailnews core", 'JSS','NSS','NSPR', "core"]}},
 				"partitions":[
 				{"name": "Mobile", "esfilter":
 					{"terms":{"product":['Fennec','Firefox for Android']}}

@@ -92,7 +92,7 @@
 <script type="application/javascript;version=1.7" src="js/gui/ComponentFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/gui/TeamFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/gui/ProductFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/gui/ClassificationFilter.js"></script>
+
 <script type="application/javascript;version=1.7" src="js/gui/ProgramFilter.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script>
@@ -147,7 +147,7 @@ var __createChart = function(){
 	var sampleSize=sampleMax.subtract(sampleMin, Duration.newInstance(GUI.state.intervalX));
 	$("#title").html("Time to Resolution ("+sampleSize.toString()+" sample)");
 
-	var idTime=ProgramFilter.bugStatusMinimum_fromDoc();
+	var idTime=GUI.state.programFilter.bugStatusMinimum_fromDoc();
 	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(doc[\"close_time\"].value), "+sampleMax.getMilli()+"))";
 
 	
@@ -163,8 +163,8 @@ var __createChart = function(){
 		],
 		"esfilter":{"and":[
 			{"script":{"script":sampleMin.getMilli()+" <= "+idTime+" && "+idTime +" < "+sampleMax.getMilli()}},
-			ProductFilter.makeFilter(),
-			ComponentFilter.makeFilter()
+			GUI.state.productFilter.makeFilter(),
+			GUI.state.componentFilter.makeFilter()
 		]}
 	}));
 	D.actionDone(a);
@@ -176,8 +176,8 @@ var __createChart = function(){
 		],
 		"esfilter":{"and":[
 			{"script":{"script":sampleMin.getMilli()+" <= "+idTime+" && "+idTime +" < "+sampleMax.getMilli()}},
-			ProductFilter.makeFilter(),
-			ComponentFilter.makeFilter()
+			GUI.state.productFilter.makeFilter(),
+			GUI.state.componentFilter.makeFilter()
 		]}
 	}));
 

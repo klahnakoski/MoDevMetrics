@@ -24,11 +24,7 @@ importScript("../aCompiler.js");
 GUI = {};
 
 GUI.state = {};
-GUI.state.selectedPrograms = [];
-GUI.state.selectedClassifications = [];
-GUI.state.selectedProducts = [];
-GUI.state.selectedComponents = [];
-GUI.state.customFilters = [];
+GUI.customFilters = [];
 
 
 
@@ -57,18 +53,28 @@ GUI.fixEndDate=function(startDate, endDate, interval){
 
 
 GUI.setup = function(parameters, relations, indexName, showDefaultFilters){
+	//IF THERE ARE ANY CUSTOM FILTERS, THEN TURN OFF THE DEFAULTS
+	var isCustom=false;
+	parameters.forall(function(f, i){
+		if (f.type.isFilter) isCustom=true;
+	});
 
-	GUI.state.programFilter = new ProgramFilter();
-	GUI.state.classificationFilter = new ClassificationFilter();
-	GUI.state.productFilter = new ProductFilter();
-	GUI.state.componentFilter = new ComponentFilter();
+	if (((showDefaultFilters===undefined) && !isCustom) || showDefaultFilters){
+		//USE DEFAULT FILTERS
+		GUI.state.programFilter = new ProgramFilter();
+		GUI.state.productFilter = new ProductFilter();
+		GUI.state.componentFilter = new ComponentFilter();
 
+		GUI.customFilters.push(GUI.state.programFilter );
+		GUI.customFilters.push(GUI.state.productFilter);
+		GUI.customFilters.push(GUI.state.componentFilter);
+	}//endif
 
 	GUI.showLastUpdated(indexName);
 	GUI.AddParameters(parameters, relations); //ADD PARAM AND SET DEFAULTS
 	GUI.Parameter2State();			//UPDATE STATE OBJECT WITH THOSE DEFAULTS
 
-	if (showDefaultFilters===undefined || showDefaultFilters) GUI.makeSelectionPanel();
+	GUI.makeSelectionPanel();
 
 	GUI.relations=Util.coalesce(relations, []);
 	GUI.FixState();
@@ -163,7 +169,7 @@ GUI.State2URL = function(){
 
 	var simplestate = {};
 	forAllKey(GUI.state, function(k, v){
-		if (v.getSimpleState){
+		if (v.isFilter){
 			simplestate[k] = v.getSimpleState();
 		}else if (jQuery.isArray(v)){
 			if (v.length>0) simplestate[k] = v.join(",");
@@ -172,7 +178,11 @@ GUI.State2URL = function(){
 		}//endif
 	});
 
-	jQuery.bbq.pushState(simplestate);
+	var removeList=mapAllKey(simplestate, function(k,v){
+		if (v===undefined) return k;
+	});
+	jQuery.bbq.removeState(removeList);
+	jQuery.bbq.pushState(Map.copy(simplestate));
 };
 GUI.State2URL.isEnabled=false;
 
@@ -186,7 +196,7 @@ GUI.URL2State = function(){
 
 		if (p && ["time", "duration", "text"].contains(p.type)){
 			GUI.state[k] = v;
-		}else if (GUI.state[k].getSimpleState){
+		}else if (GUI.state[k].isFilter){
 			GUI.state[k].setSimpleState(v);
 		}else{
 			GUI.state[k] = v.split(",");
@@ -196,14 +206,24 @@ GUI.URL2State = function(){
 
 
 GUI.AddParameters=function(parameters, relations){
-	GUI.parameters=parameters;
+	//KEEP SIMPLE PARAMETERS GUI.parameters AND REST IN customFilters
+	GUI.parameters=parameters.map(function(param){
+		if (param.type.isFilter){
+			GUI.state[param.id]=param.type;
+			if (param.name) param.type.name=param.name;
+			param.type.setSimpleState(param["default"]);
+			GUI.customFilters.push(param.type);
+		}else{
+			return param;
+		}//endif
+	});
 
 
 	//INSERT HTML
 	var template='<span class="parameter_name">{NAME}</span><input type="{TYPE}" id="{ID}"><br><br>\n';
 	var html="";
-	parameters.forEach(function(param){
-		if (param.type.getSimpleState) return;  //HANDLES IT'S OWN HTML
+	GUI.parameters.forEach(function(param){
+		//SIMPLE VARIABLES
 		html+=template.replaceVars({
 			"ID":param.id,
 			"NAME":param.name,
@@ -217,15 +237,10 @@ GUI.AddParameters=function(parameters, relations){
 	parameters.forEach(function(param){
 		var defaultValue=param["default"];
 
-		////////////////////////////////////////////////////////////////////////
-		// SPECIAL
-		if (param.type.getSimpleState){
-			param.type.setSimpleState(defaultValue);
-			
 
 		////////////////////////////////////////////////////////////////////////
 		// DATE
-		}else if (param.type=="date" ||param.type=="time"){
+		if (param.type=="date" ||param.type=="time"){
 			$("#" + param.id).datepicker({ });
 			$("#" + param.id).datepicker("option", "dateFormat", "yy-mm-dd");
 
@@ -276,7 +291,7 @@ GUI.AddParameters=function(parameters, relations){
 //RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
 GUI.State2Parameter = function (){
 	GUI.parameters.forEach(function(param){
-		if (param.type.getSimpleState) return;  //param.type===GUI.state[param.id] NO ACTION REQUIRED
+//		if (param.type.getSimpleState) return;  //param.type===GUI.state[param.id] NO ACTION REQUIRED
 		$("#" + param.id).val(GUI.state[param.id]);
 	});
 };
@@ -285,11 +300,7 @@ GUI.State2Parameter = function (){
 //RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
 GUI.Parameter2State = function(){
 	GUI.parameters.forEach(function(param){
-		if (param.type.getSimpleState){
-			GUI.state[param.id]=param.type;
-		}else{
-			GUI.state[param.id] = $("#" + param.id).val();
-		}//endif
+		GUI.state[param.id] = $("#" + param.id).val();
 	});
 };
 
@@ -297,7 +308,7 @@ GUI.Parameter2State = function(){
 
 //RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
 GUI.UpdateState = function(){
-	var backup=Util.copy(GUI.state, {});
+	var backup=Map.copy(GUI.state);
 
 	GUI.Parameter2State();
 	GUI.FixState();
@@ -336,26 +347,22 @@ GUI.FixState=function(){
 
 
 GUI.makeSelectionPanel = function (){
+	if (GUI.customFilters.length==0) return;
+	
 	var html = "";
 
 	html += '<h4><a href="#">Selection</a></h4>';
 	html += '<div id="summary"></div>';
-	if (GUI.state.customFilters.length != 0){
-		html += '<h4><a href="#">Custom Filters</a></h4>';
-		html += '<div id="GUI.state.customFilters"></div>';
-	}
-	if (GUI.state.teamFilter){
-		html += '<h4><a href="#">Teams</a></h4>';
-		html += '<div id="teams" style="300px"></div>';
-	}//endif
-	html += '<h4><a href="#">Classifications</a></h4>';
-	html += '<div id="classifications"></div>';
-	html += '<h4><a href="#">Programs</a></h4>';
-	html += '<div id="programs"></div>';
-	html += '<h4><a href="#">Products</a></h4>';
-	html += '<div id="products"></div>';
-	html += '<h4><a href="#">Components</a></h4>';
-	html += '<div id="components"></div>';
+	GUI.customFilters.forall(function(f, i){
+		html += '<h4><a href="#">'+f.name+'</a></h4>';
+		html += f.makeHTML();
+	});
+//	html += '<h4><a href="#">Programs</a></h4>';
+//	html += '<div id="programs"></div>';
+//	html += '<h4><a href="#">Products</a></h4>';
+//	html += '<div id="products"></div>';
+//	html += '<h4><a href="#">Components</a></h4>';
+//	html += '<div id="components"></div>';
 
 	$("#filters").html(html);
 
@@ -368,53 +375,15 @@ GUI.makeSelectionPanel = function (){
 
 
 GUI.UpdateSummary = function(){
-	var html = "";
+	var html = "<br>";
 
-	if (GUI.state.customFilters.length > 0){
-		html += "Custom Filters: " + GUI.state.customFilters.join(", ");
-		html += "<br><br>";
-	}//endif
+	GUI.customFilters.forall(function(f, i){
+		html+="<b>"+f.getSummary()+"</b>";
+		html+="<br><br>";
+	});
 
-	//teamFilter IS PART OF THE PARAMETERS, JUST LIKE THE OTHER HIERARCHIES SHOULD BE
-	//SHOULD LOOP THROUGH THE PARAMETERS AND ADD TO THIS SUMMARY (IF WE KEEP THIS SUMMARY)
-	if (GUI.state.teamFilter){
-		html += "Teams: ";
-		var teams=aThread.runSynchronously(GUI.state.teamFilter.getSelectedPeople());
-		if (teams.length == 0){
-			html += "All";
-		} else{
-			html +=teams.map(function(p, i){return p.name;}).join(", ");
-		}//endif
 
-		html += "<br><br>";
-	}//endif
-
-	html += "Programs: ";
-	if (GUI.state.selectedPrograms.length == 0){
-		html += "All";
-	} else{
-		html += GUI.state.selectedPrograms.join(", ");
-	}//endif
-
-	html += "<br><br>";
-
-	html += "Products: ";
-	if (GUI.state.selectedProducts.length == 0){
-		html += "All";
-	} else{
-		html += GUI.state.selectedProducts.join(", ");
-	}//endif
-
-	html += "<br><br>";
-
-	html += "Components: ";
-	if (GUI.state.selectedComponents.length == 0){
-		html += "All";
-	} else{
-		html += GUI.state.selectedComponents.join(", ");
-	}//endif
-
-	html += "<br><br><br><b>Hold CTRL while clicking to multi-select and deselect from the lists below.</b>";
+	html += "<b>Hold CTRL while clicking to multi-select and deselect from the lists below.</b>";
 
 	$("#summary").html(html);
 };
@@ -425,23 +394,10 @@ GUI.refresh=function(){
 	GUI.State2URL();
 
 	var threads=[];
-	threads.push(aThread.run(function(){
-		yield (GUI.state.classificationFilter.refresh());
-	}));
-	threads.push(aThread.run(function(){
-		yield (GUI.state.programFilter.refresh());
-	}));
-	threads.push(aThread.run(function(){
-		yield (GUI.state.productFilter.refresh());
-	}));
-	threads.push(aThread.run(function(){
-		yield (GUI.state.componentFilter.refresh());
-	}));
-
-	GUI.parameters.forall(function(param){
-		if (param.type.getSimpleState){
-			threads.push(aThread.run(param.type.refresh()));
-		}//endif
+	GUI.customFilters.forall(function(f, i){
+		threads.push(aThread.run(function(){
+			yield (f.refresh());
+		}));
 	});
 
 	for(var i=0;i<threads.length;i++){
@@ -456,7 +412,7 @@ GUI.refresh=function(){
 
 
 
-GUI.injectFilterss = function(chartRequests){
+GUI.injectFilters = function(chartRequests){
 	if (!(chartRequests instanceof Array)) D.error("Expecting an array of chartRequests");
 	for(var i = 0; i < chartRequests.length; i++){
 		(GUI.injectFilters(chartRequests[i]));
@@ -474,25 +430,19 @@ GUI.injectFilters = function(chartRequest){
 	}else{
 		indexName="reviews";
 	}//endif
-	ElasticSearch.injectFilter(chartRequest.esQuery, ProgramFilter.makeFilter(indexName));
-	
 
-	ElasticSearch.injectFilter(chartRequest.esQuery, ProductFilter.makeFilter());
-	ElasticSearch.injectFilter(chartRequest.esQuery, ComponentFilter.makeFilter());
-	if (GUI.state.teamFilter){
-		ElasticSearch.injectFilter(chartRequest.esQuery, GUI.state.teamFilter.makeFilter());
-	}//endif
-
+	GUI.customFilters.forall(function(f, i){
+		ElasticSearch.injectFilter(chartRequest.esQuery, f.makeFilter());
+	});
 };
 
 
 GUI.getFilters=function(indexName){
+	if (GUI.customFilters.length==0) return ES.TrueFilter;
+	
 	var output={"and":[]};
-	output.and.push(ProgramFilter.makeFilter(indexName));
-	output.and.push(ProductFilter.makeFilter());
-	output.and.push(ComponentFilter.makeFilter());
-	if (GUI.state.teamFilter){
-		output.and.push(GUI.state.teamFilter.makeFilter());
-	}//endif
+	GUI.customFilters.forall(function(f, i){
+		output.and.push(f.makeFilter());
+	});
 	return output;
 };

@@ -92,16 +92,20 @@
 <script type="application/javascript;version=1.7" src="js/gui/ComponentFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/gui/TeamFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/gui/ProductFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/gui/ClassificationFilter.js"></script>
+
 <script type="application/javascript;version=1.7" src="js/gui/ProgramFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/PartitionFilter.js"></script>
+
 
 <script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script>
 <script type="application/javascript;version=1.7" src="js/etl/BugTags.js"></script>
 
 
 
-<h3>Security's Open Bug Count</h3>
+
 <div id="sidebar">
+	<br>
+	<br>
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 	</div>
@@ -121,21 +125,27 @@
 <div style="float:right;display: inline;">
 	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
 </div>
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3 id="title">Security - All</h3>
+	<div id="chart"       class="chart" style="float:none;width:800px;height:300px;"></div>
+	<div id="chartCount"  class="chart" style="float:none;width:800px;height:300px;"></div>
+	<div id="chartChurn"  class="chart" style="float:none;width:800px;height:300px;"></div>
 
-<div id="chartResponse" style="width:400px;height:200px;float:left;display: inline;"></div>
-<div id="chartComponents" style="width:400px;height:200px;float:left;display: inline;"></div>
 
-<div id="chart" style="position:relative;"></div>
-
-<div id="info"></div>
-<div id="report"></div>
+	<div id="info"></div>
+	<div id="details"></div>
+</div>
 
 
 <script type="application/javascript;version=1.7">
 
 
 var CUTOFF=Duration.newInstance("3week");
-$("#description").html("An attempt to get bug history to pull faster from ES");
+$("#description").html("A dashboard to help security teams track their progress toward the 2013 Q1 goals<br><br>"+
+	"There are some limitations:  <ul><li>The Age on the chart is measured from the time the bug was marked sec-high+, while the Bug Age in the buglist below shows how old the bugs is.</li>"+
+	"<li>The age charted is from the FIRST time the bug was marked sec-high+, not the most recent time.  Any bugs recently marked sec-high+ more than once will alter the historical record on the chart, all the way back to the time the bug was first marked sec-high+"+
+	""
+);
 
 var thread;
 var createChart=function(){
@@ -146,77 +156,55 @@ var createChart=function(){
 
 var __createChart = function(){
 
+	{
+		let parts=GUI.state.teamFilter.getSelectedParts();
+		if (parts.length==0){
+			$("#title").html("Security - All");
+		}else{
+			$("#title").html("Security - "+parts[0].data);
+		}//endif
+
+	}
+
+
 	var sampleMin=Date.newInstance(GUI.state.sampleMin);
-	var sampleMax=Date.newInstance(GUI.state.sampleMax).ceilingDay();
+	var sampleMax=Date.newInstance(GUI.state.sampleMax).addDay(1);
 	var sampleInterval=Duration.DAY;
 
-	$("#title").html("Security - Age of High+ Bugs");
-
 	var createTime="doc[\"create_time\"].value";
-	var idTime=ProgramFilter.bugStatusMinimum_fromSource();
-	var testValue=ProgramFilter.bugStatusMinimum_fromDoc();
+//	var idTime=GUI.state.programFilter.bugStatusMinimum_fromSource();
+//	var testValue=GUI.state.programFilter.bugStatusMinimum_fromDoc();
 	
 	
-	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
+//	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
 
 	var mainFilter={"and":[
-		{"range":{"date":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
+//		{"range":{"date":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
 		Mozilla.BugStatus.Open.esfilter,
 		{"or":[
 			Mozilla.Security.Priority.High.esfilter,
 			Mozilla.Security.Priority.Critical.esfilter
 		]},
 		Mozilla.Security.Teams.esfilter,
-		GUI.getFilters("bugs")
+		GUI.getFilters("bugs"),
+//		{"term":{"bug_id":711043}}
 	]};
 
 
-
-//	aThread.run(function(){
-//		D.action("Bugs By Product");
-//		var chart=yield(ESQuery.run({
-//			"name":"Components",
-//			"from":"bug_tags",
-//			"select": {"name":"bug_id", "value":"bug_id", "operation":"count"},
-//			"edges":[
-//				{"name":"product", "value":"product"}
-//	//			{"name":"component", "value":"component.split(\" \")[0]"}
-//	//			{"name":"date", "value":"date", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":"day"}}
-//			],
-//			"esfilter":mainFilter
-//		}));
-//
-//		var a=D.action("Make chart", true);
-//		aChart.showPie({
-//			"id":"chartComponents",
-//			"type":"pie",
-//			"stacked":true,
-//			"cube":chart,
-//			"height":200,
-//			"width":400
-//		});
-//	});
-
-
-	aThread.run(function(){
+	var allBugs;
+	var allBugsThread=aThread.run(function(){
 		D.action("Request Bugs");
 
-		var allBugs=yield (ElasticSearch.getMinMax({"and":[
-			GUI.getFilters("bugs"),
-			Mozilla.BugStatus.Open.esfilter
-//			{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},	//CAN NOT INCLUDE DATE LIMITS, EARLY CUTOFF WILL CATCH BOUNCY INDICATORS AT 0,
-//			{"range":{"expires_on":{"gte":sampleMin.getMilli()}}} 	//AND SHOW AS RESOLVED, WHEN IN FACT THE INDICATOR RETURNS TO 1 FOR SOME REASON
-		]}));
-
-
-		var allBugs=yield (ElasticSearch.getMinMax(mainFilter));
+		allBugs=yield (ElasticSearch.getMinMax(mainFilter));
 
 		var chart=yield(CUBE.calc2Cube({
 			"name":"Age (Days)",
 			"from":allBugs,
 			"select":[
-				{"name":"75th percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"percentile", "percentile":0.75},
-				{"name":"maximum", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"maximum"}
+				{"name":"6 Weeks", "value":""+Duration.newInstance("6week").round(Duration.DAY), "operation":"one", "default":""+Duration.newInstance("6week").round(Duration.DAY), "color":"red"},
+				{"name":"3 Weeks", "value":""+Duration.newInstance("3week").round(Duration.DAY), "operation":"one", "default":""+Duration.newInstance("3week").round(Duration.DAY), "color":"goldenrod"},
+				{"name":"50th Percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"percentile", "percentile":0.50, "default":0, "color":"blue"},
+				{"name":"Maximum",         "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"maximum", "default":0, "color":"#00d6ff"}
 			],
 			"edges":[
 				{"name":"date",
@@ -228,19 +216,143 @@ var __createChart = function(){
 		}));
 
 
-		//ADD THE Q1 GOAL LIMIT
-
-
 		var a=D.action("Make chart", true);
 		aChart.show({
 			"id":"chart",
 			"sheetDiv":"info",
 			"type":"line",
-			"stacked":true,
-			"cube":chart
+			"stacked":false,
+			"cube":chart,
+			"height":"300",
+			xAxisSize: 50
 		});
 		D.actionDone(a);
 	});
+
+
+	aThread.run(function(){
+		var details=yield (ESQuery.run({
+			"from":"bugs",
+			"select":[
+				"bug_id",
+				"product",
+				"component",
+				"created_ts",
+				"assigned_to"
+			],
+			"esfilter":{"and":[
+				mainFilter,
+				{"range":{"expires_on":{"gt":Date.eod().getMilli()}}}
+			]}
+
+		}));
+
+		yield (aThread.join(allBugsThread));
+		//INSERT allBugs MIN/MAX VALUES INTO details
+		details.list.forall(function(v, i){
+			var mm=allBugs.cube[allBugs.edges[0].domain.getPartByKey(v.bug_id).dataIndex]
+			v.max=mm.max;
+			v.min=mm.min;
+		});
+		details.columns.push({"name":"min"});
+		details.columns.push({"name":"max"});
+
+		details=yield (CUBE.calc2List({
+			"from":details,
+			"select":[
+				{"name":"ID", "value":"Bugzilla.linkToBug(bug_id)"},
+				{"name":"Product", "value":"product"},
+				{"name":"Component", "value":"component"},
+				{"name":"Created Date", "value":"Date.newInstance(created_ts).floorDay()"},
+				{"name":"High+ Date", "value":"Date.newInstance(min).floorDay()"},
+				{"name":"Age (Days)", "value":"Date.eod().subtract(Date.newInstance(min)).round(Duration.DAY, 1)", "sort":"descending"},
+				{"name":"Assigned To", "value":"assigned_to"}
+			],
+			"sort":["Age (Days)"]
+		}));
+
+
+		$("#details").html(CNV.List2HTMLTable(details));
+
+
+	});
+
+
+	aThread.run(function(){
+		var a=D.action("Request Bugs", true);
+		var chart=yield (ESQuery.run({
+			"name":"Open Bug Count",
+			"from":"bugs",
+			"select":{"name":"num_bug", "value":"bug_id", "operation":"count"},
+			"edges":[
+				{"name":"date",
+					"range":{"min":"modified_ts", "max":"expires_on"},
+					"allowNulls":false,
+					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+				}
+			],
+			"esfilter":mainFilter
+		}));
+		D.actionDone(a);
+
+
+		var a=D.action("Make chart", true);
+		aChart.show({
+			"id":"chartCount",
+			"sheetDiv":"info",
+			"type":"line",
+			"stacked":false,
+			"cube":chart,
+			"height":"300",
+			xAxisSize: 50,
+			"width":800
+		});
+		D.actionDone(a);
+
+
+	});
+
+
+	aThread.run(function(){
+
+		yield (aThread.join(allBugsThread));
+
+		//SHOW BARS FOR EVERY DAY, IF LESS THAN A 3WEEKS
+		var interval;
+		if (sampleMax.subtract(sampleMin).round(Duration.WEEK, 0)<=3){
+			interval=Duration.DAY;
+		}else{
+			interval=Duration.WEEK;
+		}//endif
+
+		var churn=yield(CUBE.calc2Cube({
+			"from":allBugs,
+			"name":"New and Closed Bugs",
+			"select":[
+				{"name":"New", "value":"time.value.getMilli()==min.floor(\""+interval.toString()+"\").getMilli() ? 1 : 0", "operation":"sum", "color":"seagreen"},
+				{"name":"Closed", "value":"(max!=null && time.value.getMilli()==max.floor(\""+interval.toString()+"\").getMilli()) ? -1 : 0", "operation":"sum", "color":"goldenrod"}
+			],
+			"edges":[
+				{"name":"date",
+					"test":"time.value.getMilli()==min.floor(\""+interval.toString()+"\").getMilli() || (max==null || time.value.getMilli()==max.floor(\""+interval.toString()+"\").getMilli())",
+					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":interval}
+				}
+			]
+		}));
+
+		aChart.show({
+			"id":"chartChurn",
+			"sheetDiv":"info",
+			"type":"bar",
+			"stacked":false,
+			"cube":churn,
+			"height":"300",
+			xAxisSize: 50,
+			"width":800
+		});
+	});
+
+
 
 	yield (null);
 };
@@ -252,11 +364,12 @@ var __createChart = function(){
 	$(document).ready(function(){
 		GUI.setup([
 			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
-			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today()},
-			{"id":"teamFilter", "name":"Org Chart", "type":TeamFilter.newInstance("assigned_to")}
+			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today().ceilingWeek()},
+			{"id":"teamFilter", "type":PartitionFilter.newInstance({"name":"All Teams", "dimension":Mozilla.Security.Teams, "onlyOne":true})}
 		],
 		[
-//			"sampleMax=Date.newInstance(sampleMax).addDay(1).add(Duration.newInstance('-second')).floorDay().toString()"
+			"sampleMin=Date.newInstance(sampleMin).floorWeek().format('yyyy-MM-dd')",
+			"sampleMax=Date.newInstance(sampleMax).addDay(1).floorWeek().addDay(-1).format('yyyy-MM-dd')"
 		],
 		"bugs");
 	});

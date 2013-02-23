@@ -9,15 +9,19 @@ importScript("../Debug.js");
 importScript("../CNV.js");
 
 
-ProgramFilter = function(){
+ProgramFilter = function(indexName){
+	this.indexName=Util.coalesce(indexName, "bugs");
+	this.name="Programs";
 	this.refresh();
+	this.selected=[];
+	this.isFilter=true;
 };
 
 ProgramFilter.allPrograms = CNV.Table2List(MozillaPrograms);
 
-ProgramFilter.makeFilter = function(indexName, selectedPrograms){
-	if (indexName===undefined) D.error("'"+indexName+"' is not a valid ESQuery.INDEXES name");
-	if (selectedPrograms===undefined) selectedPrograms=GUI.state.selectedPrograms;
+ProgramFilter.prototype.makeFilter = function(indexName, selectedPrograms){
+	if (indexName===undefined) indexName=this.indexName;
+	if (selectedPrograms===undefined) selectedPrograms=this.selected;
 
 	if (selectedPrograms.length == 0) return ES.TrueFilter;
 
@@ -47,7 +51,7 @@ ProgramFilter.makeQuery = function(filters){
 	var programCompares={};
 
 	for(var j=0;j<ProgramFilter.allPrograms.length;j++){
-//		if (ProgramFilter.allPrograms[j].projectName==GUI.state.selectedPrograms[i]){
+//		if (ProgramFilter.allPrograms[j].projectName==this.selected[i]){
 		var name = ProgramFilter.allPrograms[j].attributeName;
 		var value = ProgramFilter.allPrograms[j].attributeValue;
 		var project=ProgramFilter.allPrograms[j].projectName;
@@ -108,6 +112,38 @@ ProgramFilter.makeQuery = function(filters){
 	return output;
 };//method
 
+ProgramFilter.prototype.getSummary=function(){
+	 var html = "Programs: ";
+	if (this.selected.length == 0){
+		html += "All";
+	} else{
+		html += this.selected.join(", ");
+	}//endif
+	return html;
+};//method
+
+
+//RETURN SOMETHING SIMPLE ENOUGH TO BE USED IN A URL
+ProgramFilter.prototype.getSimpleState=function(){
+	if (this.selected.length==0) return undefined;
+	return this.selected.join(",");
+};
+
+
+ProgramFilter.prototype.setSimpleState=function(value){
+	if (!value || value==""){
+		this.selected=[];
+	}else{
+		this.selected=value.split(",").map(function(v){return v.trim();});
+	}//endif
+	this.refresh();
+};
+
+ProgramFilter.prototype.makeHTML=function(){
+	return '<div id="programs"></div>';
+};//method
+
+
 //programs IS A LIST OF OBJECTS WITH A term AND count ATTRIBUTES
 ProgramFilter.prototype.injectHTML = function(programs){
 
@@ -123,14 +159,14 @@ ProgramFilter.prototype.injectHTML = function(programs){
 	var total = 0;
 	for(var i = 0; i < programs.length; i++) total += programs[i].count;
 	html += item.replaceVars({
-		"class" : ((GUI.state.selectedPrograms.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
+		"class" : ((this.selected.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
 		"name" : "ALL",
 		"count" : total
 	});
 
 	for(var i = 0; i < programs.length; i++){
 		html += item.replaceVars({
-			"class" : (include(GUI.state.selectedPrograms, programs[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
+			"class" : (include(this.selected, programs[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
 			"name" : programs[i].term,
 			"count" : programs[i].count
 		});
@@ -145,7 +181,7 @@ ProgramFilter.prototype.injectHTML = function(programs){
 
 ProgramFilter.prototype.refresh = function(){
 	this.query = ProgramFilter.makeQuery([
-//		ProductFilter.makeFilter()
+//		GUI.state.productFilter.makeFilter()
 	]);
 
 //	D.println(CNV.Object2JSON(this.query));
@@ -176,16 +212,17 @@ ProgramFilter.prototype.success = function(data){
 
 
 	this.injectHTML(programs);
+	var self=this;
 
 	$("#programsList").selectable({
 		selected: function(event, ui){
 			var didChange = false;
 			if (ui.selected.id == "program_ALL"){
-				if (GUI.state.selectedPrograms.length > 0) didChange = true;
-				GUI.state.selectedPrograms = [];
+				if (self.selected.length > 0) didChange = true;
+				self.selected = [];
 			} else{
-				if (!include(GUI.state.selectedPrograms, ui.selected.id.rightBut("program_".length))){
-					GUI.state.selectedPrograms.push(ui.selected.id.rightBut("program_".length));
+				if (!include(self.selected, ui.selected.id.rightBut("program_".length))){
+					self.selected.push(ui.selected.id.rightBut("program_".length));
 					didChange = true;
 				}//endif
 			}//endif
@@ -197,9 +234,9 @@ ProgramFilter.prototype.success = function(data){
 			}//endif
 		},
 		unselected: function(event, ui){
-			var i = GUI.state.selectedPrograms.indexOf(ui.unselected.id.rightBut("program_".length));
+			var i = self.selected.indexOf(ui.unselected.id.rightBut("program_".length));
 			if (i != -1){
-				GUI.state.selectedPrograms.splice(i, 1);
+				self.selected.splice(i, 1);
 				aThread.run(function(){
 					yield (GUI.refresh());
 				});
@@ -209,35 +246,35 @@ ProgramFilter.prototype.success = function(data){
 };
 
 //RETURN MINIMUM VALUE OF ALL SELECTED PROGRAMS
-ProgramFilter.bugStatusMinimum_fromDoc=function(){
+ProgramFilter.prototype.bugStatusMinimum_fromDoc=function(){
 	var idTime;
-	if (GUI.state.selectedPrograms.length==0){
+	if (this.selected.length==0){
 		idTime="doc[\"create_time\"].value";
 	}else{
-		idTime=ProgramFilter.minimum(GUI.state.selectedPrograms.map(function(v, i){return "doc[\""+v+"_time\"].value"}));
+		idTime=ProgramFilter.minimum(this.selected.map(function(v, i){return "doc[\""+v+"_time\"].value"}));
 	}//endif
 
 	return idTime;
 };//method
 
 //RETURN MINIMUM VALUE OF ALL SELECTED PROGRAMS
-ProgramFilter.bugStatusMinimum_fromSource=function(){
+ProgramFilter.prototype.bugStatusMinimum_fromSource=function(){
 	var idTime;
-	if (GUI.state.selectedPrograms.length==0){
+	if (this.selected.length==0){
 		idTime="bug_summary.create_time";
 	}else{
-		idTime=ProgramFilter.minimum(GUI.state.selectedPrograms.map(function(v, i){return "bug_summary[\""+v+"_time\"]"}));
+		idTime=ProgramFilter.minimum(this.selected.map(function(v, i){return "bug_summary[\""+v+"_time\"]"}));
 	}//endif
 
 	return idTime;
 };//method
 
-ProgramFilter.bugStatusMinimum=function(){
+ProgramFilter.prototype.bugStatusMinimum=function(){
 	var idTime;
-	if (GUI.state.selectedPrograms.length==0){
+	if (this.selected.length==0){
 		idTime="create_time";
 	}else{
-		idTime=GUI.state.selectedPrograms[0]+"_time";
+		idTime=this.selected[0]+"_time";
 	}//endif
 
 	return idTime;

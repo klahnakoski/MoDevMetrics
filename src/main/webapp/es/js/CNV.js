@@ -343,6 +343,8 @@ HTML.tag=function(tagName, value){
 	} else if (value == null){
 //		return "<"+tagName+">&lt;null&gt;</"+tagName+">";
 		return "<"+tagName+"></"+tagName+">";
+	} else if (typeof(value)=="string"){
+		return "<"+tagName+">" + CNV.String2HTML(value) + "</"+tagName+">";
 	} else if (aMath.isNumeric(value)){
 		if ((""+value).length==13){
 			//PROBABLY A TIMESTAMP
@@ -475,5 +477,7 @@ CNV.hex2int = function(value){
 };//method
 
 CNV.String2JQuery=function(str){
-	return str.replace(/([;&,\.\+\*\~':"\!\^#$%@\[\]\(\)=>\|])/g, '\\$1');
+	var output=str.replace(/([;&,\.\+\*\~':"\!\^#$%@\[\]\(\)=>\|])/g, '\\$1');
+//	output=output.replaceAll(" ", "\\ ");
+	return output;
 };//method

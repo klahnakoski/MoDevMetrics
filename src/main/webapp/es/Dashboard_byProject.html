@@ -80,7 +80,6 @@
 <script type="application/javascript;version=1.7" src="js/gui/ComponentFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/gui/TeamFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/gui/ProductFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/gui/ClassificationFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/gui/ProgramFilter.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script>
@@ -116,7 +115,7 @@
 <table style="width:100%">
 	<tr><td id="pending"></td></tr>
 	<tr><td id="complete"></td></tr>
-	<tr style="height:800px;overflow-y: scroll;"><td id="open"></td></tr>
+	<tr style="max-height:800px;overflow-y: scroll;"><td id="open"></td></tr>
 </table>
 </div>
 <!--<div style="float:left;position: relative;" id="open"></div>-->
@@ -234,10 +233,10 @@ var __createChart = function(){
 	}//try
 	D.actionDone(a);
 
-	if (GUI.state.selectedPrograms.length==0){
+	if (GUI.state.programFilter.selected.length==0){
 		$("#header").html("Project Status Dashboard");
 	}else{
-		$("#header").html(GUI.state.selectedPrograms.join(", ")+" Status Dashboard");
+		$("#header").html(GUI.state.programFilter.selected.join(", ")+" Status Dashboard");
 	}//endif
 
 
@@ -297,7 +296,7 @@ var __createChart = function(){
 		}))).list;
 
 
-		$("#pending").html("<h2>Pending Review (R?)</h2>" + CNV.List2HTMLTable(result));
+		$("#pending").html("<h3>Pending Review (R?)</h3>" + CNV.List2HTMLTable(result));
 
 		D.actionDone(a);
 	});
@@ -341,7 +340,7 @@ var __createChart = function(){
 			]
 		}))).list;
 
-		$("#complete").html("<h2>Review Completed (R+)</h2>" + CNV.List2HTMLTable(result3));
+		$("#complete").html("<h3>Review Completed (R+)</h3>" + CNV.List2HTMLTable(result3));
 
 		D.actionDone(a);
 	});
@@ -378,7 +377,7 @@ var __createChart = function(){
 			]
 		}))).list;
 
-		$("#open").html("<h2>Assigned To</h2>" + CNV.List2HTMLTable(result));
+		$("#open").html("<h3>Assigned To</h3>" + CNV.List2HTMLTable(result));
 
 		D.actionDone(a);
 	});
@@ -394,7 +393,8 @@ $(document).ready(function(){
 	],
 	[
 	],
-	"bugs");
+	"bugs",
+	true);
 });
 
 

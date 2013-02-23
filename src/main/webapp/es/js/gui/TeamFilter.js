@@ -9,6 +9,8 @@ TeamFilter = function(){};
 TeamFilter.newInstance=function(field_name){
 	var self=new TeamFilter();
 
+	self.isFilter=true;
+	self.name="Teams";
 	self.disableUI=false;
 	self.field_name=field_name;
 	self.selectedEmails=[];
@@ -68,6 +70,23 @@ TeamFilter.newInstance=function(field_name){
 };
 
 
+TeamFilter.prototype.makeHTML=function(){
+	return '<div id="teams" style="300px"></div>';
+};
+
+
+TeamFilter.prototype.getSummary=function(){
+	var html = "Teams: ";
+	var teams=aThread.runSynchronously(this.getSelectedPeople());
+	if (teams.length == 0){
+		html += "All";
+	} else{
+		html +=teams.map(function(p, i){return p.name;}).join(", ");
+	}//endif
+	return html;
+};//method
+
+
 TeamFilter.prototype.getSelectedPeople=function(){
 	var self=this;
 
@@ -88,13 +107,17 @@ TeamFilter.prototype.getSelectedPeople=function(){
 
 //RETURN SOMETHING SIMPLE ENOUGH TO BE USED IN A URL
 TeamFilter.prototype.getSimpleState=function(){
-	return this.selectedEmails;
+	if (this.selectedEmails.length==0) return undefined;
+	return this.selectedEmails.join(",");
 };
 
 //RETURN SOMETHING SIMPLE ENOUGH TO BE USED IN A URL
 TeamFilter.prototype.setSimpleState=function(value){
-	if (!value || value=="") value=[];
-	this.selectedEmails=value;
+	if (!value || value==""){
+		this.selectedEmails=[];
+	}else{
+		this.selectedEmails=value.split(",");
+	}//endif
 	this.refresh();
 };
 
@@ -131,8 +154,8 @@ TeamFilter.prototype.refresh = function(){
 	var f=$('#teamList');
 	f.jstree("deselect_all");
 	selected.forall(function(p){
-		f.jstree("select_node", ("#"+CNV.String2JQuery(p.id)));
-		f.jstree("check_node", ("#"+CNV.String2JQuery(p.id)));
+		f.jstree("select_node", "#"+CNV.String2JQuery(p.id));
+		f.jstree("check_node", "#"+CNV.String2JQuery(p.id));
 	});
 
 	this.disableUI=false;

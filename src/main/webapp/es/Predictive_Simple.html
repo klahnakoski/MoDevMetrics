@@ -80,7 +80,7 @@
 <script type="application/javascript;version=1.7" src="js/gui/ComponentFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/gui/TeamFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/gui/ProductFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/gui/ClassificationFilter.js"></script>
+
 <script type="application/javascript;version=1.7" src="js/gui/ProgramFilter.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script>
@@ -139,11 +139,11 @@ var __createChart = function(){
 	var DUE_DATE = Date.newInstance(GUI.state.dueDate);
 	var MAX_CHART_DATE=DUE_DATE.addDay(1);
 	
-	$("#title").html("Burndown Prediction using Linear Estimation for "+GUI.state.selectedPrograms.join(", ")+"");
+	$("#title").html("Burndown Prediction using Linear Estimation for "+GUI.state.programFilter.selected.join(", ")+"");
 
 	var createTime = "doc[\"create_time\"].value";
-	var idTime = ProgramFilter.bugStatusMinimum_fromSource();
-	var testValue = ProgramFilter.bugStatusMinimum_fromDoc();
+	var idTime = GUI.state.programFilter.bugStatusMinimum_fromSource();
+	var testValue = GUI.state.programFilter.bugStatusMinimum_fromDoc();
 
 
 	var closeTime = "minimum(" + sampleMax.getMilli() + ", coalesce(zero2null(close_time), " + sampleMax.getMilli() + "))";

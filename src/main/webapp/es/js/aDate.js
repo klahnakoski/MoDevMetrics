@@ -753,16 +753,6 @@ Date.tryParse=function(val, isFutureDate){
 };//method
 
 
-Date.max=function(a, b){
-	if (a.getMilli()<b.getMilli()) return b;
-	return a;
-};
-
-
-
-
-
-
 
 
 
@@ -1031,11 +1021,17 @@ Duration.prototype.toString = function(){
 
 
 Duration.prototype.format=function(interval, rounding){
-	if (rounding===undefined) rounding=0;
-	var output=this.divideBy(Duration.newInstance(interval));
-	output=aMath.round(output, rounding);
-	return output+interval;
+	return this.round(Duration.newInstance(interval), rounding)+interval;
 };//method
+
+Duration.prototype.round=function(interval, rounding){
+	if (rounding===undefined) rounding=0;
+	var output=this.divideBy(interval);
+	output=aMath.round(output, rounding);
+	return output;
+};//method
+
+
 
 Duration.ZERO=Duration.newInstance(0);
 Duration.SECOND=Duration.newInstance("second");

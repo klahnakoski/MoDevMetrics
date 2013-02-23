@@ -3,58 +3,111 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 ComponentFilter = function(){
+	this.name="Components";
+	this.isFilter=true;
+	this.selected=[];
 	this.refresh()
 };
 
 
-ComponentFilter.makeFilter = function(){
-	return ES.makeFilter("component", GUI.state.selectedComponents);
+ComponentFilter.prototype.makeFilter = function(){
+	if (this.selected.length==0) return ES.TrueFilter;
+	return {"terms":{"component":this.selected}};
 };//method
 
-ComponentFilter.makeQuery = function(filters){
-	var output = {
-		"query" : {
-			"filtered" : {
-				"query": {
-					"match_all":{}
-				},
-				"filter" : {
-					"and": [
-						{ "range" : { "expires_on" : { "gt" : Date.now().addDay(1).getMilli() } } },
-						{"not" : {"terms" : { "bug_status" : ["resolved", "verified", "closed"] }}}
-					]
-				}
-			}
-		},
-		"from": 0,
-		"size": 0,
-		"sort": [],
-		"facets":{
-			"Components": {
-				"terms": {
-					"field": "component",
-					"size": 100000
-				}
-			}
-		}
-	};
-
-	var and = output.query.filtered.filter.and;
-	for(var f=0;f<filters.length;f++) and.push(filters[f]);
-
-	return output;
-};//method
 
 ComponentFilter.prototype.refresh = function(){
-	this.query = ComponentFilter.makeQuery([
-		ES.makeFilter("product", GUI.state.selectedProducts)//,
-//		ProgramFilter.makeFilter(GUI.state.selectedPrograms)
-	]);
+	if (this.refreshThread!==undefined) this.refreshThread.kill();
 
-	this.ElasticSearchQuery = OldElasticSearchQuery(this, 0, this.query);
-	this.results = null;
-	this.ElasticSearchQuery.Run();
+	var self=this;
+	this.refreshThread=aThread.run(function(){
+		var components=yield (ESQuery.run({
+			"from":"bugs",
+			"select":{"name":"count", "value":"bug_id", "operation":"count"},
+			"edges":[
+				{"name":"term", "value":"component"}
+			],
+			"esfilter":{"and":[
+				Mozilla.CurrentRecords.esfilter,
+				Mozilla.BugStatus.Open.esfilter,
+				GUI.state.productFilter.makeFilter()   //PULL DATA FROM THE productFilter
+			]}
+		}));
+
+		components = yield (CUBE.Cube2List(components));
+		var terms = components.map(function(v, i){return v.term;});
+
+		self.selected = List.intersect(self.selected, terms);
+//		var self=this;
+
+
+//		GUI.State2URL();
+		self.injectHTML(components);
+		$("#componentsList").selectable({
+			selected: function(event, ui){
+				var didChange = false;
+				if (ui.selected.id == "component_ALL"){
+					if (self.selected.length > 0) didChange = true;
+					self.selected = [];
+				} else{
+					if (!include(self.selected, ui.selected.id.rightBut("component_".length))){
+						self.selected.push(ui.selected.id.rightBut("component_".length));
+						didChange = true;
+					}//endif
+				}//endif
+
+				if (didChange){
+					aThread.run(function(){
+						yield (GUI.refresh());
+					});
+				}
+			},
+			unselected: function(event, ui){
+				var i = self.selected.indexOf(ui.unselected.id.rightBut("component_".length));
+				if (i != -1){
+					self.selected.splice(i, 1);
+					aThread.run(function(){
+						yield (GUI.refresh());
+					});
+				}
+			}
+		});
+	});
 };
+
+
+ComponentFilter.prototype.getSummary=function(){
+	var html = "Components: ";
+	if (this.selected.length == 0){
+		html += "All";
+	} else{
+		html += this.selected.join(", ");
+	}//endif
+	return html;
+};
+
+//RETURN SOMETHING SIMPLE ENOUGH TO BE USED IN A URL
+ComponentFilter.prototype.getSimpleState=function(){
+	if (this.selected.length==0) return undefined;
+	return this.selected.join(",");
+};
+
+
+ComponentFilter.prototype.setSimpleState=function(value){
+	if (!value || value==""){
+		this.selected=[];
+	}else{
+		this.selected=value.split(",").map(function(v){return v.trim();});
+	}//endif
+	this.refresh();
+
+};
+
+ComponentFilter.prototype.makeHTML=function(){
+	return '<div id="components"></div>';
+};//method
+
+
 
 
 ComponentFilter.prototype.injectHTML = function(components){
@@ -65,14 +118,14 @@ ComponentFilter.prototype.injectHTML = function(components){
 	var total = 0;
 	for(var i = 0; i < components.length; i++) total += components[i].count;
 	html += item.replaceVars({
-		"class" : ((GUI.state.selectedComponents.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
+		"class" : ((this.selected.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
 		"name" : "ALL",
 		"count" : total
 	});
 
 	for(var i = 0; i < components.length; i++){
 		html += item.replaceVars({
-			"class" : (GUI.state.selectedComponents.contains(components[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
+			"class" : (this.selected.contains(components[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
 			"name" : components[i].term,
 			"count" : components[i].count
 		});
@@ -84,45 +137,3 @@ ComponentFilter.prototype.injectHTML = function(components){
 	$("#components").html(html);
 };
 
-
-ComponentFilter.prototype.success = function(data){
-	var components = data.facets.Components.terms;
-
-	var terms = [];
-	for(var i = 0; i < components.length; i++) terms.push(components[i].term);
-
-	GUI.state.selectedComponents = List.intersect(GUI.state.selectedComponents, terms);
-
-	GUI.State2URL();
-	this.injectHTML(components);
-	$("#componentsList").selectable({
-		selected: function(event, ui){
-			var didChange = false;
-			if (ui.selected.id == "component_ALL"){
-				if (GUI.state.selectedComponents.length > 0) didChange = true;
-				GUI.state.selectedComponents = [];
-			} else{
-				if (!include(GUI.state.selectedComponents, ui.selected.id.rightBut("component_".length))){
-					GUI.state.selectedComponents.push(ui.selected.id.rightBut("component_".length));
-					didChange = true;
-				}//endif
-			}//endif
-
-			if (didChange){
-				aThread.run(function(){
-					yield (GUI.refresh());
-				});
-			}
-		},
-		unselected: function(event, ui){
-			var i = GUI.state.selectedComponents.indexOf(ui.unselected.id.rightBut("component_".length));
-			if (i != -1){
-				GUI.state.selectedComponents.splice(i, 1);
-				aThread.run(function(){
-					yield (GUI.refresh());
-				});
-			}
-		}
-	});
-
-};

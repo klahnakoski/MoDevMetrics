@@ -85,7 +85,7 @@
 <script type="application/javascript;version=1.7" src="js/gui/ComponentFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/gui/TeamFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/gui/ProductFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/gui/ClassificationFilter.js"></script>
+
 <script type="application/javascript;version=1.7" src="js/gui/ProgramFilter.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script>
@@ -185,7 +185,7 @@
 			"endDate" : GUI.state["endDate"]
 		};
 
-		GUI.injectFilterss(chartRequest.requests);
+		GUI.injectFilters(chartRequest.requests);
 
 		console.log("chartRequest: " + CNV.Object2JSON(chartRequest));
 

@@ -329,6 +329,8 @@ CUBE.calc2Cube = function(query){
 //		d.end=function(p){return p;};	//MAKE SURE end() STILL RETURNS THE SAME VALUE
 //	}//for
 
+	CUBE.analytic.run(query);
+
 	yield (query);
 };//method
 

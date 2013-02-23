@@ -89,7 +89,7 @@
 <script type="application/javascript;version=1.7" src="js/gui/ComponentFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/gui/TeamFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/gui/ProductFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/gui/ClassificationFilter.js"></script>
+
 <script type="application/javascript;version=1.7" src="js/gui/ProgramFilter.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script>
@@ -170,7 +170,7 @@ var createChart = function(){
 	(GUI.injectFilters(query));
 	(GUI.injectFilters(queryClosed));
 
-	if (GUI.state.selectedProducts.length==0 && GUI.state.selectedPrograms.length==0){
+	if (GUI.state.selectedProducts.length==0 && GUI.state.programFilter.selected.length==0){
 		$("#summary2").html("Will not work over all bugs, too big.  Make a selection");
 		return;
 

@@ -11,6 +11,26 @@ Map.newInstance=function(key, value){
 	return output;
 };//method
 
+Map.copy = function(from, to){
+	if (to===undefined) to={};
+	var keys = Object.keys(from);
+	for(var k = 0; k < keys.length; k++){
+		var v=from[keys[k]];
+		if (v===undefined) continue;	//DO NOT ADD KEYS WITH NO VALUE
+		to[keys[k]] = v;
+	}//for
+	return to;
+};
+
+
+//THROW AN ERROR IF WE DO NOT SEE THE GIVEN ATTRIBUTE IN THE LIST
+Map.expecting=function(obj, keyList){
+	for(let i=0;i<keyList.length;i++){
+		if (obj[keyList[i]]===undefined) D.error("expecting object to have '"+keyList[i]+"' attribute");
+	}//for
+};
+
+
 Map.codomain=function(map){
 	var output=[];
 	var keys=Object.keys(map);
@@ -175,6 +195,7 @@ Util.coalesce = function(){
 Util.nvl = Util.coalesce;
 
 Util.copy = function(from, to){
+	if (to===undefined) to={};
 	var keys = Object.keys(from);
 	for(var k = 0; k < keys.length; k++) to[keys[k]] = from[keys[k]];
 	return to;

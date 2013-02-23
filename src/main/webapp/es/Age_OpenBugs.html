@@ -90,7 +90,7 @@
 <script type="application/javascript;version=1.7" src="js/gui/ComponentFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/gui/TeamFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/gui/ProductFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/gui/ClassificationFilter.js"></script>
+
 <script type="application/javascript;version=1.7" src="js/gui/ProgramFilter.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script>
@@ -156,8 +156,8 @@ var __createChart = function(){
 	$("#title").html("Open Bug Count");
 
 	var createTime="doc[\"create_time\"].value";
-	var idTime=ProgramFilter.bugStatusMinimum_fromSource();
-	var testValue=ProgramFilter.bugStatusMinimum_fromDoc();
+	var idTime=GUI.state.programFilter.bugStatusMinimum_fromSource();
+	var testValue=GUI.state.programFilter.bugStatusMinimum_fromDoc();
 	
 	
 	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
@@ -212,12 +212,12 @@ var __createChart = function(){
 			,
 			"edges":[
 				{"name":"bug_status", "value":closeTime+" < "+sampleMax.getMilli()+" ? \"Closed\" : \"Open\""},
-				{"name":"duration", "value":closeTime+"-"+ProgramFilter.bugStatusMinimum_fromDoc(), "allowNulls":true, "domain":{"type":"duration", "min":"0", "max":"12week", "interval":Duration.WEEK}}
+				{"name":"duration", "value":closeTime+"-"+GUI.state.programFilter.bugStatusMinimum_fromDoc(), "allowNulls":true, "domain":{"type":"duration", "min":"0", "max":"12week", "interval":Duration.WEEK}}
 			],
 			"esfilter":{"and":[
-				{"script":{"script":sampleMin.getMilli()+" <= "+ProgramFilter.bugStatusMinimum_fromDoc()+" && "+ProgramFilter.bugStatusMinimum_fromDoc() +" < "+sampleMax.getMilli()}},
-				ProductFilter.makeFilter(),
-				ComponentFilter.makeFilter()
+				{"script":{"script":sampleMin.getMilli()+" <= "+GUI.state.programFilter.bugStatusMinimum_fromDoc()+" && "+GUI.state.programFilter.bugStatusMinimum_fromDoc() +" < "+sampleMax.getMilli()}},
+				GUI.state.productFilter.makeFilter(),
+				GUI.state.componentFilter.makeFilter()
 			]}
 		}));
 		D.actionDone(a);
@@ -267,18 +267,18 @@ var __createChart = function(){
 //			"from":"bug_summary",
 //			"select":[
 //				{"value":"bug_id"},
-//				{"name":"birth", "value":ProgramFilter.bugStatusMinimum_fromDoc()},
+//				{"name":"birth", "value":GUI.state.programFilter.bugStatusMinimum_fromDoc()},
 //				{"name":"death", "value":closeTime}
 //			],
 //			"esfilter":{"and":[
-//				{"range":Map.newInstance(ProgramFilter.bugStatusMinimum(), {"lt":sampleMax.getMilli()})},
+//				{"range":Map.newInstance(GUI.state.programFilter.bugStatusMinimum(), {"lt":sampleMax.getMilli()})},
 //				{"or":[
 //					{"range":{"close_time":{"gt":sampleMin.getMilli()}}},
 //					{"missing":{"field":"close_time"}}
 //				]},
-//				{"script":{"script":MVEL.compile.expression(ProgramFilter.bugStatusMinimum_fromDoc()+" < "+closeTime, {"from":"bug_summary"})}},
-//				ProductFilter.makeFilter(),
-//				ComponentFilter.makeFilter(),
+//				{"script":{"script":MVEL.compile.expression(GUI.state.programFilter.bugStatusMinimum_fromDoc()+" < "+closeTime, {"from":"bug_summary"})}},
+//				GUI.state.productFilter.makeFilter(),
+//				GUI.state.componentFilter.makeFilter(),
 ////				{"term":{"bug_id":635852}}
 //			]}
 ////			"sort":[birth]

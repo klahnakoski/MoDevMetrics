@@ -3,16 +3,20 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 ProductFilter = function(){
+	this.name="Products";
+	this.isFilter=true;
+	this.selected=[];
 	this.refresh();
 };
 
 
-ProductFilter.makeFilter = function(){
-	return ES.makeFilter("product", GUI.state.selectedProducts);
+ProductFilter.prototype.makeFilter = function(){
+	if (this.selected.length==0) return ES.TrueFilter;
+	return {"terms":{"product":this.selected}};
 };//method
 
 
-ProductFilter.makeQuery = function(filters){
+ProductFilter.prototype.makeQuery = function(filters){
 	var output = {
 		"query" : {
 			"filtered" : {
@@ -21,8 +25,8 @@ ProductFilter.makeQuery = function(filters){
 				},
 				"filter" : {
 					"and":[
-						{ "range" : { "expires_on" : { "gt" : Date.now().getMilli() } } },
-						{"not" : {"terms" : { "bug_status" : ["resolved", "verified", "closed"] }}}
+						Mozilla.CurrentRecords.esfilter,
+						Mozilla.BugStatus.Open.esfilter
 					]
 				}
 			}
@@ -40,22 +44,49 @@ ProductFilter.makeQuery = function(filters){
 		}
 	};
 
-	var and = output.query.filtered.filter.and;
-	for(var f=0;f<filters.length;f++) and.push(filters[f]);
-
 	return output;
 };//method
 
+ProductFilter.prototype.getSummary=function(){
+	 var html = "Products: ";
+	if (this.selected.length == 0){
+		html += "All";
+	} else{
+		html += this.selected.join(", ");
+	}//endif
+	return html;
+};//method
+
+//RETURN SOMETHING SIMPLE ENOUGH TO BE USED IN A URL
+ProductFilter.prototype.getSimpleState=function(){
+	if (this.selected.length==0) return undefined;
+	return this.selected.join(",");
+};
+
+
+ProductFilter.prototype.setSimpleState=function(value){
+	if (!value || value==""){
+		this.selected=[];
+	}else{
+		this.selected=value.split(",").map(function(v){return v.trim();});
+	}//endif
+	this.refresh();
+
+};
+
 
 ProductFilter.prototype.refresh = function(){
-	this.query = ProductFilter.makeQuery([
-//		ProgramFilter.makeFilter(GUI.state.selectedPrograms)
-	]);
+	this.query = this.makeQuery();
 
 	this.ElasticSearchQuery = OldElasticSearchQuery(this, 0, this.query);
 	this.results = null;
 	this.ElasticSearchQuery.Run();
 };
+
+ProductFilter.prototype.makeHTML=function(){
+	return '<div id="products"></div>';
+};//method
+
 
 
 ProductFilter.prototype.injectHTML = function(products){
@@ -66,7 +97,7 @@ ProductFilter.prototype.injectHTML = function(products){
 	var total = 0;
 	for(var i = 0; i < products.length; i++) total += products[i].count;
 	html += item.replaceVars({
-		"class" : ((GUI.state.selectedProducts.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
+		"class" : ((this.selected.length == 0) ? "ui-selectee ui-selected" : "ui-selectee"),
 		"name" : "ALL",
 		"count" : total
 	});
@@ -74,7 +105,7 @@ ProductFilter.prototype.injectHTML = function(products){
 	//LIST SPECIFIC PRODUCTS
 	for(var i = 0; i < products.length; i++){
 		html += item.replaceVars({
-			"class" : (include(GUI.state.selectedProducts, products[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
+			"class" : (include(this.selected, products[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
 			"name" : products[i].term,
 			"count" : products[i].count
 		});
@@ -93,7 +124,7 @@ ProductFilter.prototype.success = function(data){
 	//REMOVE ANY FILTERS THAT DO NOT APPLY ANYMORE (WILL START ACCUMULATING RESULTING IN NO MATCHES)
 	var terms = [];
 	for(var i = 0; i < products.length; i++) terms.push(products[i].term);
-	GUI.state.selectedProducts = List.intersect(GUI.state.selectedProducts, terms);
+	this.selected = List.intersect(this.selected, terms);
 
 	var self=this;
 
@@ -104,12 +135,11 @@ ProductFilter.prototype.success = function(data){
 			selected: function(event, ui){
 				var didChange = false;
 				if (ui.selected.id == "product_ALL"){
-					if (GUI.state.selectedProducts / length > 0) didChange = true;
-					GUI.state.selectedProducts = [];
-					GUI.state.selectedClassifications=[];
+					if (self.selected.length > 0) didChange = true;
+					self.selected = [];
 				} else{
-					if (!include(GUI.state.selectedProducts, ui.selected.id.rightBut("product_".length))){
-						GUI.state.selectedProducts.push(ui.selected.id.rightBut("product_".length));
+					if (!include(self.selected, ui.selected.id.rightBut("product_".length))){
+						self.selected.push(ui.selected.id.rightBut("product_".length));
 						didChange = true;
 					}//endif
 				}//endif
@@ -122,10 +152,9 @@ ProductFilter.prototype.success = function(data){
 				}//endif
 			},
 			unselected: function(event, ui){
-				var i = GUI.state.selectedProducts.indexOf(ui.unselected.id.rightBut("product_".length));
+				var i = self.selected.indexOf(ui.unselected.id.rightBut("product_".length));
 				if (i != -1){
-					GUI.state.selectedProducts.splice(i, 1);
-					GUI.state.selectedClassifications=[];
+					self.selected.splice(i, 1);
 					aThread.run(function(){
 						yield (GUI.refresh());
 					});

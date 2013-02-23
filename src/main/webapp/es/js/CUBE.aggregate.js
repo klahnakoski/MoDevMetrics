@@ -106,6 +106,7 @@ CUBE.aggregate.average = function(select){
 	};
 };
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // THIS VALUE WILL BE SET ONCE AND ONLY ONCE
 CUBE.aggregate.none = function(select){
@@ -122,6 +123,8 @@ CUBE.aggregate.none = function(select){
 
 	select.domain = {};
 	Util.copy(CUBE.domain.value, select.domain);
+
+
 };
 
 
@@ -142,6 +145,11 @@ CUBE.aggregate.one = function(select){
 
 	select.domain = {};
 	Util.copy(CUBE.domain.value, select.domain);
+
+	select.domain.end=function(value){
+		if (value == null && select["default"]!==undefined) return eval(select["default"]);
+		return value;
+	};//method
 };
 
 
@@ -208,6 +216,10 @@ CUBE.aggregate.maximum = function(select){
 
 	select.domain = {};
 	Util.copy(CUBE.domain.value, select.domain);
+	select.domain.end=function(value){
+		if (value == null && select["default"]!==undefined) return select["default"];
+		return value;
+	};//method
 };
 
 CUBE.aggregate.minimum = function(select){
@@ -222,6 +234,12 @@ CUBE.aggregate.minimum = function(select){
 	};//method
 
 	select.domain=Util.copy(CUBE.domain.value, {});
+
+	select.domain.end=function(value){
+		if (value == null && select["default"]!==undefined) return select["default"];
+		return value;
+	};//method
+
 };
 
 

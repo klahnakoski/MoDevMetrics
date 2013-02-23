@@ -236,10 +236,10 @@ CUBE.domain.time = function(column, sourceColumns){
 //}//endif
 		var condition=[];
 		if (column.range.min){
-			condition.push("(" + column.range.min + "!=null && " + column.range.min + "< " + d.name + ".min)");
+			condition.push("(" + column.range.min + "==null || " + column.range.min + "< " + d.name + ".min)");
 		}//endif
 		if (column.range.max){
-			condition.push("(" + column.range.max + "!=null && " + d.name + ".min" + "<= " + column.range.max + ")");
+			condition.push("(" + column.range.max + "==null || " + d.name + ".min" + "<= " + column.range.max + ")");
 		}//endif
 
 
