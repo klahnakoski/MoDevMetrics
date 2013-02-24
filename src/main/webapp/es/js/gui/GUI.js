@@ -86,11 +86,7 @@ GUI.setup = function(parameters, relations, indexName, showDefaultFilters){
 	GUI.State2URL();
 	GUI.State2Parameter();
 
-
-	aThread.run(function(){
-		yield (GUI.refresh());
-	});
-
+	GUI.refresh();
 };
 
 
@@ -178,9 +174,7 @@ GUI.State2URL = function(){
 		}//endif
 	});
 
-	var removeList=mapAllKey(simplestate, function(k,v){
-		if (v===undefined) return k;
-	});
+	var removeList=mapAllKey(simplestate, function(k,v){if (v===undefined) return k;});
 	jQuery.bbq.removeState(removeList);
 	jQuery.bbq.pushState(Map.copy(simplestate));
 };
@@ -388,38 +382,51 @@ GUI.UpdateSummary = function(){
 	$("#summary").html(html);
 };
 
+GUI.refreshRequested=true;	//TRY TO AGGREGATE MULTIPLE refresh() REQUESTS INTO ONE
+
 GUI.refresh=function(){
-//	aThread.assertThreaded();
+	if (GUI.refreshRequested) return;
+	GUI.refreshRequested=true;
 
-	GUI.State2URL();
+	aThread.run(function(){
+		yield (aThread.sleep(200));
+		GUI.refreshRequested=false;
 
-	var threads=[];
-	GUI.customFilters.forall(function(f, i){
-		threads.push(aThread.run(function(){
-			yield (f.refresh());
-		}));
+		GUI.State2URL();
+
+		var threads=[];
+		GUI.customFilters.forall(function(f, i){
+			threads.push(aThread.run(function(){
+				yield (f.refresh());
+			}));
+		});
+
+		for(var i=0;i<threads.length;i++){
+			yield (aThread.join(threads[i]));
+		}//for
+
+		GUI.UpdateSummary();
+
+
+		createChart();
 	});
-
-	for(var i=0;i<threads.length;i++){
-		yield (aThread.join(threads[i]));
-	}//for
-
-	GUI.UpdateSummary();
-
-	createChart();
 };
 
 
 
 
-GUI.injectFilters = function(chartRequests){
-	if (!(chartRequests instanceof Array)) D.error("Expecting an array of chartRequests");
+GUI.injectFilterss = function(chartRequests){
+	if (!(chartRequests instanceof Array))
+		D.error("Expecting an array of chartRequests");
 	for(var i = 0; i < chartRequests.length; i++){
 		(GUI.injectFilters(chartRequests[i]));
 	}//for
 };
 
 GUI.injectFilters = function(chartRequest){
+	if ((chartRequest instanceof Array))
+		D.error("Expecting a chartRequest");
+
 	if (chartRequest.esQuery === undefined)
 		D.error("Expecting chart requests to have a \"esQuery\", not \"query\"");
 

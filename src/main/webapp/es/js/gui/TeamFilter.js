@@ -209,7 +209,7 @@ TeamFilter.prototype.injectHTML = function(hier){
 
 		if (hasChanged){
 			self.selectedEmails=minCover;
-			aThread.run(GUI.refresh());
+			GUI.refresh();
 		}//endif
 	});
 

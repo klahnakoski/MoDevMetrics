@@ -33,7 +33,7 @@
 
 
 <div id="sidebar">
-
+	<br><br>
 	<h3>Kyle Lahnakoski</h3>
 	<img src="./es/images/kyle - mini.jpg" alt="Kyle is a worker bee" style="width:7.7em;height:7.7em;">
 	<br><br>
@@ -65,11 +65,19 @@
 	<tr>
 	<td>
 		<h4>February 23th 2013</h4>
-		The Security Teams have an ambitious goal to limit the age of high+ security bugs.  This dashboard is meant to help track to those goals.
+		<div class="description">
+		It is important the dashboards I make are relevant to the people who view them.
+		This means they must be personalized to a certain degree.  Take, for example, defining the "age" of a bug:
+		Is it time since created?, since triaged?, since flagged? since confirmed? since assigned?
+		Each is relevant in a different way to each team.  I am still a long way off
+		from providing this fine detail to any team, but I am making good first steps to
+		defining "age" for security bugs:  Age is defined from the time it is first
+		identified as a security bug, to the time it is closes. This definition may still not be
+		accurate, but this is an iterative process.
+		</div>
 		<div class="items">
 			<a href="https://metrics.mozilla.com/bugzilla-analysis/Security_Q1_Goal.html">Security's 2013 Q1 Goal</a>
-			<span class="info">Visualize each security team as they track to their goal</span><br>
-			<br>
+			<span class="info">The Security Teams have an ambitious goal to limit the age of high+ security bugs.  This dashboard is meant to help visualize progress toward those goals.</span>
 		</div>
 	</td>
 	</tr>
@@ -78,12 +86,13 @@
 	<tr>
 	<td>
 		<h4>February 13th 2013</h4>
-		I have been working on visualizing Metro's iterations.  But in the meantime, I noticed a need for a basic burndown
-		tracking
+		<div class="description">
+			I have been working on visualizing Metro's iterations.  But in the meantime,
+			I noticed a need for a basic burndown tracking
+		</div>
 		<div class="items">
 			<a href="https://metrics.mozilla.com/bugzilla-analysis/Dashboard - Final_Burndown.html">Final Burndown Dashboard</a>
-			<span class="info">Basic burndown for small number of bugs.</span><br>
-			<br>
+			<span class="info">Basic burndown for small number of bugs.</span>
 		</div>
 	</td>
 	</tr>
@@ -94,12 +103,10 @@
 		<h4>February 5th 2013</h4>
 		<div class="items">
 			<a href="https://metrics.mozilla.com/bugzilla-analysis/Dashboard_byProject.html">Project Dashboard</a>
-			<span class="info">Added a Team filter</span><br>
-			<br>
+			<span class="info">Added a Team filter</span>
 
 			<a href="https://metrics.mozilla.com/bugzilla-analysis/Community_FirstReview.html">First Time Review Requests</a>
-			<span class="info">List of all first time review requests</span><br>
-			<br>
+			<span class="info">List of all first time review requests</span>
 		</div>
 	</td>
 	</tr>
@@ -111,8 +118,8 @@
 			<h4>January 31th 2013</h4>
 			<div class="items">
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Predictive_Simple.html">Burndown Prediction</a>
-				<span class="info">Uses up to the last 6 weeks of data to make a linear estimate of when project is complete</span><br>
-				<br>
+				<span class="info">Uses up to the last 6 weeks of data to make a linear estimate of when project is complete</span>
+
 			</div>
 		</td>
 	</tr>
@@ -124,8 +131,8 @@
 			<h4>January 29th 2013</h4>
 			<div class="items">
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Dashboard_byProject.html">Project Dashboard</a>
-				<span class="info">Copies the B2G logic, and extended to all programs</span><br>
-				<br>
+				<span class="info">Copies the B2G logic, and extended to all programs</span>
+
 			</div>
 		</td>
 	</tr>
@@ -134,46 +141,40 @@
 	<tr >
 		<td>
 			<h4>January 28th 2013</h4>
-			My work on a better interface for all the filters found on the LHS of my charts had to be postponed in favour of showing
-			something interesting this week.<br><br>
-
+			<div class="description">
+					My work on a better interface for all the filters found on the LHS of my charts had to be postponed in favour of showing
+			something interesting this week.
+			</div>
 			<div class="items">
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Age_overTime.html">Time to Resolution over Time</a>
 				<span class="info">This is my first attempt at showing percentile ages of open and closed bugs.  Even though charting
-					the ages of closed bugs makes sense, charting the age history of closed bugs has little value:  It is much better
-					to chart the age of open bugs.  After all, all closed bugs were open at sometime.</span><br>
-				<br>
+					the ages of closed bugs makes sense, charting the age history of closed bugs has little value.  It is much better
+					to chart the age of open bugs.  After all, all closed bugs were open at sometime.</span>
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Age_OpenBugs.html">Open Bug Count</a>
 				<span class="info">This is an improved version, which adds a second chart that traces the percentile ages of all
 					the open bugs.  One interesting thing: By looking at the percentiles you can almost see bugs being closed,
-					and how old they were.</span><br>
-				<br>
-
+					and how old they were.</span>
 			</div>
 		</td>
 	</tr>
 
-
-
 	<tr >
 		<td>
 			<h4>January 21th 2013</h4>
-			This past week was working on simple fixes and backend features.<br><br>
-
+			<div class="description">
+					This past week was working on simple fixes and backend features.
+			</div>
 			<div class="items">
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_NoReviewer.html">Review? missing Requestee</a>
-				<span class="info">The old version missed some.</span><br>
-				<br>
+				<span class="info">The old version missed some.</span>
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/util/QueryTool.html">B.A. Query Tool</a>
-				<span class="info">Added some basic features to the query tool I use. It still needs documentation.</span><br>
-				<br>
+				<span class="info">Added some basic features to the query tool I use. It still needs documentation.</span>
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/OpenBugCount.html">OpenBugCount.html</a>
-				<span class="info">Many of the charts have table (<img src="es/images/Spreadsheet.png" style="vertical-align: middle;width:16px;height:16px;">) button at bottom right to provide a grid of numbers at the bottom of the page (popup to come shortly).  It can be used to cut-and-paste to a spreadsheet.</span><br>
-				<br>
-
+				<span class="info">Many of the charts have table (<img src="es/images/Spreadsheet.png" style="vertical-align: middle;width:16px;height:16px;">) button at bottom right to provide a grid of numbers at the bottom of the page (popup to come shortly).  It can be used to cut-and-paste to a spreadsheet.</span>
+				
 			</div>
 		</td>
 	</tr>
@@ -183,124 +184,109 @@
 	<tr >
 		<td>
 			<h4>January 14th 2013</h4>
-			I am starting a new format so that I can describe the features that are being added, and point out specific charts that are affected.<br><br>
+			<div class="description">
+					I am starting a new format so that I can describe the features that are being added, and point out specific charts that are affected.
+				</div>
 
 			<div class="items">
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Security_byPriority.html">Security_byPriority</a>
-				<span class="info">Replicating the Security's counts to ensure my code is correct.</span><br>
-				<br>
+				<span class="info">Replicating the Security's counts to ensure my code is correct.</span>
+
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Security_byRisk.html">Security_byRisk.html</a>
-				<span class="info">Mimicking Security's risk assessment.  This one is a little slower because the facet logic is too complex.</span><br>
-				<br>
+				<span class="info">Mimicking Security's risk assessment.  This one is a little slower because the facet logic is too complex.</span>
+
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/OpenBugCount.html">OpenBugCount.html</a>
-				<span class="info">Finally, I can produce bug counts over time fast.</span><br>
-				<br>
+				<span class="info">Finally, I can produce bug counts over time fast.</span>
 
 			</div>
 		</td>
 	</tr>
 	<tr>
 		<td>
-			<h4>Working Charts</h4>
-			(Programs are defined in <a href="http://people.mozilla.com/~klahnakoski/es/js/MozillaPrograms.js">http://people.mozilla.com/~klahnakoski/es/js/MozillaPrograms.js</a> )<br>
-			<br>
+			<h4>Older Charts</h4>
+			<div class="description">
+
+			(Programs are defined in <a href="http://people.mozilla.com/~klahnakoski/es/js/MozillaPrograms.js">http://people.mozilla.com/~klahnakoski/es/js/MozillaPrograms.js</a> )
+				</div>
 			<div class="items">
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity.html">ReviewIntensity</a>
-				<span class="info">Show total volume of incoming reviews, and any review backlog, by team</span><br>
-				<br>
+				<span class="info">Show total volume of incoming reviews, and any review backlog, by team</span>
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_First.html">ReviewIntensity_First</a>
-				<span class="info">Same as above but only counting the FIRST incoming review for a bug</span><br>
-				<br>
+				<span class="info">Same as above but only counting the FIRST incoming review for a bug</span>
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_Requester.html">Outgoing Reviews</a>
-				<span class="info">The the number of outgoing reviews</span><br>
-				<br>
+				<span class="info">The the number of outgoing reviews</span>
 
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/TimeToResolution.html">TimeToResolution.html</a>
-				<span class="info">SLOW (about 30sec) - Same as bug age, only measurment stars when bug is marked as belonging to Program, Product or Component</span><br>
-				<br>
+				<span class="info">SLOW (about 30sec) - Same as bug age, only measurment stars when bug is marked as belonging to Program, Product or Component</span>
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_Pending_18.html">Reviews_Pending_18.html</a>
-				<span class="info">Overview of Reviews in the past 18weeks</span><br>
-				<br>
+				<span class="info">Overview of Reviews in the past 18weeks</span>
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewHistory.html">ReviewHistory.html</a>
-				<span class="info">FAST! - Visualize each review request over time.  Add your mail BZ mail address to see your own.</span><br>
-				<br>
+				<span class="info">FAST! - Visualize each review request over time.  Add your mail BZ mail address to see your own.</span>
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Burndown.html">Burndown.html</a>
-				<span class="info">Open Bug Count by Program, Product, Component</span><br>
-				<br>
+				<span class="info">Open Bug Count by Program, Product, Component</span>
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Burnup.html">Burnup.html</a>
-				<span class="info">Closed Bug Count by Program, Product, Component</span><br>
-				<br>
+				<span class="info">Closed Bug Count by Program, Product, Component</span>
 
 			</div>
-		</td>
-	</tr>
-	<tr>
-		<td>
-			<h4>In Progress</h4>
-			<span class="warning"> Please note:  There are still known issues with these charts.</span> (see <a href="https://metrics.mozilla.com/projects/browse/BA">https://metrics.mozilla.com/projects/browse/BA</a>)<br><br>
+
+			<div class="description">
+			The community charts need a lot of work: I need someone to ask the important questions so I can see if it shows  the data
+			</div>
 			<div class="items">
-
-				<!--<div class="new">-->
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Community_ReviewIntensity.html">Community_ReviewIntensity</a>
-				<span class="info">An attempt to show MoCo response time to first-time incoming review requests</span><br>
-				<br>
-				<!--</div>-->
+				<span class="info">An attempt to show MoCo response time to first-time incoming review requests</span>
 
-				<!--<div class="new">-->
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Community_NextReviews.html">Community_NextReviews</a>
-				<span class="info">An attempt to show community retention rates by looking at outgoing review requests</span><br>
-				<br>
-				<!--</div>-->
+				<span class="info">An attempt to show community retention rates by looking at outgoing review requests</span>
 
-				<!--<div class="new">-->
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Community_Retention.html">Community_Retention</a>
-				<span class="info">Same as above, but looking at change over time</span><br>
-				<br>
-				<!--</div>-->
+				<span class="info">Same as above, but looking at change over time</span>
 
 
-
+			</div>
+			<div class="description">
+			Old charts trying to reveal patterns in the BZ data.  They are too rough to be immediately useful, but may allude to patterns that can be investigated deeper.
+			</div>
+			<div class="items">
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/NewAndClosed.html">NewAndClosed.html</a>
-				<span class="info">Show weekly totals for new bugs and closed bugs (new bugs by Program are artificially low because not marked upon creation) </span><br>
-				<br>
+				<span class="info">Show weekly totals for new bugs and closed bugs (new bugs by Program are artificially low because not marked upon creation) </span>
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/BugAge.html">BugAge.html</a>
-				<span class="info">Age of closed bugs</span><br>
-				<br>
+				<span class="info">Age of closed bugs</span>
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/ResolutionsOverTime.html">ResolutionsOverTime.html</a>
-				<span class="info">Show number of each Resolution by the age of the bug.</span><br>
-				<br>
+				<span class="info">Show number of each Resolution by the age of the bug.  This was one of the first fast charts.</span>
 			</div>
-		</td>
-	</tr>
-	<tr>
-		<td>
-			<h4>Data</h4>
+
+
+			<div class="description">
+			The B2G project uses daily operational dashboards to track progress to a deadline.  These chart are my attempt to do the very same, only on top of ES.
+			</div>
 			<div class="items">
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_Pending.html">Reviews_Pending.html</a>
 				<span class="info">List of ALL bugs pending review, grouped by requestee</span>
-				<br><br>
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_NoReviewer.html">Reviews_NoReviewer.html</a>
 				<span class="info">List of all bugs with no reviewer</span>
-				<br><br>
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_Basecamp_Only.html">Reviews_Basecamp_Only.html</a>
-				<span class="info">Andrew's Basecamp Blockers - but using the ES documnet store instead</span>
-				<br><br>
+				<span class="info">Andrew's Basecamp Blockers - but using the ES document store instead</span>
 			</div>
 		</td>
 	</tr>
+
+
+
+
 </table>
 </div>
 <script type="application/javascript;version=1.7">

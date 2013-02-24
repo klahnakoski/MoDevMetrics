@@ -135,7 +135,7 @@
 
 
 var CUTOFF=Duration.newInstance("3week");
-$("#description").html("Shows both the number of open bugs, and their age distribution (below).<br><br><span class='warning'>This dashboard will error out without first adding a filter by Program or Product.</span><br><br>Age distribution calculations are based on the assumption that the bug meets criterion during one continuous period in it's whole lifespan.  Discrete periods are simplified to one by choosing one smallest range that covers all said periods.");
+$("#description").html("Shows both the number of open bugs, and their age distribution (below).<br><br><span class='warning'>This dashboard will error out without first adding a filter by Program or Product.</span><br><br>Age distribution calculations are based on the assumption that the bug meets criterion during one continuous period in the bug's whole lifespan.  Disparate periods are simplified to one by choosing the smallest range that covers all said periods.");
 
 var thread;
 var threadPercentiles;
@@ -404,7 +404,8 @@ var __createChart = function(){
 		[
 			"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
 		],
-		"bugs");
+		"bugs",
+		true);
 	});
 
 </script>

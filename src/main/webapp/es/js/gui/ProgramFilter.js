@@ -227,19 +227,13 @@ ProgramFilter.prototype.success = function(data){
 				}//endif
 			}//endif
 
-			if (didChange){
-				aThread.run(function(){
-					yield (GUI.refresh());
-				});
-			}//endif
+			if (didChange)GUI.refresh();
 		},
 		unselected: function(event, ui){
 			var i = self.selected.indexOf(ui.unselected.id.rightBut("program_".length));
 			if (i != -1){
 				self.selected.splice(i, 1);
-				aThread.run(function(){
-					yield (GUI.refresh());
-				});
+				GUI.refresh();
 			}
 		}
 	});

@@ -56,19 +56,13 @@ ComponentFilter.prototype.refresh = function(){
 					}//endif
 				}//endif
 
-				if (didChange){
-					aThread.run(function(){
-						yield (GUI.refresh());
-					});
-				}
+				if (didChange) GUI.refresh();
 			},
 			unselected: function(event, ui){
 				var i = self.selected.indexOf(ui.unselected.id.rightBut("component_".length));
 				if (i != -1){
 					self.selected.splice(i, 1);
-					aThread.run(function(){
-						yield (GUI.refresh());
-					});
+					GUI.refresh();
 				}
 			}
 		});

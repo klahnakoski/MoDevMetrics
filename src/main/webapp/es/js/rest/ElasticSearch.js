@@ -84,7 +84,7 @@ ElasticSearch.getMinMax=function(esfilter){
 		{"from":u2, "edges":["bug_id"]}
 	]});
 	yield u;
-}//method
+};//method
 
 
 

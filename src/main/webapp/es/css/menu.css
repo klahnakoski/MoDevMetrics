@@ -28,6 +28,13 @@ b {
     font-weight: bold;
 }
 
+
+.description {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+
 .widget {
     display:inline;
     float: left;
@@ -156,15 +163,22 @@ h4 {
   line-height: 100%;
 }
 
+.items {
+    border-bottom: 1px black solid;
+    margin-bottom: 10px;
+}
+
 .items .info {
-    float: left;
     display: block;
-    width: 70%
+    width: 70%;
+    margin-left: 230px;      /*css totally sucks*/
+    margin-top: -20px;       /*css totally sucks*/
+    margin-bottom: 10px;
 }
 
 .items a {
-    float: left;
-    width: 230px;
+    width: 230px;        /*css totally sucks*/
+    height:20px;         /*css totally sucks*/
 }
 
 .warning {

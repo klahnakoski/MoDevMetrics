@@ -140,7 +140,7 @@ PartitionFilter.prototype.makeTree=function(){
 
 		if (hasChanged){
 			self.selectedParts = minCover;
-			aThread.run(GUI.refresh());
+			GUI.refresh();
 		}//endif
 	}).bind("loaded.jstree", function(){self.refresh();});
 };
