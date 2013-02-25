@@ -181,12 +181,6 @@ h4 {
     height:20px;         /*css totally sucks*/
 }
 
-.warning {
-    font-family: 'Open Sans', sans-serif;
-    font-size:1.0em;
-    font-weight: bold;
-    color: red;
-}
 .new {
     border: 2px yellow solid;
     background-image: url(../images/New.gif);
@@ -194,6 +188,27 @@ h4 {
     background-position:right;
     background-repeat:no-repeat;
 }
+
+.items .expired {
+    color: #888888;
+
+
+}
+.items .expired a {
+    width: 230px;        /*css totally sucks*/
+    height:20px;         /*css totally sucks*/
+    text-decoration: line-through;
+    color: #888888;
+}
+
+
+.warning {
+    font-family: 'Open Sans', sans-serif;
+    font-size:1.0em;
+    font-weight: bold;
+    color: red;
+}
+
 
 
 .table {
