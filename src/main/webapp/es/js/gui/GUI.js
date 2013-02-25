@@ -115,7 +115,7 @@ GUI.showLastUpdated = function(indexName){
 				"from":"bug_summary",
 				"select":{"name":"max_date", "value":"modified_time", "operation":"maximum"}
 			}))).cube.max_date);
-			$("#testMessage").html("Reviews Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
+			$("#testMessage").html("Bug Summaries Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 		}//endif
 
 		var is_error=yield(GUI.corruptionCheck());
@@ -382,7 +382,7 @@ GUI.UpdateSummary = function(){
 	$("#summary").html(html);
 };
 
-GUI.refreshRequested=true;	//TRY TO AGGREGATE MULTIPLE refresh() REQUESTS INTO ONE
+GUI.refreshRequested=false;	//TRY TO AGGREGATE MULTIPLE refresh() REQUESTS INTO ONE
 
 GUI.refresh=function(){
 	if (GUI.refreshRequested) return;

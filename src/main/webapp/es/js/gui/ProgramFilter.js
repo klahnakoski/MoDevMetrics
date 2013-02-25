@@ -192,6 +192,7 @@ ProgramFilter.prototype.refresh = function(){
 
 
 ProgramFilter.prototype.success = function(data){
+	if (data==null) return;
 
 	//CONVERT MULTIPLE EDGES INTO SINGLE LIST OF PROGRAMS
 	var programs=[];

@@ -187,6 +187,7 @@ ElasticSearchQuery.prototype.success = function(data){
 	if (data==null){
 		D.action("Not connected?");
 		D.warning("Maybe you are not connected to Mozilla-MPT?");
+		if (data==null && this.callbackObject===undefined) return;	//CAN HAPPEN WHEN REQUEST HAS NOT BEEN SENT, YET HAS BEEN KILLED
 		try{
 			this.callbackObject.success(data);
 		}catch(e){
@@ -228,6 +229,7 @@ ElasticSearchQuery.prototype.error = function(errorData, errorMsg, errorThrown){
 
 ElasticSearchQuery.prototype.kill = function(data){
 	this.callbackObject=undefined;
+	if (ElasticSearchQuery.DEBUG) D.println("request killed, callback set to undefined");
 	if (this.request != undefined){
 		try{
 			this.request.abort();

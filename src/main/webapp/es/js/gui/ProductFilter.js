@@ -118,7 +118,7 @@ ProductFilter.prototype.injectHTML = function(products){
 
 
 ProductFilter.prototype.success = function(data){
-
+	if (data==null) return;
 	var products = data.facets.Products.terms;
 
 	//REMOVE ANY FILTERS THAT DO NOT APPLY ANYMORE (WILL START ACCUMULATING RESULTING IN NO MATCHES)
