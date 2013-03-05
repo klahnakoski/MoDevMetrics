@@ -51,7 +51,7 @@
 
 
 
-<script type="application/javascript;version=1.7" src="js/CNV.js"></script>
+<script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
@@ -186,7 +186,7 @@ var __createChart = function(){
 			Mozilla.Security.Priority.Critical.esfilter
 		]},
 		Mozilla.Security.Teams.esfilter,
-		GUI.getFilters("bugs"),
+		GUI.getFilters("bugs")
 //		{"term":{"bug_id":711043}}
 	]};
 
@@ -201,10 +201,10 @@ var __createChart = function(){
 			"name":"Age (Days)",
 			"from":allBugs,
 			"select":[
-				{"name":"6 Weeks", "value":""+Duration.newInstance("6week").round(Duration.DAY), "operation":"one", "default":""+Duration.newInstance("6week").round(Duration.DAY), "color":"red"},
-				{"name":"3 Weeks", "value":""+Duration.newInstance("3week").round(Duration.DAY), "operation":"one", "default":""+Duration.newInstance("3week").round(Duration.DAY), "color":"goldenrod"},
-				{"name":"50th Percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"percentile", "percentile":0.50, "default":0, "color":"blue"},
-				{"name":"Maximum",         "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"maximum", "default":0, "color":"#00d6ff"}
+				{"name":"6 Weeks", "value":""+Duration.newInstance("6week").round(Duration.DAY), "operation":"one", "default":""+Duration.newInstance("6week").round(Duration.DAY), "style":{"color":"red"}},
+				{"name":"3 Weeks", "value":""+Duration.newInstance("3week").round(Duration.DAY), "operation":"one", "default":""+Duration.newInstance("3week").round(Duration.DAY), "style":{"color":"goldenrod"}},
+				{"name":"50th Percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"percentile", "percentile":0.50, "default":0, "style":{"color":"blue"}},
+				{"name":"Maximum",         "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"maximum", "default":0, "style":{"color":"#00d6ff", "visibility":"hidden"}}
 			],
 			"edges":[
 				{"name":"date",
@@ -329,8 +329,8 @@ var __createChart = function(){
 			"from":allBugs,
 			"name":"New and Closed Bugs",
 			"select":[
-				{"name":"New", "value":"time.value.getMilli()==min.floor(\""+interval.toString()+"\").getMilli() ? 1 : 0", "operation":"sum", "color":"seagreen"},
-				{"name":"Closed", "value":"(max!=null && time.value.getMilli()==max.floor(\""+interval.toString()+"\").getMilli()) ? -1 : 0", "operation":"sum", "color":"goldenrod"}
+				{"name":"New", "value":"time.value.getMilli()==min.floor(\""+interval.toString()+"\").getMilli() ? 1 : 0", "operation":"sum", "style":{"color":"seagreen"}},
+				{"name":"Closed", "value":"(max!=null && time.value.getMilli()==max.floor(\""+interval.toString()+"\").getMilli()) ? -1 : 0", "operation":"sum", "style":{"color":"goldenrod"}}
 			],
 			"edges":[
 				{"name":"date",
@@ -340,7 +340,7 @@ var __createChart = function(){
 			]
 		}));
 
-		aChart.show({
+		var chart=aChart.show({
 			"id":"chartChurn",
 			"sheetDiv":"info",
 			"type":"bar",

@@ -41,8 +41,8 @@
 <link type="text/css" rel="stylesheet" href="../css/menu.css"/>
 
 
-<script type="application/javascript;version=1.7" src="../js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="../js/util.js"></script>
+<script type="application/javascript;version=1.7" src="../js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="../js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="../js/MozillaPrograms.js"></script>
@@ -83,113 +83,42 @@
 	aThread.run(function(){
 
 		D.println(Date.newInstance(1352207434236).format("yyyy-NNN-dd HHmmss"));
-		yield (ESQuery.loadColumns({"from":"bugs"}));
+		yield (ESQuery.loadColumns({"from":"telemetry"}));
 
 		var esQuery = {
-			"sort" : ["bug_version_num"],
-			"size":1000,
+			"sort" : [],
+//			"sort" : ["bug_version_num"],
+			"size":100,
 			"from":0,
-			"query":{"filtered":{ "filter":{"and":[
-				{"terms": {"bug_id": [714320]}},
+			"query":{"filtered":{
+				"query":{"match_all":{}},
+				"filter":{"and":[
+//					{"term" : {"changes.field_name" : "blocked"}}
+//				{"term":{"status_whiteboard.tokenized":"NPOTB"}}
+					{"term":{"info.OS":"Linux"}},
+//					{"ids": {"values": ["xXcRiYNiS8m2dd4HMEJrow"]}}
 //								{"not":{"terms":{"bug_status":["resolved", "verified", "closed"]}}},
 //			{"range":{"modified_ts":{"lt":Date.newInstance("2013-01-15").getMilli()}}},
 //			{"range":{"expires_on":{"gte":Date.newInstance("2013-01-18").getMilli()}}}
-			]},
-			"query":{"match_all":{}} }}
+				]},
+			}},
+//			"facets":{
+//				"0,4":{ "facet_filter":{"and":[
+//					{"term":{"blocked":841099}},
+////					{"and":[
+////						{"range":{"modified_ts":{"lt":"1354665600000"}}},
+////						{"range":{"expires_on":{"gte":"1354665600000"}}}
+////					]}
+//				]}, "statistical":{"script":"var coalesce = function(a, b){if (a==null) b; else a; \n};\n"+
+//					"var get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\n"+
+//					"var getDocValue = function(name){\nvar v = doc[name];\n(v!=null && v.value!=null) ? v.value : null;};\n"+
+//					"var between = function(value, prefix, suffix){\nif (value==null){ null; }else{\nvar start = value.indexOf(prefix, 0);\nif (start==-1){ null; }else{\n"+
+//					"var end = value.indexOf(suffix, start+prefix.length());\n"+
+//					"if (end==-1){ null; }else{\nvalue.substring(start+prefix.length(), end);\n"+
+//					"}}}\n};\n"+
+//					"Math.max(1, between(coalesce(getDocValue(\"status_whiteboard\"), \" \")+\" \", \"p=\", \" \")-0)"} }
+//			}
 		};
-
-
-		
-//		var esQuery= {
-//    "facets": {
-//        "Security (High and Critical Only)_time": {
-//            "facet_filter": {
-//                "or": [
-//                    {
-//                        "term": {
-//                            "status_whiteboard.tokenized": "sg:critical"
-//                        }
-//                    },
-//                    {
-//                        "term": {
-//                            "status_whiteboard.tokenized": "sg:high"
-//                        }
-//                    },
-//                    {
-//                        "term": {
-//                            "keywords": "sec-high"
-//                        }
-//                    },
-//                    {
-//                        "term": {
-//                            "keywords": "sec-critical"
-//                        }
-//                    }
-//                ]
-//            },
-//            "terms_stats": {
-//                "size": 100000,
-//                "value_field": "modified_ts",
-//                "key_field": "bug_id"
-//            }
-//        },
-//        "close_time": {
-//            "facet_filter": {
-//                "terms": {
-//                    "bug_status": [
-//                        "resolved",
-//                        "verified",
-//                        "closed"
-//                    ]
-//                }
-//            },
-//            "terms_stats": {
-//                "size": 100000,
-//                "value_field": "modified_ts",
-//                "key_field": "bug_id"
-//            }
-//        }
-//
-//    },
-//    "sort": [
-//
-//    ],
-//    "size": 0,
-//    "from": 0,
-//    "query": {
-//        "filtered": {
-//            "filter": {
-//                "and": [
-//                    {
-//                        "terms": {
-//                            "bug_id": [
-//                                635852
-//                            ]
-//                        }
-//                    },
-//                    {
-//                        "terms": {
-//                            "bug_id": [
-//                                635852
-//                            ]
-//                        }
-//                    }
-//                ]
-//            },
-//            "query": {
-//                "match_all": {
-//
-//                }
-//            }
-//        }
-//    }
-//};
-
-
-
-
-
-
 
 
 
@@ -197,14 +126,14 @@
 		try{
 			var data = yield(Rest.post({
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping?pretty=true",
-			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
 
 //			"url":"http://localhost:9200/reviews/review/_search",
 //			"url":"http://localhost:9200/bug_tags/bug_tags/_search",
 //			"url":"http://elasticsearch8.metrics.scl3.mozilla.com:9200/reviews/review/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_tags/bug_tags/_search",
-//				"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/telemetry/_search",
+				"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/telemetry/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/org_chart/person/_search",
 				"data":esQuery
 			}));

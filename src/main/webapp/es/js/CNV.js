@@ -2,12 +2,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+importScript("util.js");
+
+
 var CNV = function(){
 };
 
 
 //
-//PULL THE BUGS OUT OF THE E:LASTIC SEARCH RESULT OBJECT
+//PULL THE BUGS OUT OF THE ELASTIC SEARCH RESULT OBJECT
 //
 CNV.ESResult2List = function(esResult){
 	var output = [];

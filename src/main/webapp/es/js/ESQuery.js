@@ -30,6 +30,7 @@ ESQuery.DEBUG=false;
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
 	"bugs":{"path":"/bugs"},
+	"bugs.changes":{},
 	"bugs.attachments":{},
 	"bugs.attachments.flags":{},
 	"reviews":{"path":"/reviews/review"},
@@ -37,7 +38,7 @@ ESQuery.INDEXES={
 	"bug_tags":{"path":"/bug_tags/bug_tags"},
 	"org_chart":{"path":"/org_chart/person"},
 	"temp":{"path":""},
-	"telemetry":{"path":"/telemetry"}
+	"telemetry":{"path":"/telemetry/data"}
 };
 
 
@@ -54,9 +55,24 @@ ESQuery.parseColumns=function(indexName, esProperties){
 	forAllKey(esProperties, function(name, property){
 		if (property.type == "nested"){
 			//NESTED TYPE IS A NEW TYPE DEFINITION
-			var nestedName=indexName+"."+name;
+			let nestedName=indexName+"."+name;
 			if (ESQuery.INDEXES[nestedName]===undefined) ESQuery.INDEXES[nestedName]={};
 			ESQuery.INDEXES[nestedName].columns=ESQuery.parseColumns(nestedName, property.properties);
+			return;
+		}//endif
+
+		if (property.properties !== undefined) {
+			//DEFINE PROPERTIES WITH "." IN NAME
+			forAllKey(property.properties, function(n, p, i){
+				if (["string", "boolean", "integer", "date", "long"].contains(p.type)){
+					columns.push({"name":name+"."+n, "type":p.type});
+				}else if (p.type===undefined){
+					//DO NOTHING
+				}else{
+					D.error("unknown subtype "+p.type);
+				}//endif
+			});
+
 			return;
 		}//endif
 
@@ -147,7 +163,7 @@ ESQuery.prototype.run = function(){
 		D.error("Error with ESQuery", e);
 	}//try
 
-	var a=D.action("Process ES Terms", true);
+//	var a=D.action("Process ES Terms", true);
 	if (this.esMode == "terms"){
 		this.termsResults(postResult);
 	} else if (this.esMode == "setop"){
@@ -157,7 +173,7 @@ ESQuery.prototype.run = function(){
 	} else{//statistical
 		this.statisticalResults(postResult);
 	}//endif
-	D.actionDone(a);
+//	D.actionDone(a);
 
 
 	yield this.query;
@@ -285,7 +301,7 @@ ESQuery.prototype.compile = function(){
 		}//endif
 	}//for
 
-	if (this.specialEdge == null && this.esMode=="term_stats"){
+	if (this.specialEdge == null && this.esMode=="terms_stats"){
 		this.esMode = "statistical";
 	}//endif
 
@@ -451,8 +467,13 @@ ESQuery.buildCondition = function(edge, partition, query){
 			output.range = {};
 			output.range[edge.value] = {"gte":MVEL.Value2Code(partition.min), "lt":MVEL.Value2Code(partition.max)};
 		} else if (edge.domain.type == "set"){
-			output.term = {};
-			output.term[edge.value] = partition.value;
+			if (partition.value!==undefined){
+				if (partition.value!=edge.domain.getKey(partition)) D.error("please ensure the key attribute of the domain matches the value attribute of all partitions, if only because we are now using the former");
+				//DEFAULT TO USING THE .value ATTRIBUTE, IF ONLY BECAUSE OF LEGACY REASONS
+				output.term = Map.newInstance(edge.value, partition.value);
+			}else{
+				output.term = Map.newInstance(edge.value, edge.domain.getKey(partition));
+			}//endif
 		} else if (edge.domain.type=="default"){
 			output.term = {};
 			output.term[edge.value] = partition.value;
@@ -564,12 +585,22 @@ ESQuery.prototype.compileEdges2Term=function(){
 				return [specialEdge.domain.getPartByKey(term)];
 			};
 
-			//ONLY USED BY term_stats, AND VALUE IS IN THE SELECT CLAUSE
+			//ONLY USED BY terms_stats, AND VALUE IS IN THE SELECT CLAUSE
 			if (!MVEL.isKeyword(specialEdge.value)) D.error("Can not handle complex edge value with "+this.select[0].operation);
 			if (MVEL.isKeyword(this.select[0].value)){
 				return {"type":"field", "field":specialEdge.value, "value":this.select[0].value};
 			}else{
 				return {"type":"script", "field":specialEdge.value, "value":MVEL.compile.expression(this.select[0].value, this.query)};
+			}//endif
+		}else if (this.esMode=="statistical"){
+			//REGISTER THE DECODE FUNCTION
+			this.term2Parts=function(term){
+				return [];
+			};
+			if (MVEL.isKeyword(this.select[0].value)){
+				return {"type":"field", "value":this.select[0].value};
+			}else{
+				return {"type":"script", "value":MVEL.compile.expression(this.select[0].value, this.query)};
 			}//endif
 		}else{
 			//REGISTER THE DECODE FUNCTION
@@ -902,7 +933,7 @@ ESQuery.agg2es = {
 ESQuery.prototype.statisticalResults = function(data){
 	var cube;
 
-	if (this.termsEdges.length==0){ //ZERO DIMENSIONS
+	if (this.query.edges.length==0){ //ZERO DIMENSIONS
 		if (this.select.length==0){
 			cube = data.facets["0"][ESQuery.agg2es[this.select[i].operation]];
 		}else{
@@ -927,7 +958,7 @@ ESQuery.prototype.statisticalResults = function(data){
 		for(var f = 0; f < this.query.edges.length - 1; f++){
 			d = d[parseInt(coord[f])];
 		}//for
-		var value = data.edges[edgeName][ESQuery.agg2es[this.select.operation]];
+		var value = data.facets[edgeName][ESQuery.agg2es[this.select[0].operation]];
 		d[parseInt(coord[f])] = value;
 	}//for
 
@@ -1012,6 +1043,12 @@ ESQuery.prototype.compileSetOp=function(){
 
 ESQuery.prototype.mvelResults=function(data){
  	this.query.list =  MVEL.esFacet2List(data.facets.mvel, this.select);
+
+	var select=this.query.select;
+	if (select instanceof Array) return;
+
+	//SELECT AS NO ARRAY (AND NO EDGES) MEANS A SIMPLE ARRAY OF VALUES, NOT AN ARRAY OF OBJECTS
+	this.query.list=this.query.list.map(function(v, i){return v[select.name];});
 };//method
 
 

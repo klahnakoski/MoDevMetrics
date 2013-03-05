@@ -108,25 +108,25 @@ var Mozilla =
 
 		{"name":"Security", "edges":[
 			{"name":"Priority", "partitions":[
-				{"name":"Critical", "weight":5, "color":"red", "esfilter":
+				{"name":"Critical", "weight":5, "style":{"color":"red"}, "esfilter":
 					{"or":[
 						{"term":{"status_whiteboard.tokenized": "sg:critical"}},
 						{"term":{"keywords": "sec-critical"}}
 					]}
 				},
-				{"name":"High", "weight":4, "color":"orange", "esfilter":
+				{"name":"High", "weight":4, "style":{"color":"orange"}, "esfilter":
 					{"or":[
 						{"term":{"status_whiteboard.tokenized": "sg:high"}},
 						{"term":{"keywords": "sec-high"}}
 					]}
 				},
-				{"name":"Moderate", "weight":2, "color":"yellow", "esfilter":
+				{"name":"Moderate", "weight":2, "style":{"color":"yellow"}, "esfilter":
 					{"or":[
 						{"term":{"status_whiteboard.tokenized": "sg:moderate"}},
 						{"term":{"keywords": "sec-moderate"}}
 					]}
 				},
-				{"name":"Low", "weight":1, "color":"green", "esfilter":
+				{"name":"Low", "weight":1, "style":{"color":"green"}, "esfilter":
 					{"or":[
 						{"term":{"status_whiteboard.tokenized": "sg:low"}},
 						{"term":{"keywords": "sec-low"}}

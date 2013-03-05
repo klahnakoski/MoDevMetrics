@@ -49,6 +49,11 @@ CUBE.compile = function(query, sourceColumns, useMVEL){
 		e.outOfDomainCount = 0;
 	}//for
 
+
+	if (!(query.select instanceof Array)){
+		if (typeof(query.select)=="string") query.select={"value":query.select};
+	}//endif
+
 	var select = CUBE.select2Array(query.select);
 	for(var s = 0; s < select.length; s++){
 		if (typeof(select[s])=="string") select[s]={"value":select[s]};
@@ -496,9 +501,16 @@ CUBE.setOP = function(query){
 	output = CUBE.sort(output, query.sort, columns);
 
 	query.columns=columns;
-	query.list = output;
-	
-	CUBE.analytic.run(query);
+
+	if (query.select instanceof Array || query.analytic){
+		query.list = output;
+		CUBE.analytic.run(query);
+	}else{
+		//REDUCE TO ARRAY
+		query.list=output.map(function(v, i){return v[select[0].name];});
+	}//endif
+
+
 
 	yield (query);
 

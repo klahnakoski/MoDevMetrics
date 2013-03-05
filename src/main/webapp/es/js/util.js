@@ -179,6 +179,17 @@ Array.prototype.indexOf=function(value){
 
 Array.prototype.substring=Array.prototype.slice;
 
+Array.prototype.left=function(num){
+	return this.slice(0, num);
+};
+
+Array.prototype.leftBut = function(amount){
+	return this.slice(0, this.length - amount);
+};//method
+
+Array.prototype.right=function(num){
+	return this.slice(Math.max(0, this.length-num));
+};
 
 var Util = {};
 
@@ -312,11 +323,13 @@ aMath.abs=function(n){
 	return Math.abs(n);
 };
 
+
 aMath.round=function(value, rounding){
 	if (rounding===undefined) return Math.round(value);
 	var d=Math.pow(10, rounding);
 	return Math.round(value*d)/d;
 };//method
+
 
 aMath.min=function(){
 	var min=null;
@@ -337,5 +350,22 @@ aMath.max=function(){
 	return max;
 };//method
 
+//
+aMath.average=function(array){
+	var total=0.0;
+	var count=0;
+	for(var i=0;i<array.length;i++){
+		if (array[i]==null) continue;
+		total+=array[i];
+		count++;
+	}//for
+	if (count==0) return null;
+	return total/count;
+};//method
+
+
+
 aMath.floor=Math.floor;
 aMath.ceil=Math.ceil;
+aMath.ceiling=Math.ceil;
+aMath.log=Math.log;

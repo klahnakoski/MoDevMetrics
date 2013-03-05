@@ -191,9 +191,12 @@ h4 {
 
 .items .expired {
     color: #888888;
-
-
 }
+
+.items .expired .info:before{
+    content:"EXPIRED - ";
+}
+
 .items .expired a {
     width: 230px;        /*css totally sucks*/
     height:20px;         /*css totally sucks*/
@@ -241,14 +244,11 @@ table.layout, tr, td, tbody, thead {
 
 #chart, .chart {
     width: 800px;
-    /*height: 300px;*/
-    float: left;
     position: relative;
     border: 1px solid #aaaaaa;
     border-bottom-color: white;
     border-right-color: white;
     margin: -1px;
-    /*padding: 10px;*/
     background-image: linear-gradient(#f9f8f4, #f6f5f1);
 
 }

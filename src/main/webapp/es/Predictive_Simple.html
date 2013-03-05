@@ -44,7 +44,7 @@
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 
 
-<script type="application/javascript;version=1.7" src="js/CNV.js"></script>
+<script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script>
 <script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
@@ -323,10 +323,10 @@ var __createChart = function(){
 	chartP = yield(CUBE.calc2Cube({
 		"from":flat.cube,
 		"select":[
-			{"value":"total", "color":"gray"},
-			{"value":"required", "color":"brown"},
-			{"value":"estimate", "color":"red"},
-			{"value":"open", "color":"blue"}
+			{"value":"total", "style":{"color":"gray"}},
+			{"value":"required", "style":{"color":"brown"}},
+			{"value":"estimate", "style":{"color":"red"}},
+			{"value":"open", "style":{"color":"blue"}}
 		],
 		"edges":[
 			{"name":"date", "value":"date", "domain":{"type":"time", "min":sampleMin, "max":MAX_CHART_DATE, "interval":"day", "value":"value"}}

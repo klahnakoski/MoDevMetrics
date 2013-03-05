@@ -9,7 +9,8 @@ Bugzilla.URL="https://bugzilla.mozilla.org/buglist.cgi";
 //Bugzilla.numCallback=0;
 
 Bugzilla.showBugs=function(bugList){
-	window.open(Bugzilla.searchBugsURL(bugList));
+	var url=Bugzilla.searchBugsURL(bugList);
+	window.open(url);
 };//method
 
 

@@ -51,7 +51,7 @@
 
 
 
-<script type="application/javascript;version=1.7" src="js/CNV.js"></script>
+<script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
@@ -98,9 +98,12 @@
 <script type="application/javascript;version=1.7" src="js/etl/BugTags.js"></script>
 
 
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
 
-<h3>Security Bug Count - by Priority</h3>
 <div id="sidebar">
+	<br><br>
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 	</div>
@@ -117,14 +120,15 @@
 	<div id="filters" class="menu"></div>
 </div>
 
-<div style="float:right;display: inline;">
-	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+
+<div>
+	<h3>Security Bug Count - by Priority</h3>
+
+	<div id="chart" class="chart" style="float:none;"></div>
+
+	<div id="info"></div>
+	<div id="report"></div>
 </div>
-<div id="chart" style="position:relative;"></div>
-
-<div id="info"></div>
-<div id="report"></div>
-
 
 <script type="application/javascript;version=1.7">
 

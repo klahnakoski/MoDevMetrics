@@ -120,7 +120,7 @@ CUBE.where.compile = function(whereClause, sourceColumns, edges){
 	try{
 		eval(f);
 	}catch(e){
-		D.error("Can not compile where clause", e);
+		D.error("Can not compile where clause {\n"+f+"\n}", e);
 	}//try
 
 	return whereMethod;

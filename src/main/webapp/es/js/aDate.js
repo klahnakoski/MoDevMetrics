@@ -54,10 +54,19 @@ Date.prototype.getMilli = Date.prototype.getTime;
 
 
 Date.prototype.between=function(min, max){
-	if (min.getMilli) min=min.getMilli();
-	if (max.getMilli) max=max.getMilli();
+	if (min==null) return null;	//NULL MEANS UNKNOWN, SO between() IS UNKNOWN
+	if (max==null) return null;
 
-	return (min<=this.getMilli() && this.getMilli()<max);
+	//UNDEFINED MEANS DO-NOT-CARE
+	if (min!=undefined){
+		if (min.getMilli) min=min.getMilli();
+		if (min>this.getMilli()) return false;
+	}//endif
+	if (max!=undefined){
+		if (max.getMilli) max=max.getMilli();
+		if (max<=this.getMilli()) return false;
+	}//endif
+	return true;
 };//method
 
 Date.prototype.add = function(interval){
@@ -211,12 +220,12 @@ Date.prototype.addDay = function(value){
 
 Date.prototype.addWeekday = function(value){
 	var output=this.addDay(1);
-	if ([0,1].contains(output.dow())) output.floorWeek().addDay(2);
+	if ([0,1].contains(output.dow())) output=output.floorWeek().addDay(2);
 
-	var weeks=aMath.floor(value/5*7);
-	value=value-(weeks*7);
+	var weeks=aMath.floor(value/5);
+	value=value-(weeks*5);
 	output=output.addDay(value);
-	if ([0,1].contains(output.dow())) output.floorWeek().addDay(2);
+	if ([0,1].contains(output.dow())) output=output.floorWeek().addDay(2);
 
 	output=output.addWeek(weeks).addDay(-1);
 	return output;
@@ -727,7 +736,7 @@ Date.getDateFromFormat=function(val, format, isPastDate){
 // Returns a Date object or null if no patterns match.
 // ------------------------------------------------------------------
 {
-	var generalFormats = ['EE MMM d, yyyy', 'EE MMM d, yyyy @ hh:mm a', 'y - M - d', 'MMM d, y', 'MMM d y', 'MMM d', 'y - MMM - d', 'd - MMM - y', 'd MMM y'];
+	var generalFormats = ['EE MMM d, yyyy', 'EE MMM d, yyyy @ hh:mm a', 'y - M - d',  'yyyy - MM - dd HH : mm : ss', 'MMM d, y', 'MMM d y', 'MMM d', 'y - MMM - d', 'yyyyMMMd', 'd - MMM - y', 'd MMM y'];
 	var monthFirst = ['M / d / y', 'M - d - y', 'M . d . y', 'MMM - d', 'M / d', 'M - d'];
 	var dateFirst = ['d / M / y', 'd - M - y', 'd . M . y', 'd - MMM', 'd / M', 'd - M'];
 

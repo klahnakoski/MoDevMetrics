@@ -74,9 +74,11 @@ ElasticSearch.getMinMax=function(esfilter){
 	//CONVERT TO DATE VALUES (ALSO CONVERTS HIGH DATE VALUE TO null)
 	u1.cube.forall(function(v, i){
 		u1.cube[i]=Date.newInstance(v);
+		if (u1.cube[i]==null) u1.cube[i]=undefined;
 	});
 	u2.cube.forall(function(v, i){
 		u2.cube[i]=Date.newInstance(v);
+		if (u2.cube[i]==null) u2.cube[i]=undefined;		//NULL MEANS UNKNOWN, WHEREAS undefined MEANS NOT DEFINED
 	});
 
 	var u = CUBE.merge({"cubes":[

@@ -191,7 +191,7 @@ aChart.show=function(params){
 		if (chartCube.select instanceof Array){
 			D.error("Can not chart when select clause is an array");
 		}//endif
-		
+
 		categoryLabels=aChart.getAxisLabels(chartCube.edges[0]);
 	}//endif
 
@@ -200,23 +200,38 @@ aChart.show=function(params){
 
 
 	////////////////////////////////////////////////////////////////////////////
-	// COLOUR MANAGMENT
+	// STYLES
 	////////////////////////////////////////////////////////////////////////////
-	var colors=["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"];
+	var styles = [
+		{"color":"#1f77b4"},
+		{"color":"#ff7f0e"},
+		{"color":"#2ca02c"},
+		{"color":"#d62728"},
+		{"color":"#9467bd"},
+		{"color":"#8c564b"},
+		{"color":"#e377c2"},
+		{"color":"#7f7f7f"},
+		{"color":"#bcbd22"},
+		{"color":"#17becf"}
+	];
 	if (chartCube.edges.length==1){
 		if (chartCube.select instanceof Array){
 			for(let i=0;i<chartCube.select.length;i++){
-				if (chartCube.select[i].color!==undefined) colors[i]=chartCube.select[i].color;
+				if (chartCube.select[i].color!==undefined) D.error("expecting color in style attribute (style.color)");
+				if (chartCube.select[i].style!==undefined) styles[i]=chartCube.select[i].style;
 			}//for
 		}else{
-			if (chartCube.select.color!==undefined) colors[0]=chartCube.select.color;
+			if (chartCube.select.color!==undefined) D.error("expecting color in style attribute (style.color)");
+			if (chartCube.select.style!==undefined) styles[0]=chartCube.select.style;
 		}//endif
 	}else{
 		let parts=chartCube.edges[0].domain.partitions;
 		for(let i=0;i<parts.length;i++){
-			if (parts[i].color!==undefined) colors[i]=parts[i].color;
+			if (parts[i].color!==undefined) D.error("expecting color in style attribute (style.color)");
+			if (parts[i].style!==undefined) styles[i]=parts[i].style;
 		}//for
 	}//endif
+
 
 	//STATIC MAP FROM MY CHART TYPES TO CCC CLASS NAMES
 	var chartTypes={
@@ -253,7 +268,7 @@ aChart.show=function(params){
 		yAxisPosition: "right",
 		yAxisSize: 50,
 		xAxisSize: 100,
-		"colors":colors,
+		"colors":styles.map(function(s){return s.color;}),
 		extensionPoints: {
 			noDataMessage_text: "No Data To Chart",
 			xAxisLabel_textAngle: aMath.PI/4,
@@ -264,7 +279,7 @@ aChart.show=function(params){
 			//set in miliseconds
 		    dot_shapeRadius: 1,
             dot_shape:"circle",
-			line_lineWidth: 4,
+			line_lineWidth: 4
 //			line_strokeStyle:
 		},
 		"clickable": true,
@@ -325,8 +340,12 @@ aChart.show=function(params){
 	};
 
 	chart.setData(cccData, {crosstabMode: true, seriesInRows: true});
-
 	chart.render();
+
+	//STARTS AS VISIBLE, SO TOGGLE TO HIDE
+	styles.forall(function(s, i){ if (s.visibility && s.visibility=="hidden") chart.legendPanel.toggleVisibility(i);});
+
+//	chart.basePanel.chart.legendPanel
 
 	//ADD BUTTON TO SHOW SHEET
 	if (params.sheetDiv){
@@ -356,7 +375,7 @@ var BZ_SHOW_BUG_LIMIT=1000;
 var bugClicker=function(query, series, x, d, elem){
 	try{
 		//We can decide to drilldown, or show a bug list.
-		//Someimes drill down is not available, and bug list is too big, so nothing happens
+		//Sometimes drill down is not available, and bug list is too big, so nothing happens
 		//When there is a drilldown, the decision to show bugs is made at a lower count (prefering drilldown)
 		aThread.run(function(){
 			var specific;

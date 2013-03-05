@@ -86,6 +86,10 @@ MVEL.compile.expression = function(expression, query){
 MVEL.compile.getContextVariables=function(indexName, body){
 	var context = "";
 	var columns = ESQuery.getColumns(indexName);
+
+	var parentVarNames=[];	//ALL PARENTS OF VARIABLES WITH "." IN NAME
+
+
 	columns.forall(function(c, i){
 		var j=body.indexOf(c.name, 0);
 		while(j>=0){
@@ -95,7 +99,22 @@ MVEL.compile.getContextVariables=function(indexName, body){
 
 			if (test1=="doc[\"" + c.name + "\"]") continue; //BUT NOT ALREADY IN USE By doc["x"]
 			if (test2=="getDocValue(\"" + c.name + "\")") continue;
-			context += "var " + c.name + " = doc[\"" + c.name + "\"].value;\n";
+
+			function defParent(name){
+				if (name.indexOf(".")<0){
+					context+="var "+name+" = new HashMap();\n";
+				}else{
+					defParent(name.split(".").leftBut(1).join("."));
+					context+=name+" = new HashMap();\n";
+				}//endif
+			}//function
+
+			if (c.name.indexOf(".")>=0){
+				var parentName=defParent(c.name.split(".").leftBut(1).join("."));
+				context += c.name + " = doc[\"" + c.name + "\"].value;\n";
+			}else{
+				context += "var " + c.name + " = doc[\"" + c.name + "\"].value;\n";
+			}//endif
 			break;
 		}//while
 
@@ -445,6 +464,17 @@ MVEL.FUNCTIONS={
 			"m = g.get(java.util.GregorianCalendar.MONTH);\n"+
 			"output = \"\"+g.get(java.util.GregorianCalendar.YEAR)+(m>9?\"\":\"0\")+m;\n"+
 			"output;\n"+
+		"};\n",
+
+	"between":
+		"var between = function(value, prefix, suffix){\n"+
+			"if (value==null){ null; }else{\n"+
+			"var start = value.indexOf(prefix, 0);\n"+
+			"if (start==-1){ null; }else{\n"+
+			"var end = value.indexOf(suffix, start+prefix.length());\n"+
+			"if (end==-1){  null; }else{\n"+
+			"value.substring(start+prefix.length(), end);\n"+
+			"}}}\n"+
 		"};\n"
 
 //		g.add(GregorianCalendar.DAY_OF_MONTH, +100);
@@ -458,3 +488,5 @@ MVEL.FUNCTIONS={
 //		System.out.println(output);
 
 };
+
+

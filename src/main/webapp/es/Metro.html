@@ -44,8 +44,7 @@
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 
 
-<script type="application/javascript;version=1.7" src="js/CNV.js"></script>
-<script type="application/javascript;version=1.7" src="js/util.js"></script>
+<script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
@@ -91,9 +90,14 @@
 
 
 
-<h3 id="title">Metro Iterations</h3>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
 
 <div id="sidebar">
+	<br>
+	<br>
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 	</div>
@@ -109,21 +113,26 @@
 	</div>
 	<div id="filters" class="menu"></div>
 </div>
+<div style="align:left;position:relative;float:left;width:800px;">
 
-<div style="float:right;display: inline;">
-	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+	<h3 id="title">Metro Iterations</h3>
+	<h4>Total Point Count by Iteration</h4>
+	<div id="chart" class="chart"></div>
+	<h4>Open Bugs</h4>
+	<div id="metro_open" class="chart" ></div>
+	<h4>Open Points by Iteration</h4>
+	<div id="iter_open" class="chart"></div>
+	<h4>Total Point by Iteration</h4>
+	<div id="iter_total" class="chart"></div>
+
+	<div id="info" style="float:left;"></div>
+	<div id="report"></div>
+
 </div>
 
-<div id="chart" class="chart" style="position: relative;"></div>
-<div id="metro_open" class="chart" style="position: relative;"></div>
-<div id="iter_open" class="chart" style="position: relative;"></div>
-<div id="iter_total" class="chart" style="position: relative;"></div>
-
-<div id="info" style="float:left;"></div>
-<div id="report"></div>
-
-
 <script type="application/javascript;version=1.7">
+
+
 
 
 var CUTOFF = Duration.newInstance("3week");
@@ -142,21 +151,35 @@ var __createChart = function(){
 	//GRAB PUBLIC DESCRIPTIONS FROM BZ
 
 
+	var numSample=6;
+	var optimisticSample=3;
+	var pessimisticSample=3;
+
+	$("#description").html(
+		"Uses up to the last "+numSample+" iterations to estimate the time to complete "+
+		"the remaining backlog.  Out of those, the best "+	optimisticSample+" are used to make "+
+		"an optimistic estimate, and the worst "+pessimisticSample+" are used to make "+
+		"a pessimistic estimate"
+	);
+
+	var mvelToCountPoints='Math.max(1, between(coalesce(getDocValue("status_whiteboard"), " ")+" ", "p=", " ")-0)';
+
 	//WRITE DEPENDENCY AND CLOSURE TO ES
 
 
 	//CALCULATE BACKLOG OVER TIME??  OR JUST USE ALL OTHER DEPENDENCIES?
 	var backlog=838081;
 	var iterationParent=838829;
-	var startDate=Date.newInstance("2012-12-01");
-	var endDate=Date.newInstance("2013-03-01");
+	var startDate=Date.newInstance("2013-01-29");
+	var endDate=Date.eod();
 
 
 
 //	var bugs={"838829":{"bug_id":838829, "dependson":["837155", "837145", "839392"]}};
-	var bugs=yield(getDescendants(metro));
+	var bugs=yield(getDescendants(metro, startDate, endDate));
 
-	D.println(Object.keys(bugs));
+//	D.println(Object.keys(bugs));
+
 
 	var metroSummary=yield (CUBE.calc2Cube({
 		"from":Map.codomain(bugs),
@@ -183,145 +206,198 @@ var __createChart = function(){
 
 	//
 
+	var iterations=bugs[iterationParent].dependson.map(function(v, i){
+		return bugs[v];
+	}).sort(function(a, b){return CUBE.domain.value.compare(a.summary, b.summary);});
+	iterations.push(bugs[backlog]);
+
+	//startDate IS ONE DAY AFTER THE ITERATION "START", AND
+	//endDATE IS 1+2 DAYS AFTER THE END (TWO DAYS TO WAIT FOR INTER-SPRINT DATA ENTRY)
+	iterations[1].startDate=Date.newInstance("2013FEB5");	//SPECIAL, SPRINT INFO WAS NOT IN BZ YET
+	iterations[1].endDate=Date.newInstance("2013FEB6");		//SPECIAL, DIP ON THE 7th IS NOT REPRESENTATIVE
+	iterations[2].startDate=Date.newInstance("2013FEB8");
+	iterations[2].endDate=Date.newInstance("2013FEB23");
+	iterations[3].startDate=Date.newInstance("2013FEB27");
+	iterations[3].endDate=Date.newInstance("2013MAR14");
+
+	var currentIteration=iterations.map(function(i){if (endDate.between(i.startDate, i.endDate)) return i;})[0];
 
 
-	var iter=yield(getIterationRanges(bugs[iterationParent].dependson));
-	iter=yield(CUBE.Cube2List(iter));
+	////////////////////////////////////////////////////////////////////////////
+	// BACKLOG COUNT
+	////////////////////////////////////////////////////////////////////////////
+	var backlogCount;
+	var totalThread=aThread.run(function(){
 
-	//MATCH ASSINGED BUGS TO bugs TO FIND AGES
-	//I AM VERY SAD I COULD NOT DO THIS RELATIONALLY, MAYBE WHEN I HAVE MORE TIME TO THINK ABOUT IT.
-	var byDay=[];
-	for(var date=startDate;date.getMilli()<endDate.getMilli();date=date.add(Duration.DAY)){
-		var iterations={};
-		iter.forall(function(iteration, i){
-			var work=iterations[iteration.iteration];
-			if (work===undefined){
-				work={
-					"date":date,
-					"iteration":iteration.iteration,
-					"open_count":0,
-					"open_points":0,
-					"total_count":0,
-					"total_points":0,
-					"descendants":{}
-				};
-				iterations[iteration.iteration]=work;
-			}//endif
+		//THE CURRENT SPRINT IS NOT COMPLETED, SO BACKLOG SHOULD INCLUDE THOSE BUGS
 
-			//WE ONLY COUNT ASSIGNED ITERATIONS
-			if (iteration.min<=date.getMilli() && date.getMilli()<iteration.max){
-				var child=bugs[iteration.bug_id];
+		var begin=endDate.addWeekday(-12);
 
-				child.descendants.forall(function(b, i){
-					if (work.descendants[b.bug_id]) return;	//ALREADY PART OF ITERATION
-					work.descendants[b.bug_id]=b;
-					if ((b.open_time<=date.getMilli() && date.getMilli()<b.close_time)){
-						work.open_count++;
-						work.open_points+=b.points;
-					}//endif
-					if (b.open_time<=date.getMilli()){
-						work.total_count++;
-						work.total_points+=b.points;
-					}//endif
+
+		backlogCount = yield (ESQuery.run({
+			"from":"bugs",
+			"select":{"name":"total_points", "value":mvelToCountPoints, "operation":"sum"},
+			"esfilter":{"and":[
+				{"terms":{"blocked":[backlog, currentIteration.bug_id]}},
+				{"range":{"expires_on":{"gte": endDate.getMilli()}}},
+				{"range":{"modified_ts":{"lt": endDate.getMilli()}}}
+			]}
+		}));
+
+		D.println("Backlog="+backlogCount.cube.total_points);
+	});
+
+//	var allAssignedBugs=yield(getIterationRanges(bugs[iterationParent].dependson));
+//	allAssignedBugs=yield(CUBE.Cube2List(allAssignedBugs));
+
+	////////////////////////////////////////////////////////////////////////////
+	// TOTAL BY ITERATION
+	////////////////////////////////////////////////////////////////////////////
+	var iterTotal;
+	var iterTotalThread=aThread.run(function(){
+		iterTotal=yield (ESQuery.run({
+			"from":"bugs",
+			"select":{"name":"total_points", "value":mvelToCountPoints, "operation":"sum"},
+			"edges":[
+				{"name":"iteration", "value":"blocked",
+					domain:{"type":"set", "partitions":iterations, "value":"summary", "key":"bug_id"}
+				},
+				{"name":"date",
+					"range":{"min":"modified_ts", "max":"expires_on"},
+					"domain":{"type":"time", "min":startDate, "max":endDate, "interval":"day"}
+				}
+			]
+		}));
+
+		aChart.show({
+			"id":"iter_total",
+			"sheetDiv":"info",
+			"type":"line",
+			"cube":iterTotal,
+			"height":400,
+			"clickAction":function(series, x, d, elem){
+				aThread.run(function(){
+					var iteration=iterations.map(function (v, i){if (v.summary==series) return v;})[0];
+					var date=Date.newInstance(x);
+
+					var bugList=yield (ESQuery.run({
+						"from":"bugs",
+						"select":"bug_id",
+						"esfilter":{"and":[
+							{"range":{"modified_ts":{"lte":date.getMilli()}}},
+							{"range":{"expires_on":{"gt":date.getMilli()}}},
+							{"term":{"blocked":iteration.bug_id}}
+
+						]}
+					}));
+					
+					Bugzilla.showBugs(bugList.list);
 				});
-
-				//UNFORTUNATELY DESCENDANTS DO NOT INCLUDE SELF
-				if (!work.descendants[child.bug_id]){
-					work.descendants[child.bug_id]=child;
-					if ((child.open_time<=date.getMilli() && date.getMilli()<child.close_time)){
-						work.open_count++;
-						work.open_points+=child.points;
-					}//endif
-					if (child.open_time<=date.getMilli()){
-						work.total_count++;
-						work.total_points+=child.points;
-					}//endif
-				}//endif
-			}//endif
+				return true;
+			}
 		});
-		var dayInfo=Map.codomain(iterations);
-		byDay.appendArray(dayInfo);
-	}//for
 
-
-
-
+	});
 
 
 	
-	var open=yield (CUBE.calc2Cube({
-		"from":byDay,
-		"select":{"name":"num", "value":"open_points", "operation":"sum"},
-		"edges":[
-			{"value":"iteration", domain:{"type":"default", "value":"value"}},
-			{"value":"date",
-				"allowNulls":false,
-				"domain":{"type":"time", "min":startDate, "max":endDate, "interval":"day", "value":"value"}
-			}//,
-			//{"name":"bug", "value":""
-		]
-	}));
+	////////////////////////////////////////////////////////////////////////////
+	// OPEN
+	////////////////////////////////////////////////////////////////////////////
+	aThread.run(function(){
 
-	aChart.show({
-		"id":"iter_open",
-		"sheetDiv":"info",
-		"type":"line",
-		"cube":open,
-		"height":400
-	});
+		var open=yield (ESQuery.run({
+			"from":"bugs",
+			"select":{"name":"total_points", "value":mvelToCountPoints, "operation":"sum"},
+			"edges":[
+				{"name":"iteration", "value":"blocked",
+					domain:{"type":"set", "partitions":iterations, "value":"summary", "key":"bug_id"}
+				},
+				{"name":"date",
+					"range":{"min":"modified_ts", "max":"expires_on"},
+					"domain":{"type":"time", "min":startDate, "max":endDate, "interval":"day"}
+				}
+			],
+			"esfilter":Mozilla.BugStatus.Open.esfilter
+		}));
 
-	var total=yield (CUBE.calc2Cube({
-		"from":byDay,
-		"select":{"name":"num", "value":"total_points", "operation":"sum"},
-		"edges":[
-			{"value":"iteration", domain:{"type":"default", "value":"value"}},
-			{"value":"date",
-				"allowNulls":false,
-				"domain":{"type":"time", "min":startDate, "max":endDate, "interval":"day", "value":"value"}
-			}//,
-			//{"name":"bug", "value":""
-		]
-	}));
-
-	aChart.show({
-		"id":"iter_total",
-		"sheetDiv":"info",
-		"type":"line",
-		"cube":total,
-		"height":400
+		aChart.show({
+			"id":"iter_open",
+			"sheetDiv":"info",
+			"type":"line",
+			"cube":open,
+			"height":400
+		});
 	});
 
 
-
-
-//	var t = yield(getBacklogMembers(backlog, startDate, endDate));
-//
-//	var c=yield (CUBE.calc2Cube({
-//		"from":t,
-//		"select": {"name":"num_bugs", "value":"exists", "operation":"sum"},
-//		"edges":[
-//			"iteration",
-//			"date"
-//		]
-//	}));
-//
-//	aChart.show({
-//		"id":"chart",
-//		"sheetDiv":"info",
-//		"type":"line",
-//		"cube":c,
-//		"height":400
-//	});
+	////////////////////////////////////////////////////////////////////////////
+	// SHOW ITERATION STATS
+	////////////////////////////////////////////////////////////////////////////
+	aThread.run(function(){
+		yield (aThread.join(totalThread));
+		yield (aThread.join(iterTotalThread));
 
 
 
-//	$("#info").html(CNV.List2HTMLTable(yield(CUBE.Cube2List(t))));
+
+		//FIND START AND END POINTS FOR EACH ITERATION
+		//THIS SHOULD BE A UPDATE JOIN, OF SORTS
+		iterations.forall(function(iter, i){
+			//WE ASSUME THE iteration DIMENSION IS ORDERED LIKE OUR iterations [i]
+			iter.startCount=iterTotal.cube[i][iterTotal.edges[1].domain.getPartByKey(iter.startDate).dataIndex];
+			iter.endCount  =iterTotal.cube[i][iterTotal.edges[1].domain.getPartByKey(iter.endDate  ).dataIndex];
+
+		});
 
 
 
-	//	$("#info").html(CNV.List2HTMLTable(yield(CUBE.Cube2List(u))));
+		//RETURN BEST, AVERAGE AND WORSE
+		var bestAverageWorst=function(data, optimisticSampleSize, pessimisticSampleSize){
+			var sorted=data.sort(function(a, b){return a-b;});
 
-//	$("#info").html(CNV.List2HTMLTable(bugs));
+			return {
+				"average":aMath.average(data),
+				"worst":aMath.average(sorted.left(pessimisticSampleSize)),
+				"best":aMath.average(sorted.right(optimisticSampleSize))
+			};
+		};//function
+
+		var est=bestAverageWorst(
+			iterations.map(function(v, i){if (i<numSample) return v.endCount;}),
+			optimisticSample,
+			pessimisticSample
+		);
+
+		var remaining=backlogCount.cube.total_points;
+		var numLeft={
+			"average":remaining/est.average,
+			"worst":remaining/est.worst,
+			"best":remaining/est.best
+		};
+
+		var doneDate={
+			"average":currentIteration.endDate.addWeekday(12*aMath.ceiling(numLeft.average)),
+			"worst":currentIteration.endDate.addWeekday(12*aMath.ceiling(numLeft.worst)),
+			"best":currentIteration.endDate.addWeekday(12*aMath.ceiling(numLeft.best))
+		};
+
+
+		$("#stats").html(
+			'<span class="parameter_name">Backlog:</span><b>'+remaining+' points</b><br>'+
+			'<span class="parameter_name">Avg/Iteration:</span><b>'+aMath.round(est.average, 1)+' points</b><br>'+
+			'<hr><b><span style="text-align:center;font-weight: bold;">Remaining Iterations (including current)</span></b><br>'+
+			'<span class="parameter_name">Best Case:</span><b>'+aMath.ceiling(numLeft.best)+' (done '+doneDate.best.format("dd-NNN-yy")+')</b><br>'+
+			'<span class="parameter_name">Average Case:</span><b>'+aMath.ceiling(numLeft.average)+' (done '+doneDate.average.format("dd-NNN-yy")+')</b><br>'+
+			'<span class="parameter_name">Worst Case:</span><b>'+aMath.ceiling(numLeft.worst)+' (done '+doneDate.worst.format("dd-NNN-yy")+')</b><br>'
+		);
+
+		//WE KNOW THE NUMBER OF ITERATIONS NEEDED, LETS SHOW A SPRINT BURNDOWN
+
+		
+
+
+	});
 
 };
 
@@ -329,7 +405,7 @@ var __createChart = function(){
 
 
 
-function getDescendants(parent){
+function getDescendants(parent, startDate, endDate){
 //FIND DEPENDENCY FIXPOINT
 	var bugs = {};
 //	var orderedBugs=[];
@@ -341,7 +417,9 @@ function getDescendants(parent){
 				"query":{"match_all":{}},
 				"filter":{"and":[
 					{"term":{"status_whiteboard.tokenized":"metro-mvp"}},
-					{"range":{"expires_on":{"gt":Date.now().getMilli()}}}
+					{"range":{"modified_ts":{"lte":endDate.getMilli()}}},
+					{"range":{"expires_on":{"gt":startDate.getMilli()}}},
+					Mozilla.BugStatus.Open.esfilter
 				]}
 			}
 		},
@@ -368,7 +446,9 @@ function getDescendants(parent){
 					"query":{"match_all":{}},
 					"filter":{"and":[
 						{"terms":{"bug_id":lookFor}},
-						{"range":{"expires_on":{"gt":Date.now().getMilli()}}}
+						{"range":{"modified_ts":{"lte":endDate.getMilli()}}},
+						{"range":{"expires_on":{"gt":startDate.getMilli()}}},
+						Mozilla.BugStatus.Open.esfilter
 					]}
 				}
 			},
@@ -389,9 +469,9 @@ function getDescendants(parent){
 				bugs[b.bug_id] = b;
 			}//endif
 
-				if (b.bug_id==836963){
-					D.println("");
-				}
+			if (b.bug_id==836963){
+				D.println("");
+			}
 
 			var deps=Util.coalesce(b.dependson, []);
 			deps.forall(function(w, i){
@@ -417,7 +497,7 @@ function getDescendants(parent){
 
 	//AGE OF ALL BUGS FROM ES
 	var getAges=aThread.run(function(){
-		var ages = yield (getMinMax({"and":[
+		var ages = yield (ElasticSearch.getMinMax({"and":[
 			{"terms":{"bug_id":Object.keys(bugs)}},
 			Mozilla.BugStatus.Open.esfilter
 		]}));
@@ -514,6 +594,12 @@ function getBacklogMembers(backlog, startDate, endDate){
 	}));
 	yield t;
 }//method
+
+
+
+function getAllHierarchy
+
+
 
 
 //REQUIRES LIST OF ITERATIONS

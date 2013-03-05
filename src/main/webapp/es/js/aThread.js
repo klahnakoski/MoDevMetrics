@@ -219,12 +219,6 @@ aThread.yield=function() {
 
 //WAIT FOR OTHER THREAD TO FINISH
 aThread.join=function(otherThread){
-//	while(otherThread.keepRunning){
-//		yield (aThread.sleep(300));		//FOR SOME REASON FireFox20 NEVER RUNS THE PREPENDED GENERATOR
-//	}//while
-//	yield (otherThread.returnValue);
-
-
 	if (otherThread.keepRunning) {
 		//WE WILL SIMPLY MAKE THE JOINING THREAD LOOK LIKE THE otherThread's CALLER
 		//(WILL ALSO GRAB ANY EXCEPTIONS THAT ARE THROWN FROM otherThread)

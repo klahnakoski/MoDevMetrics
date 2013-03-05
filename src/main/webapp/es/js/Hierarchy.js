@@ -126,6 +126,11 @@ Hierarchy.topologicalSort=function(args){
 				}//endif
 			}//for
 
+			if (queue.length==0 && unprocessed.length>0){
+				var hasParent=unprocessed.map(function(v,i){if (graph[v].__parent!==undefined) return v;});
+				if (hasParent.length==0) D.error("Isolated cycle found");
+				queue.appendArray(hasParent);
+			}//endif
 			processStartingPoint(queue.shift());
 		}//while
 	}//method
@@ -135,8 +140,9 @@ Hierarchy.topologicalSort=function(args){
 		if (nodeId == undefined){
 			throw "You have a cycle!!";
 		}
-		graph[nodeId][children_field].forall(function(e){
-			graph[e].indegrees--;
+		graph[nodeId][children_field].forall(function(child){
+			graph[child].indegrees--;
+			graph[child].__parent=graph[nodeId];
 		});
 		processed.push(graph[nodeId]);
 	}
@@ -148,16 +154,16 @@ Hierarchy.topologicalSort=function(args){
 			if (node.indegrees===undefined) node.indegrees = 0;
 			if (node[children_field]===undefined) node[children_field]=[];
 
-				if (nodeId=="836963"){
-					D.println("");
-				}
+//			if (nodeId=="836963"){
+//				D.println("");
+//			}//endif
 
 			node[children_field].forall(function(e){
 				if (graph[e]===undefined){
 					graph[e]=Map.newInstance(id_field, e);
 				}//endif
 
-				if (nodeId==831910 && e==831532) return;	//REMOVE CYCLE (CAN'T HANDLE CYCLES)
+//				if (nodeId==831910 && e==831532) return;	//REMOVE CYCLE (CAN'T HANDLE CYCLES)
 
 				if (graph[e].indegrees===undefined){
 					graph[e].indegrees = 1
