@@ -107,7 +107,7 @@ ESQuery.loadColumns=function(query){
 		var properties = schema[indexPath.split("/")[2]].properties;
 
 		index.columns = ESQuery.parseColumns(indexName, properties);
-	}//edif
+	}//endif
 };//method
 
 
@@ -1031,22 +1031,44 @@ ESQuery.prototype.terms_statsResults = function(data){
 
 ESQuery.prototype.compileSetOp=function(){
 	this.esQuery=this.buildESQuery();
+	var select=CUBE.select2Array(this.query.select);
 
-	this.esQuery.facets.mvel={
-		"terms":{
-			"script_field": new MVEL().code(this.query),
-			"size": this.query.essize
-		}
-	};
+
+	if (select.length==1 && MVEL.isKeyword(select[0].value)){
+		this.esQuery.facets.mvel={
+			"terms":{
+				"field": select[0].value,
+				"size": this.query.essize
+			}
+		};
+	}else{
+		this.esQuery.facets.mvel={
+			"terms":{
+				"script_field": new MVEL().code(this.query),
+				"size": this.query.essize
+			}
+		};
+	}//endif
 };
 
 
 ESQuery.prototype.mvelResults=function(data){
- 	this.query.list =  MVEL.esFacet2List(data.facets.mvel, this.select);
+	var select=CUBE.select2Array(this.query.select);
+	if (select.length==1 && MVEL.isKeyword(select[0].value)){
+		//SPECIAL CASE FOR SINGLE TERM
+		var T = data.facets.mvel.terms;
+		var n=select[0].name;
 
-	var select=this.query.select;
+		var output = [];
+		for(var i = T.length; i--;) output.push(Map.newInstance(n, T[i].term));
+		this.query.list= output;
+	}else{
+	 	this.query.list =  MVEL.esFacet2List(data.facets.mvel, this.select);
+	}//endif
+
+	
+	select=this.query.select;
 	if (select instanceof Array) return;
-
 	//SELECT AS NO ARRAY (AND NO EDGES) MEANS A SIMPLE ARRAY OF VALUES, NOT AN ARRAY OF OBJECTS
 	this.query.list=this.query.list.map(function(v, i){return v[select.name];});
 };//method

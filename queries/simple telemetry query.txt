@@ -1,0 +1,11 @@
+{
+    "from": "telemetry",
+    "select": {
+        "name": "num",
+        "value": "info",
+        "operation": "count"
+    },
+    "edges": [
+        "info.appBuildID"
+    ]
+}

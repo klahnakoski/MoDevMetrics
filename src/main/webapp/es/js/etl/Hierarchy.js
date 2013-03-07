@@ -7,7 +7,7 @@ importScript("ETL.js");
 
 
 var HIERARCHY={};
-HIERARCHYATCH_SIZE=20000;
+HIERARCHY_BATCH_SIZE=20000;
 HIERARCHY.aliasName="bug_hierarchy";
 HIERARCHY.newIndexName=undefined;  //CURRENT INDEX FOR INSERT
 HIERARCHY.oldIndexName=undefined;  //WHERE THE CURENT ALIAS POINTS
@@ -38,7 +38,7 @@ HIERARCHY.makeSchema=function(){
 		"properties":{
 			"bug_id":{"type":"integer", "store":"yes", "index":"not_analyzed"},
 			"children":{"type":"integer", "store":"yes", "index":"not_analyzed"},
-			"descendence":{"type":"integer", "store":"yes", "index":"not_analyzed"},
+			"descendents":{"type":"integer", "store":"yes", "index":"not_analyzed"},
 			"modified_ts":{"type":"long", "store":"yes", "index":"not_analyzed"},
 			"expires_on":{"type":"long", "store":"yes", "index":"not_analyzed"}
 		}
@@ -121,9 +121,12 @@ HIERARCHY.get=function(minBug, maxBug){
 
 	var all=[];
 
-	var BLOCK_SIZE=1;
-	for(var i= 28420;i<maxBugID+1;i+=BLOCK_SIZE){
-		esfilter={"range":{"bug_id":{"gte":i, "lt":i+BLOCK_SIZE}}};
+	var BLOCK_SIZE=10000;
+	for(var i=40000;i<maxBugID+1;i+=BLOCK_SIZE){
+		esfilter={"and":[
+			{"range":{"bug_id":{"gte":i, "lt":i+BLOCK_SIZE}}},
+			{"not":{"term":{"bug_id":41273}}}
+		]};
 
 		var a=D.action("Get Current Bug Info", true);
 		var currentData=yield (ESQuery.run({
@@ -133,7 +136,11 @@ HIERARCHY.get=function(minBug, maxBug){
 			],
 			"esfilter":{"and":[
 				esfilter,
-				{"not":{"missing":{"field":"dependson"}}}
+				{"not":{"missing":{"field":"dependson"}}},
+				{"or":[
+					{"term":{"changes.field_name":"blocked"}}, 	//ONLY NEED RECORDS WHERE blocked CHANGED
+					{"term":{"bug_version_num":1}}			//THE FIRST BUG MAY HAVE INITIAL DATA
+				]}
 			]},
 //FOR SOME REASON bug_id=28424 WILL NOT ALLOW ACCESS TO bug_version_num
 //			"where":{"or":[
@@ -142,7 +149,7 @@ HIERARCHY.get=function(minBug, maxBug){
 //			]}
 		}));
 
-		D.println("Num hierarchy records from "+esfilter.range.bug_id.gte+" to "+esfilter.range.bug_id.lt+": "+currentData.list.length);
+		D.println("Num hierarchy records from "+i+" to "+(i+BLOCK_SIZE)+": "+currentData.list.length);
 		all.appendArray(currentData.list);
 		D.actionDone(a);
 	}//for

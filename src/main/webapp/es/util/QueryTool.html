@@ -51,8 +51,8 @@
 
 
 
-<script type="application/javascript;version=1.7" src="../js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="../js/util.js"></script>
+<script type="application/javascript;version=1.7" src="../js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="../js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="../js/MozillaPrograms.js"></script>
@@ -149,50 +149,55 @@
 	$("#description").html("converts Cube query to ES query, and then sends to ES for a result");
 
 
-	var executeCube=function(event){
-		//EVAL THE CUBE
-		var code=$("#cube").val();
-		if (code.trim().left(1)!="{") code="{"+code;
-		if (code.trim().right(1)!="}") code=code+"}";
+	var executeCube=function(event){ //THIS IS A GENERATOR
 
-		var cubeQuery;
-		try{
-			//USE JSONLINT TO FORMAT AND TEST-COMPILE THE code
-			code=jsl.format.formatJson(code);
-			$("#cube").val(code);
-			jsl.parser.parse(code);
+			//EVAL THE CUBE
+			var code=$("#cube").val();
+			if (code.trim().left(1)!="{") code="{"+code;
+			if (code.trim().right(1)!="}") code=code+"}";
 
-			var query;
-			eval("query="+code);
-			cubeQuery = new ESQuery(query);
-//			cubeQuery.esQuery.query.size=100;
-			$("#esquery").val(CNV.Object2JSON(cubeQuery.esQuery));
-		}catch(e){
-			$("#esquery").val(e.message);
-			yield (null);
-		}//try
+			var backupCode=code;
+			var cubeQuery;
+			try{
+				//USE JSONLINT TO FORMAT AND TEST-COMPILE THE code
+				code=jsl.format.formatJson(code);
+				$("#cube").val(code);
+				jsl.parser.parse(code);
 
-		var a=D.action("Sending query", true);
+				var query;
+				eval("query="+code);
+				yield (ESQuery.loadColumns(query));
+				cubeQuery = new ESQuery(query);
+				$("#esquery").val(CNV.Object2JSON(cubeQuery.esQuery));
 
-		try{
-			var data=yield (cubeQuery.run());
+				//TIGHTER PACKING IF JSON
+				$("#cube").val(CNV.Object2JSON(CNV.JSON2Object(backupCode)));
+			}catch(e){
+				$("#esquery").val(e.message);
+				yield (null);
+			}//try
 
-			D.action("Got result");
+			var a=D.action("Sending query", true);
 
-			if (data.cube!==undefined){
-				data.list=yield (CUBE.Cube2List(data));
-				$("#result").html("<div>"+data.list.length+" rows (up to 100 shown)</div>"+CNV.List2HTMLTable(data.list, {"limit":3000}));
-			}else if (data.list!==undefined){
-				$("#result").html("<div>"+data.list.length+" rows (up to 100 shown)</div>"+CNV.List2HTMLTable(data.list, {"limit":3000}));
-			}else{
-				$("#result").html(CNV.String2HTML(CNV.Object2JSON(data)));
-			}//endif
-		}catch(e){
-			D.action(e.message);
-			$("#result").html(e.data.response);
-		}//try
+			try{
+				var data=yield (cubeQuery.run());
 
-		D.actionDone(a);
+				D.action("Got result");
+
+				if (data.cube!==undefined){
+					data.list=yield (CUBE.Cube2List(data));
+					$("#result").html("<div>"+data.list.length+" rows (up to 100 shown)</div>"+CNV.List2HTMLTable(data.list, {"limit":3000}));
+				}else if (data.list!==undefined){
+					$("#result").html("<div>"+data.list.length+" rows (up to 100 shown)</div>"+CNV.List2HTMLTable(data.list, {"limit":3000}));
+				}else{
+					$("#result").html(CNV.String2HTML(CNV.Object2JSON(data)));
+				}//endif
+			}catch(e){
+				D.action(e.message);
+				if (e.data!==undefined) $("#result").html(e.data.response);
+			}//try
+
+			D.actionDone(a);
 	};
 
 	aThread.run(function(){

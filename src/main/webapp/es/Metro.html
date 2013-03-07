@@ -46,6 +46,7 @@
 
 <script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/aDate.js"></script>
+<script type="application/javascript;version=1.7" src="js/aColour.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
 <script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
@@ -116,8 +117,9 @@
 <div style="align:left;position:relative;float:left;width:800px;">
 
 	<h3 id="title">Metro Iterations</h3>
-	<h4>Total Point Count by Iteration</h4>
-	<div id="chart" class="chart"></div>
+	<div id="colours"></div>
+	<h4>Summary</h4>
+	<div id="summary" class="chart"></div>
 	<h4>Open Bugs</h4>
 	<div id="metro_open" class="chart" ></div>
 	<h4>Open Points by Iteration</h4>
@@ -132,6 +134,8 @@
 
 <script type="application/javascript;version=1.7">
 
+
+Color.showAll("colours");
 
 
 
@@ -347,7 +351,7 @@ var __createChart = function(){
 			//WE ASSUME THE iteration DIMENSION IS ORDERED LIKE OUR iterations [i]
 			iter.startCount=iterTotal.cube[i][iterTotal.edges[1].domain.getPartByKey(iter.startDate).dataIndex];
 			iter.endCount  =iterTotal.cube[i][iterTotal.edges[1].domain.getPartByKey(iter.endDate  ).dataIndex];
-
+			iter.number=i;
 		});
 
 
@@ -392,9 +396,34 @@ var __createChart = function(){
 			'<span class="parameter_name">Worst Case:</span><b>'+aMath.ceiling(numLeft.worst)+' (done '+doneDate.worst.format("dd-NNN-yy")+')</b><br>'
 		);
 
-		//WE KNOW THE NUMBER OF ITERATIONS NEEDED, LETS SHOW A SPRINT BURNDOWN
+		var allIterations=[];
+		for(var i=1;i<=aMath.ceiling(numLeft.worst)+currentIteration.number-1;i++){
+			allIterations.push({"name":"Iteration #"+i, "number":i});
+		}//for
 
 		
+		//WE KNOW THE NUMBER OF ITERATIONS NEEDED, LETS SHOW A SPRINT BURNDOWN
+		var chart=yield (CUBE.calc2Cube({
+			"from":iterations,
+			"select":[
+				{"name":"Committed", "value":"Util.coalesce(startCount, 0)", "style":{"color":"mediumseagreen"}},
+				{"name":"Completed", "value":"Util.coalesce(endCount, 0)",  "style":{"color":"firebrick"}}
+			],
+			"edges":[
+				{"name":"iteration",
+					"value":"number",
+					"domain":{"type":"set", "partitions":allIterations, "value":"name", "key":"number"}
+				}
+			]
+		}));
+		
+		aChart.show({
+			"id":"summary",
+			"sheetDiv":"info",
+			"type":"bar",
+			"cube":chart,
+			"height":400
+		});
 
 
 	});
@@ -597,7 +626,7 @@ function getBacklogMembers(backlog, startDate, endDate){
 
 
 
-function getAllHierarchy
+//function getAllHierarchy
 
 
 

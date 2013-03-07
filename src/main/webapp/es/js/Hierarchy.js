@@ -11,6 +11,8 @@ var Hierarchy={};
 // ALL OBJECTS MUST HAVE id_field DEFINED
 // RETURNS AN ARRAY OF ROOT NODES.
 Hierarchy.fromList=function(args){
+	ASSERT.hasAttributes(args, ["id_field", "parent_field", "child_field"]);
+
 	var childList={};
 	var roots=[];
 
@@ -44,6 +46,8 @@ Hierarchy.fromList=function(args){
 
 //EXPECTING CERTAIN PARAMETERS, WILL UPDATE ALL BUGS IN from WITH A descendants_field
 Hierarchy.addDescendants=function(args){
+	ASSERT.hasAttributes(args, ["from","id_field","children_field","descendants_field"]);
+
 	var from=args.from;
 	var id_field=args.id_field;
 	var children_field=args.children_field;
@@ -126,11 +130,18 @@ Hierarchy.topologicalSort=function(args){
 				}//endif
 			}//for
 
-			if (queue.length==0 && unprocessed.length>0){
-				var hasParent=unprocessed.map(function(v,i){if (graph[v].__parent!==undefined) return v;});
-				if (hasParent.length==0) D.error("Isolated cycle found");
-				queue.appendArray(hasParent);
-			}//endif
+			{//HACK
+			//THIS IS AN UNPROVEN HACK TO SOLVE THE CYCLE PROBLEM
+			//IF A PARENT OF unprocessed NODE HAS BEEN VISITED, THEN THE NODE WILL
+			//HAVE __parent DEFINED, AND IN THEORY WE SHOULD BE ABLE CONTINUE
+			//WORKING ON THOSE
+				if (queue.length==0 && unprocessed.length>0){
+					var hasParent=unprocessed.map(function(v,i){if (graph[v].__parent!==undefined) return v;});
+					if (hasParent.length==0) D.error("Isolated cycle found");
+					queue.appendArray(hasParent);
+				}//endif
+			}//END OF HACK
+
 			processStartingPoint(queue.shift());
 		}//while
 	}//method
@@ -142,7 +153,7 @@ Hierarchy.topologicalSort=function(args){
 		}
 		graph[nodeId][children_field].forall(function(child){
 			graph[child].indegrees--;
-			graph[child].__parent=graph[nodeId];
+			graph[child].__parent=graph[nodeId];		//MARKUP FOR HACK
 		});
 		processed.push(graph[nodeId]);
 	}

@@ -21,8 +21,9 @@
 
 
 
-<script type="application/javascript;version=1.7" src="es/js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="es/js/util.js"></script>
+<script type="application/javascript;version=1.7" src="es/js/CNV.js"></script>
+
 <script type="application/javascript;version=1.7" src="es/js/aDate.js"></script>
 <script type="application/javascript;version=1.7" src="es/js/Debug.js"></script>
 <script type="application/javascript;version=1.7" src="es/js/aCompiler.js"></script>
@@ -61,6 +62,33 @@
 <h2>Bugzilla Anthropology Metrics Prototypes</h2>
 	<br>
 <table>
+
+	<tr>
+	<td>
+		<h4>February 28th 2013</h4>
+		<div class="description">
+		<p>I have been working on visualizing the agile process being used by the
+		<a href="https://wiki.mozilla.org/Firefox/Metro">Firefox Metro Development Project</a>.
+		I am assuming that stories are direct children of iterations; so I can
+		pull the stories, and their point values, with a simple query</p>
+
+		<p>The technical complication is pulling bug counts:  The DAG formed by bug dependencies is ever-changing,
+		and to get accurate historical counts I need the structure from any point in time.
+		I have tried pulling the current DAG and assuming it does not change
+		much, but that gives terrible results.</p>
+
+		<p>In general, being able to follow the DAG over time will allow developers and
+		managers see the full scope of a project; and be able to zoom in on past state to
+		identify patterns.  Furthermore, in theory, developers need only add a new bug to
+		the DAG at any depth, and it's effort (along with all dependencies) will be automatically
+		reported to the projects affected.</p>
+
+		<p>I hope with some powerful dependency reporting, Mozilla will get more use out of
+		the bug dependency field in Bugzilla.</p>
+		</div>
+	</td>
+	</tr>
+
 
 	<tr>
 	<td>

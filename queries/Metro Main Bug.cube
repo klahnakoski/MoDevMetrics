@@ -1,0 +1,5 @@
+{
+	"esfilter":{"term":{"bug_id":831997}},
+	"select":["bug_id","modified_ts","expires_on","dependson"],
+	"from":"bugs"
+}

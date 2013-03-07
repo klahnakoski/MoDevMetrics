@@ -1,0 +1,19 @@
+
+//GOOD
+{
+	"from":"bugs",
+	"select":{"value":"bug_id"},
+	"esfilter":{"and":[{"term":{"bug_id":28424}}]}
+}
+
+
+
+//BAD
+{
+	"from":"bugs",
+	"select":{"value":"bug_id"},
+	"esfilter":{"and":[
+		{"term":{"bug_id":28424}},
+		{"term":{"bug_version_num": 1}}
+	]}
+}

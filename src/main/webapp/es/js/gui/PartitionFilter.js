@@ -7,7 +7,7 @@ PartitionFilter = function(){};
 
 
 PartitionFilter.newInstance=function(param){
-	Map.expecting(param, ["name", "dimension", "onlyOne"]);
+	ASSERT.hasAttributes(param, ["name", "dimension", "onlyOne"]);
 
 	var self=new PartitionFilter();
 	Map.copy(param, self);

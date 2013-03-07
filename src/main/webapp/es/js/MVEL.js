@@ -87,7 +87,7 @@ MVEL.compile.getContextVariables=function(indexName, body){
 	var context = "";
 	var columns = ESQuery.getColumns(indexName);
 
-	var parentVarNames=[];	//ALL PARENTS OF VARIABLES WITH "." IN NAME
+	var parentVarNames={};	//ALL PARENTS OF VARIABLES WITH "." IN NAME
 
 
 	columns.forall(function(c, i){
@@ -101,6 +101,11 @@ MVEL.compile.getContextVariables=function(indexName, body){
 			if (test2=="getDocValue(\"" + c.name + "\")") continue;
 
 			function defParent(name){
+				{//DO NOT MAKE THE SAME PARENT TWICE
+					if(parentVarNames[name]) return;
+					parentVarNames[name]=true;
+				}
+
 				if (name.indexOf(".")<0){
 					context+="var "+name+" = new HashMap();\n";
 				}else{
@@ -111,9 +116,9 @@ MVEL.compile.getContextVariables=function(indexName, body){
 
 			if (c.name.indexOf(".")>=0){
 				var parentName=defParent(c.name.split(".").leftBut(1).join("."));
-				context += c.name + " = doc[\"" + c.name + "\"].value;\n";
+				context += c.name + " = getDocValue(\"" + c.name + "\");\n";
 			}else{
-				context += "var " + c.name + " = doc[\"" + c.name + "\"].value;\n";
+				context += "var " + c.name + " = getDocValue(\"" + c.name + "\");\n";
 			}//endif
 			break;
 		}//while
@@ -384,10 +389,13 @@ MVEL.FUNCTIONS={
 	"Value2Pipe":
 		'var Value2Pipe = function(value){\n' +  //SPACES ARE IMPORTANT BETWEEN "="
 			"if (value==null){ \"0\" }else "+
-			"if (value is ArrayList){ 's'+value.toString(); }else \n" +
+			"if (value is ArrayList || value is org.elasticsearch.common.mvel2.util.FastList){"+
+			"var out = \"\";\n"+
+			"foreach (v : value) out = (out==\"\") ? v : out + \"|\" + Value2Pipe(v);\n"+
+			"'a'+Value2Pipe(out);\n"+
+			"}else \n" +
 			"if (value is Long || value is Integer){ 'n'+value; }else \n" +
 			"if (!(value is String)){ 's'+value.getClass().getName(); }else \n" +
-//			"value;\n"+
 			'"s"+value.replace("\\\\", "\\\\\\\\").replace("|", "\\\\p");'+  //CAN NOT ""+value TO MAKE NUMBER A STRING (OR EVEN TO PREPEND A STRING!)
 		"};\n",
 
@@ -450,10 +458,13 @@ MVEL.FUNCTIONS={
 				"\"\";\n"+
 		"};\n",
 
-	"getDocValue":  //SPECIFICALLY FOR cf_* FLAGS: CONCATENATE THE ATTRIBUTE NAME WITH ATTRIBUTE VALUE, IF EXISTS
+	"getDocValue":  
 		"var getDocValue = function(name){\n"+
+			"var out = [];\n"+
 			"var v = doc[name];\n"+
-			"(v!=null && v.value!=null) ? v.value : null;"+
+			"if (v==null || v.value==null) { null; } else " +
+			"if (v.values.length<=1){ v.value; } else " + //ES MAKES NO DISTINCTION BETWEEN v or [v], SO NEITHER DO I
+			"{for(k : v.values) out.add(k); out;}" +
 		"};\n",
 
 	"milli2Month":

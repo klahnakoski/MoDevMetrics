@@ -118,18 +118,21 @@ GUI.showLastUpdated = function(indexName){
 			$("#testMessage").html("Bug Summaries Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 		}//endif
 
-		var is_error=yield(GUI.corruptionCheck());
-		if (is_error){
-			$("#testMessage").append("<br>ES IS CORRUPTED!!!");
-		}//endif
-
-
 		var age=aMath.round(Date.now().subtract(time).divideBy(Duration.DAY), 1);
 		if (age>1 || is_error){
 			GUI.bigWarning("#testMessage", aMath.max(3, aMath.floor(age)));
 		}//endif
-
 		D.actionDone(a);
+
+
+		var a=D.action("Check for ES Corruption", true);
+		var is_error=yield(GUI.corruptionCheck());
+		if (is_error){
+			$("#testMessage").append("<br>ES IS CORRUPTED!!!");
+		}//endif
+		D.actionDone(a);
+
+
 	});
 };//method
 

@@ -45,6 +45,17 @@ Map.codomain=function(map){
 Map.domain=Object.keys;
 
 
+//RETURN TRUE IF MAPS LOOK IDENTICAL
+Map.equals=function(a, b){
+	forAllKey(a, function(k, v, i){
+		if (b[k]!=v) return false;
+	});
+	forAllKey(b, function(k, v, i){
+		if (a[k]!=v) return false;
+	});
+	return true;
+};//method
+
 
 var forAllKey=function(map, func){
 	var keys=Object.keys(map);
@@ -369,3 +380,49 @@ aMath.floor=Math.floor;
 aMath.ceil=Math.ceil;
 aMath.ceiling=Math.ceil;
 aMath.log=Math.log;
+
+
+(function(){
+	function Cart(x, y){
+		this.x=x;
+		this.y=y;
+	}
+	aMath.Cart=Cart;
+
+	aMath.Cart.prototype.toPolar=function(){
+		var r=Math.sqrt(this.x*this.x + this.y*this.y);
+		var t=Math.atan2(this.y, this.x);
+		return new Polar(r, t);
+	};
+
+
+	function Polar(r, t){
+		this.r=r;
+		this.t=t;
+	}
+	aMath.Polar=Polar;
+
+	var D2R=Math.PI/180;
+	var R2D=1/D2R;
+
+	aMath.Polar.prototype.toCart=function(){
+		var x=this.r*Math.sin(this.t);
+		var y=this.r*Math.cos(this.t);
+		
+		return new Cart(x, y);
+	};
+
+	aMath.Polar.prototype.addRadians=function(rads){
+		var t=this.t+rads;
+		return new Polar(this.r, t);
+	};
+	aMath.Polar.prototype.rotate=aMath.Polar.prototype.addRadians;
+
+	aMath.Polar.prototype.addDegrees=function(degs){
+		this.t+=degs*D2R;
+	};
+
+
+
+
+})();

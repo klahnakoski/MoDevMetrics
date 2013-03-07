@@ -14,8 +14,13 @@ var CNV = function(){
 //
 CNV.ESResult2List = function(esResult){
 	var output = [];
-	for(var x = 0; x < esResult.hits.hits.length; x++){
-		output.push(esResult.hits.hits[x]._source);
+	var h=esResult.hits.hits;
+	for(var x = 0; x < h.length; x++){
+		if (h[x].fields!==undefined){
+			output.push(h[x].fields);
+		}else{
+			output.push(h[x]._source);
+		}//endif
 	}//for
 	return output;
 };//method
@@ -169,7 +174,9 @@ CNV.Pipe2Value=function(value){
 	var type=value.charAt(0);
 	if (type=='0') return null;
 	if (type=='n') return CNV.String2Integer(value.substring(1));
-	if (type!='s') D.error("unknown pipe type");
+
+	if (type!='s' && type!='a')
+		D.error("unknown pipe type");
 
 	//EXPECTING MOST STRINGS TO NOT HAVE ESCAPED CHARS
 	var s=value.indexOf("\\", 1);
@@ -192,7 +199,16 @@ CNV.Pipe2Value=function(value){
 			s=value.indexOf("\\", s);
 			if (s<0) break;
 		}//while
-		return result+value.substring(e);
+		var output=result+value.substring(e);
+
+		if (type=='a'){
+			return output.split("|").map(function(v, i){
+				return CNV.Pipe2Value(v);
+			});
+		}//endif
+		return output;
+
+
 	}//endif
 	return value.substring(1);	//EXIT EARLY ON MOST LIKELY CASE
 };//method
@@ -237,18 +253,21 @@ CNV.Cube2HTMLTable=function(query){
 		}else{
 
 			header+=HTML.tag("td", query.edges[1].name);	//COLUMN FOR SECOND EDGE
-			query.edges[0].domain.partitions.forall(function(v, i){
-				header += "<td>" + CNV.String2HTML(v.name) + "</td>";
+			query.edges[0].domain.partitions.forall(function(p, i){
+				if (p.name!==undefined && p.name!=query.edges[0].domain.end(p)) D.error("make sure 'name' attribute or part matches the end(part) codomain");
+				header += "<td>" + CNV.String2HTML(query.edges[0].domain.end(p)) + "</td>";
 			});
 
 			content="";
-			for (var r=0;r<query.edges[1].domain.partitions.length;r++){
-				content+="<tr>"+HTML.tag("th", query.edges[1].domain.partitions[r].name);
+			query.edges[1].domain.partitions.forall(function(p,r){
+				if (p.name!==undefined && p.name!=query.edges[1].domain.end(p)) D.error("make sure 'name' attribute or part matches the end(part) codomain");
+				content+="<tr>"+HTML.tag("th", query.edges[1].domain.end(p));
 				for(var c=0;c<query.cube.length;c++){
 					content+=HTML.tag("td", query.cube[c][r]);
 				}//for
 				content+="</tr>";
-			}//for
+			});
+
 			if (query.edges[1].allowNulls){
 				content+="<tr>"+HTML.tag("th", query.edges[1].domain.NULL.name);
 				for(var c=0;c<query.cube.length;c++){

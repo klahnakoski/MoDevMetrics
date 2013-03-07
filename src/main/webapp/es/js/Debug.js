@@ -104,8 +104,23 @@ D.actionDone=function(action){
 };//method
 
 
+ASSERT={};
+ASSERT.hasAttributes=function(obj, keyList){
+	for(let i=0;i<keyList.length;i++){
+		if (obj[keyList[i]]===undefined) D.error("expecting object to have '"+keyList[i]+"' attribute");
+	}//for
+};
+
+
+
+
+
+
+
+
+
 var Exception=function(description, cause){
-	this.description=description;
+	this.message=description;
 	this.cause=cause;
 };
 
@@ -122,11 +137,11 @@ Exception.error=function(){
 
 Exception.prototype.toString=function(){
 	if (this.cause===undefined){
-		return this.description;
+		return this.message;
 	}else if (this.cause instanceof Exception){
-		return this.description + " caused by (\n" + this.cause.toString().indent(1) + "\n)\n";
+		return this.message + " caused by (\n" + this.cause.toString().indent(1) + "\n)\n";
 	}else{
-		return this.description + " caused by (" + this.cause.message + ")";
+		return this.message + " caused by (" + this.cause.message + ")";
 	}//endif
 };
 
