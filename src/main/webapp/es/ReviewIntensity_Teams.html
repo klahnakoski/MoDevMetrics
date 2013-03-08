@@ -196,7 +196,7 @@
 			var percentile90=Stats.df.percentile(df.cube, 0.90)/24;  //INTERVALS ARE IN HOURS, CONVERT TO DAYS
 
 
-			var stats=(yield (CUBE.calc2Cube({
+			var stats=(yield (Q({
 				"from":
 					yield (CUBE.Cube2List(df)),
 				"select": [
@@ -299,7 +299,7 @@
 		var stillOpen = (yield (q3.run())).list;
 
 
-		var open=yield (CUBE.calc2Cube({
+		var open=yield (Q({
 			"from":stillOpen,
 			"select":{"name":"open_count", "value":"request_time", "operation":"count"},
 			"edges":[

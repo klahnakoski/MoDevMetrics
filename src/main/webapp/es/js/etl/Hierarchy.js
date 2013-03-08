@@ -45,6 +45,18 @@ HIERARCHY.makeSchema=function(){
 	};
 
 	//ADD MOZILLA PROGRAMS
+//HOW I WOULD LIKE TO DO IT (NEED toMap() ON QUERY OBJECT)
+//	var programs=yield(Q({
+//		"from":HIERARCHY.allPrograms,
+//		"select":[
+//			{"name":"type", "value":"\"long\"", "operation":"one"},
+//			{"name":"store", "value":"\"yes\"", "operation":"one"},
+//			{"name":"index", "value":"\"not_analyzed\"", "operation":"one"}
+//		],
+//		"edges":[{"value":"projectName+\"_time\""}]
+//	}));
+//	Map.copy(programs.toMap(), config);
+
 	(yield (CUBE.calc2List({
 		"from":HIERARCHY.allPrograms,
 		"edges":["projectName"]

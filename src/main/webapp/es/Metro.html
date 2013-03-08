@@ -117,7 +117,6 @@
 <div style="align:left;position:relative;float:left;width:800px;">
 
 	<h3 id="title">Metro Iterations</h3>
-	<div id="colours"></div>
 	<h4>Summary</h4>
 	<div id="summary" class="chart"></div>
 	<h4>Open Bugs</h4>
@@ -135,7 +134,7 @@
 <script type="application/javascript;version=1.7">
 
 
-Color.showAll("colours");
+
 
 
 
@@ -185,7 +184,7 @@ var __createChart = function(){
 //	D.println(Object.keys(bugs));
 
 
-	var metroSummary=yield (CUBE.calc2Cube({
+	var metroSummary=yield (Q({
 		"from":Map.codomain(bugs),
 		"select": [
 			{"name":"total", "value":"bug_id", "operation":"count"},
@@ -403,7 +402,7 @@ var __createChart = function(){
 
 		
 		//WE KNOW THE NUMBER OF ITERATIONS NEEDED, LETS SHOW A SPRINT BURNDOWN
-		var chart=yield (CUBE.calc2Cube({
+		var chart=yield (Q({
 			"from":iterations,
 			"select":[
 				{"name":"Committed", "value":"Util.coalesce(startCount, 0)", "style":{"color":"mediumseagreen"}},

@@ -189,7 +189,7 @@ var __createChart = function(){
 
 
 	//CONVERT EDGE TO ATTRIBUTES
-	var flat = yield(CUBE.calc2Cube({
+	var flat = yield(Q({
 		"from":chart,
 		"select":[
 			{"name":"open", "value":"status=='open' ? num_bug : null", "operation":"sum"},
@@ -220,7 +220,7 @@ var __createChart = function(){
 
 
 
-	var stats = yield(CUBE.calc2Cube({
+	var stats = yield(Q({
 		"from":flat,
 		"select":[
 			{"name":"closed", value:"Util.coalesce(closed, 0)"},
@@ -320,7 +320,7 @@ var __createChart = function(){
 	//ESTIMATE
 	addPredictionLine(sampleMin, MAX_CHART_DATE, flat.cube, "open", "estimate", statsMax, statsMax, openAtStartOfEstimate, -netCloseRatePerDay);
 
-	chartP = yield(CUBE.calc2Cube({
+	chartP = yield(Q({
 		"from":flat.cube,
 		"select":[
 			{"value":"total", "style":{"color":"gray"}},

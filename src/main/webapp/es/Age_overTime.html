@@ -196,7 +196,7 @@ var __createChart = function(){
 		}));
 
 
-		var stats = (yield(CUBE.calc2Cube({
+		var stats = (yield(Q({
 			"from": (yield (CUBE.Cube2List(durations))),
 			"select":[
 				{"name":"total", "value":"count", "operation":"sum"},
@@ -325,7 +325,7 @@ var chartStat=function(description, timeDomain, sampleSize){
 		);
 
 		timeDomain.value="value";
-		values=yield (CUBE.calc2Cube({
+		values=yield (Q({
 			"name":description,
 			"from":values,
 			"select":[

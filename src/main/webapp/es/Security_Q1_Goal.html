@@ -197,7 +197,7 @@ var __createChart = function(){
 
 		allBugs=yield (ElasticSearch.getMinMax(mainFilter));
 
-		var chart=yield(CUBE.calc2Cube({
+		var chart=yield(Q({
 			"name":"Age (Days)",
 			"from":allBugs,
 			"select":[
@@ -325,7 +325,7 @@ var __createChart = function(){
 			interval=Duration.WEEK;
 		}//endif
 
-		var churn=yield(CUBE.calc2Cube({
+		var churn=yield(Q({
 			"from":allBugs,
 			"name":"New and Closed Bugs",
 			"select":[

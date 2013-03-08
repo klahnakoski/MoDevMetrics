@@ -244,7 +244,7 @@ var __createChart = function(){
 
 
 	//CONVERT EDGE TO ATTRIBUTES
-	var flat = yield(CUBE.calc2Cube({
+	var flat = yield(Q({
 		"from":chart,
 		"select":[
 			{"name":"open", "value":"status=='open' ? num_bug : null", "operation":"sum"},
@@ -279,7 +279,7 @@ var __createChart = function(){
 
 
 
-//	var stats = yield(CUBE.calc2Cube({
+//	var stats = yield(Q({
 //		"from":flat,
 //		"select":[
 //			{"name":"closed", value:"Util.coalesce(closed, 0)"},
@@ -378,7 +378,7 @@ var __createChart = function(){
 	flat.columns.push({"name":"ideal"});
 
 
-	chartP = yield(CUBE.calc2Cube({
+	chartP = yield(Q({
 		"from":flat,	//CORRUPTED cube SO THE DATE EDGE IS EXPANDED, AND NEW COLUMNS (ideal) ADDED
 		"select":[
 //			{"value":"total", "style":{"color":"gray"}},

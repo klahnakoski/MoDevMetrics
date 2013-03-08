@@ -111,7 +111,7 @@
 					}}
 			}));
 
-			bugs=yield(CUBE.calc2Cube({
+			bugs=yield(Q({
 				"from":bugs,
 				"select":{"name":"unique", "value":"bug_id", "operation":"one"},
 				"edges":["bug_id"]

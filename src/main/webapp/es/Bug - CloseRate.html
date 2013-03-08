@@ -200,7 +200,7 @@ var __createChart = function(){
 			]}
 		}));
 
-		var bugList=yield (CUBE.calc2Cube({
+		var bugList=yield (Q({
 			"from":mm,
 			"select":[
 				{"name":"closeTime", "value":"max", "operation":"one"},
@@ -215,7 +215,7 @@ var __createChart = function(){
 			"where":"max!==undefined"
 		}));
 
-		var chart=yield (CUBE.calc2Cube({
+		var chart=yield (Q({
 			"from":bugList,
 			"select": {"name":"num", "value":"bug_id", "operation":"count"},
 			"edges": [
@@ -228,7 +228,7 @@ var __createChart = function(){
 		}));
 
 
-		var stats=yield (CUBE.calc2Cube({
+		var stats=yield (Q({
 			"from":bugList,
 			"select":[{"name":"average", "value":""+1/sampleMax.subtract(sampleMin).round(Duration.WEEK), "operation":"sum"}]
 		}));

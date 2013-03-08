@@ -228,7 +228,7 @@ D.println(CNV.Object2JSON(data));
 									{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
 								]);
 
-				var bugList=CUBE.calc2Cube({
+				var bugList=Q({
 					"from":inReview,
 					"select":{"name":"bug_id", "value":"bug_id", "operation":"one"},
 					"edges":[{"name":"uid", "value":"bug_id"}]
@@ -380,7 +380,7 @@ D.println(CNV.Object2JSON(data));
 
 D.println(CNV.List2Tab(reviewQueues));
 
-					var chart=CUBE.calc2Cube({
+					var chart=Q({
 						"name":
 							"Historical Review Queue for "+GUI.state.requestee,
 						"from":reviewQueues,

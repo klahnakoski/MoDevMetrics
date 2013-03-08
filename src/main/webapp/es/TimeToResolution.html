@@ -182,7 +182,7 @@ var __createChart = function(){
 	}));
 
 
-	var stats = (yield(CUBE.calc2Cube({
+	var stats = (yield(Q({
 		"from": (yield (CUBE.Cube2List(durations))),
 		"select":[
 			{"name":"total", "value":"count", "operation":"sum"},

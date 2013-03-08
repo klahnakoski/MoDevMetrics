@@ -3,8 +3,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-var CUBE = function(){
-};
+var CUBE = function(){};
+var Q;   //=Q
+
 
 importScript("CNV.js");
 importScript("aDate.js");
@@ -19,6 +20,8 @@ importScript("trampoline.js");
 
 
 
+
+(function(){
 
 CUBE.compile = function(query, sourceColumns, useMVEL){
 //COMPILE COLUMN CALCULATION CODE
@@ -79,7 +82,7 @@ CUBE.select2Array = function(select){
 
 
 
-CUBE.calc2Tree = function(query){
+function calc2Tree(query){
 	if (query.edges.length == 0)
 		D.error("Tree processing requires an edge");
 	if (query.where=="bug!=null")
@@ -92,7 +95,7 @@ CUBE.calc2Tree = function(query){
 	var edges = query.edges;
 	query.columns = CUBE.compile(query, sourceColumns);
 	var where = CUBE.where.compile(query.where, sourceColumns, edges);
-	var agg = CUBE.calcAgg;
+	var agg = calcAgg;
 
 
 	var tree = {};
@@ -177,18 +180,17 @@ CUBE.calc2Tree = function(query){
 	}//for
 
 
-//	query.tree=tree;
 	yield query;
-};
+}
 
 
-CUBE.calcAgg=function(row, result, query, select){
+function calcAgg(row, result, query, select){
 	var agg = CUBE.getAggregate(result, query, select);
 	for(var s = 0; s < select.length; s++){
 		//ADD TO THE AGGREGATE VALUE
 		agg[s] = select[s].aggregate(row, result, agg[s]);
 	}//endif
-};//method
+}//method
 
 
 CUBE.getAggregate = function(result, query, select){
@@ -206,7 +208,7 @@ CUBE.getAggregate = function(result, query, select){
 	}//for
 
 
-	
+
 	part=result[i];
 	v = edges[i].domain.getKey(part);
 	if (agg[v] === undefined){
@@ -229,13 +231,13 @@ CUBE.calc2List = function(query){
 	//NO EDGES IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
 	if (query.edges.length==0){
 		if (select.length==0){
-			yield (CUBE.noOP(query));
+			yield (noOP(query));
 			yield (query);
 		}else if (select[0].operation===undefined || select[0].operation=="none"){
-			yield (CUBE.setOP(query));
+			yield (setOP(query));
 			yield (query);
 		}else{
-			yield (CUBE.aggOP(query));
+			yield (aggOP(query));
 			yield (query);
 		}//endif
 	}//endif
@@ -243,12 +245,12 @@ CUBE.calc2List = function(query){
 	if (query.edges.length == 0)
 		D.error("Tree processing requires an edge");
 
-	yield (CUBE.calc2Tree(query));
+	yield (calc2Tree(query));
 
 	var edges=query.edges;
 
 	var output = [];
-	CUBE.Tree2List(output, query.tree, select, edges, {}, 0);
+	Tree2List(output, query.tree, select, edges, {}, 0);
 	yield (aThread.yield());
 
 	//ORDER THE OUTPUT
@@ -280,32 +282,16 @@ CUBE.calc2List = function(query){
 };//method
 
 
-//CUBE.calc2Array = function(query){
-//	if (query.select instanceof Array) D.error("Expecting select to not be an array");
-//	if (query.edges !== undefined && query.edges.length > 0) D.error("Expecting zero edges");
-//
-//	let temp = query.select.name;
-//	query.select.name = 0;
-//	var list = CUBE.setOP(query).list;
-//	query.select.name = temp;
-//
-//	var output = [];
-//	for(var i = 0; i < list.length; i++){
-//		output.push(list[i][0]);
-//	}//for
-//	return output;
-//};//method
 
-
-CUBE.calc2Cube = function(query){
+Q = function(query){
 	if (query.edges===undefined) query.edges=[];
 
 	if (query.edges.length==0){
-		var o=yield (CUBE.aggOP(query));
+		var o=yield (aggOP(query));
 		yield (o);
 	}//endif
 
-	yield (CUBE.calc2Tree(query));
+	yield (calc2Tree(query));
 
 	//ASSIGN dataIndex TO ALL PARTITIONS
 	var edges = query.edges;
@@ -320,19 +306,7 @@ CUBE.calc2Cube = function(query){
 	//MAKE THE EMPTY DATA GRID
 	query.cube = CUBE.cube.newInstance(edges, 0, query.select);
 
-	CUBE.Tree2Cube(query, query.cube, query.tree, 0);
-
-//DO NOT DO THIS: AT THE LEAST CHARTS REQUIRE THE PARTS TO BE NAMED
-//	//RUN end() ON THE EDGES' DOMAIN PARTITIONS
-//	for(var f = 0; f < edges.length; f++){
-//		var d=edges[f].domain;
-//		var p = 0;
-//		for(; p < (d.partitions).length; p++){
-//			d.partitions[p]=d.end(d.partitions[p]);
-//		}//for
-//		d.NULL=d.end(d.NULL);
-//		d.end=function(p){return p;};	//MAKE SURE end() STILL RETURNS THE SAME VALUE
-//	}//for
+	Tree2Cube(query, query.cube, query.tree, 0);
 
 	CUBE.analytic.run(query);
 
@@ -380,7 +354,7 @@ CUBE.List2Cube=function(query){
 ////////////////////////////////////////////////////////////////////////////////
 //  REDUCE ALL DATA TO ZERO DIMENSIONS
 ////////////////////////////////////////////////////////////////////////////////
-CUBE.aggOP=function(query){
+function aggOP(query){
 	var select = CUBE.select2Array(query.select);
 
 	var sourceColumns = yield(CUBE.getColumnsFromQuery(query));
@@ -394,7 +368,6 @@ CUBE.aggOP=function(query){
 		result[select[s].name] = select[s].defaultValue();
 	}//for
 
-	var indexedOutput = {};
 	for(var i = 0; i < from.length; i++){
 		var row = from[i];
 		if (where(row, null)){
@@ -421,7 +394,7 @@ CUBE.aggOP=function(query){
 	query.list = [result];
 	query.cube = result;
 	yield (query);
-};
+}
 
 
 
@@ -429,7 +402,7 @@ CUBE.aggOP=function(query){
 ////////////////////////////////////////////////////////////////////////////////
 //  DO NOTHING TO TRANSFORM LIST OF OBJECTS
 ////////////////////////////////////////////////////////////////////////////////
-CUBE.noOP = function(query){
+function noOP(query){
 	var sourceColumns = yield(CUBE.getColumnsFromQuery(query));
 	var from = query.from.list;
 
@@ -460,7 +433,7 @@ CUBE.noOP = function(query){
 
 	yield (query);
 
-};//method
+}//method
 
 
 
@@ -468,7 +441,7 @@ CUBE.noOP = function(query){
 ////////////////////////////////////////////////////////////////////////////////
 //  SIMPLE TRANSFORMATION ON A LIST OF OBJECTS
 ////////////////////////////////////////////////////////////////////////////////
-CUBE.setOP = function(query){
+function setOP(query){
 	var sourceColumns = yield (CUBE.getColumnsFromQuery(query));
 	var from=query.from.list;
 
@@ -514,7 +487,7 @@ CUBE.setOP = function(query){
 
 	yield (query);
 
-};//method
+}//method
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -675,7 +648,7 @@ CUBE.normalizeByX=function(query, multiple){
 
 
 // CONVERT THE tree STRUCTURE TO A FLAT LIST FOR output
-CUBE.Tree2List = function(output, tree, select, edges, coordinates, depth){
+function Tree2List(output, tree, select, edges, coordinates, depth){
 	if (depth == edges.length){
 		//FRESH OBJECT
 		var obj={};
@@ -688,31 +661,31 @@ CUBE.Tree2List = function(output, tree, select, edges, coordinates, depth){
 		var keys = Object.keys(tree);
 		for(var k = 0; k < keys.length; k++){
 			coordinates[edges[depth].name]=edges[depth].domain.getPartByKey(keys[k]);
-			CUBE.Tree2List(output, tree[keys[k]], select, edges, coordinates, depth + 1)
+			Tree2List(output, tree[keys[k]], select, edges, coordinates, depth + 1)
 		}//for
 	}//endif
 //	yield (null);
-};//method
+}//method
 
 
 
 
 // CONVERT THE tree STRUCTURE TO A cube
-CUBE.Tree2Cube = function(query, cube, tree, depth){
+function Tree2Cube(query, cube, tree, depth){
 	var edge=query.edges[depth];
 	var domain=edge.domain;
 
 	if (depth < query.edges.length-1){
-		var keys=Object.keys(tree);
+		let keys=Object.keys(tree);
 		for(var k=keys.length;k--;){
 			var p=domain.getPartByKey(keys[k]).dataIndex;
-			CUBE.Tree2Cube(query, cube[p], tree[keys[k]], depth+1);
+			Tree2Cube(query, cube[p], tree[keys[k]], depth+1);
 		}//for
 		return;
 	}//endif
 
 	if (query.select instanceof Array){
-		var keys=Object.keys(tree);
+		let keys=Object.keys(tree);
 		for(var k=keys.length;k--;){
 			var p=domain.getPartByKey(keys[k]).dataIndex;
 			//I AM CONFUSED: ARE CUBE ELEMENTS ARRAYS OR OBJECTS?
@@ -722,22 +695,19 @@ CUBE.Tree2Cube = function(query, cube, tree, depth){
 //			}//for
 			var tuple={};
 			for(var s = 0; s < query.select.length; s++){
-if (new Date(keys[k]).getMilli()==Date.newInstance("2013-01-16").getMilli()){
-	D.println("");
-}//endif
 				tuple[query.select[s].name] = query.select[s].domain.end(tree[keys[k]][s]);
 			}//for
 			cube[p]=tuple;
 		}//for
 	} else{
-		var keys=Object.keys(tree);
+		let keys=Object.keys(tree);
 		for(var k=keys.length;k--;){
 			var p=domain.getPartByKey(keys[k]).dataIndex;
 			cube[p]=query.select.domain.end(tree[keys[k]][0]);
 		}//for
 	}//endif
 
-};//method
+}//method
 
 
 
@@ -834,7 +804,7 @@ CUBE.merge=function(query){
 		//COPY SELECT DEFINITIONS
 		output.select.appendArray(CUBE.select2Array(item.from.select));
 		output.columns.appendArray(CUBE.select2Array(item.from.select));
-		
+
 
 		//VERIFY DOMAINS ARE IDENTICAL, AND IN SAME ORDER
 		if (item.edges.length!=commonEdges.length) D.error("Expecting all partitions to have same number of (common) edges declared");
@@ -986,7 +956,7 @@ CUBE.sort.compile=function(sortOrder, columns, useNames){
 		}//endif
 	}//for
 	f+="\n}";
-	
+
 	var totalSort;
 	eval(f);
 	return totalSort;
@@ -1005,35 +975,10 @@ CUBE.specificBugs=function(query, filterParts){
 	return newQuery;
 };
 
+
 //parts IS AN ARRAY OF PART NAMES CORRESPONDING TO EACH QUERY EDGE
 CUBE.drill=function(query, parts){
 	if (query.analytic) D.error("Do not know how to drill down on an anlytic");
-
-
-//IN THE CASE OF REVIEW QUEUES, WHICH IS WHERE I COULD USE THIS, THE LOGIC IS
-//TOO COMPLICATED TO SIMPLY DRILL.  WE WILL NEED A DRILL QUERY THAT WILL TAKE
-//THE parts
-//	if (query.from.cubes){
-//		//A MERGE OF CUBES, FIND WHICH WAS CLICKED
-//
-//		//FIND THE SOURCE SELECT
-//		var select=CUBE.select2Array(query.select)[0];
-//		for(var i=0;i<select.length;i++){
-//			if (select[i].name==parts[0]){
-//				select=select[i];
-//				break;
-//			}//endif
-//		}//for
-//
-//		//FIND THE CUBE
-//		for(var i=0;i<query.from.cubes.length;i++){
-//			var q=query.from.cubes[i].from;
-//			if (q.)
-//
-//
-//		}
-//	}//endif
-
 
 	var newQuery={};
 	Util.copy(query, newQuery);
@@ -1056,13 +1001,13 @@ CUBE.drill=function(query, parts){
 		for(let p=0;p<edge.domain.partitions.length;p++){
 			var part=edge.domain.partitions[p];
 			if (part.name==parts[e]){
-				var filter=ESQuery.buildCondition(edge, part, query);
+				let filter=ESQuery.buildCondition(edge, part, query);
 				newQuery.esfilter.and.push(filter);
 				return;  //CONTINUE
 			}//endif
 		}//for
 		if (edge.domain.NULL.name==parts[e]){
-			var filter={"script":{"script":MVEL.compile.expression(ESQuery.compileNullTest(edge), newQuery)}};
+			let filter={"script":{"script":MVEL.compile.expression(ESQuery.compileNullTest(edge), newQuery)}};
 			newQuery.esfilter.and.push(filter);
 			return;  //CONTINUE
 		}//endif
@@ -1072,4 +1017,10 @@ CUBE.drill=function(query, parts){
 	return newQuery;
 
 };
+
+
+	Q=Q;
+
+
+})();
 

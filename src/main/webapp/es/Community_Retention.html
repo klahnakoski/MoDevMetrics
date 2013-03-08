@@ -183,7 +183,7 @@ var __createChart = function(){
 	}));
 
 
-	var totals=yield (CUBE.calc2Cube({
+	var totals=yield (Q({
 		"from":markup,
 		"select":[
 			{"name":"num_next", "value":"(time_to_next!=null && time_to_next<"+windowSize.milli+") ? 1 : 0", "operation":"sum"},
@@ -202,7 +202,7 @@ var __createChart = function(){
 //	);
 
 
-	var chart=yield(CUBE.calc2Cube({
+	var chart=yield(Q({
 		"from":totals, 
 		"select": {"name":"percent", "value":"aMath.round(100*num_next/aMath.max(1, num_total))", "operation":"one"},
 		"edges":[
