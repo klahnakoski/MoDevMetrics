@@ -144,7 +144,7 @@ GUI.corruptionCheck=function(){
 		"esfilter":{"range":{"modified_ts":{"gte":Date.now().addMonth(-3).getMilli()}}}
 	}));
 
-	var is_error=yield (CUBE.calc2List({
+	var is_error=yield (Q({
 		"from":{
 			"from":result,
 			"select": {"value":"bug_id"},
@@ -153,7 +153,7 @@ GUI.corruptionCheck=function(){
 		"select":{"name":"is_error", "value":"bug_id", "operation":"exists"}
 	}));
 
-	yield (is_error.list[0].is_error==1)
+	yield (is_error.cube.is_error==1)
 };//method
 
 

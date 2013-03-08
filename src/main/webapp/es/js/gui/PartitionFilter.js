@@ -44,8 +44,8 @@ PartitionFilter.newInstance=function(param){
 		return node;
 	}//function
 
-	self.hierarchy=[convertToTree({"id":self.name.replaceAll(" ", "_")}, self.dimension)];
-	self.hierarchy[0].data=param.name;
+	self.hierarchy=convertToTree({"id":self.name.replaceAll(" ", "_")}, self.dimension).children;
+//	self.hierarchy[0].data=param.name;
 	
 	return self;
 };
@@ -114,11 +114,14 @@ PartitionFilter.prototype.makeTree=function(){
 
 		var checked = {};
 		if (self.onlyOne){
-			checked=Map.newInstance(data.rslt[0].id, {});
+			//DID WE JUST CHECK OR UNCHECK?
+			$(".jstree-checked").each(function(){
+				if (data.rslt[0].id==$(this).attr("id"))checked=Map.newInstance(data.rslt[0].id, true);
+			});
 		}else{
 			//FIRST MAKE A HASH OF CHECKED ITEMS
 			$(".jstree-checked").each(function(){
-				checked[$(this).attr("id")] = {};
+				checked[$(this).attr("id")] = true;
 			});
 		}//endif
 

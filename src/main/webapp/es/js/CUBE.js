@@ -100,12 +100,12 @@ function calc2Tree(query){
 
 	var tree = {};
 	query.tree = tree;
-	var nextYield = new Date().getMilli() + 200;
+	var nextYield = new Date().getMilli() + 500;	//FIRST CHUCK IS LARGE, WITH HOPE WE ARE LUCKY
 	FROM: for(var i = 0; i < from.length; i++){
 		var now = new Date().getMilli();
 		if (now > nextYield){
 			yield (aThread.yield());
-			nextYield = new Date().getMilli() + 200;
+			nextYield = new Date().getMilli() + 150;	//TAKING TOO LONG
 		}//endif
 
 
@@ -223,8 +223,15 @@ CUBE.getAggregate = function(result, query, select){
 };//method
 
 
+CUBE.listAlert=false;
 
 CUBE.calc2List = function(query){
+	if (!CUBE.listAlert){
+//		D.alert("Please do not use CUBE.calc2List()");
+		CUBE.listAlert=true;
+	}//endif
+
+	
 	if (query.edges===undefined) query.edges=[];
 	var select = CUBE.select2Array(query.select);
 
