@@ -236,7 +236,9 @@ aChart.show=function(params){
 	//STATIC MAP FROM MY CHART TYPES TO CCC CLASS NAMES
 	var chartTypes={
 		"line":"LineChart",
+		"stackedarea":"StackedAreaChart",
 		"stacked":"StackedAreaChart",
+		"area":"StackedAreaChart",
 		"stackedbar":"StackedBarChart",
 		"bar":"BarChart",
 		"bullet":"BulletChart"
@@ -388,8 +390,8 @@ var bugClicker=function(query, series, x, d, elem){
 
 
 //			var specific=CUBE.specificBugs(query, [series, x]);
-			var buglist=(yield (ESQuery.run(specific)));
-			buglist=buglist.list.map(function(b){return b.bug_id;});
+			var buglist=(yield (ESQuery.run(specific))).list;
+//			buglist=buglist.list.map(function(b){return b.bug_id;});
 			
 			if (buglist.length>BZ_SHOW_BUG_LIMIT){
 				D.alert("Too many bugs. Truncating to "+BZ_SHOW_BUG_LIMIT+".", function(){

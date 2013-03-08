@@ -375,9 +375,11 @@ var __createChart = function(){
 
 	//REQUIRED
 	addPredictionLine(sampleMin, MAX_CHART_DATE, flat.cube, "open", "ideal", sampleMin, sampleMin, stillOpen, -requiredNetCloseRatePerDay);
+	flat.columns.push({"name":"ideal"});
+
 
 	chartP = yield(CUBE.calc2Cube({
-		"from":flat.cube,	//CORRUPTED cube SO THE DATE EDGE IS EXPANDED, AND NEW COLUMNS (ideal) ADDED
+		"from":flat,	//CORRUPTED cube SO THE DATE EDGE IS EXPANDED, AND NEW COLUMNS (ideal) ADDED
 		"select":[
 //			{"value":"total", "style":{"color":"gray"}},
 			{"value":"ideal", "style":{"color":"gray"}},

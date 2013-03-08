@@ -86,26 +86,28 @@
 		yield (ESQuery.loadColumns({"from":"bugs"}));
 
 		var esQuery = {
-			"query":{
-				"filtered":{
-					"query":{"match_all":{}},
-					"filter":{"and":[
-						{"terms":{"bug_id":[ 831997 ]}}
-					]}
-				}
-			},
-			"from":0,
-			"size":200000,
-			"sort":["bug_version_num"],
-			"facets":{
-				"test":{
-					"terms":{
-						"script_field":MVEL.compile.addFunctions('Value2Pipe(getDocValue("bug_id"))+"|"+Value2Pipe(getDocValue("dependson"))'),
-						"size":20000
-					}
-				}
-			}
-		};
+			"sort":["bug_version_num"], "size":100, "from":0, "query":{"filtered":{ "filter":{"and":[
+//					{"and":[
+//						{"range":{"modified_ts":{"lt":1361664000000}}},
+//						{"range":{"expires_on":{"gte":1356825600000}}}
+//					]},
+//					{"or":[
+//						{"script":{"script":MVEL.compile.expression("previous_values.bug_status_change_away_ts==modified_ts", {"from":"bugs"})}},
+//						{"term":{"changes.field_name":"bug_status"}},
+//						{"term":{"bug_version_num":1}}
+//					]},
+//					{"or":[
+//						{"term":{"bug_status":"resolved"}},
+//						{"term":{"bug_status":"verified"}},
+//						{"term":{"bug_status":"closed"}}
+//					]},
+					{"term":{"bug_id":"830294"}},
+//					{"and":[
+//						{"not":{"term":{"product":"boot2gecko"}}},
+//						{"terms":{"cf_blocking_b2g":["tef+","shira+","leo+"]}}
+//					]}
+	]},
+			 "query":{"match_all":{}} }} };
 
 
 

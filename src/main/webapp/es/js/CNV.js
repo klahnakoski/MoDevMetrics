@@ -254,14 +254,20 @@ CNV.Cube2HTMLTable=function(query){
 
 			header+=HTML.tag("td", query.edges[1].name);	//COLUMN FOR SECOND EDGE
 			query.edges[0].domain.partitions.forall(function(p, i){
-				if (p.name!==undefined && p.name!=query.edges[0].domain.end(p)) D.error("make sure 'name' attribute or part matches the end(part) codomain");
-				header += "<td>" + CNV.String2HTML(query.edges[0].domain.end(p)) + "</td>";
+				var name=query.edges[0].domain.end(p);
+				if (name==p && typeof(name)!="string") name=p.name;
+				if (p.name!==undefined && p.name!=name)
+					D.error("make sure part.name matches the end(part)=="+name+" codomain");
+				header += "<td>" + CNV.String2HTML(name) + "</td>";
 			});
 
 			content="";
 			query.edges[1].domain.partitions.forall(function(p,r){
-				if (p.name!==undefined && p.name!=query.edges[1].domain.end(p)) D.error("make sure 'name' attribute or part matches the end(part) codomain");
-				content+="<tr>"+HTML.tag("th", query.edges[1].domain.end(p));
+				var name=query.edges[1].domain.end(p);
+				if (name==p && typeof(name)!="string") name=p.name;
+				if (p.name!==undefined && p.name!=name)
+					D.error("make sure part.name matches the end(part)=="+name+" codomain");
+				content+="<tr>"+HTML.tag("th", name);
 				for(var c=0;c<query.cube.length;c++){
 					content+=HTML.tag("td", query.cube[c][r]);
 				}//for

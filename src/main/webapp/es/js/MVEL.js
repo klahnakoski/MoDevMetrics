@@ -60,6 +60,7 @@ MVEL.compile.uniqueFunction=function(){
 
 
 MVEL.compile.expression = function(expression, query){
+	if (query===undefined) D.error("Expecting call to MVEL.compile.expression to be given a reference to the query");
 	var fromPath = query.from;			//FIRST NAME IS THE INDEX
 	var indexName=fromPath.split(".")[0];
 //	var whereClause = query.where;

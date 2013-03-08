@@ -4,10 +4,10 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-<script type="application/javascript;version=1.7" src="js/Settings.js">
-</script></HEAD>
+	<script type="application/javascript;version=1.7" src="js/Settings.js">
+	</script>
+</HEAD>
 <BODY>
-
 
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
@@ -37,12 +37,6 @@
 <script type="application/javascript;version=1.7" src="lib/webdetails/pvcDocUtils.js"></script>
 
 
-
-
-
-
-
-
 <link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
 <script type="application/javascript;version=1.7" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="application/javascript;version=1.7" src="lib/js/jquery.ba-bbq.js"></script>
@@ -50,9 +44,9 @@
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 
 
-
 <script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/CNV.js"></script>
-<script type="application/javascript;version=1.7" src="js/util.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
+<script type="application/javascript;version=1.7" src="js/util.js"></script>
+<script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
@@ -72,10 +66,6 @@
 <script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script>
 <script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
-
-
-
-
 
 
 <script type="application/javascript;version=1.7" src="js/charts/HelperFunctions.js"></script>
@@ -98,7 +88,14 @@
 
 
 
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">More Charts</a>
+</div>
+
 <div id="sidebar">
+	<br>
+	<br>
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 	</div>
@@ -115,138 +112,209 @@
 	<div id="filters" class="menu"></div>
 </div>
 
-<div style="float:right;display: inline;">
-	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
-</div>
+<h3 id="title"></h3>
 
-<div style="align:left;position:relative;float:left;width:800px;">
-	<h3>Open Bug Count</h3>
-	<div id="chartResponse" style="width:400px;height:200px;float:left;display: inline;"></div>
-	<div id="chartProducts" style="width:400px;height:200px;float:left;display: inline;"></div>
-	<div id="chart" style="position: relative;"></div>
+<div id="chart" class="chart" style="position: relative;"></div>
+<br><br>
+<div id="info" style="width:800px;float:left;"></div>
+<div id="report"></div>
 
-	<div id="info"></div>
-	<div id="report"></div>
-</div>
 
 <script type="application/javascript;version=1.7">
 
 
-var CUTOFF=Duration.newInstance("3week");
-$("#description").html("An attempt to get bug history to pull faster from ES<br><br>The initial load my be slow, and the chart boring, but it gets really amazing when you start filtering by program and product!");
+var CUTOFF = Duration.newInstance("3week");
 
 var thread;
-var createChart=function(){
-	if (thread!==undefined)
+var createChart = function(){
+	if (thread !== undefined)
 		thread.kill();
-	thread=aThread.run( __createChart());
+	thread = aThread.run(__createChart());
 };
 
 var __createChart = function(){
+	$("#title").html("Bug Close Rate");
 
-	var sampleMin=Date.newInstance(GUI.state.sampleMin);
-	var sampleMax=Date.newInstance(GUI.state.sampleMax).ceilingDay();
-	var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
 
-	$("#title").html("Open Bug Count");
+	var sampleMin = Date.newInstance(GUI.state.sampleMin);
+	var sampleMax =Date.newInstance(GUI.state.sampleMax).addDay(1);
+	var sampleInterval = Duration.WEEK;
 
-	var createTime="doc[\"create_time\"].value";
-	var idTime=GUI.state.programFilter.bugStatusMinimum_fromSource();
-	var testValue=GUI.state.programFilter.bugStatusMinimum_fromDoc();
+	var customFilter;
+	try{
+		if (GUI.state.filter.trim()==""){
+			customFilter=ES.TrueFilter;
+		}else{
+			eval("customFilter="+GUI.state.filter);
+		}//endif
+	}catch(e){
+		D.error("Trouble assigning the ES filter", e);
+	}//try
+
+//	customFilter={"term":{"bug_id":"833392"}};
 	
-	
-	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
+	yield (ESQuery.loadColumns({"from":"bugs"}));
 
-	var mainFilter={"and":[
-			{"and":[
-				{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},
-				{"range":{"expires_on":{"gte":sampleMin.getMilli()}}}
-			]},
-			{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-"+sampleMin.getMilli()+", "+sampleInterval.milli+")!=floorInterval(expires_on-"+sampleMin.getMilli()+", "+sampleInterval.milli+")", {"from":"bugs"})}},
-			Mozilla.BugStatus.Open.esfilter,
-			GUI.getFilters("bugs")
-		]};
+	var mainFilter = {"and":[
+//		{"and":[
+//			{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},
+//			{"range":{"expires_on":{"gte":sampleMin.getMilli()}}}
+//		]},
+//		{"or":[
+//			{"script":{"script":MVEL.compile.expression("previous_values.bug_status_change_away_ts==modified_ts", {"from":"bugs"})}},
+//			{"term":{"bug_version_num":1}}
+//		]},
+//		{"not": {"terms":{"previous_values.bug_status_value": ["resolved", "verified", "closed", "reopened"]}}},
+		Mozilla.BugStatus.Closed.esfilter,
+		customFilter,
+		GUI.getFilters("bugs")
+	]};
 
 
 
-	//CHART PRODUCT BREAKDOWN
 	aThread.run(function(){
-		var q=new ESQuery({
-			"name":"Product Breakdown",
+		var a=D.action("Get Bug Details", true);
+
+
+		var resolutionParts=[
+			{"name":"fixed", "style":{}},
+			{"name":"duplicate", "style":{"visibility":"hidden"}},
+			{"name":"invalid", "style":{"visibility":"hidden"}},
+			{"name":"wontfix", "style":{"visibility":"hidden"}},
+			{"name":"worksforme", "style":{"visibility":"hidden"}}
+		];
+		
+		var mm=yield (ElasticSearch.getMinMax({"and":[
+			customFilter,
+			Mozilla.BugStatus.Open.esfilter
+		]}));
+
+		var resolutions=yield (ESQuery.run({
 			"from":"bugs",
-			"select":{"name":"count", "value":"bug_id", "operation":"count"},
-			"edges":[
-				{"name":"product", "value":"product"}
-			],
+			"select":["bug_id", "resolution"],
 			"esfilter":{"and":[
-				mainFilter,
-				{"range":{"expires_on":{"gte":sampleMax.getMilli()}}}  //JUST PICK THE LAST DAY
+				Mozilla.CurrentRecords.esfilter,
+				Mozilla.BugStatus.Closed.esfilter,
+				customFilter
 			]}
-		});
+		}));
 
-		var response=yield (q.run());
+		var bugList=yield (CUBE.calc2Cube({
+			"from":mm,
+			"select":[
+				{"name":"closeTime", "value":"max", "operation":"one"},
+				{"name":"resolution", "value":"r.resolution", "operation":"one"}
+			],
+			"edges":[
+				{"name":"bug_id", "value":"bug_id",
+					"allowNulls":false,
+					"domain":{"type":"set", "name":"r", "partitions":resolutions, "key":"bug_id", "value":"bug_id"}
+				}
+			],
+			"where":"max!==undefined"
+		}));
 
-		aChart.showPie({
-			"id":"chartProducts",
-			"cube":response,
-			"height":200,
-			"width":400
-		});
+		var chart=yield (CUBE.calc2Cube({
+			"from":bugList,
+			"select": {"name":"num", "value":"bug_id", "operation":"count"},
+			"edges": [
+				{"value":"resolution", "domain":{"type":"set", "partitions":resolutionParts, "value":"name", "key":"name"}},
+				{"name":"date",
+					"value":"closeTime",
+					"domain":{"type":"date", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+				}
+			]
+		}));
 
-	});
+
+		var stats=yield (CUBE.calc2Cube({
+			"from":bugList,
+			"select":[{"name":"average", "value":""+1/sampleMax.subtract(sampleMin).round(Duration.WEEK), "operation":"sum"}]
+		}));
+
+		$("#stats").html(
+			'<span class="parameter_name">Average Closed/Week:</span>' + aMath.round(stats.cube.average, 1) + '<br>'
+		);
 
 
 
+//		var chart=yield (ESQuery.run({
+//			"from": "bugs",
+//			"select": {"name":"num", "value":"bug_id", "operation":"count"},
+//			"edges": [
+//				{"value":"resolution", "domain":{"type":"set", "partitions":resolutionParts, "value":"name", "key":"name"}},
+//				{"name":"date",
+//					"value":"modified_ts",
+//					"domain":{"type":"date", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+//				}
+//			],
+//			"esfilter": mainFilter
+//
+//		}));
 
 
 
-	var a=D.action("Request Bugs", true);
-	var chart=yield (ESQuery.run({
-		"from":"bugs",
-		"select":{"name":"num_bug", "value":"bug_id", "operation":"count"},
-		"edges":[
-			{"name":"date",
-				"range":{"min":"modified_ts", "max":"expires_on"},
-				"allowNulls":false,
-				"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+		D.actionDone(a);
+
+		aChart.show({
+			"id":"chart",
+			"sheetDiv":"info",
+			"type":"stacked",
+			"stacked":true,
+			"cube":chart,
+			"height":400,
+			extensionPoints: {
+				dot_shapeRadius: 5,
+				dot_shape:"circle",
+				line_lineWidth: 2
+			},
+			"clickAction":function(resolution, x, d, elem){
+				aThread.run(function(){
+					var date=Date.newInstance(x);
+
+					var list=yield (CUBE.calc2List({
+						"from":bugList,
+						"select":{"value":"bug_id"},
+						"where":"closeTime!=null && "+
+								"closeTime.between(Date.newInstance("+date.getMilli()+"), Date.newInstance("+date.add(sampleInterval).getMilli()+")) && "+
+								"resolution=="+CNV.String2Quote(resolution)
+					}));
+
+					Bugzilla.showBugs(list.list);
+				});
+				return true;
+
 			}
-		],
-		"esfilter":mainFilter
-	}));
+		});
+		D.actionDone(a);
 
 
-	D.actionDone(a);
-
-
-	var a=D.action("Make chart", true);
-	aChart.show({
-		"id":"chart",
-		"sheetDiv":"info",
-		"type":"line",
-		"stacked":true,
-		"cube":chart
 	});
-	D.actionDone(a);
+
+
+	
+
 
 };
 
 
-
-
-
-	$(document).ready(function(){
-		GUI.setup([
-			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
-			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today()},
-			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"week"},
-			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
+$(document).ready(function(){
+	GUI.setup([
+		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().addMonth(-3)},//Date.now().addDay(-15).floorMonth()},
+		{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.eod()},//Date.now().addMonth(1).floorDay()},
+		{"id":"filter", "name":"ES Filter", "type":"text", "default":'{"and":[{"not":{"term":{"product":"boot2gecko"}}},{"terms":{"cf_blocking_b2g":["tef+","shira+","leo+"]}}]}'}
 		],
 		[
-			"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+				"sampleMin=Date.newInstance(sampleMin).floorWeek().format('yyyy-MM-dd')",
+				"sampleMax=Date.newInstance(sampleMax).addDay(1).floorWeek().addDay(-1).format('yyyy-MM-dd')"
 		],
 		"bugs",
-		true);
-	});
+		false		//DO NOT SHOW DEFAULT FILTERS
+	);
+
+//	GUI.state.productFilter = ["B2G 1.0.0 (TEF)"];
+
+});
 
 </script>
 
