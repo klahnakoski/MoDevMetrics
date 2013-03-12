@@ -82,6 +82,7 @@ ESQuery.parseColumns=function(indexName, esProperties){
 
 		if (["string", "boolean", "integer", "date", "long"].contains(property.type)){
 			columns.push({"name":name, "type":property.type});
+			if (property.index_name && name!=property.index_name) columns.push({"name":property.index_name, "type":property.type});
 		}else{
 			D.error("unknown type "+property.type);
 		}//endif

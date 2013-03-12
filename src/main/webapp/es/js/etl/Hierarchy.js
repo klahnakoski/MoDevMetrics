@@ -133,22 +133,22 @@ HIERARCHY.get=function(minBug, maxBug){
 
 	var all=[];
 
-	var BLOCK_SIZE=10000;
-	for(var i=40000;i<maxBugID+1;i+=BLOCK_SIZE){
+	var BLOCK_SIZE=1;
+	for(var i= 321494;i<maxBugID+1;i+=BLOCK_SIZE){
 		esfilter={"and":[
 			{"range":{"bug_id":{"gte":i, "lt":i+BLOCK_SIZE}}},
-			{"not":{"term":{"bug_id":41273}}}
+//			{"not":{"term":{"bug_id":41273}}}
 		]};
 
-		var a=D.action("Get Current Bug Info", true);
+		var a=D.action("Get Current Bug Info between "+i+" and "+(i+BLOCK_SIZE), true);
 		var currentData=yield (ESQuery.run({
 			"from":"bugs",
 			"select":[
-				"bug_id", "modified_ts","expires_on", "dependson"
+				"bug_id", "modified_ts","expires_on", "depends_on"  //NOTE THE depends_on IS THE INDEX, AND depends_on IS THE FIELD
 			],
 			"esfilter":{"and":[
 				esfilter,
-				{"not":{"missing":{"field":"dependson"}}},
+				{"not":{"missing":{"field":"depends_on"}}},
 				{"or":[
 					{"term":{"changes.field_name":"blocked"}}, 	//ONLY NEED RECORDS WHERE blocked CHANGED
 					{"term":{"bug_version_num":1}}			//THE FIRST BUG MAY HAVE INITIAL DATA

@@ -380,7 +380,7 @@ aMath.floor=Math.floor;
 aMath.ceil=Math.ceil;
 aMath.ceiling=Math.ceil;
 aMath.log=Math.log;
-
+aMath.random=Math.random;
 
 (function(){
 	function Cart(x, y){

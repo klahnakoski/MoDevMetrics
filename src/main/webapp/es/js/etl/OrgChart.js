@@ -48,8 +48,10 @@ OrgChart.get=function(minBug, maxBug){
 		var body=$("body");
 		body.append(html);
 
-		yield (aThread.sleep(1000));  //YIELD TO ALLOW SCRIPT TO LOAD AND EXECUTE
-
+		while(!OrgChart.people){
+			yield (aThread.sleep(1000));  //YIELD TO ALLOW SCRIPT TO LOAD AND EXECUTE
+		}//while
+		
 		//HERE WE JUST RETURN THE LOCAL COPY
 		people=OrgChart.people.map(function(v, i){
 			return {"id":v.dn, "name":v.cn, "manager":v.manager ? v.manager.dn : null, "email":v.bugzillaemail};
@@ -74,22 +76,27 @@ OrgChart.makeSchema=function(){
 	//MAKE SCHEMA
 	OrgChart.newIndexName=OrgChart.aliasName+Date.now().format("yyMMdd_HHmmss");
 
-	var config={
-		"_source":{"enabled": true},
-		"_all" : {"enabled" : false},
-		"properties":{
-			"id":{"type":"string", "store":"yes", "index":"not_analyzed"},
-			"name":{"type":"string", "store":"yes", "index":"not_analyzed"},
-			"manager":{"type":"string", "store":"yes", "index":"not_analyzed", "null_value":"null"},
-			"email":{"type":"string", "store":"yes", "index":"not_analyzed"}
-		}
-	};
+
 
 	var setup={
-		"mappings":{
-		}
+		"settings":{
+			//ORG CHART IS SO SMALL, IT WILL HAVE EMPTY SHARDS IF THERE ARE TOO MANY
+			"index.number_of_shards": 1,
+			"index.number_of_replicas": 1,
+			"index.routing.allocation.total_shards_per_node": 1
+		},
+		"mappings":
+			Map.newInstance(OrgChart.typeName, {
+				"_source":{"enabled": true},
+				"_all" : {"enabled" : false},
+				"properties":{
+					"id":{"type":"string", "store":"yes", "index":"not_analyzed"},
+					"name":{"type":"string", "store":"yes", "index":"not_analyzed"},
+					"manager":{"type":"string", "store":"yes", "index":"not_analyzed", "null_value":"null"},
+					"email":{"type":"string", "store":"yes", "index":"not_analyzed"}
+				}
+			})
 	};
-	setup.mappings[OrgChart.typeName]=config;
 
 	var data=yield (Rest.post({
 		"url":ElasticSearch.pushURL+"/"+OrgChart.newIndexName,
@@ -133,11 +140,13 @@ OrgChart.insert=function(people){
 	});
 
 	var a=D.action("Push people to ES", true);
-	yield (Rest.post({
+	var results=yield (Rest.post({
 		"url":ElasticSearch.pushURL + "/" + OrgChart.newIndexName + "/" + OrgChart.typeName + "/_bulk",
 		"data":insert.join("\n")+"\n",
 		"dataType":"text"
 	}));
+	D.println(CNV.Object2JSON(CNV.JSON2Object(results)));
+
 	D.actionDone(a);
 };//method
 
