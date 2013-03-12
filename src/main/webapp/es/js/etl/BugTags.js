@@ -4,7 +4,7 @@
 
 
 importScript("ETL.js");
-importScript("../gui/ProgramFilter.js");
+
 
 
 var BUG_TAGS={};

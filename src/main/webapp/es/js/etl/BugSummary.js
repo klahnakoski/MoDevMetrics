@@ -207,7 +207,7 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 				"value_field": "modified_ts",
 				"size": 100000
 			},
-			"facet_filter":ProgramFilter.makeFilter("bugs", [v.projectName])
+			"facet_filter":new ProgramFilter().makeFilter("bugs", [v.projectName])
 		};
 
 	});
