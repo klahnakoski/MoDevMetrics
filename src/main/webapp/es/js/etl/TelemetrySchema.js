@@ -6892,7 +6892,7 @@ var TelemetrySchema={
 						}
 					}
 				},
-				"M_=WýQ#)ýE_URKCCý3TIýý-E_ýMIIxJÀ\u0010d:O=_SýLNT;ýDOKKIES_W¶PE_MAIN_THREAD_MS":{
+				"<BAD NEWS6>":{
 					"dynamic":"true",
 					"properties":{
 						"bucket_count":{
