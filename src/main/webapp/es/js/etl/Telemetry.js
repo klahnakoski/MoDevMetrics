@@ -127,5 +127,181 @@ Telemetry.insert=function(people){
 	D.actionDone(a);
 };//method
 
-
-
+{
+   "histogram_names" :
+      [
+         "MEMORY_RESIDENT",
+         "GLUESTARTUP_READ_OPS",
+         "CYCLE_COLLECTOR",
+         "SIMPLE_MEASURES_MAIN",
+         "ZIPARCHIVE_CRC",
+         "SIMPLE_MEASURES_SESSIONRESTORED",
+         "MEMORY_LAYOUT_ALL",
+         "EARLY_GLUESTARTUP_READ_TRANSFER",
+         "SIMPLE_MEASURES_UPTIME",
+         "SIMPLE_MEASURES_FIRSTPAINT",
+         "GLUESTARTUP_READ_TRANSFER",
+         "EARLY_GLUESTARTUP_READ_OPS",
+         "MEMORY_JS_GC_HEAP"
+      ],
+   "date" : "20130302",
+   "histograms" :
+      {
+         "MEMORY_RESIDENT" :
+            {
+               "bucket_count" : 10,
+               "histogram_type" : 0,
+               "values" :
+                  [
+                     [
+                        285870,
+                        0
+                     ],
+                     [
+                        185364,
+                        2
+                     ],
+                     [
+                        77936,
+                        0
+                     ],
+                     [
+                        120194,
+                        1
+                     ]
+                  ],
+               "range" :
+                  [
+                     32768,
+                     1048576
+                  ],
+               "count" : 1,
+               "sum" : 539420
+            },
+         "SIMPLE_MEASURES_SESSIONRESTORED" :
+            {
+               "bucket_count" : 31,
+               "histogram_type" : 1,
+               "values" :
+                  [
+                     [
+                        0,
+                        1
+                     ]
+                  ],
+               "range" :
+                  [
+                     0,
+                     30001
+                  ],
+               "count" : 1,
+               "sum" : 43161
+            },
+         "GLUESTARTUP_READ_OPS" :
+            {
+               "bucket_count" : 12,
+               "histogram_type" : 1,
+               "values" :
+                  [
+                     [
+                        90,
+                        0
+                     ],
+                     [
+                        100,
+                        1
+                     ]
+                  ],
+               "range" :
+                  [
+                     1,
+                     100
+                  ],
+               "count" : 1,
+               "sum" : 407
+            },
+         "CYCLE_COLLECTOR" :
+            {
+               "bucket_count" : 50,
+               "histogram_type" : 0,
+               "values" :
+                  [
+                     [
+                        10,
+                        1
+                     ],
+                     [
+                        6,
+                        1
+                     ],
+                     [
+                        12,
+                        0
+                     ],
+                     [
+                        8,
+                        1
+                     ],
+                     [
+                        7,
+                        3
+                     ],
+                     [
+                        2,
+                        0
+                     ],
+                     [
+                        4,
+                        1
+                     ],
+                     [
+                        3,
+                        1
+                     ]
+                  ],
+               "range" :
+                  [
+                     1,
+                     10000
+                  ],
+               "count" : 1,
+               "sum" : 53
+            },
+         "EARLY_GLUESTARTUP_READ_TRANSFER" :
+            {
+               "bucket_count" : 12,
+               "histogram_type" : 0,
+               "values" :
+                  [
+                     [
+                        1,
+                        0
+                     ],
+                     [
+                        0,
+                        1
+                     ]
+                  ],
+               "range" :
+                  [
+                     1,
+                     51200
+                  ],
+               "count" : 1,
+               "sum" : 0
+            },
+      },
+   "info" :
+      {
+         "appName" : "Firefox",
+         "valid" : true,
+         "platformBuildID" : "20110625030239",
+         "arch" : "x86-64",
+         "appVersion" : "7.0a1",
+         "reason" : "idle-daily",
+         "OS" : "WINNT",
+         "appUpdateChannel" : "NA",
+         "appBuildID" : "20110625030239",
+         "version" : "6.1"
+      }
+}
