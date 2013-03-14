@@ -85,20 +85,255 @@
 		D.println(Date.newInstance(1352207434236).format("yyyy-NNN-dd HHmmss"));
 		yield (ESQuery.loadColumns({"from":"bugs"}));
 
-		var esQuery = { "facets":{"mvel":{"terms":{ "size":200000, "script_field":"doc[\"depends_on\"].value" }}},
-			"sort":[], "size":0, "from":0, "query":{"filtered":{ "filter":{"and":[
-//			{"script":{"script":"true"}},
+		var esQuery = { "facets":{ "59":{ "facet_filter":{"and":[
 			{"and":[
-//				{"and":[
-					{"term":{"bug_id":321494}}
-//				]},
-//				{"not":{"missing":{"field":"depends_on"}}},
-//				{"or":[
-//					{"term":{"changes.field_name":"blocked"}},
-//					{"term":{"bug_version_num":1}}
-//				]}
+				{"range":{"modified_ts":{"lt":"1363305600000"}}},
+				{"range":{"expires_on":{"gte":"1363305600000"}}}
 			]}
-		]}, "query":{"match_all":{}} }} };
+		]}, "terms":{ "size":200000, "script_field":"var get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar getDocValue = function(name){\nvar out = [];\nvar v = doc[name];\nif (v==null || v.value==null) { null; } else if (v.values.length<=1){ v.value; } else {for(k : v.values) out.add(k); out;}};\nvar _1000 = function(bugs){\nvar bug_status = getDocValue(\"bug_status\");\noutput = (bug_status==\"resolved\" || bug_status==\"verified\" || bug_status==\"closed\") ? \"closed\" : \"open\"; output;\n};\n_1000(_source)\n" } }, "58":{ "facet_filter":{"and":[
+			{"and":[
+				{"range":{"modified_ts":{"lt":"1363219200000"}}},
+				{"range":{"expires_on":{"gte":"1363219200000"}}}
+			]}
+		]}, "terms":{ "size":200000, "script_field":"var get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar getDocValue = function(name){\nvar out = [];\nvar v = doc[name];\nif (v==null || v.value==null) { null; } else if (v.values.length<=1){ v.value; } else {for(k : v.values) out.add(k); out;}};\nvar _1000 = function(bugs){\nvar bug_status = getDocValue(\"bug_status\");\noutput = (bug_status==\"resolved\" || bug_status==\"verified\" || bug_status==\"closed\") ? \"closed\" : \"open\"; output;\n};\n_1000(_source)\n" } }, "57":{ "facet_filter":{"and":[
+			{"and":[
+				{"range":{"modified_ts":{"lt":"1363132800000"}}},
+				{"range":{"expires_on":{"gte":"1363132800000"}}}
+			]}
+		]}, "terms":{ "size":200000, "script_field":"var get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar getDocValue = function(name){\nvar out = [];\nvar v = doc[name];\nif (v==null || v.value==null) { null; } else if (v.values.length<=1){ v.value; } else {for(k : v.values) out.add(k); out;}};\nvar _1000 = function(bugs){\nvar bug_status = getDocValue(\"bug_status\");\noutput = (bug_status==\"resolved\" || bug_status==\"verified\" || bug_status==\"closed\") ? \"closed\" : \"open\"; output;\n};\n_1000(_source)\n" } }, "56":{ "facet_filter":{"and":[
+			{"and":[
+				{"range":{"modified_ts":{"lt":"1363046400000"}}},
+				{"range":{"expires_on":{"gte":"1363046400000"}}}
+			]}
+		]}, "terms":{ "size":200000, "script_field":"var get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar getDocValue = function(name){\nvar out = [];\nvar v = doc[name];\nif (v==null || v.value==null) { null; } else if (v.values.length<=1){ v.value; } else {for(k : v.values) out.add(k); out;}};\nvar _1000 = function(bugs){\nvar bug_status = getDocValue(\"bug_status\");\noutput = (bug_status==\"resolved\" || bug_status==\"verified\" || bug_status==\"closed\") ? \"closed\" : \"open\"; output;\n};\n_1000(_source)\n" } }, "55":{ "facet_filter":{"and":[
+			{"and":[
+				{"range":{"modified_ts":{"lt":"1362960000000"}}},
+				{"range":{"expires_on":{"gte":"1362960000000"}}}
+			]}
+		]}, "terms":{ "size":200000, "script_field":"var get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar getDocValue = function(name){\nvar out = [];\nvar v = doc[name];\nif (v==null || v.value==null) { null; } else if (v.values.length<=1){ v.value; } else {for(k : v.values) out.add(k); out;}};\nvar _1000 = function(bugs){\nvar bug_status = getDocValue(\"bug_status\");\noutput = (bug_status==\"resolved\" || bug_status==\"verified\" || bug_status==\"closed\") ? \"closed\" : \"open\"; output;\n};\n_1000(_source)\n" } }, "54":{ "facet_filter":{"and":[
+			{"and":[
+				{"range":{"modified_ts":{"lt":"1362873600000"}}},
+				{"range":{"expires_on":{"gte":"1362873600000"}}}
+			]}
+		]}, "terms":{ "size":200000, "script_field":"var get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar getDocValue = function(name){\nvar out = [];\nvar v = doc[name];\nif (v==null || v.value==null) { null; } else if (v.values.length<=1){ v.value; } else {for(k : v.values) out.add(k); out;}};\nvar _1000 = function(bugs){\nvar bug_status = getDocValue(\"bug_status\");\noutput = (bug_status==\"resolved\" || bug_status==\"verified\" || bug_status==\"closed\") ? \"closed\" : \"open\"; output;\n};\n_1000(_source)\n" } }, "53":{ "facet_filter":{"and":[
+			{"and":[
+				{"range":{"modified_ts":{"lt":"1362787200000"}}},
+				{"range":{"expires_on":{"gte":"1362787200000"}}}
+			]}
+		]}, "terms":{ "size":200000, "script_field":"var get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar getDocValue = function(name){\nvar out = [];\nvar v = doc[name];\nif (v==null || v.value==null) { null; } else if (v.values.length<=1){ v.value; } else {for(k : v.values) out.add(k); out;}};\nvar _1000 = function(bugs){\nvar bug_status = getDocValue(\"bug_status\");\noutput = (bug_status==\"resolved\" || bug_status==\"verified\" || bug_status==\"closed\") ? \"closed\" : \"open\"; output;\n};\n_1000(_source)\n" } }, "52":{ "facet_filter":{"and":[
+			{"and":[
+				{"range":{"modified_ts":{"lt":"1362700800000"}}},...Firebug request size limit has been reached by Firebug....ll
+		)
+		null;
+		else
+		hash[key];\n
+	};
+	\
+	nvar
+	getDocValue = function(name){\nvar
+		out = [];\nvar
+		v = doc[name];\nif(v == null || v.value == null)
+		{
+			null;
+		}
+		else
+		if (v.values.length <= 1){
+			v.value;
+		} else{
+			for(k :
+			v.values
+		)
+			out.add(k);
+			out;
+		}
+	};
+	\
+	nvar
+	_1000 = function(bugs){\nvar
+		bug_status = getDocValue(\"bug_status\");\noutput = (bug_status==\"resolved\" || bug_status==\"verified\" || bug_status==\"closed\") ? \"closed\" : \"open\"; output;\n};\n_1000(_source)\n"
+	}
+	},
+	"4"
+	:
+	{
+		"facet_filter"
+	:
+		{
+			"and"
+		:
+			[
+				{"and":[
+					{"range":{"modified_ts":{"lt":"1358553600000"}}},
+					{"range":{"expires_on":{"gte":"1358553600000"}}}
+				]}
+			]
+		}
+	,
+		"terms"
+	:
+		{
+			"size"
+		:
+			200000, "script_field"
+		:
+			"var get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar getDocValue = function(name){\nvar out = [];\nvar v = doc[name];\nif (v==null || v.value==null) { null; } else if (v.values.length<=1){ v.value; } else {for(k : v.values) out.add(k); out;}};\nvar _1000 = function(bugs){\nvar bug_status = getDocValue(\"bug_status\");\noutput = (bug_status==\"resolved\" || bug_status==\"verified\" || bug_status==\"closed\") ? \"closed\" : \"open\"; output;\n};\n_1000(_source)\n"
+		}
+	}
+	,
+	"3"
+	:
+	{
+		"facet_filter"
+	:
+		{
+			"and"
+		:
+			[
+				{"and":[
+					{"range":{"modified_ts":{"lt":"1358467200000"}}},
+					{"range":{"expires_on":{"gte":"1358467200000"}}}
+				]}
+			]
+		}
+	,
+		"terms"
+	:
+		{
+			"size"
+		:
+			200000, "script_field"
+		:
+			"var get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar getDocValue = function(name){\nvar out = [];\nvar v = doc[name];\nif (v==null || v.value==null) { null; } else if (v.values.length<=1){ v.value; } else {for(k : v.values) out.add(k); out;}};\nvar _1000 = function(bugs){\nvar bug_status = getDocValue(\"bug_status\");\noutput = (bug_status==\"resolved\" || bug_status==\"verified\" || bug_status==\"closed\") ? \"closed\" : \"open\"; output;\n};\n_1000(_source)\n"
+		}
+	}
+	,
+	"2"
+	:
+	{
+		"facet_filter"
+	:
+		{
+			"and"
+		:
+			[
+				{"and":[
+					{"range":{"modified_ts":{"lt":"1358380800000"}}},
+					{"range":{"expires_on":{"gte":"1358380800000"}}}
+				]}
+			]
+		}
+	,
+		"terms"
+	:
+		{
+			"size"
+		:
+			200000, "script_field"
+		:
+			"var get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar getDocValue = function(name){\nvar out = [];\nvar v = doc[name];\nif (v==null || v.value==null) { null; } else if (v.values.length<=1){ v.value; } else {for(k : v.values) out.add(k); out;}};\nvar _1000 = function(bugs){\nvar bug_status = getDocValue(\"bug_status\");\noutput = (bug_status==\"resolved\" || bug_status==\"verified\" || bug_status==\"closed\") ? \"closed\" : \"open\"; output;\n};\n_1000(_source)\n"
+		}
+	}
+	,
+	"1"
+	:
+	{
+		"facet_filter"
+	:
+		{
+			"and"
+		:
+			[
+				{"and":[
+					{"range":{"modified_ts":{"lt":"1358294400000"}}},
+					{"range":{"expires_on":{"gte":"1358294400000"}}}
+				]}
+			]
+		}
+	,
+		"terms"
+	:
+		{
+			"size"
+		:
+			200000, "script_field"
+		:
+			"var get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar getDocValue = function(name){\nvar out = [];\nvar v = doc[name];\nif (v==null || v.value==null) { null; } else if (v.values.length<=1){ v.value; } else {for(k : v.values) out.add(k); out;}};\nvar _1000 = function(bugs){\nvar bug_status = getDocValue(\"bug_status\");\noutput = (bug_status==\"resolved\" || bug_status==\"verified\" || bug_status==\"closed\") ? \"closed\" : \"open\"; output;\n};\n_1000(_source)\n"
+		}
+	}
+	,
+	"0"
+	:
+	{
+		"facet_filter"
+	:
+		{
+			"and"
+		:
+			[
+				{"and":[
+					{"range":{"modified_ts":{"lt":"1358208000000"}}},
+					{"range":{"expires_on":{"gte":"1358208000000"}}}
+				]}
+			]
+		}
+	,
+		"terms"
+	:
+		{
+			"size"
+		:
+			200000, "script_field"
+		:
+			"var get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar getDocValue = function(name){\nvar out = [];\nvar v = doc[name];\nif (v==null || v.value==null) { null; } else if (v.values.length<=1){ v.value; } else {for(k : v.values) out.add(k); out;}};\nvar _1000 = function(bugs){\nvar bug_status = getDocValue(\"bug_status\");\noutput = (bug_status==\"resolved\" || bug_status==\"verified\" || bug_status==\"closed\") ? \"closed\" : \"open\"; output;\n};\n_1000(_source)\n"
+		}
+	}
+	},
+	"sort"
+	:
+	[], "size"
+	:
+	0, "from"
+	:
+	0, "query"
+	:
+	{
+		"filtered"
+	:
+		{
+			"filter"
+		:
+			{
+				"and"
+			:
+				[
+					{"script":{"script":"true"}},
+					{"and":[
+						{"and":[
+							{"range":{"modified_ts":{"lt":1363392000000}}},
+							{"range":{"expires_on":{"gte":1358208000000}}}
+						]},
+						{"script":{"script":"var floorInterval = function(value, interval){ Math.floor((double)value/(double)interval)*interval;};\nvar get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar getDocValue = function(name){\nvar out = [];\nvar v = doc[name];\nif (v==null || v.value==null) { null; } else if (v.values.length<=1){ v.value; } else {for(k : v.values) out.add(k); out;}};\nvar _1000 = function(bugs){\nvar modified_ts = getDocValue(\"modified_ts\");\nvar expires_on = getDocValue(\"expires_on\");\noutput = floorInterval(modified_ts-1358208000000, 86400000)!=floorInterval(expires_on-1358208000000, 86400000); output;\n};\n_1000(_source)\n"}},
+						{"and":[
+							{"script":{"script":"true"}},
+							{"script":{"script":"true"}},
+							{"script":{"script":"true"}}
+						]}
+					]}
+				]
+			}
+		,
+			"query"
+		:
+			{
+				"match_all"
+			:
+				{
+				}
+			}
+		}
+	}
+	}
+	;
 //		{
 //			"facets":{"mvel":{"terms":{ "size":200000, "script_field":"doc[\"dependson\"].value"}}},
 //			"sort":[], "size":0, "from":0, "query":{"filtered":{ "filter":{"and":[
