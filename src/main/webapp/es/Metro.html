@@ -365,10 +365,12 @@ var __createChart = function(){
 			iter.number=i;
 		});
 
+
+		//SHOW NUMBER 
 		var status=(yield (Q({
 			"from":iterations,
 			"select":[
-				{"name":"Completed", "value":"endCount", "operation":"sum"},
+				{"name":"Completed", "value":"Util.coalesce(endCount, 0)", "operation":"sum"},
 				{"name":"Current", "value":"(!endCount) ? startCount : 0", "operation":"sum"},
 				{"name":"Backlog", "value":""+backlogCount.cube.total_points, "operation":"none"}
 			]
