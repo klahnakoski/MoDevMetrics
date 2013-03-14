@@ -168,7 +168,6 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 	}));
 
 
-
 	
 	var times=ElasticSearch.makeBasicQuery(esfilter);
 
