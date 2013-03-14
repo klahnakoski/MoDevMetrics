@@ -116,8 +116,17 @@
 </div>
 <div style="align:left;position:relative;float:left;width:800px;">
 
+
 	<h3 id="title">Metro Iterations</h3>
-	<h4>Summary</h4>
+	<h4>Progress</h4>
+	<div id="progress"></div>
+
+
+	<h4>Burndown</h4>
+	<div id="burndown" class="chart"></div>
+
+
+	<h4>Iterations</h4>
 	<div id="summary" class="chart"></div>
 	<h4>Open Bugs</h4>
 	<div id="metro_open" class="chart" ></div>
@@ -346,6 +355,7 @@ var __createChart = function(){
 
 
 
+
 		//FIND START AND END POINTS FOR EACH ITERATION
 		//THIS SHOULD BE A UPDATE JOIN, OF SORTS
 		iterations.forall(function(iter, i){
@@ -354,6 +364,26 @@ var __createChart = function(){
 			iter.endCount  =iterTotal.cube[i][iterTotal.edges[1].domain.getPartByKey(iter.endDate  ).dataIndex];
 			iter.number=i;
 		});
+
+		var status=(yield (Q({
+			"from":iterations,
+			"select":[
+				{"name":"Completed", "value":"endCount", "operation":"sum"},
+				{"name":"Current", "value":"(!endCount) ? startCount : 0", "operation":"sum"},
+				{"name":"Backlog", "value":""+backlogCount.cube.total_points, "operation":"none"}
+			]
+		})));
+
+		aChart.show({
+			"id":"progress",
+			"sheetDiv":"info",
+			"type":"stacked",
+			"orientation":"horizontal",
+			"cube":status,
+			"height":100
+		});
+
+
 
 
 
@@ -403,7 +433,7 @@ var __createChart = function(){
 		}//for
 
 		
-		//WE KNOW THE NUMBER OF ITERATIONS NEEDED, LETS SHOW A SPRINT BURNDOWN
+		//WE KNOW THE NUMBER OF ITERATIONS NEEDED, LETS SHOW ALL SPRINTS
 		var chart=yield (Q({
 			"from":iterations,
 			"select":[
@@ -425,6 +455,11 @@ var __createChart = function(){
 			"cube":chart,
 			"height":400
 		});
+
+
+		//SHOW % DONE
+		remaining
+
 
 
 	});

@@ -241,7 +241,7 @@ aChart.show=function(params){
 		"area":"StackedAreaChart",
 		"stackedbar":"StackedBarChart",
 		"bar":"BarChart",
-		"bullet":"BulletChart"
+		"bullet":"BulletChart",
 	};
 
 	var height;
