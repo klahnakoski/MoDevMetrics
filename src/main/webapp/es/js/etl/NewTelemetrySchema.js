@@ -49,23 +49,35 @@ var TelemetrySchema={
 			"type":"string",
 			"index":"not_analyzed"
 		},
+		"histogram_type":{
+			"type":"long",
+			"store":"yes",
+			"index":"no"
+		},
 		"bucket_count":{
-			"type":"long"
+			"type":"long",
+			"store":"yes",
+			"index":"no"
 		},
 		"count":{
-			"type":"long"
-		},
-		"histogram_type":{
-			"type":"long"
+			"type":"long",
+			"store":"yes",
+			"index":"no"
 		},
 		"range":{
-			"type":"long"
+			"type":"long",
+			"store":"yes",
+			"index":"no"
 		},
 		"sum":{
-			"type":"long"
+			"type":"long",
+			"store":"yes",
+			"index":"no"
 		},
 		"values":{
-			"type":"long"
+			"type":"long",
+			"store":"yes",
+			"index":"no"
 		}
 	}
 };
