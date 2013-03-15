@@ -213,7 +213,12 @@ var __createChart = function(){
 	var statsMin = statsMax.addWeek(-numWeek);
 
 	$("#description").html("Simple chart of open bugs, plus linear estimate of when the project will be completed.<br><br>Pick your program, your due date and BOOKMARK the result for next time.<br><br>"+
-			"<span class=\"warning\">Estimates are generated from a "+statsMax.subtract(statsMin).toString()+" sample from "+statsMin.format("EE MMM dd")+" to "+statsMax.addDay(-1).format("EE MMM dd")+"</span>");
+			(
+			(MAX_CHART_DATE>Date.now().floorDay())
+			? "<span class=\"warning\">Estimates are generated from a "+statsMax.subtract(statsMin).toString()+" sample from "+statsMin.format("EE MMM dd")+" to "+statsMax.addDay(-1).format("EE MMM dd")+"</span>"
+			: "<span class=\"warning\">NO ESTIMATES GENERATED BECAUSE DUE DATE IS IN THE PAST</span>"
+			)
+		);
 //	$("#stats").html("<br>");
 
 
@@ -314,20 +319,28 @@ var __createChart = function(){
 		}//for
 	};
 
-	//REQUIRED
-	addPredictionLine(sampleMin, MAX_CHART_DATE, flat.cube, "open", "required", Date.now().floorDay(), Date.now().floorDay(), stillOpen, -requiredNetCloseRatePerDay);
 
-	//ESTIMATE
-	addPredictionLine(sampleMin, MAX_CHART_DATE, flat.cube, "open", "estimate", statsMax, statsMax, openAtStartOfEstimate, -netCloseRatePerDay);
+	//WE WILL CHART A DYNAMIC SET OF COLUMNS, BASED ON IF WE ARE LOOKING AT A FUTURE OR PAST DUE DATE
+	var columnsToChart=[
+		{"value":"total", "style":{"color":"gray"}},
+		{"value":"open", "style":{"color":"blue"}}
+	];
+
+	if (MAX_CHART_DATE>Date.now().floorDay()){//DO NOT SHOW IF DUE DATE IS IN THE PAST
+		//REQUIRED
+		addPredictionLine(sampleMin, MAX_CHART_DATE, flat.cube, "open", "required", Date.now().floorDay(), Date.now().floorDay(), stillOpen, -requiredNetCloseRatePerDay);
+		columnsToChart.insert(1, {"value":"required", "style":{"color":"brown"}});
+
+		//ESTIMATE
+		addPredictionLine(sampleMin, MAX_CHART_DATE, flat.cube, "open", "estimate", statsMax, statsMax, openAtStartOfEstimate, -netCloseRatePerDay);
+		columnsToChart.insert(2, {"value":"estimate", "style":{"color":"red"}});
+
+	}//endif
+	
 
 	chartP = yield(Q({
-		"from":flat.cube,
-		"select":[
-			{"value":"total", "style":{"color":"gray"}},
-			{"value":"required", "style":{"color":"brown"}},
-			{"value":"estimate", "style":{"color":"red"}},
-			{"value":"open", "style":{"color":"blue"}}
-		],
+		"from":flat,
+		"select": columnsToChart,
 		"edges":[
 			{"name":"date", "value":"date", "domain":{"type":"time", "min":sampleMin, "max":MAX_CHART_DATE, "interval":"day", "value":"value"}}
 		]

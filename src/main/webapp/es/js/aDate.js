@@ -108,12 +108,18 @@ Date.prototype.subtract=function(time, interval){
 //RETURN THE NUMBER OF WEEKDAYS BETWWEN GIVEN TIMES
 Date.diffWeekday=function(endTime, startTime){
 	var out=0;
-	var s=startTime;
-	var e=endTime;
-	for(let d=startTime;d.getMilli()<endTime.getMilli();d=d.addDay(1)){
-		if (![6,0].contains(d.dow())) out++;
-	}//for
 
+	{//TEST
+		if (startTime<=endTime){
+			for(let d=startTime;d.getMilli()<endTime.getMilli();d=d.addDay(1)){
+				if (![6,0].contains(d.dow())) out++;
+			}//for
+		}else{
+			for(let d=endTime;d.getMilli()<startTime.getMilli();d=d.addDay(1)){
+				if (![6,0].contains(d.dow())) out--;
+			}//for
+		}//endif
+	}
 
 
 	//SHIFT SO SATURDAY IS START OF WEEK
@@ -137,7 +143,7 @@ Date.diffWeekday=function(endTime, startTime){
 
 
 	if (out!=aMath.ceil(output))
-		D.error("");
+		D.error("Weekday calculation failed internal test");
 
 
 	return output;

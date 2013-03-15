@@ -7,10 +7,10 @@ CUBE.column = {};
 
 CUBE.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //useMVEL TO INDICATE THIS IS AN ES COLUMN
 
-		if (typeof(resultColumn)=='string'){
-			D.error("expecting a column definition, not a string");
-		}//endif
-		if (resultColumn.name===undefined) resultColumn.name=resultColumn.value;
+	if (typeof(resultColumn)=='string'){
+		D.error("expecting a column definition, not a string");
+	}//endif
+	if (resultColumn.name===undefined) resultColumn.name=resultColumn.value;
 
 
 	if (resultColumn.domain){
@@ -32,6 +32,10 @@ CUBE.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //
 		//NO NEED TO COMPILE THE value IF THERE IS NONE
 		resultColumn.calc = Util.returnNull;
 		return;
+	}else if (resultColumn.value instanceof Date){
+		resultColumn.value="Date.newInstance("+resultColumn.value.getMilli()+")";
+	}else if (aMath.isNumeric(resultColumn.value)){
+		resultColumn.value=""+resultColumn.value;
 	}//endif
 
 	//COMPILE THE CALCULATION OF THE DESTINATION COLUMN USING THE SOURCE COLUMNS
