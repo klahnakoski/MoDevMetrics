@@ -3,22 +3,24 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-var CUBE = function(){};
-var Q;   //=Q
+if (CUBE===undefined) var CUBE = {};
+
 
 
 importScript("CNV.js");
 importScript("aDate.js");
-importScript("util.js");
-importScript("Debug.js");
+importScript("aUtil.js");
+importScript("aDebug.js");
 importScript("MVEL.js");
 importScript("CUBE.aggregate.js");
 importScript("CUBE.column.js");
 importScript("CUBE.cube.js");
 importScript("CUBE.domain.js");
-importScript("trampoline.js");
+importScript("CUBE.analytic.js");
 
+importScript("aThread.js");
 
+var Q;   //=Q
 
 
 (function(){
@@ -581,7 +583,7 @@ CUBE.Cube2List=function(query){
 			"	row[query.select[s].name]="+accessCube+"[s];"+
 			"}";
 	}else{
-		assignSelect="var row={}; Util.copy("+accessCube+", row);";
+		assignSelect="var row={}; Map.copy("+accessCube+", row);";
 	}//endif
 
 	var code=
@@ -659,7 +661,7 @@ function Tree2List(output, tree, select, edges, coordinates, depth){
 	if (depth == edges.length){
 		//FRESH OBJECT
 		var obj={};
-		Util.copy(coordinates, obj);
+		Map.copy(coordinates, obj);
 		for(var s=0;s<select.length;s++){
 			obj[select[s].name]=tree[s];
 		}//for
@@ -850,7 +852,7 @@ CUBE.merge=function(query){
 					if (item.edges[0].domain.partitions[i].dataIndex!=i)
 						D.error("do not know how to handle");
 					var row=output.cube[i];
-					Util.copy(item.from.cube[i], row);
+					Map.copy(item.from.cube[i], row);
 				}//for
 			}else{
 				//CUBE HAS VALUES, NOT OBJECTS
@@ -892,7 +894,7 @@ CUBE.merge=function(query){
 			if (item.from.select instanceof Array){
 				for(let i=num0;i--;){
 					for(let j=num1;j--;){
-						Util.copy(item.from.cube[i][j], output.cube[i][j]);
+						Map.copy(item.from.cube[i][j], output.cube[i][j]);
 					}//for
 				}//for
 			}else{
@@ -988,7 +990,7 @@ CUBE.drill=function(query, parts){
 	if (query.analytic) D.error("Do not know how to drill down on an anlytic");
 
 	var newQuery={};
-	Util.copy(query, newQuery);
+	Map.copy(query, newQuery);
 	newQuery.cube=undefined;
 	newQuery.list=undefined;
 	newQuery.url=undefined;			//REMOVE, MAY CAUSE PROBLEMS

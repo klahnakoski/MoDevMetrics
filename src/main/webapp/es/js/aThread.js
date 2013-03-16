@@ -4,6 +4,9 @@
 
 
 //INSPIRED FROM  https://github.com/airportyh/trampoline.js/blob/master/6_add_exception.html
+importScript("../lib/jquery.js");
+importScript("aUtil.js");
+
 
 
 aThread=function(gen){
@@ -289,6 +292,8 @@ aThread_testFunction=function(){
 //
 ////RUN A BUNDLE OF GENERATORS IN PARALLEL, UP TO A MAX OF maxThread CONCURRENTLY
 ////join() WHEN YOU ARE READY TO ACCEPT RESULTS
+////GOOD FOR WHN YOU WANT TO SEND OUT THOUSANDS OF REQUESTS, BUT WANT TO
+////BE REASONABLE IN THE NUMBER OUT AT ONE PARTICULAR TIME
 //aThread.parallel=function(maxThread){
 //	return new Parallel(maxThread);
 //};

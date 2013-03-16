@@ -3,27 +3,27 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-importScript("../../lib/webdetails/cdf/Base.js");
-importScript("../../lib/webdetails/cdf/jquery.tooltip.js");
-importScript("../../lib/webdetails/data/q01-01.js");
-importScript("../../lib/webdetails/lib/protovis-d3.3.js");
-importScript("../../lib/webdetails/lib/jquery.tipsy.js");
-importScript("../../lib/webdetails/lib/tipsy.js");
+importScript([
+	"../../lib/webdetails/cdf/jquery.js",
+	"../../lib/webdetails/cdf/jquery.tooltip.js",
+	"../../lib/webdetails/lib/jquery.tipsy.js",
+	"../../lib/webdetails/lib/protovis-d3.3.js",
+	"../../lib/webdetails/lib/tipsy.js",
+	"../../lib/webdetails/cdf/Base.js",
 
+	"../../lib/webdetails/pvc/pvc.js",
+	"../../lib/webdetails/pvc/pvcPanel.js",
+	"../../lib/webdetails/pvc/pvcLegend.js",
+	"../../lib/webdetails/pvc/pvcTimeseriesAbstract.js",
+	"../../lib/webdetails/pvc/pvcCategoricalAbstract.js",
+	"../../lib/webdetails/pvc/pvcWaterfall.js",
+	"../../lib/webdetails/pvc/pvcPie.js",
+	"../../lib/webdetails/pvc/pvcBar.js",
+	"../../lib/webdetails/pvc/pvcLine.js",
+	"../../lib/webdetails/pvc/pvcData.js",
 
-importScript("../../lib/webdetails/pvc/pvc.js");
-importScript("../../lib/webdetails/pvc/pvcPanel.js");
-importScript("../../lib/webdetails/pvc/pvcLegend.js");
-importScript("../../lib/webdetails/pvc/pvcTimeseriesAbstract.js");
-importScript("../../lib/webdetails/pvc/pvcCategoricalAbstract.js");
-importScript("../../lib/webdetails/pvc/pvcWaterfall.js");
-importScript("../../lib/webdetails/pvc/pvcPie.js");
-importScript("../../lib/webdetails/pvc/pvcBar.js");
-importScript("../../lib/webdetails/pvc/pvcLine.js");
-importScript("../../lib/webdetails/pvc/pvcData.js");
-
-
-importScript("../../lib/webdetails/pvcDocUtils.js");
+	"../../lib/webdetails/pvcDocUtils.js"
+]);
 
 
 var aChart={};
@@ -121,7 +121,7 @@ aChart.showPie=function(params){
 		"clickable": true,
 		"clickAction":function(series, x, d, elem){bugClicker(chartCube, series, x, d, elem);}
 	};
-	Util.copy(params, chartParams);
+	Map.copy(params, chartParams);
 
 	var chart = new pvc.PieChart(chartParams);
 
@@ -293,11 +293,11 @@ aChart.show=function(params){
 
 	{//COPY EXTENSION POINTS TO PARAMETERS
 		var extPoints={};
-		Util.copy(chartParams.extensionPoints, extPoints);
-		if (params.extensionPoints) Util.copy(params.extensionPoints, extPoints);
+		Map.copy(chartParams.extensionPoints, extPoints);
+		if (params.extensionPoints) Map.copy(params.extensionPoints, extPoints);
 		if (params.timeSeriesFormat) chartParams.timeSeriesFormat=aChart.JavaDateFormat2ProtoVisDateFormat(params.timeSeriesFormat);
 
-		Util.copy(params, chartParams);
+		Map.copy(params, chartParams);
 		chartParams.extensionPoints=extPoints;
 	}
 	var chart = new pvc[chartTypes[type]](chartParams);

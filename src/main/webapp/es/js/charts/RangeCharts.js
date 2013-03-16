@@ -5,7 +5,7 @@
 RangeChart = function(chartRequest){
 	this.defaults();
 	this.queries = chartRequest.requests;
-	Util.copy(chartRequest, this);
+	Map.copy(chartRequest, this);
 	
 	this.interval=Duration.newInstance(this.interval);
 	this.groupSize = ("groupSize" in chartRequest) ? (chartRequest.groupSize - 1) : 0;

@@ -252,7 +252,7 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 //	{
 //		var f=joinItAll.from;
 //		joinItAll.from=undefined;
-//		var j=Util.jsonCopy(joinItAll);
+//		var j=aUtil.jsonCopy(joinItAll);
 //		joinItAll.from=f;
 //
 //		j.edges.forall(function(v, i){

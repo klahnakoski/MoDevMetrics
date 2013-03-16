@@ -2,6 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+importScript("rest/BugzillaClient.js");
+
+
 Bugzilla={};
 //Bugzilla.JSON_URL="https://api-dev.bugzilla.mozilla.org/latest";
 Bugzilla.URL="https://bugzilla.mozilla.org/buglist.cgi";

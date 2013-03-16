@@ -4,10 +4,6 @@
 
 
 importScript("../charts/HelperFunctions.js");
-
-importScript("../rest/ElasticSearchQuery.js");
-importScript("../Test2.js");
-
 importScript("../charts/DataSet.js");
 importScript("../charts/RangeCharts.js");
 importScript("../charts/RangeIterator.js");
@@ -17,7 +13,8 @@ importScript("Filter.js");
 importScript("ComponentFilter.js");
 importScript("ProductFilter.js");
 importScript("ProgramFilter.js");
-importScript("CustomFilters.js");
+importScript("PartitionFilter.js");
+importScript("TeamFilter.js");
 
 importScript("../aCompiler.js");
 

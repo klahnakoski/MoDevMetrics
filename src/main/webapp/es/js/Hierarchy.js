@@ -100,6 +100,9 @@ Hierarchy.addDescendants=function(args){
 //REQUIRES from BE A MAP FROM id_field TO OBJECT
 //children_id_field IS THE FIELD THIS LIST OF IDs
 Hierarchy.topologicalSort=function(args){
+	Map.expecting(args, ["from", "id_field", "children_id_field"]);
+
+
 	var graph=args.from;
 	var id_field=args.id_field;
 	var children_field=args.children_id_field;

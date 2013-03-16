@@ -25,7 +25,7 @@ RangeIterator.prototype.NextQuery = function(){
 };
 
 RangeIterator.prototype.InjectIndex = function(){
-	var queries = Util.jsonCopy(this.queries);
+	var queries = aUtil.jsonCopy(this.queries);
 
 	var iterateField = this.callbackObject.iterateField;
 

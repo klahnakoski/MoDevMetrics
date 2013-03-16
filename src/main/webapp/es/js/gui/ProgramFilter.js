@@ -5,7 +5,7 @@
 
 
 importScript("../MozillaPrograms.js");
-importScript("../Debug.js");
+importScript("../aDebug.js");
 importScript("../CNV.js");
 
 

@@ -5,11 +5,13 @@
 
 importScript("CNV.js");
 importScript("aDate.js");
-importScript("util.js");
-importScript("Debug.js");
+importScript("aUtil.js");
+importScript("aDebug.js");
 importScript("MVEL.js");
 importScript("CUBE.js");
 
+importScript("rest/ElasticSearch.js");
+importScript("rest/Rest.js");
 
 
 

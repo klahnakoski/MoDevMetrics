@@ -37,7 +37,7 @@ ComponentFilter.prototype.refresh = function(){
 		components = yield (CUBE.Cube2List(components));
 		var terms = components.map(function(v, i){return v.term;});
 
-		self.selected = List.intersect(self.selected, terms);
+		self.selected = self.selected.intersect(terms);
 //		var self=this;
 
 

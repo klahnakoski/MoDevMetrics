@@ -6,6 +6,8 @@
 // AGGREGATION
 ////////////////////////////////////////////////////////////////////////////////
 
+if (CUBE===undefined) var CUBE = {};
+
 
 CUBE.aggregate = {};
 CUBE.aggregate.compile = function(select){
@@ -47,7 +49,7 @@ CUBE.aggregate.join = function(select){
 	};//method
 
 	select.domain = {};
-	Util.copy(CUBE.domain.value, select.domain);
+	Map.copy(CUBE.domain.value, select.domain);
 
 	select.domain.end=function(total){
 		return total.join(select.separator);
@@ -122,7 +124,7 @@ CUBE.aggregate.none = function(select){
 	};//method
 
 	select.domain = {};
-	Util.copy(CUBE.domain.value, select.domain);
+	Map.copy(CUBE.domain.value, select.domain);
 
 
 };
@@ -144,7 +146,7 @@ CUBE.aggregate.one = function(select){
 	};//method
 
 	select.domain = {};
-	Util.copy(CUBE.domain.value, select.domain);
+	Map.copy(CUBE.domain.value, select.domain);
 
 	select.domain.end=function(value){
 		if (value == null && select["default"]!==undefined) return eval(select["default"]);
@@ -165,7 +167,7 @@ CUBE.aggregate.sum = function(select){
 	};//method
 
 	select.domain = {};
-	Util.copy(CUBE.domain.value, select.domain);
+	Map.copy(CUBE.domain.value, select.domain);
 };
 CUBE.aggregate.add=CUBE.aggregate.sum;
 
@@ -182,7 +184,7 @@ CUBE.aggregate.binary = function(select){
 	};//method
 
 	select.domain = {};
-	Util.copy(CUBE.domain.value, select.domain);
+	Map.copy(CUBE.domain.value, select.domain);
 };
 CUBE.aggregate.exists=CUBE.aggregate.binary;
 
@@ -200,7 +202,7 @@ CUBE.aggregate.count = function(select){
 	};//method
 
 	select.domain = {};
-	Util.copy(CUBE.domain.value, select.domain);
+	Map.copy(CUBE.domain.value, select.domain);
 };
 
 CUBE.aggregate.maximum = function(select){
@@ -215,7 +217,7 @@ CUBE.aggregate.maximum = function(select){
 	};//method
 
 	select.domain = {};
-	Util.copy(CUBE.domain.value, select.domain);
+	Map.copy(CUBE.domain.value, select.domain);
 	select.domain.end=function(value){
 		if (value == null && select["default"]!==undefined) return select["default"];
 		return value;
@@ -233,7 +235,7 @@ CUBE.aggregate.minimum = function(select){
 		return total;
 	};//method
 
-	select.domain=Util.copy(CUBE.domain.value, {});
+	select.domain=Map.copy(CUBE.domain.value, {});
 
 	select.domain.end=function(value){
 		if (value == null && select["default"]!==undefined) return select["default"];

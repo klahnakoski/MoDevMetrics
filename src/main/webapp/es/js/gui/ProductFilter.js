@@ -124,7 +124,7 @@ ProductFilter.prototype.success = function(data){
 	//REMOVE ANY FILTERS THAT DO NOT APPLY ANYMORE (WILL START ACCUMULATING RESULTING IN NO MATCHES)
 	var terms = [];
 	for(var i = 0; i < products.length; i++) terms.push(products[i].term);
-	this.selected = List.intersect(this.selected, terms);
+	this.selected = this.selected.intersect(terms);
 
 	var self=this;
 

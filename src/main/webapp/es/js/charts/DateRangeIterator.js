@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 DateRangeIterator = function(param){
-	Util.copy(param, this);
+	Map.copy(param, this);
 
 	this.request = null;
 	this.currentDate = null;
@@ -27,7 +27,7 @@ DateRangeIterator.prototype.NextQuery = function(){
 DateRangeIterator.prototype.InjectDate = function(){
 	//D.println("InjuectDate: " + CNV.Object2JSON( this.chartRequest ));
 
-	var chartRequest = Util.jsonCopy(this.queries);
+	var chartRequest = aUtil.jsonCopy(this.queries);
 
 
 	for(var i = 0; i < chartRequest.length; i++){
