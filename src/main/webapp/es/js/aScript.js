@@ -7,10 +7,6 @@
 //http://lisperator.net/blog/thoughts-on-commonjs-requirejs/
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 20130316
 //AN ARRAY WILL DEMAND LOAD ORDER
 //THIS FUNCTION CAN ONLY BE RUN ONCE, AFTER WHICH IT WILL REPLACE ITSELF WITH A NULL FUNCTION
 var importScript;

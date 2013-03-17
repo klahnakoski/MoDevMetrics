@@ -252,11 +252,7 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 //	{
 //		var f=joinItAll.from;
 //		joinItAll.from=undefined;
-<<<<<<< HEAD
-//		var j=aUtil.jsonCopy(joinItAll);
-=======
 //		var j=Map.jsonCopy(joinItAll);
->>>>>>> 20130316
 //		joinItAll.from=f;
 //
 //		j.edges.forall(function(v, i){

@@ -4,27 +4,6 @@
 
 
 importScript([
-<<<<<<< HEAD
-	"../../lib/webdetails/cdf/jquery.js",
-	"../../lib/webdetails/cdf/jquery.tooltip.js",
-	"../../lib/webdetails/lib/jquery.tipsy.js",
-	"../../lib/webdetails/lib/protovis-d3.3.js",
-	"../../lib/webdetails/lib/tipsy.js",
-	"../../lib/webdetails/cdf/Base.js",
-
-	"../../lib/webdetails/pvc/pvc.js",
-	"../../lib/webdetails/pvc/pvcPanel.js",
-	"../../lib/webdetails/pvc/pvcLegend.js",
-	"../../lib/webdetails/pvc/pvcTimeseriesAbstract.js",
-	"../../lib/webdetails/pvc/pvcCategoricalAbstract.js",
-	"../../lib/webdetails/pvc/pvcWaterfall.js",
-	"../../lib/webdetails/pvc/pvcPie.js",
-	"../../lib/webdetails/pvc/pvcBar.js",
-	"../../lib/webdetails/pvc/pvcLine.js",
-	"../../lib/webdetails/pvc/pvcData.js",
-
-	"../../lib/webdetails/pvcDocUtils.js"
-=======
 
 	"../../lib/ccc/cdf/jquery.js",
 	"../../lib/ccc/lib/jquery.tipsy.js",
@@ -155,7 +134,6 @@ importScript([
 	"../../lib/ccc/pvc/data/translation/BoxplotChartTranslationOper.js",
 	"../../lib/ccc/pvc/pvcBoxplotPanel.js",
 	"../../lib/ccc/pvc/pvcBoxplotChart.js"
->>>>>>> 20130316
 ]);
 
 

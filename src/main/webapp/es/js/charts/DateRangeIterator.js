@@ -27,11 +27,8 @@ DateRangeIterator.prototype.NextQuery = function(){
 DateRangeIterator.prototype.InjectDate = function(){
 	//D.println("InjuectDate: " + CNV.Object2JSON( this.chartRequest ));
 
-<<<<<<< HEAD
-	var chartRequest = aUtil.jsonCopy(this.queries);
-=======
 	var chartRequest = Map.jsonCopy(this.queries);
->>>>>>> 20130316
+
 
 
 	for(var i = 0; i < chartRequest.length; i++){

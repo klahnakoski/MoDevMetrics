@@ -3,15 +3,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-<<<<<<< HEAD
-=======
+
 importScript([
 	"../../lib/jquery.js",
 	"../../lib/js/jquery-ui-1.8.16.custom.min.js",
 	"../../lib/js/jquery.ba-bbq.js"
 ]);
 
->>>>>>> 20130316
 importScript("../charts/HelperFunctions.js");
 importScript("../charts/DataSet.js");
 importScript("../charts/RangeCharts.js");
@@ -24,10 +22,7 @@ importScript("ProductFilter.js");
 importScript("ProgramFilter.js");
 importScript("PartitionFilter.js");
 importScript("TeamFilter.js");
-<<<<<<< HEAD
 
-=======
->>>>>>> 20130316
 importScript("../aCompiler.js");
 
 GUI = {};

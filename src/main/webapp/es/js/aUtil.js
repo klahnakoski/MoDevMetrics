@@ -26,13 +26,10 @@ Map.copy = function(from, to){
 	return to;
 };
 
-<<<<<<< HEAD
-=======
 Map.jsonCopy=function(value){
 	return JSON.parse(JSON.stringify(value));
 };
 
->>>>>>> 20130316
 
 //THROW AN ERROR IF WE DO NOT SEE THE GIVEN ATTRIBUTE IN THE LIST
 Map.expecting=function(obj, keyList){
