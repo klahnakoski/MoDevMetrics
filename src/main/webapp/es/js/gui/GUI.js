@@ -3,6 +3,15 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
+<<<<<<< HEAD
+=======
+importScript([
+	"../../lib/jquery.js",
+	"../../lib/js/jquery-ui-1.8.16.custom.min.js",
+	"../../lib/js/jquery.ba-bbq.js"
+]);
+
+>>>>>>> 20130316
 importScript("../charts/HelperFunctions.js");
 importScript("../charts/DataSet.js");
 importScript("../charts/RangeCharts.js");
@@ -15,7 +24,10 @@ importScript("ProductFilter.js");
 importScript("ProgramFilter.js");
 importScript("PartitionFilter.js");
 importScript("TeamFilter.js");
+<<<<<<< HEAD
 
+=======
+>>>>>>> 20130316
 importScript("../aCompiler.js");
 
 GUI = {};
@@ -49,7 +61,14 @@ GUI.fixEndDate=function(startDate, endDate, interval){
 };
 
 
-GUI.setup = function(parameters, relations, indexName, showDefaultFilters){
+GUI.setup = function(refreshChart, parameters, relations, indexName, showDefaultFilters){
+
+	if (typeof(refreshChart)!="function"){
+		D.error("Expecting first parameter to be a refresh (creatChart) function");
+	}//endif
+	GUI.refreshChart=refreshChart;
+
+
 	//IF THERE ARE ANY CUSTOM FILTERS, THEN TURN OFF THE DEFAULTS
 	var isCustom=false;
 	parameters.forall(function(f, i){
@@ -240,7 +259,7 @@ GUI.AddParameters=function(parameters, relations){
 
 			$("#" + param.id).change(function(){
 				if (GUI.UpdateState()){
-					createChart();
+					GUI.refreshChart();
 				}
 			});
 			defaultValue=defaultValue.format("yyyy-MM-dd");
@@ -259,7 +278,7 @@ GUI.AddParameters=function(parameters, relations){
 				}//try
 
 				if (GUI.UpdateState()){
-					createChart();
+					GUI.refreshChart();
 				}
 			});
 			defaultValue=defaultValue.toString();
@@ -267,7 +286,7 @@ GUI.AddParameters=function(parameters, relations){
 		}else{
 			$("#" + param.id).change(function(){
 				if (GUI.UpdateState()){
-					createChart();
+					GUI.refreshChart();
 				}
 			});
 			$("#" + param.id).val(defaultValue);
@@ -408,7 +427,7 @@ GUI.refresh=function(){
 		GUI.UpdateSummary();
 
 
-		createChart();
+		GUI.refreshChart();
 	});
 };
 

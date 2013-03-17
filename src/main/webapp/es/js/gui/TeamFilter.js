@@ -3,6 +3,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
+
+importScript([
+	"../../lib/jquery.js",
+	"../../lib/jstree/jquery.jstree.js"
+]);
+
+
 TeamFilter = function(){};
 
 

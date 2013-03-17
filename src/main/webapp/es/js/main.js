@@ -11,6 +11,13 @@ importScript("Bugzilla.js");
 importScript("gui/GUI.js");
 importScript("Hierarchy.js");
 
+<<<<<<< HEAD
 
 importScript("CUBE.js");
 importScript("charts/aChart.js");
+=======
+importScript("Stats.js");
+importScript("CUBE.js");
+importScript("charts/aChart.js");
+
+>>>>>>> 20130316

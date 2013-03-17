@@ -3,10 +3,13 @@
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
-<HEAD><script type="application/javascript;version=1.7" src="js/Settings.js"></script></HEAD>
+<HEAD>
+	<script type="application/javascript;version=1.7" src="js/aScript.js"></script>
+</HEAD>
 <BODY>
 
 
+<<<<<<< HEAD
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
@@ -29,26 +32,18 @@
 <script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcLine.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcData.js"></script>
 
+=======
+<link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
+>>>>>>> 20130316
 <link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
 <link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
-
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvcDocUtils.js"></script>
-
-
-
-
-
-
-
-
 <link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
-<script type="application/javascript;version=1.7" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
-<script type="application/javascript;version=1.7" src="lib/js/jquery.ba-bbq.js"></script>
 
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 
 
 
+<<<<<<< HEAD
 <script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script>
 
@@ -96,6 +91,8 @@
 <script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script>
 <script type="application/javascript;version=1.7" src="js/etl/BugTags.js"></script>
 
+=======
+>>>>>>> 20130316
 
 
 <div id="sidebar">
@@ -135,6 +132,9 @@
 </div>
 
 <script type="application/javascript;version=1.7">
+
+
+importScript('js/main.js', function(){
 
 
 var CUTOFF=Duration.newInstance("3week");
@@ -395,22 +395,25 @@ var __createChart = function(){
 
 //file:///C:/Users/klahnakoski/git/Bugzilla%20Anthropology/src/main/webapp/es/Age_OpenBugs.html#sampleInterval=day&sampleMax=2013-01-18&sampleMin=2013-01-15&selectedPrograms=Security+%28High+and+Critical+Only%29&selectedProducts=core,firefox,thunderbird,toolkit,mailnews+core
 	$(document).ready(function(){
-		GUI.setup([
-//			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.newInstance("2013-01-15")},
-//			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.newInstance("2013-01-18")},
-//			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"day"},
-			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
-			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today()},
-			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"week"},
-			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
-		],
-		[
-			"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
-		],
-		"bugs",
-		true);
+		GUI.setup(
+			createChart,
+			[
+	//			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.newInstance("2013-01-15")},
+	//			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.newInstance("2013-01-18")},
+	//			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"day"},
+				{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
+				{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today()},
+				{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"week"},
+				{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
+			],
+			[
+				"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+			],
+			"bugs",
+			true
+		);
 	});
-
+});
 </script>
 
 

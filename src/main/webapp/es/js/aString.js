@@ -72,7 +72,11 @@ String.prototype.deformat = function(){
 ///
 /// EXPECTING AN OBJECT WITH KEY VALUE PAIRS
 String.prototype.replaceVars = function(values){
+<<<<<<< HEAD
 	var output = aUtil.jsonCopy(this);
+=======
+	var output = Map.jsonCopy(this);
+>>>>>>> 20130316
 
 	while(true){
 		var s = output.indexOf('{');
