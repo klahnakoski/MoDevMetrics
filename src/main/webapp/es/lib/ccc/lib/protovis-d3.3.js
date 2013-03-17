@@ -447,7 +447,7 @@ pv.listenForPageLoad = function(listener) {
     // Catch cases where $(document).ready() is called after the
     // browser event has already occurred.
     if ( document.readyState === "complete" ) {
-        listener();
+        listener({});
     }
 
     if (pv.renderer() == "svgweb") {
@@ -9455,7 +9455,7 @@ pv.SvgScene.lineSegmentPaths = function(scenes, from, to) {
 
   NOTE: 
   As yy points down, and because of the way Vector.perp() is written,
-  perp() corresponds to rotating 90º clockwise.
+  perp() corresponds to rotating 90ï¿½ clockwise.
   
   -----
   

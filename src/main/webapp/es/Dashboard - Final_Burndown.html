@@ -37,16 +37,16 @@
 <script type="application/javascript;version=1.7" src="lib/webdetails/pvcDocUtils.js"></script>
 
 
-<link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
+<link type="text/css" rel="stylesheet" href="css/start/jquery-ui-1.8.16.custom.css" />
 <script type="application/javascript;version=1.7" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="application/javascript;version=1.7" src="lib/js/jquery.ba-bbq.js"></script>
 
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 
 
-<script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/CNV.js"></script>
-<script type="application/javascript;version=1.7" src="js/aUtil.js"></script>
-<script type="application/javascript;version=1.7" src="js/aDate.js"></script>
+<script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/aArray.js"></script><script type="application/javascript;version=1.7" src="js/aString.js"></script><script type="application/javascript;version=1.7" src="js/aMath.js"></script><script type="application/javascript;version=1.7" src="js/CNV.js"></script>
+<script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/aArray.js"></script><script type="application/javascript;version=1.7" src="js/aString.js"></script><script type="application/javascript;version=1.7" src="js/aMath.js"></script>
+<script type="application/javascript;version=1.7" src="js/aDate.js"></script><script type="application/javascript;version=1.7" src="js/aDuration.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
@@ -412,7 +412,7 @@ var __createChart = function(){
 
 
 $(document).ready(function(){
-	GUI.setup([
+	GUI.setup(createChart, [
 		{"id":"forTitle", "name":"Title", "type":"text", "default":"TEF UX Critical"},
 		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.newInstance("2013-02-05")},//Date.now().addDay(-15).floorMonth()},
 		{"id":"dueDate", "name":"Due Date", "type":"time", "default":Date.newInstance("2013-02-28")},//Date.now().addMonth(1).floorDay()},

@@ -37,16 +37,16 @@
 <script type="application/javascript;version=1.7" src="lib/webdetails/pvcDocUtils.js"></script>
 
 
-<link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
+<link type="text/css" rel="stylesheet" href="css/start/jquery-ui-1.8.16.custom.css" />
 <script type="application/javascript;version=1.7" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="application/javascript;version=1.7" src="lib/js/jquery.ba-bbq.js"></script>
 
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 
 
-<script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/CNV.js"></script>
-<script type="application/javascript;version=1.7" src="js/aUtil.js"></script>
-<script type="application/javascript;version=1.7" src="js/aDate.js"></script>
+<script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/aArray.js"></script><script type="application/javascript;version=1.7" src="js/aString.js"></script><script type="application/javascript;version=1.7" src="js/aMath.js"></script><script type="application/javascript;version=1.7" src="js/CNV.js"></script>
+<script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/aArray.js"></script><script type="application/javascript;version=1.7" src="js/aString.js"></script><script type="application/javascript;version=1.7" src="js/aMath.js"></script>
+<script type="application/javascript;version=1.7" src="js/aDate.js"></script><script type="application/javascript;version=1.7" src="js/aDuration.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
@@ -327,14 +327,21 @@ var __createChart = function(){
 	];
 
 	if (MAX_CHART_DATE>Date.now().floorDay()){//DO NOT SHOW IF DUE DATE IS IN THE PAST
+		//SINCE flat HAS BEEN USED, IT HAS BEEN FLATTENED TO A LIST
+
 		//REQUIRED
-		addPredictionLine(sampleMin, MAX_CHART_DATE, flat.cube, "open", "required", Date.now().floorDay(), Date.now().floorDay(), stillOpen, -requiredNetCloseRatePerDay);
+		addPredictionLine(sampleMin, MAX_CHART_DATE, flat.list, "open", "required", Date.now().floorDay(), Date.now().floorDay(), stillOpen, -requiredNetCloseRatePerDay);
 		columnsToChart.insert(1, {"value":"required", "style":{"color":"brown"}});
+		flat.select.push({"name":"estimate"});
+		flat.columns.push({"name":"required"});
 
 		//ESTIMATE
-		addPredictionLine(sampleMin, MAX_CHART_DATE, flat.cube, "open", "estimate", statsMax, statsMax, openAtStartOfEstimate, -netCloseRatePerDay);
+		addPredictionLine(sampleMin, MAX_CHART_DATE, flat.list, "open", "estimate", statsMax, statsMax, openAtStartOfEstimate, -netCloseRatePerDay);
 		columnsToChart.insert(2, {"value":"estimate", "style":{"color":"red"}});
-
+		flat.select.push({"name":"estimate"});
+		flat.columns.push({"name":"estimate"});
+	}else{
+		//MUST STILL ADD MISSING DATES?
 	}//endif
 	
 
@@ -367,7 +374,7 @@ var __createChart = function(){
 
 
 $(document).ready(function(){
-	GUI.setup([
+	GUI.setup(createChart, [
 		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":new Date(2013, 0, 1)},
 		{"id":"dueDate", "name":"Due Date", "type":"time", "default":Date.now().addMonth(1).floorDay()}
 		],

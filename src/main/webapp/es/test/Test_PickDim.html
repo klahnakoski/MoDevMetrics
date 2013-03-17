@@ -52,7 +52,7 @@
 
 
 <script type="application/javascript;version=1.7" src="../js/CNV.js"></script>
-<script type="application/javascript;version=1.7" src="../js/aUtil.js"></script><script type="application/javascript;version=1.7" src="../js/aDate.js"></script>
+<script type="application/javascript;version=1.7" src="../js/aUtil.js"></script><script type="application/javascript;version=1.7" src="../js/aArray.js"></script><script type="application/javascript;version=1.7" src="../js/aString.js"></script><script type="application/javascript;version=1.7" src="../js/aMath.js"></script><script type="application/javascript;version=1.7" src="../js/aDate.js"></script><script type="application/javascript;version=1.7" src="../js/aDuration.js"></script>
 
 <script type="application/javascript;version=1.7" src="../js/MozillaPrograms.js"></script>
 <script type="application/javascript;version=1.7" src="../js/MozillaDimensions.js"></script>
@@ -219,7 +219,7 @@ var __createChart = function(paramQuery){
 
 
 	$(document).ready(function(){
-		GUI.setup([
+		GUI.setup(createChart, [
 			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
 			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today()},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"week"},

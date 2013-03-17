@@ -3,33 +3,14 @@
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
-
 <HEAD>
+	<script type="application/javascript;version=1.7" src="es/js/aScript.js"></script>
 	<link type="text/css" rel="stylesheet" href="es/css/menu.css"/>
 </HEAD>
-<BODY id="content">
-
-<script type="application/javascript;version=1.7" src="es/lib/webdetails/cdf/Base.js"></script>
-<script type="application/javascript;version=1.7" src="es/lib/webdetails/cdf/jquery.js"></script>
-<script type="application/javascript;version=1.7" src="es/lib/jstree/jquery.jstree.js"></script>
-<link type="text/css" href="es/css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
-<script type="application/javascript;version=1.7" src="es/lib/js/jquery-ui-1.8.16.custom.min.js"></script>
-<script type="application/javascript;version=1.7" src="es/lib/js/jquery.ba-bbq.js"></script>
-
-<link type="text/css" rel="stylesheet" href="es/css/menu.css"/>
+<BODY>
 
 
 
-
-<script type="application/javascript;version=1.7" src="es/js/aUtil.js"></script>
-<script type="application/javascript;version=1.7" src="es/js/CNV.js"></script>
-
-<script type="application/javascript;version=1.7" src="es/js/aDate.js"></script>
-<script type="application/javascript;version=1.7" src="es/js/aDebug.js"></script>
-<script type="application/javascript;version=1.7" src="es/js/aCompiler.js"></script>
-<script type="application/javascript;version=1.7" src="es/js/MVEL.js"></script>
-
-<script type="application/javascript;version=1.7" src="es/js/aThread.js"></script>
 
 
 
@@ -62,6 +43,34 @@
 <h2>Bugzilla Anthropology Metrics Prototypes</h2>
 	<br>
 <table>
+
+
+
+
+	<tr>
+	<td>
+		<h4>March 16th 2013</h4>
+		<div class="description">
+		<p>This past week-and-a-half I have been familiarizing myself with
+			Metric's Telemetry setup, learning Python for ReleaseManagement's
+			new dashboards, and trying to push something out for the Metro project.</p>
+		<p>The biggest barrier to Metro is the limitation of my charting library,
+			<a href="http://www.webdetails.pt/ctools.html#tabccc">CCC (Community Chart Components)</a>.  They have released version 2, and I was still stuck on version 1.
+		The new version has about 100 javascript files, and would be a pain to include all my pages (did I mention I have no server,
+			and all my pages are static?).  I would consider using the minimized version in a single file, but these libraries are still new, and require some
+			debugging to work properly on the edge cases I will inevitably encounter.  
+		</p>
+			<p>The solution is to use something like require.js to manage the packaging of this
+			large library, and the many other module dependencies.</p>
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Metro - Rough.html">Rough Metro</a>
+			<span class="info">A very slow and clunky set of charts.  Mostly for my own use to verify counts.</span>
+		</div>
+	</td>
+	</tr>
+
+
 
 	<tr>
 	<td>
@@ -476,15 +485,21 @@
 </table>
 </div>
 <script type="application/javascript;version=1.7">
-	if (window.location.protocol=="file:"){
-		var a=$("a");
-		a.each(function(i, v){
-			var path=$(v).attr('href');
-			$(v).attr('href', path.replace("https://metrics.mozilla.com/bugzilla-analysis", "es"));
+	importScript([
+		"es/lib/jquery.js",
+		"es/js/aLibrary.js"
+	], function(){
 
-		});
-	}
 
+		if (window.location.protocol=="file:"){
+			var a=$("a");
+			a.each(function(i, v){
+				var path=$(v).attr('href');
+				$(v).attr('href', path.replace("https://metrics.mozilla.com/bugzilla-analysis", "es"));
+
+			});
+		}
+	});
 
 //	$('.new').effect("pulsate", { times:3 }, 1000);
 </script>
