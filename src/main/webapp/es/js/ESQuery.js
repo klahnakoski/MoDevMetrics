@@ -132,6 +132,7 @@ ESQuery.prototype.run = function(){
 	if (!this.query.url.endsWith("/_search")) this.query.url+="/_search";  //WHEN QUERIES GET RECYCLED, THIER url IS SOMETIMES STILL AROUND
 	//var URL=window.ElasticSearch.baseURL+ESQuery.INDEXES[this.query.from.split(".")[0]].path+"/_search";
 	var postResult;
+	if (ESQuery.DEBUG) D.println(CNV.Object2JSON(this.esQuery));
 	try{
 		postResult=yield (Rest.post({
 			url: this.query.url,
@@ -148,7 +149,7 @@ ESQuery.prototype.run = function(){
 			if (f._type=="statistical") return;
 			if (!f.terms) return;
 			
-			if (f.terms.length==self.query.essize){
+			if (!ESQuery.DEBUG && f.terms.length==self.query.essize){
 				D.error("Not all data delivered ("+f.terms.length+"/"+f.total+") try smaller range");
 			}//endif
 		});

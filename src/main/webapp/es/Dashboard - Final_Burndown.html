@@ -193,7 +193,7 @@ var __createChart = function(){
 
 		//ADD CURRENT BUGS DATA TO HISTORY (MERGE ON bug_id)
 		currentBugs.forall(function(v){
-			var i=historyBugs.edges[0].domain.getPartByKey(v.id).dataIndex;
+			var i=historyBugs.get("bug_id", v.id);
 			Map.copy(v, historyBugs.cube[i])
 		});
 
@@ -318,7 +318,7 @@ var __createChart = function(){
 //	);
 
 
-	var stillOpen = flat.cube[flat.edges[0].domain.getPartByKey(sampleMin).dataIndex].open;
+	var stillOpen = flat.get("date", sampleMin);
 	var requiredNetCloseRatePerDay;
 	{
 		let daysLeft=Date.diffWeekday(DUE_DATE, sampleMin);

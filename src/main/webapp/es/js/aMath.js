@@ -12,6 +12,10 @@ aMath.isNumeric = function(n){
 	return !isNaN(parseFloat(n)) && isFinite(n);
 };
 
+//THIS WILL RETURN ZERO IF value IS NOT A NUMBER
+aMath.alpha2zero=function(value){
+	return aMath.isNumeric(value) ? value-0 : 0;
+};
 
 aMath.sign = function(n){
 	if (n==null) return null;

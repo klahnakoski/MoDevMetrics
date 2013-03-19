@@ -54,7 +54,16 @@ var importScript;
 		return o+value.substring(s);
 	}//method
 
-
+	function subtract(a, b){
+		var c=[];
+	A:	for(var x=0;x<a.length;x++){
+			if (a[x]!==undefined){
+				for(var y=0;y<b.length;y++) if (a[x]==b[y]) continue A;
+				c.push(a[x]);
+			}//endif
+		}//for
+		return c;
+	}//method
 
 	////////////////////////////////////////////////////////////////////////////
 	// SCRIPTS WITH THE MAGIC METHOD WILL RECORD THEIR DEPENDENCIES
@@ -162,6 +171,7 @@ var importScript;
 	}//function
 
 
+
 	function addScripts(paths){
 		var head=document.getElementsByTagName('head')[0];
 		var scripts=head.getElementsByTagName('script');
@@ -170,14 +180,7 @@ var importScript;
 			existingScripts.push(scripts[s].getAttribute("src"));
 		}//for
 
-		function subtract(a, b){
-			var c=[];
-		A:	for(var x=0;x<a.length;x++){
-				for(var y=0;y<b.length;y++) if (a[x]==b[y]) continue A;
-				c.push(a[x]);
-			}//for
-			return c;
-		}//method
+
 		paths=subtract(paths, existingScripts);
 
 		for(var i=0;i<paths.length;i++){
@@ -214,9 +217,10 @@ var importScript;
 				//HAVE __parent DEFINED, AND IN THEORY WE SHOULD BE ABLE CONTINUE
 				//WORKING ON THOSE
 					if (queue.length==0 && unprocessed.length>0){
-						var hasParent=unprocessed.map(function(v,i){if (graph[v].__parent!==undefined) return v;});
+						var hasParent=unprocessed.map(function(v,i){if (graph[v].__parent!==undefined ) return v;});
 						if (hasParent.length==0) D.error("Isolated cycle found");
-						queue.appendArray(hasParent);
+						hasParent=subtract(hasParent, processed);
+						for(var k=0;k<hasParent.length;k++) if (hasParent[k]) queue.push(hasParent[k]);
 					}//endif
 				}//END OF HACK
 

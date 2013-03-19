@@ -46,15 +46,16 @@
 
 	<h3 id="title">Metro Iterations</h3>
 	<h4>Progress</h4>
-	<div id="progress" class="chart"></div>
-
+	<div id="progress"></div>
+	<h4>Production Forcast</h4>
+	<div id="progressSummary"></div>
 
 	<h4>Burndown</h4>
 	<div id="burndown" class="chart"></div>
 
 
 	<h4>Iterations</h4>
-	<div id="summary" class="chart"></div>
+	<div id="iterations" class="chart"></div>
 	<h4>Open Bugs</h4>
 	<div id="metro_open" class="chart" ></div>
 	<h4>Open Points by Iteration</h4>
@@ -69,13 +70,16 @@
 
 <script type="application/javascript;version=1.7">
 
-importScript("js/main.js", function(){
+importScript([
+	"js/main.js",
+	"lib/jquery.numberformatter.js"
+], function(){
 
 
+//Color.showAll("title");
 
 
-
-var CUTOFF = Duration.newInstance("3week");
+var SAMPLE_SIZE=3;		//NUMBER OF ITERATIONS FOR POINT GROWTH RATE
 
 var thread;
 var createChart = function(){
@@ -83,6 +87,9 @@ var createChart = function(){
 		thread.kill();
 	thread = aThread.run(__createChart());
 };
+
+
+
 
 var __createChart = function(){
 
@@ -102,7 +109,7 @@ var __createChart = function(){
 		"a pessimistic estimate"
 	);
 
-	var mvelToCountPoints='Math.max(1, between(coalesce(getDocValue("status_whiteboard"), " ")+" ", "p=", " ")-0)';
+	var mvelToCountPoints='alpha2zero(between(coalesce(getDocValue("status_whiteboard"), " ")+" ", "p=", " "))';
 
 	//WRITE DEPENDENCY AND CLOSURE TO ES
 
@@ -124,7 +131,7 @@ var __createChart = function(){
 	var metroSummary=yield (Q({
 		"from":Map.codomain(bugs),
 		"select": [
-			{"name":"total", "value":"bug_id", "operation":"count"},
+			{"name":"total", "value":"bug_id", "operation":"count", "style":{"visibility":"hidden"}},
 			{"name":"open", "value":"time.value.between(open_time, close_time) ? 1 : 0", "operation":"sum"}
 		],
 		"edges":[
@@ -140,6 +147,7 @@ var __createChart = function(){
 		"sheetDiv":"info",
 		"type":"line",
 		"cube":metroSummary,
+		"legendPosition":"right",
 		"height":400
 	});
 
@@ -163,6 +171,53 @@ var __createChart = function(){
 	iterations[4].endDate=iterations[3].endDate.addWeekday(12);
 
 	var currentIteration=iterations.map(function(i){if (endDate.between(i.startDate, i.endDate)) return i;})[0];
+
+
+	////////////////////////////////////////////////////////////////////////////
+	// TOTAL POINT COUNT
+	////////////////////////////////////////////////////////////////////////////
+	var pointCount;
+	var newPointsPerIteration;
+	var totalPointThread=aThread.run(function(){
+		//THE CURRENT SPRINT IS NOT COMPLETED, SO BACKLOG SHOULD INCLUDE THOSE BUGS
+		var begin=endDate.addWeekday(-12);
+
+		
+		pointCount = yield (ESQuery.run({
+			"from":"bugs",
+			"select":{"name":"points", "value":mvelToCountPoints, "operation":"maximum"},
+			"edges":[
+				"bug_id",
+				{"name":"date",
+					"range":{"min":"modified_ts", "max":"expires_on"},
+					"domain":{"type":"time", "min":startDate, "max":endDate, "interval":"day"}
+				}
+			],
+			"esfilter":{"and":[
+				{"terms":{"blocked":[iterations.select("bug_id")]}},
+				{"range":{"expires_on":{"gte": startDate.getMilli()}}},
+				{"range":{"modified_ts":{"lt": endDate.getMilli()}}}
+			]}
+		}));
+
+		pointCount=yield (Q({
+			"from":pointCount,
+			"select":{"name":"total", "value":"points", "operation":"sum"},
+			"edges":[
+				{"value":"date",
+					"domain":{"type":"time", "min":startDate, "max":endDate, "interval":"day"}
+				}
+			]
+		}));
+
+		//FIGURE OUT RATE OF POINT INCREASE (LAST THREE ITERATIONS)
+		var startPoints=pointCount.get("date", iterations[currentIteration.index-SAMPLE_SIZE].startDate);
+		var endPoints=pointCount.get("date", currentIteration.startDate);
+		newPointsPerIteration=(endPoints-startPoints)/SAMPLE_SIZE;
+	});
+
+
+
 
 
 	////////////////////////////////////////////////////////////////////////////
@@ -217,6 +272,7 @@ var __createChart = function(){
 			"type":"line",
 			"cube":iterTotal,
 			"height":400,
+			"legendPosition":"right",
 			"clickAction":function(series, x, d, elem){
 				aThread.run(function(){
 					var iteration=iterations.map(function (v, i){if (v.summary==series) return v;})[0];
@@ -268,7 +324,9 @@ var __createChart = function(){
 			"sheetDiv":"info",
 			"type":"line",
 			"cube":open,
-			"height":400
+			"height":400,
+			"legendPosition":"right",
+
 		});
 	});
 
@@ -288,8 +346,8 @@ var __createChart = function(){
 		//THIS SHOULD BE A UPDATE JOIN, OF SORTS
 		iterations.forall(function(iter, i){
 			//WE ASSUME THE iteration DIMENSION IS ORDERED LIKE OUR iterations [i]
-			iter.startCount=iterTotal.cube[i][iterTotal.edges[1].domain.getPartByKey(iter.startDate).dataIndex];
-			iter.endCount  =iterTotal.cube[i][iterTotal.edges[1].domain.getPartByKey(iter.endDate  ).dataIndex];
+			iter.startCount=iterTotal.get("date", iter.startDate);
+			iter.endCount  =iterTotal.get("date", iter.endDate);
 			iter.number=i;
 		});
 
@@ -298,35 +356,78 @@ var __createChart = function(){
 		var status=(yield (Q({
 			"from":iterations,
 			"select":[
-				{"name":"Completed", "value":"Util.coalesce(endCount, 0)", "operation":"sum"},
-				{"name":"Current", "value":"(!endCount) ? Util.coalesce(startCount, 0) : 0", "operation":"sum"},
-				{"name":"Backlog", "value":""+backlogCount.cube.total_points, "operation":"one"}
+				{"name":"Completed", "value":"Util.coalesce(endCount, 0)", "operation":"sum", "style":{"color":"firebrick"}},
+				{"name":"Current", "value":"(!endCount) ? Util.coalesce(startCount, 0) : 0", "operation":"sum","style":{"color":"goldenrod"}},
+				{"name":"Backlog", "value":""+backlogCount.cube.total_points, "operation":"one", "style":{"color":"gray"}}
 			],
 			"edges":[
-				{"name":"now", "value":endDate,
-					"domain":{"type":"set", "partitions":[{"name":endDate.format("dd MMM yyyy"), "value":"endDate"}], "value":"name", "key":"value"}
+				{"name":"now", "value":""+endDate.getMilli(),
+					"domain":{"type":"set", "partitions":[{"name":endDate.format("dd MMM yyyy"), "value":endDate.getMilli()}], "value":"name", "key":"value"}
 				}
 			]
 		})));
 
 		aChart.show({
 			"id":"progress",
-			"sheetDiv":"info",
-			"type":"stacked",
+//			"sheetDiv":"info",
+			"type":"bar",
+			"stacked":true,
 			"orientation":"horizontal",
 			"cube":status,
-			"height":100,
+			"height":70,
 			"legend":false,
-			"showValues":true,
+//			"showValues":true,
+			"xAxisGrid":false,
+			"xAxisSize":0,
+			"yAxisSize": 0,
+			valuesVisible: true,
+//		    valuesLabelStyle: 'inside',
+   			valuesMask: "{series} ({value})"
+//			"legendPosition":"right",
 
 		});
 
 
 
 
+//		//RETURN BEST, AVERAGE AND WORSE
+//		var calcTeamVelocity=function(data, optimisticSampleSize, pessimisticSampleSize){
+//			var sorted=data.sort(function(a, b){return a-b;});
+//
+//			return [
+//				{"name":"average", "velocity":aMath.average(data), "remaining":remaining, "style":{"format":"999,990.0"}},
+//				{"name":"worst", "velocity":aMath.average(sorted.left(pessimisticSampleSize)), "remaining":remaining},
+//				{"name":"best", "velocity":aMath.average(sorted.right(optimisticSampleSize)), "remaining":remaining}
+//			];
+//		};//function
+//
+//
+//		//WE SEEM TO BE PERFORMING SET OPS LIKE A SPREADSHEET
+//		var teamVelocity=calcTeamVelocity(
+//			iterations.map(function(v, i){if (i<numSample) return v.endCount;}),
+//			optimisticSample,
+//			pessimisticSample
+//		);
+//
+//		var stats=yield (CUBE.calc2List({
+//			"name":"Production Forcast",
+//			"from":teamVelocity,
+//			"analytic":[
+//				{"name":"numLeft", "value":"aMath.ceiling(remaining/velocity)"},
+//				{"name":"doneDate", "value":CNV.Date2Code(currentIteration.endDate)+".addWeekday(12*numLeft)"},
+//				{"name":"description", "value":"numLeft+' (done '+doneDate.format('dd-NNN-yy')"}
+//			],
+//			"edges":[
+//				{"value":"name",
+//					"domain":{"type":"set", "partitions":["Pessimistic", "Expected", "Optimistic"]},
+//					"style":{"direction":"column"}
+//				}
+//			]
+//		}));
+
 
 		//RETURN BEST, AVERAGE AND WORSE
-		var bestAverageWorst=function(data, optimisticSampleSize, pessimisticSampleSize){
+		var calcTeamVelocity=function(data, optimisticSampleSize, pessimisticSampleSize){
 			var sorted=data.sort(function(a, b){return a-b;});
 
 			return {
@@ -336,7 +437,7 @@ var __createChart = function(){
 			};
 		};//function
 
-		var est=bestAverageWorst(
+		var teamVelocity=calcTeamVelocity(
 			iterations.map(function(v, i){if (i<numSample) return v.endCount;}),
 			optimisticSample,
 			pessimisticSample
@@ -344,9 +445,9 @@ var __createChart = function(){
 
 		var remaining=backlogCount.cube.total_points;
 		var numLeft={
-			"average":remaining/est.average,
-			"worst":remaining/est.worst,
-			"best":remaining/est.best
+			"average":aMath.ceiling(remaining/teamVelocity.average),
+			"worst":aMath.ceiling(remaining/teamVelocity.worst),
+			"best":aMath.ceiling(remaining/teamVelocity.best)
 		};
 
 		var doneDate={
@@ -355,19 +456,32 @@ var __createChart = function(){
 			"best":currentIteration.endDate.addWeekday(12*aMath.ceiling(numLeft.best))
 		};
 
+		yield (aThread.join(totalPointThread));
 
 		$("#stats").html(
-			'<span class="parameter_name">Completed:</span><b>'+status.Completed+' points</b><br>'+
-			'<span class="parameter_name">Backlog:</span><b>'+status.Backlog+' points</b><br>'+
-			'<span class="parameter_name">Avg/Iteration:</span><b>'+aMath.round(est.average, 1)+' points</b><br>'+
-			'<hr><b><span style="text-align:center;font-weight: bold;">Remaining Iterations (including current)</span></b><br>'+
-			'<span class="parameter_name">Best Case:</span><b>'+aMath.ceiling(numLeft.best)+' (done '+doneDate.best.format("dd-NNN-yy")+')</b><br>'+
-			'<span class="parameter_name">Average Case:</span><b>'+aMath.ceiling(numLeft.average)+' (done '+doneDate.average.format("dd-NNN-yy")+')</b><br>'+
-			'<span class="parameter_name">Worst Case:</span><b>'+aMath.ceiling(numLeft.worst)+' (done '+doneDate.worst.format("dd-NNN-yy")+')</b><br>'
+			'<span class="parameter_name">Completed:</span><b>'+status.cube[0].Completed+' points</b><br>'+
+			'<span class="parameter_name">Backlog:</span><b>'+status.cube[0].Backlog+' points</b><br>'+
+			'<span class="parameter_name">Backlog Growth:</span><b>'+newPointsPerIteration+' points</b><br>'+
+									
+			'<span class="parameter_name">Team Velocity:</span><b>'+aMath.round(teamVelocity.average, 1)+' points</b><br>'
 		);
 
+		//SHOW PERCENT DONE
+		$("#progressSummary").html(
+			//AND THIS IS YOUR STANDARD CHART OF A CUBE!!!!
+			'<table class="table" style="width:100%;"><thead><td></td><td>Pessimistic</td><td>Expected</td><td>Optimistic</td></thead>'+
+					'<tr><td>Iterations to Release</td><td>'+numLeft.best+' (done '+doneDate.best.format("dd-NNN-yy")+'</td><td>'+numLeft.average+' (done '+doneDate.average.format("dd-NNN-yy")+'</td><td>'+numLeft.best+' (done '+doneDate.best.format("dd-NNN-yy")+'</td></tr>'+
+					'<tr><td>Team Velocity</td><td>'+aMath.round(teamVelocity.best,1)+'</td><td>'+aMath.round(teamVelocity.average,1)+'</td><td>'+aMath.round(teamVelocity.worst,1)+'</td></tr>'+
+			'</table>'
+		);
+
+
+
+
+
+
 		var allIterations=[];
-		for(var i=1;i<=aMath.ceiling(numLeft.worst)+currentIteration.number-1;i++){
+		for(var i=1;i<=numLeft.worst+currentIteration.number-1;i++){
 			allIterations.push({"name":"Iteration #"+i, "number":i});
 		}//for
 
@@ -376,8 +490,8 @@ var __createChart = function(){
 		var chart=yield (Q({
 			"from":iterations,
 			"select":[
-				{"name":"Committed", "value":"Util.coalesce(startCount, 0)", "style":{"color":"mediumseagreen"}},
-				{"name":"Completed", "value":"Util.coalesce(endCount, 0)",  "style":{"color":"firebrick"}}
+				{"name":"Committed", "value":"Util.coalesce(startCount, 0)", "operation":"sum", "default":0, "style":{"color":"mediumseagreen"}},
+				{"name":"Completed", "value":"Util.coalesce(endCount, 0)",  "operation":"sum", "default":0, "style":{"color":"firebrick"}}
 			],
 			"edges":[
 				{"name":"iteration",
@@ -388,16 +502,19 @@ var __createChart = function(){
 		}));
 		
 		aChart.show({
-			"id":"summary",
+			"id":"iterations",
 			"sheetDiv":"info",
 			"type":"bar",
 			"cube":chart,
-			"height":400
+			"height":400,
+			"legendPosition":"right",
+			valuesVisible: true,
+			valuesMask: "{series}",
+			valuesAngle: Math.PI/2
+
 		});
 
 
-		//SHOW % DONE
-		remaining
 
 
 
@@ -405,7 +522,9 @@ var __createChart = function(){
 
 };
 
-
+////////////////////////////////////////////////////////////////////////////////
+// LIBRARY
+////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -421,9 +540,9 @@ function getDescendants(parent, startDate, endDate){
 				"query":{"match_all":{}},
 				"filter":{"and":[
 					{"term":{"status_whiteboard.tokenized":"metro-mvp"}},
-					{"range":{"modified_ts":{"lte":endDate.getMilli()}}},
-					{"range":{"expires_on":{"gt":startDate.getMilli()}}},
-					Mozilla.BugStatus.Open.esfilter
+//					{"range":{"modified_ts":{"lte":endDate.getMilli()}}},
+//					{"range":{"expires_on":{"gt":startDate.getMilli()}}},
+//					Mozilla.BugStatus.Open.esfilter
 				]}
 			}
 		},
@@ -549,7 +668,7 @@ function getDescendants(parent, startDate, endDate){
 		b.count=b.descendants.length+1;
 
 		//CALC THE POINT COUNT
-		var points=(b.status_whiteboard+" ").between("p=", " ");
+		var points=aMath.alpha2zero((b.status_whiteboard+" ").between("p=", " "));
 		b.points=points-0;
 
 		//DANGER!  WILL DOUBLE COUNT IF A DAG OF DEPENDENCIES

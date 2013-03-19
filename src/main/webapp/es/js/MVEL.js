@@ -431,13 +431,33 @@ MVEL.FUNCTIONS={
 	"coalesce"://PICK FIRST NOT-NULL VALUE
 		"var coalesce = function(a, b){if (a==null) b; else a; \n};\n",
 
-	"zero2null"://ES MAKES IT DIFFICULT TO DETECT NULL/MISSING VALUES, BUT WHEN DEALING WITH NUMBERS, THE PIECE OF S**T DEFAULTS TO RETURNING ZERO FOR missing VALUES!!
+	"zero2null"://ES MAKES IT DIFFICULT TO DETECT NULL/MISSING VALUES, BUT WHEN DEALING WITH NUMBERS, ES DEFAULTS TO RETURNING ZERO FOR missing VALUES!!
 		"var zero2null = function(a){if (a==0) null; else a; \n};\n",
 
 	"get":	//MY OWN PERSONAL *FU* TO THE TWISTED MVEL PROPERTY ACCESS
 		"var get = function(hash, key){\n"+
 			"if (hash==null) null; else hash[key];\n"+
 		"};\n",
+
+	"isNumeric":
+		"var isNumeric = function(value){\n"+
+			"value = value + \"\";\n"+
+//			"try{ value-0; }catch(e){ 0; }"+
+			"var isNum = value.length()>0;"+
+			"for (v : value.toCharArray()){ if (\"0123456789\".indexOf(v)==-1) isNum = false; };\n"+
+			"isNum;"+
+		"};\n",
+
+	"alpha2zero":
+		"var alpha2zero = function(value){\n"+
+			"var output = 0;\n"+
+			"if (isNumeric(value)) output = value-0;\n"+
+			"return output;"+
+		"};\n",
+
+	//KANBAN SOFTWARE
+	//CAN SEE QUEUE BLOCKAGES AND SEE SINGLE BLOCKERS
+	
 
 	"concat":
 		"var concat = function(array){\n"+

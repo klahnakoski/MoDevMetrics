@@ -6,6 +6,8 @@
 importScript([
 
 	"../../lib/ccc/cdf/jquery.js",
+	"../../lib/jquery.numberformatter.js",
+
 	"../../lib/ccc/lib/jquery.tipsy.js",
 	"../../lib/ccc/lib/protovis-d3.3.js",
 	"../../lib/ccc/lib/protovis-msie.js",
@@ -456,7 +458,17 @@ aChart.show=function(params){
 	chart.render();
 
 	//STARTS AS VISIBLE, SO TOGGLE TO HIDE
-	styles.forall(function(s, i){ if (s.visibility && s.visibility=="hidden") chart.legendPanel.toggleVisibility(i);});
+	styles.forall(function(s, i){
+		if (s.visibility && s.visibility=="hidden"){
+			var datums=chart.legendPanel.data._datums.map(function(d){
+				if (d.key.indexOf(","+categoryLabels[i]+",")>=0) return d;
+			});
+			pvc.data.Data.setVisible(datums, false);
+		}
+	});
+	chart.render(true, true, false);
+
+
 
 //	chart.basePanel.chart.legendPanel
 
@@ -533,3 +545,56 @@ aChart.JavaDateFormat2ProtoVisDateFormat=function(format){
 		.replaceAll('ss', '%S')
 	;
 };
+
+
+////////////////////////////////////////////////////////////////////////////////
+// CALCULATE THE SPECIFIC VALUES FOR THE LINE
+// THIS IS A LITLE SCREWY BECAUSE source.data IS ALREADY INTEGER INDEXED
+// param.predict.line EXPECTS ONE PARAMETER FROM THE param.predict.domain
+////////////////////////////////////////////////////////////////////////////////
+//EXAMPLE
+//	aChart.addPredictionLine({
+//		"source":{
+//			"name":"open",
+//			"domain":{"min":sampleMin, "max":MAX_CHART_DATE},
+//			"data":flat.list
+//		},
+//		"predict":{
+//			"name":"estimate",
+//			"domain":{"min":statsMax, "max":MAX_CHART_DATE},
+//			"line":function(date){
+//				return aMath.round(openAtStartOfEstimate + (-netCloseRatePerDay * (Date.diffWeekday(date, statsMax))));
+//			}
+//		}
+//	});
+//
+aChart.addPredictionLine = function(param){
+		Map.expecting(param, ["source", "predict"]);
+		Map.expecting(param.source, ["name", "domain", "data"]);
+		Map.expecting(param.predict, ["name", "domain", "line"]);
+
+		var data=param.source.data;
+
+		var num = param.source.domain.max.subtract(param.source.domain.min).divideBy(Duration.DAY);
+		var minDomain = param.predict.domain.min.subtract(param.source.domain.min).divideBy(Duration.DAY);
+		var startIndex = param.predict.domain.min.subtract(param.source.domain.min).divideBy(Duration.DAY);
+//			var startValue;
+		//COPY UP TO THE POINT OF PREDICTION (BECAUSE CHARTING LIB SUCKS)
+		for(var i = 0; i < minDomain; i++){
+//			param.data[i][param.predict.name] = null;
+//			if (i==0)
+			data[i]["date"] = param.source.domain.min.addDay(i);
+			data[i][param.predict.name] = data[i][param.source.name];
+		}//for
+
+		//ADD LINEAR LINE
+		for(i = minDomain; i < num; i++){
+			var date=param.source.domain.min.addDay(i);
+			if (data[i] === undefined) data[i] = {"open":null, "closed":null, "total":null};
+			data[i]["date"] = date;
+//			data[i][param.predict.name] = Date.diffWeekday(date, param.predict.domain.min);
+			data[i][param.predict.name] = param.predict.line(date);
+			if (data[i][param.predict.name] < 0) data[i][param.predict.name] = 0;
+		}//for
+	};
+

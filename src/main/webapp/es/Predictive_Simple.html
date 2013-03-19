@@ -4,12 +4,12 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-	<script type="application/javascript;version=1.7" src="js/Settings.js">
-	</script>
+	<script type="application/javascript;version=1.7" src="js/aScript.js"></script>
 </HEAD>
 <BODY>
 
 
+<<<<<<< HEAD
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
 <script type="application/javascript;version=1.7" src="lib/jstree/jquery.jstree.js"></script>
@@ -40,10 +40,17 @@
 <link type="text/css" rel="stylesheet" href="css/start/jquery-ui-1.8.16.custom.css" />
 <script type="application/javascript;version=1.7" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="application/javascript;version=1.7" src="lib/js/jquery.ba-bbq.js"></script>
+=======
+<link type="text/css" rel="stylesheet" href="lib/ccc/lib/tipsy.css"/>
+<link type="text/css" rel="stylesheet" href="lib/ccc/cdf/jquery.tooltip.css"/>
+<link type="text/css" rel="stylesheet" href="lib/ccc/pvcComponent.css"/>
+<link type="text/css" rel="stylesheet" href="css/start/jquery-ui-1.8.16.custom.css" />
+>>>>>>> 20130317
 
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 
 
+<<<<<<< HEAD
 <script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/aArray.js"></script><script type="application/javascript;version=1.7" src="js/aString.js"></script><script type="application/javascript;version=1.7" src="js/aMath.js"></script><script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/aArray.js"></script><script type="application/javascript;version=1.7" src="js/aString.js"></script><script type="application/javascript;version=1.7" src="js/aMath.js"></script>
 <script type="application/javascript;version=1.7" src="js/aDate.js"></script><script type="application/javascript;version=1.7" src="js/aDuration.js"></script>
@@ -86,6 +93,8 @@
 <script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script>
 <script type="application/javascript;version=1.7" src="js/etl/BugTags.js"></script>
 
+=======
+>>>>>>> 20130317
 
 <h3 id="title"></h3>
 
@@ -118,6 +127,7 @@
 
 <script type="application/javascript;version=1.7">
 
+importScript("js/main.js", function(){
 
 var CUTOFF = Duration.newInstance("3week");
 
@@ -294,31 +304,6 @@ var __createChart = function(){
 	}//endif
 
 
-	//MAKE THE PREDICTION LINE (slope should be negative, of course)
-	var addPredictionLine = function(startDate, endDate, data, sourceName, predictName, domainStart, startPredictionDate, startPredictValue, slope){
-		var num = endDate.subtract(startDate).divideBy(Duration.DAY);
-		var minDomain = domainStart.subtract(startDate).divideBy(Duration.DAY);
-		var startIndex = startPredictionDate.subtract(startDate).divideBy(Duration.DAY);
-//			var startValue;
-		//COPY UP TO THE POINT OF PREDICTION (BECAUSE CHARTING LIB SUCKS)
-		for(var i = 0; i < minDomain; i++){
-//			data[i][predictName] = null;
-//			if (i==0)
-			data[i]["date"] = startDate.addDay(i);
-			data[i][predictName] = data[i][sourceName];
-		}//for
-
-		//ADD LINEAR LINE
-		for(i = minDomain; i < num; i++){
-			var date=startDate.addDay(i);
-			if (data[i] === undefined) data[i] = {"open":null, "closed":null, "total":null};
-			data[i]["date"] = date;
-//			data[i][predictName] = Date.diffWeekday(date, domainStart);
-			data[i][predictName] = aMath.round(startPredictValue + (slope * (Date.diffWeekday(date, domainStart))));
-			if (data[i][predictName] < 0) data[i][predictName] = 0;
-		}//for
-	};
-
 
 	//WE WILL CHART A DYNAMIC SET OF COLUMNS, BASED ON IF WE ARE LOOKING AT A FUTURE OR PAST DUE DATE
 	var columnsToChart=[
@@ -330,13 +315,40 @@ var __createChart = function(){
 		//SINCE flat HAS BEEN USED, IT HAS BEEN FLATTENED TO A LIST
 
 		//REQUIRED
-		addPredictionLine(sampleMin, MAX_CHART_DATE, flat.list, "open", "required", Date.now().floorDay(), Date.now().floorDay(), stillOpen, -requiredNetCloseRatePerDay);
+		aChart.addPredictionLine({
+			"source":{
+				"name":"open",
+				"domain":{"min":sampleMin, "max":MAX_CHART_DATE},
+				"data":flat.list
+			},
+			"predict":{
+				"name":"required",
+				"domain":{"min":Date.now().floorDay(), "max":MAX_CHART_DATE},
+				"line":function(date){
+					return aMath.round(stillOpen + (-requiredNetCloseRatePerDay * (Date.diffWeekday(date, Date.now().floorDay()))));
+				}
+			}
+		});
+
 		columnsToChart.insert(1, {"value":"required", "style":{"color":"brown"}});
 		flat.select.push({"name":"estimate"});
 		flat.columns.push({"name":"required"});
 
 		//ESTIMATE
-		addPredictionLine(sampleMin, MAX_CHART_DATE, flat.list, "open", "estimate", statsMax, statsMax, openAtStartOfEstimate, -netCloseRatePerDay);
+		aChart.addPredictionLine({
+			"source":{
+				"name":"open",
+				"domain":{"min":sampleMin, "max":MAX_CHART_DATE},
+				"data":flat.list
+			},
+			"predict":{
+				"name":"estimate",
+				"domain":{"min":statsMax, "max":MAX_CHART_DATE},
+				"line":function(date){
+					return aMath.round(openAtStartOfEstimate + (-netCloseRatePerDay * (Date.diffWeekday(date, statsMax))));
+				}
+			}
+		});
 		columnsToChart.insert(2, {"value":"estimate", "style":{"color":"red"}});
 		flat.select.push({"name":"estimate"});
 		flat.columns.push({"name":"estimate"});
@@ -362,6 +374,7 @@ var __createChart = function(){
 		"stacked":false,
 		"cube":chartP,
 		"height":400,
+		"xAxisSize":50,
 		extensionPoints: {
 		    dot_shapeRadius: 0,
             dot_shape:"circle",
@@ -386,6 +399,7 @@ $(document).ready(function(){
 
 });
 
+	});
 </script>
 
 

@@ -31,6 +31,15 @@ Array.prototype.map=function(func){
 	return output;
 };//method
 
+Array.prototype.select=function(attrName){
+	var output=[];
+	for(var i=0;i<this.length;i++) output.push(this[i][attrName]);
+	return output;
+};//method
+
+
+
+
 Array.prototype.appendArray=function(arr){
 	for(var i=0;i<arr.length;i++){
 		this.push(arr[i]);

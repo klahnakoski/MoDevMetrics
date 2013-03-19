@@ -158,7 +158,7 @@ CUBE.aggregate.one = function(select){
 
 CUBE.aggregate.sum = function(select){
 	select.defaultValue = function(){
-		return 0;
+		return null;
 	};//method
 
 	select.add = function(total, v){
@@ -168,6 +168,14 @@ CUBE.aggregate.sum = function(select){
 
 	select.domain = {};
 	Map.copy(CUBE.domain.value, select.domain);
+
+	select.domain.end=function(value){
+		if (value == null && select["default"]!==undefined) return eval(select["default"]);
+		return value;
+	};//method
+
+
+
 };
 CUBE.aggregate.add=CUBE.aggregate.sum;
 

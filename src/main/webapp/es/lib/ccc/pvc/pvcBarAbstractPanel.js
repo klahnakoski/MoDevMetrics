@@ -16,6 +16,9 @@
  * <i>barPanel_</i> - for the panel where the bars sit
  * <i>barLabel_</i> - for the main bar label
  */
+
+
+
 def
 .type('pvc.BarAbstractPanel', pvc.CategoricalAbstractPanel)
 .add({
@@ -194,12 +197,19 @@ def
                 })
                 .font(this.valuesFont) // default
                 .text(function(scene){
-                    var valueVar = options.showValuePercentage ?
-                                   scene.vars.value.percent :
-                                   scene.vars.value;
-                    
-                    return valueVar.label;
+					var label=options.valuesMask;
+					if (label===undefined) label=options.showValuePercentage ? "{value.percent}" : "{value}";
+					if (typeof(label)=="string"){
+						//COMPILE
+						function string2Quote(str){
+							return "\"" + (str + '').replace(/([\0\n\\"'])/g, "\\$1").replace(/({)/g, "\"+__vars.").replace(/(})/g, ".label+\"") + "\"";
+						}//function
+						label="options.valuesMask=function(__vars){ return "+string2Quote(label)+"};";
+						eval(label);
+					}//endif
+					return options.valuesMask(scene.vars);
                 })
+				.textAngle(options.valuesAngle)
                 ;
         }
     },

@@ -250,7 +250,7 @@ var __createChart = function(){
 		yield (aThread.join(allBugsThread));
 		//INSERT allBugs MIN/MAX VALUES INTO details
 		details.list.forall(function(v, i){
-			var mm=allBugs.cube[allBugs.edges[0].domain.getPartByKey(v.bug_id).dataIndex]
+			var mm=allBugs.get("bug_id", v.bug_id);
 			v.max=mm.max;
 			v.min=mm.min;
 		});

@@ -70,7 +70,14 @@ CNV.ESResult2HTMLSummaries = function(esResult){
 CNV.ESResult2HTMLSummary = function(esResult, name){
 	var output = "";
 	output += "<h3>" + name + "</h3>";
-	output += CNV.List2HTMLTable(esResult.facets[name].terms);
+	var facet=esResult.facets[name];
+	if (facet._type=="statistical"){
+		output+=CNV.Object2JSON(facet);
+	}else{
+		output += CNV.List2HTMLTable(facet.terms);
+	}//endif
+
+
 	return output;
 };//method
 
@@ -131,6 +138,12 @@ CNV.String2HTML = function(value){
 CNV.String2Quote = function(str){
 	return "\"" + (str + '').replaceAll("\n", "\\n").replace(/([\n\\"'])/g, "\\$1").replace(/\0/g, "\\0") + "\"";
 };//method
+
+
+CNV.Date2Code = function(date){
+	return "Date.newInstance("+date.getMilli()+")";
+};//method
+
 
 CNV.Value2Quote=function(value){
 	if (value === undefined){

@@ -287,12 +287,14 @@ CUBE.calc2List = function(query){
 
 	CUBE.analytic.run(query);
 
+	Map.copy(CUBE.query.prototype, query);
+
 	yield (query);
 };//method
 
 
 
-Q = function(query){
+function calc2Cube(query){
 	if (query.edges===undefined) query.edges=[];
 
 	if (query.edges.length==0){
@@ -807,7 +809,7 @@ CUBE.merge=function(query){
 	output.columns.appendArray(commonEdges);
 
 	output.cube=CUBE.cube.newInstance(output.edges, 0, []);
-
+	Map.copy(CUBE.query.prototype, output);
 
 	query.cubes.forall(function(item, index){
 		//COPY SELECT DEFINITIONS
@@ -1028,7 +1030,16 @@ CUBE.drill=function(query, parts){
 };
 
 
-	Q=Q;
+	CUBE.query={};
+	CUBE.query.prototype={};
+	//GET THE SUB-CUBE THE HAD name=value
+	CUBE.query.prototype.get=function(name, value){
+		if (edges.length>1) D.error("can not handle more than one dimension at this time");
+		var edge=this.edges.map(function(e, i){ if (e.name==name) return e;})[0];
+		return this.cube[edge.domain.getPartByKey(value).dataIndex];
+	};
+
+	Q=calc2Cube;
 
 
 })();

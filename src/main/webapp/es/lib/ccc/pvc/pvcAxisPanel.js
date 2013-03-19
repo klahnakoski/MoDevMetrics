@@ -807,10 +807,11 @@ def
         // The initial tick count is determined 
         // from the formatted min and max values of the domain.
         var layoutInfo = this._layoutInfo;
+		var self=this;
         var domainTextLength = this.scale.domain().map(function(tick){
                 tick = +tick.toFixed(2); // crop some decimal places...
-                var text = this.scale.tickFormat(tick);
-                return pv.Text.measure(text, this.font).width;
+                var text = self.scale.tickFormat(tick);
+                return pv.Text.measure(text, self.font).width;
             }, this);
         
         var avgTextLength = Math.max((domainTextLength[1] + domainTextLength[0]) / 2, layoutInfo.textHeight);
