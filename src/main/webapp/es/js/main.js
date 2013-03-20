@@ -1,4 +1,5 @@
 
+//importScript("../lib/jquery.js");
 importScript("aLibrary.js");
 importScript("Settings.js");
 

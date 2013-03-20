@@ -181,11 +181,11 @@
 			"name":
 				"Historical Review Queue for "+GUI.state.requestee,
 			"from":reviewQueues,
-			"select":{"name":"Pending", "value":"1", operation:"sum"},
+			"select":{"name":"Pending", "value":"1", operation:"sum", "default":"0"},
 			"edges":[
 				{"name":"Bug ID", "value":"bug_id", "domain":{"type":"set", "partitions":ordering, "key":"bug_id", "value":"bug_id"}},
 				{"name":"Date",
-					"test":"time.min<=Util.coalesce(Date.newInstance(review_time), Date.eod()) && Date.newInstance(request_time)<time.max",
+					"range":{"min":"Date.newInstance(request_time)", "max":"Util.coalesce(Date.newInstance(review_time), Date.eod())"},
 					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, value:"value"}
 				}
 			]

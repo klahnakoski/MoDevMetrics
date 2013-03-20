@@ -172,7 +172,7 @@ var importScript;
 
 
 
-	function addScripts(paths){
+	function addScripts(paths, doneCallback){
 		var head=document.getElementsByTagName('head')[0];
 		var scripts=head.getElementsByTagName('script');
 		var existingScripts=[window.location.pathname];
@@ -180,14 +180,23 @@ var importScript;
 			existingScripts.push(scripts[s].getAttribute("src"));
 		}//for
 
-
 		paths=subtract(paths, existingScripts);
+
+		var numLoaded=paths.length;
+		D.println("Waiting for "+numLoaded+" scripts to load");
+		function onLoadCallback(){
+			numLoaded--;
+			if (numLoaded==0){
+				doneCallback();
+			}//endif
+		}
 
 		for(var i=0;i<paths.length;i++){
 			if (DEBUG) D.println("Add script: "+shortPath(paths[i]));
 			var script=document.createElement('script');
 			script.type='text/javascript;version=1.7';
 			script.src=paths[i];
+			script.onload=onLoadCallback;
 			head.appendChild(script);
 		}//for
 		D.println("Added "+paths.length+" scripts");
@@ -300,8 +309,7 @@ var importScript;
 		if (aScript.numRemaining>0) return;
 
 		var sortedPaths=sort(aScript.dependencies);
-		addScripts(sortedPaths);
-		setTimeout(done, 1);
+		addScripts(sortedPaths, done);
 	}//method
 
 
