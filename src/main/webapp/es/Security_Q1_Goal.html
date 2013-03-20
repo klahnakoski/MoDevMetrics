@@ -249,8 +249,8 @@ var __createChart = function(){
 			"from":allBugs,
 			"name":"New and Closed Bugs",
 			"select":[
-				{"name":"New", "value":"time.value.getMilli()==min.floor(\""+interval.toString()+"\").getMilli() ? 1 : 0", "operation":"sum", "style":{"color":"seagreen"}},
-				{"name":"Closed", "value":"(max!=null && time.value.getMilli()==max.floor(\""+interval.toString()+"\").getMilli()) ? -1 : 0", "operation":"sum", "style":{"color":"goldenrod"}}
+				{"name":"New", "value":"time.value.getMilli()==min.floor(\""+interval.toString()+"\").getMilli() ? 1 : 0", "operation":"sum", "default":"0", "style":{"color":"seagreen"}},
+				{"name":"Closed", "value":"(max!=null && time.value.getMilli()==max.floor(\""+interval.toString()+"\").getMilli()) ? -1 : 0", "operation":"sum", "default":"0", "style":{"color":"goldenrod"}}
 			],
 			"edges":[
 				{"name":"date",

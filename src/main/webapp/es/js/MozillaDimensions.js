@@ -182,9 +182,17 @@ var Mozilla =
 						{"term":{"product":"core"}},
 						{"or":[
 							{"prefix":{"component":"layout"}},
-							{"prefix":{"component":"printing"}},
+							{"prefix":{"component":"print"}},
+							{"terms":{"component":['style system (css)','svg','internationalization', 'mathml']}}
+						]}
+					]}
+				},
+				{"name": "Media", "esfilter":
+					{"and":[
+						{"term":{"product":"core"}},
+						{"or":[
 							{"prefix":{"component":"webrtc"}},
-							{"terms":{"component":['style system (css)','svg','video/audio','internationalization']}}
+							{"terms":{"component":['video/audio']}}
 						]}
 					]}
 				},
@@ -193,9 +201,10 @@ var Mozilla =
 						{"term":{"product":"core"}},
 						{"or":[
 							{"prefix":{"component":"gfx"}},
+							{"prefix":{"component":"graphics"}},
 							{"prefix":{"component":"canvas"}},
 							{"prefix":{"component":"widget"}},
-							{"terms":{"component":['Graphics','Image: Painting','ImageLib','MathML']}}
+							{"terms":{"component":['ImageLib']}}
 						]}
 					]}
 				},
@@ -248,6 +257,7 @@ var Mozilla =
 			part.partitions.forall(function(p,i){
 				convertPart(p);
 				p.value=p.name;
+				p.parent=part;
 			});
 		}//endif
 
@@ -258,6 +268,7 @@ var Mozilla =
 				part.esfilter={"or":[]};
 				part.partitions.forall(function(p,i){
 					part.esfilter.or.push(p.esfilter);
+					p.parent=part;
 				});
 			}//endif
 		}//endif
@@ -272,13 +283,15 @@ var Mozilla =
 			dim.edges.forall(function(e, i){
 				convertDim(e);
 				dim[e.name]=e;
+				e.parent=dim;
 			});
 		}//endif
 
 		if (dim.partitions){
 			dim.partitions.forall(function(v, i){
 				dim[v.name]=v;
-			});	
+				v.parent=dim;
+			});
 		}//endif
 
 		convertPart(dim);

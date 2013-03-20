@@ -356,7 +356,7 @@ var __createChart = function(){
 		var status=(yield (Q({
 			"from":iterations,
 			"select":[
-				{"name":"Completed", "value":"Util.coalesce(endCount, 0)", "operation":"sum", "style":{"color":"firebrick"}},
+				{"name":"Completed", "value":"Util.coalesce(endCount, 0)", "operation":"sum", "default":"0", "style":{"color":"firebrick"}},
 				{"name":"Current", "value":"(!endCount) ? Util.coalesce(startCount, 0) : 0", "operation":"sum","style":{"color":"goldenrod"}},
 				{"name":"Backlog", "value":""+backlogCount.cube.total_points, "operation":"one", "style":{"color":"gray"}}
 			],

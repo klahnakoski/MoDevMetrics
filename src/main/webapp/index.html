@@ -485,12 +485,19 @@
 <script type="application/javascript;version=1.7">
 	importScript([
 		"es/lib/jquery.js",
-		"es/js/aLibrary.js"
+//		"es/js/aLibrary.js"
 	], function(){
 
 
-		if (window.location.protocol=="file:"){
-			var a=$("a");
+		if (window.location.protocol=="file:"){	//FOR DEVELOPMENT
+			let a=$("a");
+			a.each(function(i, v){
+				var path=$(v).attr('href');
+				$(v).attr('href', path.replace("https://metrics.mozilla.com/bugzilla-analysis", "es"));
+
+			});
+		}else if (window.location.pathname=="/~klahnakoski/test/"){//STAGING
+			let a=$("a");
 			a.each(function(i, v){
 				var path=$(v).attr('href');
 				$(v).attr('href', path.replace("https://metrics.mozilla.com/bugzilla-analysis", "es"));

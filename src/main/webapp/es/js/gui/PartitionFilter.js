@@ -11,20 +11,16 @@ PartitionFilter.newInstance=function(param){
 
 	var self=new PartitionFilter();
 	Map.copy(param, self);
-//	self.name=name;
-//	self.dimension=dimension;
-//	self.onlyOne=onlyOne;
 
+	if (self.dimension.partitions===undefined) D.error(self.dimension.name+" does not have a partition defined");
+
+	self.id=self.dimension.parent.name.replaceAll(" ", "_");
 	self.isFilter=true;
 	self.treeDone=false;
 	self.DIV_ID=name.replaceAll(" ", "_")+"_id";
 	self.DIV_LIST_ID=name.replaceAll(" ", "_")+"_list";
 	self.disableUI=false;
 	self.selectedParts=[];
-
-	
-	
-	if (self.dimension.partitions===undefined) D.error(self.dimension.name+" does not have a partition defined");
 
 	self.parts=[];
 	self.parents={};
@@ -44,7 +40,7 @@ PartitionFilter.newInstance=function(param){
 		return node;
 	}//function
 
-	self.hierarchy=convertToTree({"id":self.name.replaceAll(" ", "_")}, self.dimension).children;
+	self.hierarchy=convertToTree({"id":self.id}, self.dimension).children;
 //	self.hierarchy[0].data=param.name;
 	
 	return self;
