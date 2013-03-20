@@ -321,6 +321,9 @@ function calc2Cube(query){
 
 	CUBE.analytic.run(query);
 
+
+	Map.copy(CUBE.query.prototype, query);
+
 	yield (query);
 };//method
 
@@ -1034,7 +1037,7 @@ CUBE.drill=function(query, parts){
 	CUBE.query.prototype={};
 	//GET THE SUB-CUBE THE HAD name=value
 	CUBE.query.prototype.get=function(name, value){
-		if (edges.length>1) D.error("can not handle more than one dimension at this time");
+		if (this.edges.length>1) D.error("can not handle more than one dimension at this time");
 		var edge=this.edges.map(function(e, i){ if (e.name==name) return e;})[0];
 		return this.cube[edge.domain.getPartByKey(value).dataIndex];
 	};

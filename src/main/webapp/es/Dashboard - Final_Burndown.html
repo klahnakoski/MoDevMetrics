@@ -193,8 +193,8 @@ var __createChart = function(){
 
 		//ADD CURRENT BUGS DATA TO HISTORY (MERGE ON bug_id)
 		currentBugs.forall(function(v){
-			var i=historyBugs.get("bug_id", v.id);
-			Map.copy(v, historyBugs.cube[i])
+			var  bug=historyBugs.get("bug_id", v.id);
+			Map.copy(v, bug);
 		});
 
 		//FORMAT THE BUGS FOR TABLE
@@ -273,52 +273,10 @@ var __createChart = function(){
 		+"Please look at the <a href='./js/etl/bug_version.json'>ES Schema</a> to get a full listing of fields available.  Field names are a little different from BZ. "
 //		+"<span class=\"warning\">Estimates are generated from a "+statsMax.subtract(statsMin).toString()+" sample from "+statsMin.format("EE MMM dd")+" to "+statsMax.addDay(-1).format("EE MMM dd")+"</span>"
 	 );
-//	$("#stats").html("<br>");
 
 
 
-
-
-//	var stats = yield(Q({
-//		"from":flat,
-//		"select":[
-//			{"name":"closed", value:"Util.coalesce(closed, 0)"},
-//			{"name":"total", value:"Util.coalesce(total, 0)"}
-//		],
-//		"edges":[
-//			{"name":"date", "value":"date",
-//				"allowNulls":false,
-//				"domain":{"type":"time", "min":statsMin, "max":statsMax, "interval":Duration.DAY, "value":"value"}
-//			}
-//		]
-//	}));
-
-	//DIFF TOTAL==NET NEW BUGS
-	//DIFF CLOSED==NET CLOSED BUGS
-//	var diff = stats.cube.map(function(v, i){
-//		if (i == stats.length-1) return undefined;
-//		return {
-//			"net_new":stats.cube[i + 1].total-v.total,
-//			"net_closed":stats.cube[i + 1].closed-v.closed
-//		};
-//	});
-//
-//	var perDay = (yield(CUBE.calc2List({
-//		"from":diff,
-//		"select":[
-//			{"value":"net_new", "operation":"average"},
-//			{"value":"net_closed", "operation":"average"}
-//		]
-//	}))).list[0];
-//
-//	$("#stats").html(
-//		'<span class="parameter_name">New Bugs Per Day:</span>' + aMath.round(perDay.net_new, 1) + '<br>' +
-//		'<span class="parameter_name">Closed Per Day:</span>' + aMath.round(perDay.net_closed, 1) + '<br>' +
-//		''
-//	);
-
-
-	var stillOpen = flat.get("date", sampleMin);
+	var stillOpen = flat.get("date", sampleMin).open;
 	var requiredNetCloseRatePerDay;
 	{
 		let daysLeft=Date.diffWeekday(DUE_DATE, sampleMin);
@@ -330,51 +288,24 @@ var __createChart = function(){
 	$("#stats").html('<span class="parameter_name">Required Closed/Day:</span>' + aMath.round(requiredNetCloseRatePerDay, 1) + '<br>');
 
 
-	//
-//	var expectedEndDate;
-//	{
-//		var openAtStartOfEstimate = flat.cube[flat.edges[0].domain.getPartByKey(statsMax).dataIndex-1].open;
-//		var netCloseRatePerDay = (perDay.net_closed-perDay.net_new);
-//		let daysLeft = openAtStartOfEstimate / netCloseRatePerDay;
-//		expectedEndDate = statsMax.addDay(daysLeft);
-//		netCloseRatePerDay = aMath.max(0, netCloseRatePerDay);
-//	}
-
-//	$("#stats").append('<span class="parameter_name">DUE Date:</span>' + DUE_DATE.format("dd MMM yyyy") + '<br>');
-//	if (netCloseRatePerDay <= 0){
-//		$("#stats").append('<span class="parameter_name">Expected End:</span>NEVER<br>');
-//	} else{
-//		$("#stats").append('<span class="parameter_name">Expected End:</span>' + expectedEndDate.format("dd MMM yyyy") + '<br>');
-//	}//endif
-
-
-	//MAKE THE PREDICTION LINE (slope should be negative, of course)
-	var addPredictionLine = function(startDate, endDate, data, sourceName, predictName, domainStart, startPredictionDate, startPredictValue, slope){
-		var num = endDate.subtract(startDate).divideBy(Duration.DAY);
-		var minDomain = domainStart.subtract(startDate).divideBy(Duration.DAY);
-		var startIndex = startPredictionDate.subtract(startDate).divideBy(Duration.DAY);
-//			var startValue;
-		//COPY UP TO THE POINT OF PREDICTION (BECAUSE CHARTING LIB SUCKS)
-		for(var i = 0; i < minDomain; i++){
-//			data[i][predictName] = null;
-//			if (i==0)
-			data[i]["date"] = startDate.addDay(i);
-			data[i][predictName] = data[i][sourceName];
-		}//for
-
-		//ADD LINEAR LINE
-		for(i = minDomain; i < num; i++){
-			var date=startDate.addDay(i);
-			if (data[i] === undefined) data[i] = {"open":null, "closed":null, "total":null};
-			data[i]["date"] = date;
-//			data[i][predictName] = Date.diffWeekday(date, domainStart);
-			data[i][predictName] = aMath.round(startPredictValue + (slope * (Date.diffWeekday(date, domainStart))));
-			if (data[i][predictName] < 0) data[i][predictName] = 0;
-		}//for
-	};
 
 	//REQUIRED
-	addPredictionLine(sampleMin, MAX_CHART_DATE, flat.cube, "open", "ideal", sampleMin, sampleMin, stillOpen, -requiredNetCloseRatePerDay);
+	aChart.addPredictionLine({
+		"source":{
+			"name":"open",
+			"domain":{"min":sampleMin, "max":MAX_CHART_DATE},
+			"data":flat.cube
+		},
+		"predict":{
+			"name":"ideal",
+			"domain":{"min":sampleMin, "max":MAX_CHART_DATE},
+			"line":function(date){
+				var y=aMath.round(stillOpen + ( -requiredNetCloseRatePerDay * (Date.diffWeekday(date, sampleMin))));
+				if (y < 0) y = 0;
+				return y;			}
+		}
+	});
+	flat.select.push({"name":"ideal"});
 	flat.columns.push({"name":"ideal"});
 
 

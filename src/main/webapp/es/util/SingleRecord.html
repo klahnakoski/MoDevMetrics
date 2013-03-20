@@ -87,15 +87,13 @@
 
 		var esQuery = {  
 			"sort":[],
-			"fields":["bug_id", "blocked"],
+			//"fields":["bug_id", "blocked"],
 			"size":2000, "from":0, "query":{"filtered":{ "filter":{"and":[
 			{"and":[
-				{"not":{"missing":{"field":"blocked"}}},
-				{"terms":{"blocked":[
-					["841099","837145","837155","839392","842108","850809","838081"]
-				]}},
-				{"range":{"expires_on":{"gte":1359417600000}}},
-				{"range":{"modified_ts":{"lt":1363737600000}}}
+//				{"not":{"missing":{"field":"blocked"}}},
+				{"terms":{"bug_id":["850492", "844088", "811557"]}},
+				{"range":{"expires_on":{"gte":Date.now().getMilli()}}},
+//				{"range":{"modified_ts":{"lt":1363737600000}}}
 			]}
 		]}, "query":{"match_all":{}} }} };
 //		{

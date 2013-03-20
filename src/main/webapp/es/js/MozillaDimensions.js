@@ -135,7 +135,7 @@ var Mozilla =
 				}
 			]},
 			{"name":"Teams",
-				"esfilter": {"terms":{"product":['Fennec','Firefox for Android', "Mozilla Services", "Boot2Gecko", "thunderbird", "mailnews core", 'JSS','NSS','NSPR', "core"]}},
+				"esfilter": {"terms":{"product":['Fennec','Firefox for Android', "Mozilla Services", "Boot2Gecko", "firefox", "toolkit", "thunderbird", "mailnews core", 'JSS','NSS','NSPR', "core"]}},
 				"partitions":[
 				{"name": "Mobile", "esfilter":
 					{"terms":{"product":['Fennec','Firefox for Android']}}
@@ -206,7 +206,7 @@ var Mozilla =
 							{"term":{"product":"toolkit"}},
 							{"and":[
 								{"term":{"product":"core"}},
-								{"terms":{"component":['form manager','history: global','installer: xpinstall engine','security: ui','keyboard: navigation']}}
+								{"terms":{"component":['form manager','identity', 'history: global','installer: xpinstall engine','security: ui','keyboard: navigation']}}
 							]}
 						]}
 					]}
