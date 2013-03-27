@@ -325,22 +325,24 @@ ESQuery.prototype.compile = function(){
 ESQuery.prototype.buildFacetQueries = function(){
 	var output = [];
 
-	this.esFacets = this.getAllEdges(0);
-	for(var i = 0; i < this.esFacets.length; i++){
+	var esFacets = this.getAllEdges(0);
+	for(var i = 0; i < esFacets.length; i++){
 		var condition = [];
 		var name = "";
+		var constants=[];
 		if (this.facetEdges.length==0){
 			name="default";
 		}else{
 			for(var f = 0; f < this.facetEdges.length; f++){
 				if (name != "") name += ",";
-				name += this.esFacets[i][f].dataIndex;
-				condition.push(ESQuery.buildCondition(this.facetEdges[f], this.esFacets[i][f], this.query));
+				name += esFacets[i][f].dataIndex;
+				condition.push(ESQuery.buildCondition(this.facetEdges[f], esFacets[i][f], this.query));
+				constants.push({"name":this.facetEdges[f].domain.name, "value":esFacets[i][f]});
 			}//for
 		}//for
 		var q = {"name":name};
 
-		var value=this.compileEdges2Term();
+		var value=this.compileEdges2Term(constants);
 
 		if (this.esMode=="terms"){
 			if (value.type=="field"){
@@ -443,24 +445,52 @@ ESQuery.buildCondition = function(edge, partition, query){
 		if (["time", "duration", "linear"].contains(edge.domain.type)){
 			output={"and":[]};
 
-			if (MVEL.isKeyword(edge.range.min)){
-				output.and.push({"range":Map.newInstance(edge.range.min,{"lt":MVEL.Value2Code(partition.min)})});
-			}else{
-				//WHOA!! SUPER SLOW!!
-				output.and.push({"script":{"script":MVEL.compile.expression(
-					edge.range.min + "<" + MVEL.Value2Code(partition.max)
-				, query)}})
-			}//endif
+			if (edge.range.mode!==undefined && edge.range.mode=="inclusive"){
+				if (MVEL.isKeyword(edge.range.min)){
+					output.and.push({"range":Map.newInstance(edge.range.min,{"lt":MVEL.Value2Value(partition.max)})});
+				}else{
+					//WHOA!! SUPER SLOW!!
+					output.and.push({"script":{"script":MVEL.compile.expression(
+						edge.range.min + " < " + MVEL.Value2Code(partition.max)
+					, query)}})
+				}//endif
 
-			if (MVEL.isKeyword(edge.range.max)){
-				output.and.push({"range":Map.newInstance(edge.range.max,{"gte":MVEL.Value2Code(partition.min)})});
+				if (MVEL.isKeyword(edge.range.max)){
+					output.and.push({"or":[
+						{"missing":{"field":edge.range.max}},
+						{"range":Map.newInstance(edge.range.max,{"gt":MVEL.Value2Value(partition.min)})}
+					]});
+				}else{
+					//WHOA!! SUPER SLOW!!
+					output.and.push({"script":{"script":MVEL.compile.expression(
+						edge.range.max + " > " + MVEL.Value2Code(partition.min)
+					, query)}})
+				}//endif
 			}else{
-				//WHOA!! SUPER SLOW!!
-				output.and.push({"script":{"script":MVEL.compile.expression(
-					MVEL.Value2Code(partition.min) +" <= "+ edge.range.max
-				, query)}})
-			}//endif
+				//SNAPSHOT
 
+
+				if (MVEL.isKeyword(edge.range.min)){
+					output.and.push({"range":Map.newInstance(edge.range.min,{"lte":MVEL.Value2Value(partition.min)})});
+				}else{
+					//WHOA!! SUPER SLOW!!
+					output.and.push({"script":{"script":MVEL.compile.expression(
+						edge.range.min + "<=" + MVEL.Value2Code(partition.min)
+					, query)}})
+				}//endif
+
+				if (MVEL.isKeyword(edge.range.max)){
+					output.and.push({"or":[
+						{"missing":{"field":edge.range.max}},
+						{"range":Map.newInstance(edge.range.max,{"gte":MVEL.Value2Value(partition.min)})}
+					]});
+				}else{
+					//WHOA!! SUPER SLOW!!
+					output.and.push({"script":{"script":MVEL.compile.expression(
+						MVEL.Value2Code(partition.min) +" <= "+ edge.range.max
+					, query)}})
+				}//endif
+			}//endif
 			return output;
 		} else {
 			D.error("Do not know how to handle range query on non-continuous domain");
@@ -579,7 +609,9 @@ ESQuery.prototype.buildESStatisticalQuery=function(value){
 //GIVE MVEL CODE THAT REDUCES A UNIQUE TUPLE OF PARTITIONS DOWN TO A UNIQUE TERM
 //GIVE JAVASCRIPT THAT WILL CONVERT THE TERM BACK INTO THE TUPLE
 //RETURNS TUPLE OBJECT WITH "type" and "value" ATTRIBUTES.  "type" CAN HAVE A VALUE OF "script" OR "field"
-ESQuery.prototype.compileEdges2Term=function(){
+//CAN USE THE constants (name, value pairs) 
+ESQuery.prototype.compileEdges2Term=function(constants){
+
 	var edges=this.termsEdges;
 
 	if (edges.length==0){
@@ -594,7 +626,7 @@ ESQuery.prototype.compileEdges2Term=function(){
 			if (MVEL.isKeyword(this.select[0].value)){
 				return {"type":"field", "field":specialEdge.value, "value":this.select[0].value};
 			}else{
-				return {"type":"script", "field":specialEdge.value, "value":MVEL.compile.expression(this.select[0].value, this.query)};
+				return {"type":"script", "field":specialEdge.value, "value":MVEL.compile.expression(this.select[0].value, this.query, constants)};
 			}//endif
 		}else if (this.esMode=="statistical"){
 			//REGISTER THE DECODE FUNCTION
@@ -604,7 +636,7 @@ ESQuery.prototype.compileEdges2Term=function(){
 			if (MVEL.isKeyword(this.select[0].value)){
 				return {"type":"field", "value":this.select[0].value};
 			}else{
-				return {"type":"script", "value":MVEL.compile.expression(this.select[0].value, this.query)};
+				return {"type":"script", "value":MVEL.compile.expression(this.select[0].value, this.query, constants)};
 			}//endif
 		}else{
 			//REGISTER THE DECODE FUNCTION
@@ -627,7 +659,7 @@ ESQuery.prototype.compileEdges2Term=function(){
 		}else if (MVEL.isKeyword(edges[0].value)){
 			return {"type":"field", "value":edges[0].value};
 		}else{
-			return {"type":"script", "value":MVEL.compile.expression(edges[0].value, this.query)};
+			return {"type":"script", "value":MVEL.compile.expression(edges[0].value, this.query, constants)};
 		}//endif
 	}//endif
 
@@ -659,7 +691,7 @@ ESQuery.prototype.compileEdges2Term=function(){
 		return output;
 	};
 
-	return {"type":"script", "value":MVEL.compile.expression(mvel, this.query)};
+	return {"type":"script", "value":MVEL.compile.expression(mvel, this.query, constants)};
 };
 
 

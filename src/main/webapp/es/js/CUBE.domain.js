@@ -15,7 +15,10 @@ CUBE.domain.compile = function(column, sourceColumns){
 
 	if (column.domain.type==false)
 		D.error();
-	if (column.domain.type=="date") column.domain.type="time";
+	if (column.domain.type=="date"){
+		if (column.domain.name===undefined) column.domain.name="date"; //KEEP THE NAME
+		column.domain.type="time";
+	}//endif
 	if (column.domain.type===undefined && column.domain.partitions!==undefined){
 		column.domain.type="set";
 		if (column.domain.name==="undefined") D.warning("it is always good to name your domain");

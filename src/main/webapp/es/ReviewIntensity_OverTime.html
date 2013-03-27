@@ -1,0 +1,195 @@
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="application/javascript;version=1.7" src="js/aScript.js"></script>
+</HEAD>
+<BODY>
+
+
+<link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
+<link type="text/css" rel="stylesheet" href="css/start/jquery-ui-1.8.16.custom.css" />
+
+<link type="text/css" rel="stylesheet" href="css/menu.css"/>
+
+
+
+
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+
+<div id="sidebar">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3>Time to First Incoming Review</h3>
+
+	<div id="chart" style="width:800px;height:400px;"></div>
+
+	<div id="info"></div>
+	<div id="report"></div>
+</div>
+<script type="application/javascript;version=1.7">
+
+
+importScript([
+	"js/main.js",
+	"js/etl/Reviews.js"
+], function(){
+
+	$("#description").html("<p>This chart is slow.</p>"+
+			"<p>The chart only considers the first review of each bug.  Anecdotally, the first review takes the longest to review, with subsequent reviews being done with hours."+
+			"<p>Please note that the percentile of reviews depends on the interval size:  Reviews that last longer than the interval will be counted more than once (but once for each interval they are open) adding weight to long lasting reviews and making the percentile ages older than one would expect.</p>"
+
+			"<br><span class='warning'>NOTE: If a review is open more then 18weeks, it will be considered closed</span>"+
+			""
+	);
+
+	var thread;
+	var createChart=function(){
+		if (thread!==undefined)
+			thread.kill();
+		thread=aThread.run( __createChart());
+	};
+
+	var __createChart = function(){
+
+		var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
+		var sampleMin=Date.newInstance(GUI.state.sampleMin);//.floor(sampleInterval);
+		var sampleMax=sampleMin.add(Date.newInstance(GUI.state.sampleMax).add(sampleInterval).subtract(sampleMin, sampleInterval).floor(sampleInterval));
+
+		var mainFilter={"and":[
+				{"range":{"request_time":{
+					"gte":MVEL.Value2Value(sampleMin.subtract(Duration.newInstance("18week"))),
+					"lt":sampleMax.getMilli()
+				}}},
+				{"or":[
+					{"missing":{"field":"review_time"}},
+					{"range":{"review_time":{"gte":sampleMin.getMilli()}}}
+				]},
+				{"term":{"is_first":"1"}},
+//				{"terms":{"bug_id":[ 690970, 722831, 791432, 803870, 818241, 821955, 826471, 827023, 830389, 830399, 830943, 832899, 842038, 842687, 844403, 845045, 845487, 846615, 852315, 852506, 852916 ]}},
+//				{"range":{"bug_id":{"lt":730000}}}
+			]};
+
+		var requesteeList={"script":{"script":"true"}};
+		if (GUI.state.requestee.trim().length>0){
+			requesteeList={"terms":{"reviewer": GUI.state.requestee.split(",").map(function(v){return v.trim();})}};
+			mainFilter.and.push(requesteeList);
+		}//endif
+		GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
+
+
+
+		//CHART OF AGGREGATE RESPONSE TIMES
+		aThread.run(function(){
+			var a=D.action("Grab Stats", true);
+			var ages=(yield (ESQuery.run({
+				"name":"DF",
+				"from":"reviews",
+				"select":{"name":"wait_time", "value":"minimum(zero2null(review_time), date.max)-request_time", "operation":"minimum"},
+				"edges":[
+					"bug_id",
+					{"name":"date",
+//						"esfilter":{"and":[
+//							"range":{"request_time":{"gt":"{date.min}"}}
+//							"range":{"review_time":{"lt":"{date.max}"}},
+//							"range":{"requst_time":{"gt":"{date.min-}"+18*Duration.WEEK.milli}},
+//						]},
+						"range":{"min":"request_time", "max":"review_time", "mode":"inclusive"},
+						
+//						"range":{"min":"request_time", "max":"minimum(request_time+"+MVEL.Value2Code(Duration.newInstance("18week"))+", coalesce(zero2null(review_time), "+MVEL.Value2Code(Date.eod())+"))"},
+						"domain":{"type":"date", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value", "key":"min"}
+					}
+				],
+				"esfilter":mainFilter
+			})));
+			D.actionDone(a);
+
+
+			a=D.action("Calc Stats", true);
+			yield (aThread.yield());//GIVE THE MESSAGE OPPORTUNITY TO SHOW
+
+			var percentile=yield(Q({
+				"from":ages,
+				"select":[
+//					{"name":" 1st Percentile", "value":"wait_time==null ? null : wait_time/Duration.HOUR.milli", "operation":"percentile", "percentile":0.01, "default":0},
+					{"name":" 5th Percentile", "value":"wait_time==null ? null : wait_time/Duration.HOUR.milli", "operation":"percentile", "percentile":0.05, "default":0},
+					{"name":"10th Percentile", "value":"wait_time==null ? null : wait_time/Duration.HOUR.milli", "operation":"percentile", "percentile":0.10, "default":0},
+					{"name":"50th Percentile", "value":"wait_time==null ? null : wait_time/Duration.HOUR.milli", "operation":"percentile", "percentile":0.50, "default":0},
+					{"name":"70th Percentile", "value":"wait_time==null ? null : wait_time/Duration.HOUR.milli", "operation":"percentile", "percentile":0.70, "default":0}
+				],
+				"edges":[
+					{"name":"date", "value":"date", "domain":{"type":"date", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value"}}
+				],
+				"where":"wait_time<"+Duration.newInstance("18week").milli
+			}));
+			D.actionDone(a);
+
+
+			var a=D.action("Make chart", true);
+			aChart.show({
+				"id":"chart",
+				"sheetDiv":"info",
+				"type":"line",
+				"stacked":false,
+				"cube":percentile,
+				"height":"400",
+				xAxisSize: 50,
+				legendSize: 50
+			});
+			D.actionDone(a);
+
+
+			yield (null);
+		});
+
+
+		yield (null);
+
+	};//createChart
+
+	$(document).ready(function(){
+		GUI.setup(createChart, [
+			{"id":"requestee", "name":"Specific Email List", "type":"text", "default":""},
+			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.today().add("-7day")},
+			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.today()},
+			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.DAY},
+			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("reviewer")}
+		],
+		[
+			"sampleMin=Date.newInstance(sampleMin).format(\"yyyy-MM-dd\")",
+			"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+		],
+		"reviews",
+		true);
+	});
+
+});
+//	createChart();
+
+</script>
+
+
+</BODY>
+</HTML>

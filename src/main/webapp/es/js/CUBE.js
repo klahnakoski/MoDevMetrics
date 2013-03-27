@@ -25,6 +25,9 @@ var Q;   //=Q
 
 (function(){
 
+	var DEBUG=true;
+
+
 CUBE.compile = function(query, sourceColumns, useMVEL){
 //COMPILE COLUMN CALCULATION CODE
 	var columns = [];
@@ -97,6 +100,7 @@ function calc2Tree(query){
 	var edges = query.edges;
 	query.columns = CUBE.compile(query, sourceColumns);
 	var where = CUBE.where.compile(query.where, sourceColumns, edges);
+	var numWhereFalse=0;
 	var agg = calcAgg;
 
 
@@ -171,6 +175,8 @@ function calc2Tree(query){
 			var pass = where(row, results[r]);
 			if (pass){
 				agg(row, results[r], query, select);
+			}else{
+				numWhereFalse++;
 			}//for
 		}//for
 
@@ -180,6 +186,7 @@ function calc2Tree(query){
 		if (edges[g].outOfDomainCount > 0)
 			D.warning(edges[g].name + " has " + edges[g].outOfDomainCount + " records outside domain " + edges[g].domain.name);
 	}//for
+	if (DEBUG) D.println("Where clause rejected "+numWhereFalse+" rows");
 
 
 	yield query;
@@ -556,15 +563,18 @@ CUBE.Cube2List=function(query){
 		"var parts<NUM>=query.edges[<NUM>].domain.partitions.copy();\n"+
 		"if (query.edges[<NUM>].allowNulls) parts<NUM>.push(query.edges[<NUM>].domain.NULL);\n"+
 		"var end<NUM>=query.edges[<NUM>].domain.end;\n"+
-		"var name<NUM>=query.edges[<NUM>].name;\n"
+		"var name<NUM>=query.edges[<NUM>].name;\n"+
+		"var partValue<NUM>=[];\n"+
+		"for(var p<NUM>=0; p<NUM><parts<NUM>.length; p<NUM>++) partValue<NUM>.push(end<NUM>(parts<NUM>[p<NUM>]));\n"+
+		""
 	;
 
 	var loop=
-		"for(var p<NUM>=0;p<NUM> < parts<NUM>.length;p<NUM>++){\n"+
+		"for(var p<NUM>=0; p<NUM><parts<NUM>.length;p<NUM>++){\n"+
 			"<BODY>"+
 		"}\n";
 
-	var assignEdge="row[<EDGE_NAME>]=end<NUM>(parts<NUM>[p<NUM>]);\n";
+	var assignEdge="row[<EDGE_NAME>]=partValue<NUM>[p<NUM>];\n";
 
 	var accessCube="query.cube";
 	var loops="<BODY>";
@@ -580,15 +590,15 @@ CUBE.Cube2List=function(query){
 
 	var assignSelect;
 	if (name){
-		assignSelect="var row={}; row["+CNV.String2Quote(name)+"]="+accessCube+";";
+		assignSelect="var row={};\nrow["+CNV.String2Quote(name)+"]="+accessCube+";\n";
 	}else if (isArray){
 		assignSelect=
-			"var row={};"+
-			"for(var s=0;s<query.select.length;s++){"+
-			"	row[query.select[s].name]="+accessCube+"[s];"+
-			"}";
+			"var row={};\n"+
+			"for(var s=0;s<query.select.length;s++){\n"+
+			"	row[query.select[s].name]="+accessCube+"[s];\n"+
+			"}\n";
 	}else{
-		assignSelect="var row={}; Map.copy("+accessCube+", row);";
+		assignSelect="var row={}; Map.copy("+accessCube+", row);\n";
 	}//endif
 
 	var code=
@@ -604,9 +614,18 @@ CUBE.Cube2List=function(query){
 		"};"
 	;
 
+	//COMPILE
 	var cube2list;
 	eval(code);
-	yield (cube2list(query));
+	
+
+	{//EVAL
+		let start=Date.now();
+		var output=yield (cube2list(query));
+		let convertTime=Date.now().subtract(start);
+		if (convertTime.milli>Duration.SECOND.milli)
+			D.warning("Convert from cube to list takes "+convertTime.toString());
+	}
 
 };//method
 

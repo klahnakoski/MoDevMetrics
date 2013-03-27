@@ -28,8 +28,56 @@ var Mozilla =
 			{"name":"MoFo", "esfilter":{"not":{"term":{"<FIELD>":"nobody@mozilla.com"}}}}
 		]},
 
-		{"name": "Boot2Gecko (B2G)", "esfilter":{"term":{"cf_blocking_basecamp": "+"}}},
-		{"name": "Metro MVP", "esfilter":{"term":{"status_whiteboard.tokenized": "metro-mvp"}}},
+
+		{"name":"Projects", "edges":[
+			{"name": "B2G 1.0.0 (TEF)", "partitions":[
+				{"name":"nominated", "esfilter":{"term":{"cf_blocking_b2g":"tef?"}}},
+				{"name":"tracking", "esfilter":{"term":{"cf_blocking_b2g":"tef+"}}, "edges":[
+					{"name":"tracking 18", "esfilter":{"not":{"terms":{"cf_status_b2g18":["fixed","verified","unaffected","wontfix"]}}}},
+					{"name":"tracking 19", "esfilter":{"not":{"terms":{"cf_status_b2g19":["fixed","verified","unaffected","wontfix"]}}}}
+				]}
+			]},
+
+			{"name": "B2G 1.0.1 (Shira)", "partitions":[
+				{"name":"nominated", "esfilter":{"term":{"cf_blocking_b2g":"shira?"}}},
+				{"name":"tracking", "esfilter":{"term":{"cf_blocking_b2g":"shira+"}}, "edges":[
+					{"name":"tracking 18", "esfilter":{"not":{"terms":{"cf_status_b2g18":["fixed","verified","unaffected","wontfix"]}}}},
+					{"name":"tracking 19", "esfilter":{"not":{"terms":{"cf_status_b2g19":["fixed","verified","unaffected","wontfix"]}}}}
+				]}
+			]},
+
+			{"name": "B2G 1.1.0 (Leo)", "partitions":[
+				{"name":"nominated", "esfilter":{"term":{"cf_blocking_b2g":"leo?"}}},
+				{"name":"tracking", "esfilter":{"term":{"cf_blocking_b2g":"leo+"}}, "edges":[
+					{"name":"tracking 18", "esfilter":{"not":{"terms":{"cf_status_b2g18":["fixed","verified","unaffected","wontfix"]}}}},
+					{"name":"tracking 19", "esfilter":{"not":{"terms":{"cf_status_b2g19":["fixed","verified","unaffected","wontfix"]}}}}
+				]}
+			]},
+
+			{"name": "Boot2Gecko (B2G)", "partitions":[
+				{"name":"nominated", "esfilter":{"term":{"cf_blocking_basecamp": "?"}}},
+				{"name":"tracking", "esfilter":{"term":{"cf_blocking_basecamp": "+"}}, "edges":[
+					{"name":"tracking 18", "esfilter":{"not":{"terms":{"cf_status_b2g18":["fixed","verified","unaffected","wontfix"]}}}},
+					{"name":"tracking 19", "esfilter":{"not":{"terms":{"cf_status_b2g19":["fixed","verified","unaffected","wontfix"]}}}}
+				]}
+			]},
+
+			{"name": "Metro MVP", "esfilter":{"term":{"status_whiteboard.tokenized": "metro-mvp"}}},
+
+			{"name": "Fennec 1.0", "partitions":[
+				{"name":"nominated", "esfilter":{"term":{"cf_blocking_fennec10": "?"}}},
+				{"name":"tracking", "esfilter":{"term":{"cf_blocking_fennec10": "+"}}}
+			]},
+
+			{"name": "Fennec", "partitions":[
+				{"name":"nominated", "esfilter":{"term":{"cf_blocking_fennec": "?"}}},
+				{"name":"tracking", "esfilter":{"term":{"cf_blocking_fennec": "+"}}}
+			]}
+
+
+		]},
+
+
 
 		{"name": "in-testsuite", "esfilter":
 			{"or":[
@@ -75,24 +123,10 @@ var Mozilla =
 			{"name":"other", "esfilter":{"prefix":{"status_whiteboard.tokenized": "memshrink"}}}//Nicholas Nethercote: CATCH memshrink (unconfirmed) AND ALL THE pX TOO
 		]},
 
-		{"name":"Fennec", "partitions":[
-			{"name":"Fennec 1.0", "esfilter":
-				{"or":[
-					{"term":{"cf_blocking_fennec10": "+"}},
-					{"term":{"cf_blocking_fennec10": "?"}}
-				]}
-			},
-			{"name": "Fennec",  "esfilter":
-				{"or":[
-					{"term":{"cf_blocking_fennec": "+"}},
-					{"term":{"cf_blocking_fennec": "?"}}
-				]}
-			}
-		]},
-
 
 		{"name":"Release Engineering", "edges":[
 			{"name":"Tracking Firefox", "edges":[
+				{"name": "22", "esfilter":{"term":{"cf_status_firefox22": "+"}}},
 				{"name": "21", "esfilter":{"term":{"cf_status_firefox21": "+"}}},
 				{"name": "20", "esfilter":{"term":{"cf_status_firefox20": "+"}}},
 				{"name": "19", "esfilter":{"term":{"cf_status_firefox19": "+"}}},

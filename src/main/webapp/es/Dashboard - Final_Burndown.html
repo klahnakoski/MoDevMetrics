@@ -290,11 +290,13 @@ var __createChart = function(){
 
 
 	//REQUIRED
+	flat.list=yield(CUBE.Cube2List(flat));	//FORCE flat.list TO EXIST
+
 	aChart.addPredictionLine({
 		"source":{
 			"name":"open",
 			"domain":{"min":sampleMin, "max":MAX_CHART_DATE},
-			"data":flat.cube
+			"data":flat.list
 		},
 		"predict":{
 			"name":"ideal",
@@ -310,7 +312,7 @@ var __createChart = function(){
 
 
 	chartP = yield(Q({
-		"from":flat,	//CORRUPTED cube SO THE DATE EDGE IS EXPANDED, AND NEW COLUMNS (ideal) ADDED
+		"from":flat.list,	//CORRUPTED cube SO THE DATE EDGE IS EXPANDED, AND NEW COLUMNS (ideal) ADDED
 		"select":[
 //			{"value":"total", "style":{"color":"gray"}},
 			{"value":"ideal", "style":{"color":"gray"}},
@@ -345,9 +347,10 @@ var __createChart = function(){
 $(document).ready(function(){
 	GUI.setup(createChart, [
 		{"id":"forTitle", "name":"Title", "type":"text", "default":"TEF UX Critical"},
-		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.newInstance("2013-02-05")},//Date.now().addDay(-15).floorMonth()},
-		{"id":"dueDate", "name":"Due Date", "type":"time", "default":Date.newInstance("2013-02-28")},//Date.now().addMonth(1).floorDay()},
-		{"id":"filter", "name":"ES Filter", "type":"text", "default":'{"terms":{"bug_id":[803809, 808576, 809076, 817603, 822671, 824626, 827854, 828222, 828915, 829520, 832269, 834653, 834680, 834712, 834718, 834734, 835364, 835410, 835414]}}'},
+		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.newInstance("2013-03-20")},//Date.now().addDay(-15).floorMonth()},
+		{"id":"dueDate", "name":"Due Date", "type":"time", "default":Date.newInstance("2013-04-08")},//Date.now().addMonth(1).floorDay()},
+		{"id":"filter", "name":"ES Filter", "type":"text", "default":'{"and":[{"term":{"cf_blocking_b2g":"leo+"}},{"not":{"terms":{"cf_status_b2g18":["fixed","verified","unaffected","wontfix"]}}}]}'},
+//		{"id":"filter", "name":"ES Filter", "type":"text", "default":'{"terms":{"bug_id":[803809, 808576, 809076, 817603, 822671, 824626, 827854, 828222, 828915, 829520, 832269, 834653, 834680, 834712, 834718, 834734, 835364, 835410, 835414]}}'},
 		],
 		[
 		],

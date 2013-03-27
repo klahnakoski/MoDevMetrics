@@ -437,6 +437,7 @@ aChart.show=function(params){
 	
 	data.forall(function(v,i,d){
 		v=v.copy();
+		for(var j=0;j<v.length;j++) if (v[j]==null) D.error("Charting library can not handle null values");
 		v.splice(0,0, categoryLabels[i]);
 		d[i]=v;
 	});

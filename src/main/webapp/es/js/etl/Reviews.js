@@ -3,6 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
+importScript("ETL.js");
+
 var REVIEWS={};
 REVIEWS.BATCH_SIZE=20000;
 REVIEWS.aliasName="reviews";

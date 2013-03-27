@@ -62,8 +62,44 @@ MVEL.compile.uniqueFunction=function(){
 	MVEL.compile.UID++;
 };//method
 
+MVEL.compile.setValues=function(expression, constants){
+	if (constants===undefined) return expression;
+	constants=constants.copy();
 
-MVEL.compile.expression = function(expression, query){
+	//EXPAND ALL CONSTANTS TO PRIMITIVE VALUES (MVEL CAN ONLY ACCEPT PRIMITIVE VALUES)
+	for(var i=0;i<constants.length;i++){
+		var value=constants[i].value;
+		if (typeof value == "object"){
+			forAllKey(value, function(k, v){
+				constants.push({"name":constants[i].name+"."+k, "value":v});
+			});
+		}//endif
+	}//for
+
+	for(i=constants.length;i--;){//REVERSE ORDER, SO LONGER NAMES ARE TESTED FIRST
+		var c=constants[i];
+		var s=0;
+		while(true){
+			s=expression.indexOf(c.name, s);
+			if (s==-1) break;
+			if (expression.charAt(s-1).match(/[0-9a-zA-Z_$]/g)) break;
+			if (expression.charAt(s+c.name.length).match(/[0-9a-zA-Z_$]/g)) break;
+
+			var v=MVEL.Value2Code(c.value);
+			expression=expression.left(s)+""+v+expression.rightBut(s+c.name.length);
+		}//while
+	}//for
+
+	return expression;
+};//method
+
+
+
+MVEL.compile.expression = function(expression, query, constants){
+	//EXPAND EXPRESSION WITH ANY CONSTANTS
+	expression=MVEL.compile.setValues(expression, constants);
+
+
 	if (query===undefined) D.error("Expecting call to MVEL.compile.expression to be given a reference to the query");
 	var fromPath = query.from;			//FIRST NAME IS THE INDEX
 	var indexName=fromPath.split(".")[0];
@@ -350,14 +386,21 @@ MVEL.isKeyword = function(value){
 	return true;
 };//method
 
-
-MVEL.Value2Code = function(value){
-	if (value.getMilli) return ""+value.getMilli();		//TIME
+//FROM JAVASCRIPT VALUE TO MVEL EQUIVALENT
+MVEL.Value2Code = function(value){/*comment*/
+	if (value.getMilli) return value.getMilli()+" /*"+value.format("yyNNNdd HHmmss")+"*/";		//TIME
 	if (value instanceof Duration)
-		return ""+value.milli;	//DURATION
+		return value.milli+" /*"+value.toString()+"*/";	//DURATION
 
 	if (aMath.isNumeric(value)) return "" + value;
 	return CNV.String2Quote(value);
+};//method
+
+//CONVERT FROM JAVASCRIPT VALUE TO ES EQUIVALENT
+MVEL.Value2Value = function(value){
+	if (value.getMilli) return value.getMilli();		//TIME
+	if (value instanceof Duration) return value.milli;	//DURATION
+	return value;
 };//method
 
 
