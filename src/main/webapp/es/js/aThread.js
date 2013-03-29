@@ -7,22 +7,33 @@
 importScript("../lib/jquery.js");
 importScript("aUtil.js");
 
+var aThread;
 
+(function(){
 
 aThread=function(gen){
 	if (typeof(gen)=="function") gen=gen();	//MAYBE THE FUNCTION WILL CREATE A GENERATOR
 	if (String(gen) !== '[object Generator]'){
 		D.error("You can not pass a function.  Pass a generator! (have function use the yield keyword instead)");
 	}//endif
+	this.parentThread=aThread.currentThread;
+
 	this.keepRunning=true;
 	this.stack = [gen];
 	this.nextYield=new Date().getMilli()+aThread.MAX_BLOCK_TIME;
+	this.children=[];
 };
 
 aThread.MAX_BLOCK_TIME=200;	//200ms IS THE MAXMIMUM TIME A PIECE OF CODE SHOULD HOG THE MAIN THREAD
 
-aThread.run=function(gen){
+aThread.run=function(name, gen){
+	if (typeof(name) != "string"){
+		gen=name;
+		name=undefined;
+	}//endif
+
 	var output=new aThread(gen);
+	output.name=name;
 	output.start();
 	return output;
 };//method
@@ -53,29 +64,34 @@ aThread.getStackTrace=function(depth){
 };//method
 
 
-
-//aThread.numRunning=0;
+var mainThread={"name":"main thread", "children":[]};
+aThread.currentThread=mainThread
 aThread.isRunning=[];
+//aThread.newThreads=[];
 
-aThread.showWorking=function(){
+function showWorking(){
 	var l=$(".loading");
 	l.show();
-};
-aThread.hideWorking=function(){
+}//function
+
+function hideWorking(){
 	var l=$(".loading");
 	l.hide();
-};
+}//function
 
 
 aThread.prototype.start=function(){
 //	aThread.numRunning++;
 	aThread.isRunning.push(this);
-	aThread.showWorking();
+	this.parentThread=aThread.currentThread;
+	this.parentThread.children.push(this);
+//	aThread.newThreads.push(this);
+	showWorking();
 	return this.resume(this.stack.pop());
 };
 
 function aThread_prototype_resume(retval){
-	aThread.showWorking();
+	showWorking();
 	while (this.keepRunning){
 		if (String(retval) === '[object Generator]'){
 			this.stack.push(retval);
@@ -127,13 +143,19 @@ function aThread_prototype_resume(retval){
 			if (gen.history===undefined) gen.history=[];
 
 //			gen.history.push(retval===undefined ? "undefined" : retval);
+			aThread.currentThread=this;
 
 			if (retval instanceof Exception){
 				retval = gen["throw"](retval);  //THROW METHOD OF THE GENERATOR IS CALLED, WHICH IS SENT TO CALLER AS thrown EXCEPTION
 			}else{
 				retval = gen.send(retval)
 			}//endif
+
+			aThread.currentThread=mainThread;
+
 		}catch(e){
+			aThread.currentThread=mainThread;
+
 			if (e instanceof StopIteration){
 				retval=undefined;	//HAPPENS WHEN THE CALLED GENERATOR IS DONE
 			}else{
@@ -148,8 +170,16 @@ function aThread_prototype_resume(retval){
 aThread.prototype.resume=aThread_prototype_resume;
 
 aThread.prototype.kill=function(retval){
-	this.returnValue=retval;				//REMEMBER FO THREAD THAT JOINS WITH THIS
+	this.returnValue=retval;				//REMEMBER FOR THREAD THAT JOINS WITH THIS
 	this.keepRunning=false;
+
+
+	this.parentThread.children.remove(this);
+//	this.children.forall(function(c, i){
+//		c.kill(retval);//I AM ASSUMING A NATURAL DEATH, AND A FORCED DEATH ARE THE SAME THING :(
+//	});
+//	if (this.children.length!=0)
+//		D.error("Expecting no thread children");
 
 //D.println("kill when numRunning="+aThread.numRunning);
 
@@ -166,11 +196,9 @@ aThread.prototype.kill=function(retval){
 		return;
 	}//endif
 
-//	aThread.numRunning--;
-//	if (aThread.numRunning<0)
-//		D.error("Thread already dead!");
+	
 	if (aThread.isRunning.length==0){
-		aThread.hideWorking();
+		hideWorking();
 	}//endif
 
 	
@@ -274,7 +302,7 @@ aThread.Suspend.name="suspend";
 
 
 
-aThread_testFunction=function(){
+function aThread_testFunction(){
 	aThread.run(function(){
 		var t=aThread.run(function(){
 			yield (aThread.sleep(10000));	//REMOVING THIS WILL CHANGE ORDER, BUT STILL RETURN PROPER VALUE
@@ -391,3 +419,5 @@ aThread_testFunction=function(){
 //		D.println("success");
 //	});
 //};
+
+})();

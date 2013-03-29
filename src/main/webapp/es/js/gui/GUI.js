@@ -103,7 +103,7 @@ GUI.setup = function(refreshChart, parameters, relations, indexName, showDefault
 
 //SHOW THE LAST TIME ES WAS UPDATED
 GUI.showLastUpdated = function(indexName){
-	aThread.run(function(){
+	aThread.run("show last updated timestamp", function(){
 		var time;
 
 		var a=D.action("Get Status of ES Index", true);
@@ -402,7 +402,7 @@ GUI.refresh=function(){
 	if (GUI.refreshRequested) return;
 	GUI.refreshRequested=true;
 
-	aThread.run(function(){
+	aThread.run("refresh gui", function(){
 		yield (aThread.sleep(200));
 		GUI.refreshRequested=false;
 
@@ -410,7 +410,7 @@ GUI.refresh=function(){
 
 		var threads=[];
 		GUI.customFilters.forall(function(f, i){
-			threads.push(aThread.run(function(){
+			threads.push("run custom filter", aThread.run(function(){
 				yield (f.refresh());
 			}));
 		});

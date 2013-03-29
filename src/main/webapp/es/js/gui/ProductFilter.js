@@ -128,7 +128,7 @@ ProductFilter.prototype.success = function(data){
 
 	var self=this;
 
-	aThread.run(function(){
+	aThread.run("get products", function(){
 		self.injectHTML(products);
 
 		$("#productsList").selectable({

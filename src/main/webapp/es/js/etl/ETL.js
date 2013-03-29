@@ -9,7 +9,7 @@ importScript("../ESQuery.js");
 ETL={};
 
 
-aThread.run(function(){
+aThread.run("get bug columns", function(){
 	yield (ESQuery.loadColumns({"from":"bugs", "url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version"}));
 
 	ETL.allFlags = aThread.runSynchronously(CUBE.calc2List({
@@ -234,7 +234,7 @@ ETL.chunk=function(insert, insertFunction){
 			s += 2;	//NOT THE PAIR THAT PUT IT OVER
 
 			var data = insert.substring(s, e).join("\n") + "\n";
-			threads.push(aThread.run(insertFunction(data)));
+			threads.push(aThread.run("insert some data", insertFunction(data)));
 
 			e = s;
 			bytes = 0;
@@ -242,7 +242,7 @@ ETL.chunk=function(insert, insertFunction){
 	}//for
 
 	data = insert.substring(0, e).join("\n") + "\n";
-	threads.push(aThread.run(insertFunction(data)));
+	threads.push(aThread.run("insert some data", insertFunction(data)));
 
 	for(var t=threads.length;t--;){
 		yield (aThread.join(threads[t]));

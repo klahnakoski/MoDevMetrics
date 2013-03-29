@@ -22,7 +22,7 @@ TeamFilter.newInstance=function(field_name){
 	self.field_name=field_name;
 	self.selectedEmails=[];
 
-	aThread.run(function(){
+	aThread.run("get people", function(){
 		//GET ALL PEOPLE
 		var people=(yield (ESQuery.run({
 			"from":"org_chart",

@@ -20,7 +20,7 @@ ComponentFilter.prototype.refresh = function(){
 	if (this.refreshThread!==undefined) this.refreshThread.kill();
 
 	var self=this;
-	this.refreshThread=aThread.run(function(){
+	this.refreshThread=aThread.run("get components", function(){
 		var components=yield (ESQuery.run({
 			"from":"bugs",
 			"select":{"name":"count", "value":"bug_id", "operation":"count"},

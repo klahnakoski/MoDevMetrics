@@ -74,6 +74,16 @@ Array.prototype.right=function(num){
 	return this.slice(Math.max(0, this.length-num));
 };
 
+Array.prototype.remove=function(obj){
+	for(var i=this.length;i--;){
+		if (this[i]!=obj) continue;
+		this.slice(i, 1);
+	}//for
+	return this;
+};
+
+//[].remove("a");
+
 
 //RETURN TRUE IF VALUE IS FOUND IN ARRAY
 Array.prototype.contains = function(value){

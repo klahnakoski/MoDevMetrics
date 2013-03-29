@@ -267,21 +267,21 @@ REVIEWS.get=function(minBug, maxBug){
 
 
 	var inReview;
-	var A=aThread.run(function(){
+	var A=aThread.run("Get Review Requests", function(){
 		var a=D.action("Get Review Requests", true);
 		inReview=yield(reviewQuery.run());
 		D.actionDone(a);
 	});
 
 	var doneReview;
-	var B=aThread.run(function(){
+	var B=aThread.run("Get Review Ends", function(){
 		var a=D.action("Get Review Ends", true);
 		doneReview=yield(doneQuery.run());
 		D.actionDone(a);
 	});
 
 	var switchedReview;
-	var C=aThread.run(function(){
+	var C=aThread.run("Get Review Re-assignments", function(){
 		var a=D.action("Get Review Re-assignments", true);
 		switchedReview=yield(switchedQuery.run());
 		D.actionDone(a);
@@ -449,7 +449,7 @@ REVIEWS.postMarkup=function(){
 			while(maxPush<=0) yield(aThread.sleep(100));
 			maxPush--;
 
-			aThread.run(function(){
+			aThread.run("Send update to es", function(){
 				try{
 					yield (Rest.post({
 						"url":ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName+"/"+v._id+"/_update",

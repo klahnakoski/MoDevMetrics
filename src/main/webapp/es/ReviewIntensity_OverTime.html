@@ -42,7 +42,7 @@
 </div>
 
 <div style="align:left;position:relative;float:left;width:800px;">
-	<h3>Time to First Incoming Review</h3>
+	<h3>Wait Time for Reviews, Over Time</h3>
 
 	<div id="chart" style="width:800px;height:400px;"></div>
 
@@ -59,17 +59,17 @@ importScript([
 
 	$("#description").html("<p>This chart is slow.</p>"+
 			"<p>The chart only considers the first review of each bug.  Anecdotally, the first review takes the longest to review, with subsequent reviews being done with hours."+
-			"<p>Please note that the percentile of reviews depends on the interval size:  Reviews that last longer than the interval will be counted more than once (but once for each interval they are open) adding weight to long lasting reviews and making the percentile ages older than one would expect.</p>"
-
+			"<p>Please note that the percentile of reviews depends on the interval size:  Reviews that last longer than the interval will be counted more than once (but once for each interval they are open) adding weight to long lasting reviews and making the percentile ages older than one would expect.</p>"+
 			"<br><span class='warning'>NOTE: If a review is open more then 18weeks, it will be considered closed</span>"+
 			""
 	);
 
 	var thread;
+//	var reviewRequest;
 	var createChart=function(){
-		if (thread!==undefined)
-			thread.kill();
-		thread=aThread.run( __createChart());
+		if (thread!==undefined) thread.kill();
+//		if (reviewRequest) reviewRequest.kill();
+		thread=aThread.run("createChart", __createChart());
 	};
 
 	var __createChart = function(){
@@ -102,7 +102,7 @@ importScript([
 
 
 		//CHART OF AGGREGATE RESPONSE TIMES
-		aThread.run(function(){
+		aThread.run("Agg response times", function(){
 			var a=D.action("Grab Stats", true);
 			var ages=(yield (ESQuery.run({
 				"name":"DF",
