@@ -83,44 +83,13 @@
 	aThread.run(function(){
 
 		D.println(Date.newInstance(1352207434236).format("yyyy-NNN-dd HHmmss"));
-		yield (ESQuery.loadColumns({"from":"bugs"}));
+//		yield (ESQuery.loadColumns({"from":"bugs"}));
 
-		var esQuery = { "facets":{ "0":{ "facet_filter":{"and":[
-			{"and":[
-				{"range":{"request_time":{"lt":1363564800000}}},
-				{"script":{"script":"var minimum = function(a, b){if (a==null) b; else if (b==null) a; else if (a<b) a; else b;\n"+
-						"};\n"+"var coalesce = function(a, b){if (a==null) b; else a; \n"+
-						"};\n"+"var zero2null = function(a){if (a==0) null; else a; \n"+
-						"};\n"+"var get = function(hash, key){\n"+"if (hash==null) null; else hash[key];\n"+
-						"};\n"+"var getDocValue = function(name){\n"+"var out = [];\n"+
-						"var v = doc[name];\n"+
-						"if (v==null || v.value==null) { null; } else if (v.values.length<=1){ v.value; } else {for(k : v.values) out.add(k); out;}};\n"+
-						"var _1000 = function(reviews){\n"+
-						"var review_time = getDocValue(\"review_time\");\n"+
-						"var request_time = getDocValue(\"request_time\");\n"+
-						"output = (1363564800000 /*13Mar18 000000*/ <= minimum(request_time+10886400000 /*18week*/, coalesce(zero2null(review_time), 1363996800000 /*13Mar23 000000*/)));\n"+
-						" output;\n"+
-						"};\n"+
-						"_1000(_source)\n"+""}}
-			]}
-		]}, "terms_stats":{ "size":200000, "value_script":
-				"var minimum = function(a, b){if (a==null) b; else if (b==null) a; else if (a<b) a; else b;\n"+"};\n"+
-						"var zero2null = function(a){if (a==0) null; else a; \n"+"};\n"+
-						"var get = function(hash, key){\n"+"if (hash==null) null; else hash[key];\n"+"};\n"+
-						"var getDocValue = function(name){\n"+"var out = [];\n"+
-						"var v = doc[name];\n"+"if (v==null || v.value==null) { null; } else if (v.values.length<=1){ v.value; } else {for(k : v.values) out.add(k); out;}};\n"+
-						"var _1000 = function(reviews){\n"+
-						"var review_time = getDocValue(\"review_time\");\n"+
-						"var request_time = getDocValue(\"request_time\");\n"+
-						"output = minimum(zero2null(review_time), 1363651200000 /*13Mar19 000000*/)-request_time; output;\n"+
-						"};\n"+
-						"_1000(_source)\n"+"",
-			"key_field":"bug_id" } } }, "sort":[], "size":20, "from":0, "query":{"filtered":{ "filter":{"and":[
-			{"script":{"script":"true"}},
-			{"and":[
-				{"range":{"request_time":{"gte":1363564800000,"lt":1363737600000}}},
-				{"term":{"is_first":"1"}}
-			]}
+
+		var esQuery = { "facets":{"default":{"terms":{ "size":200000,
+			"script_field":"''+(((doc[\"start\"].value<0) || (doc[\"start\"].value>=550)) ? 11 : Math.floor((doc[\"start\"].value-0)/50))+'|'+(((doc[\"firstPaint\"].value<0) || (doc[\"firstPaint\"].value>=550)) ? 11 : Math.floor((doc[\"firstPaint\"].value-0)/50))"
+		}}}, "sort":[], "size":200, "from":0, "query":{"filtered":{ "filter":{"and":[
+			{"script":{"script":"true"}}
 		]}, "query":{"match_all":{}} }} };
 //		{
 //			"facets":{"mvel":{"terms":{ "size":200000, "script_field":"doc[\"dependson\"].value"}}},
@@ -138,7 +107,8 @@
 
 //			"url":"http://localhost:9200/reviews/review/_search",
 //			"url":"http://localhost:9200/bug_tags/bug_tags/_search",
-			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews/review/_search",
+			"url":"http://localhost:9200/raw_telemetry/data/_search",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews/review/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_tags/bug_tags/_search",
 //				"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/telemetry/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/org_chart/person/_search",

@@ -121,12 +121,15 @@ GUI.showLastUpdated = function(indexName){
 		}else if (indexName=="bug_tags"){
 			time=yield (BUG_TAGS.getLastUpdated());
 			$("#testMessage").html("Bugs Last Updated " + time.addTimezone().format("NNN dd"));
-		}else if (indexName="bug_summary"){
+		}else if (indexName=="bug_summary"){
 			time=new Date((yield(ESQuery.run({
 				"from":"bug_summary",
 				"select":{"name":"max_date", "value":"modified_time", "operation":"maximum"}
 			}))).cube.max_date);
 			$("#testMessage").html("Bug Summaries Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
+		}else{
+			D.actionDone(a);
+			return;
 		}//endif
 
 		var age=aMath.round(Date.now().subtract(time).divideBy(Duration.DAY), 1);

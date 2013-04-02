@@ -1,0 +1,171 @@
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="application/javascript;version=1.7" src="js/aScript.js"></script>
+</HEAD>
+<BODY>
+
+
+<link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
+<link type="text/css" rel="stylesheet" href="css/start/jquery-ui-1.8.16.custom.css" />
+
+<link type="text/css" rel="stylesheet" href="css/menu.css"/>
+
+
+<a href="http://people.mozilla.com/~klahnakoski/" class="tabzilla">HOME</a>
+
+
+<div id="sidebar">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3>Telemetry Heat Grid</h3>
+
+
+	<div id="chart" class="chart"></div>
+	
+	<div id="info"></div>
+	<div id="report"></div>
+</div>
+
+<script type="application/javascript;version=1.7">
+
+
+importScript('js/main.js', function(){
+
+
+
+
+ElasticSearch.baseURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
+
+var CUTOFF=Duration.newInstance("3week");
+$("#description").html("Simple heat grid to compare the various simple measures.  We still need to add a regression line, the regression distribution, and a plethora of filters");
+
+var thread;
+
+var createChart=function(){
+	if (thread!==undefined) thread.kill();
+	thread=aThread.run( __createChart());
+};
+
+var __createChart = function(){
+
+//	var sampleMin=Date.newInstance(GUI.state.sampleMin);
+//	var sampleMax=Date.newInstance(GUI.state.sampleMax).ceilingDay();
+//	var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
+
+	var numParts=CNV.String2Integer(GUI.state.numParts);
+
+	var measureY=GUI.state.measureY;
+	var maxY=CNV.String2Integer(GUI.state.maxY);
+
+	var measureX=GUI.state.measureX;
+	var maxX=CNV.String2Integer(GUI.state.maxX);
+
+//	var idTime=GUI.state.programFilter.bugStatusMinimum_fromSource();
+//	var testValue=GUI.state.programFilter.bugStatusMinimum_fromDoc();
+	
+	
+//	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
+
+//	var mainFilter={"and":[
+//			{"and":[
+//				{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},
+//				{"range":{"expires_on":{"gte":sampleMin.getMilli()}}}
+//			]},
+//			{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-"+sampleMin.getMilli()+", "+sampleInterval.milli+")!=floorInterval(expires_on-"+sampleMin.getMilli()+", "+sampleInterval.milli+")", {"from":"bugs"})}},
+//			Mozilla.BugStatus.Open.esfilter,
+//			GUI.getFilters("bugs")
+//		]};
+
+
+	//CHART PRODUCT BREAKDOWN
+	aThread.run("pull raw telemetry data", function(){
+		var response=yield (ESQuery.run({
+			"name":measureY+"(Y) vs "+measureX+"(X)",
+			"from":"raw_telemetry",
+			"select":{"name":"count", "value":"_id", "operation":"count"},
+			"edges":[
+				{"name":measureY,
+					"value":"simpleMeasurements."+measureY,
+					"allowNulls":false,
+					"domain":{"type":"linear", "min":"0", "max":maxY, "interval":maxY/numParts, "value":"min"}},
+				{"name":measureX,
+					"value":"simpleMeasurements."+measureX,
+					"allowNulls":false,
+					"domain":{"type":"linear", "min":"0", "max":maxX, "interval":maxX/numParts, "value":"min"}}
+			]
+		}));
+
+
+		aChart.show({
+			"id":"chart",
+			"type":"heat",
+			"cube":response,
+			"height":800,
+			"width":800,
+			yAxisSize: 50,
+			xAxisSize: 50,
+			"colorNormByCategory": false,
+			"colors":["#EEEEEE", "#BBBBBB", "#999999", "#666666", "#333333"]
+		});
+
+		yield (null);
+
+	});
+
+	yield (null);
+};
+
+
+
+
+//file:///C:/Users/klahnakoski/git/Bugzilla%20Anthropology/src/main/webapp/es/Age_OpenBugs.html#sampleInterval=day&sampleMax=2013-01-18&sampleMin=2013-01-15&selectedPrograms=Security+%28High+and+Critical+Only%29&selectedProducts=core,firefox,thunderbird,toolkit,mailnews+core
+	$(document).ready(function(){
+		GUI.setup(
+			createChart,
+			[
+				{"id":"measureX", "name":"Measure X", "type":"string", "default":"start"},
+				{"id":"maxX", "name":"Max X", "type":"number", "default":"100"},
+				{"id":"measureY", "name":"Measure Y", "type":"string", "default":"firstPaint"},
+				{"id":"maxY", "name":"Max Y", "type":"number", "default":"5000"},
+				{"id":"numParts", "name":"Num Parts", "type":"number", "default":"20"}
+//				{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
+//				{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today()},
+//				{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"week"},
+//				{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
+			],
+			[
+//				"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+			],
+			"raw_telemetry",
+			false
+		);
+	});
+});
+</script>
+
+
+</BODY>
+</HTML>
+

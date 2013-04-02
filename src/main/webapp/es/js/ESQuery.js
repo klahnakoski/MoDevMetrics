@@ -40,7 +40,8 @@ ESQuery.INDEXES={
 	"bug_tags":{"path":"/bug_tags/bug_tags"},
 	"org_chart":{"path":"/org_chart/person"},
 	"temp":{"path":""},
-	"telemetry":{"path":"/telemetry/data"}
+	"telemetry":{"path":"/telemetry/data"},
+	"raw_telemetry":{"path":"/raw_telemetry/data"}
 };
 
 
@@ -446,6 +447,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 			output={"and":[]};
 
 			if (edge.range.mode!==undefined && edge.range.mode=="inclusive"){
+				//IF THE range AND THE partition OVERLAP, THEN MATCH IS MADE
 				if (MVEL.isKeyword(edge.range.min)){
 					output.and.push({"range":Map.newInstance(edge.range.min,{"lt":MVEL.Value2Value(partition.max)})});
 				}else{
@@ -467,9 +469,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 					, query)}})
 				}//endif
 			}else{
-				//SNAPSHOT
-
-
+				//SNAPSHOT - IF range INCLUDES partition.min, THEN MATCH IS MADE
 				if (MVEL.isKeyword(edge.range.min)){
 					output.and.push({"range":Map.newInstance(edge.range.min,{"lte":MVEL.Value2Value(partition.min)})});
 				}else{
@@ -769,7 +769,7 @@ ESQuery.compileDuration2Term=function(edge){
 //RETURN MVEL CODE THAT MAPS THE LINEAR DOMAIN DOWN TO AN INTEGER AND
 //AND THE JAVASCRIPT THAT WILL TURN THAT INTEGER BACK INTO A PARTITION (INCLUDING NULLS)
 ESQuery.compileLinear2Term=function(edge){
-	if (edgeesscript) D.error("edge script not supported yet");
+	if (edge.script!==undefined) D.error("edge script not supported yet");
 
 	if (edge.domain.type!="linear") D.error("can only translate linear domains");
 

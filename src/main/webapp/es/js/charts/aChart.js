@@ -282,6 +282,7 @@ aChart.showPie=function(params){
 
 //PLOT USING THE Common Charting Components
 aChart.show=function(params){
+	Map.expecting(params, ["type", "cube"]);
 	var divName=params.id;
 
 	var type=params.type;
@@ -354,7 +355,9 @@ aChart.show=function(params){
 		"area":"StackedAreaChart",
 		"stackedbar":"StackedBarChart",
 		"bar":"BarChart",
-		"bullet":"BulletChart"
+		"bullet":"BulletChart",
+		"scatter":"MetricDotChart",
+		"heat":"HeatGridChart"
 	};
 
 	var height;
@@ -413,7 +416,16 @@ aChart.show=function(params){
 		Map.copy(params, chartParams);
 		chartParams.extensionPoints=extPoints;
 	}
+
+	{
+		let div=$("#"+divName);
+		div.width(chartParams.width);
+		div.height(chartParams.height);
+	}
+
+
 	var chart = new pvc[chartTypes[type]](chartParams);
+
 
 	//FILL THE CROSS TAB DATA STRUCTURE TO THE FORMAT EXPECTED (2D array of rows
 	//first row is series names, first column of each row is category name

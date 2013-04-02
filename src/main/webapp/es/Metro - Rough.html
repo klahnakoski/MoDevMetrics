@@ -169,6 +169,8 @@ var __createChart = function(){
 	iterations[3].endDate=Date.newInstance("2013MAR14");
 	iterations[4].startDate=iterations[3].startDate.addWeekday(12);
 	iterations[4].endDate=iterations[3].endDate.addWeekday(12);
+	iterations[5].startDate=iterations[4].startDate.addWeekday(12);
+	iterations[5].endDate=iterations[4].endDate.addWeekday(12);
 
 	var currentIteration=iterations.map(function(i){if (endDate.between(i.startDate, i.endDate)) return i;})[0];
 
