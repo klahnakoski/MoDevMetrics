@@ -934,4 +934,27 @@ CUBE.domain.compileEnd=function(domain){
 	}//endif
 };
 
+//CONVERT ANY ALGEBRIC DOMAIN TO A LINEAR DOMAIN (FOR STATS PROCESSING)
+CUBE.domain.domain2linear=function(domain){
+	if (["default", "set"].contains(domain.type)){
+		D.error("Can not convert <partitioned> domain to linear");
+	}//endif
 
+	var output=Map.copy(domain);
+	if (domain.type=="linear"){
+		//do nothing
+	}else if (domain.type=="time"){
+		if (domain.interval.month!=0) D.error("Do not know how to convert monthly duration to linear");
+		output.min=domain.min.getMilli();
+		output.max=domain.max.getMilli();
+		output.interval=domain.interval.milli;
+	}else if (domain.type="duration"){
+		if (domain.interval.month!=0) D.error("Do not know how to convert monthly duration to linear");
+		output.min=domain.min.milli;
+		output.max=domain.max.milli;
+		output.interval=domain.interval.milli;
+	}else{
+		D.error("do not know what to do here");
+	}//endif
+	return output;
+};//method

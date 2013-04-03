@@ -175,28 +175,8 @@ aThread.prototype.kill=function(retval){
 
 
 	this.parentThread.children.remove(this);
-//	this.children.forall(function(c, i){
-//		c.kill(retval);//I AM ASSUMING A NATURAL DEATH, AND A FORCED DEATH ARE THE SAME THING :(
-//	});
-//	if (this.children.length!=0)
-//		D.error("Expecting no thread children");
+	aThread.isRunning.remove(this);
 
-//D.println("kill when numRunning="+aThread.numRunning);
-
-	var self;
-	for(let i=0;i<aThread.isRunning.length;i++){
-		if (aThread.isRunning[i]==this){
-			self=aThread.isRunning.splice(i,1)[0];
-			break;
-		}//endif
-	}//for
-	if (self===undefined){
-		//HAPPENS WHEN CODE HAS A HANDLE, AND WANT TO ENSURE THREAD IS DEAD
-//		D.error("Double call of kill!");
-		return;
-	}//endif
-
-	
 	if (aThread.isRunning.length==0){
 		hideWorking();
 	}//endif

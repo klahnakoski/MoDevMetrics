@@ -155,3 +155,89 @@ Stats.percentile=function(values, percentile){
 	if (smaller==0) return 0;
 	return values[smaller-1];
 };
+
+
+Stats.query2regression=function(query){
+	var select=CUBE.select2Array(query.select);
+	if (query.edges.length==2 && select.length==1){
+		//WE ASSUME THE SELECT IS THE WEIGHT FUNCTION
+	}else{
+		D.error("Not supported");
+	}//endif
+
+	//CONVERT LINEAR DOMAINS TO doubles
+	var domainY=CUBE.domain.domain2linear(query.edges[0].domain);
+	var domainX=CUBE.domain.domain2linear(query.edges[1].domain);
+
+	//SEND TO REGRESSION CALC
+	var line=Stats.regression(query.cube, domainX, domainY);
+
+	//CONVERT BACK TO DOMAIN (result REFERS TO
+	if (["time", "duration"].contains(domainX.type)) D.error("Can not convert back to original domain, not implemented yet");
+	if (["time", "duration"].contains(domainY.type)) D.error("Can not convert back to original domain, not implemented yet");
+
+
+	//BUILD NEW QUERY WITH NEW CUBE
+	var output=Map.copy(query);
+	output.select={"name":query.edges[0].name};
+	output.edges=[query.edges[1]];
+
+	output.cube=[];
+	domainX.partitions.forall(function(v, i){
+		var part=domainX.partitions[i];
+		output.cube[i]=line((part.min+part.max)/2)
+	});
+	output.name=" ";
+
+	return output;
+};
+
+//ASSUMES A CUBE OF WEIGHT VALUES
+//RETURN THE REGRESSION LINE FOR THE GIVEN CUBE
+Stats.regression=function(weights, domainX, domainY){
+
+	var t={};
+	t.N=0;
+	t.X1=0;
+	t.X2=0;
+	t.XY=0;
+	t.Y1=0;
+	t.Y2=0;
+
+	var x=domainX.min+(domainX.interval/2);
+	for(var i=0;x<domainX.max;x+=domainX.interval){
+		var y=domainY.min+(domainY.interval/2);
+		for(var j=0;y<domainY.max;y+=domainY.interval){
+			var w=weights[i][j];
+			t.N+=w;
+			t.X1+=w*x;
+			t.X2+=w*x*x;
+			t.XY+=w*x*y;
+			t.Y2+=w*y*y;
+			t.Y1+=w*y;
+			j++;
+		}//for
+		i++;
+	}//for
+
+	return Stats.regressionLine(t);
+};
+
+//EXPECT THE RAW TERMS FROM THE SERIES
+Stats.regressionLine=function(terms){
+	var o=terms;
+	o.SSx=o.X2 - o.X1*o.X1/o.N;
+	o.SSy=o.Y2 - o.Y1*o.Y1/o.N;
+	o.Sxy=o.XY - o.X1*o.Y1/o.N;
+	o.slope=o.Sxy/o.SSx;
+	o.offset=(o.Y1-o.slope*o.X1)/o.N;
+	o.r2=(o.Sxy*o.Sxy)/(o.SSx*o.SSy);
+
+
+	var output=function(x){
+		return o.slope*x+o.offset;
+	};
+	Map.copy(o, output);
+
+	return output;
+};

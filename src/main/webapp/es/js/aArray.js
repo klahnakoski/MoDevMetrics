@@ -77,7 +77,7 @@ Array.prototype.right=function(num){
 Array.prototype.remove=function(obj){
 	for(var i=this.length;i--;){
 		if (this[i]!=obj) continue;
-		this.slice(i, 1);
+		this.splice(i, 1);
 	}//for
 	return this;
 };

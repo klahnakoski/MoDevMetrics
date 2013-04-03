@@ -282,6 +282,7 @@ GUI.AddParameters=function(parameters, relations){
 			defaultValue=defaultValue.toString();
 			$("#" + param.id).val(defaultValue);
 		}else{
+			if (param.type=="string") param.type="text";
 			$("#" + param.id).change(function(){
 				if (GUI.UpdateState()){
 					GUI.refreshChart();

@@ -417,7 +417,7 @@ aChart.show=function(params){
 		chartParams.extensionPoints=extPoints;
 	}
 
-	{
+	{//ENSURE CONTAINER DIV IS CORRECT SIZE
 		let div=$("#"+divName);
 		div.width(chartParams.width);
 		div.height(chartParams.height);

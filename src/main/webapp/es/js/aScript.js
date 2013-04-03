@@ -15,7 +15,7 @@ var importScript;
 (function(){
 
 	var METHOD_NAME="importScript";
-	var DEBUG=true;
+	var DEBUG=false;
 
 
 	if (typeof(window.D) == "undefined"){
@@ -183,7 +183,7 @@ var importScript;
 		paths=subtract(paths, existingScripts);
 
 		var numLoaded=paths.length;
-		D.println("Waiting for "+numLoaded+" scripts to load");
+		if (DEBUG) D.println("Waiting for "+numLoaded+" scripts to load");
 		function onLoadCallback(){
 			numLoaded--;
 			if (numLoaded==0){
@@ -199,7 +199,7 @@ var importScript;
 			script.onload=onLoadCallback;
 			head.appendChild(script);
 		}//for
-		D.println("Added "+paths.length+" scripts");
+		if (DEBUG) D.println("Added "+paths.length+" scripts");
 	}//function
 
 

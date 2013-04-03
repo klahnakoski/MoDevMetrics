@@ -379,6 +379,10 @@ MVEL.prototype.where = function(esFilter){
 
 //RETURN TRUE IF THE value IS JUST A NAME OF A FIELD (OR A VALUE)
 MVEL.isKeyword = function(value){
+	if (value.charAt===undefined)
+		D.error("Expecting a string");
+
+
 	for(var c = 0; c < value.length; c++){
 		var cc = value.charAt(c);
 		if ("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.".indexOf(cc) == -1) return false;
