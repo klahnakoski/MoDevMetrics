@@ -202,6 +202,7 @@ var __createChart = function(){
 		"Simple chart of OPEN bugs matching the given ES filter, plus a linear projection of ideal burn down.<br><br>"
 		+"This is best used in the last few weeks of a project, where the number of remaining open bugs is small, and must be closed by the due date.<br><br>"
 		+"Please look at the <a href='./js/etl/bug_version.json'>ES Schema</a> to get a full listing of fields available.  Field names are a little different from BZ. "
+		+"<br><br><span class=\"warning\">The statistics are calculated from "+sampleMin.format("EE MMM dd")+" to today.</span>"
 //		+"<span class=\"warning\">Estimates are generated from a "+statsMax.subtract(statsMin).toString()+" sample from "+statsMin.format("EE MMM dd")+" to "+statsMax.addDay(-1).format("EE MMM dd")+"</span>"
 	 );
 
@@ -335,7 +336,7 @@ var __createChart = function(){
 $(document).ready(function(){
 	GUI.setup(createChart, [
 		{"id":"forTitle", "name":"Title", "type":"text", "default":"Open Leo+"},
-		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.newInstance("2013-04-01")},//Date.now().addDay(-15).floorMonth()},
+		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.now().addWeek(-2)},//Date.now().addDay(-15).floorMonth()},
 		{"id":"dueDate", "name":"Due Date", "type":"time", "default":Date.newInstance("2013-04-08")},//Date.now().addMonth(1).floorDay()},
 		{"id":"filter", "name":"ES Filter", "type":"text", "default":'{"and":[{"term":{"cf_blocking_b2g":"leo+"}},{"not":{"terms":{"cf_status_b2g18":["fixed","verified","unaffected","wontfix"]}}}]}'},
 //		{"id":"filter", "name":"ES Filter", "type":"text", "default":'{"terms":{"bug_id":[803809, 808576, 809076, 817603, 822671, 824626, 827854, 828222, 828915, 829520, 832269, 834653, 834680, 834712, 834718, 834734, 835364, 835410, 835414]}}'},
