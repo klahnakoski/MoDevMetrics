@@ -4,87 +4,17 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-	<script type="application/javascript;version=1.7" src="js/Settings.js">
-	</script>
+<HEAD>
+	<script type="application/javascript;version=1.7" src="js/aScript.js"></script>
 </HEAD>
 <BODY>
 
 
-<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.js"></script>
-<script type="application/javascript;version=1.7" src="lib/jstree/jquery.jstree.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/lib/protovis-d3.3.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/lib/jquery.tipsy.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/lib/tipsy.js"></script>
 <link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
-
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvc.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcPanel.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcLegend.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcWaterfall.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcPie.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcBar.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcLine.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcData.js"></script>
-
 <link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
 <link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
-
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvcDocUtils.js"></script>
-
-
 <link type="text/css" rel="stylesheet" href="css/start/jquery-ui-1.8.16.custom.css" />
-<script type="application/javascript;version=1.7" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
-<script type="application/javascript;version=1.7" src="lib/js/jquery.ba-bbq.js"></script>
-
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
-
-
-<script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/aArray.js"></script><script type="application/javascript;version=1.7" src="js/aString.js"></script><script type="application/javascript;version=1.7" src="js/aMath.js"></script><script type="application/javascript;version=1.7" src="js/CNV.js"></script>
-<script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/aArray.js"></script><script type="application/javascript;version=1.7" src="js/aString.js"></script><script type="application/javascript;version=1.7" src="js/aMath.js"></script>
-<script type="application/javascript;version=1.7" src="js/aDate.js"></script><script type="application/javascript;version=1.7" src="js/aDuration.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/MozillaDimensions.js"></script>
-<script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/Stats.js"></script>
-<script type="application/javascript;version=1.7" src="js/aDebug.js"></script>
-<script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
-<script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/aThread.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.analytic.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
-<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script>
-<script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
-<script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
-
-
-<script type="application/javascript;version=1.7" src="js/charts/HelperFunctions.js"></script>
-<script type="application/javascript;version=1.7" src="js/rest/ElasticSearch.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/charts/DataSet.js"></script>
-<script type="application/javascript;version=1.7" src="js/charts/RangeCharts.js"></script>
-<script type="application/javascript;version=1.7" src="js/charts/RangeIterator.js"></script>
-<script type="application/javascript;version=1.7" src="js/charts/DateRangeIterator.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/gui/Filter.js"></script>
-<script type="application/javascript;version=1.7" src="js/gui/ComponentFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/gui/TeamFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/gui/ProductFilter.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/gui/ProgramFilter.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script>
-<script type="application/javascript;version=1.7" src="js/etl/BugTags.js"></script>
 
 
 
@@ -122,6 +52,7 @@
 
 <script type="application/javascript;version=1.7">
 
+importScript("./js/main.js", function(){
 
 var CUTOFF = Duration.newInstance("3week");
 
@@ -275,6 +206,63 @@ var __createChart = function(){
 	 );
 
 
+	$("#stats").html("");
+
+	aThread.run("Calc Past Stats", function(){
+
+		var stats = yield(Q({
+			"from":flat,
+			"select":[
+				{"name":"closed", value:"Util.coalesce(closed, 0)"},
+				{"name":"total", value:"Util.coalesce(total, 0)"}
+			],
+			"edges":[
+				{"name":"date", "value":"date",
+					"allowNulls":false,
+					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value"}
+				}
+			]
+		}));
+
+		//DIFF TOTAL==NET NEW BUGS
+		//DIFF CLOSED==NET CLOSED BUGS
+		var diff = stats.cube.map(function(v, i){
+			if (i == stats.cube.length-1) return undefined;
+			return {
+				"net_new":stats.cube[i + 1].total-v.total,
+				"net_closed":stats.cube[i + 1].closed-v.closed
+			};
+		});
+
+		var perDay = (yield(CUBE.calc2List({
+			"from":diff,
+			"select":[
+				{"name":"avg_new", "value":"net_new", "operation":"average"},
+				{"name":"avg_closed", "value":"net_closed", "operation":"average"},
+				{"name":"med_new", "value":"net_new", "operation":"percentile", "percentile":0.5},
+				{"name":"med_closed", "value":"net_closed", "operation":"percentile", "percentile":0.5 }
+			]
+		}))).list[0];
+
+		$("#stats").append(
+				'<span class="parameter_name">Average New Bugs:</span>' + aMath.round(perDay.avg_new, 1) + '/Day<br>' +
+				'<span class="parameter_name">Average Closed:</span>' + aMath.round(perDay.avg_closed, 1) + '/Day<br>' +
+				'<span class="parameter_name">Median New in Day:</span>' + aMath.round(perDay["med_new"], 1) + '<br>' +
+				'<span class="parameter_name">Median Closed in Day:</span>' + aMath.round(perDay["med_closed"], 1) + '<br>' +
+			''
+		);
+
+	});
+
+
+
+
+
+
+
+
+
+
 
 	var stillOpen = flat.get("date", sampleMin).open;
 	var requiredNetCloseRatePerDay;
@@ -285,7 +273,7 @@ var __createChart = function(){
 		requiredNetCloseRatePerDay = stillOpen / daysLeft;
 	}
 
-	$("#stats").html('<span class="parameter_name">Required Closed/Day:</span>' + aMath.round(requiredNetCloseRatePerDay, 1) + '<br>');
+	$("#stats").append('<span class="parameter_name">Required Closed/Day:</span>' + aMath.round(requiredNetCloseRatePerDay, 1) + '<br>');
 
 
 
@@ -314,8 +302,8 @@ var __createChart = function(){
 	chartP = yield(Q({
 		"from":flat.list,	//CORRUPTED cube SO THE DATE EDGE IS EXPANDED, AND NEW COLUMNS (ideal) ADDED
 		"select":[
-//			{"value":"total", "style":{"color":"gray"}},
-			{"value":"ideal", "style":{"color":"gray"}},
+			{"value":"total", "style":{"color":"gray", "visibility":"hidden"}},
+			{"value":"ideal", "style":{"color":"brown"}},
 //			{"value":"estimate", "style":{"color":"red"}},
 			{"value":"open", "style":{"color":"red"}}
 		],
@@ -346,8 +334,8 @@ var __createChart = function(){
 
 $(document).ready(function(){
 	GUI.setup(createChart, [
-		{"id":"forTitle", "name":"Title", "type":"text", "default":"TEF UX Critical"},
-		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.newInstance("2013-03-20")},//Date.now().addDay(-15).floorMonth()},
+		{"id":"forTitle", "name":"Title", "type":"text", "default":"Open Leo+"},
+		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.newInstance("2013-04-01")},//Date.now().addDay(-15).floorMonth()},
 		{"id":"dueDate", "name":"Due Date", "type":"time", "default":Date.newInstance("2013-04-08")},//Date.now().addMonth(1).floorDay()},
 		{"id":"filter", "name":"ES Filter", "type":"text", "default":'{"and":[{"term":{"cf_blocking_b2g":"leo+"}},{"not":{"terms":{"cf_status_b2g18":["fixed","verified","unaffected","wontfix"]}}}]}'},
 //		{"id":"filter", "name":"ES Filter", "type":"text", "default":'{"terms":{"bug_id":[803809, 808576, 809076, 817603, 822671, 824626, 827854, 828222, 828915, 829520, 832269, 834653, 834680, 834712, 834718, 834734, 835364, 835410, 835414]}}'},
@@ -361,7 +349,7 @@ $(document).ready(function(){
 //	GUI.state.productFilter = ["B2G 1.0.0 (TEF)"];
 
 });
-
+});
 </script>
 
 

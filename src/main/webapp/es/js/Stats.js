@@ -135,26 +135,29 @@ Stats.percentiles=function(values, selectColumns){
 //selectColumns IS AN ARRAY OF SELECT COLUMNS {"name", "percentile"}
 //values IS AN ARRAY OF RAW NUMBERS
 //LINEAR INTERPOLATION IS USED
-//Stats.percentile=function(values, percentile){
-//	if (values.length==0) return null;
-//
-//	values.sort(function(a, b){return a-b;});
-//	var smaller=aMath.floor(values.length*percentile);
-//	var larger=aMath.min(smaller+1, values.length);
-//	var r=(values.length*percentile) - smaller;
-//	values.prepend(0);
-//	return values[smaller]*(1-r)+(values[larger]*r);
-//};
-
-//USING ONE
 Stats.percentile=function(values, percentile){
 	if (values.length==0) return null;
 
 	values.sort(function(a, b){return a-b;});
-	var smaller=aMath.floor(values.length*percentile+0.5);
-	if (smaller==0) return 0;
-	return values[smaller-1];
+	var smaller=aMath.floor(values.length*percentile);
+	var larger=aMath.min(smaller+1, values.length);
+	values.prepend(0);
+	var r=(values.length*percentile) - smaller;
+	return values[smaller]*(1-r)+(values[larger]*r);
 };
+
+
+//USING ONE
+//Stats.percentile=function(values, percentile){
+//	if (values.length==0) return null;
+//
+//	values.sort(function(a, b){return a-b;});
+//	var smaller=aMath.floor(values.length*percentile+0.5);
+//	if (smaller==0) return 0;
+//	return values[smaller-1];
+//};
+
+
 
 
 Stats.query2regression=function(query){
@@ -241,3 +244,4 @@ Stats.regressionLine=function(terms){
 
 	return output;
 };
+
