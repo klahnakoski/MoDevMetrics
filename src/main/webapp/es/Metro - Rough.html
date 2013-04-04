@@ -192,11 +192,14 @@ var __createChart = function(){
 				"bug_id",
 				{"name":"date",
 					"range":{"min":"modified_ts", "max":"expires_on"},
-					"domain":{"type":"time", "min":startDate, "max":endDate, "interval":"day"}
+					"domain":{"type":"time", "min":startDate, "max":endDate, "interval":"day", "value":"value"}
 				}
 			],
 			"esfilter":{"and":[
-				{"terms":{"blocked":[iterations.select("bug_id")]}},
+				{"or":iterations.map(function(v, i){	//CAN NOT USE terms BECAUSE blocked IS ARRAY
+					return {"term":{"blocked":v.bug_id}};
+				})},
+//				{"terms":{"blocked":[iterations.select("bug_id")]}},
 				{"range":{"expires_on":{"gte": startDate.getMilli()}}},
 				{"range":{"modified_ts":{"lt": endDate.getMilli()}}}
 			]}
@@ -213,7 +216,7 @@ var __createChart = function(){
 		}));
 
 		//FIGURE OUT RATE OF POINT INCREASE (LAST THREE ITERATIONS)
-		var startPoints=pointCount.get("date", iterations[currentIteration.index-SAMPLE_SIZE].startDate);
+		var startPoints=pointCount.get("date", iterations[currentIteration.dataIndex-SAMPLE_SIZE].startDate);
 		var endPoints=pointCount.get("date", currentIteration.startDate);
 		newPointsPerIteration=(endPoints-startPoints)/SAMPLE_SIZE;
 	});
@@ -237,7 +240,10 @@ var __createChart = function(){
 			"from":"bugs",
 			"select":{"name":"total_points", "value":mvelToCountPoints, "operation":"sum"},
 			"esfilter":{"and":[
-				{"terms":{"blocked":[backlog, currentIteration.bug_id]}},
+				{"or":[
+					{"term":{"blocked":backlog}},
+					{"term":{"blocked":currentIteration.bug_id}}
+				]},
 				{"range":{"expires_on":{"gte": endDate.getMilli()}}},
 				{"range":{"modified_ts":{"lt": endDate.getMilli()}}}
 			]}

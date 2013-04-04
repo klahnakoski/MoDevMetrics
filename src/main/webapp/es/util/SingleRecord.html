@@ -86,10 +86,29 @@
 //		yield (ESQuery.loadColumns({"from":"bugs"}));
 
 
-		var esQuery = { "facets":{"default":{"terms":{ "size":200000,
-			"script_field":"''+(((doc[\"start\"].value<0) || (doc[\"start\"].value>=550)) ? 11 : Math.floor((doc[\"start\"].value-0)/50))+'|'+(((doc[\"firstPaint\"].value<0) || (doc[\"firstPaint\"].value>=550)) ? 11 : Math.floor((doc[\"firstPaint\"].value-0)/50))"
-		}}}, "sort":[], "size":200, "from":0, "query":{"filtered":{ "filter":{"and":[
-			{"script":{"script":"true"}}
+		var esQuery = {
+			"fields":["bug_id", "blocked"],
+			"sort":[], "size":2000, "from":0, "query":{"filtered":{ "filter":{"and":[
+			{"script":{"script":"true"}},
+			{"and":[
+				{"term":{"bug_id":53363}},
+				{"not":{"missing":{"field":"blocked"}}},
+				{"or":[
+					{"term":{"blocked":841099}},
+					{"term":{"blocked":837145}},
+					{"term":{"blocked":837155}},
+					{"term":{"blocked":839392}},
+					{"term":{"blocked":842108}},
+					{"term":{"blocked":850809}},
+					{"term":{"blocked":855905}},
+					{"term":{"blocked":838081}}
+				]},
+//				{"terms":{"blocked":[
+//					[841099,837145,837155,839392,842108,850809,855905,838081]
+//				]}},
+				{"range":{"expires_on":{"gte":1359417600000}}},
+				{"range":{"modified_ts":{"lt":1365120000000}}}
+			]}
 		]}, "query":{"match_all":{}} }} };
 //		{
 //			"facets":{"mvel":{"terms":{ "size":200000, "script_field":"doc[\"dependson\"].value"}}},
@@ -102,12 +121,12 @@
 		try{
 			var data = yield(Rest.post({
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping?pretty=true",
-//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
 
 //			"url":"http://localhost:9200/reviews/review/_search",
 //			"url":"http://localhost:9200/bug_tags/bug_tags/_search",
-			"url":"http://localhost:9200/raw_telemetry/data/_search",
+//			"url":"http://localhost:9200/raw_telemetry/data/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews/review/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_tags/bug_tags/_search",
 //				"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/telemetry/_search",
