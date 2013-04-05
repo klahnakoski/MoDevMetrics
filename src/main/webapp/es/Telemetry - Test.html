@@ -70,9 +70,10 @@ ElasticSearch.baseURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
 
 var CUTOFF=Duration.newInstance("3week");
 $("#description").html(
-		"Simple heat grid to compare the various simple measures.  "+
-		"We still need to add a regression line, the regression distribution, and a plethora of filters<br><br>"+
-		'<span class="warning">Limited to nighly, WINNT, and all zero-values removed</span>'
+		"Simple heat grid to compare the various simple measures.  Least-squares regression line added to get sense of relationship."+
+		"We still need to add a the regression distribution, and a plethora of filters"+
+		'<br><br><span class="warning">This page points to my server behind the firewall.  You must have Toronto VPN access (vpn.tor1.mozilla.com).</span>'+
+		'<br><br><span class="warning">Limited to nighly, WINNT, and all zero-values removed</span>'
 );
 
 var thread;

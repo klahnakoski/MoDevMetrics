@@ -42,7 +42,23 @@
 	<br>
 <table>
 
-
+	<tr>
+	<td>
+		<h4>April 5th 2013</h4>
+		<div class="description">
+			<p>I had done some work on Metro back in February, but I had to leave it
+				prematurely to work on other projects.  I decided to spend time yesterday
+				to get what little code I did have into a runnable state.</p>
+			<p>At some later date I will continue working on Marco Mucci's wishlist;
+				specifically to add drill-downs to see specific iteration stats and
+				bug lists.</p>
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Metro - Rough.html">Rough Metro</a>
+			<span class="info">A very slow and clunky set of charts.</span>
+		</div>
+	</td>
+	</tr>
 
 	<tr>
 	<td>
@@ -63,7 +79,7 @@
 	<td>
 		<h4>March 27th 2013</h4>
 		<div class="description">
-		<p>Still learning Pig Latin, and </p>
+		<p>Still learning Pig Latin, and figuring out how to make Telemetry queries fast.</p>
 		</div>
 		<div class="items">
 			<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_OverTime.html">Review Intensity Over Time</a>
@@ -249,7 +265,7 @@
 					This past week was working on simple fixes and backend features.
 			</div>
 			<div class="items">
-				<a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_NoReviewer.html">Review? missing Requestee</a>
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_NoReviewer.html">R? and missing Requestee</a>
 				<span class="info">List of all bugs with no reviewer (The old version missed some.)</span>
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/util/QueryTool.html">B.A. Query Tool</a>
@@ -477,8 +493,8 @@
 				<span class="info">SLOW (about 3min) - Age of closed bugs - Pulls large amount of data from ES (?delay is due to 50meg transfer?), and processes locally </span></span>
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/TimeToResolution.html">TimeToResolution.html</a>
 				<span class="info">SLOW (about 30sec) - Same as bug age, only measurment stars when bug is marked as belonging to Program, Product or Component</span>
-				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewTimes.html">ReviewTimes.html</a>
-				<span class="info">SLOW (about 3min) - Length of time a bug waits for a review</span>
+				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewTimes.html">ReviewTimes.html</a>
+				<span class="info">SLOW (about 3min) - Length of time a bug waits for a review</span></span>
 				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/ResolutionsOverTime.html">ResolutionsOverTime.html</a>
 				<span class="info">SLOW (3min) - Show number of each Resolution by the age of the bug.  This query uses ES facets to gather data.  The amount of download data is small, but ES computing is slow.  Only 21 facets (for 21 days) are used here. </span></span>
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_Pending.html">Reviews_Pending.html</a>
