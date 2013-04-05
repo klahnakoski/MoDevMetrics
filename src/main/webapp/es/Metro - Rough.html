@@ -106,6 +106,7 @@ var __createChart = function(){
 	var pessimisticSample=3;
 
 	$("#description").html(
+			'<span class="warning">This will take a long time to load!!</span><br><br>'+
 		"Uses up to the last "+numSample+" iterations to estimate the time to complete "+
 		"the remaining backlog.  Out of those, the best "+	optimisticSample+" are used to make "+
 		"an optimistic estimate, and the worst "+pessimisticSample+" are used to make "+
