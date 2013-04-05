@@ -120,6 +120,9 @@ ESQuery.run=function(query){
 	yield (ESQuery.loadColumns(query));
 	var esq=new ESQuery(query);
 	var output=yield (esq.run());
+
+	Map.copy(CUBE.query.prototype, output);
+
 	if (output===undefined)
 		D.error("what happened here?");
 	yield output;

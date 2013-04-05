@@ -269,7 +269,7 @@ var __createChart = function(){
 				},
 				{"name":"date",
 					"range":{"min":"modified_ts", "max":"expires_on"},
-					"domain":{"type":"time", "min":startDate, "max":endDate, "interval":"day"}
+					"domain":{"type":"time", "min":startDate, "max":endDate, "interval":"day", "value":"value"}
 				}
 			]
 		}));
@@ -317,7 +317,7 @@ var __createChart = function(){
 			"select":{"name":"total_points", "value":mvelToCountPoints, "operation":"sum"},
 			"edges":[
 				{"name":"iteration", "value":"blocked",
-					domain:{"type":"set", "partitions":iterations, "value":"summary", "key":"bug_id"}
+					domain:{"type":"set", "partitions":iterations, "key":"bug_id", "value":"summary"}
 				},
 				{"name":"date",
 					"range":{"min":"modified_ts", "max":"expires_on"},
@@ -354,14 +354,31 @@ var __createChart = function(){
 		//THIS SHOULD BE A UPDATE JOIN, OF SORTS
 		iterations.forall(function(iter, i){
 			//WE ASSUME THE iteration DIMENSION IS ORDERED LIKE OUR iterations [i]
-			iter.startCount=iterTotal.get("date", iter.startDate);
-			iter.endCount  =iterTotal.get("date", iter.endDate);
+			if (iter.startDate!==undefined) iter.startCount=iterTotal.cube[i][iterTotal.indexOf("date", iter.startDate)];
+			if (iter.endDate  !==undefined) iter.endCount  =iterTotal.cube[i][iterTotal.indexOf("date", iter.endDate)];
 			iter.number=i;
 		});
 
 
+//		yield (Q({
+//			"from":iterTotal,
+//			"select":[
+//				{"name":"start_count", "value":"date.getMilli()==iter.startDate.getMilli() ? total_points : 0", "operation":"sum"},
+//				{"name":"end_count",   "value":"date.getMilli()==iter.endDate.getMilli() ? total_points : 0", "operation":"sum"}
+//			],
+//			"edges":[
+//				{"name":"iter",
+//					"value":"number",
+//					"domain":{"type":"set", "partitions":iterations, "key":"number"}
+//				}
+//			]
+//
+//		}));
+//
+
+
 		//SHOW NUMBER 
-		var status=(yield (Q({
+		var progressBar=(yield (Q({
 			"from":iterations,
 			"select":[
 				{"name":"Completed", "value":"Util.coalesce(endCount, 0)", "operation":"sum", "default":"0", "style":{"color":"firebrick"}},
@@ -381,17 +398,21 @@ var __createChart = function(){
 			"type":"bar",
 			"stacked":true,
 			"orientation":"horizontal",
-			"cube":status,
+			"titlePaddings":5,
+			"cube":progressBar,
 			"height":70,
-			"legend":false,
 //			"showValues":true,
 			"xAxisGrid":false,
 			"xAxisSize":0,
 			"yAxisSize": 0,
 			valuesVisible: true,
 //		    valuesLabelStyle: 'inside',
-   			valuesMask: "{series} ({value})"
+   			valuesMask: "{series} ({value})",
+			"legend":false,
 //			"legendPosition":"right",
+			"legendPaddings":0,
+			"orthoAxisDomainRoundMode" : 'none',
+			"orthoAxisFixedMax":progressBar.cube[0].Completed+progressBar.cube[0].Current+progressBar.cube[0].Backlog
 
 		});
 
@@ -467,9 +488,9 @@ var __createChart = function(){
 		yield (aThread.join(totalPointThread));
 
 		$("#stats").html(
-			'<span class="parameter_name">Completed:</span><b>'+status.cube[0].Completed+' points</b><br>'+
-			'<span class="parameter_name">Backlog:</span><b>'+status.cube[0].Backlog+' points</b><br>'+
-			'<span class="parameter_name">Backlog Growth:</span><b>'+newPointsPerIteration+' points</b><br>'+
+			'<span class="parameter_name">Completed:</span><b>'+progressBar.cube[0].Completed+' points</b><br>'+
+			'<span class="parameter_name">Backlog:</span><b>'+progressBar.cube[0].Backlog+' points</b><br>'+
+			'<span class="parameter_name">Backlog Growth:</span><b>'+aFormat.number(newPointsPerIteration, "+0")+' points/iteration</b><br>'+
 									
 			'<span class="parameter_name">Team Velocity:</span><b>'+aMath.round(teamVelocity.average, 1)+' points</b><br>'
 		);
@@ -478,8 +499,8 @@ var __createChart = function(){
 		$("#progressSummary").html(
 			//AND THIS IS YOUR STANDARD CHART OF A CUBE!!!!
 			'<table class="table" style="width:100%;"><thead><td></td><td>Pessimistic</td><td>Expected</td><td>Optimistic</td></thead>'+
-					'<tr><td>Iterations to Release</td><td>'+numLeft.best+' (done '+doneDate.best.format("dd-NNN-yy")+'</td><td>'+numLeft.average+' (done '+doneDate.average.format("dd-NNN-yy")+'</td><td>'+numLeft.best+' (done '+doneDate.best.format("dd-NNN-yy")+'</td></tr>'+
-					'<tr><td>Team Velocity</td><td>'+aMath.round(teamVelocity.best,1)+'</td><td>'+aMath.round(teamVelocity.average,1)+'</td><td>'+aMath.round(teamVelocity.worst,1)+'</td></tr>'+
+					'<tr><td>Iterations to Release</td><td>'+numLeft.worst+' (done '+doneDate.worst.format("dd-NNN-yy")+'</td><td>'+numLeft.average+' (done '+doneDate.average.format("dd-NNN-yy")+'</td><td>'+numLeft.best+' (done '+doneDate.best.format("dd-NNN-yy")+'</td></tr>'+
+					'<tr><td>Team Velocity</td><td>'+aMath.round(teamVelocity.worst,1)+'</td><td>'+aMath.round(teamVelocity.average,1)+'</td><td>'+aMath.round(teamVelocity.best,1)+'</td></tr>'+
 			'</table>'
 		);
 

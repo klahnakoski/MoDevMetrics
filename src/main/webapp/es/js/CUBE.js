@@ -1056,9 +1056,20 @@ CUBE.drill=function(query, parts){
 	CUBE.query.prototype={};
 	//GET THE SUB-CUBE THE HAD name=value
 	CUBE.query.prototype.get=function(name, value){
-		if (this.edges.length>1) D.error("can not handle more than one dimension at this time");
-		var edge=this.edges.map(function(e, i){ if (e.name==name) return e;})[0];
+		if (this.edges.length>1)
+			//THIS ONLY INDEXES INTO A SINGLE DIMENSION
+			D.error("can not handle more than one dimension at this time");
+		var edge=this.getEdge(name);
 		return this.cube[edge.domain.getPartByKey(value).dataIndex];
+	};
+
+	CUBE.query.prototype.indexOf=function(name, value){
+		var edge=this.getEdge(name);
+		return edge.domain.getPartByKey(value).dataIndex;
+	};
+
+	CUBE.query.prototype.getEdge=function(name){
+		return this.edges.map(function(e, i){ if (e.name==name) return e;})[0];
 	};
 
 	Q=calc2Cube;

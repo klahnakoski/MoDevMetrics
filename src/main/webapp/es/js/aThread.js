@@ -246,7 +246,7 @@ aThread.join=function(otherThread){
 //FIRST WITH NO PARAMETERS, AS REQUIRED BY ALL GENERATORS
 //THE SEND RUN FROM THE JOINING THREAD TO RETURN THE VALUE
 function aThread_join_resume(resumeFunction){
-	var result=yield;	
+	var result=yield;
 	resumeFunction(result);
 }//method
 

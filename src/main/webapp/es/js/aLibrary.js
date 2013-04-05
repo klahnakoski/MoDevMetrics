@@ -8,3 +8,4 @@ importScript("aDuration.js");
 importScript("aColour.js");
 importScript("aDebug.js");
 importScript("aThread.js");
+importScript("aFormat.js");

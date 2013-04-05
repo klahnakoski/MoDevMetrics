@@ -69,9 +69,13 @@ MVEL.compile.setValues=function(expression, constants){
 	//EXPAND ALL CONSTANTS TO PRIMITIVE VALUES (MVEL CAN ONLY ACCEPT PRIMITIVE VALUES)
 	for(var i=0;i<constants.length;i++){
 		var value=constants[i].value;
+		var n=constants[i].name;
+		if (n.split(".").length>=3) continue;	//DO NOT GO TOO DEEP
+		if (value instanceof Array) continue;  //DO NOT MESS WITH ARRAYS
+
 		if (typeof value == "object"){
 			forAllKey(value, function(k, v){
-				constants.push({"name":constants[i].name+"."+k, "value":v});
+				constants.push({"name":n+"."+k, "value":v});
 			});
 		}//endif
 	}//for
