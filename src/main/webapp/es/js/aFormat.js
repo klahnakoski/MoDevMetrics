@@ -22,6 +22,9 @@ var aFormat={};
 	};//method
 
 
-
+	aFormat.json=function(json){
+		if (typeof(json)!="string") return CNV.Object2JSON(json);
+		return CNV.Object2JSON(CNV.JSON2Object(json));
+	};//method
 
 })();

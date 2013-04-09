@@ -15,6 +15,7 @@
 <link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
 <link type="text/css" rel="stylesheet" href="css/start/jquery-ui-1.8.16.custom.css" />
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
+<link type="text/css" rel="stylesheet" href="lib/jquery-linedtextarea/jquery-linedtextarea.css"/>
 
 
 
@@ -38,6 +39,10 @@
 	<div id="stats"></div>
 	<hr>
 	<div id="parameters" class="parameters">
+	</div>
+	<div style="width:100%;position: relative;">
+		Filter
+		<textarea id="esfilter" rows="5" cols="60" style="width:100%;"></textarea>
 	</div>
 	<div id="filters" class="menu"></div>
 </div>
@@ -69,13 +74,8 @@ var __createChart = function(){
 
 	var sampleMin = Date.newInstance(GUI.state.sampleMin);
 	var sampleMax =Date.eod().addDay(1);
-	var customFilter;
-	try{
-		eval("customFilter="+GUI.state.filter);
-	}catch(e){
-		D.error("Trouble assigning the ES filter", e);
-	}//try
-
+	var customFilter=GUI.state.esfilter;
+	
 	var sampleInterval = Duration.DAY;
 
 	var DUE_DATE = Date.newInstance(GUI.state.dueDate);
@@ -338,7 +338,10 @@ $(document).ready(function(){
 		{"id":"forTitle", "name":"Title", "type":"text", "default":"Open Leo+"},
 		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.now().addWeek(-2)},//Date.now().addDay(-15).floorMonth()},
 		{"id":"dueDate", "name":"Due Date", "type":"time", "default":Date.newInstance("2013-04-08")},//Date.now().addMonth(1).floorDay()},
-		{"id":"filter", "name":"ES Filter", "type":"text", "default":'{"and":[{"term":{"cf_blocking_b2g":"leo+"}},{"not":{"terms":{"cf_status_b2g18":["fixed","verified","unaffected","wontfix"]}}}]}'},
+		{"id":"esfilter", "name":"ES Filter", "type":"json", "default":{"and":[
+			{"term":{"cf_blocking_b2g":"leo+"}},
+			{"not":{"terms":{"cf_status_b2g18":["fixed","verified","unaffected","wontfix"]}}}
+		]}}
 //		{"id":"filter", "name":"ES Filter", "type":"text", "default":'{"terms":{"bug_id":[803809, 808576, 809076, 817603, 822671, 824626, 827854, 828222, 828915, 829520, 832269, 834653, 834680, 834712, 834718, 834734, 835364, 835410, 835414]}}'},
 		],
 		[

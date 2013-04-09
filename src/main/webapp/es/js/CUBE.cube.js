@@ -1,11 +1,13 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 if (CUBE===undefined) var CUBE = {};
 
-
+(function(){
 // MAKE A CUBE OF DEFAULT VALUES
 CUBE.cube = {};
+
 
 CUBE.cube.newInstance = function(edges, depth, select){
 	if (depth == edges.length){
@@ -34,32 +36,47 @@ CUBE.cube.newInstance = function(edges, depth, select){
 	return data;
 };//method
 
+//MAKE THE MAP ARRAY FROM NEW TO OLD COLUMN INDICIES
+//newColumns[i]==oldColumns[smap[i]]
+function remap(oldColumns, newColumns){
+	var smap = [];
+	for(var snew = 0; snew < newColumns.length; snew++){
+		for(var sold = 0; sold < oldColumns.length; sold++){
+			if (newColumns[snew].name == oldColumns[sold].name) smap[snew] = sold;
+		}//for
+	}//for
+	for(var s = 0; s < newColumns.length; s++) if (smap[s]===undefined) D.error("problem remapping columns, '"+newColumns[snew].name+"' can not be found in old columns");
+	return smap;
+}//method
 
 
 //PROVIDE THE SAME EDGES, BUT IN DIFFERENT ORDER
 CUBE.cube.transpose = function(query, edges, select){
 	//MAKE COMBO MATRIX
-	var smap = CUBE.cube.transpose.remap(query.select, select);
-	var fmap = CUBE.cube.transpose.remap(query.edges, edges);
+	var smap = remap(CUBE.select2Array(query.select), CUBE.select2Array(select));
+	var fmap = remap(query.edges, edges);
 
 	//ENSURE THE CUBE HAS ALL DIMENSIONS
 	var cube = CUBE.cube.newInstance(edges, 0, []);
 
+	var pre = "";
 	var loops = "";
 	var ends = "";
-	var source = "var s=query.cube";
-	var dest = "var d=cube";
+	var source = "query.cube";
+	var dest = "cube";
 
 	for(var i = 0; i < edges.length; i++){
-		loops += "for(var a" + i + " in cube.edges[" + i + "].domain.partitions){\n";
+		pre += "var num"+i+"=query.edges[" + i + "].domain.partitions.length;\n";
+		loops += "for(var a" + i + "=0;a"+i+"<num"+i+";a"+i+"++){\n";
 		ends += "}\n";
-		source += "[cube.edges[" + i + "].domain.partitions[a" + i + "]]";
-		dest += "[edges[" + i + "].domain.partitions[a" + fmap[i] + "]]";
+		source += "[a"+i+"]";
+		dest += "[a"+fmap[i]+"]";
 	}//for
-	var f = loops +
-		source + ";\n" +
-		dest + ";\n" +
-		"for(var i=0;i<select.length;i++) d[i]=s[smap[i]];\n" +
+	var f =
+		pre+
+		loops +
+		dest + "="+source+";\n" +
+//		"for(var i=0;i<select.length;i++) d[i]=s[smap[i]];\n" +
 		ends;
 	eval(f);
 
@@ -71,18 +88,7 @@ CUBE.cube.transpose = function(query, edges, select){
 
 };//method
 
-//MAKE THE MAP ARRAY FROM NEW TO OLD COLUMN INDICIES
-//newColumns[i]==oldColumns[smap[i]]
-CUBE.cube.transpose.remap = function(oldColumns, newColumns){
-	var smap = [];
-	for(var snew = 0; snew < newColumns.length; snew++){
-		for(var sold = 0; sold < oldColumns.length; sold++){
-			if (newColumns[snew].name == oldColumns[sold].name) smap[snew] = sold;
-		}//for
-	}//for
-	for(var s = 0; s < newColumns.length; s++) if (smap[i]===undefined) D.error("problem remapping columns, '"+newColumns[snew].name+"' can not be found in old columns");
-	return smap;
-};//method
+
 
 
 CUBE.cube.toList=function(query){
@@ -130,3 +136,4 @@ CUBE.cube.union=function(cubeA, cubeB){
 
 };//method
 
+})();

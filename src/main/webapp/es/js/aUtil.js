@@ -31,6 +31,15 @@ Map.jsonCopy=function(value){
 };
 
 
+
+//IF map IS NOT 1-1 THAT'S YOUR PROBLEM
+Map.inverse=function(map){
+	var output={};
+	forAllKey(map, function(k, v){output[v]=k;});
+	return output;
+};//method
+
+
 //THROW AN ERROR IF WE DO NOT SEE THE GIVEN ATTRIBUTE IN THE LIST
 Map.expecting=function(obj, keyList){
 	for(let i=0;i<keyList.length;i++){

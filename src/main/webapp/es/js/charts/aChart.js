@@ -387,6 +387,7 @@ aChart.show=function(params){
 		yAxisSize: 50,
 		xAxisSize: 100,
 		"colors":styles.map(function(s){return s.color;}),
+		plotFrameVisible: false,
 		extensionPoints: {
 			noDataMessage_text: "No Data To Chart",
 			xAxisLabel_textAngle: aMath.PI/4,

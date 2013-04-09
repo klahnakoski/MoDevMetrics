@@ -2,8 +2,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+importScript("aLibrary.js");
 
-Stats={};
+var Stats={};
+
+(function(){
+
+	var DEBUG=false;
 
 Stats.df={};
 
@@ -173,7 +178,7 @@ Stats.query2regression=function(query){
 	var domainX=CUBE.domain.domain2linear(query.edges[1].domain);
 
 	//SEND TO REGRESSION CALC
-	var line=Stats.regression(query.cube, domainX, domainY);
+	var line=Stats.regression(CUBE.cube.transpose(query, [query.edges[1], query.edges[0]], select).cube, domainX, domainY);
 
 	//CONVERT BACK TO DOMAIN (result REFERS TO
 	if (["time", "duration"].contains(domainX.type)) D.error("Can not convert back to original domain, not implemented yet");
@@ -198,6 +203,10 @@ Stats.query2regression=function(query){
 //ASSUMES A CUBE OF WEIGHT VALUES
 //RETURN THE REGRESSION LINE FOR THE GIVEN CUBE
 Stats.regression=function(weights, domainX, domainY){
+	if (DEBUG) D.println(CNV.Object2JSON([weights, {"min":domainX.min, "max":domainX.max, "interval":domainX.interval}, {"min":domainY.min, "max":domainY.max, "interval":domainY.interval}]));
+
+	if (((domainX.max-domainX.min)/domainX.interval)<=1) D.error("Can not do regression with only one value");
+	if (((domainY.max-domainY.min)/domainY.interval)<=1) D.error("Can not do regression with only one value");
 
 	var t={};
 	t.N=0;
@@ -207,11 +216,19 @@ Stats.regression=function(weights, domainX, domainY){
 	t.Y1=0;
 	t.Y2=0;
 
+	var desc="";
+	if (DEBUG) desc+="y\tx\n";
+
 	var x=domainX.min+(domainX.interval/2);
 	for(var i=0;x<domainX.max;x+=domainX.interval){
 		var y=domainY.min+(domainY.interval/2);
 		for(var j=0;y<domainY.max;y+=domainY.interval){
 			var w=weights[i][j];
+
+			if (DEBUG) {
+				for(var k=0;k<w;k++) desc+=y+"\t"+x+"\n";
+			}
+
 			t.N+=w;
 			t.X1+=w*x;
 			t.X2+=w*x*x;
@@ -222,6 +239,7 @@ Stats.regression=function(weights, domainX, domainY){
 		}//for
 		i++;
 	}//for
+	if (DEBUG) D.println(desc);
 
 	return Stats.regressionLine(t);
 };
@@ -229,12 +247,13 @@ Stats.regression=function(weights, domainX, domainY){
 //EXPECT THE RAW TERMS FROM THE SERIES
 Stats.regressionLine=function(terms){
 	var o=terms;
-	o.SSx=o.X2 - o.X1*o.X1/o.N;
-	o.SSy=o.Y2 - o.Y1*o.Y1/o.N;
-	o.Sxy=o.XY - o.X1*o.Y1/o.N;
-	o.slope=o.Sxy/o.SSx;
+	o.Sxx=o.X2 - (o.X1*o.X1)/o.N;
+	o.Syy=o.Y2 - (o.Y1*o.Y1)/o.N;
+	o.Sxy=o.XY - (o.X1*o.Y1)/o.N;
+	o.slope=o.Sxy/o.Sxx;
+//	o.slope=-0.0208;
 	o.offset=(o.Y1-o.slope*o.X1)/o.N;
-	o.r2=(o.Sxy*o.Sxy)/(o.SSx*o.SSy);
+	o.r2=(o.Sxy*o.Sxy)/(o.Sxx*o.Syy);
 
 
 	var output=function(x){
@@ -245,3 +264,61 @@ Stats.regressionLine=function(terms){
 	return output;
 };
 
+
+if (DEBUG){
+	try{
+		if (Stats.regression([[0, 1], [0, 1], [0, 1]], {"min":0, "max":3, "interval":1}, {"min":0, "max":2, "interval":1}).offset!=1.5) D.error();
+		if (Stats.regression([[1, 1, 1], [1, 1, 1], [1, 1, 1]], {"min":0, "max":3, "interval":1}, {"min":0, "max":3, "interval":1}).slope!=0) D.error();
+		if (Stats.regression([[1, 0, 0], [0, 1, 0], [0, 0, 1]], {"min":0, "max":3, "interval":1}, {"min":0, "max":3, "interval":1}).slope!=1) D.error();
+		if (Stats.regression([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]], {"min":0, "max":3, "interval":1}, {"min":0, "max":3, "interval":1}).slope!=1) D.error();
+		if (Stats.regression([[10, 0, 0, 0], [0, 10, 0, 0], [0, 0, 10, 0]], {"min":0, "max":3, "interval":1}, {"min":0, "max":3, "interval":1}).slope!=1) D.error();
+
+		var result=Stats.regression([
+				[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+				[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+				[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+				[23,2,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+			],
+			{"min":0,"max":20,"interval":5},
+			{"min":0,"max":105,"interval":5});
+		if (aMath.round(result.offset, 2)!=7.55) D.error();
+		if (aMath.round(result.slope, 4)!=-0.2037) D.error();
+
+
+
+		var result=Stats.regression([
+				[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+				[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+				[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+				[23,2,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+				[13,24,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+				[13,32,14,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+				[5,51,26,75,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+				[7,53,39,14,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+				[0,31,37,21,9,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+				[0,17,19,198,15,8,41,1,0,0,0,0,0,0,0,0,0,0,0,0,0],
+				[0,12,31,24,33,15,11,1,0,0,0,0,0,0,0,0,0,0,0,0,0],
+				[0,3,13,14,18,28,16,6,1,0,0,0,0,0,0,0,0,0,0,0,0],
+				[0,6,11,121,28,14,121,9,5,12,0,0,0,0,0,0,0,0,0,0,0],
+				[0,2,6,9,15,18,13,12,10,2,1,0,0,0,0,0,0,0,0,0,0],
+				[0,3,7,6,12,11,16,20,8,10,9,0,1,0,0,0,0,0,0,0,0],
+				[0,3,7,66,8,9,72,7,12,62,4,3,8,0,0,0,0,0,0,0,0],
+				[0,1,5,5,9,6,14,7,13,17,7,5,3,1,0,0,0,0,0,0,0],
+				[0,1,2,2,3,6,4,12,7,11,12,5,3,0,0,0,0,0,0,0,0],
+				[1,0,1,45,4,2,59,6,7,51,11,12,41,3,3,6,0,0,0,0,0],
+				[1,2,4,2,2,3,6,6,5,3,4,4,5,6,2,0,0,0,0,0,0],
+				[0,1,2,5,6,1,1,3,6,7,4,10,13,4,4,3,0,0,0,0,0]
+			],
+			{"min":0,"max":105,"interval":5},
+			{"min":0,"max":105,"interval":5});
+		if (aMath.round(result.offset, 2)!=-6.39) D.error();
+		if (aMath.round(result.slope, 4)!=0.5207) D.error();
+
+//	if (Stats.regression([[1, 1, 1]], {"min":0, "max":3, "interval":1}, {"min":0, "max":1, "interval":1}).offset!=1) D.error();
+	}catch(e){
+		D.error("Test failure", e);
+	}//try
+	D.println("All tests pass");
+}//endif
+
+})();

@@ -7,7 +7,10 @@
 importScript([
 	"../../lib/jquery.js",
 	"../../lib/js/jquery-ui-1.8.16.custom.min.js",
-	"../../lib/js/jquery.ba-bbq.js"
+	"../../lib/js/jquery.ba-bbq.js",
+	"../../lib/jsonlint/jsl.format.js",
+	"../../lib/jsonlint/jsl.parser.js",
+	"../../lib/jquery-linedtextarea/jquery-linedtextarea.js"
 ]);
 
 importScript("../charts/HelperFunctions.js");
@@ -177,16 +180,26 @@ GUI.bigWarning=function(elem, blinkCount){
 };
 
 
+GUI.urlMap={"%":"%25", "{":"%7B", "}":"%7D", "[":"%5B", "]":"%5D"};
+
 GUI.State2URL = function(){
 	if (!GUI.State2URL.isEnabled) return;
 
 	var simplestate = {};
 	forAllKey(GUI.state, function(k, v){
+
+		var p=GUI.parameters.map(function(v, i){if (v.id==k) return v;})[0];
+
 		if (v.isFilter){
 			simplestate[k] = v.getSimpleState();
 		}else if (jQuery.isArray(v)){
 			if (v.length>0) simplestate[k] = v.join(",");
+		}else if (p && p.type=="json"){
+			v=CNV.Object2JSON(v);
+			v=v.escape(GUI.urlMap);
+			simplestate[k] = v;
 		}else if ( typeof(v) == "string" || aMath.isNumeric(k)){
+			v=v.escape(GUI.urlMap);
 			simplestate[k] = v;
 		}//endif
 	});
@@ -206,6 +219,13 @@ GUI.URL2State = function(){
 		var p=GUI.parameters.map(function(v, i){if (v.id==k) return v;})[0];
 
 		if (p && ["time", "duration", "text"].contains(p.type)){
+			v=v.escape(Map.inverse(GUI.urlMap));
+			GUI.state[k] = v;
+		}else if (p && p.type=="json"){
+			v=v.escape(Map.inverse(GUI.urlMap));
+			GUI.state[k] = CNV.JSON2Object(v);
+		}else if (p && p.type=="code"){
+			v=v.escape(Map.inverse(GUI.urlMap));
 			GUI.state[k] = v;
 		}else if (GUI.state[k].isFilter){
 			GUI.state[k].setSimpleState(v);
@@ -234,11 +254,13 @@ GUI.AddParameters=function(parameters, relations){
 	var template='<span class="parameter_name">{NAME}</span><input type="{TYPE}" id="{ID}"><br><br>\n';
 	var html="";
 	GUI.parameters.forEach(function(param){
+		if ($("#"+param.id).length>0) return;
+
 		//SIMPLE VARIABLES
 		html+=template.replaceVars({
 			"ID":param.id,
 			"NAME":param.name,
-			"TYPE":{"time":"text", "date":"text", "duration":"text", "text":"text"}[param.type]  //MAP PARAMETER TYPES TO HTML TYPES
+			"TYPE":{"time":"text", "date":"text", "duration":"text", "text":"text", "json":"textarea", "code":"textarea"}[param.type]  //MAP PARAMETER TYPES TO HTML TYPES
 		});
 	});
 	$("#parameters").html(html);
@@ -281,6 +303,39 @@ GUI.AddParameters=function(parameters, relations){
 			});
 			defaultValue=defaultValue.toString();
 			$("#" + param.id).val(defaultValue);
+		} else if (param.type=="json"){
+			var codeDiv=$("#" + param.id);
+			codeDiv.linedtextarea();
+			codeDiv.change(function(){
+				if (this.isChanging) return;
+				this.isChanging=true;
+				try{
+					codeDiv=$("#" + param.id);	//JUST TO BE SURE WE GOT THE RIGHT ONE
+					//USE JSONLINT TO FORMAT AND TEST-COMPILE THE code
+					var code=jsl.format.formatJson(codeDiv.val());
+					codeDiv.val(code);
+					jsl.parser.parse(code);
+					//TIGHTER PACKING IF JSON
+					codeDiv.val(aFormat.json(code));
+
+					if (GUI.UpdateState()){
+						GUI.refreshChart();
+					}//endif
+				}catch(e){
+					D.alert(e.message);
+				}//try
+				this.isChanging=false;
+			});
+			codeDiv.val(aFormat.json(defaultValue));
+		} else if (param.type=="code"){
+			var codeDiv=$("#" + param.id);
+			codeDiv.linedtextarea();
+			codeDiv.change(function(){
+				if (GUI.UpdateState()){
+					GUI.refreshChart();
+				}
+			});
+			codeDiv.val(defaultValue);
 		}else{
 			if (param.type=="string") param.type="text";
 			$("#" + param.id).change(function(){
@@ -303,8 +358,13 @@ GUI.AddParameters=function(parameters, relations){
 //RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
 GUI.State2Parameter = function (){
 	GUI.parameters.forEach(function(param){
+
+		if (param.type=="json"){
+			$("#" + param.id).val(CNV.Object2JSON(GUI.state[param.id]));
+		}else{
 //		if (param.type.getSimpleState) return;  //param.type===GUI.state[param.id] NO ACTION REQUIRED
-		$("#" + param.id).val(GUI.state[param.id]);
+			$("#" + param.id).val(GUI.state[param.id]);
+		}//endif
 	});
 };
 
@@ -312,7 +372,11 @@ GUI.State2Parameter = function (){
 //RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
 GUI.Parameter2State = function(){
 	GUI.parameters.forEach(function(param){
-		GUI.state[param.id] = $("#" + param.id).val();
+		if (param.type=="json"){
+			GUI.state[param.id] = CNV.JSON2Object($("#" + param.id).val());
+		}else{
+			GUI.state[param.id] = $("#" + param.id).val();
+		}//endif
 	});
 };
 

@@ -105,3 +105,30 @@ String.prototype.rightBut = function(amount){
 String.prototype.endsWith=function(value){
 	return this.substring(this.length - value.length)==value;
 };//method
+
+//MAP STRINGS TO OTHER STRINGS, IF NOT DEFINED, DO NOT TOUCH CHARACTERS
+String.prototype.escape=function(map){
+	var output="";
+	var keys=Object.keys(map);
+	var s=0;
+	while(true){
+		var min=this.length;
+		var kk;
+		for(var k=0;k<keys.length;k++){
+			var m=this.indexOf(keys[k], s);
+			if (m>=0 && m<min){
+				min=m;
+				kk=keys[k];
+			}//endif
+		}//for
+		output+=this.substring(s, min);
+
+		if (min==this.length) return output;
+		output+=map[kk];
+		s=min+kk.length;
+	}//while
+};//method
+
+
+
+

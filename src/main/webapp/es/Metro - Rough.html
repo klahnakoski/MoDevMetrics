@@ -10,8 +10,6 @@
 
 
 <link type="text/css" rel="stylesheet" href="lib/ccc/lib/tipsy.css"/>
-<link type="text/css" rel="stylesheet" href="lib/ccc/cdf/jquery.tooltip.css"/>
-<link type="text/css" rel="stylesheet" href="lib/ccc/pvcComponent.css"/>
 <link type="text/css" rel="stylesheet" href="css/start/jquery-ui-1.8.16.custom.css" />
 
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
@@ -47,17 +45,24 @@
 	<h3 id="title">Metro Iterations</h3>
 	<h4>Progress</h4>
 	<div id="progress"></div>
+
+	<br><br>
 	<h4>Production Forcast</h4>
 	<div id="progressSummary"></div>
 
+
+	<br><br>
 	<h4>Burndown</h4>
-	<div id="burndown" class="chart"></div>
+	<div id="burndown" class="chart" style="height:30px">Not Completed</div>
 
 
+	<br><br>
 	<h4>Iterations</h4>
 	<div id="iterations" class="chart"></div>
+	<br><br>
 	<div id="info" style="float:left;"></div>
 
+	<br><br>
 	<div class="warning">Below this point is meant for my own debugging</div>
 	<h4>Open Bugs</h4>
 	<div id="metro_open" class="chart" ></div>
@@ -151,6 +156,8 @@ var __createChart = function(){
 		"sheetDiv":"info",
 		"type":"line",
 		"cube":metroSummary,
+		
+		xAxisSize: 50,
 		"legendPosition":"right",
 		"height":400
 	});
@@ -235,6 +242,9 @@ var __createChart = function(){
 	var backlogCount;
 	var totalThread=aThread.run(function(){
 
+
+		var a=D.action("Count Backlog", true);
+
 		//THE CURRENT SPRINT IS NOT COMPLETED, SO BACKLOG SHOULD INCLUDE THOSE BUGS
 
 		var begin=endDate.addWeekday(-12);
@@ -254,6 +264,7 @@ var __createChart = function(){
 		}));
 
 		D.println("Backlog="+backlogCount.cube.total_points);
+		D.actionDone(a);
 	});
 
 //	var allAssignedBugs=yield(getIterationRanges(bugs[iterationParent].dependson));
@@ -264,6 +275,9 @@ var __createChart = function(){
 	////////////////////////////////////////////////////////////////////////////
 	var iterTotal;
 	var iterTotalThread=aThread.run(function(){
+
+		var a=D.action("Get Points over Time", true);
+
 		iterTotal=yield (ESQuery.run({
 			"from":"bugs",
 			"select":{"name":"total_points", "value":mvelToCountPoints, "operation":"sum"},
@@ -307,6 +321,8 @@ var __createChart = function(){
 			}
 		});
 
+		D.actionDone(a);
+
 	});
 
 
@@ -315,6 +331,9 @@ var __createChart = function(){
 	// OPEN
 	////////////////////////////////////////////////////////////////////////////
 	aThread.run(function(){
+
+		var a=D.action("Get Open points over time", true);
+
 
 		var open=yield (ESQuery.run({
 			"from":"bugs",
@@ -340,6 +359,8 @@ var __createChart = function(){
 			"legendPosition":"right",
 
 		});
+
+		D.actionDone(a);
 	});
 
 
@@ -352,6 +373,7 @@ var __createChart = function(){
 
 
 
+		var a=D.action("Calc Stats", true);
 
 
 		//FIND START AND END POINTS FOR EACH ITERATION
@@ -404,7 +426,7 @@ var __createChart = function(){
 			"orientation":"horizontal",
 			"titlePaddings":5,
 			"cube":progressBar,
-			"height":70,
+			"height":50,
 //			"showValues":true,
 			"xAxisGrid":false,
 			"xAxisSize":0,
@@ -548,7 +570,7 @@ var __createChart = function(){
 		});
 
 
-
+		D.actionDone(a);
 
 
 	});
@@ -563,6 +585,9 @@ var __createChart = function(){
 
 function getDescendants(parent, startDate, endDate){
 //FIND DEPENDENCY FIXPOINT
+
+	var a=D.action("Trace Bug Dependencies", true);
+
 	var bugs = {};
 //	var orderedBugs=[];
 	var lookFor = [parent];
@@ -643,6 +668,11 @@ function getDescendants(parent, startDate, endDate){
 
 	}//while
 
+	D.actionDone(a);
+
+	a=D.action("Ask BZ for Summaries", true);
+
+
 	//GO TO BZ TO GET DESCRIPTIONS
 	var getBZ=aThread.run(function(){
 		var temp=yield (Bugzilla.search(Object.keys(bugs), ["id", "summary"]));
@@ -713,7 +743,9 @@ function getDescendants(parent, startDate, endDate){
 
 	}//for
 
+	D.actionDone(a);
 
+	
 	yield (bugs);
 }//method
 

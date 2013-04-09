@@ -109,10 +109,23 @@ CNV.Object2JSON = function(json){
 		if (keys.length==0) return "{}";
 		if (keys.length==1) return "{\""+keys[0]+"\":"+CNV.Object2JSON(json[keys[0]]).trim()+"}";
 
-		return "{\n\t"+mapAllKey(json, function(k, v){
-			if (v===undefined) return "";
-			return "\""+k+"\":"+CNV.Object2JSON(v).indent(1).trim();
-		}).join(",\n\t")+"\n}";
+		var output="{\n\t";
+		for(var k in json){  //NATURAL ORDER
+			if (keys.contains(k)){
+				var v=json[k];
+				if (v!==undefined){
+					if (output.length>3) output+=",\n\t";
+					output+="\""+k+"\":"+CNV.Object2JSON(v).indent(1).trim();
+				}//endif
+			}//endif
+
+		}//for
+		return output+"\n}";
+
+//		return "{\n\t"+mapAllKey(json, function(k, v){
+//			if (v===undefined) return "";
+//			return "\""+k+"\":"+CNV.Object2JSON(v).indent(1).trim();
+//		}).join(",\n\t")+"\n}";
 	}else if (json instanceof Date){
 		return json.format("yyyy-NNN-dd HH:mm:ss");
 //TOO BAD: CAN NOT PROVIDE FORMATTED STRINGS
@@ -512,11 +525,20 @@ CNV.List2Table = function(list, columnOrder){
 CNV.int2hex = function(value, numDigits){
 	return ("0000000" + value.toString(16)).right(numDigits);
 };//method
+CNV.number2hex = CNV.int2hex;
+
+
+CNV.char2ASCII=function(char){
+	return char.charCodeAt(0);
+};
+
 
 CNV.hex2int = function(value){
 	return parseInt(value, 16);
 };//method
 
+
+//CONVERT FROM STRING TO SOMETHING THAT CAN BE USED BY %()
 CNV.String2JQuery=function(str){
 	var output=str.replace(/([;&,\.\+\*\~':"\!\^#$%@\[\]\(\)=>\|])/g, '\\$1');
 //	output=output.replaceAll(" ", "\\ ");

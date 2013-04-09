@@ -15,12 +15,12 @@
 <link type="text/css" rel="stylesheet" href="css/start/jquery-ui-1.8.16.custom.css" />
 
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
-
+<link type="text/css" rel="stylesheet" href="lib/jquery-linedtextarea/jquery-linedtextarea.css"/>
 
 <a href="http://people.mozilla.com/~klahnakoski/" class="tabzilla">HOME</a>
 
 
-<div id="sidebar" style="width:400px">
+<div id="sidebar" style="width:400px;position: relative;">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 	</div>
@@ -32,6 +32,14 @@
 	<hr>
 	<div id="stats"></div>
 	<hr>
+	<div style="width:100%;position: relative;">
+		Measure X
+		<textarea id="measureX" rows="5" style="width:100%;"></textarea>
+		Measure Y
+		<textarea id="measureY" rows="5" cols="60" style="width:100%;"></textarea>
+		Filter
+		<textarea id="esfilter" rows="5" cols="60" style="width:100%;"></textarea>
+	</div>
 	<div id="parameters" class="parameters">
 	</div>
 	<div id="filters" class="menu"></div>
@@ -49,6 +57,7 @@
 	<div id="info"></div>
 	<div id="report"></div>
 </div>
+
 
 <script type="application/javascript;version=1.7">
 
@@ -97,6 +106,26 @@ var __createChart = function(){
 	var measureX=GUI.state.measureX;
 	var maxX=CNV.String2Integer(GUI.state.maxX);
 
+
+
+//	var esfilter=GUI.state.esfilter;
+	//REEMPTIVE LOAD SO THE EXPRESSION COMPILE WORKS
+	yield (ESQuery.loadColumns({"from": "raw_telemetry"}));
+
+// REMOVING ZEROS DOES NOT WORK WITH MORE COMPLEX FORMULA
+	var esfilter={"and":[
+		GUI.state.esfilter,
+		{"script":{"script":MVEL.compile.expression(measureY+" != 0", {"from": "raw_telemetry"})}},
+		{"script":{"script":MVEL.compile.expression(measureX+" != 0", {"from": "raw_telemetry"})}}
+//		{"range":Map.newInstance(measureY, {"gt":0})},
+//		{"range":Map.newInstance(measureX, {"gt":0})}
+//		{"exists":{"field":"simpleMeasurements.addonManager"}},
+//		{"script":{"script":MVEL.compile.addFunctions('getDocValue("AMI_startup_begin") != null', {"from":"raw_telemetry"})}}
+	]};
+//
+
+
+
 //	var idTime=GUI.state.programFilter.bugStatusMinimum_fromSource();
 //	var testValue=GUI.state.programFilter.bugStatusMinimum_fromDoc();
 	
@@ -115,9 +144,10 @@ var __createChart = function(){
 
 
 	//CHART PRODUCT BREAKDOWN
-	aThread.run("pull raw telemetry data", function(){
-		var response=yield (ESQuery.run({
-			"name":measureY+"(Y) vs "+measureX+"(X)",
+	var heatGrid;
+	var heatThread=aThread.run("pull raw telemetry data", function(){
+		heatGrid=yield (ESQuery.run({
+			"name":"X vs Y",
 			"from":"raw_telemetry",
 			"select":{"name":"count", "value":"_id", "operation":"count"},
 			"edges":[
@@ -131,14 +161,7 @@ var __createChart = function(){
 					"domain":{"type":"linear", "min":"0", "max":maxX, "interval":maxX/numParts, "value":"min"}
 				}
 			],
-			"esfilter":{"and":[
-				{"term":{"appUpdateChannel":"nightly"}},
-				{"term":{"OS":"WINNT"}},
-				{"range":Map.newInstance(measureY, {"gt":0})},
-				{"range":Map.newInstance(measureX, {"gt":0})}
-//				{"exists":{"field":"simpleMeasurements.addonManager"}},
-//				{"script":{"script":MVEL.compile.addFunctions('getDocValue("AMI_startup_begin") != null', {"from":"raw_telemetry"})}}
-			]}
+			"esfilter":esfilter
 		}));
 
 
@@ -148,7 +171,7 @@ var __createChart = function(){
 		aChart.show({
 			"id":"chartHeat",
 			"type":"heat",
-			"cube":response,
+			"cube":heatGrid,
 			"titlePaddings":5,
 			"height":600,
 			"width":600,
@@ -160,8 +183,9 @@ var __createChart = function(){
 		});
 
 
+		
 
-		var regressionLine=Stats.query2regression(response);
+		var regressionLine=Stats.query2regression(heatGrid);
 
 		aChart.show({
 			"id":"chartLine",
@@ -174,7 +198,8 @@ var __createChart = function(){
 			"baseAxisVisible":false,
 			"orthoAxisVisible":false,
 			"orthoAxisDomainRoundMode" : 'none',
-			"orthoAxisFixedMax":response.edges[0].domain.max
+			"orthoAxisFixedMax":heatGrid.edges[0].domain.max,
+			"orthoAxisFixedMin":heatGrid.edges[0].domain.min
 //			yAxisSize: 50,
 //			xAxisSize: 50,
 //			"colorNormByCategory": false,
@@ -183,10 +208,109 @@ var __createChart = function(){
 
 
 
+
+
+
+
+
 		yield (null);
 
 	});
+//
+//	////////////////////////////////////////////////////////////////////////////
+//	//CHART REGRESSION LINE
+//	//EXTREME OUTLIERS MAKE THIS REAL REGRESSION LINE SUCK
+//	////////////////////////////////////////////////////////////////////////////
+//	var X;
+//	var Y;
+//	var XY;
 
+//
+//	var threadXY=aThread.run("pull XY stats", function(){
+//		XY=yield (ESQuery.run({
+//			"from":"raw_telemetry",
+//			"select":[
+//				{"name":"count", "value":'doc["'+measureX+'"].value*doc["'+measureY+'"].value', "operation":"count"},
+//				{"name":"sum", "value":'doc["'+measureX+'"].value*doc["'+measureY+'"].value', "operation":"sum"},
+//				{"name":"X2", "value":'doc["'+measureX+'"].value*doc["'+measureY+'"].value', "operation":"X2"}
+//			],
+//			"edges":[],
+//			"esfilter":esfilter
+//		}));
+//	});
+//
+//	var threadX=aThread.run("pull X stats", function(){
+//		X=yield (ESQuery.run({
+//			"from":"raw_telemetry",
+//			"select":[
+//				{"name":"count", "value":'doc["'+measureX+'"].value', "operation":"count"},
+//				{"name":"sum", "value":'doc["'+measureX+'"].value', "operation":"sum"},
+//				{"name":"X2", "value":'doc["'+measureX+'"].value', "operation":"X2"}
+//			],
+//			"edges":[],
+//			"esfilter":esfilter
+//		}));
+//	});
+//
+//	var threadY=aThread.run("pull Y stats", function(){
+//		Y=yield (ESQuery.run({
+//			"from":"raw_telemetry",
+//			"select":[
+//				{"name":"count", "value":'doc["'+measureY+'"].value', "operation":"count"},
+//				{"name":"sum", "value":'doc["'+measureY+'"].value', "operation":"sum"},
+//				{"name":"X2", "value":'doc["'+measureY+'"].value', "operation":"X2"}
+//			],
+//			"edges":[],
+//			"esfilter":esfilter
+//		}));
+//	});
+//
+//	yield (aThread.join(threadXY));
+//	yield (aThread.join(threadX));
+//	yield (aThread.join(threadY));
+//
+//	var line=Stats.regressionLine({
+//		"N":X.cube.count,
+//		"X1":X.cube.sum,
+//		"X2":X.cube.X2,
+//		"XY":XY.cube.sum,
+//		"Y2":Y.cube.X2,
+//		"Y1":Y.cube.sum
+//	});
+//
+//	//BUILD NEW QUERY WITH NEW CUBE
+//	yield (aThread.join(heatThread));
+//	var query=heatGrid;
+//	var domainX=CUBE.domain.domain2linear(query.edges[1].domain);
+//	var output=Map.copy(heatGrid);
+//	output.select={"name":query.edges[0].name};
+//	output.edges=[query.edges[1]];
+//
+//	output.cube=[];
+//	domainX.partitions.forall(function(v, i){
+//		var part=domainX.partitions[i];
+//		output.cube[i]=line((part.min+part.max)/2)
+//	});
+//	output.name=" ";
+//
+//	aChart.show({
+//		"id":"chartLine",
+//		"type":"line",
+//		"cube":output,
+//		"titlePaddings":5,
+//		"height":550,
+//		"width":550,
+////			"baseAxisSize":50,
+//		"baseAxisVisible":false,
+//		"orthoAxisVisible":false,
+//		"orthoAxisDomainRoundMode" : 'none',
+//		"orthoAxisFixedMax":heatGrid.edges[0].domain.max
+////			yAxisSize: 50,
+////			xAxisSize: 50,
+////			"colorNormByCategory": false,
+////			"colors":["#EEEEEE", "#BBBBBB", "#999999", "#666666", "#333333"]
+//	});
+//
 
 	yield (null);
 };
@@ -199,9 +323,13 @@ var __createChart = function(){
 		GUI.setup(
 			createChart,
 			[
-				{"id":"measureX", "name":"Measure X", "type":"string", "default":"simpleMeasurements.start"},
+				{"id":"measureX", "name":"Measure X", "type":"code", "default":"simpleMeasurements.start"},
+				{"id":"measureY", "name":"Measure Y", "type":"code", "default":"simpleMeasurements.main-simpleMeasurements.start"},
+				{"id":"esfilter", "name":"ES Filter", "type":"json", "default":{"and":[
+						{"term":{"appUpdateChannel":"nightly"}},
+						{"term":{"OS":"WINNT"}}
+				]}},
 				{"id":"maxX", "name":"Max X", "type":"number", "default":"100"},
-				{"id":"measureY", "name":"Measure Y", "type":"string", "default":"simpleMeasurements.firstPaint"},
 				{"id":"maxY", "name":"Max Y", "type":"number", "default":"5000"},
 				{"id":"numParts", "name":"Num Parts", "type":"number", "default":"20"}
 //				{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},

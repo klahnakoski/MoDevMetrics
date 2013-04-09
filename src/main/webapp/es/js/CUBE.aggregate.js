@@ -107,7 +107,7 @@ CUBE.aggregate.average = function(select){
 		}
 	};
 };
-
+CUBE.aggregate.avg=CUBE.aggregate.average;
 
 ////////////////////////////////////////////////////////////////////////////////
 // THIS VALUE WILL BE SET ONCE AND ONLY ONCE
@@ -178,6 +178,31 @@ CUBE.aggregate.sum = function(select){
 
 };
 CUBE.aggregate.add=CUBE.aggregate.sum;
+CUBE.aggregate.X1=CUBE.aggregate.sum;
+
+
+//SUM OF SQUARES
+CUBE.aggregate.X2 = function(select){
+	select.defaultValue = function(){
+		return null;
+	};//method
+
+	select.add = function(total, v){
+		if (v === undefined || v == null) return total;
+		return total + (v*v);
+	};//method
+
+	select.domain = {};
+	Map.copy(CUBE.domain.value, select.domain);
+
+	select.domain.end=function(value){
+		if (value == null && select["default"]!==undefined) return eval(select["default"]);
+		return value;
+	};//method
+
+
+
+};
 
 
 //RETURN ZERO (FOR NO DATA) OR ONE (FOR DATA)

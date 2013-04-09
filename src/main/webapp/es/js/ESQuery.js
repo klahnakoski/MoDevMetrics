@@ -102,6 +102,7 @@ ESQuery.loadColumns=function(query){
 	if (indexName=="bugs" && !indexPath.endsWith("/bug_version")) indexPath+="/bug_version";
 
 	if (index.columns === undefined){
+		index.columns = "pending";
 		var URL=Util.coalesce(query.url, ElasticSearch.baseURL + indexPath) + "/_mapping";
 
 		var schema = yield(Rest.get({
@@ -111,6 +112,10 @@ ESQuery.loadColumns=function(query){
 		var properties = schema[indexPath.split("/")[2]].properties;
 
 		index.columns = ESQuery.parseColumns(indexName, properties);
+	}else{
+		while(index.columns=="pending"){
+			yield (aThread.sleep(200));
+		}//while
 	}//endif
 };//method
 
@@ -965,7 +970,15 @@ ESQuery.agg2es = {
 	"minimum":"min",
 	"max":"max",
 	"min":"min",
-	"average":"mean"
+	"average":"mean",
+	"avg":"mean",
+	"N":"count",
+	"X0":"count",
+	"X1":"total",
+	"X2":"sum_of_squares",
+	"std":"std_deviation",
+	"var":"variance",
+	"variance":"variance"
 };
 
 //PROCESS RESULTS FROM THE ES STATISTICAL FACETS
