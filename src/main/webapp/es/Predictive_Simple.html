@@ -9,17 +9,16 @@
 <BODY>
 
 <link type="text/css" rel="stylesheet" href="lib/ccc/lib/tipsy.css"/>
-<link type="text/css" rel="stylesheet" href="lib/ccc/cdf/jquery.tooltip.css"/>
-<link type="text/css" rel="stylesheet" href="lib/ccc/pvcComponent.css"/>
 <link type="text/css" rel="stylesheet" href="css/start/jquery-ui-1.8.16.custom.css" />
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 
 
 
 
-<h3 id="title"></h3>
+
 
 <div id="sidebar">
+	<br><br>
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 	</div>
@@ -36,16 +35,21 @@
 	<div id="filters" class="menu"></div>
 </div>
 
-<div style="float:right;display: inline;">
-	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+
+
+	<div style="float:right;display: inline;">
+		<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+	</div>
+
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3 id="title"></h3>
+
+
+	<div id="chart" class="chart" style="position: relative;"></div>
+
+	<div id="info" style="float:left;"></div>
+	<div id="report"></div>
 </div>
-
-<div id="chart" class="chart" style="position: relative;"></div>
-
-<div id="info" style="float:left;"></div>
-<div id="report"></div>
-
-
 <script type="application/javascript;version=1.7">
 
 importScript("js/main.js", function(){
@@ -63,14 +67,19 @@ var __createChart = function(){
 
 	var sampleMin = Date.newInstance(GUI.state.sampleMin);
 	var sampleMax =Date.eod().addDay(1);
+	var title=GUI.state.titleName;
 
 
 	var sampleInterval = Duration.DAY;
 
 	var DUE_DATE = Date.newInstance(GUI.state.dueDate);
 	var MAX_CHART_DATE=DUE_DATE.addDay(1);
-	
-	$("#title").html("Burndown Prediction using Linear Estimation for "+GUI.state.programFilter.selected.join(", ")+"");
+
+	if (title && title.length>0){
+		$("#title").html(title);
+	}else{
+		$("#title").html("Burndown Prediction using Linear Estimation for "+GUI.state.programFilter.selected.join(", ")+"");
+	}//endif
 
 	var createTime = "doc[\"create_time\"].value";
 	var idTime = GUI.state.programFilter.bugStatusMinimum_fromSource();
@@ -301,10 +310,35 @@ var __createChart = function(){
 		"height":400,
 		"xAxisSize":50,
 		extensionPoints: {
-		    dot_shapeRadius: 0,
+		    dot_shapeRadius: 3,
             dot_shape:"circle",
-			line_lineWidth: 2
-		}
+			line_lineWidth: 3
+		},
+		"clickAction":function(query, series, x, d, elem){
+			aThread.run(function(){
+				var buglist=(yield (ESQuery.run({
+					"from":"bugs",
+					"select":{"value":"bug_id", "operation":"minimum"},
+					"edges":[
+						{"name":"unique", "value":"bug_id"}
+					],
+					"esfilter":{"and":[
+						mainFilter,
+						{"range":{"modified_ts":{"lte":x.getMilli()}}},
+						{"range":{"expires_on":{"gt":x.getMilli()}}},
+						Mozilla.BugStatus.Open.esfilter
+					]}
+				})));
+
+				if (buglist.cube.length>BZ_SHOW_BUG_LIMIT){
+					D.alert("Too many bugs. Truncating to "+BZ_SHOW_BUG_LIMIT+".", function(){
+						Bugzilla.showBugs(buglist.cube.substring(0, BZ_SHOW_BUG_LIMIT));
+					});
+				}else{
+					Bugzilla.showBugs(buglist.cube);
+				}//endif
+			});
+		}//click
 	});
 	D.actionDone(a);
 
@@ -313,12 +347,15 @@ var __createChart = function(){
 
 $(document).ready(function(){
 	GUI.setup(createChart, [
+		{"id":"titleName", "name":"Replace Title with", "type":"text", "default":""},
 		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":new Date(2013, 0, 1)},
-		{"id":"dueDate", "name":"Due Date", "type":"time", "default":Date.now().addMonth(1).floorDay()}
+		{"id":"dueDate", "name":"Due Date", "type":"time", "default":Date.now().addMonth(1).floorDay()},
+		{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("reviewer")}
 		],
-			[
-			],
-			"bugs");
+		[],
+		"bugs",
+		true
+	);
 
 //	GUI.productFilter = ["B2G 1.0.0 (TEF)"];
 

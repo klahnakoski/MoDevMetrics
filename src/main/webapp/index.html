@@ -32,7 +32,8 @@
 	<br><br>
 
 	<h4>Bugs!!</h4>
-	<a href="https://metrics.mozilla.com/projects/browse/BA">https://metrics.mozilla.com/projects/browse/BA</a>
+	<a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=bugzilla.mozilla.org&component=Bugzilla%20Anthropology%20Metrics">bugzilla.mozilla.org</a>
+	<!--<a href="https://metrics.mozilla.com/projects/browse/BA">https://metrics.mozilla.com/projects/browse/BA</a>-->
 	<br><br>
 
 </div>
@@ -41,6 +42,31 @@
 <h2>Bugzilla Anthropology Metrics Prototypes</h2>
 	<br>
 <table>
+
+
+	<tr>
+	<td>
+		<h4>April 9th 2013</h4>
+		<div class="description">
+			<p>I am reading through the <a href="https://github.com/mozilla/datazilla">Datazilla code</a>
+				with the objective to reduce the false positive rate.  The
+				<a href="https://github.com/mozilla/datazilla-metrics/blob/master/dzmetrics/data_smoothing.py">data smoothing code</a>
+				may be the culprit.  <span class="AM">smooth_s = a*new_s + (1-a)*old_s</span>
+				does not appear to be a germain operation on standard deviation (<span class="AM">sqrt(sum_(i)x_i^2)</span>).
+				I suspect something like <span class="AM">smooth_s = sqrt(a*(new_s^2) + ((1-a)*old_s)^2)</span>, which
+				assumes an exponentially decreasing weight function on the samples.  But more work needs to be done
+			</p>
+			<p>First, I must recreate the problem and hopefully characterize what is going
+				wrong with the current code.  Then I will prove the correctness of new smoothing code.
+			</p>
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Telemetry - Test.html">Telemetry Test</a>
+			<span class="info">Some minor improvements on interface, fresh data (Apr1 to Apr8), and the regression line is no longer transposed (Oops!).</span>
+		</div>
+	</td>
+	</tr>
+
 
 	<tr>
 	<td>
@@ -535,6 +561,7 @@
 <script type="application/javascript;version=1.7">
 	importScript([
 		"es/lib/jquery.js",
+		"es/lib/ASCIIMathML.js",
 //		"es/js/aLibrary.js"
 	], function(){
 

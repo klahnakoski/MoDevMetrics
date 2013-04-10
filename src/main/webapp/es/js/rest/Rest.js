@@ -92,6 +92,7 @@ Rest.send=function(ajaxParam){
 	request.kill=function(){
 		if (request.readyState==4) return;  //TOO LATE
 		request.abort();
+		callback(ajaxParam.error("Aborted"));
 	};
 
 	request.send(ajaxParam.data);

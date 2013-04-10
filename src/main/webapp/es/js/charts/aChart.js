@@ -232,7 +232,16 @@ aChart.showPie=function(params){
 			//set in miliseconds
 		},
 		"clickable": true,
-		"clickAction":function(series, x, d, elem){bugClicker(chartCube, series, x, d, elem);}
+		"clickAction":function(series, x, d, elem){
+			if (series.atoms!==undefined){
+				//CCC VERSION 2
+				bugClicker(chartCube, series.atoms.series.value, series.atoms.category.value, series.atoms.value.value, null)
+			}else{
+				//CCC VERSION 1
+				bugClicker(chartCube, series, x, d, elem);
+				return true;
+			}//endif
+		}
 	};
 	Map.copy(params, chartParams);
 
@@ -403,8 +412,22 @@ aChart.show=function(params){
 		},
 		"clickable": true,
 		"clickAction":function(series, x, d, elem){
-			bugClicker(chartCube, series, x, d, elem);
-			return true;
+			if (series.atoms!==undefined){
+				//CCC VERSION 2
+				var s=series.atoms.series.value;
+				var c=series.atoms.category.value;
+				var v=series.atoms.value.value;
+				if (c instanceof Date){  //CCC 2 DATES ARE IN LOCAL TZ
+					c=c.addTimezone();
+				}//endif
+
+
+				bugClicker(chartCube, s, c, v, null)
+			}else{
+				//CCC VERSION 1
+				bugClicker(chartCube, series, x, d, elem);
+				return true;
+			}//endif
 		}
 	};
 
@@ -417,6 +440,26 @@ aChart.show=function(params){
 		Map.copy(params, chartParams);
 		chartParams.extensionPoints=extPoints;
 	}
+
+	//FIX CLICKACTION SO IT WORKS IN BOTH CHART VERSIONS
+	var clickAction=chartParams.clickAction;
+	chartParams.clickAction=function(series, x, d, elem){
+		if (series.atoms!==undefined){
+			//CCC VERSION 2
+			var s=series.atoms.series.value;
+			var c=series.atoms.category.value;
+			var v=series.atoms.value.value;
+			if (c instanceof Date){  //CCC 2 DATES ARE IN LOCAL TZ
+				c=c.addTimezone();
+			}//endif
+
+			return clickAction(chartCube, s, c, v);
+		}else{
+			//CCC VERSION 1
+			return clickAction(series, x, d, elem);
+		}//endif
+	};//method
+
 
 	{//ENSURE CONTAINER DIV IS CORRECT SIZE
 		let div=$("#"+divName);
@@ -527,15 +570,17 @@ var bugClicker=function(query, series, x, d, elem){
 
 
 //			var specific=CUBE.specificBugs(query, [series, x]);
-			var buglist=(yield (ESQuery.run(specific))).list;
+			var buglist=(yield (ESQuery.run(specific)));
 //			buglist=buglist.list.map(function(b){return b.bug_id;});
-			
-			if (buglist.length>BZ_SHOW_BUG_LIMIT){
+			if (buglist.cube===undefined) buglist.cube=buglist.list;
+
+
+			if (buglist.cube.length>BZ_SHOW_BUG_LIMIT){
 				D.alert("Too many bugs. Truncating to "+BZ_SHOW_BUG_LIMIT+".", function(){
-					Bugzilla.showBugs(buglist.substring(0, BZ_SHOW_BUG_LIMIT));
+					Bugzilla.showBugs(buglist.cube.substring(0, BZ_SHOW_BUG_LIMIT));
 				});
 			}else{
-				Bugzilla.showBugs(buglist);
+				Bugzilla.showBugs(buglist.cube);
 			}//endif
 
 		});

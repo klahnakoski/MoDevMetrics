@@ -222,8 +222,12 @@ GUI.URL2State = function(){
 			v=v.escape(Map.inverse(GUI.urlMap));
 			GUI.state[k] = v;
 		}else if (p && p.type=="json"){
-			v=v.escape(Map.inverse(GUI.urlMap));
-			GUI.state[k] = CNV.JSON2Object(v);
+			try{
+				v=v.escape(Map.inverse(GUI.urlMap));
+				GUI.state[k] = CNV.JSON2Object(v);
+			}catch(e){
+				D.error("Malformed JSON: "+v);
+			}//try
 		}else if (p && p.type=="code"){
 			v=v.escape(Map.inverse(GUI.urlMap));
 			GUI.state[k] = v;

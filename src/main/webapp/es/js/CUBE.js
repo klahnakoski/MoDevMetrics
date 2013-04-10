@@ -1033,7 +1033,10 @@ CUBE.drill=function(query, parts){
 
 		for(let p=0;p<edge.domain.partitions.length;p++){
 			var part=edge.domain.partitions[p];
-			if (part.name==parts[e]){
+			if (
+				(edge.domain.type=="time" && part.value.getMilli()==parts[e].getMilli()) ||  //CCC VERSION 2 (TIME ONLY)
+				(part.name==parts[e])  //CCC VERSION 1
+			){
 				let filter=ESQuery.buildCondition(edge, part, query);
 				newQuery.esfilter.and.push(filter);
 				return;  //CONTINUE

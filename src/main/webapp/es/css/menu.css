@@ -239,6 +239,13 @@ h4 {
     color: red;
 }
 
+.code {
+    font-family: "courier new", sans-serif;
+    font-size:1.0em;
+    font-weight: bold;
+    color: black;
+}
+
 
 
 .table {

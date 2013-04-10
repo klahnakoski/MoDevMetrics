@@ -191,6 +191,12 @@ Date.prototype.addTimezone = function(){
 	return this.addMinute(-new Date().getTimezoneOffset());
 };
 
+//CONVERT THIS LOCAL DATE TO GMT DATE
+Date.prototype.subtractTimezone = function(){
+	return this.addMinute(new Date().getTimezoneOffset());
+};
+
+
 Date.prototype.addMilli = function(value){
 	return new Date(this.getMilli() + value);
 };//method

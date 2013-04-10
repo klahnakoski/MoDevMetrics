@@ -101,22 +101,28 @@ ESQuery.loadColumns=function(query){
 	var indexPath=index.path;
 	if (indexName=="bugs" && !indexPath.endsWith("/bug_version")) indexPath+="/bug_version";
 
-	if (index.columns === undefined){
-		index.columns = "pending";
+
+	if (index.columns == "pending") yield (aThread.sleep(200)); //SMALL DELAY WITH HOPE ANOTHER THREAD IS GETTING THIS INFO
+
+	if (index.columns === undefined || index.columns == "pending"){
 		var URL=Util.coalesce(query.url, ElasticSearch.baseURL + indexPath) + "/_mapping";
 
-		var schema = yield(Rest.get({
-			"url":URL
-		}));
+		try{
+			var schema = yield(Rest.get({
+				"url":URL
+			}));
+		}catch(e){
+			//NEVER RUN WHEN THREAD IS KILLED
+			index.columns=undefined;
+			yield (null);
+		}//try
 
 		var properties = schema[indexPath.split("/")[2]].properties;
 
 		index.columns = ESQuery.parseColumns(indexName, properties);
-	}else{
-		while(index.columns=="pending"){
-			yield (aThread.sleep(200));
-		}//while
 	}//endif
+
+	yield(null);
 };//method
 
 
