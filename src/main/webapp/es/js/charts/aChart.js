@@ -141,6 +141,8 @@ importScript([
 
 var aChart={};
 
+(function(){
+
 aChart.FAVORITE_COLOUR="#2BB8F0";//BLUE FROM FIREFOX OCEAN
 
 
@@ -148,7 +150,7 @@ aChart.PVC_TIME_FORMAT="%y-%m-%d %H:%M:%S";
 aChart.TIME_FORMAT="yyyy-MM-dd HH:mm:ss";
 
 
-aChart.getAxisLabels=function(axis){
+function getAxisLabels(axis){
 	var labels=[];
 	if (axis.domain.type == "time"){
 		if (axis.domain.allowNulls) D.error("Charting lib can not handle NULL domain value.");
@@ -204,7 +206,7 @@ aChart.showPie=function(params){
 	if (chartCube.select instanceof Array) D.error("Can not chart when select clause is an array");
 
 
-	var seriesLabels=aChart.getAxisLabels(chartCube.edges[0]);
+	var seriesLabels=getAxisLabels(chartCube.edges[0]);
 
 
 	var chartParams={
@@ -233,17 +235,12 @@ aChart.showPie=function(params){
 		},
 		"clickable": true,
 		"clickAction":function(series, x, d, elem){
-			if (series.atoms!==undefined){
-				//CCC VERSION 2
-				bugClicker(chartCube, series.atoms.series.value, series.atoms.category.value, series.atoms.value.value, null)
-			}else{
-				//CCC VERSION 1
-				bugClicker(chartCube, series, x, d, elem);
-				return true;
-			}//endif
+			bugClicker(chartCube, series, x, d);
 		}
 	};
 	Map.copy(params, chartParams);
+
+	fixClickAction(chartParams);
 
 	var chart = new pvc.PieChart(chartParams);
 
@@ -290,6 +287,28 @@ aChart.showPie=function(params){
 
 
 //PLOT USING THE Common Charting Components
+function fixClickAction(chartParams){
+//FIX CLICKACTION SO IT WORKS IN BOTH CHART VERSIONS
+	var clickAction = chartParams.clickAction;
+	chartParams.clickAction = function(series, x, d, elem){
+		if (series.atoms !== undefined){
+			//CCC VERSION 2
+			var s = series.atoms.series.value;
+			var c = series.atoms.category.value;
+			var v = series.atoms.value.value;
+			if (c instanceof Date){  //CCC 2 DATES ARE IN LOCAL TZ
+				c = c.addTimezone();
+			}//endif
+
+			return clickAction(s, c, v, elem);
+		} else{
+			//CCC VERSION 1
+			return clickAction(series, x, d, elem);
+		}//endif
+	};//method
+}
+
+
 aChart.show=function(params){
 	Map.expecting(params, ["type", "cube"]);
 	var divName=params.id;
@@ -303,7 +322,7 @@ aChart.show=function(params){
 	// SERIES (ONLY IF MORE THAN ONE EDGE)
 	////////////////////////////////////////////////////////////////////////////
 	var xaxis=chartCube.edges[chartCube.edges.length-1];
-	var seriesLabels=aChart.getAxisLabels(xaxis);
+	var seriesLabels=getAxisLabels(xaxis);
 
 	var categoryLabels;
 	if (chartCube.edges.length==1 || chartCube.edges[0].domain.partitions.length==0){
@@ -315,7 +334,7 @@ aChart.show=function(params){
 			D.error("Can not chart when select clause is an array");
 		}//endif
 
-		categoryLabels=aChart.getAxisLabels(chartCube.edges[0]);
+		categoryLabels=getAxisLabels(chartCube.edges[0]);
 	}//endif
 
 
@@ -388,7 +407,7 @@ aChart.show=function(params){
 
 		orientation: 'vertical',
 		timeSeries: (xaxis.domain.type=="time"),
-		timeSeriesFormat: aChart.JavaDateFormat2ProtoVisDateFormat(xaxis.domain.format),
+		timeSeriesFormat: JavaDateFormat2ProtoVisDateFormat(xaxis.domain.format),
 		showDots:true,
 		showValues: false,
 		originIsZero: this.originZero,
@@ -412,22 +431,7 @@ aChart.show=function(params){
 		},
 		"clickable": true,
 		"clickAction":function(series, x, d, elem){
-			if (series.atoms!==undefined){
-				//CCC VERSION 2
-				var s=series.atoms.series.value;
-				var c=series.atoms.category.value;
-				var v=series.atoms.value.value;
-				if (c instanceof Date){  //CCC 2 DATES ARE IN LOCAL TZ
-					c=c.addTimezone();
-				}//endif
-
-
-				bugClicker(chartCube, s, c, v, null)
-			}else{
-				//CCC VERSION 1
-				bugClicker(chartCube, series, x, d, elem);
-				return true;
-			}//endif
+			bugClicker(chartCube, series, x, d, elem);
 		}
 	};
 
@@ -435,30 +439,12 @@ aChart.show=function(params){
 		var extPoints={};
 		Map.copy(chartParams.extensionPoints, extPoints);
 		if (params.extensionPoints) Map.copy(params.extensionPoints, extPoints);
-		if (params.timeSeriesFormat) chartParams.timeSeriesFormat=aChart.JavaDateFormat2ProtoVisDateFormat(params.timeSeriesFormat);
+		if (params.timeSeriesFormat) chartParams.timeSeriesFormat=JavaDateFormat2ProtoVisDateFormat(params.timeSeriesFormat);
 
 		Map.copy(params, chartParams);
 		chartParams.extensionPoints=extPoints;
 	}
-
-	//FIX CLICKACTION SO IT WORKS IN BOTH CHART VERSIONS
-	var clickAction=chartParams.clickAction;
-	chartParams.clickAction=function(series, x, d, elem){
-		if (series.atoms!==undefined){
-			//CCC VERSION 2
-			var s=series.atoms.series.value;
-			var c=series.atoms.category.value;
-			var v=series.atoms.value.value;
-			if (c instanceof Date){  //CCC 2 DATES ARE IN LOCAL TZ
-				c=c.addTimezone();
-			}//endif
-
-			return clickAction(chartCube, s, c, v);
-		}else{
-			//CCC VERSION 1
-			return clickAction(series, x, d, elem);
-		}//endif
-	};//method
+	fixClickAction(chartParams);
 
 
 	{//ENSURE CONTAINER DIV IS CORRECT SIZE
@@ -554,7 +540,7 @@ aChart.show=function(params){
 };
 
 var BZ_SHOW_BUG_LIMIT=1000;
-var bugClicker=function(query, series, x, d, elem){
+function bugClicker(query, series, x){
 	try{
 		//We can decide to drilldown, or show a bug list.
 		//Sometimes drill down is not available, and bug list is too big, so nothing happens
@@ -593,7 +579,7 @@ var bugClicker=function(query, series, x, d, elem){
 };
 
 
-aChart.JavaDateFormat2ProtoVisDateFormat=function(format){
+function JavaDateFormat2ProtoVisDateFormat(format){
 	if (format===undefined) return undefined;
 	return format
 		.replaceAll('yyyy', '%y')
@@ -603,7 +589,7 @@ aChart.JavaDateFormat2ProtoVisDateFormat=function(format){
 		.replaceAll('mm', '%M')
 		.replaceAll('ss', '%S')
 	;
-};
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -657,3 +643,4 @@ aChart.addPredictionLine = function(param){
 		}//for
 	};
 
+})();

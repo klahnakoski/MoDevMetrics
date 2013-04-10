@@ -314,7 +314,7 @@ var __createChart = function(){
             dot_shape:"circle",
 			line_lineWidth: 3
 		},
-		"clickAction":function(query, series, x, d, elem){
+		"clickAction":function(series, x, d){
 			aThread.run(function(){
 				var buglist=(yield (ESQuery.run({
 					"from":"bugs",
