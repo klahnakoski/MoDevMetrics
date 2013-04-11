@@ -34,11 +34,40 @@ TeamFilter.newInstance=function(field_name){
 			]
 		}))).list;
 
+		var others={
+			"email":"other@mozilla.com",
+			"name":"Other MoCo",
+			"id":"mail=other@mozilla.com,"
+		};
+		people.push(others);
+
+		people.push({
+			"email":"nobody@mozilla.org",
+			"name":"Nobody",
+			"id":"mail=nobody@mozilla.org,"
+		});
+
+		people.push({
+			"email":"community@mozilla.org",
+			"name":"Community",
+			"id":"mail=community@mozilla.org,"
+		});
+
+
+
 		//USE THIS TO SIMPLIFY THE TREE SELECTION
 		self.managers={};
 		people.forall(function(v, i){
 			v.id=v.id.between("mail=", ",");
-			v.manager=v.manager==null ?  null : v.manager.between("mail=", ",");
+
+			if (v.manager==null){
+				if (!["other@mozilla.com", "nobody@mozilla.org", "community@mozilla.org"].contains(v.id)){
+					v.manager="other@mozilla.com";
+				}//endif
+			}else{
+				v.manager = v.manager.between("mail=", ",");
+			}//endif
+			
 			if (v.email==null) v.email=v.id;
 
 			if (self.managers[v.id])
@@ -55,10 +84,15 @@ TeamFilter.newInstance=function(field_name){
 			"id_field":"id",
 			"child_field":"children",
 			"parent_field":"manager"
-		}).map(function(v, i){
-			//IGNORE THE TOP LEVEL 'PEOPLE' WITH NO CHILDREN (THE PEOPLE THAT NEED TO SET THIER MANAGERS)
-			if (v.children) return v;
-			return undefined;
+		});
+		others.children.map(function(v, i){
+			//PULL OUT THE TOP LEVEL 'PEOPLE' WITH CHILDREN
+			if (v.children && v.manager=="other@mozilla.com"){
+				v.manager=null;
+				others.children.remove(v);
+				hier.prepend(v);
+			}//endif
+			return v;
 		});
 
 		self.injectHTML(hier);
@@ -131,7 +165,8 @@ TeamFilter.prototype.setSimpleState=function(value){
 
 TeamFilter.prototype.makeFilter = function(field_name){
 	if (this.selectedEmails.length == 0) return ES.TrueFilter;
-	if (this.field_name==null && field_name===undefined) return ES.TrueFilter;
+	field_name=Util.coalesce(field_name, this.field_name);
+	if (field_name==null) return ES.TrueFilter;
 
 	var selected = aThread.runSynchronously(this.getSelectedPeople());
 	if (selected.length == 0) return ES.TrueFilter;
@@ -148,7 +183,21 @@ TeamFilter.prototype.makeFilter = function(field_name){
 	var bzEmails=[];
 	getEmail(bzEmails, selected);
 
-	return ES.makeFilter(Util.coalesce(field_name, this.field_name), bzEmails);
+	if (bzEmails.length==0) return ES.TrueFilter;
+
+	var output={"or":[]};
+
+	if (bzEmails.contains("community@mozilla.org")){
+		bzEmails.remove("community@mozilla.org");
+		var allEmails=this.people.map(function(v, i){return v.email;});
+		allEmails.push("nobody@mozilla.org");
+		
+		output.or.push({"not":{"terms":Map.newInstance(field_name, allEmails)}});
+	}//endif
+
+	if (bzEmails.length!=0) output.or.push({"terms":Map.newInstance(field_name, bzEmails)});
+
+	return output;
 };//method
 
 

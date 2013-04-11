@@ -25,7 +25,7 @@ var Mozilla =
 
 		{"name":"People", "partitions":[
 			{"name":"MoCo", "esfilter":{}},
-			{"name":"MoFo", "esfilter":{"not":{"term":{"<FIELD>":"nobody@mozilla.com"}}}}
+			{"name":"MoFo", "esfilter":{"not":{"term":{"<FIELD>":"nobody@mozilla.org"}}}}
 		]},
 
 

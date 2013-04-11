@@ -115,7 +115,7 @@ Util.coalesce = function(){
 		a=arguments[i];
 		if (a!==undefined && a!=null) return a;
 	}//for
-	return a;
+	return null;
 };//method
 
 Util.nvl = Util.coalesce;

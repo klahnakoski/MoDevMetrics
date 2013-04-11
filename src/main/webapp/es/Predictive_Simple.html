@@ -330,13 +330,7 @@ var __createChart = function(){
 					]}
 				})));
 
-				if (buglist.cube.length>BZ_SHOW_BUG_LIMIT){
-					D.alert("Too many bugs. Truncating to "+BZ_SHOW_BUG_LIMIT+".", function(){
-						Bugzilla.showBugs(buglist.cube.substring(0, BZ_SHOW_BUG_LIMIT));
-					});
-				}else{
-					Bugzilla.showBugs(buglist.cube);
-				}//endif
+				Bugzilla.showBugs(buglist.cube);
 			});
 		}//click
 	});
@@ -350,7 +344,7 @@ $(document).ready(function(){
 		{"id":"titleName", "name":"Replace Title with", "type":"text", "default":""},
 		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":new Date(2013, 0, 1)},
 		{"id":"dueDate", "name":"Due Date", "type":"time", "default":Date.now().addMonth(1).floorDay()},
-		{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("reviewer")}
+		{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
 		],
 		[],
 		"bugs",

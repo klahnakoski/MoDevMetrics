@@ -5298,7 +5298,7 @@ if ( document.querySelectorAll ) {
 				expr = expr.replace( rattributeQuotes, "='$1']" );
 
 				// rbuggyMatches always contains :active, so no need for an existence check
-				if ( !isXML( elem ) && !rbuggyMatches.test( expr ) && (!rbuggyQSA || !rbuggyQSA.test( expr )) ) {
+				if (elem!=-1 && !isXML( elem ) && !rbuggyMatches.test( expr ) && (!rbuggyQSA || !rbuggyQSA.test( expr )) ) {
 					try {
 						var ret = matches.call( elem, expr );
 
