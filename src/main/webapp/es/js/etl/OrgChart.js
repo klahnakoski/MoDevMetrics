@@ -7,10 +7,13 @@ var OrgChart={};
 
 importScript("ETL.js");
 
+(function(){
+	var DEBUG=false;
+	var PHONEBOOK_URL="https://phonebook.mozilla.org";
+//	var PHONEBOOK_URL="https://phonebook-dev.allizom.org/search.php";
+	var JSONP_CALLBACK="workit";
 
-OrgChart.URL="https://phonebook.mozilla.org";
-//OrgChart.URL="https://phonebook-dev.allizom.org/search.php";
-OrgChart.JSONP_CALLBACK="workit";
+	
 OrgChart.BATCH_SIZE=1000000000;		//ETL IS BUG BASED, BIG ENOUGH TO DO IN ONE BATCH
 OrgChart.aliasName="org_chart";
 OrgChart.newIndexName=undefined;  //CURRENT INDEX FOR INSERT
@@ -43,7 +46,7 @@ OrgChart.get=function(minBug, maxBug){
 
 		yield (aThread.yield());  //YIELD TO ALLOW FUNCTION TO BE ASSIGNED TO window
 
-		var url=OrgChart.URL+"/search.php?format=jsonp&callback="+OrgChart.JSONP_CALLBACK+"&query=*";
+		var url=PHONEBOOK_URL+"/search.php?format=jsonp&callback="+JSONP_CALLBACK+"&query=*";
 		var html=$("<script type=\"application/javascript;version=1.9\" src=\""+url+"\"></script>");
 		var body=$("body");
 		body.append(html);
@@ -145,10 +148,11 @@ OrgChart.insert=function(people){
 		"data":insert.join("\n")+"\n",
 		"dataType":"text"
 	}));
-	D.println(CNV.Object2JSON(CNV.JSON2Object(results)));
+	if (DEBUG) D.println(CNV.Object2JSON(CNV.JSON2Object(results)));
 
 	D.actionDone(a);
 };//method
 
 
 
+})();

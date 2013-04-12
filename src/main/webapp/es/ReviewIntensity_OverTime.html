@@ -175,7 +175,7 @@ importScript([
 			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.today().add("-7day")},
 			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.today()},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.DAY},
-			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("reviewer")}
+			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("requester")}
 		],
 		[
 			"sampleMin=Date.newInstance(sampleMin).format(\"yyyy-MM-dd\")",
