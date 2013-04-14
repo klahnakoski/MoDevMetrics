@@ -130,5 +130,11 @@ String.prototype.escape=function(map){
 };//method
 
 
+String.prototype.ltrim=function(c){
+	var e=this.length;
+	while(e>0 && this.charAt(e-1)==c) e--;
+	return this.substring(0, e);
+};//method
+
 
 

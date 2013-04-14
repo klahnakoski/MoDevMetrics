@@ -6,6 +6,8 @@
 if (CUBE===undefined) var CUBE = {};
 CUBE.domain = {};
 
+CUBE.domain.ALGEBRAIC=["time", "duration", "linear"];  //DOMAINS THAT HAVE ALGEBRAIC OPERATIONS DEFINED
+CUBE.domain.KNOWN=["set", "duration", "time", "linear"];    //DOMAINS THAT HAVE A KNOWN NUMBER FOR PARTS AT QUERY TIME
 
 CUBE.domain.compile = function(column, sourceColumns){
 	if (column.domain === undefined){

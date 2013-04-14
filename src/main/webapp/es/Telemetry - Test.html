@@ -170,7 +170,6 @@ var __createChart = function(){
 
 		aChart.show({
 			"id":"chartHeat",
-			"type":"heat",
 			"cube":heatGrid,
 			"titlePaddings":5,
 			"height":600,
@@ -326,11 +325,24 @@ var __createChart = function(){
 				{"id":"measureX", "name":"Measure X", "type":"code", "default":"simpleMeasurements.start"},
 				{"id":"measureY", "name":"Measure Y", "type":"code", "default":"simpleMeasurements.main-simpleMeasurements.start"},
 				{"id":"esfilter", "name":"ES Filter", "type":"json", "default":{"and":[
-						{"term":{"appUpdateChannel":"nightly"}},
-						{"term":{"OS":"WINNT"}}
+					{"term":{"appUpdateChannel":"nightly"}},
+					{"term":{"OS":"WINNT"}},
+					{"term":{"info.reason":"saved-session"}},
+					{"term":{"info.appVersion":"22.0a1"}},
+					{"term":{"simpleMeasurements.startupInterrupted":0}},
+					{"term":{"simpleMeasurements.debuggerAttached":0}},
+					{"script":{"script":"doc[\"simpleMeasurements.start\"].value <= doc[\"simpleMeasurements.main\"].value"}},
+					{"script":{"script":"doc[\"simpleMeasurements.main\"].value <= doc[\"simpleMeasurements.createTopLevelWindow\"].value"}},
+					{"script":{"script":"doc[\"simpleMeasurements.createTopLevelWindow\"].value <= doc[\"simpleMeasurements.firstPaint\"].value"}},
+					{"script":{"script":"doc[\"simpleMeasurements.firstPaint\"].value <= doc[\"simpleMeasurements.sessionRestored\"].value"}},
+					{"or":[
+						{"not":{"exists":{"field":"doc[\"simpleMeasurements.firstLoadURI\"].value"}}},
+						{"script":{"script":"doc[\"simpleMeasurements.firstPaint\"].value <= doc[\"simpleMeasurements.firstLoadURI\"].value"}},
+						{"script":{"script":"doc[\"simpleMeasurements.firstLoadURI\"].value <= doc[\"simpleMeasurements.sessionRestored\"].value"}}
+					]}
 				]}},
 				{"id":"maxX", "name":"Max X", "type":"number", "default":"100"},
-				{"id":"maxY", "name":"Max Y", "type":"number", "default":"5000"},
+				{"id":"maxY", "name":"Max Y", "type":"number", "default":"200"},
 				{"id":"numParts", "name":"Num Parts", "type":"number", "default":"20"}
 //				{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
 //				{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today()},

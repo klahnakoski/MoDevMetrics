@@ -46,6 +46,7 @@
 
 
 	<div id="chart" class="chart" style="position: relative;"></div>
+	<div id="chart_diff" class="chart" style="position: relative;"></div>
 
 	<div id="info" style="float:left;"></div>
 	<div id="report"></div>
@@ -152,7 +153,15 @@ var __createChart = function(){
 	var numWeek=aMath.min(6, aMath.floor((statsMax.getMilli()-sampleMin.getMilli())/Duration.WEEK.milli));
 	var statsMin = statsMax.addWeek(-numWeek);
 
-	$("#description").html("Simple chart of open bugs, plus linear estimate of when the project will be completed.<br><br>Pick your program, your due date and BOOKMARK the result for next time.<br><br>"+
+	$("#description").html("Simple chart of open bugs, plus linear estimate of when the project will be completed.<br><br>"+
+			"Pick your program, your due date and BOOKMARK the result for next time.<br><br>"+
+			"The number of bugs closed each day is shown as negative in an atempt to make the chart less busy."+
+			" If you use the filters, please be aware that a bug moving from one team to the"+
+			" next will show as &quot;closed&quot; for one and &quot;opened&quot; for the"+
+			" next respectively.  Adding up the individual team's open/close rates will result"+
+			" in something greater than the total shown with no filters active.   This effect"+
+			" can be seen by setting Team=Nobody; which shows all bugs being assigned to Nobody"+
+			" and  showing the bugs being &quot;closed&quot; as they are assigned to people.<br><br>"+
 			(
 			(MAX_CHART_DATE>Date.now().floorDay())
 			? "<span class=\"warning\">Estimates are generated from a "+statsMax.subtract(statsMin).toString()+" sample from "+statsMin.format("EE MMM dd")+" to "+statsMax.addDay(-1).format("EE MMM dd")+"</span>"
@@ -174,34 +183,92 @@ var __createChart = function(){
 		"edges":[
 			{"name":"date", "value":"date",
 				"allowNulls":false,
-				"domain":{"type":"time", "min":statsMin, "max":statsMax, "interval":Duration.DAY, "value":"value"}
+				"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":Duration.DAY, "value":"value"}
 			}
 		]
 	}));
 
-	//DIFF TOTAL==NET NEW BUGS
-	//DIFF CLOSED==NET CLOSED BUGS
-	var diff = stats.cube.map(function(v, i){
-		if (i == stats.cube.length-1) return undefined;
-		return {
-			"net_new":stats.cube[i + 1].total-v.total,
-			"net_closed":stats.cube[i + 1].closed-v.closed
-		};
-	});
+	////////////////////////////////////////////////////////////////////////////
+	// DAILY CHANGE
+	////////////////////////////////////////////////////////////////////////////
 
-	var perDay = (yield(CUBE.calc2List({
-		"from":diff,
-		"select":[
-			{"value":"net_new", "operation":"average"},
-			{"value":"net_closed", "operation":"average"}
-		]
-	}))).list[0];
+		var minMaxBugs=yield(ElasticSearch.getMinMax({"and":[
+				Mozilla.BugStatus.Open.esfilter,
+				{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},
+				{"range":{"expires_on":{"gte":sampleMin.getMilli()}}},
+				GUI.getFilters("bugs")
+			]}));
 
-	$("#stats").html(
-		'<span class="parameter_name">New Bugs Per Day:</span>' + aMath.round(perDay.net_new, 1) + '<br>' +
-		'<span class="parameter_name">Closed Per Day:</span>' + aMath.round(perDay.net_closed, 1) + '<br>' +
-		''
-	);
+
+		var diff = yield(Q({
+			"from":minMaxBugs,
+			"select":[
+				{"name":"opened", "value":"(time.min.getMilli()<=min && min<time.max.getMilli()) ? 1 : 0", "operation":"sum", "default":0, "style":{"color":"blue"}},
+				{"name":"closed", "value":"(time.min.getMilli()<=max && max<time.max.getMilli()) ? -1 : 0", "operation":"sum", "default":0, "style":{"color":"red"}}
+			],
+			"edges":[
+				{"name":"date", "test":"(time.min.getMilli()<=min && min<time.max.getMilli()) || (time.min.getMilli()<=max && max<time.max.getMilli())",
+					"allowNulls":false,
+					"domain":{"type":"time", "min":sampleMin, "max":MAX_CHART_DATE, "interval":Duration.DAY, "value":"value"}
+				}
+			]
+		}));
+
+
+		a = D.action("Make chart", true);
+		aChart.show({
+			"id":"chart_diff",
+			"sheetDiv":"info",
+			"type":"bar",
+			"stacked":true,
+			"cube":diff,
+			"height":400,
+			"xAxisSize":50,
+			"clickAction":function(series, x, d){
+				aThread.run(function(){
+					var where;
+					if (series=="opened"){
+						where="min.floorDay().getMilli()=="+x.getMilli();
+					}else{
+						where="max.floorDay().getMilli()=="+x.getMilli();
+					}//endif
+
+					var buglist=(yield (CUBE.calc2List({
+						"from":minMaxBugs,
+						"select":{"value":"bug_id"},
+						"where":where
+					})));
+
+					Bugzilla.showBugs(buglist.list);
+				});
+			}//click
+		});
+		D.actionDone(a);
+
+		var perDay = (yield(CUBE.calc2List({
+			"from":diff,
+			"select":[
+				{"name":"opened", "value":"opened", "operation":"average"},
+				{"name":"closed", "value":"-closed", "operation":"average"}
+			],
+			"where":statsMin.getMilli()+"<=date.getMilli() && date.getMilli()<"+statsMax.getMilli()
+		}))).list[0];
+
+
+		$("#stats").html(
+			'<span class="parameter_name">New Bugs Per Day:</span>' + aMath.round(perDay.opened, 1) + '<br>' +
+			'<span class="parameter_name">Closed Per Day:</span>' + aMath.round(perDay.closed, 1) + '<br>' +
+			''
+		);
+
+
+//	});
+
+
+
+
+
+
 
 
 	var stillOpen = flat.cube[flat.edges[0].domain.getPartByKey(Date.now().floorDay()).dataIndex].open;
@@ -213,14 +280,14 @@ var __createChart = function(){
 		requiredNetCloseRatePerDay = stillOpen / daysLeft;
 	}
 
-	$("#stats").append('<span class="parameter_name">Required Closed/Day:</span>' + aMath.round(requiredNetCloseRatePerDay + perDay.net_new, 1) + '<br>');
+	$("#stats").append('<span class="parameter_name">Required Closed/Day:</span>' + aMath.round(requiredNetCloseRatePerDay + perDay.opened, 1) + '<br>');
 
 
 	//
 	var expectedEndDate;
 	{
 		var openAtStartOfEstimate = flat.cube[flat.edges[0].domain.getPartByKey(statsMax).dataIndex-1].open;
-		var netCloseRatePerDay = (perDay.net_closed-perDay.net_new);
+		var netCloseRatePerDay = (perDay.closed-perDay["opened"]);
 		let daysLeft = openAtStartOfEstimate / netCloseRatePerDay;
 		expectedEndDate = statsMax.addWeekday(daysLeft);
 		netCloseRatePerDay = aMath.max(0, netCloseRatePerDay);
@@ -295,7 +362,8 @@ var __createChart = function(){
 		"from":flat,
 		"select": columnsToChart,
 		"edges":[
-			{"name":"date", "value":"date", "domain":{"type":"time", "min":sampleMin, "max":MAX_CHART_DATE, "interval":"day", "value":"value"}}
+			{"name":"date", "value":"date",
+				"domain":{"type":"time", "min":sampleMin, "max":MAX_CHART_DATE, "interval":"day", "value":"value"}}
 		]
 	}));
 
@@ -326,7 +394,8 @@ var __createChart = function(){
 						mainFilter,
 						{"range":{"modified_ts":{"lte":x.getMilli()}}},
 						{"range":{"expires_on":{"gt":x.getMilli()}}},
-						Mozilla.BugStatus.Open.esfilter
+						Mozilla.BugStatus.Open.esfilter,
+						GUI.getFilters("bugs")
 					]}
 				})));
 
@@ -342,7 +411,7 @@ var __createChart = function(){
 $(document).ready(function(){
 	GUI.setup(createChart, [
 		{"id":"titleName", "name":"Replace Title with", "type":"text", "default":""},
-		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":new Date(2013, 0, 1)},
+		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().addWeek(-3)},
 		{"id":"dueDate", "name":"Due Date", "type":"time", "default":Date.now().addMonth(1).floorDay()},
 		{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
 		],

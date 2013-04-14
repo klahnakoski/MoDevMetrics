@@ -41,7 +41,8 @@ ESQuery.INDEXES={
 	"org_chart":{"path":"/org_chart/person"},
 	"temp":{"path":""},
 	"telemetry":{"path":"/telemetry/data"},
-	"raw_telemetry":{"path":"/raw_telemetry/data"}
+	"raw_telemetry":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/raw_telemetry/data"}
+//	"raw_telemetry":{"host":"http://localhost:9200", "path":"/raw_telemetry/data"}
 };
 
 
@@ -97,15 +98,15 @@ ESQuery.parseColumns=function(indexName, esProperties){
 //ENSURE COLUMNS FOR GIVEN INDEX ARE LOADED, AND MVEL COMPILAITON WORKS BETTER
 ESQuery.loadColumns=function(query){
 	var indexName = query.from.split(".")[0];
-	var index = ESQuery.INDEXES[indexName];
-	var indexPath=index.path;
+	var indexInfo = ESQuery.INDEXES[indexName];
+	var indexPath=indexInfo.path;
 	if (indexName=="bugs" && !indexPath.endsWith("/bug_version")) indexPath+="/bug_version";
 
 
-	if (index.columns == "pending") yield (aThread.sleep(200)); //SMALL DELAY WITH HOPE ANOTHER THREAD IS GETTING THIS INFO
+	if (indexInfo.columns == "pending") yield (aThread.sleep(200)); //SMALL DELAY WITH HOPE ANOTHER THREAD IS GETTING THIS INFO
 
-	if (index.columns === undefined || index.columns == "pending"){
-		var URL=Util.coalesce(query.url, ElasticSearch.baseURL + indexPath) + "/_mapping";
+	if (indexInfo.columns === undefined || indexInfo.columns == "pending"){
+		var URL=Util.coalesce(query.url, Util.coalesce(indexInfo.host, ElasticSearch.baseURL) + indexPath) + "/_mapping";
 
 		try{
 			var schema = yield(Rest.get({
@@ -113,13 +114,13 @@ ESQuery.loadColumns=function(query){
 			}));
 		}catch(e){
 			//NEVER RUN WHEN THREAD IS KILLED
-			index.columns=undefined;
+			indexInfo.columns=undefined;
 			yield (null);
 		}//try
 
 		var properties = schema[indexPath.split("/")[2]].properties;
 
-		index.columns = ESQuery.parseColumns(indexName, properties);
+		indexInfo.columns = ESQuery.parseColumns(indexName, properties);
 	}//endif
 
 	yield(null);
@@ -141,7 +142,11 @@ ESQuery.run=function(query){
 
 
 ESQuery.prototype.run = function(){
-	if (!this.query.url) this.query.url = window.ElasticSearch.baseURL + ESQuery.INDEXES[this.query.from.split(".")[0]].path;
+
+	if (!this.query.url){
+		var indexInfo=ESQuery.INDEXES[this.query.from.split(".")[0]];
+		this.query.url=Util.coalesce(indexInfo.host, window.ElasticSearch.baseURL)+indexInfo.path;
+	}//endif
 
 
 	if (!this.query.url.endsWith("/_search")) this.query.url+="/_search";  //WHEN QUERIES GET RECYCLED, THIER url IS SOMETIMES STILL AROUND
@@ -297,7 +302,7 @@ ESQuery.prototype.compile = function(){
 	//FIND THE specialEdge, IF ONE
 	this.specialEdge = null;
 	for(var f = 0; f < this.termsEdges.length; f++){
-		if ((["set", "duration", "time", "linear"].contains(this.termsEdges[f].domain.type))){
+		if ((CUBE.domain.KNOWN.contains(this.termsEdges[f].domain.type))){
 			for(var p = this.termsEdges[f].domain.partitions.length; p--;){
 				this.termsEdges[f].domain.partitions[p].dataIndex = p;
 			}//for
@@ -457,7 +462,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 	} else if (edge.range){
 		//THESE REALLY NEED FACETS TO PERFORM THE JOIN-TO-DOMAIN
 		//USE MVEL CODE
-		if (["time", "duration", "linear"].contains(edge.domain.type)){
+		if (CUBE.domain.ALGEBRAIC.contains(edge.domain.type)){
 			output={"and":[]};
 
 			if (edge.range.mode!==undefined && edge.range.mode=="inclusive"){
@@ -511,7 +516,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 		}//endif
 	}else if (MVEL.isKeyword(edge.value)){
 		//USE FAST ES SYNTAX
-		if (["time", "duration", "linear"].contains(edge.domain.type)){
+		if (CUBE.domain.ALGEBRAIC.contains(edge.domain.type)){
 			output.range = {};
 			output.range[edge.value] = {"gte":MVEL.Value2Code(partition.min), "lt":MVEL.Value2Code(partition.max)};
 		} else if (edge.domain.type == "set"){
@@ -531,7 +536,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 		return output;
 	} else{
 		//USE MVEL CODE
-		if (["time", "duration", "linear"].contains(edge.domain.type)){
+		if (CUBE.domain.ALGEBRAIC.contains(edge.domain.type)){
 			output.script = {script:edge.value + ">=" + MVEL.Value2Code(partition.min) + " && " + edge.value + "<" + MVEL.Value2Code(partition.max)};
 		} else {//if (edge.domain.type == "set"){
 			output.script = {script:"( "+edge.value + " ) ==" + MVEL.Value2Code(partition.value)};
@@ -864,9 +869,9 @@ ESQuery.compileES2Term=function(edge){
 
 
 
-//RETURN A MVEL EXPRESSIONT THAT WILL EVALUATE TO true FOR OUT-OF-BOUNDS
+//RETURN A MVEL EXPRESSION THAT WILL EVALUATE TO true FOR OUT-OF-BOUNDS
 ESQuery.compileNullTest=function(edge){
-	if (!["duration", "time", "linear"].contains(edge.domain.type))
+	if (!CUBE.domain.ALGEBRAIC.contains(edge.domain.type))
 		D.error("can only translate time and duration domains");
 
 	//IS THERE A LIMIT ON THE DOMAIN?

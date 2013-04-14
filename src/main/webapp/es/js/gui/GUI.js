@@ -142,7 +142,7 @@ GUI.showLastUpdated = function(indexName){
 		D.actionDone(a);
 
 
-		var a=D.action("Check for ES Corruption", true);
+		var a=D.action("Verify ES Consistency", true);
 		var is_error=yield(GUI.corruptionCheck());
 		if (is_error){
 			$("#testMessage").append("<br>ES IS CORRUPTED!!!");
@@ -218,7 +218,7 @@ GUI.URL2State = function(){
 
 		var p=GUI.parameters.map(function(v, i){if (v.id==k) return v;})[0];
 
-		if (p && ["time", "duration", "text"].contains(p.type)){
+		if (p && CUBE.domain.ALGEBRAIC.contains(p.type)){
 			v=v.escape(Map.inverse(GUI.urlMap));
 			GUI.state[k] = v;
 		}else if (p && p.type=="json"){

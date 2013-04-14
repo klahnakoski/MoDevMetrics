@@ -27,7 +27,19 @@ CUBE.analytic.add=function(query, analytic){
 	var edges = analytic.edges;		//ARRAY OF COLUMN NAMES
 	if (edges===undefined) D.error("Analytic expects 'edges' to be defined, even if empty");
 	var sourceColumns=query.columns;
-	var from=query.list;
+
+	var copyEdge=false;         //I WISH THE ELEMENT DID NOT HAVE TO BE POLLUTED WITH THE EDGE VALUE
+	var parts=null;
+	var from;
+	if (query.edges.length==0 && query.list!=undefined){
+		from=query.list;
+	}else if (query.edges.length==1 && query.cube!=undefined){
+		from=query.cube;
+		copyEdge=true;
+		parts=query.edges[0].domain.partitions;
+	}else{
+		D.error("Analytic not defined, yet");
+	}//endif
 	
 	//FILL OUT THE ANALYTIC A BIT MORE
 	if (analytic.name===undefined) analytic.name=analytic.value.split(".").last();
@@ -52,8 +64,9 @@ CUBE.analytic.add=function(query, analytic){
 	var allGroups=[];
 	if (edges.length==0){
 		allGroups.push([]);
-		for(var j = from.length; i --;){
-			var row = from[j];
+		for(let i = from.length; i --;){
+			let row = from[i];
+			if (copyEdge) row[query.edges[0].name]=query.edges[0].domain.end(parts[i]);
 			if (!where(null, -1, row)){
 				nullGroup.push(row);
 				continue;
@@ -62,8 +75,9 @@ CUBE.analytic.add=function(query, analytic){
 		}//for
 	}else{
 		var tree = {};  analytic.tree=tree;
-		for(var i = from.length; i --;){
-			var row = from[i];
+		for(let i = from.length; i --;){
+			let row = from[i];
+			if (copyEdge) row[query.edges[0].name]=query.edges[0].domain.end(parts[i]);
 			if (!where(null, -1, row)){
 				nullGroup.push(row);
 				continue;

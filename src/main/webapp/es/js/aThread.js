@@ -132,7 +132,7 @@ function aThread_prototype_resume(retval){
 
 				this.kill(retval);
 				if (retval instanceof Exception){
-					D.println("Uncaught Error in thread: ", retval.toString());
+					D.println("Uncaught Error in thread: "+retval.toString());
 				}//endif
 				return retval;
 			}//endif
@@ -158,8 +158,10 @@ function aThread_prototype_resume(retval){
 
 			if (e instanceof StopIteration){
 				retval=undefined;	//HAPPENS WHEN THE CALLED GENERATOR IS DONE
-			}else{
+			}else if (e instanceof Exception){
 				retval=e;
+			}else{
+				retval=new Exception("Error", e);
 			}//endif
 		}//try
 	}//while

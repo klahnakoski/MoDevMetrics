@@ -143,57 +143,21 @@ var aChart={};
 
 (function(){
 
-aChart.FAVORITE_COLOUR="#2BB8F0";//BLUE FROM FIREFOX OCEAN
+var PVC_TIME_FORMAT="%y-%m-%d %H:%M:%S";
+var TIME_FORMAT="yyyy-MM-dd HH:mm:ss";
 
-
-aChart.PVC_TIME_FORMAT="%y-%m-%d %H:%M:%S";
-aChart.TIME_FORMAT="yyyy-MM-dd HH:mm:ss";
-
-
-function getAxisLabels(axis){
-	var labels=[];
-	if (axis.domain.type == "time"){
-		if (axis.domain.allowNulls) D.error("Charting lib can not handle NULL domain value.");
-//		var bestFormat = Date.getBestFormat(axis.domain.min, axis.domain.max, axis.domain.interval);
-//		var bestFormat=aChart.TIME_FORMAT;  //WILL NOT WORK UNTIL ALL NULL PARTS ARE REMOVED
-		axis.domain.partitions.forall(function(v, i){
-			if (v instanceof String){
-				labels.push(v);
-			} else if (v instanceof Date){
-				labels.push(v.format(aChart.TIME_FORMAT));
-			} else{
-				 var v2=v.name;
-				labels.push(v2); 
-			}//endif
-		});
-	} else if (axis.domain.type == "duration"){
-		axis.domain.partitions.forall(function(v, i){
-			if (v instanceof String){
-				labels.push(v);
-			} else if (v.milli === undefined){
-				labels.push(v.value.toString());
-			} else{
-				labels.push(v.toString());
-			}//endif
-		});
-	} else if (axis.domain.type == "linear"){
-		axis.domain.partitions.forall(function(v, i){
-			labels.push(v.name);
-		});
-	} else{
-		axis.domain.partitions.forall(function(v, i){
-			if (v instanceof String){
-				labels.push(v);
-			}else if (aMath.isNumeric(v)){
-				labels.push(""+v);
-			}else{
-				labels.push(""+axis.domain.end(v));
-			}//endif
-		});
-	}//endif
-	if (axis.allowNulls) labels.push(axis.domain.NULL.name);
-	return labels;
-};//method
+	//STATIC MAP FROM MY CHART TYPES TO CCC CLASS NAMES
+var CHART_TYPES={
+	"line":"LineChart",
+	"stackedarea":"StackedAreaChart",
+	"stacked":"StackedAreaChart",
+	"area":"StackedAreaChart",
+	"stackedbar":"StackedBarChart",
+	"bar":"BarChart",
+	"bullet":"BulletChart",
+	"scatter":"MetricDotChart",
+	"heat":"HeatGridChart"
+};
 
 
 aChart.showPie=function(params){
@@ -221,7 +185,7 @@ aChart.showPie=function(params){
 		legendSize:100,
 		orientation: 'vertical',
 		timeSeries: false, //(xaxis.domain.type=="time"),
-//		timeSeriesFormat: aChart.PVC_TIME_FORMAT,
+//		timeSeriesFormat: PVC_TIME_FORMAT,
 
 		showValues: false,
 		extensionPoints: {
@@ -247,19 +211,6 @@ aChart.showPie=function(params){
 	//FILL THE CROSS TAB DATASTUCTURE TO THE FORMAT EXPECTED (2D array of rows
 	//first row is series names, first column of each row is category name
 	var data=chartCube.cube.map(function(v, i){return [seriesLabels[i], v]});
-//	var metadata=[{"colName":"name"}, {"colName":"value"}];
-
-
-//	var data=chartCube.cube.copy();
-//	data.splice(0,0,"value");
-//
-////	data[0].splice(0,0,"value");
-//
-//	var metadata=seriesLabels.map(function(v, i){return {"colName":v};});
-//	metadata.splice(0,0,{"colName":"x"});
-
-
-
 
 
 	var cccData = {
@@ -284,38 +235,45 @@ aChart.showPie=function(params){
 
 
 
-
-
-//PLOT USING THE Common Charting Components
-function fixClickAction(chartParams){
-//FIX CLICKACTION SO IT WORKS IN BOTH CHART VERSIONS
-	var clickAction = chartParams.clickAction;
-	chartParams.clickAction = function(series, x, d, elem){
-		if (series.atoms !== undefined){
-			//CCC VERSION 2
-			var s = series.atoms.series.value;
-			var c = series.atoms.category.value;
-			var v = series.atoms.value.value;
-			if (c instanceof Date){  //CCC 2 DATES ARE IN LOCAL TZ
-				c = c.addTimezone();
-			}//endif
-
-			return clickAction(s, c, v, elem);
-		} else{
-			//CCC VERSION 1
-			return clickAction(series, x, d, elem);
-		}//endif
-	};//method
-}
-
-
 aChart.show=function(params){
-	Map.expecting(params, ["type", "cube"]);
+	Map.expecting(params, ["cube"]);
 	var divName=params.id;
 
-	var type=params.type;
 	var chartCube=params.cube;
-//	var colours=params.colours;
+	var type=params.type;
+
+	////////////////////////////////////////////////////////////////////////////
+	// TYPE OF CHART
+	////////////////////////////////////////////////////////////////////////////
+	if (type===undefined){
+		//NUMBER OF EDGES
+		if (chartCube.edges.length==1){
+			//TYPE OF EDGES
+			if (CUBE.domain.ALGEBRAIC.contains(chartCube.edges[0].domain.type)){
+				type="line";
+			}else{
+				type="bar";
+			}//endif
+		}else if (chartCube.edges.length==2){
+			if (CUBE.domain.ALGEBRAIC.contains(chartCube.edges[0].domain.type)){
+				if (CUBE.domain.ALGEBRAIC.contains(chartCube.edges[1].domain.type)){
+					type="heat";
+				}else{
+					type="line";
+					params.orientation="horizontal"
+				}//endif
+			}else{
+				if (CUBE.domain.ALGEBRAIC.contains(chartCube.edges[1].domain.type)){
+					type="line";
+				}else{
+					D.error("Can not handle two categorical edges");
+				}//endif
+			}//endif
+		}else{
+			D.error("Can not handle more than 2 edges");
+		}//endif
+	}//endif
+
 
 
 	////////////////////////////////////////////////////////////////////////////
@@ -375,18 +333,7 @@ aChart.show=function(params){
 	}//endif
 
 
-	//STATIC MAP FROM MY CHART TYPES TO CCC CLASS NAMES
-	var chartTypes={
-		"line":"LineChart",
-		"stackedarea":"StackedAreaChart",
-		"stacked":"StackedAreaChart",
-		"area":"StackedAreaChart",
-		"stackedbar":"StackedBarChart",
-		"bar":"BarChart",
-		"bullet":"BulletChart",
-		"scatter":"MetricDotChart",
-		"heat":"HeatGridChart"
-	};
+
 
 	var height;
 	if (chartCube.edges.length>1){
@@ -444,6 +391,8 @@ aChart.show=function(params){
 		Map.copy(params, chartParams);
 		chartParams.extensionPoints=extPoints;
 	}
+
+
 	fixClickAction(chartParams);
 
 
@@ -454,7 +403,7 @@ aChart.show=function(params){
 	}
 
 
-	var chart = new pvc[chartTypes[type]](chartParams);
+	var chart = new pvc[CHART_TYPES[type]](chartParams);
 
 
 	//FILL THE CROSS TAB DATA STRUCTURE TO THE FORMAT EXPECTED (2D array of rows
@@ -539,6 +488,36 @@ aChart.show=function(params){
 
 };
 
+
+
+
+//FIX CLICKACTION SO IT WORKS IN BOTH CHART VERSIONS
+function fixClickAction(chartParams){
+
+	var clickAction = chartParams.clickAction;
+	chartParams.clickAction = function(series, x, d, elem){
+		if (series.atoms !== undefined){
+			//CCC VERSION 2
+			var s = series.atoms.series.value;
+			var c = series.atoms.category.value;
+			var v = series.atoms.value.value;
+			if (c instanceof Date){  //CCC 2 DATES ARE IN LOCAL TZ
+				c = c.addTimezone();
+			}//endif
+
+			return clickAction(s, c, v, elem);
+		} else{
+			//CCC VERSION 1
+			return clickAction(series, x, d, elem);
+		}//endif
+	};//method
+}
+
+
+
+
+
+
 var BZ_SHOW_BUG_LIMIT=1000;
 function bugClicker(query, series, x){
 	try{
@@ -576,13 +555,14 @@ function bugClicker(query, series, x){
 	}catch(e){
 		//DO NOTHING
 	}//try
-};
+}
 
 
 function JavaDateFormat2ProtoVisDateFormat(format){
 	if (format===undefined) return undefined;
 	return format
 		.replaceAll('yyyy', '%y')
+		.replaceAll('NNN', '%b')
 		.replaceAll('MM', '%m')
 		.replaceAll('dd', '%d')
 		.replaceAll('HH', '%H')
@@ -590,6 +570,52 @@ function JavaDateFormat2ProtoVisDateFormat(format){
 		.replaceAll('ss', '%S')
 	;
 }
+
+
+function getAxisLabels(axis){
+	var labels=[];
+	if (axis.domain.type == "time"){
+		if (axis.domain.allowNulls) D.error("Charting lib can not handle NULL domain value.");
+//		var bestFormat = Date.getBestFormat(axis.domain.min, axis.domain.max, axis.domain.interval);
+//		var bestFormat=TIME_FORMAT;  //WILL NOT WORK UNTIL ALL NULL PARTS ARE REMOVED
+		axis.domain.partitions.forall(function(v, i){
+			if (v instanceof String){
+				labels.push(v);
+			} else if (v instanceof Date){
+				labels.push(v.format(TIME_FORMAT));
+			} else{
+				 var v2=v.name;
+				labels.push(v2);
+			}//endif
+		});
+	} else if (axis.domain.type == "duration"){
+		axis.domain.partitions.forall(function(v, i){
+			if (v instanceof String){
+				labels.push(v);
+			} else if (v.milli === undefined){
+				labels.push(v.value.toString());
+			} else{
+				labels.push(v.toString());
+			}//endif
+		});
+	} else if (axis.domain.type == "linear"){
+		axis.domain.partitions.forall(function(v, i){
+			labels.push(v.name);
+		});
+	} else{
+		axis.domain.partitions.forall(function(v, i){
+			if (v instanceof String){
+				labels.push(v);
+			}else if (aMath.isNumeric(v)){
+				labels.push(""+v);
+			}else{
+				labels.push(""+axis.domain.end(v));
+			}//endif
+		});
+	}//endif
+	if (axis.allowNulls) labels.push(axis.domain.NULL.name);
+	return labels;
+}//method
 
 
 ////////////////////////////////////////////////////////////////////////////////
