@@ -92,7 +92,7 @@ var importScript;
 	}//method
 
 
-	var readfile=function(fullPath, callback){
+	function readfile(fullPath, callback){
 		var request = new XMLHttpRequest();
 		try{
 			var url=window.location.protocol+"//"+window.location.hostname+fullPath;
@@ -129,7 +129,7 @@ var importScript;
 			D.error("Can not read "+fullPath+" ("+e.message+")");
 			callback(null);
 		}//try
-	};
+	}
 
 	function shortPath(fullPath){
 		return fullPath.substring(fullPath.lastIndexOf("/")+1);
@@ -174,11 +174,20 @@ var importScript;
 
 	function addScripts(paths, doneCallback){
 		var head=document.getElementsByTagName('head')[0];
-		var scripts=head.getElementsByTagName('script');
 		var existingScripts=[window.location.pathname];
+
+		var scripts=head.getElementsByTagName('script');
 		for(var s=0;s<scripts.length;s++){
 			existingScripts.push(scripts[s].getAttribute("src"));
 		}//for
+
+
+		//<link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
+		var css=head.getElementsByTagName('link');
+		for(var s=0;s<css.length;s++){
+			existingScripts.push(css[s].getAttribute("href"));
+		}//for
+
 
 		paths=subtract(paths, existingScripts);
 
@@ -193,11 +202,21 @@ var importScript;
 
 		for(var i=0;i<paths.length;i++){
 			if (DEBUG) D.println("Add script: "+shortPath(paths[i]));
-			var script=document.createElement('script');
-			script.type='text/javascript;version=1.7';
-			script.src=paths[i];
-			script.onload=onLoadCallback;
-			head.appendChild(script);
+			if (paths[i].substring(paths[i].length-4)==".css"){
+				//<link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
+				var newCSS=document.createElement('link');
+				newCSS.type='text/css';
+				newCSS.rel="stylesheet";
+				newCSS.href=paths[i];
+				head.appendChild(newCSS);
+				numLoaded--;
+			}else{
+				var script=document.createElement('script');
+				script.type='text/javascript;version=1.7';
+				script.onload=onLoadCallback;
+				script.src=paths[i];
+				head.appendChild(script);
+			}//endif
 		}//for
 		if (DEBUG) D.println("Added "+paths.length+" scripts");
 	}//function
@@ -292,6 +311,10 @@ var importScript;
 		while(aScript.todo.length>0){
 			var nextFile=aScript.todo.pop();
 			if (aScript.code[nextFile]) continue;
+			if (nextFile.substring(nextFile.length-4)==".css"){
+				aScript.code[nextFile]=nextFile;
+				continue;
+			}//endif
 			aScript.code[nextFile]="";
 
 			aScript.numRemaining++;

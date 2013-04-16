@@ -9,6 +9,8 @@ importScript([
 	"../../lib/jquery.numberformatter.js",
 
 	"../../lib/ccc/lib/jquery.tipsy.js",
+	"../../lib/ccc/lib/tipsy.css",
+
 	"../../lib/ccc/lib/protovis-d3.3.js",
 	"../../lib/ccc/lib/protovis-msie.js",
 	"../../lib/ccc/lib/tipsy.js",

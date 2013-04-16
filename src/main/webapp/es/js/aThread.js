@@ -273,8 +273,9 @@ aThread.call=function(func, param){
 aThread.Resume = {"name":"resume"};
 aThread.Yield = {"name":"yield"};  //BE COOPERATIVE, WILL PAUSEE VERY MAX_TIME_BLOCK MILLISECONDS
 aThread.Suspend = function(request){
-	if (request.kill===undefined) D.error("Expecting an object with kill() function");
 	this.name="suspend";
+	if (request===undefined) return;
+	if (request.kill===undefined) D.error("Expecting an object with kill() function");
 	this.request=request;	//KILLABLE OBJECT
 };
 aThread.Suspend.name="suspend";

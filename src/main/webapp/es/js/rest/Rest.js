@@ -96,7 +96,7 @@ Rest.send=function(ajaxParam){
 	};
 
 	request.send(ajaxParam.data);
-	yield( new aThread.Suspend(request));
+	yield( new aThread.Suspend((ajaxParam.doNotKill) ? undefined : request));
 };//method
 
 

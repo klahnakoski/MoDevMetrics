@@ -4,8 +4,8 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-<script type="application/javascript;version=1.7" src="js/Settings.js">
-</script></HEAD>
+	<script type="application/javascript;version=1.7" src="js/Settings.js"></script>
+</HEAD>
 <BODY>
 
 
@@ -18,7 +18,7 @@
 <script type="application/javascript;version=1.7" src="lib/webdetails/lib/protovis-d3.3.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/lib/jquery.tipsy.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/lib/tipsy.js"></script>
-<link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
+<link type="text/css" href="lib/webdetails/lib/tipsy.css" rel="stylesheet"/>
 
 <script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvc.js"></script>
 <script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcPanel.js"></script>
@@ -43,7 +43,7 @@
 
 
 
-<link type="text/css" rel="stylesheet" href="css/start/jquery-ui-1.8.16.custom.css" />
+<link type="text/css" href="css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
 <script type="application/javascript;version=1.7" src="lib/js/jquery-ui-1.8.16.custom.min.js"></script>
 <script type="application/javascript;version=1.7" src="lib/js/jquery.ba-bbq.js"></script>
 
@@ -51,16 +51,17 @@
 
 
 
-<script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/aArray.js"></script><script type="application/javascript;version=1.7" src="js/aString.js"></script><script type="application/javascript;version=1.7" src="js/aMath.js"></script><script type="application/javascript;version=1.7" src="js/CNV.js"></script>
+<script type="application/javascript;version=1.7" src="js/CNV.js"></script>
 <script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/aArray.js"></script><script type="application/javascript;version=1.7" src="js/aString.js"></script><script type="application/javascript;version=1.7" src="js/aMath.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script><script type="application/javascript;version=1.7" src="js/aDuration.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/Dimension-Bugzilla.js"></script>
-<script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/Dimension-Bugzilla.js"></script>
+<script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
 <script type="application/javascript;version=1.7" src="js/aDebug.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
-<script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
+<script type="application/javascript;version=1.7" src="js/aCompiler.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/aThread.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
@@ -90,14 +91,15 @@
 <script type="application/javascript;version=1.7" src="js/gui/ComponentFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/gui/TeamFilter.js"></script>
 <script type="application/javascript;version=1.7" src="js/gui/ProductFilter.js"></script>
-
 <script type="application/javascript;version=1.7" src="js/gui/ProgramFilter.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script>
 <script type="application/javascript;version=1.7" src="js/etl/BugTags.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/PickDim.js"></script>
 
 
 
+<h3>Security Bug Count - by Priority</h3>
 <div id="sidebar">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
@@ -118,31 +120,36 @@
 <div style="float:right;display: inline;">
 	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
 </div>
-
-<div style="align:left;position:relative;float:left;width:800px;">
-	<h3>Open Bug Count</h3>
-	<div id="chartResponse" style="width:400px;height:200px;float:left;display: inline;"></div>
-	<div id="chartProducts" style="width:400px;height:200px;float:left;display: inline;"></div>
-	<div id="chart" style="position: relative;"></div>
-
-	<div id="info"></div>
-	<div id="report"></div>
+<div style="position:relative;">
+	<div id="chart" style="position:relative;"></div>
+	<div id="selector" style="position:relative;width:700px"></div>
 </div>
+<div id="info"></div>
+<div id="report"></div>
+
 
 <script type="application/javascript;version=1.7">
 
 
 var CUTOFF=Duration.newInstance("3week");
-$("#description").html("An attempt to get bug history to pull faster from ES<br><br>The initial load my be slow, and the chart boring, but it gets really amazing when you start filtering by program and product!");
+$("#description").html("<span class='warning'>This chart has already been filtered by the products important to the security team</span><br><br>"+
+		//" If you have a steady hand, you can click the values to get a new tab showing the bugs that makeup the value."+
+//		"<span class='warning'>The filters work, but the results may not be accurate:  They assume the filter value does not change until after the bug is closed.</span><br><br>"+
+		"");
 
 var thread;
-var createChart=function(){
-	if (thread!==undefined)
-		thread.kill();
-	thread=aThread.run( __createChart());
+var pickDim;
+
+
+var createChart=function(query){
+	if (thread!==undefined) thread.kill();
+	thread=aThread.run( __createChart(query));
 };
 
-var __createChart = function(){
+////////////////////////////////////////////////////////////////////////////////
+// paramQuery HAS THE esfilter AND ONE DIMENSION TO SPLIT ON
+////////////////////////////////////////////////////////////////////////////////
+var __createChart = function(paramQuery){
 
 	var sampleMin=Date.newInstance(GUI.state.sampleMin);
 	var sampleMax=Date.newInstance(GUI.state.sampleMax).ceilingDay();
@@ -157,53 +164,13 @@ var __createChart = function(){
 	
 	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
 
-	var mainFilter={"and":[
-			{"and":[
-				{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},
-				{"range":{"expires_on":{"gte":sampleMin.getMilli()}}}
-			]},
-			{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-"+sampleMin.getMilli()+", "+sampleInterval.milli+")!=floorInterval(expires_on-"+sampleMin.getMilli()+", "+sampleInterval.milli+")", {"from":"bugs"})}},
-			Mozilla.BugStatus.Open.esfilter,
-			GUI.getFilters("bugs")
-		]};
 
 
 
-	//CHART PRODUCT BREAKDOWN
-	aThread.run(function(){
-		var q=new ESQuery({
-			"name":"Product Breakdown",
-			"from":"bugs",
-			"select":{"name":"count", "value":"bug_id", "operation":"count"},
-			"edges":[
-				{"name":"product", "value":"product"}
-			],
-			"esfilter":{"and":[
-				mainFilter,
-				{"range":{"expires_on":{"gte":sampleMax.getMilli()}}}  //JUST PICK THE LAST DAY
-			]}
-		});
-
-		var response=yield (q.run());
-
-		aChart.showPie({
-			"id":"chartProducts",
-			"cube":response,
-			"height":200,
-			"width":400
-		});
-
-	});
-
-
-
-
-
-
-	var a=D.action("Request Bugs", true);
-	var chart=yield (ESQuery.run({
+	var q={
+		"name":"Open Bug Count",
 		"from":"bugs",
-		"select":{"name":"num_bug", "value":"bug_id", "operation":"count"},
+		"select": {"name":"total", "value":"bug_id", "operation":"count"},
 		"edges":[
 			{"name":"date",
 				"range":{"min":"modified_ts", "max":"expires_on"},
@@ -211,22 +178,39 @@ var __createChart = function(){
 				"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
 			}
 		],
-		"esfilter":mainFilter
-	}));
+		"esfilter":{"and":[
+			{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},
+			{"range":{"expires_on":{"gte":sampleMin.getMilli()}}},
+			{"script":{"script":
+				MVEL.compile.expression(
+					"floorInterval(modified_ts-"+(sampleMin.getMilli()%sampleInterval.milli)+", "+sampleInterval.milli+")!=floorInterval(expires_on-"+(sampleMin.getMilli()%sampleInterval.milli)+", "+sampleInterval.milli+")",
+					{"from":"bugs"}
+				)
+			}}
+		]}
+	};
+
+	if (!paramQuery) paramQuery=pickDim.getQuery();
+	if (paramQuery.edges.length>0) q.edges.prepend(paramQuery.edges[0]);
+	q.esfilter.and.appendArray(paramQuery.esfilter);
+	q.esfilter.and.appendArray(GUI.getFilters("bugs").and);
 
 
+	var a=D.action("Request Bugs", true);
+	var chart=yield(ESQuery.run(q));
 	D.actionDone(a);
 
 
-	var a=D.action("Make chart", true);
+	a=D.action("Make chart", true);
 	aChart.show({
 		"id":"chart",
 		"sheetDiv":"info",
-		"type":"line",
+		"type":"stacked",
 		"stacked":true,
 		"cube":chart
 	});
 	D.actionDone(a);
+
 
 };
 
@@ -242,10 +226,12 @@ var __createChart = function(){
 			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
 		],
 		[
-			"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+			"sampleMin=Date.newInstance(sampleMin).addDay(1).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
+			"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
 		],
-		"bugs",
-		true);
+		"bugs");
+
+		pickDim=new PickDim($("#selector"), Mozilla, window.createChart);
 	});
 
 </script>

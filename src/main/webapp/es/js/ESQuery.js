@@ -41,7 +41,7 @@ ESQuery.INDEXES={
 	"org_chart":{"path":"/org_chart/person"},
 	"temp":{"path":""},
 	"telemetry":{"path":"/telemetry/data"},
-	"raw_telemetry":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/raw_telemetry/data"}
+	"raw_telemetry":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9300", "path":"/raw_telemetry/data"}
 //	"raw_telemetry":{"host":"http://localhost:9200", "path":"/raw_telemetry/data"}
 };
 
@@ -102,26 +102,38 @@ ESQuery.loadColumns=function(query){
 	var indexPath=indexInfo.path;
 	if (indexName=="bugs" && !indexPath.endsWith("/bug_version")) indexPath+="/bug_version";
 
+	if (typeof(indexInfo.columns)=="object")
+		yield(null);
 
-	if (indexInfo.columns == "pending") yield (aThread.sleep(200)); //SMALL DELAY WITH HOPE ANOTHER THREAD IS GETTING THIS INFO
+	//WE MANAGE ALL THE REQUESTS FOR THE SAME SCHEMA, DELAYING THEM IF THEY COME IN TOO FAST
+	if (indexInfo.fetchCount === undefined) indexInfo.fetchCount=0;
 
-	if (indexInfo.columns === undefined || indexInfo.columns == "pending"){
-		var URL=Util.coalesce(query.url, Util.coalesce(indexInfo.host, ElasticSearch.baseURL) + indexPath) + "/_mapping";
-
-		try{
-			var schema = yield(Rest.get({
-				"url":URL
-			}));
-		}catch(e){
-			//NEVER RUN WHEN THREAD IS KILLED
-			indexInfo.columns=undefined;
-			yield (null);
-		}//try
-
-		var properties = schema[indexPath.split("/")[2]].properties;
-
-		indexInfo.columns = ESQuery.parseColumns(indexName, properties);
+	if (indexInfo.fetchCount>0){
+		var c=indexInfo.fetchCount;
+		indexInfo.fetchCount++;
+		for(;c--;){
+			yield (aThread.sleep(200)); //SMALL DELAY WITH HOPE ANOTHER THREAD IS GETTING THIS INFO
+			if (typeof(indexInfo.columns)=="object") yield(null);   //CHECK PERIODICALLY JUST IN CASE A PEER ALREADY GOT THE INFO
+		}//for
+		indexInfo.fetchCount--;
 	}//endif
+
+	indexInfo.fetchCount++;
+	var URL=Util.coalesce(query.url, Util.coalesce(indexInfo.host, ElasticSearch.baseURL) + indexPath) + "/_mapping";
+
+	try{
+		var schema = yield(Rest.get({
+			"url":URL,
+			"doNotKill":true        //WILL NEED THE SCHEMA EVENTUALLY
+		}));
+	}catch(e){
+		//NEVER RUN WHEN THREAD IS KILLED
+		yield (null);       //RETURN
+	}//try
+
+	var properties = schema[indexPath.split("/")[2]].properties;
+
+	indexInfo.columns = ESQuery.parseColumns(indexName, properties);
 
 	yield(null);
 };//method

@@ -150,7 +150,7 @@ var __createChart = function(){
 				{"name":measureX,
 					"value":measureX,
 					"allowNulls":false,
-					"domain":{"type":"linear", "min":"0", "max":maxX, "interval":maxX/numParts, "value":"min"}
+					"domain":Mozilla.Telemetry.
 				}
 			],
 			"esfilter":esfilter
@@ -174,142 +174,16 @@ var __createChart = function(){
 		});
 
 
-		
-
-		var regressionLine=Stats.query2regression(heatGrid);
-
-		aChart.show({
-			"id":"chartLine",
-			"type":"line",
-			"cube":regressionLine,
-			"titlePaddings":5,
-			"height":550,
-			"width":550,
-//			"baseAxisSize":50,
-			"baseAxisVisible":false,
-			"orthoAxisVisible":false,
-			"orthoAxisDomainRoundMode" : 'none',
-			"orthoAxisFixedMax":heatGrid.edges[0].domain.max,
-			"orthoAxisFixedMin":heatGrid.edges[0].domain.min
-//			yAxisSize: 50,
-//			xAxisSize: 50,
-//			"colorNormByCategory": false,
-//			"colors":["#EEEEEE", "#BBBBBB", "#999999", "#666666", "#333333"]
-		});
-
-
-
-
-
-
-
 
 		yield (null);
 
 	});
-//
-//	////////////////////////////////////////////////////////////////////////////
-//	//CHART REGRESSION LINE
-//	//EXTREME OUTLIERS MAKE THIS REAL REGRESSION LINE SUCK
-//	////////////////////////////////////////////////////////////////////////////
-//	var X;
-//	var Y;
-//	var XY;
-
-//
-//	var threadXY=aThread.run("pull XY stats", function(){
-//		XY=yield (ESQuery.run({
-//			"from":"raw_telemetry",
-//			"select":[
-//				{"name":"count", "value":'doc["'+measureX+'"].value*doc["'+measureY+'"].value', "operation":"count"},
-//				{"name":"sum", "value":'doc["'+measureX+'"].value*doc["'+measureY+'"].value', "operation":"sum"},
-//				{"name":"X2", "value":'doc["'+measureX+'"].value*doc["'+measureY+'"].value', "operation":"X2"}
-//			],
-//			"edges":[],
-//			"esfilter":esfilter
-//		}));
-//	});
-//
-//	var threadX=aThread.run("pull X stats", function(){
-//		X=yield (ESQuery.run({
-//			"from":"raw_telemetry",
-//			"select":[
-//				{"name":"count", "value":'doc["'+measureX+'"].value', "operation":"count"},
-//				{"name":"sum", "value":'doc["'+measureX+'"].value', "operation":"sum"},
-//				{"name":"X2", "value":'doc["'+measureX+'"].value', "operation":"X2"}
-//			],
-//			"edges":[],
-//			"esfilter":esfilter
-//		}));
-//	});
-//
-//	var threadY=aThread.run("pull Y stats", function(){
-//		Y=yield (ESQuery.run({
-//			"from":"raw_telemetry",
-//			"select":[
-//				{"name":"count", "value":'doc["'+measureY+'"].value', "operation":"count"},
-//				{"name":"sum", "value":'doc["'+measureY+'"].value', "operation":"sum"},
-//				{"name":"X2", "value":'doc["'+measureY+'"].value', "operation":"X2"}
-//			],
-//			"edges":[],
-//			"esfilter":esfilter
-//		}));
-//	});
-//
-//	yield (aThread.join(threadXY));
-//	yield (aThread.join(threadX));
-//	yield (aThread.join(threadY));
-//
-//	var line=Stats.regressionLine({
-//		"N":X.cube.count,
-//		"X1":X.cube.sum,
-//		"X2":X.cube.X2,
-//		"XY":XY.cube.sum,
-//		"Y2":Y.cube.X2,
-//		"Y1":Y.cube.sum
-//	});
-//
-//	//BUILD NEW QUERY WITH NEW CUBE
-//	yield (aThread.join(heatThread));
-//	var query=heatGrid;
-//	var domainX=CUBE.domain.domain2linear(query.edges[1].domain);
-//	var output=Map.copy(heatGrid);
-//	output.select={"name":query.edges[0].name};
-//	output.edges=[query.edges[1]];
-//
-//	output.cube=[];
-//	domainX.partitions.forall(function(v, i){
-//		var part=domainX.partitions[i];
-//		output.cube[i]=line((part.min+part.max)/2)
-//	});
-//	output.name=" ";
-//
-//	aChart.show({
-//		"id":"chartLine",
-//		"type":"line",
-//		"cube":output,
-//		"titlePaddings":5,
-//		"height":550,
-//		"width":550,
-////			"baseAxisSize":50,
-//		"baseAxisVisible":false,
-//		"orthoAxisVisible":false,
-//		"orthoAxisDomainRoundMode" : 'none',
-//		"orthoAxisFixedMax":heatGrid.edges[0].domain.max
-////			yAxisSize: 50,
-////			xAxisSize: 50,
-////			"colorNormByCategory": false,
-////			"colors":["#EEEEEE", "#BBBBBB", "#999999", "#666666", "#333333"]
-//	});
-//
 
 	yield (null);
 };
 
 
 
-
-//file:///C:/Users/klahnakoski/git/Bugzilla%20Anthropology/src/main/webapp/es/Age_OpenBugs.html#sampleInterval=day&sampleMax=2013-01-18&sampleMin=2013-01-15&selectedPrograms=Security+%28High+and+Critical+Only%29&selectedProducts=core,firefox,thunderbird,toolkit,mailnews+core
 	$(document).ready(function(){
 		GUI.setup(
 			createChart,

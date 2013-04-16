@@ -10,7 +10,8 @@ importScript([
 	"../../lib/js/jquery.ba-bbq.js",
 	"../../lib/jsonlint/jsl.format.js",
 	"../../lib/jsonlint/jsl.parser.js",
-	"../../lib/jquery-linedtextarea/jquery-linedtextarea.js"
+	"../../lib/jquery-linedtextarea/jquery-linedtextarea.js",
+	"../../lib/jquery-linedtextarea/jquery-linedtextarea.css"
 ]);
 
 importScript("../charts/HelperFunctions.js");
