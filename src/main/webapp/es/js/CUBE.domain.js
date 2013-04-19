@@ -6,7 +6,7 @@
 if (CUBE===undefined) var CUBE = {};
 CUBE.domain = {};
 
-CUBE.domain.ALGEBRAIC=["time", "duration", "linear"];  //DOMAINS THAT HAVE ALGEBRAIC OPERATIONS DEFINED
+CUBE.domain.ALGEBRAIC=["time", "duration", "linear", "count"];  //DOMAINS THAT HAVE ALGEBRAIC OPERATIONS DEFINED
 CUBE.domain.KNOWN=["set", "binary", "duration", "time", "linear"];    //DOMAINS THAT HAVE A KNOWN NUMBER FOR PARTS AT QUERY TIME
 CUBE.domain.PARTITION=["set", "binary"];    //DIMENSIONS WITH CLEAR PARTS
 
@@ -377,6 +377,9 @@ CUBE.domain.duration = function(column, sourceColumns){
 	if (column.range){
 		D.error("duration ranges not supported yet");
 	}else if (column.test === undefined){
+		var noMin=(d.min===undefined);
+		var noMax=(d.max===undefined);
+
 		d.getPartByKey = function(key){
 			if (key == null || key=="null") return this.NULL;
 			if (typeof(key)=="string") key=Duration.newInstance(key);
@@ -386,8 +389,8 @@ CUBE.domain.duration = function(column, sourceColumns){
 				D.error();
 
 			}
-			if (this.min===undefined){//NO MINIMUM REQUESTED
-				if (this.min===undefined && this.max===undefined){
+			if (noMin){//NO MINIMUM REQUESTED
+				if (noMin && noMax){
 					this.min = floor;
 					this.max = Util.coalesce(this.max, floor.add(this.interval));
 					CUBE.domain.duration.addRange(this.min, this.max, this);
@@ -402,8 +405,8 @@ CUBE.domain.duration = function(column, sourceColumns){
 				return this.NULL;
 			}//endif
 
-			if (this.max === undefined){//NO MAXIMUM REQUESTED
-				if (this.min === undefined && this.max === undefined){
+			if (noMax){//NO MAXIMUM REQUESTED
+				if (noMin && noMax){
 					this.min = Util.coalesce(this.min, floor);
 					this.max = floor.add(this.interval);
 					CUBE.domain.duration.addRange(this.min, this.max, this);
@@ -516,6 +519,8 @@ CUBE.domain.linear = function(column, sourceColumns){
 
 
 	if (column.test === undefined){
+		var noMin=(d.min===undefined);
+		var noMax=(d.max===undefined);
 		d.getPartByKey = function(key){
 			if (key == null || key=="null") return this.NULL;
 			if (typeof(key)=="string") key=CNV.String2Integer(key);
@@ -525,10 +530,11 @@ CUBE.domain.linear = function(column, sourceColumns){
 				D.error();
 
 			}
-			if (this.min === undefined){//NO MINIMUM REQUESTED
-				if (this.min === undefined && this.max === undefined){
+
+			if (noMin){//NO MINIMUM REQUESTED
+				if (this.min===undefined){
 					this.min = floor;
-					this.max = Util.coalesce(this.max, floor+this.interval);
+					this.max = aMath.min(this.max, floor+this.interval);
 					CUBE.domain.linear.addRange(this.min, this.max, this);
 				} else if (key < this.min){
 //					var newmin=floor;
@@ -541,11 +547,11 @@ CUBE.domain.linear = function(column, sourceColumns){
 				return this.NULL;
 			}//endif
 
-			if (this.max === undefined){//NO MAXIMUM REQUESTED
-				if (this.min === undefined && this.max === undefined){
-					this.min = Util.coalesce(this.min, floor);
+			if (noMax){//NO MAXIMUM REQUESTED
+				if (this.max===undefined){
+					this.min = Math.max(this.min, floor);
 					this.max = floor+this.interval;
-					CUBE.domain.linear.addRange(this.min, this.max, this);
+					CUBE.domain.linear.addRange(this.min, this,max, this);
 				} else if (key >= this.max){
 					var newmax = floor+this.interval;
 					CUBE.domain.linear.addRange(this.max, newmax, this);
@@ -562,7 +568,7 @@ CUBE.domain.linear = function(column, sourceColumns){
 		if (d.partitions === undefined){
 			d.map = {};
 			d.partitions = [];
-			if (!(d.min === undefined) && !(d.max === undefined)){
+			if (!noMin && !noMax){
 				CUBE.domain.linear.addRange(d.min, d.max, d);
 			}//endif
 		} else{
@@ -612,6 +618,118 @@ CUBE.domain.linear.addRange = function(min, max, domain){
 		domain.partitions.push(partition);
 	}//for
 };//method
+
+
+
+
+
+CUBE.domain.count = function(column, sourceColumns){
+	function _floor(value, mod){
+		return aMath.floor(value/mod)*mod;
+	}
+
+	var d = column.domain;
+	if (d.name === undefined) d.name = d.type;
+	if (d.interval===undefined) d.interval=1;
+	d.NULL = {"value":null, "name":"null"};
+	d.interval = CNV.String2Integer(d.interval);
+	d.min = d.min===undefined ? 0 : _floor(CNV.String2Integer(d.min), d.interval);
+	d.max = d.max===undefined ? undefined : _floor(CNV.String2Integer(d.max)+d.interval, d.interval);
+
+
+	d.compare = function(a, b){
+		if (a.value == null){
+			if (b.value == null) return 0;
+			return -1;
+		} else if (b.value == null){
+			return 1;
+		}//endif
+
+		return ((a.value < b.value) ? -1 : ((a.value > b.value) ? +1 : 0));
+	};//method
+
+	//PROVIDE FORMATTING FUNCTION
+//	if (d.format === undefined){
+		d.formatValue = function(value){
+			if (value.toString===undefined) return CNV.Object2JSON(value);
+			return value.toString();
+		};//method
+//	}//endif
+
+
+	if (column.test === undefined){
+		var noMax=d.max===undefined;
+
+		d.getPartByKey = function(key){
+			if (key == null || key=="null") return this.NULL;
+			if (typeof(key)=="string") key=CNV.String2Integer(key);
+			try{
+				var floor = _floor(key, d.interval);
+			}catch(e){
+				D.error();
+			}
+			if (key < 0){
+				column.outOfDomainCount++;
+				return this.NULL;
+			}//endif
+
+			if (noMax){//NO MAXIMUM REQUESTED
+				var newmax = floor+this.interval;
+				if (this.max===undefined){
+					CUBE.domain.linear.addRange(0, newmax, this);
+					this.max = newmax;
+				}else if (key >= this.max){
+					CUBE.domain.linear.addRange(this.max, newmax, this);
+					this.max = newmax;
+				}//endif
+			} else if (key >= this.max){
+				column.outOfDomainCount++;
+				return this.NULL;
+			}//endif
+
+			return this.map[floor];
+		};//method
+
+		if (d.partitions === undefined){
+			d.map = {};
+			d.partitions = [];
+			if (!(d.max === undefined)){
+				CUBE.domain.linear.addRange(d.min, d.max, d);
+			}//endif
+		} else{
+			d.map = {};
+			for(var v = 0; v < d.partitions.length; v++){
+				d.map[d.partitions[v].value] = d.partitions[v];  //ASSMUE THE DOMAIN HAS THE value ATTRBUTE
+			}//for
+		}//endif
+	} else{
+		d.error("matching multi to count domain is not supported");
+	}//endif
+
+
+	d.getCanonicalPart=function(part){
+		return this.getPartByKey(part.value);
+	};//method
+
+
+	//RETURN CANONICAL KEY VALUE FOR INDEXING
+	d.getKey = function(partition){
+		return partition.value;
+	};//method
+
+	d.columns=[
+		{"name":"value", "type":"number"},
+		{"name":"min", "type":"number"},
+		{"name":"max", "type":"number"},
+		{"name":"interval", "type":"number"}
+	];
+
+
+
+	CUBE.domain.compileEnd(d);
+
+};//method;
+
 
 
 

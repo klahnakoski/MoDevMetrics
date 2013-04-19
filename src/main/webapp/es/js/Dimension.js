@@ -58,8 +58,8 @@ var Dimension={};
 
 			if (dim.limit===undefined) dim.limit=20;
 
-			if (dim.field!==undefined && dim.type=="set" && dim.parts===undefined){
-				aThread.run(function(){
+			if (dim.field!==undefined && dim.type=="set" && dim.allParts===undefined){
+				dim.partitions=aThread.run(function(){
 					var parts=yield (ESQuery.run({
 						"from":dim.index,
 						"select":{"name":"count", "value":dim.field, "operation":"count"},
@@ -67,20 +67,24 @@ var Dimension={};
 						"limit":dim.limit
 					}));
 
-					dim.partitions=parts.cube.map(function(v, i){
+					var d=parts.edges[0].domain;
+					var allParts=parts.cube.map(function(v, i){
 						return {
-							"name":parts.edges[0].domain.partitions[i],
-							"esfilter":{"term":Map.newInstance(dim.field, parts.edges[0].domain.partitions[i])},
+							"name":d.partitions[i].name,
+							"value":d.end(parts.edges[0].domain.partitions[i]),
+							"esfilter":{"term":Map.newInstance(dim.field, d.partitions[i].value)},
 							"count":v
 						};
 					});
 
-					dim.partitions.forall(function(v, i){
+					allParts.forall(function(v, i){
 						dim[v.name]=v;
 						v.parent=dim;
 						convertPart(v);
 					});
 
+					dim.partitions=allParts;
+					yield (null)
 				});
 
 			}//endif

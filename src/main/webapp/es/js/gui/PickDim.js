@@ -40,7 +40,8 @@ PickDim.prototype._findPart=function(name){
 	parts.forall(function(v, i){
 		if (v.name == name) selected = v;
 	});
-	if (!selected) D.error("No part by name of " + name);
+	if (!selected)
+		D.error("No part by name of " + name);
 
 	return selected;
 };//method
@@ -90,13 +91,12 @@ PickDim.prototype.unselect = function(name){
 
 //RETURNS THE CURRENT SELECTED STATE
 PickDim.prototype.toggle = function(name){
-
 	if (this.focus.selected[name]){
-		this.focus.selected[name] = undefined;
+		this.focus.selected[name]=undefined;
 		return undefined;
-	} else{
-		return this.select(name);
 	}//endif
+
+	return this.select(name);
 };
 
 
@@ -210,11 +210,14 @@ PickDim.prototype.addPart=function(edge){
 		}//endif
 	});
 
-	
+	////////////////////////////////////////////////////////////////////////////
+	// CLICK
+	////////////////////////////////////////////////////////////////////////////
 	row.find(".dim-part").click(function(e){
 		var o=$(this);
 		var selected=self.toggle(o.attr("name"));
 		if (selected){
+//			self.focus.selected[name]=selected;
 			o.addClass("selected");
 		}else{
 			o.removeClass("selected");
@@ -275,11 +278,82 @@ PickDim.prototype.getQuery=function(){
 	var edges=[];
 	var filter={"and":[]};
 
+	var numSelected=countAllKey(this.focus.selected);
+	var currentSelection=Map.codomain(this.focus.selected);;
+
+	//MAKE AN EDGE FOR PARTITIONING
 	if (this.focus){
-		if (this.focus.edge.partitions){
-			//THE ACTUAL SELECTION CAN BE DONE LOCALLY, SO WE WILL SIMPLY REQUEST ALL PARTS???
-			edges.push({"name":this.focus.edge.name, "value":"1", "domain":this.focus.edge});
-		}else{
+
+		var selectedParts=this.focus.edge.partitions;
+		if (selectedParts && numSelected>0){
+			selectedParts=currentSelection;
+		}//endif
+
+		if (selectedParts){
+
+			if (this.focus.edge.field!==undefined){
+				//PARTS CAME FROM THE FIELD DEFINITION
+				//THE ACTUAL SELECTION CAN BE DONE LOCALLY, SO WE WILL SIMPLY REQUEST ALL PARTS???
+				edges.push({
+					"name":this.focus.edge.name,
+					"value":this.focus.edge.field,
+					"domain":{
+						"type":this.focus.edge.type,
+						"partitions":selectedParts.map(function(p,i){
+							return p.value;
+						})
+					}
+				});
+			}else{
+				//COMPILE INDIVIDUAL PARTS TO MAKE A SINGLE CASE STATEMENT
+				//SHOULD NOT DO THIS, THE QUERY OBJECT SHOULD BE ABLE TO HANDLE IT FINE
+				//(?MOVE THIS LOGIC OVER TO ESQuery?)
+				var term="\"Other\";";
+				var eParts=this.focus.edge.partitions;
+				for(var i=eParts.length;i--;){
+					var v=eParts[i];
+					if (selectedParts.contains(v)){
+						//COUNT IT
+						term=
+							"if ("+MVEL.prototype.where(v.esfilter)+") "+CNV.String2Quote(v.name)+";\n else "+
+							term;
+					}else{
+						//IGNORE IT
+						term=
+							"if ("+MVEL.prototype.where(v.esfilter)+") null;\n else "+
+							term;
+					}//endif
+				}//for
+			}//endif
+		}else if (numSelected>0 && currentSelection[0].field&& CUBE.domain.ALGEBRAIC.contains(currentSelection[0].type)){
+			//ONLY ONE DIMENSION CAN EVER BE SELECTED
+			//ADD SOME min/max/interval ATTRIBUTES
+			var s=currentSelection[0];
+			edges.push({
+				"name":s.name,
+				"value":s.field,
+				"domain":{
+					"type":s.type,
+					"min":s.min,
+					"max":s.max,
+					"interval":s.interval
+				}
+			});
+		}else if (numSelected>0 && currentSelection[0].field && CUBE.domain.PARTITION.contains(currentSelection[0].type)){
+			var s=currentSelection[0];
+			edges.push({
+				"name":s.name,
+				"value":s.field,
+				"domain":{
+					"type":s.type,
+					"partitions":s.partitions.map(function(p,i){
+						return p.value;
+					})
+				}
+			});
+		}//endif
+
+		if (this.focus.edge.esfilter){
 			filter.and.push(this.focus.edge.esfilter);
 		}//endif
 	}//endif
@@ -287,16 +361,15 @@ PickDim.prototype.getQuery=function(){
 	for(var i=0;i<this.filters.length;i++){
 		var selected=this.filters[i].selected;
 		//ADD SELECTED esfilterS TO THE FILTER
-		if (countAllKey(selected)==0){
+		var keys=Object.keys(selected);
+		if (keys.length==0){
 			//DO NOTHING
-		}else if (countAllKey(selected)==1){
-			forAllKey(selected, function(k, v){
-				if (v.esfilter) filter.and.push(v.esfilter);
-			});
+		}else if (keys.length==1){
+			if (selected[keys[0]].esfilter)
+				filter.and.push(selected[keys[0]].esfilter);
 		}else{
-			var or=[];
-			forAllKey(selected, function(k, v){
-				or.push(v.esfilter);
+			var or=mapAllKey(selected, function(k, v){
+				return v.esfilter;
 			});
 			filter.and.push({"or":or});
 		}//endif

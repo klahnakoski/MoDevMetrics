@@ -598,7 +598,7 @@ CUBE.Cube2List=function(query){
 			"	row[query.select[s].name]="+accessCube+"[s];\n"+
 			"}\n";
 	}else{
-		assignSelect="var row={}; Map.copy("+accessCube+", row);\n";
+		assignSelect="var row=Map.copy("+accessCube+");\n";
 	}//endif
 
 	var code=

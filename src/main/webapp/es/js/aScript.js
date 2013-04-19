@@ -65,6 +65,13 @@ var importScript;
 		return c;
 	}//method
 
+	function contains(array, element){
+		for(var i=array.length;i--;){
+			if (array[i]==element) return true;
+		}//for
+		return false;
+	}//method
+
 	////////////////////////////////////////////////////////////////////////////
 	// SCRIPTS WITH THE MAGIC METHOD WILL RECORD THEIR DEPENDENCIES
 	// AND THEIR CODE FOR LATER EXECUTION
@@ -248,11 +255,18 @@ var importScript;
 						var hasParent=unprocessed.map(function(v,i){if (graph[v].__parent!==undefined ) return v;});
 						if (hasParent.length==0) D.error("Isolated cycle found");
 						hasParent=subtract(hasParent, processed);
-						for(var k=0;k<hasParent.length;k++) if (hasParent[k]) queue.push(hasParent[k]);
+						unprocessed=subtract(unprocessed, hasParent);
+						for(var k=0;k<hasParent.length;k++){
+							if (DEBUG && contains(processed, hasParent[k]))
+								D.error("Duplicate pushed!!");
+							queue.push(hasParent[k]);
+//							unprocessed.remove([hasParent[k]]);
+						}
 					}//endif
 				}//END OF HACK
 
-				processStartingPoint(queue.shift());
+				var next=queue.shift();
+				processStartingPoint(next);
 			}//while
 		}//method
 
@@ -266,7 +280,11 @@ var importScript;
 				graph[child].indegrees--;
 				graph[child].__parent=graph[nodeId];		//MARKUP FOR HACK
 			}//for
-			processed.push(graph[nodeId].id);
+
+			var node=graph[nodeId].id;
+			if (DEBUG && contains(processed, node))
+				D.error("Duplicate pushed!!");
+			processed.push(node);
 		}//method
 
 
@@ -277,6 +295,8 @@ var importScript;
 				n.indegrees=0;
 				n.children=[];
 				graph[name]=n;
+				if (DEBUG && contains(unprocessed, name))
+					D.error("Duplicate pushed!!");
 				unprocessed.push(name);
 			}//endif
 		}//method

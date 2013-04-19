@@ -991,7 +991,7 @@ function processNodeR(n, linebreaks, latex){
 
 function AMprocessNode(n, linebreaks){
 	var nodes=$(n, "span.AM");
-	nodes.each(function(v, i){
+	nodes.each(function(i, v){
 		processNodeR(v, linebreaks, false);
 	});
 }

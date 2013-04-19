@@ -69,7 +69,7 @@ Rest.send=function(ajaxParam){
 				}//endif
 				ajaxParam.success(response);
 			}else{
-				ajaxParam.error(request.responseText);
+				ajaxParam.error("Bad response: "+CNV.String2Quote(request.responseText));
 			}//endif
 		}else{
 //			D.println(CNV.Object2JSON(request));

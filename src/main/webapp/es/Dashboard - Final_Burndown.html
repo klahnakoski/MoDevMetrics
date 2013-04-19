@@ -328,7 +328,7 @@ $(document).ready(function(){
 	GUI.setup(createChart, [
 		{"id":"forTitle", "name":"Title", "type":"text", "default":"Open Leo+"},
 		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.now().addWeek(-2)},//Date.now().addDay(-15).floorMonth()},
-		{"id":"dueDate", "name":"Due Date", "type":"time", "default":Date.newInstance("2013-04-08")},//Date.now().addMonth(1).floorDay()},
+		{"id":"dueDate", "name":"Due Date", "type":"time", "default":Date.now().floorDay().addWeek(1)},//Date.now().addMonth(1).floorDay()},
 		{"id":"esfilter", "name":"ES Filter", "type":"json", "default":{"and":[
 			{"term":{"cf_blocking_b2g":"leo+"}},
 			{"not":{"terms":{"cf_status_b2g18":["fixed","verified","unaffected","wontfix"]}}}

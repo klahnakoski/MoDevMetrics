@@ -24,14 +24,14 @@
 	<hr>
 	<div id="stats"></div>
 	<hr>
-	<div style="width:100%;position: relative;">
-		Measure X
-		<textarea id="measureX" rows="5" style="width:100%;"></textarea>
-		Measure Y
-		<textarea id="measureY" rows="5" cols="60" style="width:100%;"></textarea>
-		Filter
-		<textarea id="esfilter" rows="5" cols="60" style="width:100%;"></textarea>
-	</div>
+	<!--<div style="width:100%;position: relative;">-->
+		<!--Measure X-->
+		<!--<textarea id="measureX" rows="5" style="width:100%;"></textarea>-->
+		<!--Measure Y-->
+		<!--<textarea id="measureY" rows="5" cols="60" style="width:100%;"></textarea>-->
+		<!--Filter-->
+		<!--<textarea id="esfilter" rows="5" cols="60" style="width:100%;"></textarea>-->
+	<!--</div>-->
 	<div id="parameters" class="parameters">
 	</div>
 	<div id="filters" class="menu"></div>
@@ -39,7 +39,7 @@
 
 
 <div style="align:left;position:relative;float:left;width:800px;">
-	<h3>Telemetry Heat Grid</h3>
+	<h3>Telemetry</h3>
 
 
 	<div class="chart" style="height:600px;width:600px;position: relative;">
@@ -138,19 +138,22 @@ var __createChart = function(){
 	//CHART PRODUCT BREAKDOWN
 	var heatGrid;
 	var heatThread=aThread.run("pull raw telemetry data", function(){
+
+		while(Mozilla.Telemetry.Instance.Addons.partitions=="pending") yield (aThread.sleep(200));
+
 		heatGrid=yield (ESQuery.run({
 			"name":"X vs Y",
 			"from":"raw_telemetry",
 			"select":{"name":"count", "value":"_id", "operation":"count"},
 			"edges":[
 				{"name":measureY,
-					"value":measureY,
+					"value":GUI.state.measureY.getField,
 					"allowNulls":false,
 					"domain":{"type":"linear", "min":"0", "max":maxY, "interval":maxY/numParts, "value":"min"}},
 				{"name":measureX,
 					"value":measureX,
 					"allowNulls":false,
-					"domain":Mozilla.Telemetry.
+					"domain":Mozilla.Telemetry.Instance.Addons
 				}
 			],
 			"esfilter":esfilter
@@ -189,7 +192,16 @@ var __createChart = function(){
 			createChart,
 			[
 				{"id":"measureX", "name":"Measure X", "type":"code", "default":"simpleMeasurements.start"},
-				{"id":"measureY", "name":"Measure Y", "type":"code", "default":"simpleMeasurements.main-simpleMeasurements.start"},
+				{"id":"measureY", "type":PartitionFilter.newInstance({
+					"name":"Measure Y",
+					"dimension":Mozilla.Telemetry,
+					"onlyOne":true,
+					"expandAll":true,
+					"callback":function(dim){
+						D.println("Chose "+dim.name);
+					}//method
+				})},
+
 				{"id":"esfilter", "name":"ES Filter", "type":"json", "default":{"and":[
 					{"term":{"appUpdateChannel":"nightly"}},
 					{"term":{"OS":"WINNT"}},

@@ -6,45 +6,83 @@
 PartitionFilter = function(){};
 
 
+
+(function(){
+
+
+
+
 PartitionFilter.newInstance=function(param){
-	ASSERT.hasAttributes(param, ["name", "dimension", "onlyOne"]);
+	ASSERT.hasAttributes(param, ["name", "dimension", "onlyOne", "expandAll"]);
 
 	var self=new PartitionFilter();
 	Map.copy(param, self);
 
-	if (self.dimension.partitions===undefined) D.error(self.dimension.name+" does not have a partition defined");
+	if (self.dimension.partitions===undefined && self.dimension.edges===undefined) D.error(self.dimension.name+" does not have a partition defined");
 
 	self.id=self.dimension.parent.name.replaceAll(" ", "_");
 	self.isFilter=true;
 	self.treeDone=false;
-	self.DIV_ID=name.replaceAll(" ", "_")+"_id";
-	self.DIV_LIST_ID=name.replaceAll(" ", "_")+"_list";
+	self.DIV_ID=self.id.replaceAll(" ", "_")+"_id";
+	self.DIV_LIST_ID=self.id.replaceAll(" ", "_")+"_list";
+	self.FIND_TREE="#"+CNV.String2JQuery(self.DIV_LIST_ID);
 	self.disableUI=false;
 	self.selectedParts=[];
+	self.numLater=0;
+	self.id2part={};        //MAP IDs TO PART OBJECTS
 
-	self.parts=[];
+	self.allParts=[];
 	self.parents={};
-	function convertToTree(parent, dimension){
-		var node={};
-		node.id=parent.id+"."+dimension.name.replaceAll(" ", "_");
-		node.attr={id:node.id};
-		node.data=dimension.name;
-		node.esfilter=dimension.esfilter;
-		self.parents[node.id]=parent;
-		if (dimension.partitions){
-			node.children=dimension.partitions.map(function(v,i){
-				return convertToTree(node, v);
-			});
-		}//endif
-		self.parts.push(node);
-		return node;
-	}//function
 
-	self.hierarchy=convertToTree({"id":self.id}, self.dimension).children;
-//	self.hierarchy[0].data=param.name;
-	
+	self.hierarchy=convertToTree(self, {"id":self.id}, self.dimension).children;
+
 	return self;
 };
+
+
+function updateLater(self, treeNode, dimension){
+	self.numLater++;
+	aThread.run(function(){
+		//DO THIS ONE LATER
+		treeNode.children = [];
+		while(dimension.partitions instanceof aThread) yield (aThread.join(dimension.partitions));
+		treeNode.children = dimension.partitions.map(function(v, i){
+			return convertToTree(self, treeNode, v);
+		});
+		self.numLater--;
+		yield (null);
+	});
+}
+
+function convertToTree(self, parent, dimension){
+	var node={};
+	node.id=parent.id+"."+dimension.name.replaceAll(" ", "_");
+	node.attr={id:node.id};
+	node.data=dimension.name;
+	self.id2part[node.id]=dimension;   //STORE THE WHOLE EDGE/PART
+
+	self.allParts.push(node);
+	self.parents[node.id]=parent;
+
+	if (dimension.partitions){
+		if (dimension.partitions instanceof aThread){
+			updateLater(self, node, dimension);
+		}else{
+			node.children=dimension.partitions.map(function(v,i){
+				return convertToTree(self, node, v);
+			});
+		}//endif
+	}//endif
+	if (dimension.edges){
+		node.children=dimension.edges.map(function(v,i){
+			return convertToTree(self, node, v);
+		});
+	}//endif
+	return node;
+}//function
+
+
+
 
 
 PartitionFilter.prototype.getSelectedParts=function(){
@@ -52,8 +90,8 @@ PartitionFilter.prototype.getSelectedParts=function(){
 
 	//CONVERT SELECTED LIST INTO PART OBJECTS
 	return this.selectedParts.map(function(id){
-		for(var i = self.parts.length; i--;){
-			if (self.parts[i].id==id) return self.parts[i];
+		for(var i = self.allParts.length; i--;){
+			if (self.allParts[i].id==id) return self.allParts[i];
 		}//for
 	});
 };//method
@@ -87,13 +125,23 @@ PartitionFilter.prototype.getSummary=function(){
 
 
 PartitionFilter.prototype.makeTree=function(){
-	if (this.treeDone) return;
-	if ($("#" + CNV.String2JQuery(this.DIV_LIST_ID)).length==0) return;
+	if (this.treeDone) return;      //ALREADY MADE TREE
+	if ($(this.FIND_TREE).length==0) return; //NOT BEEN CREATED YET
+
+	var self=this;
+	if (self.numLater>0 && self.refreshLater===undefined){
+		//WAIT FOR LODING TO COMPLETE
+		self.refreshLater=aThread.run(function(){
+			while(self.numLater>0) yield(aThread.sleep(200));
+			self.refreshLater=undefined;
+			self.makeTree();
+		});
+		return;
+	}//endif
 
 	this.treeDone=true;
 
-	var self=this;
-	$("#" + CNV.String2JQuery(this.DIV_LIST_ID)).jstree({
+	$(this.FIND_TREE).jstree({
 		"json_data" : {
 			"data":self.hierarchy		 //EXPECTING id, name, children FOR ALL NODES IN TREE
 		},
@@ -141,7 +189,10 @@ PartitionFilter.prototype.makeTree=function(){
 			self.selectedParts = minCover;
 			GUI.refresh();
 		}//endif
-	}).bind("loaded.jstree", function(){self.refresh();});
+	}).bind("loaded.jstree", function(){
+		if (self.expandAll) $(self.FIND_TREE).jstree('open_all');
+		self.refresh();
+	});
 };
 
 
@@ -159,7 +210,8 @@ PartitionFilter.prototype.makeFilter = function(){
 	var selected = this.getSelectedParts();
 	if (selected.length == 0) return ES.TrueFilter;
 
-	return {"or":selected.map(function(v){return v.esfilter;})};
+	var self=this;
+	return {"or":selected.map(function(v){return self.id2part[v.id].esfilter;})};
 };//method
 
 
@@ -170,7 +222,7 @@ PartitionFilter.prototype.refresh = function(){
 	this.makeTree();
 	var selected=this.getSelectedParts();
 
-	var f=$('#'+this.DIV_LIST_ID);
+	var f=$('#'+CNV.String2JQuery(this.DIV_LIST_ID));
 	f.jstree("deselect_all");
 	f.jstree("uncheck_all");
 	selected.forall(function(p){
@@ -182,3 +234,4 @@ PartitionFilter.prototype.refresh = function(){
 };
 
 
+})();

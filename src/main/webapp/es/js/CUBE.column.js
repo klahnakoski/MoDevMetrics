@@ -117,10 +117,10 @@ CUBE.where.compile = function(whereClause, sourceColumns, edges){
 	}//for
 
 	f +=
-		"try{ " +
-			"	return (" + whereClause + "); " +
-			"}catch(e){ " +
-			"	D.warning(\"Problem with definition of the where clause " + CNV.String2Quote(whereClause).rightBut(1).leftBut(1) + "\", e); " +
+		"try{\n" +
+			"	return (" + whereClause + ");\n" +
+			"}catch(e){\n" +
+			"	D.warning(\"Problem with definition of the where clause " + CNV.String2Quote(whereClause).rightBut(1).leftBut(1) + "\", e);\n" +
 			"}}";
 	try{
 		eval(f);

@@ -319,6 +319,7 @@ var __createChart = function(){
 				{"id":"esfilter", "name":"ES Filter", "type":"json", "default":{"and":[
 					{"term":{"appUpdateChannel":"nightly"}},
 					{"term":{"OS":"WINNT"}},
+					{"term":{"version":"6.1"}},
 					{"term":{"info.reason":"saved-session"}},
 					{"term":{"info.appVersion":"22.0a1"}},
 					{"term":{"simpleMeasurements.startupInterrupted":0}},

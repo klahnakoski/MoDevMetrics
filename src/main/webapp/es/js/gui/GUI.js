@@ -5,9 +5,10 @@
 
 
 importScript([
-	"../../lib/jquery.js",
-	"../../lib/js/jquery-ui-1.8.16.custom.min.js",
-	"../../lib/js/jquery.ba-bbq.js",
+	"../../lib/jquery-ui/js/jquery-1.9.1.js",
+	"../../lib/jquery-ui/js/jquery-ui-1.10.2.custom.js",
+	"../../lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css",
+	"../../lib/jquery.ba-bbq/jquery.ba-bbq.js",
 	"../../lib/jsonlint/jsl.format.js",
 	"../../lib/jsonlint/jsl.parser.js",
 	"../../lib/jquery-linedtextarea/jquery-linedtextarea.js",
@@ -205,10 +206,21 @@ GUI.State2URL = function(){
 		}//endif
 	});
 
-	var removeList=mapAllKey(simplestate, function(k,v){if (v===undefined) return k;});
-	jQuery.bbq.removeState(removeList);
-	jQuery.bbq.pushState(Map.copy(simplestate));
+	{//bbq REALY NEEDS TO KNOW WHAT ATTRIBUTES TO REMOVE FROM URL
+		var removeList=[];
+		var keys=Object.keys(simplestate);
+		for(var i=keys.length;i--;){
+			var key=keys[i];
+			var val=simplestate[key];
+			if (val===undefined) removeList.push(key);
+		}//for
+
+		jQuery.bbq.removeState(removeList);
+		jQuery.bbq.pushState(Map.copy(simplestate));
+	}
+	
 };
+
 GUI.State2URL.isEnabled=false;
 
 
@@ -229,6 +241,9 @@ GUI.URL2State = function(){
 			}catch(e){
 				D.error("Malformed JSON: "+v);
 			}//try
+		}else if (p && p.type=="text"){
+			v=v.escape(Map.inverse(GUI.urlMap));
+			GUI.state[k] = v;
 		}else if (p && p.type=="code"){
 			v=v.escape(Map.inverse(GUI.urlMap));
 			GUI.state[k] = v;
@@ -448,7 +463,8 @@ GUI.makeSelectionPanel = function (){
 	$("#filters").html(html);
 
 	$("#filters").accordion({
-		autoHeight: false,
+		heightStyle: "content",
+//		autoHeight: false,
 		navigation: true,
 		collapsible: true
 	});

@@ -10,7 +10,7 @@
 
 
 <script type="application/javascript;version=1.7" src="../lib/webdetails/cdf/Base.js"></script>
-<script type="application/javascript;version=1.7" src="../lib/webdetails/cdf/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/jquery.js"></script>
 <script type="application/javascript;version=1.7" src="../lib/jstree/jquery.jstree.js"></script>
 <script type="application/javascript;version=1.7" src="../lib/webdetails/cdf/jquery.tooltip.js"></script>
 <script type="application/javascript;version=1.7" src="../lib/webdetails/data/q01-01.js"></script>
@@ -34,9 +34,9 @@
 
 <script type="application/javascript;version=1.7" src="../lib/webdetails/pvcDocUtils.js"></script>
 
-<link type="text/css" href="../css/start/jquery-ui-1.8.16.custom.css" rel="stylesheet"/>
-<script type="application/javascript;version=1.7" src="../lib/js/jquery-ui-1.8.16.custom.min.js"></script>
-<script type="application/javascript;version=1.7" src="../lib/js/jquery.ba-bbq.js"></script>
+<link type="text/css" href="../lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css" rel="stylesheet"/>
+<script type="application/javascript;version=1.7" src="../lib/jquery-ui/js/jquery-ui-1.10.2.custom.js"></script>
+<script type="application/javascript;version=1.7" src="../lib/jquery.ba-bbq/jquery.ba-bbq.js"></script>
 
 <link type="text/css" rel="stylesheet" href="../css/menu.css"/>
 
@@ -86,30 +86,35 @@
 //		yield (ESQuery.loadColumns({"from":"bugs"}));
 
 
-		var esQuery = {
-			"fields":["bug_id", "blocked"],
-			"sort":[], "size":2000, "from":0, "query":{"filtered":{ "filter":{"and":[
+		var esQuery = { "query":{"filtered":{ "query":{"match_all":{}}, "filter":{"and":[
 			{"script":{"script":"true"}},
 			{"and":[
-				{"term":{"bug_id":53363}},
-				{"not":{"missing":{"field":"blocked"}}},
-				{"or":[
-					{"term":{"blocked":841099}},
-					{"term":{"blocked":837145}},
-					{"term":{"blocked":837155}},
-					{"term":{"blocked":839392}},
-					{"term":{"blocked":842108}},
-					{"term":{"blocked":850809}},
-					{"term":{"blocked":855905}},
-					{"term":{"blocked":838081}}
-				]},
-//				{"terms":{"blocked":[
-//					[841099,837145,837155,839392,842108,850809,855905,838081]
-//				]}},
-				{"range":{"expires_on":{"gte":1359417600000}}},
-				{"range":{"modified_ts":{"lt":1365120000000}}}
+				{"term":{"appUpdateChannel":"nightly"}},
+				{"term":{"OS":"WINNT"}},
+				{"term":{"version":"6.1"}},
+				{"term":{"info.reason":"saved-session"}},
+				{"term":{"info.appVersion":"22.0a1"}},
+//				{"exists":{"field":"simpleMeasurements"}},
+				{"term":{"simpleMeasurements.startupInterrupted":0}},
+				{"term":{"simpleMeasurements.debuggerAttached":0}},
+//				{"script":{"script":"doc[\"simpleMeasurements.start\"].value <= doc[\"simpleMeasurements.main\"].value"}},
+//				{"script":{"script":"doc[\"simpleMeasurements.main\"].value <= doc[\"simpleMeasurements.createTopLevelWindow\"].value"}},
+//				{"script":{"script":"doc[\"simpleMeasurements.createTopLevelWindow\"].value <= doc[\"simpleMeasurements.firstPaint\"].value"}},
+//				{"script":{"script":"doc[\"simpleMeasurements.firstPaint\"].value <= doc[\"simpleMeasurements.sessionRestored\"].value"}},
+//				{"or":[
+//					{"not":{"exists":{"field":"doc[\"simpleMeasurements.firstLoadURI\"].value"}}},
+//					{"script":{"script":"doc[\"simpleMeasurements.firstPaint\"].value <= doc[\"simpleMeasurements.firstLoadURI\"].value"}},
+//					{"script":{"script":"doc[\"simpleMeasurements.firstLoadURI\"].value <= doc[\"simpleMeasurements.sessionRestored\"].value"}}
+//				]}
 			]}
-		]}, "query":{"match_all":{}} }} };
+		]} }}, "from":0, "size":0, "sort":[],
+			"facets":{ "0":{ "statistical":{"field":"simpleMeasurements.firstPaint"},
+				"facet_filter":{"and":[
+			{"term":{"info.addons":"testpilot%40labs.mozilla.com:1.2.2"}}
+		]}
+			} } }
+
+				;
 //		{
 //			"facets":{"mvel":{"terms":{ "size":200000, "script_field":"doc[\"dependson\"].value"}}},
 //			"sort":[], "size":0, "from":0, "query":{"filtered":{ "filter":{"and":[
@@ -121,7 +126,8 @@
 		try{
 			var data = yield(Rest.post({
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping?pretty=true",
-			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/raw_telemetry/_search",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
 
 //			"url":"http://localhost:9200/reviews/review/_search",

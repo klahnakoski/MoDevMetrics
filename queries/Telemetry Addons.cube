@@ -1,0 +1,177 @@
+{
+    "select": [
+        {
+            "name": "average",
+            "value": "simpleMeasurements.sessionRestored",
+            "operation": "average"
+        },
+        {
+            "name": "X2",
+            "value": "simpleMeasurements.sessionRestored",
+            "operation": "X2"
+        },
+        {
+            "name": "count",
+            "value": "simpleMeasurements.sessionRestored",
+            "operation": "count"
+        }
+    ],
+    "from": "raw_telemetry",
+    "edges": [
+        {
+            "name": "addons",
+            "value": "info.addons",
+            "domain": {
+                "type": "set",
+                "partitions": [
+                    "testpilot%40labs.mozilla.com:1.2.2",
+                    "firebug%40software.joehewitt.com:1.11.2",
+                    "artur.dubovoy%40gmail.com:3.8.7",
+                    "firefox%40ghostery.com:2.9.3",
+                    "ffxtlbr%40delta.com:1.5.0",
+                    "elemhidehelper%40adblockplus.org:1.2.3",
+                    "compatibility%40addons.mozilla.org:2.0",
+                    "firefox%40mega.co.nz:1.0.3",
+                    "plugin%40yontoo.com:1.20.02",
+                    "de-de%40dictionaries.addons.mozilla.org:2.0.3",
+                    "adblockpopups%40jessehakanen.net:0.7",
+                    "ffxtlbr%40funmoods.com:1.5.1",
+                    "gophoto%40gophoto.it:1.5",
+                    "ich%40maltegoetz.de:1.4.7",
+                    "ffxtlbr%40babylon.com:1.5.0",
+                    "ascsurfingprotection%40iobit.com:1.0",
+                    "langpack-ru%40firefox.mozilla.org:22.0a1",
+                    "netvideohunter%40netvideohunter.com:1.9.5",
+                    "yasearch%40yandex.ru:7.3.1",
+                    "anttoolbar%40ant.com:2.4.7.7",
+                    "translator%40zoli.bod:2.1.0.3",
+                    "wrc%40avast.com:8.0.1483",
+                    "foxmarks%40kei.com:4.1.3",
+                    "uriloader%40pdf.js:0.7.236",
+                    "personas%40christopher.beard:1.6.5",
+                    "langpack-de%40firefox.mozilla.org:22.0a1",
+                    "xthunder%40lshai.com:1.3.1",
+                    "langpack-zh-cn%40firefox.mozilla.org:22.0a1",
+                    "divxwebplayer%40divx.com:2.0.2.039",
+                    "easelink%40ashi.cn:1.0.2.3",
+                    "scriptish%40erikvold.com:0.1.8",
+                    "speedanalysis%40speedanalysis.com:1.0.0.1",
+                    "https-everywhere%40eff.org:3.1.4"
+                ]
+            }
+        }
+    ],
+    "esfilter": {
+        "and": [
+            {
+                "term": {
+                    "appUpdateChannel": "nightly"
+                }
+            },
+            {
+                "term": {
+                    "OS": "WINNT"
+                }
+            },
+            {
+                "term": {
+                    "version": "6.1"
+                }
+            },
+            {
+                "term": {
+                    "info.reason": "saved-session"
+                }
+            },
+            {
+                "term": {
+                    "info.appVersion": "22.0a1"
+                }
+            },
+            {
+                "exists": {
+                    "field": "simpleMeasurements"
+                }
+            },
+            {
+                "term": {
+                    "simpleMeasurements.startupInterrupted": 0
+                }
+            },
+            {
+                "term": {
+                    "simpleMeasurements.debuggerAttached": 0
+                }
+            },
+            {
+                "script": {
+                    "script": "doc[\"simpleMeasurements.start\"].value <= doc[\"simpleMeasurements.main\"].value"
+                }
+            },
+            {
+                "script": {
+                    "script": "doc[\"simpleMeasurements.main\"].value <= doc[\"simpleMeasurements.createTopLevelWindow\"].value"
+                }
+            },
+            {
+                "script": {
+                    "script": "doc[\"simpleMeasurements.createTopLevelWindow\"].value <= doc[\"simpleMeasurements.firstPaint\"].value"
+                }
+            },
+            {
+                "script": {
+                    "script": "doc[\"simpleMeasurements.firstPaint\"].value <= doc[\"simpleMeasurements.sessionRestored\"].value"
+                }
+            },
+            {
+                "or": [
+                    {
+                        "not": {
+                            "exists": {
+                                "field": "doc[\"simpleMeasurements.firstLoadURI\"].value"
+                            }
+                        }
+                    },
+                    {
+                        "script": {
+                            "script": "doc[\"simpleMeasurements.firstPaint\"].value <= doc[\"simpleMeasurements.firstLoadURI\"].value"
+                        }
+                    },
+                    {
+                        "script": {
+                            "script": "doc[\"simpleMeasurements.firstLoadURI\"].value <= doc[\"simpleMeasurements.sessionRestored\"].value"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}
+
+{
+	"select":{
+		"name":"count",
+		"value":"simpleMeasurements.sessionRestored",
+		"operation":"count"
+	},
+	"from":"raw_telemetry",
+	"edges":[{"name":"addons","value":"info.addons"}],
+	"esfilter":{"and":[
+		{"term":{"appUpdateChannel":"nightly"}},
+		{"term":{"OS":"WINNT"}},
+		{"term":{"version":"6.1"}},
+		{"term":{"info.reason":"saved-session"}},
+		{"term":{"info.appVersion":"22.0a1"}},
+		{"term":{"simpleMeasurements.startupInterrupted":0}},
+		{"term":{"simpleMeasurements.debuggerAttached":0}},
+		{"script":{"script":"doc[\"simpleMeasurements.start\"].value <= doc[\"simpleMeasurements.main\"].value"}},
+		{"script":{"script":"doc[\"simpleMeasurements.main\"].value <= doc[\"simpleMeasurements.createTopLevelWindow\"].value"}},
+		{"script":{"script":"doc[\"simpleMeasurements.createTopLevelWindow\"].value <= doc[\"simpleMeasurements.firstPaint\"].value"}},
+		{"script":{"script":"doc[\"simpleMeasurements.firstPaint\"].value <= doc[\"simpleMeasurements.sessionRestored\"].value"}},
+		{"or":[
+			{"not":{"exists":{"field":"doc[\"simpleMeasurements.firstLoadURI\"].value"}}},
+			{"script":{"script":"doc[\"simpleMeasurements.firstPaint\"].value <= doc[\"simpleMeasurements.firstLoadURI\"].value"}},
+			{"script":{"script":"doc[\"simpleMeasurements.firstLoadURI\"].value <= doc[\"simpleMeasurements.sessionRestored\"].value"}}
+		]}
+	]}
+}

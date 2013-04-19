@@ -12,7 +12,7 @@
 <link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
 <link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
 <link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
-<link type="text/css" rel="stylesheet" href="css/start/jquery-ui-1.8.16.custom.css" />
+<link type="text/css" rel="stylesheet" href="lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css" />
 
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 
@@ -285,7 +285,12 @@ var __createChart = function(){
 		GUI.setup(createChart, [
 			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
 			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today().ceilingWeek()},
-			{"id":"teamFilter", "type":PartitionFilter.newInstance({"name":"All Teams", "dimension":Mozilla.Security.Teams, "onlyOne":true})}
+			{"id":"teamFilter", "type":PartitionFilter.newInstance({
+				"name":"All Teams",
+				"dimension":Mozilla.Security.Teams,
+				"onlyOne":true,
+				"expandAll":true
+			})}
 		],
 		[
 			"sampleMin=Date.newInstance(sampleMin).floorWeek().format('yyyy-MM-dd')",

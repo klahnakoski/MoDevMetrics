@@ -5,15 +5,17 @@
 
 importScript([
 
-	"../../lib/ccc/cdf/jquery.js",
+//	"../../lib/ccc/cdf/jquery.js",
+	"../../lib/jquery.js",
 	"../../lib/jquery.numberformatter.js",
-
-	"../../lib/ccc/lib/jquery.tipsy.js",
-	"../../lib/ccc/lib/tipsy.css",
 
 	"../../lib/ccc/lib/protovis-d3.3.js",
 	"../../lib/ccc/lib/protovis-msie.js",
+
+	"../../lib/ccc/lib/jquery.tipsy.js",
 	"../../lib/ccc/lib/tipsy.js",
+	"../../lib/ccc/lib/tipsy.css",
+
 	"../../lib/ccc/def/def.js",
 
 	"../../lib/ccc/pvc/pvc.js",
@@ -168,6 +170,10 @@ aChart.showPie=function(params){
 	var type=params.type;
 	var chartCube=params.cube;
 
+	if (chartCube.cube.length==0){
+		D.warning("Nothing to pie-chart");
+		return;
+	}//endif
 	if (chartCube.edges.length!=1) D.error("Only one dimension suuported");
 	if (chartCube.select instanceof Array) D.error("Can not chart when select clause is an array");
 
@@ -188,7 +194,7 @@ aChart.showPie=function(params){
 		orientation: 'vertical',
 		timeSeries: false, //(xaxis.domain.type=="time"),
 //		timeSeriesFormat: PVC_TIME_FORMAT,
-
+		valuesVisible:false,
 		showValues: false,
 		extensionPoints: {
 			noDataMessage_text: "No Data To Chart"
@@ -362,7 +368,7 @@ aChart.show=function(params){
 		originIsZero: this.originZero,
 		yAxisPosition: "right",
 		yAxisSize: 50,
-		xAxisSize: 100,
+		xAxisSize: 50,
 		"colors":styles.map(function(s){return s.color;}),
 		plotFrameVisible: false,
 		extensionPoints: {
@@ -522,6 +528,13 @@ function fixClickAction(chartParams){
 
 var BZ_SHOW_BUG_LIMIT=1000;
 function bugClicker(query, series, x){
+
+	if (typeof(query.from) != "string"){
+		//NOT SUPPORTED
+		return;
+	}//endif
+
+
 	try{
 		//We can decide to drilldown, or show a bug list.
 		//Sometimes drill down is not available, and bug list is too big, so nothing happens

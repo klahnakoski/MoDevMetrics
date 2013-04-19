@@ -11,6 +11,33 @@ Dimension.addEdges(false, Mozilla, [
 
 	{"name":"Telemetry", "index":"raw_telemetry", "edges":[
 
+		{"name":"Measures", "edges":[
+			{"name":"Start", "value":"simpleMeasurements.start", "type":"linear", "default":{"aggregate":["median", "average"]}},
+			{"name":"Main", "value":"simpleMeasurements.main", "type":"linear", "default":{"aggregate":["median", "average"]}},
+			{"name":"Top Window", "value":"simpleMeasurements.createTopLevelWindow", "type":"linear", "default":{"aggregate":["median", "average"]}},
+			{"name":"Session Restored", "value":"simpleMeasurements.sessionRestored", "type":"linear", "default":{"aggregate":["median", "average"]}},
+			{"name":"First Paint", "value":"simpleMeasurements.firstPaint", "type":"linear", "default":{"aggregate":["median", "average"]}},
+			{"name":"First Load URI", "value":"simpleMeasurements.firstLoadURI", "type":"linear", "default":{"aggregate":["median", "average"]}},
+
+//			{"name":"", "value":"simpleMeasurements.sessionRestoreInitialized", "type":"linear", "default":{"aggregate":["median", "average"]}},
+
+//			{"name":"", "value":"simpleMeasurements.startupCrashDetectionBegin", "type":"linear", "default":{"aggregate":["median", "average"]}},
+//			{"name":"", "value":"simpleMeasurements.startupCrashDetectionEnd", "type":"linear", "default":{"aggregate":["median", "average"]}},
+//			{"name":"", "value":"simpleMeasurements.delayedStartupStarted", "type":"linear", "default":{"aggregate":["median", "average"]}},
+//			{"name":"", "value":"simpleMeasurements.delayedStartupFinished", "type":"linear", "default":{"aggregate":["median", "average"]}},
+
+
+//			{"name":"", "value":"simpleMeasurements.startupSessionRestoreReadBytes", "type":"linear", "default":{"aggregate":["median", "average"]}},
+//			{"name":"", "value":"simpleMeasurements.startupSessionRestoreWriteBytes", "type":"linear", "default":{"aggregate":["median", "average"]}},
+//			{"name":"", "value":"simpleMeasurements.startupWindowVisibleReadBytes", "type":"linear", "default":{"aggregate":["median", "average"]}},
+//			{"name":"", "value":"simpleMeasurements.startupWindowVisibleWriteBytes", "type":"linear", "default":{"aggregate":["median", "average"]}},
+
+//			{"name":"", "value":"simpleMeasurements.uptime", "type":"linear", "default":{"aggregate":["median", "average"]}},
+//			{"name":"", "value":"simpleMeasurements.shutdownDuration", "type":"linear", "default":{"aggregate":["median", "average"]}},
+			{"name":"", "value":"simpleMeasurements.startupInterrupted", "type":"boolean"},
+			{"name":"", "value":"simpleMeasurements.debuggerAttached", "type":"boolean"}
+		]},
+
 		{"name":"User Defined", "edges":[
 			{"name":"Ordered Startup", "partitions":[
 				{"name":"Orderly", esfilter:{"and":[
@@ -31,14 +58,14 @@ Dimension.addEdges(false, Mozilla, [
 			]},
 
 			{"name":"Warm/Cold", "partitions":[
-				{"name":"Warm", "esfilter": {"script":{"script":"doc[\"simpleMeasurements.main\"].value - doc[\"simpleMeasurements.start\"].value <= 100"}}},
-				{"name":"Cold", "esfilter": {"script":{"script":"doc[\"simpleMeasurements.main\"].value - doc[\"simpleMeasurements.start\"].value > 100"}}}
+				{"name":"Warm", "esfilter": {"script":{"script":"doc[\"simpleMeasurements.main\"].value - doc[\"simpleMeasurements.start\"].value <= 100"}}, "type":"boolean"},
+				{"name":"Cold", "esfilter": {"script":{"script":"doc[\"simpleMeasurements.main\"].value - doc[\"simpleMeasurements.start\"].value > 100"}}, "type":"boolean"}
 			]}
 		]},
 
 		{"name":"Instance", "edges":[
 			{"name":"reason", "field":"info.reason", "type":"set"},
-			{"name":"addons", "field":"info.addons", "type":"set"}
+			{"name":"Addons", "field":"info.addons.name", "type":"set"}
 		]},
 
 		{"name":"Application", "edges":[
@@ -56,8 +83,8 @@ Dimension.addEdges(false, Mozilla, [
 			{"name":"Flash Version", "field":"info.flashVersion", "type":"set"},
 			{"name":"Arch", "field":"info.arch", "type":"set"},
 			{"name":"Locale", "field":"info.locale", "type":"set"},
-			{"name":"MemSize", "field":"info.memsize", "type":"linear"},
-			{"name":"cpucount", "field":"info.cpucount", "type":"linear"},
+			{"name":"MemSize", "field":"info.memsize", "type":"linear", "default":{"min":"0", "max":128000, "interval":1000, "aggregate":["median", "average"]}},
+			{"name":"cpucount", "field":"info.cpucount", "type":"count"},
 			{"name":"DWriteVersion", "field":"info.DWriteVersion", "type":"set"},
 			{"name":"DWriteEnabled", "field":"info.DWriteEnabled", "type":"boolean"},
 
@@ -89,4 +116,26 @@ Dimension.addEdges(false, Mozilla, [
 	]}
 ]);
 
+var Telemetry={};
 
+Telemetry.addonGUID2Name = {
+  "{972ce4c6-7e08-4474-a285-3208198ce6fd}": "Default theme",
+  "{d10d0bf8-f5b5-c8b4-a8b2-2b9879e08c5d}": "Adblock Plus",
+  "{b9db16a4-6edc-47ec-a1f4-b86292ed211d}": "DownloadHelper",
+  "{e4a8a97b-f2ed-450b-b12d-ee082ba24781}": "GreaseMonkey",
+  "{73a6fe31-595d-460b-a920-fcc0f8843232}": "NoScript",
+  "{19503e42-ca3c-4c27-b1e2-9cdb2170ee34}": "FlashGot",
+  "{DDC359D1-844A-42a7-9AA1-88A850A938A8}": "DownThemAll!",
+  "{c0c9a2c7-2e5c-4447-bc53-97718bc91e1b}": "Easy YouTube Video Downloader",
+  "{D4DD63FA-01E4-46a7-B6B1-EDAB7D6AD389}": "Download Statusbar",
+  "{46551EC9-40F0-4e47-8E18-8E5CF550CFB8}": "Stylish",
+  "{37964A3C-4EE8-47b1-8321-34DE2C39BA4D}": "Sputnik@Mail.ru",
+  "{1018e4d6-728f-4b20-ad56-37578a4de76b}": "Flagfox",
+  "{8620c15f-30dc-4dba-a131-7c5d20cf4a29}": "Nightly Tester Tools",
+  "{58bd07eb-0ee0-4df0-8121-dc9b693373df}": "Browser Manager MALWARE",
+  "{a0d7ccb3-214d-498b-b4aa-0e8fda9a7bf7}": "Web of Trust"
+};
+
+forAllKey(Telemetry.addonGUID2Name, function(k,v){
+	Telemetry.addonGUID2Name[k.toLowerCase()]=v;
+});

@@ -9,6 +9,12 @@ if (window['import'+'Script'] === undefined) var importScript=function(){};
 
 var Map={};
 
+
+////////////////////////////////////////////////////////////////////////////////
+// undefined EFFECTIVELY REMOVES THE KEY FROM THE MAP
+// null IS A VALID VALUE INDICATING THE VALUE IS UNKNOWN
+////////////////////////////////////////////////////////////////////////////////
+
 Map.newInstance=function(key, value){
 	var output={};
 	output[key]=value;
@@ -100,7 +106,7 @@ var mapAllKey=function(map, func){
 	for(var i=keys.length;i--;){
 		var key=keys[i];
 		var val=map[key];
-		output.push(func(key, val));
+		if (val!==undefined) output.push(func(key, val));
 	}//for
 	return output;
 };

@@ -8,14 +8,13 @@ importScript("rest/BugzillaClient.js");
 importScript("rest/ElasticSearch.js");
 importScript("ESQuery.js");
 importScript("Bugzilla.js");
-importScript("gui/GUI.js");
+importScript([
+	"gui/GUI.js",
+	"charts/aChart.js",
+	"../css/menu.css"
+]);
 importScript("Hierarchy.js");
 
 importScript("Stats.js");
 importScript("CUBE.js");
-importScript("charts/aChart.js");
 
-importScript([
-	"../css/start/jquery-ui-1.8.16.custom.css",
-	"../css/menu.css"
-]);

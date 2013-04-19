@@ -3,6 +3,15 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
+
+importScript([
+	"../lib/jquery.js",
+	"../lib/jquery-ui/js/jquery-ui-1.10.2.custom.js",
+	"../lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css"
+]);
+
+
+
 var D = new function(){
 };
 
@@ -44,22 +53,17 @@ D.warning = function(description, cause){
 };//method
 
 D.alert=function(message, ok_callback, cancel_callback){
+		$('<div>'+message+"</div>").dialog({
+		title:"Alert",
+		draggable: false,
+		modal: true,
+		resizable: false,
 
-	$(function() {
-		$(
-		'<div>'+message+"</div>"
-		).dialog({
-			title:"Alert",
-		 	draggable: false,
-			modal: true,
-			resizable: false,
-			buttons: {
-					"OK": function () { $(this).dialog("close"); if (ok_callback) ok_callback(); },
-					"Cancel": function () { $(this).dialog("close"); if (cancel_callback) cancel_callback(); }
-				}
-		});
-	  });
-
+		buttons: {
+			"OK": function () { $(this).dialog("close"); if (ok_callback) ok_callback(); },
+			"Cancel":cancel_callback ? function () { $(this).dialog("close"); cancel_callback(); } : undefined
+		}
+	});
 };//method
 
 

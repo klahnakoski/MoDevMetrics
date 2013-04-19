@@ -10,7 +10,7 @@
 
 
 <link type="text/css" rel="stylesheet" href="lib/ccc/lib/tipsy.css"/>
-<link type="text/css" rel="stylesheet" href="css/start/jquery-ui-1.8.16.custom.css" />
+<link type="text/css" rel="stylesheet" href="lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css" />
 
 <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 
@@ -178,11 +178,13 @@ var __createChart = function(){
 	iterations[2].startDate=Date.newInstance("2013FEB8");
 	iterations[2].endDate=Date.newInstance("2013FEB23");
 	iterations[3].startDate=Date.newInstance("2013FEB27");
-	iterations[3].endDate=Date.newInstance("2013MAR14");
-	iterations[4].startDate=iterations[3].startDate.addWeekday(12);
-	iterations[4].endDate=iterations[3].endDate.addWeekday(12);
-	iterations[5].startDate=iterations[4].startDate.addWeekday(12);
-	iterations[5].endDate=iterations[4].endDate.addWeekday(12);
+	iterations[3].endDate=Date.newInstance("2013MAR13");
+	iterations[4].startDate=Date.newInstance("2013MAR15");
+	iterations[4].endDate=Date.newInstance("2013MAR29");
+	iterations[5].startDate=Date.newInstance("2013APR02");
+	iterations[5].endDate=Date.newInstance("2013APR15");	//WEEKEND
+	iterations[6].startDate=iterations[5].startDate.addWeekday(12);
+	iterations[6].endDate=iterations[5].endDate.addWeekday(12);
 
 	var currentIteration=iterations.map(function(i){if (endDate.between(i.startDate, i.endDate)) return i;})[0];
 

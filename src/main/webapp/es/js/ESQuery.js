@@ -41,7 +41,7 @@ ESQuery.INDEXES={
 	"org_chart":{"path":"/org_chart/person"},
 	"temp":{"path":""},
 	"telemetry":{"path":"/telemetry/data"},
-	"raw_telemetry":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9300", "path":"/raw_telemetry/data"}
+	"raw_telemetry":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/raw_telemetry/data"}
 //	"raw_telemetry":{"host":"http://localhost:9200", "path":"/raw_telemetry/data"}
 };
 
@@ -101,41 +101,33 @@ ESQuery.loadColumns=function(query){
 	var indexInfo = ESQuery.INDEXES[indexName];
 	var indexPath=indexInfo.path;
 	if (indexName=="bugs" && !indexPath.endsWith("/bug_version")) indexPath+="/bug_version";
-
-	if (typeof(indexInfo.columns)=="object")
+	if (indexInfo.columns!==undefined)
 		yield(null);
 
 	//WE MANAGE ALL THE REQUESTS FOR THE SAME SCHEMA, DELAYING THEM IF THEY COME IN TOO FAST
-	if (indexInfo.fetchCount === undefined) indexInfo.fetchCount=0;
+	if (indexInfo.fetcher === undefined) {
+		indexInfo.fetcher=aThread.run(function(){
+			var URL=Util.coalesce(query.url, Util.coalesce(indexInfo.host, ElasticSearch.baseURL) + indexPath) + "/_mapping";
 
-	if (indexInfo.fetchCount>0){
-		var c=indexInfo.fetchCount;
-		indexInfo.fetchCount++;
-		for(;c--;){
-			yield (aThread.sleep(200)); //SMALL DELAY WITH HOPE ANOTHER THREAD IS GETTING THIS INFO
-			if (typeof(indexInfo.columns)=="object") yield(null);   //CHECK PERIODICALLY JUST IN CASE A PEER ALREADY GOT THE INFO
-		}//for
-		indexInfo.fetchCount--;
+			try{
+				var schema = yield(Rest.get({
+					"url":URL,
+					"doNotKill":true        //WILL NEED THE SCHEMA EVENTUALLY
+				}));
+			}catch(e){
+				//NEVER RUN WHEN THREAD IS KILLED
+				yield (null);       //RETURN
+			}//try
+
+			var properties = schema[indexPath.split("/")[2]].properties;
+
+			indexInfo.columns = ESQuery.parseColumns(indexName, properties);
+			yield(null);
+		});
 	}//endif
 
-	indexInfo.fetchCount++;
-	var URL=Util.coalesce(query.url, Util.coalesce(indexInfo.host, ElasticSearch.baseURL) + indexPath) + "/_mapping";
-
-	try{
-		var schema = yield(Rest.get({
-			"url":URL,
-			"doNotKill":true        //WILL NEED THE SCHEMA EVENTUALLY
-		}));
-	}catch(e){
-		//NEVER RUN WHEN THREAD IS KILLED
-		yield (null);       //RETURN
-	}//try
-
-	var properties = schema[indexPath.split("/")[2]].properties;
-
-	indexInfo.columns = ESQuery.parseColumns(indexName, properties);
-
-	yield(null);
+	yield (aThread.join(indexInfo.fetcher));
+	yield (null);
 };//method
 
 
@@ -143,6 +135,11 @@ ESQuery.loadColumns=function(query){
 ESQuery.run=function(query){
 	yield (ESQuery.loadColumns(query));
 	var esq=new ESQuery(query);
+
+	 if (Object.keys(esq.esQuery.facets).length==0)
+			D.error("ESQuery is sending no facets");
+
+
 	var output=yield (esq.run());
 
 	Map.copy(CUBE.query.prototype, output);
@@ -165,6 +162,10 @@ ESQuery.prototype.run = function(){
 	//var URL=window.ElasticSearch.baseURL+ESQuery.INDEXES[this.query.from.split(".")[0]].path+"/_search";
 	var postResult;
 	if (ESQuery.DEBUG) D.println(CNV.Object2JSON(this.esQuery));
+
+	if (Object.keys(this.esQuery.facets).length==0)
+		D.error("ESQuery is sending no facets");
+
 	try{
 		postResult=yield (Rest.post({
 			url: this.query.url,
@@ -177,7 +178,7 @@ ESQuery.prototype.run = function(){
 		}));
 
 		var self=this;
-		forAllKey(postResult.facets, function(facetName, f){
+		if (postResult.facets) forAllKey(postResult.facets, function(facetName, f){
 			if (f._type=="statistical") return;
 			if (!f.terms) return;
 			
@@ -412,11 +413,19 @@ ESQuery.prototype.buildFacetQueries = function(){
 
 			}
 		} else{//statistical
-			q.value = {
-				"statistical":{
-					"script":value.value
-				}
-			};
+			if (value.type=="field"){
+				q.value = {
+					"statistical":{
+						"field":value.value
+					}
+				};
+			}else{
+				q.value = {
+					"statistical":{
+						"script":value.value
+					}
+				};
+			}
 		}//endif
 
 		if (condition.length>0) q.value.facet_filter={"and":condition};
@@ -1033,8 +1042,13 @@ ESQuery.prototype.statisticalResults = function(data){
 		for(var f = 0; f < this.query.edges.length - 1; f++){
 			d = d[parseInt(coord[f])];
 		}//for
-		var value = data.facets[edgeName][ESQuery.agg2es[this.select[0].operation]];
-		d[parseInt(coord[f])] = value;
+		if (this.query.select instanceof Array){
+			for(var s=this.select.length;s--;){
+				d[parseInt(coord[f])][this.select[s].name] = data.facets[edgeName][ESQuery.agg2es[this.select[s].operation]];
+			}//for
+		}else{
+			d[parseInt(coord[f])] = data.facets[edgeName][ESQuery.agg2es[this.select[0].operation]];
+		}//endif
 	}//for
 
 	this.query.cube = cube;
