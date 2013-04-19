@@ -184,6 +184,12 @@ h4 {
    margin-bottom: 6px;
 }
 
+mstyle{
+	font-size: .8em;
+	color: black;
+	font-family: 'Open Sans', sans-serif;
+}
+
 .small, small {
     font-family: 'Open Sans', sans-serif;
     font-size: 12px;

@@ -35,7 +35,19 @@
  (at http://www.gnu.org/licences/lgpl.html) for more details.
  */
 
+/*
+	Edited Apr2013 by Kyle Lahnakoski
+
+	Removed some of the DOM traversal code, and replaced with jQuery.
+	Encapsulated functions into anonymous function to avoid pollution.
+
+ */
+
+
 (function(){
+
+var ASCII_MATH_CLASS="AM";      //MARKUP YOUR NODES WITH THIS TO TRANSFORM CONTENTS TO MATH
+
 
 var mathcolor = "blue";        // change it to "" (to inherit) or another color
 var mathfontsize = "1em";      // change to e.g. 1.2em for larger math
@@ -873,25 +885,7 @@ function parseMath(str, latex){
 	return node;
 }
 
-function strarr2docFrag(arr, linebreaks, latex){
-	var newFrag = document.createDocumentFragment();
-	var expr = false;
-	for(var i = 0; i < arr.length; i++){
-		if (expr) newFrag.appendChild(parseMath(arr[i], latex));
-		else{
-			var arri = (linebreaks ? arr[i].split("\n\n") : [arr[i]]);
-			newFrag.appendChild(createElementXHTML("span").
-				appendChild(document.createTextNode(arri[0])));
-			for(var j = 1; j < arri.length; j++){
-				newFrag.appendChild(createElementXHTML("p"));
-				newFrag.appendChild(createElementXHTML("span").
-					appendChild(document.createTextNode(arri[j])));
-			}
-		}
-		expr = !expr;
-	}
-	return newFrag;
-}
+
 
 function AMautomathrec(str){
 //formula is a space (or start of str) followed by a maximal sequence of *two* or more tokens, possibly separated by runs of digits and/or space.
@@ -924,75 +918,15 @@ function AMautomathrec(str){
 	return str;
 }
 
-function processNodeR(n, linebreaks, latex){
-	var mtch, str, arr, frg, i;
-	if (n.childNodes.length == 0){
-		if ((n.nodeType != 8 || linebreaks) &&
-			n.parentNode.nodeName != "form" && n.parentNode.nodeName != "FORM" &&
-			n.parentNode.nodeName != "textarea" && n.parentNode.nodeName != "TEXTAREA" /*&&
-		 n.parentNode.nodeName!="pre" && n.parentNode.nodeName!="PRE"*/){
-			str = n.nodeValue;
-			if (!(str == null)){
-				str = str.replace(/\r\n\r\n/g, "\n\n");
-				str = str.replace(/\x20+/g, " ");
-				str = str.replace(/\s*\r\n/g, " ");
-				if (latex){
-// DELIMITERS:
-					mtch = (str.indexOf("\$") == -1 ? false : true);
-					str = str.replace(/([^\\])\$/g, "$1 \$");
-					str = str.replace(/^\$/, " \$");	// in case \$ at start of string
-					arr = str.split(" \$");
-					for(i = 0; i < arr.length; i++)
-						arr[i] = arr[i].replace(/\\\$/g, "\$");
-				} else{
-					mtch = false;
-					str = str.replace(new RegExp(AMescape1, "g"),
-						function(){
-							mtch = true;
-							return "AMescape1"
-						});
-					str = str.replace(/\\?end{?a?math}?/i,
-						function(){
-							automathrecognize = false;
-							mtch = true;
-							return ""
-						});
-					str = str.replace(/amath\b|\\begin{a?math}/i,
-						function(){
-							automathrecognize = true;
-							mtch = true;
-							return ""
-						});
-					arr = str.split(AMdelimiter1);
-					if (automathrecognize)
-						for(i = 0; i < arr.length; i++)
-							if (i % 2 == 0) arr[i] = AMautomathrec(arr[i]);
-					str = arr.join(AMdelimiter1);
-					arr = str.split(AMdelimiter1);
-					for(i = 0; i < arr.length; i++) // this is a problem ************
-						arr[i] = arr[i].replace(/AMescape1/g, AMdelimiter1);
-				}
-				if (arr.length > 1 || mtch){
-					if (!noMathML){
-						frg = strarr2docFrag(arr, n.nodeType == 8, latex);
-						var len = frg.childNodes.length;
-						n.parentNode.replaceChild(frg, n);
-						return len - 1;
-					} else return 0;
-				}
-			}
-		} else return 0;
-	} else if (n.nodeName != "math"){
-		for(i = 0; i < n.childNodes.length; i++)
-			i += processNodeR(n.childNodes[i], linebreaks, latex);
-	}
-	return 0;
+function processNodeR(n, latex){
+	n=$(n);
+	n.html(parseMath(n.text(), latex));
 }
 
-function AMprocessNode(n, linebreaks){
-	var nodes=$(n, "span.AM");
+function AMprocessNode(n){
+	var nodes=$(n).find("."+ASCII_MATH_CLASS);
 	nodes.each(function(i, v){
-		processNodeR(v, linebreaks, false);
+		processNodeR(v, false);
 	});
 }
 
@@ -2008,7 +1942,7 @@ function LMprocessNode(n){
 		st = st.replace(/%7E/g, "~"); // else PmWiki has url issues
 //alert(st)
 		if (!avoidinnerHTML) n.innerHTML = st;
-		processNodeR(n, false, true);
+		processNodeR($(n), true);
 	}
 	/*  if (isIE) { //needed to match size and font of formula to surrounding text
 	 frag = document.getElementsByTagName('math');
