@@ -87,7 +87,7 @@ importScript([
 			var response=yield (ESQuery.run({
 				"name":"Response Time Breakdown",
 				"from":"reviews",
-				"select":{"name":"count", "value":"bug_id", "operation":"count"},
+				"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
 				"edges":[
 					{"name":"wait_time",
 						value:"(coalesce(zero2null(doc[\"review_time\"].value), "+Date.eod().getMilli()+")-doc[\"request_time\"].value)",
@@ -118,7 +118,7 @@ importScript([
 			var df=(yield (ESQuery.run({
 				"name":"DF",
 				"from":"reviews",
-				"select":{"name":"count", "value":"bug_id", "operation":"count"},
+				"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
 				"edges":[
 					{"name":"wait_time",
 						"allowNulls":true,
@@ -138,9 +138,9 @@ importScript([
 				"from":
 					yield (CUBE.Cube2List(df)),
 				"select": [
-					{"name":"total", "value":"count", "operation":"sum"},
-					{"name":"under_24_hours", "value":"(wait_time!=null && wait_time.milli<"+Duration.newInstance('24hour').milli+") ? count : 0", "operation":"sum"},
-					{"name":"over_10_days", "value":"wait_time==null ? count : 0", "operation":"sum"}
+					{"name":"total", "value":"count", "aggregate":"sum"},
+					{"name":"under_24_hours", "value":"(wait_time!=null && wait_time.milli<"+Duration.newInstance('24hour').milli+") ? count : 0", "aggregate":"sum"},
+					{"name":"over_10_days", "value":"wait_time==null ? count : 0", "aggregate":"sum"}
 				]
 			}))).cube;
 
@@ -161,7 +161,7 @@ importScript([
 			var q=new ESQuery({
 				"name":"Product Breakdown",
 				"from":"reviews",
-				"select":{"name":"count", "value":"bug_id", "operation":"count"},
+				"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
 				"edges":[
 					{"name":"product", "value":"product"}
 				],
@@ -185,7 +185,7 @@ importScript([
 		var q1=new ESQuery({
 			"from":"reviews",
 			"select":[
-				{"name":"request_count", "value":"bug_id", "operation":"count"}
+				{"name":"request_count", "value":"bug_id", "aggregate":"count"}
 			],
 			"edges":[
 				{"name":"time", "value":"request_time", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}}
@@ -197,7 +197,7 @@ importScript([
 
 		var q2= new ESQuery({
 			"from":"reviews",
-			"select": {"name":"review_count", "value":"bug_id", "operation":"count"},
+			"select": {"name":"review_count", "value":"bug_id", "aggregate":"count"},
 			"edges":[
 				{"name":"time", "value":"review_time", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}}
 			],
@@ -241,7 +241,7 @@ importScript([
 
 		var open=yield (Q({
 			"from":stillOpen,
-			"select":{"name":"open_count", "value":"request_time", "operation":"count"},
+			"select":{"name":"open_count", "value":"request_time", "aggregate":"count"},
 			"edges":[
 				{"name":"time", "value":"request_time",
 					"test":	"review_time-request_time > "+Duration.MILLI_VALUES.day+" && "+

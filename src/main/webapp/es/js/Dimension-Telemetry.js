@@ -65,7 +65,18 @@ Dimension.addEdges(false, Mozilla, [
 
 		{"name":"Instance", "edges":[
 			{"name":"reason", "field":"info.reason", "type":"set"},
-			{"name":"Addons", "field":"info.addons.name", "type":"set"}
+			{
+				"name":"Addons",
+				"field":"info.addons.name",
+				"type":"set",
+				"path":function(v){
+					//MAP TO HUMANE NAMES, IF POSSIBLE
+					return [{
+						"name":Util.coalesce(Telemetry.addonGUID2Name[v.toLowerCase()], v.toLowerCase()),
+						"esfilter":{"prefix":{"info.addons.name":v}}
+					}];
+				}
+			}
 		]},
 
 		{"name":"Application", "edges":[
@@ -73,17 +84,33 @@ Dimension.addEdges(false, Mozilla, [
 			{"name":"Name", "field":"info.appName", "type":"set"},
 			{"name":"Update Channel", "field":"info.appUpdateChannel", "type":"set"},
 			{"name":"Version", "field":"info.appVersion", "type":"set"},
-			{"name":"Build ID", "field":"info.appBuildID", "type":"set"},
+			{"name":"Build ID", "field":"info.appBuildID", "value":"\"\"+info.appBuildID", "type":"set"},
 			{"name":"Platform Build ID", "field":"info.platformBuildID", "type":"set"}
 		]},
 
 		{"name":"Environment", "edges":[
 			{"name":"OS", "field":"info.OS", "type":"set"},
 			{"name":"OS Version", "field":"info.version", "type":"set"},
-			{"name":"Flash Version", "field":"info.flashVersion", "type":"set"},
+			{
+				"name":"Flash Version",
+				"field":"info.flashVersion",
+				"type":"set",
+				"path":function(v){
+					//GROUP BY MAJOR VERSIONS, THEN MINOR, THEN BUILD
+					var list=v.split(".");
+					list[0]={"name":list[0], "path":list[0]};
+					for(var i=1;i<list.length;i++) list[i]={"name":list[i], "path":list[i-1].path+"."+list[i]};
+					return list.map(function(v, i){
+						return {
+							"name":v.name, //ONLY WANT THE LAST ONE FOR
+							"esfilter":{"prefix":{"info.flashVersion":v.path}}
+						};
+					});
+				}
+			},
 			{"name":"Arch", "field":"info.arch", "type":"set"},
 			{"name":"Locale", "field":"info.locale", "type":"set"},
-			{"name":"MemSize", "field":"info.memsize", "type":"linear", "default":{"min":"0", "max":128000, "interval":1000, "aggregate":["median", "average"]}},
+			{"name":"MemSize", "field":"info.memsize", "type":"linear", "min":"0", "max":128000, "interval":1000, "aggregate":["median", "average"]},
 			{"name":"cpucount", "field":"info.cpucount", "type":"count"},
 			{"name":"DWriteVersion", "field":"info.DWriteVersion", "type":"set"},
 			{"name":"DWriteEnabled", "field":"info.DWriteEnabled", "type":"boolean"},

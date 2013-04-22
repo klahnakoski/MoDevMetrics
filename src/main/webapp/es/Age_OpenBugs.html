@@ -98,7 +98,7 @@ var __createChart = function(){
 		var q=new ESQuery({
 			"name":"Product Breakdown",
 			"from":"bugs",
-			"select":{"name":"count", "value":"bug_id", "operation":"count"},
+			"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
 			"edges":[
 				{"name":"product", "value":"product"}
 			],
@@ -127,7 +127,7 @@ var __createChart = function(){
 			"name":"Age Distribution",
 			"from":"bug_summary",
 			"select":
-				{"name":"count", "value":"bug_id", "operation":"count"}
+				{"name":"count", "value":"bug_id", "aggregate":"count"}
 			,
 			"edges":[
 				{"name":"bug_status", "value":closeTime+" < "+sampleMax.getMilli()+" ? \"Closed\" : \"Open\""},
@@ -211,11 +211,11 @@ var __createChart = function(){
 			"name":"Age (Days)",
 			"from":allBugs,
 			"select":[
-				{"name":"average", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"average", "default":0},
-				{"name":"25th percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"percentile", "percentile":0.25, "default":0},
-				{"name":"50th percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"percentile", "percentile":0.5, "default":0},
-				{"name":"75th percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"percentile", "percentile":0.75, "default":0},
-				{"name":"90th percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"percentile", "percentile":0.9, "default":0}
+				{"name":"average", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "aggregate":"average", "default":0},
+				{"name":"25th percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "aggregate":"percentile", "percentile":0.25, "default":0},
+				{"name":"50th percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "aggregate":"percentile", "percentile":0.5, "default":0},
+				{"name":"75th percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "aggregate":"percentile", "percentile":0.75, "default":0},
+				{"name":"90th percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "aggregate":"percentile", "percentile":0.9, "default":0}
 			],
 			"edges":[
 				{"name":"date",
@@ -260,7 +260,7 @@ var __createChart = function(){
 	var chart=yield (ESQuery.run({
 		"name":"Open Bug Count",
 		"from":"bugs",
-		"select":{"name":"num_bug", "value":"bug_id", "operation":"count"},
+		"select":{"name":"num_bug", "value":"bug_id", "aggregate":"count"},
 		"edges":[
 			{"name":"date",
 				"range":{"min":"modified_ts", "max":"expires_on"},
@@ -275,7 +275,7 @@ var __createChart = function(){
 //	var chart=yield (ESQuery.run({
 //		"name":"Open Bug Count",
 //		"from":"bugs",
-//		"select":{"name":"num_bug", "value":"bug_id", "operation":"maximum"},
+//		"select":{"name":"num_bug", "value":"bug_id", "aggregate":"maximum"},
 //		"edges":[
 //			{"value":"bug_id"},
 //			{"name":"date",

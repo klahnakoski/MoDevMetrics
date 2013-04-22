@@ -186,8 +186,8 @@ var __createChart = function(){
 	var totals=yield (Q({
 		"from":markup,
 		"select":[
-			{"name":"num_next", "value":"(time_to_next!=null && time_to_next<"+windowSize.milli+") ? 1 : 0", "operation":"sum"},
-			{"name":"num_total", "value":"1", "operation":"count"}
+			{"name":"num_next", "value":"(time_to_next!=null && time_to_next<"+windowSize.milli+") ? 1 : 0", "aggregate":"sum"},
+			{"name":"num_total", "value":"1", "aggregate":"count"}
 		],
 		"edges":[
 			{"value":"requester_review_num", "domain":{"type":"linear", "min":1, "max":3, "interval":1, "value":"value"}},
@@ -204,7 +204,7 @@ var __createChart = function(){
 
 	var chart=yield(Q({
 		"from":totals, 
-		"select": {"name":"percent", "value":"aMath.round(100*num_next/aMath.max(1, num_total))", "operation":"one"},
+		"select": {"name":"percent", "value":"aMath.round(100*num_next/aMath.max(1, num_total))", "aggregate":"one"},
 		"edges":[
 			{"value":"requester_review_num", "domain":{"type":"linear", "min":1, "max":3, "interval":1, "value":"value"}},
 			{"value":"request_time", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value"}}

@@ -58,7 +58,7 @@ ElasticSearch.getMinMax=function(esfilter){
 	//MUST CALL ES TWICE BECAUSE WE CAN ONLY HAVE ONE SELECT COLUMN IF WE HAVE EDGES
 	var u1 = yield(ESQuery.run({
 		"from":"bugs",
-		"select": {"name":"min", "value":"modified_ts", "operation":"minimum"},
+		"select": {"name":"min", "value":"modified_ts", "aggregate":"minimum"},
 		"edges":[
 			"bug_id"
 		],
@@ -67,7 +67,7 @@ ElasticSearch.getMinMax=function(esfilter){
 
 	var u2 = yield(ESQuery.run({
 		"from":"bugs",
-		"select": {"name":"max", "value":"expires_on", "operation":"maximum"},
+		"select": {"name":"max", "value":"expires_on", "aggregate":"maximum"},
 		"edges":[
 			"bug_id"
 		],

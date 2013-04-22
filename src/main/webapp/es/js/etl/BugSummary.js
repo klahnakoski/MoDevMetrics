@@ -34,7 +34,7 @@ BUG_SUMMARY.getLastUpdated=function(){
 	var data=yield (ESQuery.run({
 		"from":BUG_SUMMARY.aliasName,
 		"select":[
-			{"name":"last_request", "value":"modified_time", "operation":"maximum"}
+			{"name":"last_request", "value":"modified_time", "aggregate":"maximum"}
 		]
 	}));
 	yield (new Date(data.cube.last_request));
@@ -225,13 +225,13 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 	var joinItAll={
 		"from":currentData.list,
 		"select":[
-			{"name":"bug_id", "value":"bug_id", "operation":"one"},
-			{"name":"product", "value":"product", "operation":"one"},
-			{"name":"product_time", "value":"product_time", "operation":"minimum"},
-			{"name":"component", "value":"component", "operation":"one"},
-			{"name":"component_time", "value":"component_time", "operation":"minimum"},
-			{"name":"create_time", "value":"create_time", "operation":"one"},
-			{"name":"modified_time", "value":"modified_time", "operation":"maximum"}
+			{"name":"bug_id", "value":"bug_id", "aggregate":"one"},
+			{"name":"product", "value":"product", "aggregate":"one"},
+			{"name":"product_time", "value":"product_time", "aggregate":"minimum"},
+			{"name":"component", "value":"component", "aggregate":"one"},
+			{"name":"component_time", "value":"component_time", "aggregate":"minimum"},
+			{"name":"create_time", "value":"create_time", "aggregate":"one"},
+			{"name":"modified_time", "value":"modified_time", "aggregate":"maximum"}
 		],
 		"edges":[]
 	};
@@ -242,7 +242,7 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 	forAllKey(timesData.facets, function(k, v){
 		var domainName=k.deformat()+"part";
 		var edgeName=domainName+"__edge";
-		var s={"name":k, "value":"Util.coalesce("+domainName+".min, null)", "operation":"minimum"};
+		var s={"name":k, "value":"Util.coalesce("+domainName+".min, null)", "aggregate":"minimum"};
 		var e={"name":edgeName, "value":"bug_id", allowNulls:true, "domain":{"name":domainName, "type":"set", "key":"term", "partitions":v.terms}};
 		edgeList.push(edgeName);
 		joinItAll.select.push(s);

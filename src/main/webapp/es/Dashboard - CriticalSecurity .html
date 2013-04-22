@@ -138,8 +138,8 @@ var createChart = function(){
 		"name":"Age of Open Bugs",
 		"from":"bugs",
 		"select":[
-			{"name":"sum", "value":"("+Date.now().getMilli()+'-doc["created_ts"].value)', "operation":"sum"},
-			{"name":"count", "value":"("+Date.now().getMilli()+'-doc["created_ts"].value)', "operation":"count"}
+			{"name":"sum", "value":"("+Date.now().getMilli()+'-doc["created_ts"].value)', "aggregate":"sum"},
+			{"name":"count", "value":"("+Date.now().getMilli()+'-doc["created_ts"].value)', "aggregate":"count"}
 		],
 		"esfilter":{
 			"and":[
@@ -155,8 +155,8 @@ var createChart = function(){
 		"name":"Age of Closed Bugs",
 		"from":"bugs",
 		"select":[
-			{"name":"sum", "value":'doc["modified_ts"].value-doc["created_ts"].value', "operation":"sum"},
-			{"name":"count", "value":'doc["modified_ts"].value-doc["created_ts"].value', "operation":"count"}
+			{"name":"sum", "value":'doc["modified_ts"].value-doc["created_ts"].value', "aggregate":"sum"},
+			{"name":"count", "value":'doc["modified_ts"].value-doc["created_ts"].value', "aggregate":"count"}
 		],
 		"where":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value',  //ONLY THE DOCUMENT THAT CLOSES THE BUG
 		"esfilter":{"and":[

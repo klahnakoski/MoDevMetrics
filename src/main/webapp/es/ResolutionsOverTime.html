@@ -128,7 +128,7 @@ var __createChart = function(){
 		var query = new ESQuery({
 			"name":"Resolution by Bug Age",
 			"from":"bugs",
-			"select":{"name":"Count", "value":"1", "operation":"count"},
+			"select":{"name":"Count", "value":"1", "aggregate":"count"},
 			"edges":[
 				{"name":"Resolution Type", "value":'resolution'},
 				//{"name":"Cohort", "value":'modified_ts', "domain":{"type":"time", "min":Date.now().add("-6month"), "max":Date.now().add("-1second"), "interval":"6month"}},

@@ -263,7 +263,7 @@ ESQuery.prototype.compile = function(){
 
 	if (this.termsEdges.length==0){
 		//NO EDGES IMPLIES SIMPLER QUERIES: EITHER A SET OPERATION, OR RETURN SINGLE AGGREGATE
-		if (this.select[0].operation==="none"){  //"none" IS GIVEN TO undefined OPERATIONS DURING COMPILE
+		if (this.select[0].aggregate==="none"){  //"none" IS GIVEN TO undefined OPERATIONS DURING COMPILE
 			this.esMode="setop";
 			this.compileSetOp();
 			return;
@@ -273,7 +273,7 @@ ESQuery.prototype.compile = function(){
 				if (this.select[k].value!=value) D.error("ES Query with multiple select columns must all have the same value");
 			}//for
 
-			if (this.query.select===undefined || (this.select.length==1 && this.select[0].operation=="count")){
+			if (this.query.select===undefined || (this.select.length==1 && this.select[0].aggregate=="count")){
 				this.esMode="terms";
 				this.esQuery = this.buildESCountQuery(value);
 				return;
@@ -302,11 +302,11 @@ ESQuery.prototype.compile = function(){
 
 	//VERY IMPORTANT!! ES CAN ONLY USE TERM PACKING ON terms FACETS, THE OTHERS WILL REQUIRE EVERY PARTITION BEING A FACET
 	this.esMode = "terms_stats";
-	if (this.query.select===undefined || (this.select.length==1 && this.select[0].operation=="count")){
+	if (this.query.select===undefined || (this.select.length==1 && this.select[0].aggregate=="count")){
 		this.esMode="terms";
 	}//endif
-	if (ESQuery.agg2es[this.select[0].operation]===undefined){
-		D.error("ES can not aggregate "+this.select[0].name+" because '"+this.select[0].operation+"' is not a recognized operation");
+	if (ESQuery.agg2es[this.select[0].aggregate]===undefined){
+		D.error("ES can not aggregate "+this.select[0].name+" because '"+this.select[0].aggregate+"' is not a recognized aggregate");
 	}//endif
 
 	this.facetEdges=[];	//EDGES THAT WILL REQUIRE A FACET FOR EACH PART
@@ -662,7 +662,7 @@ ESQuery.prototype.compileEdges2Term=function(constants){
 			};
 
 			//ONLY USED BY terms_stats, AND VALUE IS IN THE SELECT CLAUSE
-			if (!MVEL.isKeyword(specialEdge.value)) D.error("Can not handle complex edge value with "+this.select[0].operation);
+			if (!MVEL.isKeyword(specialEdge.value)) D.error("Can not handle complex edge value with "+this.select[0].aggregate);
 			if (MVEL.isKeyword(this.select[0].value)){
 				return {"type":"field", "field":specialEdge.value, "value":this.select[0].value};
 			}else{
@@ -979,7 +979,7 @@ ESQuery.prototype.termsResults=function(data){
 
 			if (select instanceof Array){
 				for(var s=0;s<select.length;s++){
-					d[select[s].name] = terms[i][ESQuery.agg2es[select[s].operation]];
+					d[select[s].name] = terms[i][ESQuery.agg2es[select[s].aggregate]];
 				}//for
 			}else{
 				if (d[parts[t].dataIndex]===undefined)
@@ -1019,11 +1019,11 @@ ESQuery.prototype.statisticalResults = function(data){
 
 	if (this.query.edges.length==0){ //ZERO DIMENSIONS
 		if (this.select.length==0){
-			cube = data.facets["0"][ESQuery.agg2es[this.select[i].operation]];
+			cube = data.facets["0"][ESQuery.agg2es[this.select[i].aggregate]];
 		}else{
 			cube={};
 			for(var i=this.select.length;i--;){
-				cube[this.select[i].name]= data.facets["0"][ESQuery.agg2es[this.select[i].operation]];
+				cube[this.select[i].name]= data.facets["0"][ESQuery.agg2es[this.select[i].aggregate]];
 			}//for
 		}//endif
 		this.query.cube = cube;
@@ -1044,10 +1044,10 @@ ESQuery.prototype.statisticalResults = function(data){
 		}//for
 		if (this.query.select instanceof Array){
 			for(var s=this.select.length;s--;){
-				d[parseInt(coord[f])][this.select[s].name] = data.facets[edgeName][ESQuery.agg2es[this.select[s].operation]];
+				d[parseInt(coord[f])][this.select[s].name] = data.facets[edgeName][ESQuery.agg2es[this.select[s].aggregate]];
 			}//for
 		}else{
-			d[parseInt(coord[f])] = data.facets[edgeName][ESQuery.agg2es[this.select[0].operation]];
+			d[parseInt(coord[f])] = data.facets[edgeName][ESQuery.agg2es[this.select[0].aggregate]];
 		}//endif
 	}//for
 
@@ -1103,7 +1103,7 @@ ESQuery.prototype.terms_statsResults = function(data){
 					c++;
 				}//endif
 			}//for
-			var value = terms[t][ESQuery.agg2es[this.select[0].operation]];
+			var value = terms[t][ESQuery.agg2es[this.select[0].aggregate]];
 			if (this.query.edges[f] == this.specialEdge){
 				d[this.specialEdge.domain.map[terms[t].term].dataIndex] = value;
 			} else{

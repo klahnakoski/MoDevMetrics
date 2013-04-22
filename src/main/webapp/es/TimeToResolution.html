@@ -155,7 +155,7 @@ var __createChart = function(){
 	var durations=yield(ESQuery.run({
 		"from":"bug_summary",
 		"select":
-			{"name":"count", "value":"bug_id", "operation":"count"}
+			{"name":"count", "value":"bug_id", "aggregate":"count"}
 		,
 		"edges":[
 			{"name":"bug_status", "value":closeTime+" < "+sampleMax.getMilli()+" ? \"Closed\" : \"Open\""},
@@ -172,7 +172,7 @@ var __createChart = function(){
 	var average=yield(ESQuery.run({
 		"from":"bug_summary",
 		"select":[
-			{"name":"duration", "value":closeTime+"-"+idTime, "operation":"average"}
+			{"name":"duration", "value":closeTime+"-"+idTime, "aggregate":"average"}
 		],
 		"esfilter":{"and":[
 			{"script":{"script":sampleMin.getMilli()+" <= "+idTime+" && "+idTime +" < "+sampleMax.getMilli()}},
@@ -185,10 +185,10 @@ var __createChart = function(){
 	var stats = (yield(Q({
 		"from": (yield (CUBE.Cube2List(durations))),
 		"select":[
-			{"name":"total", "value":"count", "operation":"sum"},
-			{"name":"num_open", "value":"bug_status=='Open' ? count : 0", "operation":"sum"},
-			{"name":"num_closed", "value":"bug_status=='Closed' ? count : 0", "operation":"sum"},
-			{"name":"under", "value":"(duration.value!=null && duration.value.milli<"+CUTOFF.milli+") ? count : 0", "operation":"sum"}
+			{"name":"total", "value":"count", "aggregate":"sum"},
+			{"name":"num_open", "value":"bug_status=='Open' ? count : 0", "aggregate":"sum"},
+			{"name":"num_closed", "value":"bug_status=='Closed' ? count : 0", "aggregate":"sum"},
+			{"name":"under", "value":"(duration.value!=null && duration.value.milli<"+CUTOFF.milli+") ? count : 0", "aggregate":"sum"}
 		]
 	}))).cube;
 

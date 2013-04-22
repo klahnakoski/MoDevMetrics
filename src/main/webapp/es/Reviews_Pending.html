@@ -164,7 +164,7 @@
 					(yield (CUBE.calc2List({
 						"from":
 							esResult,
-						"select": {"name":"age", "value":"Date.now().floor('day').getMilli()-modified_ts", operation:"minimum"},
+						"select": {"name":"age", "value":"Date.now().floor('day').getMilli()-modified_ts", aggregate:"minimum"},
 						"edges":[
 							{"name":"requestee", "value":"requestee"},
 							{"name":"bug_id", "value":"bug_id"}
@@ -175,7 +175,7 @@
 
 			var average = (yield (CUBE.calc2List({
 				"from": reviews,
-				"select": {"name":"avg_age", "value":"age", operation:"average"}
+				"select": {"name":"avg_age", "value":"age", aggregate:"average"}
 			}))).list[0].avg_age;
 
 			average=Duration.newInstance(average).format("day", 0);
@@ -201,9 +201,9 @@
 			var result = (yield (CUBE.calc2List({
 				"from": reviews,
 				"select":[
-					{"name":"avg_age", "value":"age", operation:"average"},
-					{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
-					{"name":"bugs", "value":"bug_id", operation:"join", "separator":","}
+					{"name":"avg_age", "value":"age", aggregate:"average"},
+					{"name":"numPending", "value":"1", aggregate:"count", "sort":"descending"},
+					{"name":"bugs", "value":"bug_id", aggregate:"join", "separator":","}
 				],
 				"edges":[
 					{"name":"requestee", "value":"requestee"}

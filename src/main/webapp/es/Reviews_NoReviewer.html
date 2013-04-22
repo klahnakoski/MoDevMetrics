@@ -165,7 +165,7 @@ var __createChart = function(){
 	var result = (yield (CUBE.calc2List({
 		"from":	reviews.list,
 		"select":[
-			{"name":"wait_time", "value":"Date.eod().getMilli()-request_time", operation:"maximum", "sort":"descending"}
+			{"name":"wait_time", "value":"Date.eod().getMilli()-request_time", aggregate:"maximum", "sort":"descending"}
 		],
 		"edges":[
 			"bug_id"

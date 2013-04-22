@@ -56,7 +56,7 @@ ETL.updateAlias=function(etl){
 
 ETL.getMaxBugID=function(){
 	var maxResults=yield(ESQuery.run({
-		"select": {"name":"bug_id", "value":"bug_id", "operation":"maximum"},
+		"select": {"name":"bug_id", "value":"bug_id", "aggregate":"maximum"},
 		"from" : "bugs",
 		"edges" :[]
 	}));
@@ -123,8 +123,8 @@ ETL.resumeInsert=function(etl){
 		"url":ElasticSearch.pushURL+"/"+etl.newIndexName+"/"+etl.typeName,
 		"from":etl.aliasName,
 		"select":[
-			{"name":"maxBug", "value":"bug_id", "operation":"maximum"},
-			{"name":"minBug", "value":"bug_id", "operation":"minimum"}
+			{"name":"maxBug", "value":"bug_id", "aggregate":"maximum"},
+			{"name":"minBug", "value":"bug_id", "aggregate":"minimum"}
 			]
 	}));
 
@@ -176,7 +176,7 @@ ETL.incrementalInsert=function(etl){
 	var a=D.action("Get changed bugs", true);
 	var data=yield (ESQuery.run({
 		"from":"bugs",
-		"select": {"name":"bug_id", "value":"bug_id", "operation":"count"},
+		"select": {"name":"bug_id", "value":"bug_id", "aggregate":"count"},
 		"edges":[
 			{"name":"bug_ids", "value":"bug_id"}
 		],

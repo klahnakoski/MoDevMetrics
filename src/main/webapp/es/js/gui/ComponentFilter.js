@@ -23,7 +23,7 @@ ComponentFilter.prototype.refresh = function(){
 	this.refreshThread=aThread.run("get components", function(){
 		var components=yield (ESQuery.run({
 			"from":"bugs",
-			"select":{"name":"count", "value":"bug_id", "operation":"count"},
+			"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
 			"edges":[
 				{"name":"term", "value":"component"}
 			],

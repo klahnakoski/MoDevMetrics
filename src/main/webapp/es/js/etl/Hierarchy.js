@@ -21,7 +21,7 @@ HIERARCHY.getLastUpdated=function(){
 	var data=yield (ESQuery.run({
 		"from":HIERARCHY.aliasName,
 		"select":[
-			{"name":"last_request", "value":"modified_time", "operation":"maximum"}
+			{"name":"last_request", "value":"modified_time", "aggregate":"maximum"}
 		]
 	}));
 	yield (new Date(data.cube.last_request));
@@ -49,9 +49,9 @@ HIERARCHY.makeSchema=function(){
 //	var programs=yield(Q({
 //		"from":HIERARCHY.allPrograms,
 //		"select":[
-//			{"name":"type", "value":"\"long\"", "operation":"one"},
-//			{"name":"store", "value":"\"yes\"", "operation":"one"},
-//			{"name":"index", "value":"\"not_analyzed\"", "operation":"one"}
+//			{"name":"type", "value":"\"long\"", "aggregate":"one"},
+//			{"name":"store", "value":"\"yes\"", "aggregate":"one"},
+//			{"name":"index", "value":"\"not_analyzed\"", "aggregate":"one"}
 //		],
 //		"edges":[{"value":"projectName+\"_time\""}]
 //	}));
@@ -126,7 +126,7 @@ HIERARCHY.get=function(minBug, maxBug){
 	var a=D.action("Get largest bug_id", true);
 	var maxBugID=yield (ESQuery.run({
 		"from":"bugs",
-		"select":{"value":"bug_id", "operation":"maximum"}
+		"select":{"value":"bug_id", "aggregate":"maximum"}
 	}));
 	maxBugID=maxBugID.cube.bug_id;
 	D.actionDone(a);

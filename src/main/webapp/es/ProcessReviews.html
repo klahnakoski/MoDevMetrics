@@ -228,7 +228,7 @@
 				inReview.list,
 			"select":[
 //				{"name":"close_record", "sort":["doneReview.end_time", ""]},
-				{"name":"review_time", "value":"Date.newInstance(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "operation":"minimum"}
+				{"name":"review_time", "value":"Date.newInstance(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "aggregate":"minimum"}
 			],
 			"edges":[
 				{"name":"bug_id", "value":"bug_id"},

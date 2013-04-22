@@ -156,9 +156,9 @@ var __createChart = function(){
 		var oldRequests=(yield (CUBE.calc2List({
 			"from":old.list,
 			"select":[
-				{"name":"avg_wait_time", "value":""+Date.today().getMilli()+"-request_time", "operation":"average"},
-				{"name":"count", "value":"bug_id", "operation":"count", "sort":"descending"},
-				{"name":"bugs", "value":"bug_id", "operation":"join", "separator":","}
+				{"name":"avg_wait_time", "value":""+Date.today().getMilli()+"-request_time", "aggregate":"average"},
+				{"name":"count", "value":"bug_id", "aggregate":"count", "sort":"descending"},
+				{"name":"bugs", "value":"bug_id", "aggregate":"join", "separator":","}
 			],
 			"edges":[
 				{"value":"reviewer"}
@@ -208,7 +208,7 @@ var __createChart = function(){
 	var chart=yield (Q({
 		"name":"Review Wait Times",
 		"from":reviews.list,
-		"select": {"name":"count", "value":"bug_id", "operation":"count"},
+		"select": {"name":"count", "value":"bug_id", "aggregate":"count"},
 		"edges":[
 			{"name":"dummy", "value":"\"Number of reviews\""},
 			{"name":"wait time", allowNulls:true,
@@ -246,9 +246,9 @@ var __createChart = function(){
 		"from":
 			wait_times,
 		"select": [
-			{"name":"total", "value":"1", "operation":"count"},
-			{"name":"under_24_hours", "value":"wait_time<"+Duration.newInstance('24hour').milli+" ? 1 : 0", "operation":"sum"},
-			{"name":"average", "value":"wait_time", "operation":"average"}
+			{"name":"total", "value":"1", "aggregate":"count"},
+			{"name":"under_24_hours", "value":"wait_time<"+Duration.newInstance('24hour').milli+" ? 1 : 0", "aggregate":"sum"},
+			{"name":"average", "value":"wait_time", "aggregate":"average"}
 		]
 	}))).cube;
 

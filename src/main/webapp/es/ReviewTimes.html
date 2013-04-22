@@ -206,7 +206,7 @@
 						"from":
 							inReview,
 						"select":[
-							{"name":"reviewTime", "value":"c.modified_ts-modified_ts", "operation":"minimum"}
+							{"name":"reviewTime", "value":"c.modified_ts-modified_ts", "aggregate":"minimum"}
 						],
 						"edges":[
 							{"name":"bug_id",
@@ -220,7 +220,7 @@
 					var time2res = Q({
 						"name": "Review Times",
 						"from": durations,
-						"select": {"name":"Count", "value":"1", "operation":"count"},
+						"select": {"name":"Count", "value":"1", "aggregate":"count"},
 						"edges":[
 							{"name":"Cohort", "value":"Date.newInstance(finished_time)",
 								"domain":{"type":"time", "min":Date.now().add("-2year"), "max":Date.now(), "interval":"6month", format:"NNN yyyy"}},

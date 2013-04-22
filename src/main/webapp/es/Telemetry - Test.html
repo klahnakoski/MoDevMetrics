@@ -141,7 +141,7 @@ var __createChart = function(){
 		heatGrid=yield (ESQuery.run({
 			"name":"X vs Y",
 			"from":"raw_telemetry",
-			"select":{"name":"count", "value":"_id", "operation":"count"},
+			"select":{"name":"count", "value":"_id", "aggregate":"count"},
 			"edges":[
 				{"name":measureY,
 					"value":measureY,
@@ -221,9 +221,9 @@ var __createChart = function(){
 //		XY=yield (ESQuery.run({
 //			"from":"raw_telemetry",
 //			"select":[
-//				{"name":"count", "value":'doc["'+measureX+'"].value*doc["'+measureY+'"].value', "operation":"count"},
-//				{"name":"sum", "value":'doc["'+measureX+'"].value*doc["'+measureY+'"].value', "operation":"sum"},
-//				{"name":"X2", "value":'doc["'+measureX+'"].value*doc["'+measureY+'"].value', "operation":"X2"}
+//				{"name":"count", "value":'doc["'+measureX+'"].value*doc["'+measureY+'"].value', "aggregate":"count"},
+//				{"name":"sum", "value":'doc["'+measureX+'"].value*doc["'+measureY+'"].value', "aggregate":"sum"},
+//				{"name":"X2", "value":'doc["'+measureX+'"].value*doc["'+measureY+'"].value', "aggregate":"X2"}
 //			],
 //			"edges":[],
 //			"esfilter":esfilter
@@ -234,9 +234,9 @@ var __createChart = function(){
 //		X=yield (ESQuery.run({
 //			"from":"raw_telemetry",
 //			"select":[
-//				{"name":"count", "value":'doc["'+measureX+'"].value', "operation":"count"},
-//				{"name":"sum", "value":'doc["'+measureX+'"].value', "operation":"sum"},
-//				{"name":"X2", "value":'doc["'+measureX+'"].value', "operation":"X2"}
+//				{"name":"count", "value":'doc["'+measureX+'"].value', "aggregate":"count"},
+//				{"name":"sum", "value":'doc["'+measureX+'"].value', "aggregate":"sum"},
+//				{"name":"X2", "value":'doc["'+measureX+'"].value', "aggregate":"X2"}
 //			],
 //			"edges":[],
 //			"esfilter":esfilter
@@ -247,9 +247,9 @@ var __createChart = function(){
 //		Y=yield (ESQuery.run({
 //			"from":"raw_telemetry",
 //			"select":[
-//				{"name":"count", "value":'doc["'+measureY+'"].value', "operation":"count"},
-//				{"name":"sum", "value":'doc["'+measureY+'"].value', "operation":"sum"},
-//				{"name":"X2", "value":'doc["'+measureY+'"].value', "operation":"X2"}
+//				{"name":"count", "value":'doc["'+measureY+'"].value', "aggregate":"count"},
+//				{"name":"sum", "value":'doc["'+measureY+'"].value', "aggregate":"sum"},
+//				{"name":"X2", "value":'doc["'+measureY+'"].value', "aggregate":"X2"}
 //			],
 //			"edges":[],
 //			"esfilter":esfilter

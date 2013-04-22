@@ -270,7 +270,7 @@ MVEL.prototype.where = function(esFilter){
 	var output = "";
 
 	var keys = Object.keys(esFilter);
-	if (keys.length != 1) D.error("Expecting only one filter operation");
+	if (keys.length != 1) D.error("Expecting only one filter aggregate");
 	var op = keys[0];
 	if (op == "and"){
 		var list = esFilter[op];
@@ -373,7 +373,7 @@ MVEL.prototype.where = function(esFilter){
 		var value = pair[variableName];
 		return this.translate(variableName)+".startsWith(" + MVEL.Value2Code(value)+")";
 	} else{
-		D.error("'" + op + "' is an unknown operation");
+		D.error("'" + op + "' is an unknown aggregate");
 	}//endif
 
 	return "";
@@ -383,7 +383,7 @@ MVEL.prototype.where = function(esFilter){
 
 //RETURN TRUE IF THE value IS JUST A NAME OF A FIELD (OR A VALUE)
 MVEL.isKeyword = function(value){
-	if (value.charAt===undefined)
+	if (value===undefined || value.charAt===undefined)
 		D.error("Expecting a string");
 
 

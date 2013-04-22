@@ -115,7 +115,7 @@ GUI.showLastUpdated = function(indexName){
 		if (indexName===undefined || indexName=="bugs"){
 			var result=yield (ESQuery.run({
 				"from":"bugs",
-				"select":{"name":"max_date", "value":"modified_ts", "operation":"maximum"}
+				"select":{"name":"max_date", "value":"modified_ts", "aggregate":"maximum"}
 			}));
 
 			time=new Date(result.cube.max_date);
@@ -129,7 +129,7 @@ GUI.showLastUpdated = function(indexName){
 		}else if (indexName=="bug_summary"){
 			time=new Date((yield(ESQuery.run({
 				"from":"bug_summary",
-				"select":{"name":"max_date", "value":"modified_time", "operation":"maximum"}
+				"select":{"name":"max_date", "value":"modified_time", "aggregate":"maximum"}
 			}))).cube.max_date);
 			$("#testMessage").html("Bug Summaries Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 		}else{
@@ -158,7 +158,7 @@ GUI.showLastUpdated = function(indexName){
 GUI.corruptionCheck=function(){
 	var result=yield (ESQuery.run({
 		"from":"bugs",
-		"select":{"name":"num_null", "value":"expires_on>"+Date.eod().getMilli()+" ? 1 : 0", "operation":"add"},
+		"select":{"name":"num_null", "value":"expires_on>"+Date.eod().getMilli()+" ? 1 : 0", "aggregate":"add"},
 		"edges":["bug_id"],
 		"esfilter":{"range":{"modified_ts":{"gte":Date.now().addMonth(-3).getMilli()}}}
 	}));
@@ -169,7 +169,7 @@ GUI.corruptionCheck=function(){
 			"select": {"value":"bug_id"},
 			"where":"num_null!=1"
 		},
-		"select":{"name":"is_error", "value":"bug_id", "operation":"exists"}
+		"select":{"name":"is_error", "value":"bug_id", "aggregate":"exists"}
 	}));
 
 	yield (is_error.cube.is_error==1)

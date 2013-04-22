@@ -166,7 +166,7 @@ var __createChart = function(){
 //	var request=new ESQuery({
 //		"name":"Open Bug Count",
 //		"from":"bug_tags",
-//		"select": {"name":"bug_id", "value":"bug_id", "operation":"count"},
+//		"select": {"name":"bug_id", "value":"bug_id", "aggregate":"count"},
 //		"edges":[
 //			{"name":"date", "value":"date", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":"day"}}
 //		],
@@ -179,7 +179,7 @@ var __createChart = function(){
 
 	var request=new ESQuery({
 		"from":"bugs",
-		"select": {"name":"total", "value":"bug_id", "operation":"count"},
+		"select": {"name":"total", "value":"bug_id", "aggregate":"count"},
 		"edges":[
 			{"name":"Team", "domain":Mozilla.Security.Teams},
 			{"name":"Priority", "domain":Mozilla.Security.Priority},
@@ -220,7 +220,7 @@ var __createChart = function(){
 				"(Priority=='Low')?1:("+
 				"0)))))",
 //			"value":"total",
-			"operation":"sum"
+			"aggregate":"sum"
 		},
 		"edges":[
 			"Team",

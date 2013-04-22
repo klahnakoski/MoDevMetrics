@@ -53,8 +53,8 @@ Test.testReviewQueueSummary = function(){
 				]
 			}).list,
 		"select":[
-			{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
-			{"name":"bugs", "value":"bug_id", operation:"join", "separator":","}
+			{"name":"numPending", "value":"1", aggregate:"count", "sort":"descending"},
+			{"name":"bugs", "value":"bug_id", aggregate:"join", "separator":","}
 		],
 		"edges":[
 			{"name":"requestee", "value":"requestee"}
@@ -199,8 +199,8 @@ Test.ReviewQueuesOverTime = function(){
 		"from" :
 			esResult,
 		"select" : [
-			{"name":"max", "operation": "maximum", "value": "new Date(modified_ts).floorWeek()"},
-			{"name":"min", "operation": "minimum", "value": "new Date(modified_ts).floorWeek()"}
+			{"name":"max", "aggregate": "maximum", "value": "new Date(modified_ts).floorWeek()"},
+			{"name":"min", "aggregate": "minimum", "value": "new Date(modified_ts).floorWeek()"}
 		],
 		"edges" : [
 			{"name":"interval", "value" : "'week'"},
@@ -213,10 +213,10 @@ Test.ReviewQueuesOverTime = function(){
 		"from" :
 			esResult,
 		"select" : [
-			{"name":"duration_max", "operation":"maximum", "value": "modified_ts-previous_modified_ts"},
-			{"name":"duration_avg", "operation":"average", "value": "modified_ts-previous_modified_ts"},
-			{"name":"duration_min", "operation":"minimum", "value": "modified_ts-previous_modified_ts"},
-			{"name":"count", "operation":"count", "value":"1"}
+			{"name":"duration_max", "aggregate":"maximum", "value": "modified_ts-previous_modified_ts"},
+			{"name":"duration_avg", "aggregate":"average", "value": "modified_ts-previous_modified_ts"},
+			{"name":"duration_min", "aggregate":"minimum", "value": "modified_ts-previous_modified_ts"},
+			{"name":"count", "aggregate":"count", "value":"1"}
 		],
 		"edges" : [
 			{"name" : "week", "value": "new Date(modified_ts)", "domain" : range}
@@ -848,8 +848,8 @@ Test.burndown = function(){
 		"from":
 			esAllBugs,
 		"select":[
-			//{"name":"state", "value":"state", "operation":"filter", "test":"modified_ts>total.modified_ts"},
-			{"name":"best_date", "value":"modified_ts", "operation":"maximum", "sort":"descending"}
+			//{"name":"state", "value":"state", "aggregate":"filter", "test":"modified_ts>total.modified_ts"},
+			{"name":"best_date", "value":"modified_ts", "aggregate":"maximum", "sort":"descending"}
 		],
 		"edges":[
 			{"name":"date", "test":"new Date(modified_ts)<time.max", domain:{"type": "time", "min":startDate, "max": Date.today(), interval:"day"}},
@@ -865,7 +865,7 @@ Test.burndown = function(){
 //		"from":
 //			result,
 //		"select":[
-//			{"name":"count", value:"1", "operation":"count"}
+//			{"name":"count", value:"1", "aggregate":"count"}
 //		],
 //		"edges":[
 //			{"name":"date", "value":"date", domain:{"type": "time", "min":startDate, "max": Date.today(), interval:"day"}},
@@ -928,7 +928,7 @@ Test.TimeToResolution = function(){
 			CNV.Table2List(Test.TimeToResolution.IndentifiedData),
 //					{"name":"i", "list":data.edges.identified},
 		"select":[
-			{"name":"duration", "value":"c.min-min", "operation":"average"}
+			{"name":"duration", "value":"c.min-min", "aggregate":"average"}
 		],
 		"edges":[
 			{"name":"bug_id", "value":"term", "domain":{"type":"set", "name":"c", "key":"term", "list":CNV.Table2List(Test.TimeToResolution.ClosedData)}}
@@ -939,7 +939,7 @@ Test.TimeToResolution = function(){
 		"from":
 			durations,
 		"select":[
-			{"name":"count", "value":"1", "operation":"count"}
+			{"name":"count", "value":"1", "aggregate":"count"}
 		],
 		"edges":[
 			{"name":"duration", "value":"Duration.newInstance(duration)", "domain":{"type":"duration", "min":0, "interval":"week"}}

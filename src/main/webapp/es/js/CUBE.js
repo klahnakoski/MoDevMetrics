@@ -249,7 +249,7 @@ CUBE.calc2List = function(query){
 		if (select.length==0){
 			yield (noOP(query));
 			yield (query);
-		}else if (select[0].operation===undefined || select[0].operation=="none"){
+		}else if (select[0].aggregate===undefined || select[0].aggregate=="none"){
 			yield (setOP(query));
 			yield (query);
 		}else{

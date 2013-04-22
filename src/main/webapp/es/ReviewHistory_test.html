@@ -272,9 +272,9 @@ D.println(CNV.List2Tab(doneReview));
 						"from":
 							inReview,
 						"select":[
-							{"name":"bug_id", "value":"bug_id", "operation":"one"},
-							{"name":"attach_id", "value":"attach_id", "operation":"one"},
-							{"name":"end_time", "value":"Date.newInstance(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "operation":"minimum"}
+							{"name":"bug_id", "value":"bug_id", "aggregate":"one"},
+							{"name":"attach_id", "value":"attach_id", "aggregate":"one"},
+							{"name":"end_time", "value":"Date.newInstance(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "aggregate":"minimum"}
 						],
 						"edges":[
 							{"name":"close_record", "test":"bug_id==doneReview.bug_id && attach_id==doneReview.attach_id && requestee==doneReview.requestee && modified_ts<=doneReview.modified_ts", allowNulls:true,
@@ -291,7 +291,7 @@ D.println(CNV.List2Tab(reviewQueues));
 						"name":
 							"Historical Review Queue for "+GUI.state.requestee,
 						"from":reviewQueues,
-						"select":{"name":"Pending", "value":"1", operation:"binary"},
+						"select":{"name":"Pending", "value":"1", aggregate:"binary"},
 						"edges":[
 							{"name":"Bug ID", "value":"bug_id", "sort":["start_time.floor('"+flooring+"')", "end_time.floor('"+flooring+"')"]},
 							{"name":"Date", "test":"start_time.floor('"+flooring+"')<=time.value && time.value<=end_time.add('"+flooring+"').floor('"+flooring+"')", "domain":{"type":"time", "min":GUI.state.sampleMin, "max":GUI.state.sampleMax, "interval":flooring, "format":"NNN dd"}}

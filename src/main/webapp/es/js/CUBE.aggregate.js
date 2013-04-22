@@ -11,13 +11,13 @@ if (CUBE===undefined) var CUBE = {};
 
 CUBE.aggregate = {};
 CUBE.aggregate.compile = function(select){
-	if (select.operation === undefined) select.operation = "none";
+	if (select.aggregate === undefined) select.aggregate = "none";
 
-	if (CUBE.aggregate[select.operation] === undefined){
-		D.error("Do not know aggregate operation '" + select.operation + "'");
+	if (CUBE.aggregate[select.aggregate] === undefined){
+		D.error("Do not know aggregate aggregate '" + select.aggregate + "'");
 	}//endif
 
-	CUBE.aggregate[select.operation](select);
+	CUBE.aggregate[select.aggregate](select);
 
 	//DEFAULT AGGREGATION USES A STRUCTURE (OR VALUE) THAT CHANGES
 	//SOME AGGREGATES DEFER calc() UNTIL LATER

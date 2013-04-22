@@ -252,7 +252,7 @@ var __createChart = function(){
 		"from":
 			esResult,
 		"select":[
-			{"name":"request_time", "value":"modified_ts", "operation":"minimum"}
+			{"name":"request_time", "value":"modified_ts", "aggregate":"minimum"}
 		],
 		"edges":[
 			{"name":"requestee", "value":"requestee"},
@@ -272,9 +272,9 @@ var __createChart = function(){
 				//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
 				pendingReview,
 			"select":[
-				{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
-				{"name":"maxWaitTime", "value":"aMath.round(Date.now().subtract(Date.newInstance(request_time)).divideBy(Duration.DAY), 1)+\"days\"", "operation":"maximum"},
-				{"name":"bugs", "value":"bug_id", operation:"join", "separator":","}
+				{"name":"numPending", "value":"1", aggregate:"count", "sort":"descending"},
+				{"name":"maxWaitTime", "value":"aMath.round(Date.now().subtract(Date.newInstance(request_time)).divideBy(Duration.DAY), 1)+\"days\"", "aggregate":"maximum"},
+				{"name":"bugs", "value":"bug_id", aggregate:"join", "separator":","}
 			],
 			"edges":[
 				{"name":"requestee", "value":"requestee"}
@@ -314,7 +314,7 @@ var __createChart = function(){
 			"from":
 				esResult3,
 			"select":[
-				{"name":"wait_time", "value":Date.now().getMilli()+"-modified_ts", "operation":"minimum", "domain":Duration.DOMAIN, "sort":"descending"}
+				{"name":"wait_time", "value":Date.now().getMilli()+"-modified_ts", "aggregate":"minimum", "domain":Duration.DOMAIN, "sort":"descending"}
 			],
 			"edges":[
 				{"name":"bug_id", "value":"bug_id"}
@@ -356,8 +356,8 @@ var __createChart = function(){
 			"from":
 				assigned,
 			"select":[
-				{"name":"numPending", "value":"1", operation:"count", "sort":"descending"},
-				{"name":"bugs", "value":"bug_id", operation:"join", "separator":", "}
+				{"name":"numPending", "value":"1", aggregate:"count", "sort":"descending"},
+				{"name":"bugs", "value":"bug_id", aggregate:"join", "separator":", "}
 			],
 			"edges":[
 				{"name":"assigned_to", "value":"assigned_to"}

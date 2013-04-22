@@ -37,8 +37,8 @@ indexes.forall(function(index, i){
 			var query={
 				"from":index,
 				"select":[
-					{"name":"min", "value":col.name, "operation":"minimum"},
-					{"name":"max", "value":col.name, "operation":"maximum"}
+					{"name":"min", "value":col.name, "aggregate":"minimum"},
+					{"name":"max", "value":col.name, "aggregate":"maximum"}
 				]
 			};
 			aThread.run(function(){

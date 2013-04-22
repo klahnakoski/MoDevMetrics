@@ -66,7 +66,7 @@
 	aThread.run(function(){
 		var result=yield (ESQuery.run({
 			"from":"bugs",
-			"select":{"name":"num_null", "value":"expires_on>"+Date.eod().getMilli()+" ? 1 : 0", "operation":"sum"},
+			"select":{"name":"num_null", "value":"expires_on>"+Date.eod().getMilli()+" ? 1 : 0", "aggregate":"sum"},
 			"edges":["bug_id"],
 			"esfilter":{"range":{"modified_ts":{"gte":Date.now().addMonth(-3).getMilli()}}}
 		}));

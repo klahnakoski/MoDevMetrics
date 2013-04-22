@@ -121,10 +121,10 @@ var __createChart = function(){
 			"name":"Age (Days)",
 			"from":allBugs,
 			"select":[
-				{"name":"6 Weeks", "value":""+Duration.newInstance("6week").round(Duration.DAY), "operation":"one", "default":""+Duration.newInstance("6week").round(Duration.DAY), "style":{"color":"red"}},
-				{"name":"3 Weeks", "value":""+Duration.newInstance("3week").round(Duration.DAY), "operation":"one", "default":""+Duration.newInstance("3week").round(Duration.DAY), "style":{"color":"goldenrod"}},
-				{"name":"50th Percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"percentile", "percentile":0.50, "default":0, "style":{"color":"blue"}},
-				{"name":"Maximum",         "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "operation":"maximum", "default":0, "style":{"color":"#00d6ff", "visibility":"hidden"}}
+				{"name":"6 Weeks", "value":""+Duration.newInstance("6week").round(Duration.DAY), "aggregate":"one", "default":""+Duration.newInstance("6week").round(Duration.DAY), "style":{"color":"red"}},
+				{"name":"3 Weeks", "value":""+Duration.newInstance("3week").round(Duration.DAY), "aggregate":"one", "default":""+Duration.newInstance("3week").round(Duration.DAY), "style":{"color":"goldenrod"}},
+				{"name":"50th Percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "aggregate":"percentile", "percentile":0.50, "default":0, "style":{"color":"blue"}},
+				{"name":"Maximum",         "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "aggregate":"maximum", "default":0, "style":{"color":"#00d6ff", "visibility":"hidden"}}
 			],
 			"edges":[
 				{"name":"date",
@@ -203,7 +203,7 @@ var __createChart = function(){
 		var chart=yield (ESQuery.run({
 			"name":"Open Bug Count",
 			"from":"bugs",
-			"select":{"name":"num_bug", "value":"bug_id", "operation":"count"},
+			"select":{"name":"num_bug", "value":"bug_id", "aggregate":"count"},
 			"edges":[
 				{"name":"date",
 					"range":{"min":"modified_ts", "max":"expires_on"},
@@ -249,8 +249,8 @@ var __createChart = function(){
 			"from":allBugs,
 			"name":"New and Closed Bugs",
 			"select":[
-				{"name":"New", "value":"time.value.getMilli()==min.floor(\""+interval.toString()+"\").getMilli() ? 1 : 0", "operation":"sum", "default":"0", "style":{"color":"seagreen"}},
-				{"name":"Closed", "value":"(max!=null && time.value.getMilli()==max.floor(\""+interval.toString()+"\").getMilli()) ? -1 : 0", "operation":"sum", "default":"0", "style":{"color":"goldenrod"}}
+				{"name":"New", "value":"time.value.getMilli()==min.floor(\""+interval.toString()+"\").getMilli() ? 1 : 0", "aggregate":"sum", "default":"0", "style":{"color":"seagreen"}},
+				{"name":"Closed", "value":"(max!=null && time.value.getMilli()==max.floor(\""+interval.toString()+"\").getMilli()) ? -1 : 0", "aggregate":"sum", "default":"0", "style":{"color":"goldenrod"}}
 			],
 			"edges":[
 				{"name":"date",

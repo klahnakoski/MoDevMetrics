@@ -237,9 +237,9 @@
 						"from":
 							inReview,
 						"select":[
-							{"name":"bug_id", "value":"bug_id", "operation":"minimum"},
-							{"name":"end_time", "value":"Date.newInstance(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "operation":"minimum"},
-							{"name":"start_time", "value":"Date.newInstance(modified_ts)", "operation":"minimum"}
+							{"name":"bug_id", "value":"bug_id", "aggregate":"minimum"},
+							{"name":"end_time", "value":"Date.newInstance(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "aggregate":"minimum"},
+							{"name":"start_time", "value":"Date.newInstance(modified_ts)", "aggregate":"minimum"}
 						],
 						"edges":[
 							{"name":"close_record",
@@ -265,8 +265,8 @@
 //					var counts=(yield (CUBE.calc2List({
 //						"from":reviewQueues,
 //						"select":[
-//							{"name":"numReviewsRequested", "value":"1", "operation":"count"},
-//							{"name":"numReviewsCompleted", "value":"end_time<Date.today() ? 1 : 0", "operation":"sum"}
+//							{"name":"numReviewsRequested", "value":"1", "aggregate":"count"},
+//							{"name":"numReviewsCompleted", "value":"end_time<Date.today() ? 1 : 0", "aggregate":"sum"}
 //						]
 //					}))).list[0];
 
@@ -299,7 +299,7 @@
 						"name":
 							"Historical Review Queue for Firefox, Core, toolkit, FF4Android, Reviews requested in Past 3 Months",
 						"from":reviewQueues,
-						"select":{"name":"Pending", "value":"1", operation:"binary"},
+						"select":{"name":"Pending", "value":"1", aggregate:"binary"},
 						"edges":[
 							{"name":"Bug ID", "value":"bug_id", "sort":["start_time.floor('"+flooring+"')", "end_time.floor('"+flooring+"')"]},
 							{"name":"Date", "test":"start_time.floor('"+flooring+"')<=time.value && time.value<=end_time.add('"+flooring+"').floor('"+flooring+"')", "domain":{"type":"time", "min":GUI.state.sampleMin, "max":GUI.state.sampleMax, "interval":flooring, "format":"NNN dd"}}

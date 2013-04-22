@@ -92,13 +92,13 @@ var __createChart = function(){
 		"from":{
 			"from":requestTimes,
 			"select":[
-				{"name":"week", "value":"Date.newInstance(request_time).floorWeek()", "operation":"minimum", "sort":"descending"},
-				{"name":"bug", "value":"requester_review_num==1 ? Bugzilla.linkToBug(bug_id) : null","operation":"one"},
-				{"name":"request_time", "value":"Date.newInstance(request_time)", "operation":"minimum", "sort":"descending"},
-				{"name":"review_time", "value":"requester_review_num==1 ? Date.newInstance(review_time) : null", "operation":"one"},
-				{"name":"review_result", "value":"requester_review_num==1 ? review_result : null", "operation":"one"},
-				{"name":"second_time", "value":"requester_review_num==2 ? Date.newInstance(request_time) : ' '", "operation":"maximum"},
-				{"name":"second bug", "value":"requester_review_num==2 ? Bugzilla.linkToBug(bug_id) : null","operation":"one"}
+				{"name":"week", "value":"Date.newInstance(request_time).floorWeek()", "aggregate":"minimum", "sort":"descending"},
+				{"name":"bug", "value":"requester_review_num==1 ? Bugzilla.linkToBug(bug_id) : null","aggregate":"one"},
+				{"name":"request_time", "value":"Date.newInstance(request_time)", "aggregate":"minimum", "sort":"descending"},
+				{"name":"review_time", "value":"requester_review_num==1 ? Date.newInstance(review_time) : null", "aggregate":"one"},
+				{"name":"review_result", "value":"requester_review_num==1 ? review_result : null", "aggregate":"one"},
+				{"name":"second_time", "value":"requester_review_num==2 ? Date.newInstance(request_time) : ' '", "aggregate":"maximum"},
+				{"name":"second bug", "value":"requester_review_num==2 ? Bugzilla.linkToBug(bug_id) : null","aggregate":"one"}
 			],
 			"edges":[
 				"requester"

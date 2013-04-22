@@ -139,25 +139,25 @@ var __createChart = function(){
 	var heatGrid;
 	var heatThread=aThread.run("pull raw telemetry data", function(){
 
-		while(Mozilla.Telemetry.Instance.Addons.partitions=="pending") yield (aThread.sleep(200));
+		if (Mozilla.Telemetry.Instance.Addons.partitions instanceof aThread) yield (aThread.join(Mozilla.Telemetry.Instance.Addons.partitions));
 
-		heatGrid=yield (ESQuery.run({
-			"name":"X vs Y",
-			"from":"raw_telemetry",
-			"select":{"name":"count", "value":"_id", "operation":"count"},
-			"edges":[
-				{"name":measureY,
-					"value":GUI.state.measureY.getField,
-					"allowNulls":false,
-					"domain":{"type":"linear", "min":"0", "max":maxY, "interval":maxY/numParts, "value":"min"}},
-				{"name":measureX,
-					"value":measureX,
-					"allowNulls":false,
-					"domain":Mozilla.Telemetry.Instance.Addons
-				}
-			],
-			"esfilter":esfilter
-		}));
+//		heatGrid=yield (ESQuery.run({
+//			"name":"X vs Y",
+//			"from":"raw_telemetry",
+//			"select":{"name":"count", "value":"_id", "aggregate":"count"},
+//			"edges":[
+////				{"name":measureY,
+////					"value":GUI.state.measureY.field === undefined ? "1" : GUI.state.measureY.field,
+////					"allowNulls":false,
+////					"domain":{"type":"linear", "min":"0", "max":maxY, "interval":maxY/numParts, "value":"min"}},
+//				{"name":measureX,
+//					"value":measureX,
+//					"allowNulls":false,
+//					"domain":Mozilla.Telemetry.Instance.Addons
+//				}
+//			],
+//			"esfilter":esfilter
+//		}));
 
 
 

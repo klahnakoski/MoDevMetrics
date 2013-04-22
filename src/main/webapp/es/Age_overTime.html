@@ -172,7 +172,7 @@ var __createChart = function(){
 	var durations=yield(ESQuery.run({
 		"from":"bug_summary",
 		"select":
-			{"name":"count", "value":"bug_id", "operation":"count"}
+			{"name":"count", "value":"bug_id", "aggregate":"count"}
 		,
 		"edges":[
 			{"name":"bug_status", "value":closeTime+" < "+sampleMax.getMilli()+" ? \"Closed\" : \"Open\""},
@@ -190,7 +190,7 @@ var __createChart = function(){
 		var average=yield(ESQuery.run({
 			"from":"bug_summary",
 			"select":[
-				{"name":"duration", "value":closeTime+"-"+idTime, "operation":"average"}
+				{"name":"duration", "value":closeTime+"-"+idTime, "aggregate":"average"}
 			],
 			"esfilter":{"and":[
 				{"script":{"script":sampleMin.getMilli()+" <= "+idTime+" && "+idTime +" < "+sampleMax.getMilli()}},
@@ -203,10 +203,10 @@ var __createChart = function(){
 		var stats = (yield(Q({
 			"from": (yield (CUBE.Cube2List(durations))),
 			"select":[
-				{"name":"total", "value":"count", "operation":"sum"},
-				{"name":"num_open", "value":"bug_status=='Open' ? count : 0", "operation":"sum"},
-				{"name":"num_closed", "value":"bug_status=='Closed' ? count : 0", "operation":"sum"},
-				{"name":"under", "value":"(duration.value!=null && duration.value.milli<"+CUTOFF.milli+") ? count : 0", "operation":"sum"}
+				{"name":"total", "value":"count", "aggregate":"sum"},
+				{"name":"num_open", "value":"bug_status=='Open' ? count : 0", "aggregate":"sum"},
+				{"name":"num_closed", "value":"bug_status=='Closed' ? count : 0", "aggregate":"sum"},
+				{"name":"under", "value":"(duration.value!=null && duration.value.milli<"+CUTOFF.milli+") ? count : 0", "aggregate":"sum"}
 			]
 		}))).cube;
 
@@ -305,10 +305,10 @@ var chartStat=function(description, timeDomain, sampleSize){
 //		Stats.calc2List({
 //			"from":allBugs,
 //			"select":[
-//				{"name":"average", "value":"Duration.newInstance(death-birth)", "operation":"average", "window":sampleSize},
-//				{"name":"_25_", "value":"Duration.newInstance(aMath.min(death, time.min.getMilli())-birth)", "operation":"percentile", "percentile":0.25, "window":sampleSize},
-//				{"name":"_50_", "value":"Duration.newInstance(aMath.min(death, time.min.getMilli())-birth)", "operation":"percentile", "percentile":0.5, "window":sampleSize},
-//				{"name":"_90_", "value":"Duration.newInstance(aMath.min(death, time.min.getMilli())-birth)", "operation":"percentile", "percentile":0.9, "window":sampleSize}
+//				{"name":"average", "value":"Duration.newInstance(death-birth)", "aggregate":"average", "window":sampleSize},
+//				{"name":"_25_", "value":"Duration.newInstance(aMath.min(death, time.min.getMilli())-birth)", "aggregate":"percentile", "percentile":0.25, "window":sampleSize},
+//				{"name":"_50_", "value":"Duration.newInstance(aMath.min(death, time.min.getMilli())-birth)", "aggregate":"percentile", "percentile":0.5, "window":sampleSize},
+//				{"name":"_90_", "value":"Duration.newInstance(aMath.min(death, time.min.getMilli())-birth)", "aggregate":"percentile", "percentile":0.9, "window":sampleSize}
 //			],
 //			"edges":[
 //				{"name":"birth_date", "value":"Date.newInstance(birth)", domain:timeDomain}

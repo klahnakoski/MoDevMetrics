@@ -139,7 +139,7 @@ var createChart = function(){
 	query = new ESQuery({
 		"name":"When Bugs are marked",
 		"from":"bugs",
-		"select": {"name":"marked_time", "value":"modified_ts", "operation":"minimum"},
+		"select": {"name":"marked_time", "value":"modified_ts", "aggregate":"minimum"},
 		"edges":[
 			{"name":"bug_id", "value":"bug_id"}
 		],
@@ -152,7 +152,7 @@ var createChart = function(){
 	var queryClosed = new ESQuery({
 		"name":"Closed Bugs",
 		"from":"bugs",
-		"select": {"name":"closed_time", "value":"modified_ts", "operation":"minimum"},
+		"select": {"name":"closed_time", "value":"modified_ts", "aggregate":"minimum"},
 		"edges":[
 			{"name":"bug_id", "value":"bug_id"}
 		],
@@ -186,11 +186,11 @@ var createChart = function(){
 			var markedInSample=(yield (CUBE.calc2List({
 				"from":marked,
 				"select":[
-					{"name":"bug_id", "value":"bug_id", "operation":"one"},
-					{"name":"marked_time", "value":"Date.newInstance(marked_time)", "operation":"one"},
-					{"name":"is_closed", "value":"closed.bug_id", "operation":"binary"},
-					{"name":"closed_time", "value":"Date.newInstance(closed.closed_time)", "operation":"minimum"},
-					{"name":"is_good", "value":"closed.closed_time-marked_time<"+mark.milli+" ? 1 : 0", "operation":"one"}
+					{"name":"bug_id", "value":"bug_id", "aggregate":"one"},
+					{"name":"marked_time", "value":"Date.newInstance(marked_time)", "aggregate":"one"},
+					{"name":"is_closed", "value":"closed.bug_id", "aggregate":"binary"},
+					{"name":"closed_time", "value":"Date.newInstance(closed.closed_time)", "aggregate":"minimum"},
+					{"name":"is_good", "value":"closed.closed_time-marked_time<"+mark.milli+" ? 1 : 0", "aggregate":"one"}
 				],
 				"edges":[
 					{"name":"closed", value:"bug_id",
@@ -204,9 +204,9 @@ var createChart = function(){
 			var summary=(yield (CUBE.calc2List({
 				"from":markedInSample,
 				"select":[
-					{"name":"total", "value":"bug_id", "operation":"count"},
-					{"name":"numClosed", "value":"is_closed", "operation":"sum"},
-					{"name":"numGood", "value":"is_good", "operation":"sum"}
+					{"name":"total", "value":"bug_id", "aggregate":"count"},
+					{"name":"numClosed", "value":"is_closed", "aggregate":"sum"},
+					{"name":"numGood", "value":"is_good", "aggregate":"sum"}
 				]
 			}))).list[0];
 

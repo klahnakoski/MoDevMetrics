@@ -22,7 +22,7 @@ BUG_TAGS.getLastUpdated=function(){
 	var data=yield (ESQuery.run({
 		"from":BUG_TAGS.aliasName,
 		"select":[
-			{"name":"last_request", "value":BUG_TAGS.aliasName+".date", "operation":"maximum"}
+			{"name":"last_request", "value":BUG_TAGS.aliasName+".date", "aggregate":"maximum"}
 		],
 		"esfilter":{"and":[
 			{"range":{"date":{"gt":Date.now().subtract(Duration.MONTH).getMilli()}}}
@@ -149,11 +149,11 @@ BUG_TAGS.get=function(minBug, maxBug, minDate, maxDate){
 	var results=(yield(CUBE.calc2List({
 		"from":current,
 		"select":[
-			{"name":"bug_status", "value":"bug_status", "operation":"one"},
-			{"name":"product", "value":"product", "operation":"one"},
-			{"name":"component", "value":"component", "operation":"one"},
-			{"name":"assigned_to", "value":"assigned_to", "operation":"one"},
-			{"name":"keywords", "value":"(Util.coalesce(keywords, '')+' '+ETL.parseWhiteBoard(whiteboard)).trim()+' '+flags", "operation":"one"}
+			{"name":"bug_status", "value":"bug_status", "aggregate":"one"},
+			{"name":"product", "value":"product", "aggregate":"one"},
+			{"name":"component", "value":"component", "aggregate":"one"},
+			{"name":"assigned_to", "value":"assigned_to", "aggregate":"one"},
+			{"name":"keywords", "value":"(Util.coalesce(keywords, '')+' '+ETL.parseWhiteBoard(whiteboard)).trim()+' '+flags", "aggregate":"one"}
 		],
 		"edges":[
 			{"name":"date", "test":"modified_ts<=time.max.getMilli() && time.max.getMilli()<expires_on",
@@ -201,7 +201,7 @@ BUG_TAGS.addMissing=function(){
 	var totals=(yield (ESQuery.run({
 		"url":ElasticSearch.pushURL + "/" + BUG_TAGS.newIndexName + "/" + BUG_TAGS.typeName,
 		"from":"bug_tags",
-		"select":{"name":"count", "value":"1", "operation":"count"},
+		"select":{"name":"count", "value":"1", "aggregate":"count"},
 		"edges":[
 			{"name":"bug_id", "value":"bug_id", "domain":{"type":"linear", "min":0, "max":maxBug, "interval":10000}},
 			{"name":"date", "value":"date", "domain":{"type":"date", "min":new Date(2000, 0, 1), "max":Date.eod(), "interval":"8week"}}

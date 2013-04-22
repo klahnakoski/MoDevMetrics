@@ -88,7 +88,7 @@ var __createChart = function(){
 		var q=new ESQuery({
 			"name":"Product Breakdown",
 			"from":"bugs",
-			"select":{"name":"count", "value":"bug_id", "operation":"count"},
+			"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
 			"edges":[
 				{"name":"product", "value":"product"}
 			],
@@ -117,7 +117,7 @@ var __createChart = function(){
 	var a=D.action("Request Bugs", true);
 	var chart=yield (ESQuery.run({
 		"from":"bugs",
-		"select":{"name":"num_bug", "value":"bug_id", "operation":"count"},
+		"select":{"name":"num_bug", "value":"bug_id", "aggregate":"count"},
 		"edges":[
 			{"name":"date",
 				"range":{"min":"modified_ts", "max":"expires_on"},

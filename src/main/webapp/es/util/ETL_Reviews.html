@@ -113,7 +113,7 @@
 
 			bugs=yield(Q({
 				"from":bugs,
-				"select":{"name":"unique", "value":"bug_id", "operation":"one"},
+				"select":{"name":"unique", "value":"bug_id", "aggregate":"one"},
 				"edges":["bug_id"]
 
 			}));

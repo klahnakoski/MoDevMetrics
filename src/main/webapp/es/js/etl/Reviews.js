@@ -45,7 +45,7 @@ REVIEWS.getLastUpdated=function(){
 		"url":url,
 		"from":REVIEWS.aliasName,
 		"select":[
-			{"name":"last_request", "value":"request_time", "operation":"maximum"}
+			{"name":"last_request", "value":"request_time", "aggregate":"maximum"}
 		]
 	}));
 	yield Date.newInstance(result.cube.last_request);
@@ -308,15 +308,15 @@ REVIEWS.get=function(minBug, maxBug){
 			{"name":"is_first", "value":"rownum==0 ? 1 : 0", "sort":"request_time", "edges":["bug_id"]}
 		],
 		"select":[
-			{"name":"bug_status", "value":"bug_status", "operation":"one"},
-			{"name":"review_time", "value":"Util.coalesce(doneReview.modified_ts, null)", "operation":"minimum"},
-			{"name":"review_result", "value":"Util.coalesce(doneReview.review_result, null)", "operation":"minimum"},
-			{"name":"product", "value":"Util.coalesce(doneReview.product, product)", "operation":"minimum"},
-			{"name":"component", "value":"Util.coalesce(doneReview.component, component)", "operation":"minimum"},
-			{"name":"keywords", "value":"(Util.coalesce(keywords, '')+' '+ETL.parseWhiteBoard(whiteboard)).trim()+' '+flags", "operation":"one"},
-			{"name":"requester_review_num", "value":"-1", "operation":"one"}
-//			{"name":"status_whiteboard", "value":"whiteboard", "operation":"one"},
-//			{"name":"status_whiteboard.tokenized", "value":"ETL.parseWhiteBoard(whiteboard)).trim()", "operation":"one"}
+			{"name":"bug_status", "value":"bug_status", "aggregate":"one"},
+			{"name":"review_time", "value":"Util.coalesce(doneReview.modified_ts, null)", "aggregate":"minimum"},
+			{"name":"review_result", "value":"Util.coalesce(doneReview.review_result, null)", "aggregate":"minimum"},
+			{"name":"product", "value":"Util.coalesce(doneReview.product, product)", "aggregate":"minimum"},
+			{"name":"component", "value":"Util.coalesce(doneReview.component, component)", "aggregate":"minimum"},
+			{"name":"keywords", "value":"(Util.coalesce(keywords, '')+' '+ETL.parseWhiteBoard(whiteboard)).trim()+' '+flags", "aggregate":"one"},
+			{"name":"requester_review_num", "value":"-1", "aggregate":"one"}
+//			{"name":"status_whiteboard", "value":"whiteboard", "aggregate":"one"},
+//			{"name":"status_whiteboard.tokenized", "value":"ETL.parseWhiteBoard(whiteboard)).trim()", "aggregate":"one"}
 		],
 		"edges":[
 			{"name":"bug_id", "value":"bug_id"},
@@ -368,7 +368,7 @@ REVIEWS.postMarkup=function(){
 //
 //	var knownTimes=yield(ESQuery.run({
 //		"from":"reviews",
-//		"select":{"name":"num", "value":"doc[\"is_first_outgoing_review\"].value", "operation":"maximum"},
+//		"select":{"name":"num", "value":"doc[\"is_first_outgoing_review\"].value", "aggregate":"maximum"},
 //		"edges":["requester"],
 //		esfilter:batchFilter
 //	}));
@@ -479,7 +479,7 @@ REVIEWS.postMarkup=function(){
 	var requesterCount=yield(ESQuery.run({
 		"url":ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName,
 		"from":"reviews",
-		"select":{"name":"num", "value":"1", "operation":"count"},
+		"select":{"name":"num", "value":"1", "aggregate":"count"},
 		"edges":[
 			{"name":"requester", "value":"requester"}
 		]

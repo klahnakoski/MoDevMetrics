@@ -143,7 +143,7 @@ var __createChart = function(){
 	try{
 		var chart = yield(ESQuery.run({
 			"from":"bugs",
-			"select":{"name":"num_bug", "value":"bug_id", "operation":"count"},
+			"select":{"name":"num_bug", "value":"bug_id", "aggregate":"count"},
 			"edges":[
 				{"name":"status", "value":'(bug_status=="resolved" || bug_status=="verified" || bug_status=="closed") ? "closed" : "open"',
 					"domain":{"type":"set", "partitions":["open", "closed"]}
@@ -169,9 +169,9 @@ var __createChart = function(){
 	var flat = yield(Q({
 		"from":chart,
 		"select":[
-			{"name":"open", "value":"status=='open' ? num_bug : null", "operation":"sum"},
-			{"name":"closed", "value":"status=='closed' ? num_bug : null", "operation":"sum"},
-			{"name":"total", "value":"num_bug", "operation":"sum"}
+			{"name":"open", "value":"status=='open' ? num_bug : null", "aggregate":"sum"},
+			{"name":"closed", "value":"status=='closed' ? num_bug : null", "aggregate":"sum"},
+			{"name":"total", "value":"num_bug", "aggregate":"sum"}
 		],
 		"edges":[
 			{"name":"date", "value":"date.value",
@@ -229,10 +229,10 @@ var __createChart = function(){
 		var perDay = (yield(CUBE.calc2List({
 			"from":diff,
 			"select":[
-				{"name":"avg_new", "value":"net_new", "operation":"average"},
-				{"name":"avg_closed", "value":"net_closed", "operation":"average"},
-				{"name":"med_new", "value":"net_new", "operation":"percentile", "percentile":0.5},
-				{"name":"med_closed", "value":"net_closed", "operation":"percentile", "percentile":0.5 }
+				{"name":"avg_new", "value":"net_new", "aggregate":"average"},
+				{"name":"avg_closed", "value":"net_closed", "aggregate":"average"},
+				{"name":"med_new", "value":"net_new", "aggregate":"percentile", "percentile":0.5},
+				{"name":"med_closed", "value":"net_closed", "aggregate":"percentile", "percentile":0.5 }
 			]
 		}))).list[0];
 

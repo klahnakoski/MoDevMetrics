@@ -170,7 +170,7 @@ var __createChart = function(paramQuery){
 	var q={
 		"name":"Open Bug Count",
 		"from":"bugs",
-		"select": {"name":"total", "value":"bug_id", "operation":"count"},
+		"select": {"name":"total", "value":"bug_id", "aggregate":"count"},
 		"edges":[
 			{"name":"date",
 				"range":{"min":"modified_ts", "max":"expires_on"},

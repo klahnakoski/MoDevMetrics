@@ -78,7 +78,7 @@
 				with the objective to reduce the false positive rate.  The
 				<a href="https://github.com/mozilla/datazilla-metrics/blob/master/dzmetrics/data_smoothing.py">data smoothing code</a>
 				may be the culprit.  <span class="AM">"smooth"_s = a*"new"_s + (1-a)*"old"_s</span>
-				does not appear to be a germain operation on standard deviation (<span class="AM">sqrt(sum_(i)x_i^2)</span>).
+				does not appear to be a germain aggregate on standard deviation (<span class="AM">sqrt(sum_(i)x_i^2)</span>).
 				I suspect something like <span class="AM">"smooth"_s = sqrt(a*"new"_s^2 + ((1-a)*"old"_s)^2)</span>, which
 				assumes an exponentially decreasing weight function on the samples.  But more work needs to be done
 			</p>

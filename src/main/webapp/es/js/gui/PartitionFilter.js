@@ -47,7 +47,7 @@ function updateLater(self, treeNode, dimension){
 		treeNode.children = [];
 		while(dimension.partitions instanceof aThread) yield (aThread.join(dimension.partitions));
 		treeNode.children = dimension.partitions.map(function(v, i){
-			return convertToTree(self, treeNode, v);
+			if (i<dimension.limit) return convertToTree(self, treeNode, v);
 		});
 		self.numLater--;
 		yield (null);
@@ -69,7 +69,7 @@ function convertToTree(self, parent, dimension){
 			updateLater(self, node, dimension);
 		}else{
 			node.children=dimension.partitions.map(function(v,i){
-				return convertToTree(self, node, v);
+				if (i<dimension.limit) return convertToTree(self, node, v);
 			});
 		}//endif
 	}//endif

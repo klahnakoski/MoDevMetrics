@@ -137,7 +137,7 @@
 		var esQuery = new ESQuery({
 			"from":"reviews",
 			"select":[
-				{"name":"num", "value":"bug_id", "operation":"count"}
+				{"name":"num", "value":"bug_id", "aggregate":"count"}
 			],
 			"edges":[
 				{"name":"duration", "value":"reviews.review_time-reviews.request_time",
@@ -163,7 +163,7 @@ D.println(CNV.List2Tab(reviewQueues));
 				"name":
 					"Historical Review Queue for "+GUI.state.requestee,
 				"from":reviewQueues.list,
-				"select":{"name":"Pending", "value":"1", operation:"sum"},
+				"select":{"name":"Pending", "value":"1", aggregate:"sum"},
 				"edges":[
 					{"name":"Bug ID", "value":"bug_id", "sort":["request_time", "review_time"]},
 					{"name":"Date",

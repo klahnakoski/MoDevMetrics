@@ -137,8 +137,8 @@ var __createChart = function(){
 		var bugList=yield (Q({
 			"from":mm,
 			"select":[
-				{"name":"closeTime", "value":"max", "operation":"one"},
-				{"name":"resolution", "value":"r.resolution", "operation":"one"}
+				{"name":"closeTime", "value":"max", "aggregate":"one"},
+				{"name":"resolution", "value":"r.resolution", "aggregate":"one"}
 			],
 			"edges":[
 				{"name":"bug_id", "value":"bug_id",
@@ -151,7 +151,7 @@ var __createChart = function(){
 
 		var chart=yield (Q({
 			"from":bugList,
-			"select": {"name":"num", "value":"bug_id", "operation":"count"},
+			"select": {"name":"num", "value":"bug_id", "aggregate":"count"},
 			"edges": [
 				{"value":"resolution", "domain":{"type":"set", "partitions":resolutionParts, "value":"name", "key":"name"}},
 				{"name":"date",
@@ -164,7 +164,7 @@ var __createChart = function(){
 
 		var stats=yield (Q({
 			"from":bugList,
-			"select":[{"name":"average", "value":""+1/sampleMax.subtract(sampleMin).round(Duration.WEEK), "operation":"sum"}]
+			"select":[{"name":"average", "value":""+1/sampleMax.subtract(sampleMin).round(Duration.WEEK), "aggregate":"sum"}]
 		}));
 
 		$("#stats").html(
@@ -175,7 +175,7 @@ var __createChart = function(){
 
 //		var chart=yield (ESQuery.run({
 //			"from": "bugs",
-//			"select": {"name":"num", "value":"bug_id", "operation":"count"},
+//			"select": {"name":"num", "value":"bug_id", "aggregate":"count"},
 //			"edges": [
 //				{"value":"resolution", "domain":{"type":"set", "partitions":resolutionParts, "value":"name", "key":"name"}},
 //				{"name":"date",

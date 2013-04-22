@@ -141,8 +141,8 @@ var __createChart = function(){
 	var metroSummary=yield (Q({
 		"from":Map.codomain(bugs),
 		"select": [
-			{"name":"total", "value":"bug_id", "operation":"count", "style":{"visibility":"hidden"}},
-			{"name":"open", "value":"time.value.between(open_time, close_time) ? 1 : 0", "operation":"sum"}
+			{"name":"total", "value":"bug_id", "aggregate":"count", "style":{"visibility":"hidden"}},
+			{"name":"open", "value":"time.value.between(open_time, close_time) ? 1 : 0", "aggregate":"sum"}
 		],
 		"edges":[
 			{"name":"date",
@@ -201,7 +201,7 @@ var __createChart = function(){
 		
 		pointCount = yield (ESQuery.run({
 			"from":"bugs",
-			"select":{"name":"points", "value":mvelToCountPoints, "operation":"maximum"},
+			"select":{"name":"points", "value":mvelToCountPoints, "aggregate":"maximum"},
 			"edges":[
 				"bug_id",
 				{"name":"date",
@@ -221,7 +221,7 @@ var __createChart = function(){
 
 		pointCount=yield (Q({
 			"from":pointCount,
-			"select":{"name":"total", "value":"points", "operation":"sum"},
+			"select":{"name":"total", "value":"points", "aggregate":"sum"},
 			"edges":[
 				{"value":"date",
 					"domain":{"type":"time", "min":startDate, "max":endDate, "interval":"day"}
@@ -255,7 +255,7 @@ var __createChart = function(){
 
 		backlogCount = yield (ESQuery.run({
 			"from":"bugs",
-			"select":{"name":"total_points", "value":mvelToCountPoints, "operation":"sum"},
+			"select":{"name":"total_points", "value":mvelToCountPoints, "aggregate":"sum"},
 			"esfilter":{"and":[
 				{"or":[
 					{"term":{"blocked":backlog}},
@@ -283,7 +283,7 @@ var __createChart = function(){
 
 		iterTotal=yield (ESQuery.run({
 			"from":"bugs",
-			"select":{"name":"total_points", "value":mvelToCountPoints, "operation":"sum"},
+			"select":{"name":"total_points", "value":mvelToCountPoints, "aggregate":"sum"},
 			"edges":[
 				{"name":"iteration", "value":"blocked",
 					domain:{"type":"set", "partitions":iterations, "value":"summary", "key":"bug_id"}
@@ -340,7 +340,7 @@ var __createChart = function(){
 
 		var open=yield (ESQuery.run({
 			"from":"bugs",
-			"select":{"name":"total_points", "value":mvelToCountPoints, "operation":"sum"},
+			"select":{"name":"total_points", "value":mvelToCountPoints, "aggregate":"sum"},
 			"edges":[
 				{"name":"iteration", "value":"blocked",
 					domain:{"type":"set", "partitions":iterations, "key":"bug_id", "value":"summary"}
@@ -392,8 +392,8 @@ var __createChart = function(){
 //		yield (Q({
 //			"from":iterTotal,
 //			"select":[
-//				{"name":"start_count", "value":"date.getMilli()==iter.startDate.getMilli() ? total_points : 0", "operation":"sum"},
-//				{"name":"end_count",   "value":"date.getMilli()==iter.endDate.getMilli() ? total_points : 0", "operation":"sum"}
+//				{"name":"start_count", "value":"date.getMilli()==iter.startDate.getMilli() ? total_points : 0", "aggregate":"sum"},
+//				{"name":"end_count",   "value":"date.getMilli()==iter.endDate.getMilli() ? total_points : 0", "aggregate":"sum"}
 //			],
 //			"edges":[
 //				{"name":"iter",
@@ -410,9 +410,9 @@ var __createChart = function(){
 		var progressBar=(yield (Q({
 			"from":iterations,
 			"select":[
-				{"name":"Completed", "value":"Util.coalesce(endCount, 0)", "operation":"sum", "default":"0", "style":{"color":"firebrick"}},
-				{"name":"Current", "value":"(!endCount) ? Util.coalesce(startCount, 0) : 0", "operation":"sum","style":{"color":"goldenrod"}},
-				{"name":"Backlog", "value":""+backlogCount.cube.total_points, "operation":"one", "style":{"color":"gray"}}
+				{"name":"Completed", "value":"Util.coalesce(endCount, 0)", "aggregate":"sum", "default":"0", "style":{"color":"firebrick"}},
+				{"name":"Current", "value":"(!endCount) ? Util.coalesce(startCount, 0) : 0", "aggregate":"sum","style":{"color":"goldenrod"}},
+				{"name":"Backlog", "value":""+backlogCount.cube.total_points, "aggregate":"one", "style":{"color":"gray"}}
 			],
 			"edges":[
 				{"name":"now", "value":""+endDate.getMilli(),
@@ -548,8 +548,8 @@ var __createChart = function(){
 		var chart=yield (Q({
 			"from":iterations,
 			"select":[
-				{"name":"Committed", "value":"Util.coalesce(startCount, 0)", "operation":"sum", "default":0, "style":{"color":"mediumseagreen"}},
-				{"name":"Completed", "value":"Util.coalesce(endCount, 0)",  "operation":"sum", "default":0, "style":{"color":"firebrick"}}
+				{"name":"Committed", "value":"Util.coalesce(startCount, 0)", "aggregate":"sum", "default":0, "style":{"color":"mediumseagreen"}},
+				{"name":"Completed", "value":"Util.coalesce(endCount, 0)",  "aggregate":"sum", "default":0, "style":{"color":"firebrick"}}
 			],
 			"edges":[
 				{"name":"iteration",
@@ -769,7 +769,7 @@ function getBacklogMembers(backlog, startDate, endDate){
 	//ONLY NEED iStart and iEnd FOR EVERY BUG
 	var t = yield(ESQuery.run({
 		"from":"bugs",
-		"select":{"name":"exists", "value":"1", "operation":"count"},
+		"select":{"name":"exists", "value":"1", "aggregate":"count"},
 		"edges":[
 			{"name":"date",
 				"range":{"min":"modified_ts", "max":"expires_on"},
@@ -808,7 +808,7 @@ function getIterationRanges(iterations){
 	//MUST CALL ES TWICE BECAUSE WE CAN ONLY HAVE ONE SELECT COLUMN IF WE HAVE EDGES
 	var u1 = yield(ESQuery.run({
 		"from":"bugs",
-		"select": {"name":"min", "value":"modified_ts", "operation":"minimum"},
+		"select": {"name":"min", "value":"modified_ts", "aggregate":"minimum"},
 		"edges":[
 			{"name":"iteration",
 				"allowNulls":false,
@@ -820,7 +820,7 @@ function getIterationRanges(iterations){
 
 	var u2 = yield(ESQuery.run({
 		"from":"bugs",
-		"select": {"name":"max", "value":"expires_on", "operation":"maximum"},
+		"select": {"name":"max", "value":"expires_on", "aggregate":"maximum"},
 		"edges":[
 			{"name":"iteration",
 				"allowNulls":false,

@@ -100,7 +100,7 @@ var __createChart = function(){
 	try{
 		var chart = yield(ESQuery.run({
 			"from":"bugs",
-			"select":{"name":"num_bug", "value":"bug_id", "operation":"count"},
+			"select":{"name":"num_bug", "value":"bug_id", "aggregate":"count"},
 			"edges":[
 				{"name":"status", "value":'(bug_status=="resolved" || bug_status=="verified" || bug_status=="closed") ? "closed" : "open"',
 					"domain":{"type":"set", "partitions":["open", "closed"]}
@@ -126,9 +126,9 @@ var __createChart = function(){
 	var flat = yield(Q({
 		"from":chart,
 		"select":[
-			{"name":"open", "value":"status=='open' ? num_bug : null", "operation":"sum"},
-			{"name":"closed", "value":"status=='closed' ? num_bug : null", "operation":"sum"},
-			{"name":"total", "value":"num_bug", "operation":"sum"}
+			{"name":"open", "value":"status=='open' ? num_bug : null", "aggregate":"sum"},
+			{"name":"closed", "value":"status=='closed' ? num_bug : null", "aggregate":"sum"},
+			{"name":"total", "value":"num_bug", "aggregate":"sum"}
 		],
 		"edges":[
 			{"name":"date", "value":"date.value",
@@ -196,8 +196,8 @@ var __createChart = function(){
 		var diff = yield(Q({
 			"from":minMaxBugs,
 			"select":[
-				{"name":"opened", "value":"(time.min.getMilli()<=min && min<time.max.getMilli()) ? 1 : 0", "operation":"sum", "default":0, "style":{"color":"blue"}},
-				{"name":"closed", "value":"(time.min.getMilli()<=max && max<time.max.getMilli()) ? -1 : 0", "operation":"sum", "default":0, "style":{"color":"red"}}
+				{"name":"opened", "value":"(time.min.getMilli()<=min && min<time.max.getMilli()) ? 1 : 0", "aggregate":"sum", "default":0, "style":{"color":"blue"}},
+				{"name":"closed", "value":"(time.min.getMilli()<=max && max<time.max.getMilli()) ? -1 : 0", "aggregate":"sum", "default":0, "style":{"color":"red"}}
 			],
 			"edges":[
 				{"name":"date", "test":"(time.min.getMilli()<=min && min<time.max.getMilli()) || (time.min.getMilli()<=max && max<time.max.getMilli())",
@@ -223,7 +223,7 @@ var __createChart = function(){
 					if (series=="opened"){
 						where="min.floorDay().getMilli()=="+x.getMilli();
 					}else{
-						where="max.floorDay().getMilli()=="+x.getMilli();
+						where="max && max.floorDay().getMilli()=="+x.getMilli();
 					}//endif
 
 					var buglist=(yield (CUBE.calc2List({
@@ -241,8 +241,8 @@ var __createChart = function(){
 		var perDay = (yield(CUBE.calc2List({
 			"from":diff,
 			"select":[
-				{"name":"opened", "value":"opened", "operation":"average"},
-				{"name":"closed", "value":"-closed", "operation":"average"}
+				{"name":"opened", "value":"opened", "aggregate":"average"},
+				{"name":"closed", "value":"-closed", "aggregate":"average"}
 			],
 			"where":statsMin.getMilli()+"<=date.getMilli() && date.getMilli()<"+statsMax.getMilli()
 		}))).list[0];
@@ -379,7 +379,7 @@ var __createChart = function(){
 			aThread.run(function(){
 				var buglist=(yield (ESQuery.run({
 					"from":"bugs",
-					"select":{"value":"bug_id", "operation":"minimum"},
+					"select":{"value":"bug_id", "aggregate":"minimum"},
 					"edges":[
 						{"name":"unique", "value":"bug_id"}
 					],

@@ -165,8 +165,8 @@
 		var ordering=yield (CUBE.calc2List({
 			"from":reviewQueues,
 			"select":[
-				{"value":"request_time", "operation":"minimum"},
-				{"value":"review_time", "operation":"maximum"}
+				{"value":"request_time", "aggregate":"minimum"},
+				{"value":"review_time", "aggregate":"maximum"}
 			],
 			"edges":[
 				"bug_id"
@@ -181,7 +181,7 @@
 			"name":
 				"Historical Review Queue for "+GUI.state.requestee,
 			"from":reviewQueues,
-			"select":{"name":"Pending", "value":"1", operation:"sum", "default":"0"},
+			"select":{"name":"Pending", "value":"1", aggregate:"sum", "default":"0"},
 			"edges":[
 				{"name":"Bug ID", "value":"bug_id", "domain":{"type":"set", "partitions":ordering, "key":"bug_id", "value":"bug_id"}},
 				{"name":"Date",

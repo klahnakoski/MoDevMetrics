@@ -3,7 +3,7 @@
     "select": {
         "name": "num",
         "value": "info",
-        "operation": "count"
+        "aggregate": "count"
     },
     "edges": [
         "info.appBuildID"
