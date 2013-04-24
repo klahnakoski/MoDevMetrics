@@ -78,7 +78,7 @@ var __createChart = function(){
 	var customFilter;
 	try{
 		if (GUI.state.filter.trim()==""){
-			customFilter=ES.TrueFilter;
+			customFilter=ESQuery.TrueFilter;
 		}else{
 			eval("customFilter="+GUI.state.filter);
 		}//endif

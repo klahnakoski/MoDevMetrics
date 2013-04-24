@@ -153,7 +153,7 @@ BUG_TAGS.get=function(minBug, maxBug, minDate, maxDate){
 			{"name":"product", "value":"product", "aggregate":"one"},
 			{"name":"component", "value":"component", "aggregate":"one"},
 			{"name":"assigned_to", "value":"assigned_to", "aggregate":"one"},
-			{"name":"keywords", "value":"(Util.coalesce(keywords, '')+' '+ETL.parseWhiteBoard(whiteboard)).trim()+' '+flags", "aggregate":"one"}
+			{"name":"keywords", "value":"(nvl(keywords, '')+' '+ETL.parseWhiteBoard(whiteboard)).trim()+' '+flags", "aggregate":"one"}
 		],
 		"edges":[
 			{"name":"date", "test":"modified_ts<=time.max.getMilli() && time.max.getMilli()<expires_on",

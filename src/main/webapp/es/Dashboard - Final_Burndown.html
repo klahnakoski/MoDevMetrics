@@ -124,11 +124,11 @@ var __createChart = function(){
 			"from":historyBugs.cube,
 //			"analytic":{"name":"Order","value":"rownum+1", "sort":["Close Date", "ID"]},
 			"select":[
-				{"name":"ID", "value":"Bugzilla.linkToBug(Util.coalesce(id, bug_id))"},
+				{"name":"ID", "value":"Bugzilla.linkToBug(nvl(id, bug_id))"},
 				{"name":"Close Date", "value":"(max==null) ? null : Date.newInstance(max).floorDay()"},
-				{"name":"Status", "value":"Util.coalesce(status, null)"},
-				{"name":"Resolution", "value":"Util.coalesce(resolution, null)"},
-				{"name":"Summary", "value":"Util.coalesce(summary, null)"}
+				{"name":"Status", "value":"nvl(status, null)"},
+				{"name":"Resolution", "value":"nvl(resolution, null)"},
+				{"name":"Summary", "value":"nvl(summary, null)"}
 			],
 			"sort":["Close Date", "Status", "ID"]
 		}));
@@ -205,8 +205,8 @@ var __createChart = function(){
 		var stats = yield(Q({
 			"from":flat,
 			"select":[
-				{"name":"closed", value:"Util.coalesce(closed, 0)"},
-				{"name":"total", value:"Util.coalesce(total, 0)"}
+				{"name":"closed", value:"nvl(closed, 0)"},
+				{"name":"total", value:"nvl(total, 0)"}
 			],
 			"edges":[
 				{"name":"date", "value":"date",

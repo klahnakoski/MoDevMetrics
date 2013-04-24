@@ -10,7 +10,7 @@ PartitionFilter = function(){};
 (function(){
 
 
-
+var DEFAULT_CHILD_LIMIT=20;     //IN THE EVENT THE PARTITION DOES NOT DECLARE A LIMIT, IMPOSE ONE SO THE GUI IS NOT OVERWHELMED
 
 PartitionFilter.newInstance=function(param){
 	ASSERT.hasAttributes(param, ["name", "dimension", "onlyOne", "expandAll"]);
@@ -27,28 +27,32 @@ PartitionFilter.newInstance=function(param){
 	self.DIV_LIST_ID=self.id.replaceAll(" ", "_")+"_list";
 	self.FIND_TREE="#"+CNV.String2JQuery(self.DIV_LIST_ID);
 	self.disableUI=false;
-	self.selectedParts=[];
 	self.numLater=0;
+
+	self.selectedIDs=[];
 	self.id2part={};        //MAP IDs TO PART OBJECTS
+	self.id2node=[];
 
-	self.allParts=[];
 	self.parents={};
-
 	self.hierarchy=convertToTree(self, {"id":self.id}, self.dimension).children;
 
 	return self;
 };
 
 
-function updateLater(self, treeNode, dimension){
+function convertToTreeLater(self, treeNode, dimension){
 	self.numLater++;
 	aThread.run(function(){
 		//DO THIS ONE LATER
-		treeNode.children = [];
+//		treeNode.children = [];
+
 		while(dimension.partitions instanceof aThread) yield (aThread.join(dimension.partitions));
-		treeNode.children = dimension.partitions.map(function(v, i){
-			if (i<dimension.limit) return convertToTree(self, treeNode, v);
-		});
+if (treeNode.id.right(13)=="Flash_Version"){
+	D.println();
+}//endif
+			treeNode.children = dimension.partitions.map(function(v, i){
+				if (i<nvl(dimension.limit, DEFAULT_CHILD_LIMIT)) return convertToTree(self, treeNode, v);
+			});
 		self.numLater--;
 		yield (null);
 	});
@@ -59,17 +63,17 @@ function convertToTree(self, parent, dimension){
 	node.id=parent.id+"."+dimension.name.replaceAll(" ", "_");
 	node.attr={id:node.id};
 	node.data=dimension.name;
-	self.id2part[node.id]=dimension;   //STORE THE WHOLE EDGE/PART
 
-	self.allParts.push(node);
+	self.id2part[node.id]=dimension;   //STORE THE WHOLE EDGE/PART
+	self.id2node[node.id]=node;
 	self.parents[node.id]=parent;
 
 	if (dimension.partitions){
 		if (dimension.partitions instanceof aThread){
-			updateLater(self, node, dimension);
+			convertToTreeLater(self, node, dimension);
 		}else{
 			node.children=dimension.partitions.map(function(v,i){
-				if (i<dimension.limit) return convertToTree(self, node, v);
+				if (i<nvl(dimension.limit, DEFAULT_CHILD_LIMIT)) return convertToTree(self, node, v);
 			});
 		}//endif
 	}//endif
@@ -85,14 +89,22 @@ function convertToTree(self, parent, dimension){
 
 
 
-PartitionFilter.prototype.getSelectedParts=function(){
+PartitionFilter.prototype.getSelectedNodes=function(){
 	var self=this;
 
 	//CONVERT SELECTED LIST INTO PART OBJECTS
-	return this.selectedParts.map(function(id){
-		for(var i = self.allParts.length; i--;){
-			if (self.allParts[i].id==id) return self.allParts[i];
-		}//for
+	return this.selectedIDs.map(function(id){
+		return self.id2node[id];
+	});
+};//method
+
+
+
+PartitionFilter.prototype.getSelectedParts=function(){
+	var self=this;
+
+	return this.selectedIDs.map(function(id){
+		return self.id2part[id];
 	});
 };//method
 
@@ -100,27 +112,28 @@ PartitionFilter.prototype.getSelectedParts=function(){
 
 //RETURN SOMETHING SIMPLE ENOUGH TO BE USED IN A URL
 PartitionFilter.prototype.getSimpleState=function(){
-	if (this.selectedParts.length==0) return undefined;
-	return this.selectedParts.join(",");
+	if (this.selectedIDs.length==0) return undefined;
+	return this.selectedIDs.join(",");
 };
 
+	
 //RETURN SOMETHING SIMPLE ENOUGH TO BE USED IN A URL
 PartitionFilter.prototype.setSimpleState=function(value){
 	if (!value || value.trim()==""){
-		this.selectedParts=[];
+		this.selectedIDs=[];
 	}else{
-		this.selectedParts=value.split(",");
+		this.selectedIDs=value.split(",");
 	}//endif
 
 	//SOME VALUES WILL BE IMPOSSIBLE, SO SHOULD BE REMOVED
-	this.selectedParts=this.getSelectedParts().map(function(v, i){return v.id;});
+	this.selectedIDs=this.getSelectedNodes().map(function(v, i){return v.id;});
 	this.refresh();
 };
 
 
 PartitionFilter.prototype.getSummary=function(){
-	if (this.selectedParts.length==0) return this.name+": All";
-	return this.name+": "+this.getSelectedParts().map(function(p){return p.data;}).join(", ");
+	if (this.selectedIDs.length==0) return this.name+": All";
+	return this.name+": "+this.getSelectedNodes().map(function(p){return p.data;}).join(", ");
 };//method
 
 
@@ -129,13 +142,15 @@ PartitionFilter.prototype.makeTree=function(){
 	if ($(this.FIND_TREE).length==0) return; //NOT BEEN CREATED YET
 
 	var self=this;
-	if (self.numLater>0 && self.refreshLater===undefined){
-		//WAIT FOR LODING TO COMPLETE
-		self.refreshLater=aThread.run(function(){
-			while(self.numLater>0) yield(aThread.sleep(200));
-			self.refreshLater=undefined;
-			self.makeTree();
-		});
+	if (self.numLater>0){
+		if (self.refreshLater===undefined){
+			//WAIT FOR LOADING TO COMPLETE
+			self.refreshLater=aThread.run(function(){
+				while(self.numLater>0) yield(aThread.sleep(200));
+				self.refreshLater=undefined;
+				self.makeTree();
+			});
+		}//endif
 		return;
 	}//endif
 
@@ -180,13 +195,13 @@ PartitionFilter.prototype.makeTree=function(){
 
 		//HAS ANYTHING CHANGED?
 		var hasChanged = false;
-		if (self.selectedParts.length != minCover.length) hasChanged = true;
+		if (self.selectedIDs.length != minCover.length) hasChanged = true;
 		if (!hasChanged) for(var i = minCover.length; i--;){
-			if (minCover[i] != self.selectedParts[i]) hasChanged = true;
+			if (minCover[i] != self.selectedIDs[i]) hasChanged = true;
 		}//for
 
 		if (hasChanged){
-			self.selectedParts = minCover;
+			self.selectedIDs = minCover;
 			GUI.refresh();
 		}//endif
 	}).bind("loaded.jstree", function(){
@@ -205,10 +220,10 @@ PartitionFilter.prototype.makeHTML=function(){
 
 //RETURN AN ES FILTER
 PartitionFilter.prototype.makeFilter = function(){
-	if (this.selectedParts.length == 0) return ES.TrueFilter;
+	if (this.selectedIDs.length == 0) return ESQuery.TrueFilter;
 
 	var selected = this.getSelectedParts();
-	if (selected.length == 0) return ES.TrueFilter;
+	if (selected.length == 0) return ESQuery.TrueFilter;
 
 	var self=this;
 	return {"or":selected.map(function(v){return self.id2part[v.id].esfilter;})};
@@ -220,7 +235,7 @@ PartitionFilter.prototype.refresh = function(){
 	//FIND WHAT IS IN STATE, AND UPDATE STATE
 	this.disableUI=true;
 	this.makeTree();
-	var selected=this.getSelectedParts();
+	var selected=this.getSelectedNodes();
 
 	var f=$('#'+CNV.String2JQuery(this.DIV_LIST_ID));
 	f.jstree("deselect_all");

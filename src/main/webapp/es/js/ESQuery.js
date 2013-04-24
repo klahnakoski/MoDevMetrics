@@ -25,6 +25,8 @@ var ESQuery = function(query){
 };
 
 
+ESQuery.TrueFilter = {"script":{"script":"true"}};
+
 ESQuery.DEBUG=false;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -107,7 +109,7 @@ ESQuery.loadColumns=function(query){
 	//WE MANAGE ALL THE REQUESTS FOR THE SAME SCHEMA, DELAYING THEM IF THEY COME IN TOO FAST
 	if (indexInfo.fetcher === undefined) {
 		indexInfo.fetcher=aThread.run(function(){
-			var URL=Util.coalesce(query.url, Util.coalesce(indexInfo.host, ElasticSearch.baseURL) + indexPath) + "/_mapping";
+			var URL=nvl(query.url, nvl(indexInfo.host, ElasticSearch.baseURL) + indexPath) + "/_mapping";
 
 			try{
 				var schema = yield(Rest.get({
@@ -154,7 +156,7 @@ ESQuery.prototype.run = function(){
 
 	if (!this.query.url){
 		var indexInfo=ESQuery.INDEXES[this.query.from.split(".")[0]];
-		this.query.url=Util.coalesce(indexInfo.host, window.ElasticSearch.baseURL)+indexInfo.path;
+		this.query.url=nvl(indexInfo.host, window.ElasticSearch.baseURL)+indexInfo.path;
 	}//endif
 
 
@@ -191,7 +193,7 @@ ESQuery.prototype.run = function(){
 
 		if (postResult._shards.failed>0){
 			D.action(postResult._shards.failed+"of"+postResult._shards.total+" shards failed.");
-			this.nextDelay=Util.coalesce(this.nextDelay, 500)*2;
+			this.nextDelay=nvl(this.nextDelay, 500)*2;
 			yield (aThread.sleep(this.nextDelay));
 			D.action("Retrying Query...");
 			yield this.run();
@@ -295,10 +297,6 @@ ESQuery.prototype.compile = function(){
 
 	if (this.query.where)
 		D.error("ESQuery does not support the where clause, use esfilter instead");
-
-	//EXPECTING MORE THAN ONE EDGE
-	this.termsEdges = this.query.edges.copy();
-
 
 	//VERY IMPORTANT!! ES CAN ONLY USE TERM PACKING ON terms FACETS, THE OTHERS WILL REQUIRE EVERY PARTITION BEING A FACET
 	this.esMode = "terms_stats";
@@ -747,7 +745,7 @@ ESQuery.compileTime2Term=function(edge){
 
 
 	var nullTest=ESQuery.compileNullTest(edge);
-	var ref=Util.coalesce(edge.domain.min, edge.domain.max, new Date(2000,0,1));
+	var ref=nvl(edge.domain.min, edge.domain.max, new Date(2000,0,1));
 
 	var partition2int;
 	if (edge.domain.interval.month>0){
@@ -787,7 +785,7 @@ ESQuery.compileDuration2Term=function(edge){
 	var value=edge.value;
 	if (MVEL.isKeyword(value)) value="doc[\""+value+"\"].value";
 
-	var ref=Util.coalesce(edge.domain.min, edge.domain.max, Duration.ZERO);
+	var ref=nvl(edge.domain.min, edge.domain.max, Duration.ZERO);
 	var nullTest=ESQuery.compileNullTest(edge);
 
 

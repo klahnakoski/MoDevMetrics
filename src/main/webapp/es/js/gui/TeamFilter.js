@@ -164,12 +164,12 @@ TeamFilter.prototype.setSimpleState=function(value){
 
 
 TeamFilter.prototype.makeFilter = function(field_name){
-	if (this.selectedEmails.length == 0) return ES.TrueFilter;
-	field_name=Util.coalesce(field_name, this.field_name);
-	if (field_name==null) return ES.TrueFilter;
+	if (this.selectedEmails.length == 0) return ESQuery.TrueFilter;
+	field_name=nvl(field_name, this.field_name);
+	if (field_name==null) return ESQuery.TrueFilter;
 
 	var selected = aThread.runSynchronously(this.getSelectedPeople());
-	if (selected.length == 0) return ES.TrueFilter;
+	if (selected.length == 0) return ESQuery.TrueFilter;
 
 	//FIND BZ EMAILS THAT THE GIVEN LIST MAP TO
 	var getEmail=function(list, children){
@@ -183,7 +183,7 @@ TeamFilter.prototype.makeFilter = function(field_name){
 	var bzEmails=[];
 	getEmail(bzEmails, selected);
 
-	if (bzEmails.length==0) return ES.TrueFilter;
+	if (bzEmails.length==0) return ESQuery.TrueFilter;
 
 	var output={"or":[]};
 

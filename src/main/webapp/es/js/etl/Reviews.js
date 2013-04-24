@@ -309,11 +309,11 @@ REVIEWS.get=function(minBug, maxBug){
 		],
 		"select":[
 			{"name":"bug_status", "value":"bug_status", "aggregate":"one"},
-			{"name":"review_time", "value":"Util.coalesce(doneReview.modified_ts, null)", "aggregate":"minimum"},
-			{"name":"review_result", "value":"Util.coalesce(doneReview.review_result, null)", "aggregate":"minimum"},
-			{"name":"product", "value":"Util.coalesce(doneReview.product, product)", "aggregate":"minimum"},
-			{"name":"component", "value":"Util.coalesce(doneReview.component, component)", "aggregate":"minimum"},
-			{"name":"keywords", "value":"(Util.coalesce(keywords, '')+' '+ETL.parseWhiteBoard(whiteboard)).trim()+' '+flags", "aggregate":"one"},
+			{"name":"review_time", "value":"nvl(doneReview.modified_ts, null)", "aggregate":"minimum"},
+			{"name":"review_result", "value":"nvl(doneReview.review_result, null)", "aggregate":"minimum"},
+			{"name":"product", "value":"nvl(doneReview.product, product)", "aggregate":"minimum"},
+			{"name":"component", "value":"nvl(doneReview.component, component)", "aggregate":"minimum"},
+			{"name":"keywords", "value":"(nvl(keywords, '')+' '+ETL.parseWhiteBoard(whiteboard)).trim()+' '+flags", "aggregate":"one"},
 			{"name":"requester_review_num", "value":"-1", "aggregate":"one"}
 //			{"name":"status_whiteboard", "value":"whiteboard", "aggregate":"one"},
 //			{"name":"status_whiteboard.tokenized", "value":"ETL.parseWhiteBoard(whiteboard)).trim()", "aggregate":"one"}
@@ -391,7 +391,7 @@ REVIEWS.postMarkup=function(){
 
 	}//for
 
-	REVIEWS.newIndexName=Util.coalesce(REVIEWS.newIndexName, REVIEWS.oldIndexName);
+	REVIEWS.newIndexName=nvl(REVIEWS.newIndexName, REVIEWS.oldIndexName);
 	ESQuery.INDEXES.reviews.path="/"+REVIEWS.newIndexName+"/review";
 
 	//UPDATE THE AUTO-INDEXING TO EVERY SECOND

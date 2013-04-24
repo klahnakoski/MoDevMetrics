@@ -762,7 +762,7 @@ Date.tryParse=function(val, isFutureDate){
 
 	var d = null;
 	for(var i = 0; i < Date.CheckList.length; i++){
-		d = Date.getDateFromFormat(val, Date.CheckList[i], !Util.coalesce(isFutureDate, false));
+		d = Date.getDateFromFormat(val, Date.CheckList[i], !nvl(isFutureDate, false));
 		if (d != 0){
 			var temp=Date.CheckList[i];
 			Date.CheckList.splice(i, 1);

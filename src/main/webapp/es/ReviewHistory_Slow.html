@@ -360,7 +360,7 @@ D.println(CNV.Object2JSON(data));
 							inReview,
 						"select":[
 //							{"name":"close_record", "sort":["doneReview.end_time", ""]},
-							{"name":"end_time", "value":"Date.newInstance(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "aggregate":"minimum"}
+							{"name":"end_time", "value":"Date.newInstance(nvl(doneReview.modified_ts, Date.now().getMilli()))", "aggregate":"minimum"}
 						],
 						"edges":[
 							{"name":"bug_id", "value":"bug_id"},

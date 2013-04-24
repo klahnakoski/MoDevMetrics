@@ -10,7 +10,7 @@ importScript("../CNV.js");
 
 
 ProgramFilter = function(indexName){
-	this.indexName=Util.coalesce(indexName, "bugs");
+	this.indexName=nvl(indexName, "bugs");
 	this.name="Programs";
 	this.refresh();
 	this.selected=[];
@@ -23,7 +23,7 @@ ProgramFilter.prototype.makeFilter = function(indexName, selectedPrograms){
 	if (indexName===undefined) indexName=this.indexName;
 	if (selectedPrograms===undefined) selectedPrograms=this.selected;
 
-	if (selectedPrograms.length == 0) return ES.TrueFilter;
+	if (selectedPrograms.length == 0) return ESQuery.TrueFilter;
 
 	var or = [];
 	for(var i=0;i<selectedPrograms.length;i++){
@@ -60,7 +60,7 @@ ProgramFilter.makeQuery = function(filters){
 			D.error("");
 		}//endif
 
-		programCompares[project]=Util.coalesce(programCompares[project], []);
+		programCompares[project]=nvl(programCompares[project], []);
 		programCompares[project].push({"term":Map.newInstance(name, value)});
 	}//for
 

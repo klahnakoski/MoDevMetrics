@@ -15,7 +15,7 @@ ProductFilter = function(){
 
 
 ProductFilter.prototype.makeFilter = function(){
-	if (this.selected.length==0) return ES.TrueFilter;
+	if (this.selected.length==0) return ESQuery.TrueFilter;
 	return {"terms":{"product":this.selected}};
 };//method
 

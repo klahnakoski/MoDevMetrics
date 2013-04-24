@@ -6,13 +6,13 @@
 var ES = {};
 
 ES.makeFilter = function(field, values){
-	if (values.length == 0) return ES.TrueFilter;
+	if (values.length == 0) return ESQuery.TrueFilter;
 	return {"terms":Map.newInstance(field, values)};
 };//method
 
 
 
-ES.TrueFilter = {"script":{"script":"true"}};
+
 
 
 

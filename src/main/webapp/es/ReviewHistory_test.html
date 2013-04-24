@@ -274,7 +274,7 @@ D.println(CNV.List2Tab(doneReview));
 						"select":[
 							{"name":"bug_id", "value":"bug_id", "aggregate":"one"},
 							{"name":"attach_id", "value":"attach_id", "aggregate":"one"},
-							{"name":"end_time", "value":"Date.newInstance(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "aggregate":"minimum"}
+							{"name":"end_time", "value":"Date.newInstance(nvl(doneReview.modified_ts, Date.now().getMilli()))", "aggregate":"minimum"}
 						],
 						"edges":[
 							{"name":"close_record", "test":"bug_id==doneReview.bug_id && attach_id==doneReview.attach_id && requestee==doneReview.requestee && modified_ts<=doneReview.modified_ts", allowNulls:true,

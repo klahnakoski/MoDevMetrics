@@ -92,7 +92,7 @@ GUI.setup = function(refreshChart, parameters, relations, indexName, showDefault
 
 	GUI.makeSelectionPanel();
 
-	GUI.relations=Util.coalesce(relations, []);
+	GUI.relations=nvl(relations, []);
 	GUI.FixState();
 
 	GUI.URL2State();				//OVERWRITE WITH URL PARAM
@@ -548,7 +548,7 @@ GUI.injectFilters = function(chartRequest){
 
 
 GUI.getFilters=function(indexName){
-	if (GUI.customFilters.length==0) return ES.TrueFilter;
+	if (GUI.customFilters.length==0) return ESQuery.TrueFilter;
 	
 	var output={"and":[]};
 	GUI.customFilters.forall(function(f, i){

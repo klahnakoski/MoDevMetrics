@@ -170,8 +170,8 @@ var __createChart = function(){
 	var stats = yield(Q({
 		"from":flat,
 		"select":[
-			{"name":"closed", value:"Util.coalesce(closed, 0)"},
-			{"name":"total", value:"Util.coalesce(total, 0)"}
+			{"name":"closed", value:"nvl(closed, 0)"},
+			{"name":"total", value:"nvl(total, 0)"}
 		],
 		"edges":[
 			{"name":"date", "value":"date",

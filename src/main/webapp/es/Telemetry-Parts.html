@@ -1,0 +1,162 @@
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="application/javascript;version=1.7" src="js/aScript.js"></script>
+</HEAD>
+<BODY>
+
+
+<a href="http://people.mozilla.com/~klahnakoski/" class="tabzilla">HOME</a>
+
+
+<div id="sidebar" style="width:400px;position: relative;">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<!--<div style="width:100%;position: relative;">-->
+		<!--Measure X-->
+		<!--<textarea id="measureX" rows="5" style="width:100%;"></textarea>-->
+		<!--Measure Y-->
+		<!--<textarea id="measureY" rows="5" cols="60" style="width:100%;"></textarea>-->
+		<!--Filter-->
+		<!--<textarea id="esfilter" rows="5" cols="60" style="width:100%;"></textarea>-->
+	<!--</div>-->
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3>Telemetry</h3>
+
+
+	<div id="chart" class="chart" style="height:600px;width:600px;"></div>
+	<div id="selectDim" style="width:600px;"></div>
+	<textarea id="cube" name="cube" style="width:800px;height:250px;"></textarea>
+	<div id="info"></div>
+	<div id="report"></div>
+</div>
+
+
+<script type="application/javascript;version=1.7">
+
+
+importScript([
+	'js/main.js',
+	'js/Dimension-Telemetry.js',
+	"js/gui/PickDim.js"
+], function(){
+	//STYLE AS LINED TEXT AREA
+	$("#cube").linedtextarea();
+
+	var PART_QUERY;
+
+	var pd=new PickDim("#selectDim", Mozilla.Telemetry, function(query){
+		PART_QUERY=query;
+		GUI.refresh();
+	});
+
+
+ElasticSearch.baseURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
+
+var CUTOFF=Duration.newInstance("3week");
+$("#description").html(
+		"Simple heat grid to compare the various simple measures.  Least-squares regression line added to get sense of relationship."+
+		"We still need to add a the regression distribution, and a plethora of filters"+
+		'<br><br><span class="warning">This page points to my server behind the firewall.  You must have Toronto VPN access (vpn.tor1.mozilla.com).</span>'+
+		'<br><br><span class="warning">Limited to nightly, WINNT, and all zero-values removed</span>'
+);
+
+var thread;
+
+var createChart=function(){
+	if (thread!==undefined) thread.kill();
+	thread=aThread.run( __createChart());
+};
+
+
+var __createChart = function(){
+	//REEMPTIVE LOAD SO THE EXPRESSION COMPILE WORKS
+	yield (ESQuery.loadColumns({"from": "raw_telemetry"}));
+	if (Mozilla.Telemetry.Instance.Addons.partitions instanceof aThread) yield (aThread.join(Mozilla.Telemetry.Instance.Addons.partitions));
+
+	var X=GUI.state.measureX.getSelectedParts()[0];
+	if (X===undefined) yield(null);	//NOT READY TO SHOW ANYTHING
+	if (PART_QUERY===undefined) yield(null);
+
+	var query={
+		"from":X.index,
+		"select":{"name":"count", "value":"1", "aggregate":"count"}
+	};
+
+	Map.copy(PART_QUERY, query);
+	query.edges.push({
+		"name":"X",
+		"value":X.field,
+		"domain":X.getDomain()
+	});
+
+
+	$("#cube").val(CNV.Object2JSON(query));
+
+	var chart=yield (ESQuery.run(query));
+
+	aChart.show({
+		"id":"chart",
+		"cube":chart,
+		"titlePaddings":5,
+		"height":600,
+		"width":600
+	});
+
+	yield (null);
+
+};
+
+
+
+	$(document).ready(function(){
+		GUI.setup(
+			createChart,
+			[
+//				{"id":"measurey", "name":"Measure X", "type":"code", "default":"simpleMeasurements.start"},
+				{"id":"measureX", "type":PartitionFilter.newInstance({
+					"name":"Measure X",
+					"dimension":Mozilla.Telemetry,
+					"onlyOne":true,
+					"expandAll":true,
+					"callback":function(dim){
+						D.println("Chose "+dim.name);
+					}//method
+				})},
+				{"id":"maxX", "name":"Max X", "type":"number", "default":"100"},
+				{"id":"maxY", "name":"Max Y", "type":"number", "default":"200"},
+				{"id":"numParts", "name":"Num Parts", "type":"number", "default":"20"}
+			],
+			[
+//				"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+			],
+			"raw_telemetry",
+			false
+		);
+	});
+});
+
+</script>
+
+
+</BODY>
+</HTML>
+

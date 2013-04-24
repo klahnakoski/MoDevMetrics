@@ -206,7 +206,7 @@ ElasticSearchQuery.prototype.success = function(data){
 	if (data._shards.failed>0){
 		D.warning("Must resend query...");
 		var self=this;
-		self.timeout=Util.coalesce(self.timeout, 1000)*2;
+		self.timeout=nvl(self.timeout, 1000)*2;
 		setTimeout(function(){self.Run();}, self.timeout);
 //		this.Run();
 		return;

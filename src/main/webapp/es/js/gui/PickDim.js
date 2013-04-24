@@ -20,10 +20,13 @@ var PickDim=function(div, dimensions, callback){
 	this.addPart(self.dimensions);
 };
 
+(function(){
 
-PickDim.BUTTON_SIZE=20;
-PickDim.ADD_BUTTON='<div class="smalltoolbutton" title="Add Filter"><img src="'+Settings.imagePath+'/Add.png"  style="height:'+PickDim.BUTTON_SIZE+'px;width:'+PickDim.BUTTON_SIZE+'px;"></div>';
-PickDim.REMOVE_BUTTON='<div class="smalltoolbutton" title="Remove Filter"><img src="'+Settings.imagePath+'/Remove.png"  style="height:'+PickDim.BUTTON_SIZE+'px;width:'+PickDim.BUTTON_SIZE+'px;"></div>';
+var DEFAULT_CHILD_LIMIT=20;     //IN THE EVENT THE PARTITION DOES NOT DECLARE A LIMIT, IMPOSE ONE SO THE GUI IS NOT OVERWHELMED
+
+var BUTTON_SIZE=20;
+var ADD_BUTTON='<div class="smalltoolbutton" title="Add Filter"><img src="'+Settings.imagePath+'/Add.png"  style="height:'+BUTTON_SIZE+'px;width:'+BUTTON_SIZE+'px;"></div>';
+var REMOVE_BUTTON='<div class="smalltoolbutton" title="Remove Filter"><img src="'+Settings.imagePath+'/Remove.png"  style="height:'+BUTTON_SIZE+'px;width:'+BUTTON_SIZE+'px;"></div>';
 
 
 
@@ -34,7 +37,7 @@ PickDim.prototype._findPart=function(name){
 	var selected;
 
 	if (!this.focus) D.error("Must add a dimension before finding a part");
-	var parts = Util.coalesce(this.focus.edge.edges, this.focus.edge.partitions);
+	var parts = nvl(this.focus.edge.edges, this.focus.edge.partitions);
 	if (!parts) D.error("No part by name of " + name);
 
 	parts.forall(function(v, i){
@@ -49,7 +52,7 @@ PickDim.prototype._findPart=function(name){
 //MAKE A NEW ADD BUTTON.  THE CLICK HANDLER IS LOST IF remove() RUN ON IT
 PickDim.prototype._addButton=function(row){
 	var self=this;
-	self.addButton=$(PickDim.ADD_BUTTON);
+	self.addButton=$(ADD_BUTTON);
 	row.find("td").eq(1).prepend(self.addButton);
 
 	self.addButton.click(function(e){
@@ -111,7 +114,7 @@ PickDim.prototype.toggle = function(name){
 
 PickDim.prototype.addPart=function(edge){
 	//NO NEED TO SHOW ANOTHER LEVEL, IF THERE ARE NONE
-	var parts=Util.coalesce(edge.edges, edge.partitions);
+	var parts=nvl(edge.edges, edge.partitions);
 	if (!parts) return;
 
 
@@ -130,11 +133,12 @@ PickDim.prototype.addPart=function(edge){
 		'<tr>'+
 			'<td><div class="dim-container"><div class="position">'+
 				parts.map(function(v, i){
+					if (i>=nvl(edge.limit, DEFAULT_CHILD_LIMIT)) return undefined;
 					return '<span class="dim-part" name="'+v.name+'">'+v.name+'</span>';
 				}).join("")+
 			'</div></td>'+
 			'<td class="dim-addremove">'+
-				PickDim.REMOVE_BUTTON+
+				REMOVE_BUTTON+
 			'</td>'+
 		'</tr>'
 	);
@@ -274,32 +278,33 @@ PickDim.prototype.removeEdge=function(filter){
 
 //RETURN THE QUERY PARTS THAT THIS UI ELEMENT DEFINES
 PickDim.prototype.getQuery=function(){
-
+	var self=this;
 	var edges=[];
 	var filter={"and":[]};
 
-	var numSelected=countAllKey(this.focus.selected);
-	var currentSelection=Map.codomain(this.focus.selected);;
+	var numSelected=countAllKey(self.focus.selected);
+	var currentSelection=Map.codomain(self.focus.selected);
 
 	//MAKE AN EDGE FOR PARTITIONING
-	if (this.focus){
+	if (self.focus){
 
-		var selectedParts=this.focus.edge.partitions;
+		var selectedParts=self.focus.edge.partitions;
 		if (selectedParts && numSelected>0){
 			selectedParts=currentSelection;
 		}//endif
 
 		if (selectedParts){
 
-			if (this.focus.edge.field!==undefined){
+			if (self.focus.edge.field!==undefined){
 				//PARTS CAME FROM THE FIELD DEFINITION
 				//THE ACTUAL SELECTION CAN BE DONE LOCALLY, SO WE WILL SIMPLY REQUEST ALL PARTS???
 				edges.push({
-					"name":this.focus.edge.name,
-					"value":this.focus.edge.field,
+					"name":self.focus.edge.name,
+					"value":self.focus.edge.field,
 					"domain":{
-						"type":this.focus.edge.type,
+						"type":self.focus.edge.type,
 						"partitions":selectedParts.map(function(p,i){
+							if (i>=nvl(self.focus.edge.limit, DEFAULT_CHILD_LIMIT)) return undefined;
 							return p.value;
 						})
 					}
@@ -309,7 +314,7 @@ PickDim.prototype.getQuery=function(){
 				//SHOULD NOT DO THIS, THE QUERY OBJECT SHOULD BE ABLE TO HANDLE IT FINE
 				//(?MOVE THIS LOGIC OVER TO ESQuery?)
 				var term="\"Other\";";
-				var eParts=this.focus.edge.partitions;
+				var eParts=self.focus.edge.partitions;
 				for(var i=eParts.length;i--;){
 					var v=eParts[i];
 					if (selectedParts.contains(v)){
@@ -353,13 +358,13 @@ PickDim.prototype.getQuery=function(){
 			});
 		}//endif
 
-		if (this.focus.edge.esfilter){
-			filter.and.push(this.focus.edge.esfilter);
+		if (self.focus.edge.esfilter){
+			filter.and.push(self.focus.edge.esfilter);
 		}//endif
 	}//endif
 
-	for(var i=0;i<this.filters.length;i++){
-		var selected=this.filters[i].selected;
+	for(var i=0;i<self.filters.length;i++){
+		var selected=self.filters[i].selected;
 		//ADD SELECTED esfilterS TO THE FILTER
 		var keys=Object.keys(selected);
 		if (keys.length==0){
@@ -375,6 +380,8 @@ PickDim.prototype.getQuery=function(){
 		}//endif
 	}//for
 
+	if (filter.and.length==0) filter=undefined;
 	return {"edges":edges, "esfilter":filter};
 };
 
+})();

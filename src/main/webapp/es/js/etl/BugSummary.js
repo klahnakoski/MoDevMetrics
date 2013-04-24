@@ -242,7 +242,7 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 	forAllKey(timesData.facets, function(k, v){
 		var domainName=k.deformat()+"part";
 		var edgeName=domainName+"__edge";
-		var s={"name":k, "value":"Util.coalesce("+domainName+".min, null)", "aggregate":"minimum"};
+		var s={"name":k, "value":"nvl("+domainName+".min, null)", "aggregate":"minimum"};
 		var e={"name":edgeName, "value":"bug_id", allowNulls:true, "domain":{"name":domainName, "type":"set", "key":"term", "partitions":v.terms}};
 		edgeList.push(edgeName);
 		joinItAll.select.push(s);

@@ -112,24 +112,31 @@ var mapAllKey=function(map, func){
 };
 
 
-var Util = {};
+
 
 //RETURN FIRST NOT NULL, AND DEFINED VALUE
-Util.coalesce = function(){
+function nvl(){
 	var a;
 	for(var i=0;i<arguments.length;i++){
 		a=arguments[i];
 		if (a!==undefined && a!=null) return a;
 	}//for
 	return null;
-};//method
+}//method
 
-Util.nvl = Util.coalesce;
+var coalesce=nvl;
+
+
+var Util = {};
+
+Util.coalesce = nvl;
 
 Util.returnNull = function(__row){
 	return null;
 };//method
 
+
+//POOR IMPLEMENTATION
 Util.UID=function(){
 	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
 		var r = aMath.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);

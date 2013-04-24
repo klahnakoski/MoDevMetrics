@@ -392,7 +392,7 @@ CUBE.domain.duration = function(column, sourceColumns){
 			if (noMin){//NO MINIMUM REQUESTED
 				if (noMin && noMax){
 					this.min = floor;
-					this.max = Util.coalesce(this.max, floor.add(this.interval));
+					this.max = nvl(this.max, floor.add(this.interval));
 					CUBE.domain.duration.addRange(this.min, this.max, this);
 				} else if (key.milli < this.min.milli){
 //					var newmin=floor;
@@ -407,7 +407,7 @@ CUBE.domain.duration = function(column, sourceColumns){
 
 			if (noMax){//NO MAXIMUM REQUESTED
 				if (noMin && noMax){
-					this.min = Util.coalesce(this.min, floor);
+					this.min = nvl(this.min, floor);
 					this.max = floor.add(this.interval);
 					CUBE.domain.duration.addRange(this.min, this.max, this);
 				} else if (key.milli >= this.max.milli){

@@ -8,26 +8,37 @@ importScript("ESQuery.js");
 
 var Dimension={};
 
+Dimension.prototype={
+	"getDomain":function(){
+		var output=Map.copy(this);
+		output.field=undefined;
+		output.parent=undefined;
+		output["default"]=undefined;
+		output.index=undefined;
+		return Map.copy(output);
+	}
+};
+
 
 (function(){
 
 	////////////////////////////////////////////////////////////////////////////
-	// BUILD A HEIRARCHY BY REPEATEDLY CALLING THIS METHOD WITH VARIOUS childPaths
+	// BUILD A HIERARCHY BY REPEATEDLY CALLING THIS METHOD WITH VARIOUS childPaths
 	// count IS THE NUMBER FOUND FOR THIS PATH
 	function addParts(parentPart, childPath, count, index){
 		if (index===undefined) index=0;
 		if (index==childPath.length) return;
 		var c=childPath[index];
-		parentPart.count=Util.coalesce(parentPart.count, 0)+count;
+		parentPart.count=nvl(parentPart.count, 0)+count;
 
 		if (parentPart.partitions===undefined) parentPart.partitions=[];
 		for(var i=0;i<parentPart.partitions.length;i++){
 			if (parentPart.partitions[i].name==c.name){
-				addParts(c, childPath, count, index+1);
+				addParts(parentPart.partitions[i], childPath, count, index+1);
 				return;
 			} //endif
 		}//for
-		parentPart.partitions[i]=c;
+		parentPart.partitions.push(c);
 //		parentPart[c.name]=c;  //HANDLED BY convertPart()
 //		c.parent=parentPart;    //HANDLED BY convertPart()
 		addParts(c, childPath, count, index+1);
@@ -40,32 +51,31 @@ var Dimension={};
 			if (part.partitions){
 				part.partitions.forall(function(p,i){
 					convertPart(p);
-					p.value=p.name;
-					part[p.name]=Util.coalesce(part[p.name], p);
+					p.value=nvl(p.value, p.name);
 					p.parent=part;
+					part[p.name]=nvl(part[p.name], p);
 				});
 			}//endif
 
 			if (part.esfilter){
 				if (lowerCaseOnly) part.esfilter=CNV.JSON2Object(CNV.Object2JSON(part.esfilter).toLowerCase());
-			}else{
-				if (part.partitions){
-					part.esfilter={"or":[]};
-					part.partitions.forall(function(p,i){
-						part.esfilter.or.push(p.esfilter);
-						p.parent=part;
-					});
+			}else if (part.partitions){
+				if (part.partitions.length>100){
+					D.error("Must define an esfilter on "+part.name+", there are too many partitions ("+part.partitions.length+")");
+				}else{
+					//DEFAULT esfilter IS THE UNION OF ALL CHILD FILTERS
+					if (part.partitions){
+						part.esfilter={"or":part.partitions.select("esfilter")};
+					}//endif
 				}//endif
 			}//endif
 		}
 
-
-
 		function convertDim(dim){
 			if (dim.edges){
-				//ALLOW ACCESS TO EDGE BY NAME
+				//ALLOW ACCESS TO SUB-PART BY NAME (IF ONLY THERE IS NO NAME COLLISION)
 				dim.edges.forall(function(e, i){
-					dim[e.name]=e;
+					dim[e.name]=nvl(dim[e.name], e);
 					e.parent=dim;
 					if (dim.index) e.index=dim.index;   //COPY INDEX DOWN
 					convertDim(e);
@@ -98,17 +108,18 @@ var Dimension={};
 
 					if (dim.path!==undefined){
 						//EACH TERM RETURNED IS A PATH INTO A PARTITION TREE
-						dim.partitions=[];
+						var temp={"partitions":[]};
 						parts.cube.forall(function(count, i){
 							var a=dim.path(d.end(d.partitions[i]));
 							if (!(a instanceof Array)) D.error("The path function on "+dim.name+" must return an ARRAY of parts");
 							addParts(
-								dim,
+								temp,
 								dim.path(d.end(d.partitions[i])),
 								count,
 								0
 							);
 						});
+						dim.partitions=temp.partitions;
 					}else{
 						//SIMPLE LIST OF PARTS RETURNED, BE SURE TO INTERRELATE THEM
 						dim.partitions=parts.cube.map(function(count, i){
@@ -129,9 +140,11 @@ var Dimension={};
 			}//endif
 
 
-			dim.isFacet=true;		//FORCE TO BE A FACET IN ES QUERIES
+//			dim.isFacet=true;		//FORCE TO BE A FACET IN ES QUERIES
 			if (dim.type===undefined) dim.type="set";
-			dim.value="name";
+
+			//ADD CONVENIENCE METHODS
+			Map.copy(Dimension.prototype, dim);
 		}
 
 		// CODE STARTS HERE

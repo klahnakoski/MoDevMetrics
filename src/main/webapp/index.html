@@ -47,6 +47,38 @@
 
 	<tr>
 	<td>
+		<h4>April 24th 2013</h4>
+		<div class="description">
+			<p>This past week I spent the majority of my time enhancing the telemetry
+				visualization.  Unfortunately, I have succumbed to optimistic
+				estimation and this is taking longer than expected.
+			</p>
+			<p>I have spent a couple of days reading through the datazilla code
+				responsible for doing the statistical analysis.  Aside a few
+				questions for <a href="https://phonebook.mozilla.org/tree.php#search/jeads@mozilla.com">Jeads</a>,
+				I believe I understand what the code is doing.  I still have not found a
+				a test case or data to run it through the debugger, but I have come
+				to the conclusion that the one-test-at-a-time procedure it uses can be improved:
+			</p>
+			<p>I suggest the overall procedure will look like this:
+				<ol>
+					<li>Grab all the test results for some time (revision) range</li>
+					<li>Use existing statistical libraries to annotate the test results.</li>
+					<li>Compare annotations to previous annotations calculated for that data range. </li>
+					<li>Update database where there are differences, making sure the <span class="code">modified_date</span> is updated. </li>
+				</ol>
+			This set-wise procedure has the immediate benefit of providing time series
+			in the form the statistical libraries need it.  Furthermore, being able to process, and
+			reprocess the series will allow us to compensate for previously missing data that can alter our
+			conclusions.  Finally, as test results arrive, the egregious regressions
+			can be marked immediately, while the more subtle regressions (that require
+			more samples to improve confidence) can be marked later.
+			</p>
+		</div>
+		<div class="items">
+		</div>
+
+
 		<h4>April 15th 2013</h4>
 		<div class="description">
 			<p>I have my first working Python environment!  For me this is special;

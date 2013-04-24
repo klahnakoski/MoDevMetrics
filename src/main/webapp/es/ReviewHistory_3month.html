@@ -240,7 +240,7 @@
 							inReview,
 						"select":[
 							{"name":"bug_id", "value":"bug_id", "aggregate":"minimum"},
-							{"name":"end_time", "value":"Date.newInstance(Util.coalesce(doneReview.modified_ts, Date.now().getMilli()))", "aggregate":"minimum"}
+							{"name":"end_time", "value":"Date.newInstance(nvl(doneReview.modified_ts, Date.now().getMilli()))", "aggregate":"minimum"}
 						],
 						"edges":[
 							{"name":"close_record",

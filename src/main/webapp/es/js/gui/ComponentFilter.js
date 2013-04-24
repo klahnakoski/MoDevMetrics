@@ -11,7 +11,7 @@ ComponentFilter = function(){
 
 
 ComponentFilter.prototype.makeFilter = function(){
-	if (this.selected.length==0) return ES.TrueFilter;
+	if (this.selected.length==0) return ESQuery.TrueFilter;
 	return {"terms":{"component":this.selected}};
 };//method
 

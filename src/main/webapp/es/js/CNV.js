@@ -101,6 +101,12 @@ CNV.Object2JSON = function(json){
 			if (v===undefined) return "undefined";
 			return CNV.Object2JSON(v).indent(1);
 		}).join(",\n")+"\n]";
+	}else if (typeof(json)=="function"){
+		return "undefined";
+	}else if (json instanceof Duration){
+		return CNV.String2Quote(json.toString());
+	}else if (json instanceof Date){
+		return CNV.String2Quote(json.format("yyyy-NNN-dd HH:mm:ss"));
 	}else if (json instanceof Object){
 		let singleLine=JSON.stringify(json);
 		if (singleLine.length<60) return singleLine;
@@ -126,8 +132,6 @@ CNV.Object2JSON = function(json){
 //			if (v===undefined) return "";
 //			return "\""+k+"\":"+CNV.Object2JSON(v).indent(1).trim();
 //		}).join(",\n\t")+"\n}";
-	}else if (json instanceof Date){
-		return json.format("yyyy-NNN-dd HH:mm:ss");
 //TOO BAD: CAN NOT PROVIDE FORMATTED STRINGS
 //	}else if (typeof(json)=="string"){
 //		var output=JSON.stringify(json);
@@ -514,7 +518,7 @@ CNV.List2Table = function(list, columnOrder){
 		var item = list[i];
 		var row = [];
 		for(var c = 0; c < columns.length; c++){
-			row[c] = Util.coalesce(item[columns[c].name], null);
+			row[c] = nvl(item[columns[c].name], null);
 		}//for
 		data.push(row);
 	}//for
