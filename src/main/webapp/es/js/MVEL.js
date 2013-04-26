@@ -308,6 +308,11 @@ MVEL.prototype.where = function(esFilter){
 			output += "(" + this.translate(variableName) + "==" + MVEL.Value2Code(valueList[i]) + ")";
 		}//for
 		return output;
+	}else if (op=="exists"){
+		//"exists":{"field":"myField"}
+		var pair = esFilter[op];
+		var variableName = pair.field;
+		return "(" + this.translate(variableName) + "!=null)";
 	}else if (op=="missing"){
 //		"missing" : {
 //			"field" : "requestee",
@@ -365,8 +370,7 @@ MVEL.prototype.where = function(esFilter){
 			return "(" + upper + ") && (" + lower + ")";
 		}//endif
 	} else if (op=="script"){
-		var script = esFilter[op].script;
-		return this.translate(script);
+		return esFilter[op].script;  //HOPEFULLY THERE IS NOTHING TO DO HERE
 	}else if (op=="prefix"){
 		var pair = esFilter[op];
 		var variableName = Object.keys(pair)[0];
@@ -409,6 +413,21 @@ MVEL.Value2Value = function(value){
 	if (value.getMilli) return value.getMilli();		//TIME
 	if (value instanceof Duration) return value.milli;	//DURATION
 	return value;
+};//method
+
+//CONVERT AN ARRAY OF PARTS{name, esfilter} TO AN MVEL EXPRESSION
+MVEL.Parts2Term = function(indexName, parts, defaultValue){
+	var tempVarName="__temp";
+	var mvel = new MVEL();
+	mvel.from(indexName, "_loop_");
+
+	var term = CNV.String2Quote(defaultValue) + ";";
+	parts.forall(function(v){
+		term =
+			"if (" + mvel.where(v.esfilter) + ") "+ CNV.String2Quote(v.name) + ";\n else " +
+				term;
+	});
+	return "var _temp = function(){"+term+"}; _temp();";
 };//method
 
 

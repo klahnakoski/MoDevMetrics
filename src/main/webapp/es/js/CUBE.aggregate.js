@@ -21,8 +21,8 @@ CUBE.aggregate.compile = function(select){
 
 	//DEFAULT AGGREGATION USES A STRUCTURE (OR VALUE) THAT CHANGES
 	//SOME AGGREGATES DEFER calc() UNTIL LATER
-	if (select.aggregate===undefined){
-		select.aggregate=function(row, result, agg){
+	if (select.aggFunction===undefined){
+		select.aggFunction=function(row, result, agg){
 			var v=this.calc(row, result);
 			return this.add(agg, v);
 		};//method

@@ -8,14 +8,39 @@ importScript("ESQuery.js");
 
 var Dimension={};
 
+
+var DEFAULT_QUERY_LIMIT=20;
+
 Dimension.prototype={
 	"getDomain":function(){
-		var output=Map.copy(this);
-		output.field=undefined;
-		output.parent=undefined;
-		output["default"]=undefined;
-		output.index=undefined;
-		return Map.copy(output);
+		var self=this;
+		var output={
+			"type":this.type,
+			"name":this.name,
+			"partitions":!this.partitions ? undefined : this.partitions.map(function(v, i){
+				if (i>=nvl(self.limit, DEFAULT_QUERY_LIMIT)) return undefined;
+				return {
+					"name":v.name,
+					"value":v.value,
+					"esfilter":v.esfilter
+				};
+			}),
+			"min":this.min,
+			"max":this.max,
+			"interval":this.interval,
+			"value":this.value,
+			"isFacet":this.isFacet
+
+		};
+		return output;
+
+
+//		var output=Map.copy(this);
+//		output.field=undefined;
+//		output.parent=undefined;
+//		output["default"]=undefined;
+//		output.index=undefined;
+//		return Map.copy(output);
 	}
 };
 
@@ -53,6 +78,7 @@ Dimension.prototype={
 					convertPart(p);
 					p.value=nvl(p.value, p.name);
 					p.parent=part;
+					if (part.index) p.index=part.index;   //COPY INDEX DOWN
 					part[p.name]=nvl(part[p.name], p);
 				});
 			}//endif
@@ -72,6 +98,11 @@ Dimension.prototype={
 		}
 
 		function convertDim(dim){
+//			if (dim.name=="DWriteEnabled"){
+//				D.println();
+//			}
+
+
 			if (dim.edges){
 				//ALLOW ACCESS TO SUB-PART BY NAME (IF ONLY THERE IS NO NAME COLLISION)
 				dim.edges.forall(function(e, i){
@@ -84,9 +115,13 @@ Dimension.prototype={
 
 			convertPart(dim);
 
-			if (dim.limit===undefined) dim.limit=20;
+			if (dim.limit===undefined) dim.limit=DEFAULT_QUERY_LIMIT;
 
-			if (dim.field!==undefined && dim.type=="set" && dim.allParts===undefined){
+			if (dim.field!==undefined && CUBE.domain.PARTITION.contains(dim.type) && dim.partitions===undefined){
+//				if (dim.type=="boolean"){
+//					D.println("");
+//				}
+
 				dim.partitions=aThread.run(function(){
 					//IF dim.field IS A NUMBER, THEN SET-WISE EDGES DO NOT WORK (CLASS CAST EXCEPTION)
 					if (dim.field=="info.appBuildID"){
@@ -119,12 +154,13 @@ Dimension.prototype={
 								0
 							);
 						});
+						if (dim.value===undefined) dim.value="name";
 						dim.partitions=temp.partitions;
 					}else{
 						//SIMPLE LIST OF PARTS RETURNED, BE SURE TO INTERRELATE THEM
 						dim.partitions=parts.cube.map(function(count, i){
 							return {
-								"name":d.partitions[i].name,
+								"name":""+d.partitions[i].name,  //CONVERT TO STRING
 								"value":d.end(d.partitions[i]),
 								"esfilter":{"term":Map.newInstance(dim.field, d.partitions[i].value)},
 								"count":count

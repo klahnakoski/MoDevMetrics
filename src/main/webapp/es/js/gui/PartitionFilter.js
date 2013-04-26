@@ -226,7 +226,7 @@ PartitionFilter.prototype.makeFilter = function(){
 	if (selected.length == 0) return ESQuery.TrueFilter;
 
 	var self=this;
-	return {"or":selected.map(function(v){return self.id2part[v.id].esfilter;})};
+	return {"or":selected.map(function(v){return v.esfilter;})};
 };//method
 
 

@@ -288,6 +288,7 @@ PickDim.prototype.getQuery=function(){
 	//MAKE AN EDGE FOR PARTITIONING
 	if (self.focus){
 
+		//ARE WE SHOWING MORE THAN ONE SERIES?
 		var selectedParts=self.focus.edge.partitions;
 		if (selectedParts && numSelected>0){
 			selectedParts=currentSelection;
@@ -295,7 +296,8 @@ PickDim.prototype.getQuery=function(){
 
 		if (selectedParts){
 
-			if (self.focus.edge.field!==undefined){
+			if (self.focus.edge.field!==undefined && self.focus.edge.path===undefined){
+				//IF path IS DEFINED, THEN IT'S GUNNA BE COMPLICATED, THIS IS FOR SIMPLE FIELDS ONLY
 				//PARTS CAME FROM THE FIELD DEFINITION
 				//THE ACTUAL SELECTION CAN BE DONE LOCALLY, SO WE WILL SIMPLY REQUEST ALL PARTS???
 				edges.push({
@@ -305,30 +307,37 @@ PickDim.prototype.getQuery=function(){
 						"type":self.focus.edge.type,
 						"partitions":selectedParts.map(function(p,i){
 							if (i>=nvl(self.focus.edge.limit, DEFAULT_CHILD_LIMIT)) return undefined;
-							return p.value;
-						})
+							return {
+								"name":p.name,
+								"value": p.value,
+								"esfilter":p.esfilter
+							};
+						}),
+						"value":"value",    //COMPLEX PARTITION OBJECTS, SO NEED TO SPECIFY WHICH ATTRIBUTE TO USE TO LABEL AXIS
+						"isFacet":self.focus.edge.isFacet
 					}
 				});
+			}else if (self.focus.edge.isFacet){
+				D.error("not completed");
+				//PARTS NOT DEFINED BY FIELD, BUT RATHER AN esfilter
+
 			}else{
+				//PARTS NOT DEFINED BY FIELD, BUT RATHER AN esfilter
+
 				//COMPILE INDIVIDUAL PARTS TO MAKE A SINGLE CASE STATEMENT
 				//SHOULD NOT DO THIS, THE QUERY OBJECT SHOULD BE ABLE TO HANDLE IT FINE
 				//(?MOVE THIS LOGIC OVER TO ESQuery?)
-				var term="\"Other\";";
-				var eParts=self.focus.edge.partitions;
-				for(var i=eParts.length;i--;){
-					var v=eParts[i];
-					if (selectedParts.contains(v)){
-						//COUNT IT
-						term=
-							"if ("+MVEL.prototype.where(v.esfilter)+") "+CNV.String2Quote(v.name)+";\n else "+
-							term;
-					}else{
-						//IGNORE IT
-						term=
-							"if ("+MVEL.prototype.where(v.esfilter)+") null;\n else "+
-							term;
-					}//endif
-				}//for
+				edges.push({
+					"name":self.focus.edge.name,
+					"value":MVEL.Parts2Term(self.focus.edge.index, selectedParts, "Other"),
+					"domain":{
+						"type":"set",
+						"partitions":selectedParts.map(function(p,i){
+							if (i>=nvl(self.focus.edge.limit, DEFAULT_CHILD_LIMIT)) return undefined;
+							return p.name;
+						})
+					}
+				});
 			}//endif
 		}else if (numSelected>0 && currentSelection[0].field&& CUBE.domain.ALGEBRAIC.contains(currentSelection[0].type)){
 			//ONLY ONE DIMENSION CAN EVER BE SELECTED
@@ -353,7 +362,8 @@ PickDim.prototype.getQuery=function(){
 					"type":s.type,
 					"partitions":s.partitions.map(function(p,i){
 						return p.value;
-					})
+					}),
+					"isFacet":self.focus.edge.isFacet
 				}
 			});
 		}//endif
@@ -364,19 +374,15 @@ PickDim.prototype.getQuery=function(){
 	}//endif
 
 	for(var i=0;i<self.filters.length;i++){
-		var selected=self.filters[i].selected;
-		//ADD SELECTED esfilterS TO THE FILTER
-		var keys=Object.keys(selected);
-		if (keys.length==0){
+		var esfilters=mapAllKey(self.filters[i].selected, function(k, v){
+			return v.esfilter;
+		});
+		if (esfilters.length==0){
 			//DO NOTHING
-		}else if (keys.length==1){
-			if (selected[keys[0]].esfilter)
-				filter.and.push(selected[keys[0]].esfilter);
+		}else if (esfilters.length==1){
+			filter.and.push(esfilters[0]);
 		}else{
-			var or=mapAllKey(selected, function(k, v){
-				return v.esfilter;
-			});
-			filter.and.push({"or":or});
+			filter.and.push({"or":esfilters});
 		}//endif
 	}//for
 

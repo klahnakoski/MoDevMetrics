@@ -30,7 +30,7 @@ function string2path(fieldName, separator){
 Dimension.addEdges(false, Mozilla, [
 
 	{"name":"Telemetry", "index":"raw_telemetry", "edges":[
-		{"name":"Date", "field":"date", "type":"set", "format":"yyyyMMdd", "min":Date.eod().addWeek(-2), "max":Date.eod().addWeek(2), "interval":Duration.DAY},
+		{"name":"Date", "field":"date", "type":"set", "format":"yyyyMMdd", "min":Date.eod().addWeek(-2), "max":Date.eod(), "interval":Duration.DAY},
 
 		{"name":"Measures", "edges":[
 			{"name":"Start", "field":"simpleMeasurements.start", "type":"linear", "default":{"aggregate":["median", "average"]}},
@@ -55,13 +55,13 @@ Dimension.addEdges(false, Mozilla, [
 
 //			{"name":"", "field":"simpleMeasurements.uptime", "type":"linear", "default":{"aggregate":["median", "average"]}},
 //			{"name":"", "field":"simpleMeasurements.shutdownDuration", "type":"linear", "default":{"aggregate":["median", "average"]}},
-			{"name":"", "field":"simpleMeasurements.startupInterrupted", "type":"boolean"},
-			{"name":"", "field":"simpleMeasurements.debuggerAttached", "type":"boolean"}
+			{"name":"Startup Interrupted", "field":"simpleMeasurements.startupInterrupted", "type":"boolean"},
+			{"name":"Debugger Attached", "field":"simpleMeasurements.debuggerAttached", "type":"boolean"}
 		]},
 
 		{"name":"User Defined", "edges":[
 			{"name":"Ordered Startup", "partitions":[
-				{"name":"Orderly", esfilter:{"and":[
+				{"name":"Orderly", "esfilter":{"and":[
 					{"term":{"simpleMeasurements.startupInterrupted":0}},
 					{"term":{"simpleMeasurements.debuggerAttached":0}},
 					{"script":{"script":"doc[\"simpleMeasurements.start\"].value <= doc[\"simpleMeasurements.main\"].value"}},
@@ -75,10 +75,10 @@ Dimension.addEdges(false, Mozilla, [
 					]}
 					]}
 				},
-				{"name":"Unorderly"}
+				{"name":"Unorderly", "esfilter":ESQuery.TrueFilter}
 			]},
 
-			{"name":"Warm/Cold", "partitions":[
+			{"name":"Warm/Cold", "esfilter":ESQuery.TrueFilter, "partitions":[
 				{"name":"Warm", "esfilter": {"script":{"script":"doc[\"simpleMeasurements.main\"].value - doc[\"simpleMeasurements.start\"].value <= 100"}}, "type":"boolean"},
 				{"name":"Cold", "esfilter": {"script":{"script":"doc[\"simpleMeasurements.main\"].value - doc[\"simpleMeasurements.start\"].value > 100"}}, "type":"boolean"}
 			]}
@@ -127,7 +127,7 @@ Dimension.addEdges(false, Mozilla, [
 			},
 			{"name":"Arch", "field":"info.arch", "type":"set"},
 			{"name":"Locale", "field":"info.locale", "type":"set"},
-			{"name":"MemSize", "field":"info.memsize", "type":"linear", "min":"0", "max":128000, "interval":1000, "aggregate":["median", "average"]},
+			{"name":"MemSize", "field":"info.memsize", "type":"linear", "min":"0", "max":15000, "interval":1000, "aggregate":["median", "average"]},
 			{"name":"cpucount", "field":"info.cpucount", "type":"count"},
 			{"name":"DWriteVersion", "field":"info.DWriteVersion", "type":"set"},
 			{"name":"DWriteEnabled", "field":"info.DWriteEnabled", "type":"boolean"},

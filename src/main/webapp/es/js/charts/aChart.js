@@ -249,7 +249,7 @@ aChart.show=function(params){
 
 	var chartCube=params.cube;
 	var type=params.type;
-
+	var stacked=false;
 	////////////////////////////////////////////////////////////////////////////
 	// TYPE OF CHART
 	////////////////////////////////////////////////////////////////////////////
@@ -267,14 +267,15 @@ aChart.show=function(params){
 				if (CUBE.domain.ALGEBRAIC.contains(chartCube.edges[1].domain.type)){
 					type="heat";
 				}else{
-					type="line";
-					params.orientation="horizontal"
+					type="bar";
+//					params.orientation="horizontal"
 				}//endif
 			}else{
 				if (CUBE.domain.ALGEBRAIC.contains(chartCube.edges[1].domain.type)){
 					type="line";
 				}else{
-					D.error("Can not handle two categorical edges");
+					type="bar";
+					stacked=true;
 				}//endif
 			}//endif
 		}else{
@@ -322,6 +323,16 @@ aChart.show=function(params){
 		{"color":"#bcbd22"},
 		{"color":"#17becf"}
 	];
+	if (type=="heat"){
+		styles=[
+		{"color":"#EEEEEE"},
+		{"color":"#BBBBBB"},
+		{"color":"#999999"},
+		{"color":"#666666"},
+		{"color":"#333333"}
+		];
+	}//endif
+
 	if (chartCube.edges.length==1){
 		if (chartCube.select instanceof Array){
 			for(let i=0;i<chartCube.select.length;i++){
@@ -365,12 +376,14 @@ aChart.show=function(params){
 		timeSeriesFormat: JavaDateFormat2ProtoVisDateFormat(xaxis.domain.format),
 		showDots:true,
 		showValues: false,
+		"stacked":stacked,
 		originIsZero: this.originZero,
 		yAxisPosition: "right",
 		yAxisSize: 50,
 		xAxisSize: 50,
 		"colors":styles.map(function(s){return s.color;}),
 		plotFrameVisible: false,
+		"colorNormByCategory": false,        //FOR HEAT CHARTS
 		extensionPoints: {
 			noDataMessage_text: "No Data To Chart",
 			xAxisLabel_textAngle: aMath.PI/4,

@@ -87,6 +87,46 @@ CUBE.select2Array = function(select){
 
 
 
+
+function getAggregate(result, query, select){
+	//WE NEED THE select TO BE AN ARRAY
+	var edges=query.edges;
+
+	//FIND RESULT IN tree
+	var agg = query.tree;
+	var i = 0;
+	for(; i < edges.length - 1; i++){
+		var part=result[i];
+		var v = edges[i].domain.getKey(part);
+		if (agg[v] === undefined) agg[v] = {};
+		agg = agg[v];
+	}//for
+
+
+
+	part=result[i];
+	v = edges[i].domain.getKey(part);
+	if (agg[v] === undefined){
+		agg[v]=[];
+		//ADD SELECT DEFAULTS
+		for(var s = 0; s < select.length; s++){
+			agg[v][s] = select[s].defaultValue();
+		}//for
+	}//endif
+
+	return agg[v];
+}//method
+
+
+function calcAgg(row, result, query, select){
+	var agg = getAggregate(result, query, select);
+	for(var s = 0; s < select.length; s++){
+		//ADD TO THE AGGREGATE VALUE
+		agg[s] = select[s].aggFunction(row, result, agg[s]);
+	}//endif
+}//method
+
+
 function calc2Tree(query){
 	if (query.edges.length == 0)
 		D.error("Tree processing requires an edge");
@@ -101,7 +141,6 @@ function calc2Tree(query){
 	query.columns = CUBE.compile(query, sourceColumns);
 	var where = CUBE.where.compile(query.where, sourceColumns, edges);
 	var numWhereFalse=0;
-	var agg = calcAgg;
 
 
 	var tree = {};
@@ -174,7 +213,7 @@ function calc2Tree(query){
 		for(var r = results.length; r--;){
 			var pass = where(row, results[r]);
 			if (pass){
-				agg(row, results[r], query, select);
+				calcAgg(row, results[r], query, select);
 			}else{
 				numWhereFalse++;
 			}//for
@@ -193,43 +232,6 @@ function calc2Tree(query){
 }
 
 
-function calcAgg(row, result, query, select){
-	var agg = CUBE.getAggregate(result, query, select);
-	for(var s = 0; s < select.length; s++){
-		//ADD TO THE AGGREGATE VALUE
-		agg[s] = select[s].aggregate(row, result, agg[s]);
-	}//endif
-}//method
-
-
-CUBE.getAggregate = function(result, query, select){
-	//WE NEED THE select TO BE AN ARRAY
-	var edges=query.edges;
-
-	//FIND RESULT IN tree
-	var agg = query.tree;
-	var i = 0;
-	for(; i < edges.length - 1; i++){
-		var part=result[i];
-		var v = edges[i].domain.getKey(part);
-		if (agg[v] === undefined) agg[v] = {};
-		agg = agg[v];
-	}//for
-
-
-
-	part=result[i];
-	v = edges[i].domain.getKey(part);
-	if (agg[v] === undefined){
-		agg[v]=[];
-		//ADD SELECT DEFAULTS
-		for(var s = 0; s < select.length; s++){
-			agg[v][s] = select[s].defaultValue();
-		}//for
-	}//endif
-
-	return agg[v];
-};//method
 
 
 CUBE.listAlert=false;

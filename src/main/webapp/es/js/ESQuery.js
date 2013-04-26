@@ -568,8 +568,8 @@ ESQuery.buildCondition = function(edge, partition, query){
 
 ESQuery.prototype.buildESQuery = function(){
 	var where;
-	if (this.query.where===undefined) 		where={"script":{"script":"true"}};
-	if (typeof(this.query.where)!="string")	where={"script":{"script":"true"}}; //NON STRING WHERE IS ASSUMED TO BE PSUDO-esFILTER (FOR CONVERSION TO MVEL)
+	if (this.query.where===undefined) 		where=ESQuery.TrueFilter;
+	if (typeof(this.query.where)!="string")	where=ESQuery.TrueFilter; //NON STRING WHERE IS ASSUMED TO BE PSUDO-esFILTER (FOR CONVERSION TO MVEL)
 	if (typeof(this.query.where)=="string")	where={"script":{"script":this.query.where}};
 
 	var output = {

@@ -91,8 +91,12 @@ CNV.JSON2Object = function(json){
 CNV.Object2JSON = function(json){
 //	return JSON.stringify(json);
 	if (json instanceof Array){
-		let singleLine=JSON.stringify(json);
-		if (singleLine.length<60) return singleLine;
+		try{
+			let singleLine=JSON.stringify(json);
+			if (singleLine.length<60) return singleLine;
+		}catch(e){
+			D.warning("Problem turning array to json:", e);
+		}//try
 
 		if (json.length==0) return "[]";
 		if (json.length==1) return "["+CNV.Object2JSON(json[0])+"]";
@@ -108,8 +112,12 @@ CNV.Object2JSON = function(json){
 	}else if (json instanceof Date){
 		return CNV.String2Quote(json.format("yyyy-NNN-dd HH:mm:ss"));
 	}else if (json instanceof Object){
-		let singleLine=JSON.stringify(json);
-		if (singleLine.length<60) return singleLine;
+		try{
+			let singleLine=JSON.stringify(json);
+			if (singleLine.length<60) return singleLine;
+		}catch(e){
+			D.warning("Problem turning object to json:", e);
+		}//try
 
 		var keys=Object.keys(json);
 		if (keys.length==0) return "{}";

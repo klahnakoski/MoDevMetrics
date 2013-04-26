@@ -9,6 +9,8 @@ var MozillaPrograms = {
 	"rows":[
 		["B2G 1.0.0 (TEF)", "cf_blocking_b2g", "tef+"],
 		["B2G 1.0.1 (TEF)", "cf_blocking_b2g", "tef+"],
+		["TEF Non-blocking (tef-)", "cf_blocking_b2g", "tef-"],
+		["TEF Triage (tef?)", "cf_blocking_b2g", "tef?"],
 		["B2G 1.0.1 (Shira)", "cf_blocking_b2g", "shira+"],
 		["B2G 1.1.0 (Leo)", "cf_blocking_b2g", "leo+"],
 		["Build Duty", "status_whiteboard.tokenized", "buildduty"],

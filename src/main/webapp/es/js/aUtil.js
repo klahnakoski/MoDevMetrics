@@ -106,7 +106,10 @@ var mapAllKey=function(map, func){
 	for(var i=keys.length;i--;){
 		var key=keys[i];
 		var val=map[key];
-		if (val!==undefined) output.push(func(key, val));
+		if (val!==undefined){
+			var result=func(key, val);
+			if (result!==undefined) output.push(result);
+		}//endif
 	}//for
 	return output;
 };

@@ -7,8 +7,8 @@ if (CUBE===undefined) var CUBE = {};
 CUBE.domain = {};
 
 CUBE.domain.ALGEBRAIC=["time", "duration", "linear", "count"];  //DOMAINS THAT HAVE ALGEBRAIC OPERATIONS DEFINED
-CUBE.domain.KNOWN=["set", "binary", "duration", "time", "linear"];    //DOMAINS THAT HAVE A KNOWN NUMBER FOR PARTS AT QUERY TIME
-CUBE.domain.PARTITION=["set", "binary"];    //DIMENSIONS WITH CLEAR PARTS
+CUBE.domain.KNOWN=["set", "boolean", "duration", "time", "linear"];    //DOMAINS THAT HAVE A KNOWN NUMBER FOR PARTS AT QUERY TIME
+CUBE.domain.PARTITION=["set", "boolean"];    //DIMENSIONS WITH CLEAR PARTS
 
 CUBE.domain.compile = function(column, sourceColumns){
 	if (column.domain === undefined){
@@ -16,16 +16,21 @@ CUBE.domain.compile = function(column, sourceColumns){
 		return;
 	}//endif
 
-	if (column.domain.type==false)
-		D.error();
-	if (column.domain.type=="date"){
-		if (column.domain.name===undefined) column.domain.name="date"; //KEEP THE NAME
-		column.domain.type="time";
-	}//endif
 	if (column.domain.type===undefined && column.domain.partitions!==undefined){
 		column.domain.type="set";
 		if (column.domain.name==="undefined") D.warning("it is always good to name your domain");
 	}//endif
+	if (column.domain.type=="date"){
+		if (column.domain.name===undefined) column.domain.name="date"; //KEEP THE NAME
+		column.domain.type="time";
+	}//endif
+	if (column.domain.type=="boolean"){
+		if (column.domain.name===undefined) column.domain.name="boolean"; //KEEP THE NAME
+		column.domain.type="set";
+	}//endif
+	
+	if (column.domain.type===undefined)
+		D.error("Expecting a domain to have a 'type' attribute");
 
 	if (column.domain.type=="value"){
 		column.domain=CUBE.domain.value;

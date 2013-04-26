@@ -75,7 +75,7 @@ importScript([
 				{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}}
 			]};
 
-		var requesteeList={"script":{"script":"true"}};
+		var requesteeList=ESQuery.TrueFilter;
 		if (GUI.state.requestee.trim().length>0){
 			requesteeList={"terms":{"reviewer": GUI.state.requestee.split(",").map(function(v){return v.trim();})}};
 			mainFilter.and.push(requesteeList);

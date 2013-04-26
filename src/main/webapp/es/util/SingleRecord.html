@@ -86,33 +86,18 @@
 //		yield (ESQuery.loadColumns({"from":"bugs"}));
 
 
-		var esQuery = { "query":{"filtered":{ "query":{"match_all":{}}, "filter":{"and":[
-			{"script":{"script":"true"}},
-			{"and":[
-				{"term":{"appUpdateChannel":"nightly"}},
-				{"term":{"OS":"WINNT"}},
-				{"term":{"version":"6.1"}},
-				{"term":{"info.reason":"saved-session"}},
-				{"term":{"info.appVersion":"22.0a1"}},
-//				{"exists":{"field":"simpleMeasurements"}},
-				{"term":{"simpleMeasurements.startupInterrupted":0}},
-				{"term":{"simpleMeasurements.debuggerAttached":0}},
-//				{"script":{"script":"doc[\"simpleMeasurements.start\"].value <= doc[\"simpleMeasurements.main\"].value"}},
-//				{"script":{"script":"doc[\"simpleMeasurements.main\"].value <= doc[\"simpleMeasurements.createTopLevelWindow\"].value"}},
-//				{"script":{"script":"doc[\"simpleMeasurements.createTopLevelWindow\"].value <= doc[\"simpleMeasurements.firstPaint\"].value"}},
-//				{"script":{"script":"doc[\"simpleMeasurements.firstPaint\"].value <= doc[\"simpleMeasurements.sessionRestored\"].value"}},
-//				{"or":[
-//					{"not":{"exists":{"field":"doc[\"simpleMeasurements.firstLoadURI\"].value"}}},
-//					{"script":{"script":"doc[\"simpleMeasurements.firstPaint\"].value <= doc[\"simpleMeasurements.firstLoadURI\"].value"}},
-//					{"script":{"script":"doc[\"simpleMeasurements.firstLoadURI\"].value <= doc[\"simpleMeasurements.sessionRestored\"].value"}}
-//				]}
+		var esQuery = {
+			"from":"bugs",
+			"select":["bug_id", "changes", "cf_blocking_b2g", "modified_ts", "expires_on"],
+			"esfilter":{"and":[
+				//CHANGES TO FLAG WILL CHATCH EVERY RECORD WE ARE INTERESTED IN
+				{"term":{"bugs.changes.field_name":"cf_blocking_b2g"}},
+				{"or":[
+					{"prefix":{"bugs.changes.field_value":"tef?"}},
+					{"prefix":{"bugs.changes.field_value_removed":"tef?"}}
+				]}
 			]}
-		]} }}, "from":0, "size":0, "sort":[],
-			"facets":{ "0":{ "statistical":{"field":"simpleMeasurements.firstPaint"},
-				"facet_filter":{"and":[
-			{"term":{"info.addons":"testpilot%40labs.mozilla.com:1.2.2"}}
-		]}
-			} } }
+		}
 
 				;
 //		{
@@ -127,8 +112,8 @@
 			var data = yield(Rest.post({
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping?pretty=true",
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
-			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/raw_telemetry/_search",
-//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
+//			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/raw_telemetry/_search",
+			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
 
 //			"url":"http://localhost:9200/reviews/review/_search",
 //			"url":"http://localhost:9200/bug_tags/bug_tags/_search",
