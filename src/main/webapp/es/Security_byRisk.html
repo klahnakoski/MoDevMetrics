@@ -181,8 +181,8 @@ var __createChart = function(){
 		"from":"bugs",
 		"select": {"name":"total", "value":"bug_id", "aggregate":"count"},
 		"edges":[
-			{"name":"Team", "domain":Mozilla.Security.Teams},
-			{"name":"Priority", "domain":Mozilla.Security.Priority},
+			{"name":"Team", "domain":Mozilla.Security.Teams.getDomain()},
+			{"name":"Priority", "domain":Mozilla.Security.Priority.getDomain()},
 			{"name":"date",
 				"range":{"min":"modified_ts", "max":"expires_on"},
 				"allowNulls":false,

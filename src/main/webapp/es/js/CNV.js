@@ -164,7 +164,6 @@ CNV.String2Quote = function(str){
 	return "\"" + (str + '').replaceAll("\n", "\\n").replace(/([\n\\"'])/g, "\\$1").replace(/\0/g, "\\0") + "\"";
 };//method
 
-
 CNV.Date2Code = function(date){
 	return "Date.newInstance("+date.getMilli()+")";
 };//method
@@ -175,6 +174,8 @@ CNV.Value2Quote=function(value){
 		return "";
 	} else if (value == null){
 		return "null";
+	} else if (typeof(value)=="string"){
+		return CNV.String2Quote(value);
 	} else if (aMath.isNumeric(value)){
 		if ((""+value).length==13){
 			//PROBABLY A TIMESTAMP

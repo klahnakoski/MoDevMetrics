@@ -327,17 +327,21 @@ PickDim.prototype.getQuery=function(){
 				//COMPILE INDIVIDUAL PARTS TO MAKE A SINGLE CASE STATEMENT
 				//SHOULD NOT DO THIS, THE QUERY OBJECT SHOULD BE ABLE TO HANDLE IT FINE
 				//(?MOVE THIS LOGIC OVER TO ESQuery?)
-				edges.push({
+
+				var edge={
 					"name":self.focus.edge.name,
-					"value":MVEL.Parts2Term(self.focus.edge.index, selectedParts, "Other"),
 					"domain":{
 						"type":"set",
 						"partitions":selectedParts.map(function(p,i){
 							if (i>=nvl(self.focus.edge.limit, DEFAULT_CHILD_LIMIT)) return undefined;
-							return p.name;
-						})
+							return p;
+						}),
+						"getKey":function(p){return p.name;},
+						"NULL":{"name":"Other"}
 					}
-				});
+				};
+
+				edges.push(edge);
 			}//endif
 		}else if (numSelected>0 && currentSelection[0].field&& CUBE.domain.ALGEBRAIC.contains(currentSelection[0].type)){
 			//ONLY ONE DIMENSION CAN EVER BE SELECTED

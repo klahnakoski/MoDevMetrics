@@ -112,13 +112,13 @@ MVEL.compile.expression = function(expression, query, constants){
 	var context = MVEL.compile.getContextVariables(indexName, expression);
 	if (context=="") return MVEL.compile.addFunctions(expression);
 
-	var body = "output = "+expression+"; output;\n";
+//	var body = "output = "+expression+"; output;\n";
 
 	var func=MVEL.compile.uniqueFunction();
 	var output = MVEL.compile.addFunctions(
 		'var '+func+' = function('+indexName+'){\n' +
 			context+
-			body +
+			expression + ";\n"+
 		'};\n' +
 		func+'(_source)\n'
 	);
@@ -416,18 +416,18 @@ MVEL.Value2Value = function(value){
 };//method
 
 //CONVERT AN ARRAY OF PARTS{name, esfilter} TO AN MVEL EXPRESSION
-MVEL.Parts2Term = function(indexName, parts, defaultValue){
-	var tempVarName="__temp";
+MVEL.Parts2Term = function(
+	indexName,  //NAME OF INDEX
+	domain
+){
 	var mvel = new MVEL();
 	mvel.from(indexName, "_loop_");
 
-	var term = CNV.String2Quote(defaultValue) + ";";
-	parts.forall(function(v){
-		term =
-			"if (" + mvel.where(v.esfilter) + ") "+ CNV.String2Quote(v.name) + ";\n else " +
-				term;
+	var term="";
+	domain.partitions.forall(function(v){
+		term +=	"if (" + mvel.where(v.esfilter) + ") "+ CNV.Value2Quote(domain.getKey(v)) + ";\n else ";
 	});
-	return "var _temp = function(){"+term+"}; _temp();";
+	return "var _temp = function(){"+term+CNV.Value2Quote(domain.getKey(domain.NULL)) + ";}; _temp()";
 };//method
 
 
@@ -557,6 +557,7 @@ MVEL.FUNCTIONS={
 		"var getDocValue = function(name){\n"+
 			"var out = [];\n"+
 			"var v = doc[name];\n"+
+//			"if (v is org.elasticsearch.common.mvel2.ast.Function) v = v();=n" +
 			"if (v==null || v.value==null) { null; } else " +
 			"if (v.values.length<=1){ v.value; } else " + //ES MAKES NO DISTINCTION BETWEEN v or [v], SO NEITHER DO I
 			"{for(k : v.values) out.add(k); out;}" +

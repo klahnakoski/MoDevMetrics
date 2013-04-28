@@ -157,33 +157,37 @@ Dimension.addEdges(true,  Mozilla, [
 	]},
 
 	{"name":"Security", "edges":[
-		{"name":"Priority", "partitions":[
-			{"name":"Critical", "weight":5, "style":{"color":"red"}, "esfilter":
-				{"or":[
-					{"term":{"status_whiteboard.tokenized": "sg:critical"}},
-					{"term":{"keywords": "sec-critical"}}
-				]}
-			},
-			{"name":"High", "weight":4, "style":{"color":"orange"}, "esfilter":
-				{"or":[
-					{"term":{"status_whiteboard.tokenized": "sg:high"}},
-					{"term":{"keywords": "sec-high"}}
-				]}
-			},
-			{"name":"Moderate", "weight":2, "style":{"color":"yellow"}, "esfilter":
-				{"or":[
-					{"term":{"status_whiteboard.tokenized": "sg:moderate"}},
-					{"term":{"keywords": "sec-moderate"}}
-				]}
-			},
-			{"name":"Low", "weight":1, "style":{"color":"green"}, "esfilter":
-				{"or":[
-					{"term":{"status_whiteboard.tokenized": "sg:low"}},
-					{"term":{"keywords": "sec-low"}}
-				]}
-			}
-		]},
+		{"name":"Priority",
+			"type":"set",
+			"partitions":[
+				{"name":"Critical", "weight":5, "style":{"color":"red"}, "esfilter":
+					{"or":[
+						{"term":{"status_whiteboard.tokenized": "sg:critical"}},
+						{"term":{"keywords": "sec-critical"}}
+					]}
+				},
+				{"name":"High", "weight":4, "style":{"color":"orange"}, "esfilter":
+					{"or":[
+						{"term":{"status_whiteboard.tokenized": "sg:high"}},
+						{"term":{"keywords": "sec-high"}}
+					]}
+				},
+				{"name":"Moderate", "weight":2, "style":{"color":"yellow"}, "esfilter":
+					{"or":[
+						{"term":{"status_whiteboard.tokenized": "sg:moderate"}},
+						{"term":{"keywords": "sec-moderate"}}
+					]}
+				},
+				{"name":"Low", "weight":1, "style":{"color":"green"}, "esfilter":
+					{"or":[
+						{"term":{"status_whiteboard.tokenized": "sg:low"}},
+						{"term":{"keywords": "sec-low"}}
+					]}
+				}
+			]
+		},
 		{"name":"Teams",
+			"type":"set",
 			"esfilter": {"terms":{"product":['Fennec','Firefox for Android', "Mozilla Services", "Boot2Gecko", "firefox", "toolkit", "thunderbird", "mailnews core", 'JSS','NSS','NSPR', "core"]}},
 			"partitions":[
 			{"name": "Mobile", "esfilter":

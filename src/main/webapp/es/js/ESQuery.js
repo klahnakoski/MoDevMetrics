@@ -82,9 +82,18 @@ ESQuery.parseColumns=function(indexName, esProperties){
 			return;
 		}//endif
 
+		
 		if (property.dynamic !== undefined) return;
 		if (property.type === undefined) return;
-		if (property.type == "multi_field") property.type = property.fields[name].type;	//PULL DEFAULT TYPE
+		if (property.type == "multi_field"){
+			property.type = property.fields[name].type;  //PULL DEFAULT TYPE
+			forAllKey(property.fields, function(n, p, i){
+				if (n==name) return;
+				columns.push({"name":name+"."+n, "type":p.type});
+			});
+			return;
+		}//endif
+
 
 		if (["string", "boolean", "integer", "date", "long"].contains(property.type)){
 			columns.push({"name":name, "type":property.type});
@@ -259,6 +268,13 @@ ESQuery.prototype.compile = function(){
 	this.columns = CUBE.compile(this.query, ESQuery.INDEXES[this.query.from.split(".")[0]].columns, true);
 
 
+	var esFacets;
+	if (this.columns[0].name=="Team"){
+		D.println("");
+	}
+
+
+
 	this.termsEdges = this.query.edges.copy();
 	this.select = CUBE.select2Array(this.query.select);
 
@@ -342,7 +358,6 @@ ESQuery.prototype.compile = function(){
 
 	this.esQuery = this.buildESQuery();
 
-	var esFacets;
 	esFacets = this.buildFacetQueries();
 
 	for(var i = 0; i < esFacets.length; i++){
@@ -649,7 +664,7 @@ ESQuery.prototype.buildESStatisticalQuery=function(value){
 //RETURNS TUPLE OBJECT WITH "type" and "value" ATTRIBUTES.  "type" CAN HAVE A VALUE OF "script" OR "field"
 //CAN USE THE constants (name, value pairs) 
 ESQuery.prototype.compileEdges2Term=function(constants){
-
+	var self=this;
 	var edges=this.termsEdges;
 
 	if (edges.length==0){
@@ -692,6 +707,14 @@ ESQuery.prototype.compileEdges2Term=function(constants){
 			return [edges[0].domain.getPartByKey(term)];
 		};
 
+		if (edges[0].value===undefined && edges[0].domain.partitions!==undefined){
+			var script=MVEL.Parts2Term(
+				self.query.from,
+				edges[0].domain
+			);
+			return {"type":"script", "value":MVEL.compile.expression(script, this.query, constants)};
+		}//endif
+
 		if (edges[0].esscript){
 			return {"type":"script", "value":MVEL.compile.addFunctions(edges[0].esscript)};
 		}else if (MVEL.isKeyword(edges[0].value)){
@@ -701,23 +724,38 @@ ESQuery.prototype.compileEdges2Term=function(constants){
 		}//endif
 	}//endif
 
-	var mvel=undefined;
-	var fromTerm2Part=[];
-	for(var i=0;i<edges.length;i++){
+	var mvel=undefined;     //FUNCTION TO PACK TERMS
+	var fromTerm2Part=[];   //UNPACK TERMS BACK TO PARTS
+	edges.forall(function(e, i){
 		if (mvel===undefined) mvel="''+"; else mvel+="+'|'+";
+
+		if (e.value===undefined && e.domain.field!==undefined){
+			e.value=e.domain.field;
+		}//endif
+
 		var t;
-		if (edges[i].domain.type=="time"){
-			t=ESQuery.compileTime2Term(edges[i]);
-		}else if (edges[i].domain.type=="duration"){
-			t=ESQuery.compileDuration2Term(edges[i]);
-		}else if (edges[i].domain.type=="linear"){
-			t=ESQuery.compileLinear2Term(edges[i]);
+		if (e.domain.type=="time"){
+			t=ESQuery.compileTime2Term(e);
+		}else if (e.domain.type=="duration"){
+			t=ESQuery.compileDuration2Term(e);
+		}else if (e.domain.type=="linear"){
+			t=ESQuery.compileLinear2Term(e);
+		}else if (e.domain.type=="set" && e.domain.field===undefined){
+			t={
+				"toTerm":MVEL.Parts2Term(
+					self.query.from,
+					e.domain
+				),
+				"fromTerm":function(i){
+					return [e.domain.getPartByKey(term)];
+				}
+			};
 		}else{
-			t=ESQuery.compileString2Term(edges[i]);
+			t=ESQuery.compileString2Term(e);
 		}//for
 		fromTerm2Part.push(t.fromTerm);
 		mvel+=t.toTerm;
-	}//for
+	});
 
 	//REGISTER THE DECODE FUNCTION
 	this.term2Parts=function(term){
