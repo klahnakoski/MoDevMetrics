@@ -66,7 +66,7 @@ var __createChart = function(){
 
 	var sampleMin = Date.newInstance(GUI.state.sampleMin);
 	var sampleMax =Date.newInstance(GUI.state.sampleMax).addDay(1);
-	var sampleInterval=Duration.DAY;
+	var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
 
 	//FILTER FOR DETERMINING IF IN THE TRIAGE QUEUE
 	var queuedFilter={"term":{"cf_blocking_b2g": "tef?"}};
@@ -105,7 +105,7 @@ var __createChart = function(){
 				{"name":"date",
 					"range":{"min":"modified_ts", "max":"expires_on"},
 					"allowNulls":false,
-					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+					"domain":{"type":"time", "min":sampleMin, "max":sampleMax.add(sampleInterval), "interval":sampleInterval}  //JUST ONE MORE STEP TO LINE UP TO THE DIFF CHART BELOW
 				}
 			],
 			"esfilter":{"and":[
@@ -217,9 +217,16 @@ var __createChart = function(){
 			]
 		}));
 
+		
+		var title=nvl({
+			"1day":"Daily",
+			"1week":"Weekly",
+			"1month":"Monthly"
+		}[sampleInterval.toString()], "")+" Change";
+
 
 		var summary=yield(Q({
-			"name":"Daily Change",
+			"name":title,
 			"from":bugs,
 			"select":[
 				{"name":"Queued", "value":"queued", "aggregate":"sum", "default":0, "style":{"color":"#1f77b4"}},
@@ -240,6 +247,7 @@ var __createChart = function(){
 			"cube":summary,
 			"height":400,
 			"xAxisSize":50,
+			"timeSeries": true,
 			"clickAction":function(series, x, d){
 				aThread.run(function(){
 					var buglist=(yield (CUBE.calc2List({
@@ -334,9 +342,13 @@ var __createChart = function(){
 $(document).ready(function(){
 	GUI.setup(createChart, [
 		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().addMonth(-2)},
-		{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.eod()}
+		{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.eod()},
+		{"id":"sampleInterval", "name":"Sample Interval", "type":"duration", "default":"week"}
 		],
-		["sampleMax=Date.min(Date.eod(), Date.newInstance(sampleMax)).format('yyyy-MM-dd')"],
+		[
+			"sampleMax=Date.min(Date.now().add(Duration.newInstance(sampleInterval)), Date.newInstance(sampleMax).addDay(1)).floor(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')",
+			"sampleMin=Date.newInstance(sampleMin).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+		],
 		"bugs",
 		false
 	);

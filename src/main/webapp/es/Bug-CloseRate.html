@@ -77,15 +77,6 @@ var __createChart = function(){
 	yield (ESQuery.loadColumns({"from":"bugs"}));
 
 	var mainFilter = {"and":[
-//		{"and":[
-//			{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},
-//			{"range":{"expires_on":{"gte":sampleMin.getMilli()}}}
-//		]},
-//		{"or":[
-//			{"script":{"script":MVEL.compile.expression("previous_values.bug_status_change_away_ts==modified_ts", {"from":"bugs"})}},
-//			{"term":{"bug_version_num":1}}
-//		]},
-//		{"not": {"terms":{"previous_values.bug_status_value": ["resolved", "verified", "closed", "reopened"]}}},
 		Mozilla.BugStatus.Closed.esfilter,
 		customFilter,
 		GUI.getFilters("bugs")
@@ -173,21 +164,6 @@ var __createChart = function(){
 			'<span class="parameter_name">Wont\'Fix/Week:</span>' + aMath.round(stats.cube[3].average, 1) + '<br>'+
 			'<span class="parameter_name">WorksForMe/Week:</span>' + aMath.round(stats.cube[4].average, 1) + '<br>'
 		);
-
-//		var chart=yield (ESQuery.run({
-//			"from": "bugs",
-//			"select": {"name":"num", "value":"bug_id", "aggregate":"count"},
-//			"edges": [
-//				{"value":"resolution", "domain":{"type":"set", "partitions":resolutionParts, "value":"name", "key":"name"}},
-//				{"name":"date",
-//					"value":"modified_ts",
-//					"domain":{"type":"date", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
-//				}
-//			],
-//			"esfilter": mainFilter
-//
-//		}));
-
 
 
 		D.actionDone(a);
