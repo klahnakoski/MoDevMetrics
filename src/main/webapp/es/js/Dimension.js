@@ -22,7 +22,9 @@ Dimension.prototype={
 				return {
 					"name":v.name,
 					"value":v.value,
-					"esfilter":v.esfilter
+					"esfilter":v.esfilter,
+					"style":v.style,
+					"weight":v.weight   //YO!  WHAT DO WE *NOT* COPY?
 				};
 			}),
 			"min":this.min,

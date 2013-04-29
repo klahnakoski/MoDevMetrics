@@ -156,9 +156,13 @@ var __createChart = function(){
 		var a=D.action("Make chart", true);
 		aChart.show({
 			"id":"chart",
-		"sheetDiv":"info",
+			"sheetDiv":"info",
 			"type":"stacked",
-			"cube":chartCube
+			"cube":chartCube,
+			extensionPoints: {
+				dot_shapeRadius: 0, //USED ON CHART (CCC v1)
+				line_lineWidth: 0
+			}
 		});
 		D.actionDone(a);
 			};

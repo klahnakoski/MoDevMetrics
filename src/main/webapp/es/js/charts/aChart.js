@@ -281,6 +281,8 @@ aChart.show=function(params){
 		}else{
 			D.error("Can not handle more than 2 edges");
 		}//endif
+	}else if (["stacked", "stackedarea", "area", ].contains(type)){
+		stacked=true;
 	}//endif
 
 
@@ -392,7 +394,8 @@ aChart.show=function(params){
 //			xAxisScale_dateTickFormat: "%Y/%m/%d",
 //			xAxisScale_dateTickPrecision: xaxis.domain.interval.milli
 			//set in miliseconds
-		    dot_shapeRadius: 1,
+
+		    dot_shapeRadius: 4, //USEd IN LEGEND
             dot_shape:"circle",
 			line_lineWidth: 4
 //			line_strokeStyle:

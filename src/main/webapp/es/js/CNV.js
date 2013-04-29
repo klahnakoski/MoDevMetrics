@@ -172,6 +172,8 @@ CNV.Date2Code = function(date){
 CNV.Value2Quote=function(value){
 	if (value === undefined){
 		return "";
+	} else if (value==NaN){
+		return NaN;
 	} else if (value == null){
 		return "null";
 	} else if (typeof(value)=="string"){

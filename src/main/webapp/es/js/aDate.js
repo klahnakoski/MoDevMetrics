@@ -4,6 +4,7 @@
 
 
 importScript("aUtil.js");
+importScript("aArray.js");
 
 
 Date.now = function(){

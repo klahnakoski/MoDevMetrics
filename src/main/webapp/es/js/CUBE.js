@@ -557,6 +557,7 @@ CUBE.Cube2List=function(query){
 	var name=CUBE.select2Array(query.select)[0].name;
 	if (query.select instanceof Array) name=undefined;
 	if (query.cube===undefined) D.error("Can only turn a cube into a table at this time");
+	if (query.cube.length==0) yield ([]);
 	var sample=query.cube; for(var i=0;i<query.edges.length;i++) sample=sample[0];
 	var isArray=(sample instanceof Array);
 

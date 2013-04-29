@@ -24,7 +24,7 @@
 	<br><br>
 
 	<h4>About Project</h4>
-	The bugzilla data is in Metric's ElasticSearch container, and is updated every 10 minutes.  My goal is to provide metrics and numbers to development teams tha can not be easily pulled from Bugzilla directly.
+	The bugzilla data is in Metric's ElasticSearch container, and is updated every 10 minutes.  My goal is to provide metrics and numbers to development teams that can not be easily pulled from Bugzilla directly.
 	<br><br>
 
 	<h4>Code!</h4>
@@ -42,6 +42,34 @@
 <h2>Bugzilla Anthropology Metrics Prototypes</h2>
 	<br>
 <table>
+
+	<tr>
+	<td>
+		<h4>April 29th 2013</h4>
+		<div class="description">
+			<p>I finally have had the opportunity to consider Mozilla's bug Triage process.
+				I am starting with Firefox OS' blocker bugs, where the triage process is probably simplest:
+				Blockers are nominated with <span class="code">tef?</span>,
+				and are then triaged to <span class="code">tef+</span> or <span class="code">tef-</span>.
+				The triage queue has some of the complications that can be found in code review queues;
+				where one bug can have multiple <span class="code">tef?</span>, and <span class="code">tef-</span>
+				can be realized in multiple ways.  But overall, the triage queue in the FFOS case
+				is simple because it does not need to handle the state found in the review queues.
+
+			</p>
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Bug-TriageRate.html">TEF Triage</a>
+			<span class="info">View total bugs awaiting triage, historical triage rates, and breakdown of triage results</span>
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Bug-CloseRate.html">Bug Close Rate</a>
+			<span class="info">Added better summary of resolution breakdown, better ESFilter textbox</span>
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Predictive_Simple.html">Burndown Prediction</a>
+			<span class="info">Minor fixes</span>
+		</div>
+
+
+	</td>
+	</tr>
 
 
 
@@ -79,6 +107,12 @@
 		</div>
 
 
+	</td>
+	</tr>
+
+
+	<tr>
+	<td>
 		<h4>April 15th 2013</h4>
 		<div class="description">
 			<p>I have my first working Python environment!  For me this is special;
@@ -241,6 +275,8 @@
 
 		<p>I hope with some powerful dependency reporting, Mozilla will get more use out of
 		the bug dependency field in Bugzilla.</p>
+		</div>
+		<div class="items">
 		</div>
 	</td>
 	</tr>

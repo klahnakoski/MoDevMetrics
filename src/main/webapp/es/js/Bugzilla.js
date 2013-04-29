@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+importScript("aLibrary.js");
 importScript("rest/BugzillaClient.js");
 
 
@@ -40,10 +41,13 @@ Bugzilla.search=function(bugList, fields){
 	var resume=yield (aThread.Resume);
 	var result=[];
 	var numCalls=aMath.floor((bugList.length+BLOCK_SIZE-1)/BLOCK_SIZE);
+	if (!fields.contains("id")) fields.prepend("id");
 
 	for(let i=0;i<numCalls;i++){
+		var subList=bugList.substring(i*BLOCK_SIZE, aMath.min(bugList.length, i*BLOCK_SIZE+BLOCK_SIZE));
+
 		new BugzillaClient({}).searchBugs({
-			"id":bugList.substring(i*BLOCK_SIZE, aMath.min(bugList.length, i*BLOCK_SIZE+BLOCK_SIZE)),
+			"id":subList,
 			"include_fields":fields.join(",")
 		}, function(status, data){
 			if (status=="error"){
@@ -52,13 +56,19 @@ Bugzilla.search=function(bugList, fields){
 			}//endif
 			numCalls--;
 			D.println(result.length+"+"+data.length);
+
 			result.appendArray(data);
-			if (numCalls==0) resume(result);
+			if (numCalls==0){
+				var missing=bugList.subtract(result.map(function(b){return b.id;}));
+				result.appendArray(missing.map(function(m){return {"id":m};}));
+				resume(result);
+			}
 		});
 
 	}//for
 	yield (aThread.Suspend);
-	yield (result);
+
+	yield (null);
 };//method
 
 

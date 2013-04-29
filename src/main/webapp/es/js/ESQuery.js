@@ -480,9 +480,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 
 	if (edge.domain.isFacet){
 		//MUST USE THIS' esFacet, AND NOT(ALL THOSE ABOVE)
-		var condition={"and":[
-			partition.esfilter
-		]};
+		var condition=partition.esfilter;
 
 		//ES WILL FREAK OUT IF WE SEND {"not":{"and":x}} (OR SOMETHING LIKE THAT)
 //		var parts=edge.domain.partitions;
@@ -548,6 +546,9 @@ ESQuery.buildCondition = function(edge, partition, query){
 		} else {
 			D.error("Do not know how to handle range query on non-continuous domain");
 		}//endif
+	}else 	if (edge.value===undefined){
+		//MUST USE THIS' esFacet, AND NOT(ALL THOSE ABOVE)
+		return ESFilter.simplify(partition.esfilter);
 	}else if (MVEL.isKeyword(edge.value)){
 		//USE FAST ES SYNTAX
 		if (CUBE.domain.ALGEBRAIC.contains(edge.domain.type)){

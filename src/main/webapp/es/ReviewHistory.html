@@ -195,10 +195,14 @@
 
 		aChart.show({
 			"id":"chart",
-		"sheetDiv":"info",
+			"sheetDiv":"info",
 			"type":"stacked",
 			"cube":chart,
-			"showLegend":false
+			"showLegend":false,
+			extensionPoints: {
+				dot_shapeRadius: 0, //USED ON CHART (CCC v1)
+				line_lineWidth: 0
+			}
 		});
 
 

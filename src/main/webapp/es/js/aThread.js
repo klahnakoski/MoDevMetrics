@@ -19,6 +19,7 @@ aThread=function(gen){
 	this.parentThread=aThread.currentThread;
 
 	this.keepRunning=true;
+	this.gen=null;    //CURRENT GENERATOR
 	this.stack = [gen];
 	this.nextYield=new Date().getMilli()+aThread.MAX_BLOCK_TIME;
 	this.children=[];
@@ -108,16 +109,19 @@ function aThread_prototype_resume(retval){
 			}//endif
 		}else if (retval === aThread.Suspend){
 			if (!this.keepRunning) this.kill(new Exception("thread aborted"));
-			return retval;
+//			this.stack.push(this.gen);
+			return aThread.Suspend;
 		}else if (retval instanceof aThread.Suspend){
 			this.currentRequest=retval.request;
 			if (!this.keepRunning) this.kill(new Exception("thread aborted"));
+//			this.stack.push(this.gen);
 			return aThread.Suspend;
 		}else if (retval === aThread.Resume){
 			var self=this;
 			retval = function(retval){
 				self.nextYield=new Date().getMilli()+aThread.MAX_BLOCK_TIME;
 				self.currentRequest=undefined;
+//				self.stack.push({"close":function(){}}); //DUMMY GENERATOR ON STACK SO RETURN A VALUE DOES NOT STOP THREAD
 				self.resume(retval);
 			};
 		}else{ //RETURNING A VALUE/OBJECT/FUNCTION TO CALLER
@@ -139,16 +143,17 @@ function aThread_prototype_resume(retval){
 		}//endif
 
 		try{
-			let gen = this.stack.last();
-			if (gen.history===undefined) gen.history=[];
 
-//			gen.history.push(retval===undefined ? "undefined" : retval);
+			this.gen = this.stack.last();
+			if (this.gen.history===undefined) this.gen.history=[];
+
+//			this.gen.history.push(retval===undefined ? "undefined" : retval);
 			aThread.currentThread=this;
 
 			if (retval instanceof Exception){
-				retval = gen["throw"](retval);  //THROW METHOD OF THE GENERATOR IS CALLED, WHICH IS SENT TO CALLER AS thrown EXCEPTION
+				retval = this.gen["throw"](retval);  //THROW METHOD OF THE GENERATOR IS CALLED, WHICH IS SENT TO CALLER AS thrown EXCEPTION
 			}else{
-				retval = gen.send(retval)
+				retval = this.gen.send(retval)
 			}//endif
 
 			aThread.currentThread=mainThread;

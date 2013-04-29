@@ -46,6 +46,7 @@ CUBE.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //
 		//ONLY DEFINE VARS THAT ARE USED
 		if (resultColumn.value.indexOf(columnName) != -1){
 			f += "var " + columnName + "=__source." + columnName + ";\n";
+//				"if (" + columnName + "===undefined) D.error(\"" + columnName + " is undefined\");\n";
 		}//endif
 	}//for
 	if (edges !== undefined) for(var i = 0; i < edges.length; i++){
@@ -55,6 +56,7 @@ CUBE.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //
 		if (domainName!==undefined){
 			if (resultColumn.value.indexOf(domainName + ".") != -1){
 				f += "var " + domainName + "=__result["+i+"];\n";
+//				"if (" + domainName + "===undefined) D.error(\"" + domainName + " is undefined\");\n";
 			}//endif
 			
 			var reg=new RegExp(domainName+"\\s*==", "g");
@@ -68,7 +70,7 @@ CUBE.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //
 		"var output;\n"+
 		"try{ " +
 			"	output=" + resultColumn.value + "; " +
-			"	if (output===undefined) D.error(\"" + resultColumn.name + " returns undefined\");\n"+
+			"	if (output===undefined || aMath.isNaN(output)) D.error(\"" + resultColumn.name + " returns \"+CNV.Value2Quote(output));\n"+
 			"	return output;\n" +
 			"}catch(e){\n" +
 			"	D.error("+

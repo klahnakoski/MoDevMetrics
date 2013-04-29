@@ -4,14 +4,18 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-	<script type="application/javascript;version=1.7" src="js/aScript.js"></script>
+<script type="application/javascript;version=1.7" src="js/aScript.js"></script>
 </HEAD>
 <BODY>
 
 
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+
+
 
 <div id="sidebar">
-	<br><br>
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 	</div>
@@ -28,18 +32,11 @@
 	<div id="filters" class="menu"></div>
 </div>
 
-
-
-	<div style="float:right;display: inline;">
-		<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
-	</div>
-
 <div style="align:left;position:relative;float:left;width:800px;">
-	<h3 id="title"></h3>
-
-
-	<div id="chart" class="chart" style="position: relative;"></div>
-	<div id="chart_diff" class="chart" style="position: relative;"></div>
+	<h3>Boot2Gecko Open Bug Count</h3>
+	<div id="chartResponse" style="width:400px;height:200px;float:left;display: inline;"></div>
+	<div id="chartProducts" style="width:400px;height:200px;float:left;display: inline;"></div>
+	<div id="chart" style="position: relative;"></div>
 
 	<div id="info"></div>
 	<div id="report"></div>
@@ -49,8 +46,8 @@
 
 importScript(["js/main.js"], function(){
 
-	$("#description").html("<span class='warning'>This chart has already been filtered by the products important to the security team</span><br><br>"+
-		"");
+var CUTOFF=Duration.newInstance("3week");
+$("#description").html("Open bug count for Boot2Gecko, with additional breakdown on TEF+/-");
 
 var thread;
 var createChart=function(){
@@ -74,47 +71,80 @@ var __createChart = function(){
 	
 	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
 
+	var mainFilter={"and":[
+			{"and":[
+				{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},
+				{"range":{"expires_on":{"gte":sampleMin.getMilli()}}}
+			]},
+			{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-"+sampleMin.getMilli()+", "+sampleInterval.milli+")!=floorInterval(expires_on-"+sampleMin.getMilli()+", "+sampleInterval.milli+")", {"from":"bugs"})}},
+			Mozilla.BugStatus.Open.esfilter,
+			{"or":[
+				{"term":{"product":"boot2gecko"}},
+				{"terms":{"cf_blocking_b2g":["tef?","tef+"]}}
+			]}
+		]};
 
-	var priorityDomain=Mozilla.Security.Priority.getDomain();
-	priorityDomain.value="name";	//HAVE DOMAIN RETURN STRING VALUES FOR CHART
+
+
+	//CHART PRODUCT BREAKDOWN
+	aThread.run(function(){
+		var q=new ESQuery({
+			"name":"Component Breakdown",
+			"from":"bugs",
+			"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
+			"edges":[
+				"component"
+			],
+			"esfilter":{"and":[
+				mainFilter,
+				Mozilla.CurrentRecords.esfilter
+			]}
+		});
+
+		var response=yield (q.run());
+
+		aChart.showPie({
+			"id":"chartProducts",
+			"cube":response,
+			"height":200,
+			"width":400
+		});
+
+	});
+
+
+
+
 
 
 	var a=D.action("Request Bugs", true);
 	var chart=yield (ESQuery.run({
-		"name":"Open Bug Count",
 		"from":"bugs",
-		"select": {"name":"total", "value":"bug_id", "aggregate":"count"},
+		"select": {"name":"num_bug", "value":"bug_id", "aggregate":"count"},
 		"edges":[
-			{"name":"Priority", "domain":priorityDomain},
+			{"name":"type", allowNulls:true, "domain":Mozilla.Projects["B2G 1.0.1 (TEF)"].getDomain()},
 			{"name":"date",
 				"range":{"min":"modified_ts", "max":"expires_on"},
 				"allowNulls":false,
 				"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
 			}
-		],
-		"esfilter":{"and":[
-			{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},
-			{"range":{"expires_on":{"gte":sampleMin.getMilli()}}},
-			{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-"+(sampleMin.getMilli()%sampleInterval.milli)+", "+sampleInterval.milli+")!=floorInterval(expires_on-"+(sampleMin.getMilli()%sampleInterval.milli)+", "+sampleInterval.milli+")", {"from":"bugs"})}},
-			Mozilla.BugStatus.Open.esfilter,
-			Mozilla.Security.Teams.esfilter,
-			GUI.getFilters("bugs")
-		]}
+		]
 	}));
+
+	chart.edges[0].NULL.name="Other";
 
 	D.actionDone(a);
 
 
-	a=D.action("Make chart", true);
+	var a=D.action("Make chart", true);
 	aChart.show({
 		"id":"chart",
 		"sheetDiv":"info",
-		"type":"stacked",
+		"type":"line",
 		"stacked":true,
 		"cube":chart
 	});
 	D.actionDone(a);
-
 
 };
 
@@ -130,13 +160,12 @@ var __createChart = function(){
 			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
 		],
 		[
-			"sampleMin=Date.newInstance(sampleMin).addDay(1).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
-			"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+			"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
 		],
 		"bugs",
 		true);
-		//"bug_tags");
 	});
+
 });
 </script>
 

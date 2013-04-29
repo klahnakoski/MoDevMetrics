@@ -30,10 +30,10 @@ if (window.location.hostname=="metrics.mozilla.com"){
 //	ElasticSearch.pushURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
 //
 //	ElasticSearch.baseURL="http://localhost:9200";
-	ElasticSearch.baseURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
+	ElasticSearch.baseURL="http://elasticsearch8.metrics.scl3.mozilla.com:9200";
 
 //	ElasticSearch.queryURL = "http://localhost:9200/bugs/_search";
-	ElasticSearch.queryURL = "http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search";
+	ElasticSearch.queryURL = "http://elasticsearch8.metrics.scl3.mozilla.com:9200/bugs/_search";
 
 
 }//endif

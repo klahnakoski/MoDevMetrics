@@ -57,7 +57,11 @@ Dimension.addEdges(true,  Mozilla, [
 				{"name":"tracking", "esfilter":{"term":{"cf_blocking_b2g":"tef+"}}, "edges":[
 					{"name":"tracking 18", "esfilter":{"not":{"terms":{"cf_status_b2g18":["fixed","verified","unaffected","wontfix"]}}}},
 					{"name":"tracking 19", "esfilter":{"not":{"terms":{"cf_status_b2g19":["fixed","verified","unaffected","wontfix"]}}}}
-				]}
+				]},
+				{"name":"rejected", "esfilter":{"and":[
+					{"exists":{"field":"previous_values.cf_blocking_b2g_value"}},
+					{"terms":{"previous_values.cf_blocking_b2g_value":["tef?","tef+"]}}
+				]}}
 			]
 		},
 
@@ -159,6 +163,7 @@ Dimension.addEdges(true,  Mozilla, [
 	{"name":"Security", "edges":[
 		{"name":"Priority",
 			"type":"set",
+			"isFacet":true, //MULTIVALUED ATTRIBUTES CAN NOT BE HANDLED BY MVEL.Parts2Term()
 			"partitions":[
 				{"name":"Critical", "weight":5, "style":{"color":"red"}, "esfilter":
 					{"or":[
@@ -188,6 +193,7 @@ Dimension.addEdges(true,  Mozilla, [
 		},
 		{"name":"Teams",
 			"type":"set",
+			"isFacet":true, //MULTIVALUED ATTRIBUTES CAN NOT BE HANDLED BY MVEL.Parts2Term()
 			"esfilter": {"terms":{"product":['Fennec','Firefox for Android', "Mozilla Services", "Boot2Gecko", "firefox", "toolkit", "thunderbird", "mailnews core", 'JSS','NSS','NSPR', "core"]}},
 			"partitions":[
 			{"name": "Mobile", "esfilter":

@@ -12,6 +12,22 @@ aMath.isNumeric = function(n){
 	return !isNaN(parseFloat(n)) && isFinite(n);
 };
 
+aMath.isNaN = function(n){
+	return typeof(n)=="number" && n != +n;
+};
+
+
+if (!aMath.isNaN(NaN)) D.error();
+if (aMath.isNaN("test")) D.error();
+if (aMath.isNaN(0)) D.error();
+if (aMath.isNaN(42)) D.error();
+if (aMath.isNaN({"hi":42})) D.error();
+
+
+
+
+
+
 //THIS WILL RETURN ZERO IF value IS NOT A NUMBER
 aMath.alpha2zero=function(value){
 	return aMath.isNumeric(value) ? value-0 : 0;

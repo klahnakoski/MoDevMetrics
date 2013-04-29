@@ -115,7 +115,8 @@ GUI.showLastUpdated = function(indexName){
 		if (indexName===undefined || indexName=="bugs"){
 			var result=yield (ESQuery.run({
 				"from":"bugs",
-				"select":{"name":"max_date", "value":"modified_ts", "aggregate":"maximum"}
+				"select":{"name":"max_date", "value":"modified_ts", "aggregate":"maximum"},
+				"esfilter":{"range":{"modified_ts":{"gte":Date.eod().addMonth(-1).getMilli()}}}
 			}));
 
 			time=new Date(result.cube.max_date);
@@ -166,7 +167,7 @@ GUI.corruptionCheck=function(){
 	var is_error=yield (Q({
 		"from":{
 			"from":result,
-			"select": {"value":"bug_id"},
+			"select": [{"value":"bug_id"}],
 			"where":"num_null!=1"
 		},
 		"select":{"name":"is_error", "value":"bug_id", "aggregate":"exists"}

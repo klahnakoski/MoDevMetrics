@@ -35,20 +35,25 @@
 	</div>
 
 <div style="align:left;position:relative;float:left;width:800px;">
-	<h3 id="title"></h3>
+	<h3 id="title">TEF Triage</h3>
 
 
 	<div id="chart" class="chart" style="position: relative;"></div>
 	<div id="chart_diff" class="chart" style="position: relative;"></div>
 
-	<div id="info" style="float:left;"></div>
+	<div id="info"></div>
+	<hr>
+	<h3>Bugs In Triage</h3>
 	<div id="report"></div>
 </div>
 <script type="application/javascript;version=1.7">
 
 importScript(["js/main.js", 'js/Dimension-Bugzilla.js'], function(){
 
-var CUTOFF = Duration.newInstance("3week");
+
+
+
+
 
 var thread;
 var createChart = function(){
@@ -60,46 +65,40 @@ var createChart = function(){
 var __createChart = function(){
 
 	var sampleMin = Date.newInstance(GUI.state.sampleMin);
-	var sampleMax =Date.eod().addDay(1);
-	var title=GUI.state.titleName;
+	var sampleMax =Date.newInstance(GUI.state.sampleMax).addDay(1);
+	var sampleInterval=Duration.DAY;
 
-
-	var sampleInterval = Duration.DAY;
-
-	var DUE_DATE = Date.newInstance(GUI.state.dueDate);
-	var MAX_CHART_DATE=DUE_DATE.addDay(1);
-
-	if (title && title.length>0){
-		$("#title").html(title);
-	}else{
-		$("#title").html("Triage Queue for TEF");
-	}//endif
-
-	var createTime = "doc[\"create_time\"].value";
-	var idTime = GUI.state.programFilter.bugStatusMinimum_fromSource();
-	var testValue = GUI.state.programFilter.bugStatusMinimum_fromDoc();
-
-
-	var closeTime = "minimum(" + sampleMax.getMilli() + ", coalesce(zero2null(close_time), " + sampleMax.getMilli() + "))";
+	//FILTER FOR DETERMINING IF IN THE TRIAGE QUEUE
+	var queuedFilter={"term":{"cf_blocking_b2g": "tef?"}};
 
 	yield (ESQuery.loadColumns({"from":"bugs"}));
 
 	var mainFilter = {"and":[
+//		{"term":{"bug_id":822870}},
+//		{"term":{"bug_id":864181}},
 		{"and":[
 			{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},
 			{"range":{"expires_on":{"gte":sampleMin.getMilli()}}}
-		]},
-		//NO MORE THAN ONE RECORD PER DAY
-		{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-" + sampleMin.getMilli() + ", " + sampleInterval.milli + ")!=floorInterval(expires_on-" + sampleMin.getMilli() + ", " + sampleInterval.milli + ")", {"from":"bugs"})}},
-		Mozilla.BugStatus.Open.esfilter,
-		GUI.getFilters("bugs")
+		]}
 	]};
 
+	//UP TO LAST 6 WEEKS OF STATS
+	var numWeek=aMath.min(6, aMath.floor((sampleMax.getMilli()-sampleMin.getMilli())/Duration.WEEK.milli));
+	var statsMin = sampleMax.addWeek(-numWeek);
+
+	$("#description").html("Prototype for bug triage."+
+	'<br><br><span class="warning">Stats calculated using '+numWeek+' weeks, starting '+statsMin.format("dd-MMM-yyyy")+' and ending '+sampleMax.addDay(-1).format("dd-MMM-yyyy")+'</span>');
 
 
-	var a = D.action("Request Bugs", true);
-	try{
+	////////////////////////////////////////////////////////////////////////////
+	// SHOW COUNT OF TIME
+	////////////////////////////////////////////////////////////////////////////
+
+	aThread.run(function(){
+
+		var a = D.action("Request Bugs", true);
 		var queue = yield(ESQuery.run({
+			"name":"Number of Bugs in Queue",
 			"from":"bugs",
 			"select":{"name":"num_bug", "value":"bug_id", "aggregate":"count"},
 			"edges":[
@@ -110,71 +109,143 @@ var __createChart = function(){
 				}
 			],
 			"esfilter":{"and":[
-				{"term":{"cf_blocking_b2g": "tef?"}},
-				mainFilter
+				//NO MORE THAN ONE RECORD PER DAY
+				{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-" + sampleMin.getMilli() + ", " + sampleInterval.milli + ")!=floorInterval(expires_on-" + sampleMin.getMilli() + ", " + sampleInterval.milli + ")", {"from":"bugs"})}},
+				mainFilter,
+				queuedFilter
 			]}
 		}));
-	}catch(e){
-		D.warning("Thread killed", e);
+
+		aChart.show({
+			"id":"chart",
+			"sheetDiv":"info",
+			"type":"line",
+			"stacked":false,
+			"cube":queue,
+			"height":400,
+			"xAxisSize":50,
+			extensionPoints: {
+				dot_shapeRadius: 3,
+				dot_shape:"circle",
+				line_lineWidth: 3
+			},
+			"clickAction":function(series, x, d){
+				aThread.run(function(){
+					var buglist=(yield (ESQuery.run({
+						"from":"bugs",
+						"select":{"value":"bug_id", "aggregate":"minimum"},
+						"edges":[
+							{"name":"unique", "value":"bug_id"}
+						],
+						"esfilter":{"and":[
+							queuedFilter,
+							{"range":{"modified_ts":{"lte":x.getMilli()}}},
+							{"range":{"expires_on":{"gt":x.getMilli()}}}
+						]}
+					})));
+
+					Bugzilla.showBugs(buglist.cube);
+				});
+			}//click
+		});
+
 		D.actionDone(a);
-		return;
-	}//try
-
-	D.actionDone(a);
+	});
 
 
-	//LAST 6 WEEKS
-	var statsMax = sampleMax.addDay(-1);
-	var numWeek=aMath.min(6, aMath.floor((statsMax.getMilli()-sampleMin.getMilli())/Duration.WEEK.milli));
-	var statsMin = statsMax.addWeek(-numWeek);
-
-	$("#description").html("Prototype for bug triage.");
-
-
-
-
-
-	
 	////////////////////////////////////////////////////////////////////////////
 	// DAILY CHANGE
 	////////////////////////////////////////////////////////////////////////////
-		var diff = yield(ESQuery({
+	aThread.run(function(){
+		a = D.action("Gat TEF+/- Counts ", true);
+
+		//LOOK FOR FIRST-TIME MARKUP
+		var start = yield(ESQuery.run({
 			"from":"bugs",
-			"select":["bug_id", "changes", "cf_blocking_b2g", "modified_ts", "expires_on"],
+			"select":
+				{"value":"modified_ts", "aggregate":"minimum"}
+			,
+			"edges":[
+				"bug_id",
+				//CAN NOT HAVE AN ARRAY OF SELECT COLUMNS, SO WE MAKE IT AN EDGE
+				{"name":"old_value", "value":"\"---\"", "domain":{"type":"set", "partitions":["---"]}},
+				//CAN NOT HAVE AN ARRAY OF SELECT COLUMNS, SO WE MAKE IT AN EDGE, AND IT CAN NOT BE default (UNKNOWN NUMBER OF EDGES)
+				{"name":"new_value", "value":"cf_blocking_b2g", "domain":{"type":"set", "partitions":["tef?", "tef+"]}}
+			],
 			"esfilter":{"and":[
 				mainFilter,
-				//CHANGES TO FLAG WILL CHATCH EVERY RECORD WE ARE INTERESTED IN
-				{"term":{"changes.field_name":"cf_blocking_b2g"}},
-//				{"or":[
-//					{"prefix":{"bugs.changes.field_value":"tef?"}},
-//					{"prefix":{"bugs.changes.field_value_removed":"tef?"}}
-//				]}
+				{"not":{"exists":{"field":"previous_values.cf_blocking_b2g_value"}}},
+				{"terms":{"cf_blocking_b2g":["tef?","tef+"]}}
 			]}
 		}));
 
+		//LOOK FOR CHANGES
+		var changes = yield(ESQuery.run({
+			"from":"bugs",
+			"select":[
+				"bug_id",
+				"modified_ts",
+				{"name":"new_value", "value":"if ((cf_blocking_b2g+\"   \").substring(0,3)==\"tef\") cf_blocking_b2g; else \"---\";"},
+				{"name":"old_value", "value":"if ((previous_values.cf_blocking_b2g_value+\"   \").substring(0,3)==\"tef\") previous_values.cf_blocking_b2g_value; else \"---\";"}
+			],
+			"esfilter":{"and":[
+				mainFilter,
+				//IF THERE IS A previous_value RECORD, WE CAN RESTRICT OURSELVES TO ONE-RECORD-PER-CHANGE
+				{"exists":{"field":"previous_values.cf_blocking_b2g_value"}},
+				{"script":{"script":"doc[\"previous_values.cf_blocking_b2g_change_away_ts\"].value==doc[\"modified_ts\"].value"}},
+				{"or":[
+					{"terms":{"cf_blocking_b2g":["tef?","tef+"]}},
+					{"terms":{"previous_values.cf_blocking_b2g_value":["tef?","tef+"]}}
+				]}
+			]}
+		}));
 
-		a = D.action("Make chart", true);
+		var all=changes.list.appendArray(yield(CUBE.Cube2List(start)));
+
+
+		var bugs=yield(Q({
+			"from":all,
+			"select":[
+				{"name":"queued", "value":"((old_value=='---' || old_value=='tef+') && old_value!=new_value) ? 1 : 0", "aggregate":"maximum"},
+				{"name":"accepted", "value":"(new_value=='tef+' && old_value!=new_value) ? 1 : 0", "aggregate":"maximum"},
+				//ANYTHING THAT WAS REJECTED, PLUS ANYTHING THAT WENT BACK INTO THE QUEUE (ASSUME IT WAS REJECTED BEFORE GOIN IN THE QUEUE)
+				{"name":"rejected", "value":"((new_value=='---' && old_value!=new_value) || (old_value=='tef+' && new_value=='tef?')) ? 1 : 0", "aggregate":"maximum"}
+			],
+			"edges":[
+				"bug_id",
+				{"name":"modified_ts", "value":"Date.newInstance(modified_ts)", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value"}}
+			]
+		}));
+
+
+		var summary=yield(Q({
+			"name":"Daily Change",
+			"from":bugs,
+			"select":[
+				{"name":"Queued", "value":"queued", "aggregate":"sum", "default":0, "style":{"color":"#1f77b4"}},
+				{"name":"Accepted", "value":"-accepted", "aggregate":"sum", "default":0, "style":{"color":"#76b41f"} },
+				{"name":"Rejected", "value":"-rejected", "aggregate":"sum", "default":0, "style":{"color":"firebrick"}}
+			],
+			"edges":[
+				{"name":"modified_ts", "value":"modified_ts", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value"}}
+			]
+		}));
+
+
 		aChart.show({
 			"id":"chart_diff",
 			"sheetDiv":"info",
 			"type":"bar",
 			"stacked":true,
-			"cube":diff,
+			"cube":summary,
 			"height":400,
 			"xAxisSize":50,
 			"clickAction":function(series, x, d){
 				aThread.run(function(){
-					var where;
-					if (series=="opened"){
-						where="min.floorDay().getMilli()=="+x.getMilli();
-					}else{
-						where="max && max.floorDay().getMilli()=="+x.getMilli();
-					}//endif
-
 					var buglist=(yield (CUBE.calc2List({
-						"from":minMaxBugs,
+						"from":bugs,
 						"select":{"value":"bug_id"},
-						"where":where
+						"where":series.toLowerCase()+"==1 && modified_ts.getMilli()=="+x.getMilli()
 					})));
 
 					Bugzilla.showBugs(buglist.list);
@@ -183,125 +254,89 @@ var __createChart = function(){
 		});
 		D.actionDone(a);
 
-		var perDay = (yield(CUBE.calc2List({
-			"from":diff,
-			"select":[
-				{"name":"opened", "value":"opened", "aggregate":"average"},
-				{"name":"closed", "value":"-closed", "aggregate":"average"}
-			],
-			"where":statsMin.getMilli()+"<=date.getMilli() && date.getMilli()<"+statsMax.getMilli()
-		}))).list[0];
 
+
+
+		////////////////////////////////////////////////////////////////////////
+		// STATS
+		////////////////////////////////////////////////////////////////////////
+		var stats=yield(Q({
+			"from":bugs,
+			"select":[
+				{"name":"Queued", "value":"queued", "aggregate":"sum", "default":0, "style":{"color":"#1f77b4"}},
+				{"name":"Accepted", "value":"accepted", "aggregate":"sum", "default":0, "style":{"color":"#76b41f"} },
+				{"name":"Rejected", "value":"rejected", "aggregate":"sum", "default":0, "style":{"color":"firebrick"}}
+			],
+			"where":"modified_ts.between("+CNV.Date2Code(statsMin)+", "+CNV.Date2Code(sampleMax)+")"
+		}));
+
+
+		stats=stats.cube;
 
 		$("#stats").html(
-			'<span class="parameter_name">Requests Per Day:</span>' + aMath.round(perDay.opened, 1) + '<br>' +
-			'<span class="parameter_name">Triaged Per Day:</span>' + aMath.round(perDay.closed, 1) + '<br>' +
-			'<span class="parameter_name">Important Per Day:</span>' + aMath.round(perDay.closed, 1) + '<br>' +
+			'<span class="parameter_name">Sample Size:</span>' + aMath.round(numWeek, 0) + 'weeks<br>' +
+			'<span class="parameter_name">Requests Per Week:</span>' + aMath.round(stats.Queued/numWeek, 1) + '<br>' +
+			'<span class="parameter_name">Accepted Per Week:</span>' + aMath.round(stats.Accepted/numWeek, 1) + ' ('+aMath.round(100*stats.Accepted/(stats.Accepted+stats.Rejected), 0)+'%)<br>' +
+			'<span class="parameter_name">Rejected Per Week:</span>' + aMath.round(stats.Rejected/numWeek, 1) + ' ('+aMath.round(100*stats.Rejected/(stats.Accepted+stats.Rejected), 0)+'%)<br>' +
+
 			''
 		);
 
-
-//	});
-
-
-
-
-
-
-
-
-	var stillOpen = queue.cube[queue.edges[0].domain.getPartByKey(Date.now().floorDay()).dataIndex].open;
-	var requiredNetCloseRatePerDay;
-	{
-		let daysLeft=Date.diffWeekday(DUE_DATE, Date.now().floorDay());
-		//let	daysLeft = DUE_DATE.subtract(sampleMax).divideBy(Duration.DAY);
-		daysLeft = aMath.max(1, daysLeft);
-		requiredNetCloseRatePerDay = stillOpen / daysLeft;
-	}
-
-	$("#stats").append('<span class="parameter_name">Required Closed/Day:</span>' + aMath.round(requiredNetCloseRatePerDay + perDay.opened, 1) + '<br>');
-
-
-	//
-	var expectedEndDate;
-	{
-		var openAtStartOfEstimate = queue.cube[queue.edges[0].domain.getPartByKey(statsMax).dataIndex-1].open;
-		var netCloseRatePerDay = (perDay.closed-perDay["opened"]);
-		let daysLeft = openAtStartOfEstimate / netCloseRatePerDay;
-		expectedEndDate = statsMax.addWeekday(daysLeft);
-		netCloseRatePerDay = aMath.max(0, netCloseRatePerDay);
-	}
-
-//	$("#stats").append('<span class="parameter_name">DUE Date:</span>' + DUE_DATE.format("dd MMM yyyy") + '<br>');
-	if (netCloseRatePerDay <= 0){
-		$("#stats").append('<span class="parameter_name">Expected End:</span>NEVER<br>');
-	} else{
-		$("#stats").append('<span class="parameter_name">Expected End:</span>' + expectedEndDate.format("dd MMM yyyy") + '<br>');
-	}//endif
-
-
-
-	chartP = yield(Q({
-		"from":queue,
-		"select": [
-			{"value":"total", "style":{"color":"gray", "visibility":"hidden"}},
-			{"value":"open", "style":{"color":"blue"}}
-		],
-		"edges":[
-			{"name":"date", "value":"date",
-				"domain":{"type":"time", "min":sampleMin, "max":MAX_CHART_DATE, "interval":"day", "value":"value"}}
-		]
-	}));
-
-
-	a = D.action("Make chart", true);
-	aChart.show({
-		"id":"chart",
-		"sheetDiv":"info",
-		"type":"line",
-		"stacked":false,
-		"cube":chartP,
-		"height":400,
-		"xAxisSize":50,
-		extensionPoints: {
-		    dot_shapeRadius: 3,
-            dot_shape:"circle",
-			line_lineWidth: 3
-		},
-		"clickAction":function(series, x, d){
-			aThread.run(function(){
-				var buglist=(yield (ESQuery.run({
-					"from":"bugs",
-					"select":{"value":"bug_id", "aggregate":"minimum"},
-					"edges":[
-						{"name":"unique", "value":"bug_id"}
-					],
-					"esfilter":{"and":[
-						mainFilter,
-						{"range":{"modified_ts":{"lte":x.getMilli()}}},
-						{"range":{"expires_on":{"gt":x.getMilli()}}},
-						Mozilla.BugStatus.Open.esfilter,
-						GUI.getFilters("bugs")
-					]}
-				})));
-
-				Bugzilla.showBugs(buglist.cube);
-			});
-		}//click
 	});
-	D.actionDone(a);
+
+
+	////////////////////////////////////////////////////////////////////////////
+	// CURRENT BUG LIST
+	////////////////////////////////////////////////////////////////////////////
+	aThread.run(function(){
+		var a=D.action("Get Bug Details", true);
+
+		var findBugs = yield(ESQuery.run({
+			"from":"bugs",
+			"select":{"name":"exists", "value":"bug_id", "aggregate":"maximum"},
+			"edges":["bug_id"],
+			"esfilter":{"and":[
+				Mozilla.CurrentRecords.esfilter,
+				queuedFilter
+			]}
+		}));
+
+		//CURRENT STATUS
+		var aa=D.action("Pull from BZ", true);
+		var currentBugs=yield (Bugzilla.search(findBugs.edges[0].domain.partitions.map(function(v){return v.value;}), ["id", "summary", "assignee", "status", "resolution" ]));
+		D.actionDone(aa);
+
+		//FORMAT THE BUGS FOR TABLE
+		var showBugs=yield(CUBE.calc2List({
+			"from":currentBugs,
+//			"analytic":{"name":"Order","value":"rownum+1", "sort":["Close Date", "ID"]},
+			"select":[
+				{"name":"ID", "value":"Bugzilla.linkToBug(id)"},
+//				{"name":"Close Date", "value":"(max==null) ? null : Date.newInstance(max).floorDay()"},
+				{"name":"Status", "value":"nvl(status, null)"},
+				{"name":"Resolution", "value":"nvl(resolution, null)"},
+				{"name":"Summary", "value":"nvl(summary, null)"}
+			],
+			"sort":["ID", "Status"]
+		}));
+
+		$("#report").html(CNV.List2HTMLTable(showBugs));
+
+		D.actionDone(a);
+
+	});
+
+
 
 };
 
 
 $(document).ready(function(){
 	GUI.setup(createChart, [
-		{"id":"titleName", "name":"Replace Title with", "type":"text", "default":""},
-		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().addWeek(-3)},
-		{"id":"dueDate", "name":"Due Date", "type":"time", "default":Date.now().addMonth(1).floorDay()},
-//		{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
+		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().addMonth(-2)},
+		{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.eod()}
 		],
-		[],
+		["sampleMax=Date.min(Date.eod(), Date.newInstance(sampleMax)).format('yyyy-MM-dd')"],
 		"bugs",
 		false
 	);

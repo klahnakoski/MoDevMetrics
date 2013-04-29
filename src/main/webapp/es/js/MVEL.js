@@ -370,7 +370,8 @@ MVEL.prototype.where = function(esFilter){
 			return "(" + upper + ") && (" + lower + ")";
 		}//endif
 	} else if (op=="script"){
-		return esFilter[op].script;  //HOPEFULLY THERE IS NOTHING TO DO HERE
+		var script = esFilter[op].script;
+		return this.translate(script);
 	}else if (op=="prefix"){
 		var pair = esFilter[op];
 		var variableName = Object.keys(pair)[0];
