@@ -1,5 +1,6 @@
 importScript("aUtil.js");
 importScript("aArray.js");
+importScript("aQueue.js");
 importScript("aMath.js");
 importScript("aString.js");
 importScript("CNV.js");

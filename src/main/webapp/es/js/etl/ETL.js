@@ -209,6 +209,9 @@ ETL.incrementalInsert=function(etl){
 
 
 ETL.insertBatches=function(etl, fromBatch, toBatch, maxBatch){
+	if (aMath.isNaN(toBatch)) toBatch=1000000;
+	if (aMath.isNaN(maxBatch)) maxBatch=1000000;
+
 	for(var b=toBatch;b>=fromBatch;b--){
 		var data=yield (etl.get(b*etl.BATCH_SIZE, (b+1)*etl.BATCH_SIZE));
 		if (data.length>0){

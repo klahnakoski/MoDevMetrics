@@ -38,9 +38,7 @@
 	<h3 id="title"></h3>
 
 	<div id="chart" class="chart" style="position: relative;"></div>
-	<br><br>
-	ElasicSearch Filter
-	<textarea id="filter" rows="5" cols="60" style="width:100%;"></textarea>
+	<div id="percent" class="chart" style="position: relative;"></div>
 	<br><br>
 	<div id="info" style="width:800px;float:left;"></div>
 	<div id="report"></div>
@@ -62,79 +60,101 @@ var createChart = function(){
 };
 
 var __createChart = function(){
-	$("#title").html("Bug Close Rate");
-	$("#description").html("Shows the number of bugs closed over the given interval, and calculates the average close rate.  You must provide JSON that will be used as the ES Filter."
+	$("#title").html("Book2Gecko Fix Rates");
+	$("#description").html("Shows the number of bugs marked resolved=fixed "+
+	"over the given interval.  Includes only the Boot2Gecko product "+
+	"and does not include TEF+ bugs in other products.  Bugs are only counted once, "+
+	"with preference given to TEF+ first, Leo+ second, with rest in Boot2Gecko."
+
+	+'<br><br>The numbers will differ slightly from <a href="https://metrics.mozilla.com/bugzilla-analysis/Bug-CloseRate.html">Bug Close Rate</a>'
+	+" because this chart captures changes to TEF+/- after the bugs are fixed."
+
 	+'<br><br><span class="warning">This chart is slower than most.  Please be patient.</span>'
 	);
 
 
 	var sampleMin = Date.newInstance(GUI.state.sampleMin);
 	var sampleMax =Date.newInstance(GUI.state.sampleMax).addDay(1);
-	var sampleInterval = Duration.WEEK;
+	var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
 
-	var customFilter=GUI.state.filter;
+	var customFilter={"term":{"product":"boot2gecko"}};
+
 
 	yield (ESQuery.loadColumns({"from":"bugs"}));
-
 
 	aThread.run(function(){
 		var a=D.action("Get Bug Details", true);
 
-
-		var resolutionParts=[
-			{"name":"fixed", "style":{}},
-			{"name":"duplicate", "style":{"visibility":"hidden"}},
-			{"name":"invalid", "style":{"visibility":"hidden"}},
-			{"name":"wontfix", "style":{"visibility":"hidden"}},
-			{"name":"worksforme", "style":{"visibility":"hidden"}}
-		];
-		
 		var mm=yield (ElasticSearch.getMinMax({"and":[
 			{"range":{"expires_on":{"gte":sampleMin.getMilli()}}},
 			{"range":{"modified_ts":{"lte":sampleMax.getMilli()}}},
-			customFilter,
-			Mozilla.BugStatus.Open.esfilter
+			Mozilla.BugStatus.Open.esfilter,
+			customFilter
 		]}));
-
-//$("#info").html(CNV.Cube2HTMLTable(mm));
 
 		var resolutions=yield (ESQuery.run({
 			"from":"bugs",
-			"select":["bug_id", "resolution"],
+			"select":{
+				"name":"type",
+				//APPLYING AN ORDER TO THE MARKUP
+				"value":"if (cf_blocking_b2g==\"tef+\") 2; "+
+						"else if (cf_blocking_b2g==\"leo+\") 1; "+
+						"else 0;",
+				"aggregate":"maximum"
+			},
+			"edges":["bug_id"],
 			"esfilter":{"and":[
+				{"term":{"resolution":"fixed"}},
 				Mozilla.CurrentRecords.esfilter,
 				Mozilla.BugStatus.Closed.esfilter,
 				customFilter
 			]}
 		}));
 
+		var res=yield(CUBE.Cube2List(resolutions));
+
 		D.actionDone(a);
 
 		a=D.action("Calc Close Times", true);
-		yield (aThread.yield());
+		yield (aThread.sleep(100));
 		
 		var bugList=yield (Q({
 			"from":mm,
 			"select":[
 				{"name":"closeTime", "value":"max", "aggregate":"one"},
-				{"name":"resolution", "value":"r.resolution", "aggregate":"one"}
+				{"name":"type", "value":"r.type==2 ? 'TEF+' : (r.type==1 ? 'Leo+' : 'Boot2Gecko')", "aggregate":"one"}
 			],
 			"edges":[
 				{"name":"bug_id", "value":"bug_id",
 					"allowNulls":false,
-					"domain":{"type":"set", "name":"r", "partitions":resolutions, "key":"bug_id", "value":"bug_id"}
+					"domain":{"type":"set", "name":"r", "partitions":res, "key":"bug_id", "value":"bug_id"}
 				}
 			],
 			"where":"max!==undefined"
 		}));
 
+//$("#info").html(CNV.Cube2HTMLTable(bugList));
 
+		var domain={
+			"type":"set",
+			"key":"name",
+			"value":"name",
+			"partitions":[
+				{"name":"TEF+", "style":{"color":"#ff7f0e"}},
+				{"name":"Leo+", "style":{"color":"firebrick"}},
+				{"name":"Boot2Gecko", "style":{"color":"#1f77b4"}}
+			]
+		};
+
+		D.actionDone(a);
+		a=D.action("Tally Close Times", true);
+		yield (aThread.sleep(100));
 
 		var chart=yield (Q({
 			"from":bugList,
 			"select": {"name":"num", "value":"bug_id", "aggregate":"count"},
 			"edges": [
-				{"value":"resolution", "domain":{"type":"set", "partitions":resolutionParts, "value":"name", "key":"name"}},
+				{"value":"type", "domain":domain},
 				{"name":"date",
 					"value":"closeTime",
 					"domain":{"type":"date", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
@@ -144,42 +164,34 @@ var __createChart = function(){
 		
 		D.actionDone(a);
 
+
 		var numWeeks=sampleMax.subtract(sampleMin).round(sampleInterval);
 		var stats=yield (Q({
 			"from":bugList,
 			"select":[{"name":"average", "value":""+(1/numWeeks), "aggregate":"sum"}],
 			"edges":[
-				{"value":"resolution", "domain":{"type":"set", "partitions":resolutionParts, "value":"name", "key":"name"}}
+				{"value":"type", "domain":domain}
 			],
 			"where":sampleMin.getMilli()+"<=closeTime.getMilli() && closeTime.getMilli()<"+sampleMax.getMilli()
 		}));
 
+		var b2g=stats.get("type", "Boot2Gecko").average;
+		var tef=stats.get("type", "TEF+").average;
+		var leo=stats.get("type", "Leo+").average;
+
 		$("#stats").html(
 			'<span class="parameter_name">Number of Weeks:</span>' + sampleMax.subtract(sampleMin).round(sampleInterval) + '<br><br>'+
-			//ARG!! I REALLY WANT PRESENTATION CUBES!!
-			'<span class="parameter_name">Fixed/Week:</span>' + aMath.round(stats.cube[0].average, 1) + '<br>'+
-			'<span class="parameter_name">Duplicate/Week:</span>' + aMath.round(stats.cube[1].average, 1) + '<br>'+
-			'<span class="parameter_name">Invalid/Week:</span>' + aMath.round(stats.cube[2].average, 1) + '<br>'+
-			'<span class="parameter_name">Wont\'Fix/Week:</span>' + aMath.round(stats.cube[3].average, 1) + '<br>'+
-			'<span class="parameter_name">WorksForMe/Week:</span>' + aMath.round(stats.cube[4].average, 1) + '<br>'
+
+			'<span class="parameter_name">TEF+ Fixed/Week:</span>' + aMath.round(tef, 1) + ' ('+aMath.round(100*tef/(b2g+tef+leo), 0)+'%)<br>'+
+			'<span class="parameter_name">Leo+ Fixed/Week:</span>' + aMath.round(leo, 1) + ' ('+aMath.round(100*leo/(b2g+tef+leo), 0)+'%)<br>'+
+			'<span class="parameter_name">B2G Fixed/Week:</span>' + aMath.round(b2g, 1) + ' ('+aMath.round(100*b2g/(b2g+tef+leo), 0)+'%)<br>'
 		);
 
 
 		D.actionDone(a);
 
-		aChart.show({
-			"id":"chart",
-			"sheetDiv":"info",
-			"type":"stacked",
-			"stacked":true,
-			"cube":chart,
-			"height":400,
-			extensionPoints: {
-				dot_shapeRadius: 5,
-				dot_shape:"circle",
-				line_lineWidth: 2
-			},
-			"clickAction":function(resolution, x, d){
+
+		var clicker=function(type, x, d){
 				aThread.run(function(){
 					var date=Date.newInstance(x);
 
@@ -188,15 +200,51 @@ var __createChart = function(){
 						"select":{"value":"bug_id"},
 						"where":"closeTime!=null && "+
 								"closeTime.between(Date.newInstance("+date.getMilli()+"), Date.newInstance("+date.add(sampleInterval).getMilli()+")) && "+
-								"resolution=="+CNV.String2Quote(resolution)
+								"type=="+CNV.String2Quote(type)
 					}));
 
 					Bugzilla.showBugs(list.list);
 				});
 				return true;
 
-			}
+			};
+
+		aChart.show({
+			"name":"Number of Bugs Fixed",
+			"id":"chart",
+			"sheetDiv":"info",
+			"type":"bar",
+			"stacked":true,
+			"cube":chart,
+			"height":400,
+			extensionPoints: {
+				dot_shapeRadius: 5,
+				dot_shape:"circle",
+				line_lineWidth: 2
+			},
+			"clickAction":clicker
 		});
+
+
+		CUBE.normalizeByX(chart, 100);
+		aChart.show({
+			"name":"Relative % Bugs Fixed",
+			"id":"percent",
+			"sheetDiv":"info",
+			"type":"bar",
+			"stacked":true,
+			"cube":chart,
+			"height":400,
+			extensionPoints: {
+				dot_shapeRadius: 5,
+				dot_shape:"circle",
+				line_lineWidth: 2
+			},
+			"clickAction":clicker
+		});
+
+
+
 		D.actionDone(a);
 
 
@@ -213,15 +261,11 @@ $(document).ready(function(){
 	GUI.setup(createChart, [
 		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().addMonth(-2)},//Date.now().addDay(-15).floorMonth()},
 		{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.eod()},//Date.now().addMonth(1).floorDay()},
-		{"id":"filter", "name":"ES Filter", "type":"json", "default":{"and":[
-				{"term":{"product":"boot2gecko"}},
-				{"not":{"terms":{"cf_blocking_b2g":["tef+","shira+","leo+"]}}}
-			]}
-		}
+		{"id":"sampleInterval", "name":"Sample Interval", "type":"duration", "default":"week"}
 		],
 		[
-				"sampleMin=Date.newInstance(sampleMin).floorWeek().format('yyyy-MM-dd')",
-				"sampleMax=Date.newInstance(sampleMax).addDay(1).floorWeek().addDay(-1).format('yyyy-MM-dd')"
+			"sampleMin=Date.newInstance(sampleMin).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
+			"sampleMax=GUI.fixEndDate(sampleMin, sampleMax, sampleInterval).format('yyyy-MM-dd')"
 		],
 		"bugs",
 		false		//DO NOT SHOW DEFAULT FILTERS

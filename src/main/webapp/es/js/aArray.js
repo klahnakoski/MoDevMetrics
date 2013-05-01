@@ -3,6 +3,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
+
+
+
+
 (function(){
 
 
@@ -110,6 +114,16 @@
 		}//for
 		return output;
 	};//method
+
+
+	//RETURN UNION OF UNIQUE VALUES (WORKS ON STRINGS ONLY)
+	Array.prototype.union = function(b){
+		var output={};
+		for(var i = 0; i < this.length; i++) output[this[i]]=1;
+		for(var j = 0; j < b.length; j++) output[b[i]]=1;
+		return Object.keys(output);
+	};//method
+
 
 
 	Array.prototype.subtract=function(b){

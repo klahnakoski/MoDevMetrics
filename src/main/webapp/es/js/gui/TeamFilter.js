@@ -89,11 +89,12 @@ TeamFilter.newInstance=function(field_name){
 			//PULL OUT THE TOP LEVEL 'PEOPLE' WITH CHILDREN
 			if (v.children && v.manager=="other@mozilla.com"){
 				v.manager=null;
-				others.children.remove(v);
+//				others.children.remove(v);
 				hier.prepend(v);
 			}//endif
 			return v;
 		});
+		others.children.subtract(hier);
 
 		self.injectHTML(hier);
 

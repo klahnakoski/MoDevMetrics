@@ -1,0 +1,9 @@
+{
+	"from":"bugs",
+	"select":{"name":"count","value":"1","aggregate":"count"},
+	"edges":["bug_id","dependson"],
+	"esfilter":{"and":[
+		{"exists":{"field":"dependson"}},
+		{"script":{"script":"var get = function(hash, key){if (hash==null) null; else hash[key];};var getDocArray = function(name){var out = [];var v = doc[name];if (v!=null && v.value!=null) for(k : v.values) out.add(k);out;};getDocArray(\"dependson\").length>0"}}
+	]}
+}

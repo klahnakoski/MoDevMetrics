@@ -368,7 +368,7 @@ aChart.show=function(params){
 		width: 800,
 		height: height,
 		animate:false,
-		title: chartCube.name,
+		title: nvl(params.name, chartCube.name),
 		legend: (chartCube.edges.length!=1 || CUBE.select2Array(chartCube.select).length>1),		//DO NOT SHOW LEGEND IF NO CATEGORIES
 		legendPosition: "bottom",
 		legendAlign: "center",

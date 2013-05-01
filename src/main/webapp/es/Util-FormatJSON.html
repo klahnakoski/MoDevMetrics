@@ -1,0 +1,80 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+
+<HEAD>
+	<script type="application/javascript;version=1.7" src="js/aScript.js"></script>
+</HEAD>
+<BODY>
+
+
+
+<h3>Format JSON</h3>
+<div id="sidebar">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Ready</span><span class="loading"><img src="../images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+</div>
+
+
+
+<div style="float:right;display: inline;">
+	<a href="../http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div style="float:right;display: inline;">
+	<a id="format" class="button">FORMAT</a>
+</div>
+
+<div style="width:800px;float: left;">
+	<textarea name="json" id="json" style="width:800px;height:250px;"></textarea>
+	<div id="result" style="overflow: scroll;width:800px;height:250px;"></div>
+</div>
+
+
+<script type="application/javascript;version=1.7">
+
+
+importScript(["js/main.js"], function(){
+
+	//STYLE AS LINED TEXT AREA
+	$("#json").linedtextarea();
+	$("#description").html("Tight formatting for JSON, the way it was meant to be!");
+
+
+	var format = function(event){ //THIS IS A GENERATOR
+
+		//EVAL THE CUBE
+		var code = $("#json").val();
+
+		var backupCode = code;
+		var cubeQuery;
+		try{
+			//USE JSONLINT TO FORMAT AND TEST-COMPILE THE code
+			code = jsl.format.formatJson(code);
+			jsl.parser.parse(code);
+
+			//TIGHTER PACKING IF JSON
+			$("#json").val(CNV.Object2JSON(CNV.JSON2Object(backupCode)));
+		} catch(e){
+			$("#result").val(e.message);
+			yield(null);
+		}//try
+	};
+
+	$("#format").click(function(event){
+		aThread.run(format(event));
+	});//method
+
+
+});
+</script>
+
+
+</BODY>
+</HTML>

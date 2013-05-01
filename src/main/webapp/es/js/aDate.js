@@ -61,7 +61,7 @@ Date.prototype.between=function(min, max){
 	//UNDEFINED MEANS DO-NOT-CARE
 	if (min!=undefined){
 		if (min.getMilli) min=min.getMilli();
-		if (min>this.getMilli()) return false;
+		if (this.getMilli()<min) return false;
 	}//endif
 	if (max!=undefined){
 		if (max.getMilli) max=max.getMilli();
@@ -189,12 +189,12 @@ Date.prototype.dow=Date.prototype.getUTCDay;
 
 //CONVERT THIS GMT DATE TO LOCAL DATE
 Date.prototype.addTimezone = function(){
-	return this.addMinute(-new Date().getTimezoneOffset());
+	return this.addMinute(-this.getTimezoneOffset());
 };
 
 //CONVERT THIS LOCAL DATE TO GMT DATE
 Date.prototype.subtractTimezone = function(){
-	return this.addMinute(new Date().getTimezoneOffset());
+	return this.addMinute(this.getTimezoneOffset());
 };
 
 

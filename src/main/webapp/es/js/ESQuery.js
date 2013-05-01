@@ -34,6 +34,7 @@ ESQuery.DEBUG=false;
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
 	"bugs":{"path":"/bugs"},
+	"tor_bugs":{"host":"http://localhost:9200", "path":"/bugs/bug_version"},
 	"bugs.changes":{},
 	"bugs.attachments":{},
 	"bugs.attachments.flags":{},

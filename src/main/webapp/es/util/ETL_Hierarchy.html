@@ -65,7 +65,7 @@
 
 <script type="application/javascript;version=1.7">
 	$("#start").click(function(){
-		aThread.run(ETL.newInsert(HIERARCHY));
+		aThread.run(HIERARCHY.insertBatches);
 	});
 
 	$("#resume").click(function(){
@@ -93,7 +93,7 @@
 
 
 
-			var hier=yield (HIERARCHY.get(800000, 810000));
+			var hier=yield (HIERARCHY.get(800000, 860000));
 			$("#results").html(CNV.List2HTMLTable(hier));
 		});
 	});

@@ -265,17 +265,19 @@ CNV.Cube2HTMLTable=function(query){
 	if (query.name) header+=HTML.tag("h2", query.name);
 	var content = "";
 
+	var e=query.edges[0];
+
 	if (query.edges.length==1){
-		header += "<td>" + CNV.String2HTML(query.edges[0].name) + "</td>";
+		header += "<td>" + CNV.String2HTML(e.name) + "</td>";
 
 		if (query.select instanceof Array){
 			header+=query.select.map(function(s, i){
 				return HTML.tag("td", s.name);
 			}).join("");
 
-			content=query.edges[0].domain.partitions.map(function(v, i){
+			content=e.domain.partitions.map(function(v, i){
 				return "<tr>"+
-					HTML.tag("th", v.name)+
+					HTML.tag("th", e.domain.end(v))+
 					query.select.map(function(s, j){
 						return HTML.tag("td", query.cube[i][s.name])
 					}).join("")+
@@ -284,8 +286,8 @@ CNV.Cube2HTMLTable=function(query){
 		}else{
 			header += HTML.tag("th", query.select.name);
 
-			content=query.edges[0].domain.partitions.map(function(p, i){
-				return "<tr>"+HTML.tag("th", p.name)+HTML.tag("td", query.cube[i])+"</tr>";
+			content=e.domain.partitions.map(function(p, i){
+				return "<tr>"+HTML.tag("th", e.domain.end(p))+HTML.tag("td", query.cube[i][p.name])+"</tr>";
 			}).join("\n");
 		}//endif
 	}else if (query.edges.length==2){
@@ -294,8 +296,8 @@ CNV.Cube2HTMLTable=function(query){
 		}else{
 
 			header+=HTML.tag("td", query.edges[1].name);	//COLUMN FOR SECOND EDGE
-			query.edges[0].domain.partitions.forall(function(p, i){
-				var name=query.edges[0].domain.end(p);
+			e.domain.partitions.forall(function(p, i){
+				var name=e.domain.end(p);
 				if (name==p && typeof(name)!="string") name=p.name;
 				if (p.name!==undefined && p.name!=name)
 					D.error("make sure part.name matches the end(part)=="+name+" codomain");
@@ -326,14 +328,14 @@ CNV.Cube2HTMLTable=function(query){
 
 
 			//SHOW FIRST EDGE AS ROWS, SECOND AS COLUMNS
-//			header+=HTML.tag(query.edges[0].name);	//COLUMN FOR FIRST EDGE
+//			header+=HTML.tag(e.name);	//COLUMN FOR FIRST EDGE
 //			query.edges[1].domain.partitions.forall(function(v, i){
 //				header += "<td>" + CNV.String2HTML(v.name) + "</td>";
 //			});
 //
 //			content=query.cube.map(function(r, i){
 //				return "<tr>"+
-//					HTML.tag(query.edges[0].domain.partitions[i].name, "th")+
+//					HTML.tag(e.domain.partitions[i].name, "th")+
 //					r.map(function(c, j){
 //						return HTML.tag(c);
 //					}).join("")+

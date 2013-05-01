@@ -564,6 +564,15 @@ MVEL.FUNCTIONS={
 			"{for(k : v.values) out.add(k); out;}" +
 		"};\n",
 
+	"getDocArray":
+		"var getDocArray = function(name){\n"+
+			"var out = [];\n"+
+			"var v = doc[name];\n"+
+			"if (v!=null && v.value!=null) for(k : v.values) out.add(k);" +
+			"out;" +
+		"};\n",
+
+
 	"milli2Month":
 		"var milli2Month = function(value, milliOffset){\n"+
 			"g=new java.util.GregorianCalendar(new java.util.SimpleTimeZone(0, \"GMT\"));\n"+

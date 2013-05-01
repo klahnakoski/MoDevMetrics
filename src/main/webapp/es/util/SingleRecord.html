@@ -85,20 +85,30 @@
 		D.println(Date.newInstance(1352207434236).format("yyyy-NNN-dd HHmmss"));
 //		yield (ESQuery.loadColumns({"from":"bugs"}));
 
+		var temp=MVEL.compile.expression("getDocArray(dependson).length>0",  {"from": "bugs"      });
+
 
 		var esQuery = {
-	"query":{"filtered":{
-		"query":{"match_all":{}},
-		"filter":{"and":[{"script":{"script":"true"}},{"term":{"bug_id":822870}}]}
-	}},
-	"from":0,
-	"size":20,
-	"sort":["modified_ts"],
-	"facets":{"mvel":{"terms":{
-		"script_field":"var Value2Pipe = function(value){\nif (value==null){ \"0\" }else if (value is ArrayList || value is org.elasticsearch.common.mvel2.util.FastList){var out = \"\";\nforeach (v : value) out = (out==\"\") ? v : out + \"|\" + Value2Pipe(v);\n'a'+Value2Pipe(out);\n}else \nif (value is Long || value is Integer){ 'n'+value; }else \nif (!(value is String)){ 's'+value.getClass().getName(); }else \n\"s\"+value.replace(\"\\\\\", \"\\\\\\\\\").replace(\"|\", \"\\\\p\");};\nvar get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar getDocValue = function(name){\nvar out = [];\nvar v = doc[name];\nif (v==null || v.value==null) { null; } else if (v.values.length<=1){ v.value; } else {for(k : v.values) out.add(k); out;}};\nvar _1000 = function(bugs){\nvar modified_ts = getDocValue(\"modified_ts\");\nvar expires_on = getDocValue(\"expires_on\");\nvar cf_blocking_b2g = getDocValue(\"cf_blocking_b2g\");\nvar bug_id = getDocValue(\"bug_id\");\noutput=\"\";\nif (true){output = Value2Pipe(bug_id)\n+\"|\"+Value2Pipe(cf_blocking_b2g)\n+\"|\"+Value2Pipe(modified_ts)\n+\"|\"+Value2Pipe(expires_on)\n;\n}\noutput;\n};\n_1000(_source)\n",
-		"size":200000
-	}}}
-}
+			"query":{"filtered":{
+				"query":{"match_all":{}},
+				"filter":
+					{"and":[
+						{"exists":{"field":"blocked"}},
+						{"term":{"bug_id":28424}},
+						{"or":[
+							{"term":{"changes.field_name":"blocked"}},
+							{"term":{"bug_version_num":1}}
+						]}
+					]}
+			}},
+			"from":0,
+			"size":0,
+			"sort":[],
+			"facets":{"mvel":{"terms":{
+				"field":"bug_id",
+				"size":200000
+			}}}
+		}
 
 				;
 //		{

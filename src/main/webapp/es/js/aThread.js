@@ -249,6 +249,24 @@ aThread.join=function(otherThread){
 	}//endif
 };
 
+
+//RETURN AN OBJECT THAT CAN BE USED IN LOOPS TO YIELD OCCATIONALLY
+aThread.share=function(first, next){
+	return {
+		"nextYield":new Date().getMilli()+first,
+		"yield":function(){
+			var now = new Date().getMilli();
+			if (now > this.nextYield){
+				this.nextYield = new Date().getMilli() + next;	//TAKING TOO LONG
+				return true;
+			}//endif
+			return false;
+		}
+	};
+};
+
+
+
 //THIS GENERATOR EXPECTS send TO BE UN TWICE ONLY
 //FIRST WITH NO PARAMETERS, AS REQUIRED BY ALL GENERATORS
 //THE SEND RUN FROM THE JOINING THREAD TO RETURN THE VALUE
