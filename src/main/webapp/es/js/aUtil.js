@@ -21,6 +21,9 @@ Map.newInstance=function(key, value){
 	return output;
 };//method
 
+
+
+
 Map.copy = function(from, to){
 	if (to===undefined) to={};
 	var keys = Object.keys(from);
@@ -64,8 +67,17 @@ Map.codomain=function(map){
 	return output;
 };//method
 
-
-Map.domain=Object.keys;
+//RETURN KEYS
+Map.domain=function(map){
+	var output=[];
+	var keys=Object.keys(map);
+	for(var i=keys.length;i--;){
+		var key=keys[i];
+		var val=map[key];
+		if (val!==undefined) output.push(key);
+	}//for
+	return output;
+};//method
 
 
 //RETURN TRUE IF MAPS LOOK IDENTICAL

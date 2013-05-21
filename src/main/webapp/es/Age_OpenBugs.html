@@ -16,7 +16,7 @@
 
 <div id="sidebar">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
-		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 	</div>
 
 	<hr>
@@ -323,6 +323,7 @@ var __createChart = function(){
 				{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
 			],
 			[
+				"sampleMin=Date.newInstance(sampleMin).floorWeek().format('yyyy-MM-dd')",
 				"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
 			],
 			"bugs",

@@ -164,6 +164,66 @@ var CHART_TYPES={
 };
 
 
+
+function copyParam(fromParam, toParam){
+	{//COPY EXTENSION POINTS TO PARAMETERS
+		var extPoints = {};
+		Map.copy(toParam.extensionPoints, extPoints);
+		if (fromParam.extensionPoints) Map.copy(fromParam.extensionPoints, extPoints);
+		if (fromParam.timeSeriesFormat) toParam.timeSeriesFormat = JavaDateFormat2ProtoVisDateFormat(fromParam.timeSeriesFormat);
+
+		Map.copy(fromParam, toParam);
+		toParam.extensionPoints = extPoints;
+	}
+
+
+	fixClickAction(toParam);
+
+
+	{//ENSURE CONTAINER DIV IS CORRECT SIZE
+		let div = $("#" + fromParam.id);
+		div.width(toParam.width);
+		div.height(toParam.height);
+	}
+}
+
+
+
+
+
+
+
+
+aChart.showProgress=function(params){
+
+	var newParam={
+		"type":"bar",
+		"stacked":true,
+		"orientation":"horizontal",
+		"titlePaddings":5,
+		"height":20,
+		"xAxisGrid":false,
+		"xAxisSize":0,
+		"yAxisSize": 0,
+		valuesVisible: true,
+		valuesMask: "{series} ({value})",
+		"legend":false,
+		"legendPaddings":0,
+		"orthoAxisDomainRoundMode" : 'none',
+		"orthoAxisFixedMax":true,
+		extensionPoints: {
+			label_textStyle:"white"
+		}
+	};
+
+	copyParam(params, newParam);
+
+	aChart.show(newParam);
+};//method
+
+
+
+
 aChart.showPie=function(params){
 	var divName=params.id;
 
@@ -243,13 +303,13 @@ aChart.showPie=function(params){
 
 
 
-aChart.show=function(params){
+	aChart.show=function(params){
 	Map.expecting(params, ["cube"]);
 	var divName=params.id;
 
 	var chartCube=params.cube;
 	var type=params.type;
-	var stacked=false;
+	var stacked=nvl(params.stacked, false);
 	////////////////////////////////////////////////////////////////////////////
 	// TYPE OF CHART
 	////////////////////////////////////////////////////////////////////////////
@@ -281,7 +341,7 @@ aChart.show=function(params){
 		}else{
 			D.error("Can not handle more than 2 edges");
 		}//endif
-	}else if (["stacked", "stackedarea", "area", ].contains(type)){
+	}else if (["stacked", "stackedarea", "area"].contains(type)){
 		stacked=true;
 	}//endif
 
@@ -295,7 +355,7 @@ aChart.show=function(params){
 
 	var categoryLabels;
 	if (chartCube.edges.length==1 || chartCube.edges[0].domain.partitions.length==0){
-		categoryLabels=CUBE.select2Array(chartCube.select).map(function(v, i){
+		categoryLabels=Array.newInstance(chartCube.select).map(function(v, i){
 			return v.name;
 		});
 	}else if (chartCube.edges.length==2){
@@ -306,9 +366,24 @@ aChart.show=function(params){
 		categoryLabels=getAxisLabels(chartCube.edges[0]);
 	}//endif
 
-
-
-
+	////////////////////////////////////////////////////////////////////////////
+	// SET MAX WITHOUT "NICE" ROUNDING BUFFER
+	////////////////////////////////////////////////////////////////////////////
+	if (params.orthoAxisFixedMax==true){
+		if (stacked && chartCube.edges.length==1){
+			var max=undefined;
+			chartCube.edges[0].domain.partitions.forall(function(part,i){
+				var total=0;
+				Array.newInstance(chartCube.select).forall(function(s){
+					total+=nvl(chartCube.cube[i][s.name], 0);
+				});
+				max=aMath.max(max, total);
+			});
+			params.orthoAxisFixedMax=max==0 ? 1 : max;  //DO NOT USE ZERO
+		}else{
+			D.error("Not supported yet");
+		}
+	}//endif
 
 	////////////////////////////////////////////////////////////////////////////
 	// STYLES
@@ -369,7 +444,7 @@ aChart.show=function(params){
 		height: height,
 		animate:false,
 		title: nvl(params.name, chartCube.name),
-		legend: (chartCube.edges.length!=1 || CUBE.select2Array(chartCube.select).length>1),		//DO NOT SHOW LEGEND IF NO CATEGORIES
+		legend: (chartCube.edges.length!=1 || Array.newInstance(chartCube.select).length>1),		//DO NOT SHOW LEGEND IF NO CATEGORIES
 		legendPosition: "bottom",
 		legendAlign: "center",
 
@@ -391,6 +466,7 @@ aChart.show=function(params){
 			xAxisLabel_textAngle: aMath.PI/4,
 			xAxisLabel_textAlign: "left",
 			xAxisLabel_textBaseline: "top",
+//			label_textStyle:"white",
 //			xAxisScale_dateTickFormat: "%Y/%m/%d",
 //			xAxisScale_dateTickPrecision: xaxis.domain.interval.milli
 			//set in miliseconds
@@ -406,25 +482,9 @@ aChart.show=function(params){
 		}
 	};
 
-	{//COPY EXTENSION POINTS TO PARAMETERS
-		var extPoints={};
-		Map.copy(chartParams.extensionPoints, extPoints);
-		if (params.extensionPoints) Map.copy(params.extensionPoints, extPoints);
-		if (params.timeSeriesFormat) chartParams.timeSeriesFormat=JavaDateFormat2ProtoVisDateFormat(params.timeSeriesFormat);
-
-		Map.copy(params, chartParams);
-		chartParams.extensionPoints=extPoints;
-	}
 
 
-	fixClickAction(chartParams);
-
-
-	{//ENSURE CONTAINER DIV IS CORRECT SIZE
-		let div=$("#"+divName);
-		div.width(chartParams.width);
-		div.height(chartParams.height);
-	}
+	copyParam(params, chartParams);
 
 
 	var chart = new pvc[CHART_TYPES[type]](chartParams);

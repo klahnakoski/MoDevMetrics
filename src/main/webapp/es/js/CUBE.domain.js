@@ -212,7 +212,7 @@ CUBE.domain.time = function(column, sourceColumns){
 			"	var output=[];\n" +
 			"	for(var i=0;i<this.partitions.length;i++){\n" +
 			"		var " + d.name + "=this.partitions[i];\n" +
-			"		if (" + column.test + ") output.push(" + d.name + ");\n " +
+			"		if (" + column.test + ")\noutput.push(" + d.name + ");\n " +
 			"	}\n " +
 			"	return output;\n " +
 			"}";
@@ -243,20 +243,36 @@ CUBE.domain.time = function(column, sourceColumns){
 //if (column.range.max=="max"){
 //	D.println("");
 //}//endif
-		var condition=[];
-		if (column.range.min){
-			condition.push("(" + column.range.min + "==null || " + column.range.min + "< " + d.name + ".min)");
-		}//endif
-		if (column.range.max){
-			condition.push("(" + column.range.max + "==null || " + d.name + ".min" + "<= " + column.range.max + ")");
-		}//endif
+		var condition;
+		if (column.range.type!==undefined && column.range.type=="inclusive"){
+			//ANY OVERLAP WITH THE PARTITIONS WILL MATCH
+			condition=[];
+			if (column.range.min){
+				condition.push("(" + column.range.min + "==null || " + column.range.min + "< " + d.name + ".max)");
+			}//endif
+			if (column.range.max){
+				condition.push("(" + column.range.max + "==null || " + d.name + ".min" + "<= " + column.range.max + ")");
+			}//endif
+			condition=condition.join(" && ");
+		}else{
+			condition=[];
+			//IF THE PARTITION KEY IS IN THE RANGE, THEN MATCH
+			if (column.range.min){
+				condition.push("(" + column.range.min + "==null || " + column.range.min + "< " + d.name + ".min)");
+			}//endif
+			if (column.range.max){
+				condition.push("(" + column.range.max + "==null || " + d.name + ".min" + "<= " + column.range.max + ")");
+			}//endif
+			condition=condition.join(" && ");
+		}
+
 
 
 		f +=
 			"	var output=[];\n" +
 			"	for(var i=0;i<this.partitions.length;i++){\n" +
 			"		var " + d.name + "=this.partitions[i];\n" +
-			"		if ("+condition.join(" && ")+") output.push(" + d.name + ");\n " +
+			"		if ("+condition+") output.push(" + d.name + ");\n " +
 			"	}\n " +
 			"	return output;\n " +
 			"}";
@@ -804,7 +820,7 @@ CUBE.domain.set = function(column, sourceColumns){
 
 
 	//DEFINE VALUE->PARTITION MAP
-	if (column.test===undefined){
+	if (column.test===undefined || d.key!==undefined){
 		CUBE.domain.set.compileKey(d);
 
 		d.map = {};
@@ -814,15 +830,17 @@ CUBE.domain.set = function(column, sourceColumns){
 			var part = d.partitions[i];
 
 			var key=d.getKey(part);
-			if (key === undefined) D.error("Expecting object to have '" + d.key + "' attribute:" + CNV.Object2JSON(part));
+			if (key === undefined)
+				D.error("Expecting object to have '" + d.key + "' attribute:" + CNV.Object2JSON(part));
 			if (d.map[key] !== undefined){
 				D.error("Domain '" + d.name + "' was given two partitions that map to the same value (a[\"" + d.key + "\"]==b[\"" + d.key + "\"]): where a=" + CNV.Object2JSON(part) + " and b=" + CNV.Object2JSON(d.map[key]));
 			}//endif
 			d.map[key] = part;
 		}//for
-	}else{
-		if (d.key !== undefined) D.warning("Domain '" + d.name + "' does not require a 'key' attribute when the colum has 'test' attribute");
-		d.getKey=function(value){return null;};	 //COLLAPSE EDGE TO ONE VALUE
+	}//endif
+
+	if (column.test!==undefined){
+		if (d.key===undefined) d.getKey=function(value){return null;};	 //COLLAPSE EDGE TO ONE VALUE
 
 		////////////////////////////////////////////////////////////////////////
 		//FIND A "==" OPERATOR AND USE IT TO DEFINE AN INDEX INTO THE DOMAIN'S VALUES
@@ -900,7 +918,7 @@ CUBE.domain.set = function(column, sourceColumns){
 
 
 CUBE.domain.set.compileSimpleLookup = function(column, d, sourceColumns){
-	d.map = undefined;
+//	d.map = undefined;
 	d.getCanonicalPart = undefined;
 	d.getMatchingParts=undefined;
 	var f =
@@ -919,7 +937,7 @@ CUBE.domain.set.compileSimpleLookup = function(column, d, sourceColumns){
 		"var output=[];\n" +
 			"for(var i=0;i<this.partitions.length;i++){\n" +
 			"var " + d.name + "=this.partitions[i];\n" +
-			"if (" + column.test + ") output.push(" + d.name + ");\n " +
+			"if (" + column.test + ")\noutput.push(" + d.name + ");\n " +
 			"}\n " +
 			"return output;\n " +
 			"}";
@@ -947,7 +965,7 @@ CUBE.domain.set.compileMappedLookup = function(column, d, sourceColumns, lookupV
 		"if (sublist===undefined) return output;\n"+
 		"for(var i=sublist.length;i--;){\n" +
 			"var " + d.name + "=sublist[i];\n" +
-			"if (" + column.test + ") output.push(" + d.name + ");\n " +
+			"if (" + column.test + ")\noutput.push(" + d.name + ");\n " +
 		"}\n " +
 		"return output;\n " +
 		"}";

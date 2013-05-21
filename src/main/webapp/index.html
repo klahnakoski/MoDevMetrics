@@ -42,6 +42,66 @@
 <h2>Bugzilla Anthropology Metrics Prototypes</h2>
 	<br>
 <table>
+	<tr>
+	<td>
+		<h4>May 14th 2013</h4>
+		<div class="description">
+			<p>I was asked to look into the number of patches landing on our various products.
+			My first draft assumed patches are closed when they are marked obsolete, or the bug is closed.
+			That definition leaves about 9% of patches never closed.  Further breakdown revealed:
+				<ul>
+			<li>56% - Have successfully passed review (review+)</li>
+			<li>27% - Are in the middle of review (review?)</li>
+			<li>10% - Have the feedback flag, which I assume will eventually enter review</li>
+			<li> 7% - All others, various reasons</li>
+				</ul>
+
+			Of course I now have more questions:  Are the reviewed patches landing?
+			All categories appear to be accelerating; Is this real, or another poor definition?
+			The number of patches being closed has been dropping in the past few weeks; Is this
+			seasonal (good weather/vacations)? Was there a work week? Is effort being diverted
+			from patch review to some other project?
+			</p>
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/PatchRates.html">Patch Rates</a> <a href="es/PatchRates.png">(image)</a>
+			<span class="info">Summarize Patch Rates</span>
+		</div>
+
+
+	</td>
+	</tr>
+
+	<tr>
+	<td>
+		<h4>May 8th 2013</h4>
+		<div class="description">
+			<p>This past week I suffered through more ElasticSearch oddities: Where it will
+				run out of memory on seemingly simple queries.  It appears the OutOfMemory errors are caused
+				by searching too many multi-valued indexes.  For example, this can happen when looking for all words
+				in the <span class="code">status_whiteboard</span>, or finding bugs using <span class="code">dependson</span>.
+				For now the solution is to avoid these types of queries and turn off indexing if not needed.
+				<br><br>
+				I have been working on ETL to store bug dependency gra<nothing reason="removing this tag will disable rendering!">p</nothing>hs so that they can be queried quickly.  The changing
+				nature of those dependencies was a complication I did not want to deal with; so I used a shortcut:
+				<i>The transitive closure of all dependencies over time creates a reasonable cover.</i>  This cover
+				can be served quickly to the client, and the client can use it a short-list for further data pulls.
+
+				<br><br>
+				There are cases when the cover is much larger than the current dependencies: Like the
+				<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=838081">Metro Backlog meta bug</a>.  But these cases
+				are rare enough that that they have little impact on total index size.
+			</p>
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Test-Hierarchy.html">Test Bug Dependency Tracking</a>
+			<span class="info">This is a UI to demonstrate the new Hierarchy ETL.</span>
+		</div>
+
+
+	</td>
+	</tr>
+
 
 	<tr>
 	<td>
@@ -306,7 +366,7 @@
 		<div class="items">
 			<a href="https://metrics.mozilla.com/bugzilla-analysis/Security_Q1_Goal.html">Security's 2013 Q1 Goal</a>
 			<span class="info">The Security Teams have an ambitious goal to limit the age of high+ security bugs.  This dashboard is meant to help visualize progress toward those goals.</span>
-			<a href="https://metrics.mozilla.com/bugzilla-analysis/util/Corruption%20Check.html">Corruption Check</a>
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Util-CorruptionCheck.html">Corruption Check</a>
 			<span class="info">Until ES is put onto production hardware, I have a check to ensure no corruption is introduced by downtime.</span>
 		</div>
 	</td>
@@ -399,7 +459,7 @@
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_NoReviewer.html">R? and missing Requestee</a>
 				<span class="info">List of all bugs with no reviewer (The old version missed some.)</span>
 
-				<a href="https://metrics.mozilla.com/bugzilla-analysis/util/QueryTool.html">B.A. Query Tool</a>
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Util-QueryTool.html">B.A. Query Tool</a>
 				<span class="info">Added some basic features to the query tool I use. It still needs documentation.</span>
 
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/OpenBugCount.html">OpenBugCount.html</a>
@@ -666,16 +726,16 @@
 		"es/lib/ASCIIMathML.js"
 	], function(){
 
-
+		var a;
 		if (window.location.protocol=="file:"){	//FOR DEVELOPMENT
-			let a=$("a");
+			a=$("a");
 			a.each(function(i, v){
 				var path=$(v).attr('href');
 				$(v).attr('href', path.replace("https://metrics.mozilla.com/bugzilla-analysis", "es"));
 
 			});
 		}else if (window.location.pathname=="/~klahnakoski/test/"){//STAGING
-			let a=$("a");
+			a=$("a");
 			a.each(function(i, v){
 				var path=$(v).attr('href');
 				$(v).attr('href', path.replace("https://metrics.mozilla.com/bugzilla-analysis", "es"));

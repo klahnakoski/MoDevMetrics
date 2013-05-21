@@ -19,7 +19,7 @@
 	<br>
 	<br>
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
-		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 	</div>
 
 	<hr>
@@ -111,9 +111,14 @@ var __createChart = function(){
 		//   "edges":[{"name":"bug_id", "value":"id"}]
 		//}
 		//CURRENT STATUS
-		var aa=D.action("Pull from BZ", true);
-		var currentBugs=yield (Bugzilla.search(historyBugs.edges[0].domain.partitions.map(function(v){return v.value;}), ["id", "summary", "assignee", "status", "resolution" ]));
-		D.actionDone(aa);
+		var bugs=historyBugs.edges[0].domain.partitions.map(function(v){return v.value;});
+		if (bugs.length>0){
+			var aa=D.action("Pull "+bugs.length+" bugs from BZ", true);
+			var currentBugs=yield (Bugzilla.search(bugs, ["id", "summary", "assignee", "status", "resolution" ]));
+			D.actionDone(aa);
+		}else{
+			currentBugs=[];
+		}//endif
 
 		//ADD CURRENT BUGS DATA TO HISTORY (MERGE ON bug_id)
 		currentBugs.forall(function(v){
@@ -331,10 +336,14 @@ $(document).ready(function(){
 		{"id":"forTitle", "name":"Title", "type":"text", "default":"Open Leo+"},
 		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.now().addWeek(-2)},//Date.now().addDay(-15).floorMonth()},
 		{"id":"dueDate", "name":"Due Date", "type":"time", "default":Date.now().floorDay().addWeek(1)},//Date.now().addMonth(1).floorDay()},
-		{"id":"esfilter", "name":"ES Filter", "type":"json", "default":{"and":[
+		{"id":"esfilter", "name":"ES Filter", "type":"json", "default":
+
+//		{"term":{"bugs.status_whiteboard.tokenized":"povb"}}
+		{"and":[
 			{"term":{"cf_blocking_b2g":"leo+"}},
 			{"not":{"terms":{"cf_status_b2g18":["fixed","verified","unaffected","wontfix"]}}}
-		]}}
+		]}
+		 }
 //		{"id":"filter", "name":"ES Filter", "type":"text", "default":'{"terms":{"bug_id":[803809, 808576, 809076, 817603, 822671, 824626, 827854, 828222, 828915, 829520, 832269, 834653, 834680, 834712, 834718, 834734, 835364, 835410, 835414]}}'},
 		],
 		[

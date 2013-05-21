@@ -25,7 +25,7 @@
 	<br>
 	<br>
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
-		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 	</div>
 
 	<hr>
@@ -75,6 +75,25 @@
 	<div id="report"></div>
 
 </div>
+
+
+<div id="showIteration" style="visibility:hidden;width:600px;">
+	<h2>Iteration {number}</h2>
+	<table>
+		<tr>
+			<td><div id="summary" class="chart" style="float:left;width:200px;height:200px"></div></td>
+			<td><div id="burnup" class="chart" style="width:400px;height:200px"></div></td>
+		</tr>
+		<tr><td>
+			<div id="workdone" class="chart"></div>
+		</td></tr>
+		<tr><td>
+			<h3>Stories</h3>
+			<div id="stories"></div>
+		</td></tr>
+	</table>
+</div>
+
 
 <script type="application/javascript;version=1.7">
 
@@ -185,7 +204,10 @@ var __createChart = function(){
 	iterations[5].endDate=Date.newInstance("2013APR15");	//WEEKEND
 	iterations[6].startDate=iterations[5].startDate.addWeekday(12);
 	iterations[6].endDate=iterations[5].endDate.addWeekday(12);
-
+	iterations[7].startDate=iterations[6].startDate.addWeekday(12);
+	iterations[7].endDate=iterations[6].endDate.addWeekday(12);
+	iterations[8].startDate=iterations[7].startDate.addWeekday(12);
+	iterations[8].endDate=iterations[7].endDate.addWeekday(12);
 	var currentIteration=iterations.map(function(i){if (endDate.between(i.startDate, i.endDate)) return i;})[0];
 
 
@@ -586,51 +608,139 @@ var __createChart = function(){
 ////////////////////////////////////////////////////////////////////////////////
 
 
+function showIteration(iteration){
+	//SET THE TITLE
+	$("#"+iterationTitle).html("Iteration "+iteration.number);
+
+	//SHOW WORK DONE BAR CHART
+	var stories=getStories(iteration);
+
+	//GET THE TIME A STORY BECOMES PART OF THE ITERATION (ingressTime, egressTime)
+	var burnup=yield (Q({
+		"from":stories,
+		"select":[
+			{"name":"donePoints", "value":"time.value.between(openTime, closeTime) ? scrum.points : 0", "aggregate":"sum"},
+			{"name":"totalPoints", "value":"time.value.between(ingressTime, egressTime) ? scrum.points : 0", "aggregate":"sum"},
+			{"name":"doneCount", "value":"time.value.between(openTime, closeTime) ? 1 : 0", "aggregate":"sum"},
+			{"name":"totalCount", "value":"time.value.between(ingressTime, egressTime) ? 1 : 0", "aggregate":"sum"}
+		],
+		"edges":[
+			{"name":"date", "test":"true",
+				"domain":{"type":"time", "min":iteration.startDate, "max":iteration.endDate, "interval":"day", "value":"value"}
+			}
+		]
+	}));
+
+	aChart.show({
+		"id":"burnup",
+		"sheetDiv":"info",
+		"type":"line",
+		"cube":yield (Q({"from":burnup, "select":["donePoints", "totalPoints"]})),
+		"width":400,
+		"height":200
+	});
+
+	//LAST DAY INDEX
+	var lastDayStats=burnup.cube[burnup.cube.length-1];
+	var firstDayStats=burnup.cube[0];
+
+	//SHOW FINAL STATS
+	var stats=yield (Q({
+		"name": firstDayStats.totalPoints+" Committed Points",
+		"from":stories,
+		"select":[
+			{"name":lastDayStats.doneCount+" Stories ("+ lastDayStats.donePoints+" points)", "value":""+lastDayStats.donePoints},
+			{"name":"Remainder", "value":""+(lastDayStats.totalPoints-lastDayStats.donePoints)}
+		],
+		"where":"date=="+CNV.Date2Code(iteration.endDate.addDay(-1))
+	}));
+
+	aChart.showPie({
+		"id":"summary",
+		"sheetDiv":"info",
+		"cube":"stats",
+		"width":200,
+		"height":200
+	});
+
+
+	//SHOW STORY LISTS
+	showStories(stories);
+}//method
+
+
+function showStories(stories){
+	var data=yield(Q({
+		"from":stories,
+		"select":[
+			{"name":"ID", "value":'bug_id'},
+			{"name":"Project", "value":'product'},
+			{"name":"Priority", "value":'priority'},
+			{"name":"Summary", "value":'summary'},
+			{"name":"Assigned", "value":'assigned_to'},
+			{"name":"User", "value":'scrum.user'},
+			{"name":"Component", "value":'scrum.component'},
+			{"name":"Points", "value":'bug_id'}
+		]
+	}));
+
+	$("#stories").html(CNV.List2HTMLTable(data));
+}//method
+
+		
+
 
 function getDescendants(parent, startDate, endDate){
 //FIND DEPENDENCY FIXPOINT
-
 	var a=D.action("Trace Bug Dependencies", true);
 
-	var bugs = {};
-//	var orderedBugs=[];
 	var lookFor = [parent];
+	var dep=yield (ESQuery.run({
+		"from":"bug_hierarchy",
+		"select":{"value":"descendants"},
+		"esfilter":{"term":{"bug_id":parent}}
+	}));
+	lookFor=new aSet(dep.list[0]).map;
 
-	var metroMVP = (yield(ElasticSearch.search({
-		"query":{
-			"filtered":{
-				"query":{"match_all":{}},
-				"filter":{"and":[
-					{"term":{"status_whiteboard.tokenized":"metro-mvp"}},
-//					{"range":{"modified_ts":{"lte":endDate.getMilli()}}},
-//					{"range":{"expires_on":{"gt":startDate.getMilli()}}},
-//					Mozilla.BugStatus.Open.esfilter
-				]}
-			}
-		},
-		"fields" : ["bug_id"],
-		"sort":[],
-		"size":200000,
-		"from":0
-	})));
 
-	metroMVP.hits.hits.forall(function(v, i){
-		if (lookFor.contains(v.fields.bug_id)) return;
-		lookFor.push(v.fields.bug_id);
-	});
+	var bugs = {};
+//	var metroMVP = (yield(ElasticSearch.search({
+//		"query":{
+//			"filtered":{
+//				"query":{"match_all":{}},
+//				"filter":{"and":[
+//					{"term":{"status_whiteboard.tokenized":"metro-mvp"}},
+////					{"range":{"modified_ts":{"lte":endDate.getMilli()}}},
+////					{"range":{"expires_on":{"gt":startDate.getMilli()}}},
+////					Mozilla.BugStatus.Open.esfilter
+//				]}
+//			}
+//		},
+//		"fields" : ["bug_id"],
+//		"sort":[],
+//		"size":200000,
+//		"from":0
+//	})));
+//
+//	metroMVP.hits.hits.forall(function(v, i){
+//		if (lookFor.contains(v.fields.bug_id)) return;
+//		lookFor.push(v.fields.bug_id);
+//	});
 
 
 
 //	var found={};
 	while(true){
-		var numBugs = Object.keys(bugs).length;
+//		var numBugs = Object.keys(bugs).length;
+
+
 
 		var moreBugs = (yield(ElasticSearch.search({
 			"query":{
 				"filtered":{
 					"query":{"match_all":{}},
 					"filter":{"and":[
-						{"terms":{"bug_id":lookFor}},
+						{"terms":{"bug_id":Map.domain(lookFor)}},
 						{"range":{"modified_ts":{"lte":endDate.getMilli()}}},
 						{"range":{"expires_on":{"gt":startDate.getMilli()}}},
 						Mozilla.BugStatus.Open.esfilter
@@ -643,50 +753,53 @@ function getDescendants(parent, startDate, endDate){
 			"from":0
 		})));
 
-		lookFor = [];
+		lookFor = {};
 		moreBugs.hits.hits.forall(function(v, i){
 			//KEEP BUG
 			var b=v.fields;
 			b.bug_id = b.bug_id - 0;
 
-			//THERE IS A RISK THERE IS MORE THAN ONE "CURRENT" RECORD
+			lookFor[b.bug_id]=undefined;
+
+			//PICK THE MOST RECENT RECORD IN THE GIVEN RANGE
 			if (bugs[b.bug_id]===undefined || bugs[b.bug_id].bug_version_num<b.bug_version_num){
 				bugs[b.bug_id] = b;
 			}//endif
 
 			if (b.bug_id==836963){
 				D.println("");
-			}
+			}//endif
 
 			var deps=nvl(b.dependson, []);
 			deps.forall(function(w, i){
 				w = w - 0;
 				if (!bugs[w]){
-					lookFor.push(w);
+					lookFor[w]=1;
 				}//endif
 			});
 		});
 		D.println(Object.keys(bugs).length + " bugs");
 
-		if (lookFor.length == 0) break;
+		if (Map.domain(lookFor) == 0) break;
 
 	}//while
-
 	D.actionDone(a);
-
-	a=D.action("Ask BZ for Summaries", true);
 
 
 	//GO TO BZ TO GET DESCRIPTIONS
 	var getBZ=aThread.run(function(){
+		var a=D.action("Ask BZ for Summaries", true);
 		var temp=yield (Bugzilla.search(Object.keys(bugs), ["id", "summary"]));
 		temp.forall(function(v, i){
 			bugs[v.id].summary=v.summary;
 		});
+		D.actionDone(a);
+		yield (null);
 	});
 
 	//AGE OF ALL BUGS FROM ES
 	var getAges=aThread.run(function(){
+		var a=D.action("Get Bug Ages", true);
 		var ages = yield (ElasticSearch.getMinMax({"and":[
 			{"terms":{"bug_id":Object.keys(bugs)}},
 			Mozilla.BugStatus.Open.esfilter
@@ -698,6 +811,7 @@ function getDescendants(parent, startDate, endDate){
 			bugs[v.bug_id].open_time=v.min;
 			bugs[v.bug_id].close_time=v.max;
 		});
+		D.actionDone(a);
 
 		yield (true);
 	});
@@ -716,9 +830,11 @@ function getDescendants(parent, startDate, endDate){
 	for(var i=orderedBugs.length;i--;){
 		var b=orderedBugs[i];
 
+		b.scrum=ScrumBugs.parse(b.status_whiteboard);
+
 		if (!b.summary) b.summary="";
-		if (b.summary.toLowerCase().trim().startsWith("epic ") || b.status_whiteboard.indexOf("feature=epic")>=0) b.type="epic";
-		if (b.summary.toLowerCase().trim().startsWith("story " || b.status_whiteboard.indexOf("feature=story")>=0)) b.type="story";
+		if (b.summary.toLowerCase().trim().startsWith("epic ")) b.scrum.feature="epic";
+		if (b.summary.toLowerCase().trim().startsWith("story ")) b.scrum.feature="story";
 
 		//ADD DESCENDANTS TO ALL BUGS
 		if (b.dependson===undefined) b.dependson=[];
@@ -730,20 +846,15 @@ function getDescendants(parent, startDate, endDate){
 			});
 			allD[c]=bugs[c];
 		});
-		b.descendants=mapAllKey(allD, function(k,v){return v;});
-
+		b.descendants=Map.codomain(allD);
 		b.count=b.descendants.length+1;
-
-		//CALC THE POINT COUNT
-		var points=aMath.alpha2zero((b.status_whiteboard+" ").between("p=", " "));
-		b.points=points-0;
 
 		//DANGER!  WILL DOUBLE COUNT IF A DAG OF DEPENDENCIES
 		b.pointTotal=0;
 		b.dependson.forall(function(c, i){
 			b.pointTotal+=bugs[c].pointTotal;
 		});
-		b.pointTotal=aMath.max(b.pointTotal, b.points);
+		b.pointTotal=aMath.max(b.pointTotal, b.scrum.points);
 
 	}//for
 

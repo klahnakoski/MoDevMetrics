@@ -72,17 +72,26 @@ String.prototype.deformat = function(){
 ///
 /// EXPECTING AN OBJECT WITH KEY VALUE PAIRS
 String.prototype.replaceVars = function(values){
-	var output = Map.jsonCopy(this);
+	//COPY VALUES, BUT WITH lowerCase KEYS
+	var keys=Object.keys(values);
+	var map={};
+	keys.forall(function(k){
+		map[k.toLowerCase()]=values[k];
+	});
 
+	var output = this;
+	var s=0;
 	while(true){
-		var s = output.indexOf('{');
+		s = output.indexOf('{', s);
 		if (s < 0) return output;
 		var e = output.indexOf('}', s);
 		if (e < 0) return output;
-		var key = output.substring(s + 1, e);
-		if (output.substring(s + 1, e) in values){
-			output = output.replace(output.substring(s, e + 1), values[key]);
+		var key = output.substring(s + 1, e).toLowerCase();
+
+		if (map[key]!==undefined){
+			output=output.replaceAll(output.substring(s, e + 1), map[key]);
 		}//endif
+		s=e;
 	}//while
 };//method
 

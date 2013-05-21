@@ -43,6 +43,18 @@ Dimension.prototype={
 //		output["default"]=undefined;
 //		output.index=undefined;
 //		return Map.copy(output);
+	},//method
+
+	"getSelect":function(){
+		var domain=this.getDomain();
+		if (domain.getKey===undefined) domain.getKey=function(v){return v.name;}; //BASIC COMPILE
+		if (domain.NULL===undefined) domain.NULL={"name":"Other"};
+
+		var output={
+			"name":this.name,
+			"value":MVEL.Parts2Term(this.index, domain)
+		};
+		return output;
 	}
 };
 

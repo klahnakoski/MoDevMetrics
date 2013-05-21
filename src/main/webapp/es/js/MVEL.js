@@ -13,7 +13,7 @@ var MVEL = function(){
 
 
 MVEL.prototype.code = function(query){
-	var selectList = CUBE.select2Array(query.select);
+	var selectList = Array.newInstance(query.select);
 	var fromPath = query.from;			//FIRST NAME IS THE INDEX
 	var indexName=fromPath.split(".")[0];
 	var whereClause = query.where;
@@ -140,10 +140,14 @@ MVEL.compile.getContextVariables=function(indexName, body){
 		while(j>=0){
 			var test1=body.substring(j-5, j+c.name.length+2);
 			var test2=body.substring(j-13, j+c.name.length+2);
+			var test3=body.substring(j-8, j+c.name.length+2);
+			var test4=body.substring(j-14, j+c.name.length+2);
 			j=body.indexOf(c.name, j+1);
 
 			if (test1=="doc[\"" + c.name + "\"]") continue; //BUT NOT ALREADY IN USE By doc["x"]
 			if (test2=="getDocValue(\"" + c.name + "\")") continue;
+			if (test3=="_source." + c.name) continue;
+			if (test4=="get(_source, \"" + c.name+ "\")") continue;
 
 			function defParent(name){
 				{//DO NOT MAKE THE SAME PARENT TWICE
@@ -159,7 +163,9 @@ MVEL.compile.getContextVariables=function(indexName, body){
 				}//endif
 			}//function
 
-			if (c.name.indexOf(".")>=0){
+			if (c.useSource){
+				context += "var " + c.name + " = _source." + c.name + ";\n";
+			}else if (c.name.indexOf(".")>=0){
 				var parentName=defParent(c.name.split(".").leftBut(1).join("."));
 				context += c.name + " = getDocValue(\"" + c.name + "\");\n";
 			}else{
@@ -423,7 +429,7 @@ MVEL.Parts2Term = function(
 ){
 	var mvel = new MVEL();
 	mvel.from(indexName, "_loop_");
-
+	
 	var term="";
 	domain.partitions.forall(function(v){
 		term +=	"if (" + mvel.where(v.esfilter) + ") "+ CNV.Value2Quote(domain.getKey(v)) + ";\n else ";

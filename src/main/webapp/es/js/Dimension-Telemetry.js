@@ -12,7 +12,6 @@ if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 //
 function string2path(fieldName, separator){
 	return function(v){
-		//GROUP BY MAJOR VERSIONS, THEN MINOR, THEN BUILD
 		var list=v.split(separator);
 		list[0]={"name":list[0], "path":list[0]};
 		for(var i=1;i<list.length;i++) list[i]={"name":list[i], "path":list[i-1].path+separator+list[i]};
@@ -30,7 +29,16 @@ function string2path(fieldName, separator){
 Dimension.addEdges(false, Mozilla, [
 
 	{"name":"Telemetry", "index":"raw_telemetry", "edges":[
-		{"name":"Date", "field":"date", "type":"set", "format":"yyyyMMdd", "min":Date.eod().addWeek(-2), "max":Date.eod(), "interval":Duration.DAY},
+		{"name":"Date",
+			"field":"date",
+			"type":"set",
+			"path":function(v){return [{
+				"name":Date.newInstance(v).format("dd MMM yyyy"),
+				"esfilter":{"term":{"date":v}}
+			}]},
+//			"type":"time",
+//			"min":Date.newInstance("10APR2013"), "max":Date.newInstance("16APR2013"), "interval":Duration.DAY
+		},
 
 		{"name":"Measures", "edges":[
 			{"name":"Start", "field":"simpleMeasurements.start", "type":"linear", "default":{"aggregate":["median", "average"]}},
@@ -127,9 +135,24 @@ Dimension.addEdges(false, Mozilla, [
 			},
 			{"name":"Arch", "field":"info.arch", "type":"set"},
 			{"name":"Locale", "field":"info.locale", "type":"set"},
-			{"name":"MemSize", "field":"info.memsize", "type":"linear", "min":"0", "max":15000, "interval":1000, "aggregate":["median", "average"]},
+			{"name":"MemSize (Linear)", "field":"info.memsize", "type":"linear", "min":"0", "max":15000, "interval":1000, "aggregate":["median", "average"]},
+			{"name":"MemSize (Category)", "field":"info.memsize",
+				"type":"set",
+				"allowNulls":true,
+				"partitions":Array.newRange(0, 8).map(function(v){
+					return {
+						"name":(128*Math.pow(2, v))+"meg",
+						"value":(128*Math.pow(2, v))+"meg",
+						"esfilter":{"range":{"info.memsize":{"gte":128*Math.pow(2, v-.5), "lt":128*Math.pow(2, v+.5)}}}
+					};
+				})
+			},
 			{"name":"cpucount", "field":"info.cpucount", "type":"count"},
-			{"name":"DWriteVersion", "field":"info.DWriteVersion", "type":"set"},
+			{"name":"DWriteVersion",
+				"field":"info.DWriteVersion",
+				"type":"set",
+				"path":string2path("info.flashVersion", ".")
+			},
 			{"name":"DWriteEnabled", "field":"info.DWriteEnabled", "type":"boolean"},
 
 			{"name":"Flags", "edges":[

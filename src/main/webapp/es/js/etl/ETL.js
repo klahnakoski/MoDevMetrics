@@ -4,20 +4,69 @@
 
 importScript("../aLibrary.js");
 importScript("../ESQuery.js");
+importScript("../CUBE.js");
+
 
 
 ETL={};
 
 
 aThread.run("get bug columns", function(){
-	yield (ESQuery.loadColumns({"from":"bugs", "url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version"}));
+	yield (ESQuery.loadColumns({"from":"bugs"}));
 
-	ETL.allFlags = aThread.runSynchronously(CUBE.calc2List({
+	if (ESQuery.INDEXES.bugs.columns===undefined) yield (null);
+
+	var temp = yield (CUBE.calc2List({
 		"from":ESQuery.INDEXES.bugs.columns,
 		"edges":["name"],
 		"where":"name.startsWith('cf_')"
-	})).list.map(function(v){return v.name;});
+	}));
+	ETL.allFlags=temp.list.map(function(v){return v.name;});
 });
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// RUN THIS NEAR BEGINNING TO REMOVE ALL BUT THE oldIndex (ONE WITH THE ALIAS)
+// AND THE newIndex (THE NEWEST WITHOUT AN ALIAS)
+///////////////////////////////////////////////////////////////////////////////
+ETL.removeOldIndexes=function(etl){
+	//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
+	var data=yield (Rest.get({url: ElasticSearch.pushURL+"/_aliases"}));
+	D.println(data);
+
+	var keys=Object.keys(data);
+	for(var k=keys.length;k--;){
+		var name=keys[k];
+		if (!name.startsWith(etl.aliasName)) continue;
+		if (name==etl.newIndexName) continue;
+
+		if (etl.newIndexName===undefined){
+			etl.newIndexName=name;
+			continue;
+		}else if (name>etl.newIndexName){
+			var oldName=etl.newIndexName;
+			etl.newIndexName=name;
+			name=oldName;
+		}//endif
+
+		if (Object.keys(data[name].aliases).length>0){
+			if (etl.oldIndexName===undefined){
+				etl.oldIndexName=name;
+				continue;
+			}else if (name>etl.oldIndexName){
+				//DELETE VERY OLD INDEX
+				yield (Rest["delete"]({url: ElasticSearch.pushURL+"/"+etl.oldIndexName}));
+				etl.oldIndexName=name;
+				continue;
+			}//endif
+		}//endif
+
+		//OLD, REMOVE IT
+		yield (Rest["delete"]({url: ElasticSearch.pushURL+"/"+name}));
+	}//for
+};
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -27,13 +76,7 @@ ETL.updateAlias=function(etl){
 
 
 	//UPDATE THE AUTO-INDEXING TO EVERY SECOND
-	data=yield (Rest.put({
-		"url": ElasticSearch.pushURL+"/"+etl.newIndexName+"/_settings",
-		"data":{"index":{"refresh_interval":"1s"}}
-	}));
-	D.println(data);
-
-
+	yield (ElasticSearch.setRefreshInterval(etl.newIndexName, "1s"));
 
 	var a=D.action("Change alias pointer");
 	//MAKE ALIAS FROM reviews
@@ -67,18 +110,17 @@ ETL.getMaxBugID=function(){
 
 
 ETL.newInsert=function(etl){
-	D.println("NEW INDEX CREATED");
+
 	yield (etl.makeSchema());
+	yield (ETL.removeOldIndexes(etl));
 
 	//DO NOT UPDATE INDEX WHILE DOING THE BULK LOAD
-	data=yield (Rest.put({
-		"url": ElasticSearch.pushURL+"/"+etl.newIndexName+"/_settings",
-		"data":{"index":{"refresh_interval":"-1"}}
-	}));
-	D.println("Turn off indexing: "+CNV.Object2JSON(data));
+	yield (ElasticSearch.setRefreshInterval(etl.newIndexName, "-1"));
 
 	var maxBug=yield(ETL.getMaxBugID());
 	var maxBatches=aMath.floor(maxBug/etl.BATCH_SIZE);
+
+	if (etl.start) yield (etl.start());
 
 	yield(ETL.insertBatches(etl, 0, maxBatches, maxBatches));
 
@@ -92,31 +134,12 @@ ETL.newInsert=function(etl){
 
 ETL.resumeInsert=function(etl){
 	//MAKE SCHEMA
+	yield (ETL.removeOldIndexes(etl));
 
-	//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
-	var data=yield(Rest.get({url: ElasticSearch.pushURL+"/_aliases"}));
-
-	D.println(data);
-
-	var keys=Object.keys(data);
-	for(var k=keys.length;k--;){
-		var name=keys[k];
-		if (!name.startsWith(etl.aliasName)) continue;
-
-		if (Object.keys(data[name].aliases).length>0){
-			etl.oldIndexName=name;
-		}//endif
-
-		if (etl.newIndexName===undefined || name>etl.newIndexName){
-			etl.newIndexName=name;
-		}//endif
-	}//for
-
-	if (etl.newIndexName===undefined || etl.newIndexName==etl.oldIndexName){
-		yield (ETL.newInsert(etl));
-		yield null;
+	if (etl.newIndexName==etl.oldIndexName){
+		ETL.newInsert(etl);
+		return;
 	}//endif
-
 
 	//GET THE MAX AND MIN TO FIND WHERE TO START
 	var maxResults=yield(ESQuery.run({
@@ -136,6 +159,9 @@ ETL.resumeInsert=function(etl){
 	}//endif
 //D.warning("minbug set to 750000");
 //minBug=750000;
+
+	if (etl.resume) yield (etl.resume());
+
 	var toBatch=aMath.floor(minBug/etl.BATCH_SIZE)-1;
 
 	yield (ETL.insertBatches(etl, 0, toBatch, aMath.floor(maxBug/etl.BATCH_SIZE)));
@@ -169,7 +195,10 @@ ETL.getCurrentIndex=function(etl){
 ETL.incrementalInsert=function(etl){
 
 	yield (ETL.getCurrentIndex(etl));
+	if (etl.newIndexName===undefined) D.error("No index found! (Initial ETL not completed?)");
 	var startTime=yield (etl.getLastUpdated());
+
+	if (etl.resume) yield (etl.resume());
 
 
 	//FIND RECENTLY TOUCHED BUGS
@@ -181,7 +210,7 @@ ETL.incrementalInsert=function(etl){
 			{"name":"bug_ids", "value":"bug_id"}
 		],
 		"esfilter":{
-			"range":{"modified_ts":{"gte":startTime.addHour(-1).getMilli()}}
+			"range":{"modified_ts":{"gte":startTime.addHour(-4).getMilli()}}
 		}
 	}));
 	D.actionDone(a);
@@ -214,9 +243,8 @@ ETL.insertBatches=function(etl, fromBatch, toBatch, maxBatch){
 
 	for(var b=toBatch;b>=fromBatch;b--){
 		var data=yield (etl.get(b*etl.BATCH_SIZE, (b+1)*etl.BATCH_SIZE));
-		if (data.length>0){
-			yield (etl.insert(data));
-		}//endif
+		if (data instanceof Array && data.length==0) continue;
+		yield (etl.insert(data));
 		D.println("Done batch "+b+"/"+maxBatch+" (from "+(b*etl.BATCH_SIZE)+" to "+((b+1)*etl.BATCH_SIZE)+") into "+etl.newIndexName);
 	}//for
 };//method

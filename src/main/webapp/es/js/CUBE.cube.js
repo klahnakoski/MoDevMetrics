@@ -53,7 +53,7 @@ function remap(oldColumns, newColumns){
 //PROVIDE THE SAME EDGES, BUT IN DIFFERENT ORDER
 CUBE.cube.transpose = function(query, edges, select){
 	//MAKE COMBO MATRIX
-	var smap = remap(CUBE.select2Array(query.select), CUBE.select2Array(select));
+	var smap = remap(Array.newInstance(query.select), Array.newInstance(select));
 	var fmap = remap(query.edges, edges);
 
 	//ENSURE THE CUBE HAS ALL DIMENSIONS

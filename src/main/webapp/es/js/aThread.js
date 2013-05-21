@@ -10,6 +10,11 @@ importScript("aUtil.js");
 var aThread;
 
 (function(){
+	var FIRST_BLOCK_TIME=500;	//TIME UNTIL YIELD
+	var NEXT_BLOCK_TIME=150;	//200ms IS THE MAXMIMUM TIME A PIECE OF CODE SHOULD HOG THE MAIN THREAD
+	var YIELD = {"name":"yield"};  //BE COOPERATIVE, WILL PAUSEE VERY MAX_TIME_BLOCK MILLISECONDS
+
+
 
 aThread=function(gen){
 	if (typeof(gen)=="function") gen=gen();	//MAYBE THE FUNCTION WILL CREATE A GENERATOR
@@ -21,11 +26,28 @@ aThread=function(gen){
 	this.keepRunning=true;
 	this.gen=null;    //CURRENT GENERATOR
 	this.stack = [gen];
-	this.nextYield=new Date().getMilli()+aThread.MAX_BLOCK_TIME;
+	this.nextYield=new Date().getMilli()+FIRST_BLOCK_TIME;
 	this.children=[];
 };
 
-aThread.MAX_BLOCK_TIME=200;	//200ms IS THE MAXMIMUM TIME A PIECE OF CODE SHOULD HOG THE MAIN THREAD
+//YOU SHOULD NOT NEED THESE UNLESS YOU ARE CONVERTING ASYNCH CALLS TO SYNCH CALLS
+//EVEN THEN, MAYBE YOU CAN USE aThread.call
+aThread.Resume = {"name":"resume"};
+aThread.Suspend = function(request){
+	this.name="suspend";
+	if (request===undefined) return;
+	if (request.kill===undefined) D.error("Expecting an object with kill() function");
+	this.request=request;	//KILLABLE OBJECT
+};
+aThread.Suspend.name="suspend";
+
+
+
+
+
+
+
+
 
 aThread.run=function(name, gen){
 	if (typeof(name) != "string"){
@@ -41,12 +63,16 @@ aThread.run=function(name, gen){
 
 
 //FEELING LUCKY?  MAYBE THIS GENERATOR WILL NOT DELAY AND RETURN A VALID VALUE
-aThread.runSynchronously=function(gen){
+//YOU CAN HAVE IT BLOCK THE MAIN TREAD FOR time MILLISECONDS
+aThread.runSynchronously=function(gen, time){
 	if (String(gen) !== '[object Generator]'){
 		D.error("You can not pass a function.  Pass a generator! (have function use the yield keyword instead)");
 	}//endif
 
 	var thread=new aThread(gen);
+	if (time!==undefined){
+		thread.nextYield=new Date().getMilli()+time;
+	}//endif
 	var result=thread.start();
 	if (result===aThread.Suspend)
 		D.error("Suspend was called while trying to synchronously run generator");
@@ -91,19 +117,23 @@ aThread.prototype.start=function(){
 	return this.resume(this.stack.pop());
 };
 
+
+
 function aThread_prototype_resume(retval){
 	showWorking();
 	while (this.keepRunning){
 		if (String(retval) === '[object Generator]'){
 			this.stack.push(retval);
 			retval = undefined
-		}else if (retval === aThread.Yield){
+		}else if (retval === YIELD){
 			if (this.nextYield<Date.now().getMilli()){
 				var self_=this;
-				setTimeout(function(retval){
-					self_.nextYield=new Date().getMilli()+aThread.MAX_BLOCK_TIME;
+//				this.stack.push(this.gen);
+//				this.stack.push({"close":function(){}}); //DUMMY VALUE
+				setTimeout(function(){
+					self_.nextYield=new Date().getMilli()+NEXT_BLOCK_TIME;
 					self_.currentRequest=undefined;
-					self_.resume(retval);
+					self_.resume();
 				}, 1);
 				return aThread.Suspend;
 			}//endif
@@ -119,7 +149,7 @@ function aThread_prototype_resume(retval){
 		}else if (retval === aThread.Resume){
 			var self=this;
 			retval = function(retval){
-				self.nextYield=new Date().getMilli()+aThread.MAX_BLOCK_TIME;
+				self.nextYield=new Date().getMilli()+NEXT_BLOCK_TIME;
 				self.currentRequest=undefined;
 //				self.stack.push({"close":function(){}}); //DUMMY GENERATOR ON STACK SO RETURN A VALUE DOES NOT STOP THREAD
 				self.resume(retval);
@@ -136,7 +166,7 @@ function aThread_prototype_resume(retval){
 
 				this.kill(retval);
 				if (retval instanceof Exception){
-					D.println("Uncaught Error in thread: "+retval.toString());
+					D.alert("Uncaught Error in thread: "+retval.toString());
 				}//endif
 				return retval;
 			}//endif
@@ -232,7 +262,7 @@ aThread.sleep=function(millis) {
 
 //LET THE MAIN EVENT LOOP GET SOME ACTION
 aThread.yield=function() {
-    yield (aThread.Yield);
+    yield (YIELD);
 };
 
 //WAIT FOR OTHER THREAD TO FINISH
@@ -249,21 +279,6 @@ aThread.join=function(otherThread){
 	}//endif
 };
 
-
-//RETURN AN OBJECT THAT CAN BE USED IN LOOPS TO YIELD OCCATIONALLY
-aThread.share=function(first, next){
-	return {
-		"nextYield":new Date().getMilli()+first,
-		"yield":function(){
-			var now = new Date().getMilli();
-			if (now > this.nextYield){
-				this.nextYield = new Date().getMilli() + next;	//TAKING TOO LONG
-				return true;
-			}//endif
-			return false;
-		}
-	};
-};
 
 
 
@@ -290,18 +305,6 @@ aThread.call=function(func, param){
 
 
 
-
-//YOU SHOULD NOT NEED THESE UNLESS YOU ARE CONVERTING ASYNCH CALLS TO SYNCH CALLS
-//EVEN THEN, MAYBE YOU CAN USE aThread.call
-aThread.Resume = {"name":"resume"};
-aThread.Yield = {"name":"yield"};  //BE COOPERATIVE, WILL PAUSEE VERY MAX_TIME_BLOCK MILLISECONDS
-aThread.Suspend = function(request){
-	this.name="suspend";
-	if (request===undefined) return;
-	if (request.kill===undefined) D.error("Expecting an object with kill() function");
-	this.request=request;	//KILLABLE OBJECT
-};
-aThread.Suspend.name="suspend";
 
 
 

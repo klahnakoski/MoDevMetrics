@@ -31,12 +31,12 @@ CUBE.analytic.add=function(query, analytic){
 	var copyEdge=false;         //I WISH THE ELEMENT DID NOT HAVE TO BE POLLUTED WITH THE EDGE VALUE
 	var parts=null;
 	var from;
-	if (query.edges.length==0 && query.list!=undefined){
-		from=query.list;
-	}else if (query.edges.length==1 && query.cube!=undefined){
+	if (query.edges.length==1 && query.cube!=undefined){
 		from=query.cube;
 		copyEdge=true;
 		parts=query.edges[0].domain.partitions;
+	}else if (query.list!=undefined){
+		from=query.list;
 	}else{
 		D.error("Analytic not defined, yet");
 	}//endif

@@ -32,8 +32,9 @@ Date.newInstance = function(value){
 Date.min=function(){
 	var min=null;
 	for(var i=0;i<arguments.length;i++){
-		if (arguments[i]==null) continue;
-		if (min==null || min>arguments[i]) min=arguments[i];
+		var v=arguments[i];
+		if (v === undefined || v == null) return null;
+		if (min==null || min>v) min=v;
 	}//for
 	return min;
 };//method

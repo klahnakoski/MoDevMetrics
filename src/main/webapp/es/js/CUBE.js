@@ -62,7 +62,7 @@ CUBE.compile = function(query, sourceColumns, useMVEL){
 		if (typeof(query.select)=="string") query.select={"value":query.select};
 	}//endif
 
-	var select = CUBE.select2Array(query.select);
+	var select = Array.newInstance(query.select);
 	for(var s = 0; s < select.length; s++){
 		if (typeof(select[s])=="string") select[s]={"value":select[s]};
 		if (select[s].name===undefined) select[s].name=select[s].value.split(".").last();
@@ -79,7 +79,7 @@ CUBE.compile = function(query, sourceColumns, useMVEL){
 };
 
 //MAP SELECT CLAUSE TO AN ARRAY OF SELECT COLUMNS
-CUBE.select2Array = function(select){
+Array.newInstance = function(select){
 	if (select === undefined) return [];
 	if (!(select instanceof Array)) return [select];
 	return select;
@@ -136,7 +136,7 @@ function calc2Tree(query){
 	var sourceColumns  = yield (CUBE.getColumnsFromQuery(query));
 	var from = query.from.list;
 
-	var select = CUBE.select2Array(query.select);
+	var select = Array.newInstance(query.select);
 	var edges = query.edges;
 	query.columns = CUBE.compile(query, sourceColumns);
 	var where = CUBE.where.compile(query.where, sourceColumns, edges);
@@ -145,14 +145,8 @@ function calc2Tree(query){
 
 	var tree = {};
 	query.tree = tree;
-	var nextYield = new Date().getMilli() + 500;	//FIRST CHUCK IS LARGE, WITH HOPE WE ARE LUCKY
 	FROM: for(var i = 0; i < from.length; i++){
-		var now = new Date().getMilli();
-		if (now > nextYield){
-			yield (aThread.yield());
-			nextYield = new Date().getMilli() + 150;	//TAKING TOO LONG
-		}//endif
-
+		yield (aThread.yield());
 
 		var row = from[i];
 		//CALCULATE THE GROUP COLUMNS TO PLACE RESULT
@@ -244,7 +238,7 @@ CUBE.calc2List = function(query){
 
 	
 	if (query.edges===undefined) query.edges=[];
-	var select = CUBE.select2Array(query.select);
+	var select = Array.newInstance(query.select);
 
 	//NO EDGES IMPLIES NO AGGREGATION AND NO GROUPING:  SIMPLE SET OPERATION
 	if (query.edges.length==0){
@@ -378,7 +372,7 @@ CUBE.List2Cube=function(query){
 //  REDUCE ALL DATA TO ZERO DIMENSIONS
 ////////////////////////////////////////////////////////////////////////////////
 function aggOP(query){
-	var select = CUBE.select2Array(query.select);
+	var select = Array.newInstance(query.select);
 
 	var sourceColumns = yield(CUBE.getColumnsFromQuery(query));
 	var from=query.from.list;
@@ -468,7 +462,7 @@ function setOP(query){
 	var sourceColumns = yield (CUBE.getColumnsFromQuery(query));
 	var from=query.from.list;
 
-	var select = CUBE.select2Array(query.select);
+	var select = Array.newInstance(query.select);
 	var columns = select;
 
 
@@ -539,7 +533,7 @@ CUBE.toTable=function(query){
 		if (query.edges[w].allowNulls) parts[w].push(d.end(d.NULL));
 	}//for
 
-	CUBE.select2Array(query.select).forall(function(s, i){
+	Array.newInstance(query.select).forall(function(s, i){
 		columns.push(s);
 		param.push("query.cube"+coord+((query.select instanceof Array) ? "["+i+"]" : ""));
 	});
@@ -554,7 +548,7 @@ CUBE.toTable=function(query){
 
 
 CUBE.Cube2List=function(query){
-	var name=CUBE.select2Array(query.select)[0].name;
+	var name=Array.newInstance(query.select)[0].name;
 	if (query.select instanceof Array) name=undefined;
 	if (query.cube===undefined) D.error("Can only turn a cube into a table at this time");
 	if (query.cube.length==0) yield ([]);
@@ -838,8 +832,8 @@ CUBE.merge=function(query){
 
 	query.cubes.forall(function(item, index){
 		//COPY SELECT DEFINITIONS
-		output.select.appendArray(CUBE.select2Array(item.from.select));
-		output.columns.appendArray(CUBE.select2Array(item.from.select));
+		output.select.appendArray(Array.newInstance(item.from.select));
+		output.columns.appendArray(Array.newInstance(item.from.select));
 
 
 		//VERIFY DOMAINS ARE IDENTICAL, AND IN SAME ORDER
@@ -1014,7 +1008,7 @@ CUBE.specificBugs=function(query, filterParts){
 
 //parts IS AN ARRAY OF PART NAMES CORRESPONDING TO EACH QUERY EDGE
 CUBE.drill=function(query, parts){
-	if (query.analytic) D.error("Do not know how to drill down on an anlytic");
+	if (query.analytic) D.error("Do not know how to drill down on an analytic");
 
 	var newQuery={};
 	Map.copy(query, newQuery);
@@ -1030,6 +1024,10 @@ CUBE.drill=function(query, parts){
 	}else{
 		newQuery.esfilter={"and":[]};
 	}//endif
+
+	if (parts.length==2 && query.edges.length==1){
+
+	}
 
 	query.edges.forall(function(edge, e){
 		if (parts[e]==undefined) return;

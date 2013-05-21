@@ -5,7 +5,8 @@
 
 
 importScript([
-	"../../lib/jquery-ui/js/jquery-1.9.1.js",
+	"../../lib/jquery.js",
+//	"../../lib/jquery-ui/js/jquery-1.9.1.js",
 	"../../lib/jquery-ui/js/jquery-ui-1.10.2.custom.js",
 	"../../lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css",
 	"../../lib/jquery.ba-bbq/jquery.ba-bbq.js",
@@ -157,6 +158,9 @@ GUI.showLastUpdated = function(indexName){
 };//method
 
 GUI.corruptionCheck=function(){
+
+	var t=aTimer.start("Corruption Check");
+
 	var result=yield (ESQuery.run({
 		"from":"bugs",
 		"select":{"name":"num_null", "value":"expires_on>"+Date.eod().getMilli()+" ? 1 : 0", "aggregate":"add"},
@@ -172,6 +176,8 @@ GUI.corruptionCheck=function(){
 		},
 		"select":{"name":"is_error", "value":"bug_id", "aggregate":"exists"}
 	}));
+
+	t.stop();
 
 	yield (is_error.cube.is_error==1)
 };//method

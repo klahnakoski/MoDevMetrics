@@ -20,8 +20,8 @@ ProgramFilter = function(indexName){
 ProgramFilter.allPrograms = CNV.Table2List(MozillaPrograms);
 
 ProgramFilter.prototype.makeFilter = function(indexName, selectedPrograms){
-	if (indexName===undefined) indexName=this.indexName;
-	if (selectedPrograms===undefined) selectedPrograms=this.selected;
+	indexName=nvl(indexName, this.indexName);
+	selectedPrograms=nvl(selectedPrograms, this.selected);
 
 	if (selectedPrograms.length == 0) return ESQuery.TrueFilter;
 
@@ -29,6 +29,11 @@ ProgramFilter.prototype.makeFilter = function(indexName, selectedPrograms){
 	for(var i=0;i<selectedPrograms.length;i++){
 		for(var j=0;j<ProgramFilter.allPrograms.length;j++){
 			if (ProgramFilter.allPrograms[j].projectName == selectedPrograms[i]){
+				if (ProgramFilter.allPrograms[j].esfilter){
+					or.push(ProgramFilter.allPrograms[j].esfilter);
+					continue;
+				}//endif
+
 				var name = ProgramFilter.allPrograms[j].attributeName;
 				var value = ProgramFilter.allPrograms[j].attributeValue;
 
@@ -47,21 +52,22 @@ ProgramFilter.prototype.makeFilter = function(indexName, selectedPrograms){
 
 
 ProgramFilter.makeQuery = function(filters){
-//	var allCompares = "";
 	var programCompares={};
 
 	for(var j=0;j<ProgramFilter.allPrograms.length;j++){
-//		if (ProgramFilter.allPrograms[j].projectName==this.selected[i]){
 		var name = ProgramFilter.allPrograms[j].attributeName;
 		var value = ProgramFilter.allPrograms[j].attributeValue;
-		var project=ProgramFilter.allPrograms[j].projectName;
-//		var compare;
-		if (name===undefined){
-			D.error("");
+
+		var esfilter;
+		if (ProgramFilter.allPrograms[j].esfilter){
+			esfilter=ProgramFilter.allPrograms[j].esfilter;
+		}else{
+			esfilter={"term":Map.newInstance(name, value)};
 		}//endif
 
+		var project=ProgramFilter.allPrograms[j].projectName;
 		programCompares[project]=nvl(programCompares[project], []);
-		programCompares[project].push({"term":Map.newInstance(name, value)});
+		programCompares[project].push(esfilter);
 	}//for
 
 

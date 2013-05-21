@@ -166,7 +166,7 @@ Stats.percentile=function(values, percentile){
 
 
 Stats.query2regression=function(query){
-	var select=CUBE.select2Array(query.select);
+	var select=Array.newInstance(query.select);
 	if (query.edges.length==2 && select.length==1){
 		//WE ASSUME THE SELECT IS THE WEIGHT FUNCTION
 	}else{

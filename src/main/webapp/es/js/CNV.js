@@ -83,7 +83,11 @@ CNV.ESResult2HTMLSummary = function(esResult, name){
 
 
 CNV.JSON2Object = function(json){
-	return JSON.parse(json);
+	try{
+		return JSON.parse(json);
+	}catch(e){
+		D.error("Can not parse json:\n"+json.indent(1), e);
+	}//try
 };//method
 
 
@@ -111,6 +115,12 @@ CNV.Object2JSON = function(json){
 		return CNV.String2Quote(json.toString());
 	}else if (json instanceof Date){
 		return CNV.String2Quote(json.format("yyyy-NNN-dd HH:mm:ss"));
+//	}else if (typeof(json)=="string"){
+//		var s=CNV.String2Quote(json);
+//		if (json.length>30 && json.indexOf("\n")>0){
+//			s=s.replaceAll("\\n", "\\n\"+\n\"");
+//		}//endif
+//		return s;
 	}else if (json instanceof Object){
 		try{
 			let singleLine=JSON.stringify(json);
@@ -168,8 +178,8 @@ CNV.Date2Code = function(date){
 	return "Date.newInstance("+date.getMilli()+")";
 };//method
 
-
-CNV.Value2Quote=function(value){
+//CONVERT TO SOME MOSTLY HUMAN READABLE FORM (MEANT TO BE DIGESTED BY OTHER TEXT TOOLS)
+CNV.Value2Text=function(value){
 	if (value === undefined){
 		return "";
 	} else if (value==NaN){
@@ -206,10 +216,60 @@ CNV.Value2Quote=function(value){
 };//method
 
 
+//CONVERT TO JAVESCRIPT FOR THE SAME
+CNV.Value2Quote=function(value){
+	if (value === undefined){
+		return "";
+	} else if (value==NaN){
+		return NaN;
+	} else if (value == null){
+		return "null";
+	} else if (typeof(value)=="string"){
+		return CNV.String2Quote(value);
+	} else if (aMath.isNumeric(value)){
+		return ""+value;
+	} else if (value.milli){
+		//DURATION
+		return "Duration.newInstance(\""+value.toString()+"\")";
+	} else if (value.getTime){
+		return "Date.newInstance("+value.getMilli()+")";
+	}//endif
+
+	var json = CNV.Object2JSON(value);
+	return CNV.String2Quote(json);
+};//method
+
+
 CNV.String2Integer = function(value){
 	return value - 0;
 };//method
 
+
+
+function unPipe(value){
+	var s=value.indexOf("\\", 1);
+	if (s<0) return value.substring(1);
+
+	var result="";
+	var e=1;
+	while(true){
+		var c=value.charAt(s+1);
+		if (c=='p'){
+			result=result+value.substring(e, s)+'|';
+			s+=2;
+			e=s;
+		}else if (c=='\\'){
+			result=result+value.substring(e, s)+'\\';
+			s+=2;
+			e=s;
+		}else{
+			s++;
+		}//endif
+		s=value.indexOf("\\", s);
+		if (s<0) break;
+	}//while
+	return result+value.substring(e);
+}//method
 
 CNV.Pipe2Value=function(value){
 	var type=value.charAt(0);
@@ -220,39 +280,14 @@ CNV.Pipe2Value=function(value){
 		D.error("unknown pipe type");
 
 	//EXPECTING MOST STRINGS TO NOT HAVE ESCAPED CHARS
-	var s=value.indexOf("\\", 1);
-	if (s>0){
-		var result="";
-		var e=1;
-		while(true){
-			var c=value.charAt(s+1);
-			if (c=='p'){
-				result=result+value.substring(e, s)+'|';
-				s+=2;
-				e=s;
-			}else if (c=='\\'){
-				result=result+value.substring(e, s)+'\\';
-				s+=2;
-				e=s;
-			}else{
-				s++;
-			}//endif
-			s=value.indexOf("\\", s);
-			if (s<0) break;
-		}//while
-		var output=result+value.substring(e);
+	var output=unPipe(value);
+	if (type=='s') return output;
 
-		if (type=='a'){
-			return output.split("|").map(function(v, i){
-				return CNV.Pipe2Value(v);
-			});
-		}//endif
-		return output;
-
-
-	}//endif
-	return value.substring(1);	//EXIT EARLY ON MOST LIKELY CASE
+	return output.split("|").map(function(v, i){
+		return CNV.Pipe2Value(v);
+	});
 };//method
+
 CNV.Pipe2Value.pipe = new RegExp("\\\\p", "g");
 CNV.Pipe2Value.bs = new RegExp("\\\\\\\\", "g");
 
@@ -466,7 +501,7 @@ CNV.List2Tab = function(data){
 	//WRITE DATA
 	for(var i = 0; i < data.length; i++){
 		for(var c = 0; c < columns.length; c++){
-			output += CNV.Value2Quote(data[i][columns[c].name]) + "\t";
+			output += CNV.Value2Text(data[i][columns[c].name]) + "\t";
 		}//for
 		output = output.substring(0, output.length - 1) + "\n";
 	}//for

@@ -8,7 +8,25 @@
 
 
 (function(){
+	var DEBUG=true;
 
+
+	Array.newInstance=function(value){
+		if (value === undefined || value==null) return [];
+		if (value instanceof Array) return value;
+		return [value];
+	};//method
+
+
+	Array.newRange=function(min, max, interval){
+		if (interval===undefined) interval=1;
+		if (min>max) D.error();
+
+		var output=[];
+		for(var i=min;i<max;i+=interval) output.push(i);
+		return output;
+	};//method
+	
 
 	Array.prototype.copy = function(){
 		return this.slice(0);
@@ -40,19 +58,55 @@
 
 	Array.prototype.select=function(attrName){
 		var output=[];
-		for(var i=0;i<this.length;i++) output.push(this[i][attrName]);
+		if (typeof(attrName)=="string"){
+			for(var i=0;i<this.length;i++) output.push(this[i][attrName]);
+		}else{
+			for(var i=0;i<this.length;i++){
+				var v=this[i];
+				var o={};
+				for(var a=0;a<attrName.length;a++){
+					var n=attrName[a];
+					o[n]=v[n];
+				}//for
+				output.push(o);
+			}//for
+		}//endif
 		return output;
+	};//method
+
+
+	//RETURN A RANDOM SAMPLE OF VALUES
+	Array.prototype.sample=function(num){
+		if (this.length<num) return this;
+
+		var temp=this.map(function(u){return {"key":Math.random(), "value":u};});
+		temp.sort(function(a, b){return a.key-b.key;});
+		return temp.substring(0, num).map(function(v){return v.value;});
+	};
+
+	Array.prototype.append=function(v){
+		this.push(v);
+		return this;
 	};//method
 
 
 
 
 	Array.prototype.appendArray=function(arr){
+//		this.reverse();
 		for(var i=0;i<arr.length;i++){
 			this.push(arr[i]);
 		}//for
+//		this.reverse();
 		return this;
 	};//method
+
+	if (DEBUG){
+		var temp=[0,1,2].appendArray([3,4,5]);
+		for(var i=0;i<6;i++) if (temp[i]!=i)
+			D.error();
+	}//endif
+
 
 	Array.prototype.prepend=Array.prototype.unshift;
 
@@ -60,12 +114,12 @@
 		return this[this.length-1];
 	};//method
 
-	Array.prototype.indexOf=function(value){
-		for(var i=0;i<this.length;i++){
-			if (this[i]==value) return i;
-		}//for
-		return -1;
-	};//method
+//	Array.prototype.indexOf=function(value){
+//		for(var i=0;i<this.length;i++){
+//			if (this[i]==value) return i;
+//		}//for
+//		return -1;
+//	};//method
 
 	Array.prototype.substring=Array.prototype.slice;
 
@@ -81,12 +135,12 @@
 		return this.slice(Math.max(0, this.length-num));
 	};
 
-	Array.prototype.remove=function(obj){
-		for(var i=this.length;i--;){
-			if (this[i]!=obj) continue;
+	Array.prototype.remove=function(obj, start){
+		while(true){
+			var i=this.indexOf(obj, start);
+			if (i==-1) return this;
 			this.splice(i, 1);
-		}//for
-		return this;
+		}//while
 	};
 
 	//[].remove("a");
@@ -94,10 +148,7 @@
 
 	//RETURN TRUE IF VALUE IS FOUND IN ARRAY
 	Array.prototype.contains = function(value){
-		for(var i = this.length; i--;){
-			if (this[i] == value) return true;
-		}//for
-		return false;
+		return this.indexOf(value)>=0;
 	};//method
 
 
@@ -119,8 +170,8 @@
 	//RETURN UNION OF UNIQUE VALUES (WORKS ON STRINGS ONLY)
 	Array.prototype.union = function(b){
 		var output={};
-		for(var i = 0; i < this.length; i++) output[this[i]]=1;
-		for(var j = 0; j < b.length; j++) output[b[i]]=1;
+		for(var i = this.length; i--;) output[this[i]]=1;
+		for(var j = b.length; j--;) output[b[j]]=1;
 		return Object.keys(output);
 	};//method
 
@@ -129,9 +180,10 @@
 	Array.prototype.subtract=function(b){
 		var c=[];
 	A:	for(var x=0;x<this.length;x++){
-			if (this[x]!==undefined){
-				for(var y=0;y<b.length;y++) if (this[x]==b[y]) continue A;
-				c.push(this[x]);
+		var v=this[x];
+			if (v!==undefined){
+				for(var y=b.length;y--;) if (v==b[y]) continue A;
+				c.push(v);
 			}//endif
 		}//for
 		return c;

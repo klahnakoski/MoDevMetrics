@@ -13,14 +13,20 @@ PartitionFilter = function(){};
 var DEFAULT_CHILD_LIMIT=20;     //IN THE EVENT THE PARTITION DOES NOT DECLARE A LIMIT, IMPOSE ONE SO THE GUI IS NOT OVERWHELMED
 
 PartitionFilter.newInstance=function(param){
-	ASSERT.hasAttributes(param, ["name", "dimension", "onlyOne", "expandAll"]);
+	ASSERT.hasAttributes(param, [
+		"id",       //TO NAME THE DOM ELEMENTS
+		"name",     
+		"dimension",
+		"onlyOne",
+		["expandDepth","expandAll"]
+	]);
 
 	var self=new PartitionFilter();
 	Map.copy(param, self);
 
 	if (self.dimension.partitions===undefined && self.dimension.edges===undefined) D.error(self.dimension.name+" does not have a partition defined");
 
-	self.id=self.dimension.parent.name.replaceAll(" ", "_");
+//	self.id=self.dimension.parent.name.replaceAll(" ", "_");
 	self.isFilter=true;
 	self.treeDone=false;
 	self.DIV_ID=self.id.replaceAll(" ", "_")+"_id";
@@ -34,7 +40,7 @@ PartitionFilter.newInstance=function(param){
 	self.id2node=[];
 
 	self.parents={};
-	self.hierarchy=convertToTree(self, {"id":self.id}, self.dimension).children;
+	self.hierarchy=convertToTree(self, {"id":undefined}, self.dimension).children;
 
 	return self;
 };
@@ -45,11 +51,7 @@ function convertToTreeLater(self, treeNode, dimension){
 	aThread.run(function(){
 		//DO THIS ONE LATER
 //		treeNode.children = [];
-
 		while(dimension.partitions instanceof aThread) yield (aThread.join(dimension.partitions));
-if (treeNode.id.right(13)=="Flash_Version"){
-	D.println();
-}//endif
 			treeNode.children = dimension.partitions.map(function(v, i){
 				if (i<nvl(dimension.limit, DEFAULT_CHILD_LIMIT)) return convertToTree(self, treeNode, v);
 			});
@@ -60,7 +62,7 @@ if (treeNode.id.right(13)=="Flash_Version"){
 
 function convertToTree(self, parent, dimension){
 	var node={};
-	node.id=parent.id+"."+dimension.name.replaceAll(" ", "_");
+	node.id=(parent.id===undefined ? "" : parent.id+".")+dimension.name.replaceAll(" ", "_");
 	node.attr={id:node.id};
 	node.data=dimension.name;
 
@@ -153,7 +155,6 @@ PartitionFilter.prototype.makeTree=function(){
 		}//endif
 		return;
 	}//endif
-
 	this.treeDone=true;
 
 	$(this.FIND_TREE).jstree({
@@ -204,7 +205,16 @@ PartitionFilter.prototype.makeTree=function(){
 			self.selectedIDs = minCover;
 			GUI.refresh();
 		}//endif
-	}).bind("loaded.jstree", function(){
+	}).bind("loaded.jstree", function(c, data){
+		if (self.expandDepth!==undefined){
+			var t=data.inst;
+			t.get_container().find('li').each(function(i) {
+                if(t.get_path($(this)).length<=self.expandDepth){
+                    t.open_node($(this));
+                }
+            });
+		}//endif
+			
 		if (self.expandAll) $(self.FIND_TREE).jstree('open_all');
 		self.refresh();
 	});

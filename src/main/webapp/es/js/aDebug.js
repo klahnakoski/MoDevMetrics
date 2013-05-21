@@ -53,7 +53,9 @@ D.warning = function(description, cause){
 };//method
 
 D.alert=function(message, ok_callback, cancel_callback){
-		$('<div>'+message+"</div>").dialog({
+	D.println(message);
+	
+	$('<div>'+message+"</div>").dialog({
 		title:"Alert",
 		draggable: false,
 		modal: true,
@@ -71,6 +73,11 @@ D.alert=function(message, ok_callback, cancel_callback){
 D.actionStack=[];
 D.action=function(message, waitForDone){
 	var action={"message":message, "start":Date.now()};
+
+	if (message.length>30){
+		message=message.left(27)+"...";
+	}//endif
+
 	D.actionStack.push(action);
 	$("#status").html(message);
 	if (message.toLowerCase()=="done"){
@@ -110,8 +117,15 @@ D.actionDone=function(action){
 
 ASSERT={};
 ASSERT.hasAttributes=function(obj, keyList){
-	for(let i=0;i<keyList.length;i++){
-		if (obj[keyList[i]]===undefined) D.error("expecting object to have '"+keyList[i]+"' attribute");
+	A: for(let i=0;i<keyList.length;i++){
+		if (keyList[i] instanceof Array){
+			for(let j=0;j<keyList[i].length;j++){
+				if (obj[keyList[i][j]]!==undefined) continue A;
+			}//for
+			D.error("expecting object to have one of "+CNV.Object2JSON(keyList[i])+" attribute");
+		}else{
+			if (obj[keyList[i]]===undefined) D.error("expecting object to have '"+keyList[i]+"' attribute");
+		}//endif
 	}//for
 };
 
@@ -142,6 +156,8 @@ Exception.error=function(){
 Exception.prototype.toString=function(){
 	if (this.cause===undefined){
 		return this.message;
+	}else if (this.cause.toString === undefined){
+		return this.message + " caused by (\n" + (""+this.cause).indent(1) + "\n)\n";
 	}else if (this.cause instanceof Exception){
 		return this.message + " caused by (\n" + this.cause.toString().indent(1) + "\n)\n";
 	}else{

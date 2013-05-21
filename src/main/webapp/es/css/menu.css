@@ -168,7 +168,7 @@ h2 {
 }
 h3 {
     font-family: 'Open Sans', sans-serif;
-    font-size: 28px;
+    font-size: 24px;
   letter-spacing: -0.5px;
   line-height: 100%;
     margin-top: 0;
@@ -177,7 +177,7 @@ h3 {
 }
 h4 {
     font-family: 'Open Sans', sans-serif;
-    font-size: 24px;
+    font-size: 16px;
   letter-spacing: -0.25px;
   line-height: 100%;
      margin-top: 0;
@@ -659,6 +659,36 @@ TOOLBAR
 }
 
 .smalltoolbutton:focus, .smalltoolbutton:link:focus, .smalltoolbutton:visited:focus, .smalltoolbutton.focus, .smalltoolbutton:link.focus, .smalltoolbutton:visited.focus {
+    outline-color: #484848
+}
+
+
+
+.expandbutton, .expandbutton:link, .expandbutton:visited {
+    display: inline-block;
+
+    text-align: center;
+    vertical-align: top;
+    font-size: 14px;
+    padding: 2px 0px 5px 0px;
+    height: 20px;
+    width: 20px;
+    line-height: 10px;
+    text-decoration: none;
+    border: 0;
+    right: 0;
+    bottom: 0;
+
+}
+
+.expandbutton:hover, .expandbutton:link:hover, .expandbutton:visited:hover, .expandbutton.hover, .expandbutton:link.hover, .expandbutton:visited.hover, .expandbutton:focus, .expandbutton:link:focus, .expandbutton:visited:focus, .expandbutton.focus, .expandbutton:link.focus, .expandbutton:visited.focus {
+    box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.1), inset 0 -2px 0 0 rgba(0, 0, 0, 0.2), inset 0 12px 24px 2px rgba(255, 255, 255, 0.8);
+    color: #fff;
+    text-decoration: none;
+    transition: all linear .25s
+}
+
+.expandbutton:focus, .expandbutton:link:focus, .expandbutton:visited:focus, .expandbutton.focus, .expandbutton:link.focus, .expandbutton:visited.focus {
     outline-color: #484848
 }
 

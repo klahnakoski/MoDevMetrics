@@ -30,9 +30,11 @@ if (window.location.hostname=="metrics.mozilla.com"){
 //	ElasticSearch.pushURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
 //
 //	ElasticSearch.baseURL="http://localhost:9200";
+//	ElasticSearch.baseURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
 	ElasticSearch.baseURL="http://elasticsearch8.metrics.scl3.mozilla.com:9200";
 
 //	ElasticSearch.queryURL = "http://localhost:9200/bugs/_search";
+//	ElasticSearch.queryURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9200/bugs/_search";
 	ElasticSearch.queryURL = "http://elasticsearch8.metrics.scl3.mozilla.com:9200/bugs/_search";
 
 
@@ -49,6 +51,31 @@ ElasticSearch.search=function(esquery){
 
 	yield (output);
 };
+
+
+ElasticSearch.setRefreshInterval=function(indexName, rate){
+	var data=yield (Rest.put({
+		"url": ElasticSearch.pushURL+"/"+indexName+"/_settings",
+		"data":{"index":{"refresh_interval":"1s"}}
+	}));
+	D.println("Refresh Interval to "+rate+": "+CNV.Object2JSON(data));
+	yield (data);
+};//method
+
+
+//EXPECTING THE DATA ARRAY TO ALREADY HAVE ODD ENTRIES STARTING WITH { "create" : { "_id" : ID } }
+ElasticSearch.bulkInsert=function(indexName, typeName, dataArray){
+//	try{
+		yield (Rest.post({
+			"url":ElasticSearch.pushURL+"/"+indexName+"/"+typeName+"/_bulk",
+			"data":dataArray.join("\n")+"\n",
+			dataType: "text"
+		}));
+//	} catch(e){
+//		D.warning("problem with _bulk", e)
+//	}//try
+};
+
 
 //ONLY BECAUSE I AM TOO LAZY TO ENHANCE THE ESQuery WITH MORE FACETS (A BATTERY OF FACETS PER SELECT COLUMN)
 //RETURN ALL BUGS THAT MATCH FILTER ALONG WITH THE TIME RANGE THEY MATCH

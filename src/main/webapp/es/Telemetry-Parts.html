@@ -14,7 +14,7 @@
 
 <div id="sidebar" style="width:400px;position: relative;">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
-		<span id="status" style="height:30px">Chart Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 	</div>
 
 	<hr>
@@ -84,9 +84,23 @@ var __createChart = function(){
 	yield (ESQuery.loadColumns({"from": "raw_telemetry"}));
 	if (Mozilla.Telemetry.Instance.Addons.partitions instanceof aThread) yield (aThread.join(Mozilla.Telemetry.Instance.Addons.partitions));
 
-	var X=GUI.state.measureX.getSelectedParts()[0];
+	var X=GUI.state.X.getSelectedParts()[0];
 	if (X===undefined) yield(null);	//NOT READY TO SHOW ANYTHING
-	if (PART_QUERY===undefined) yield(null);
+
+	var Z=GUI.state.Z.getSelectedParts()[0];
+	if (Z!==undefined){
+		if (PART_QUERY===undefined) PART_QUERY={};
+
+		//LET Z REPLACE THE PART_QUERY EDGE
+		PART_QUERY.edges=[{
+			"name":"Z",
+			"value":Z.field,
+			"domain":Z.getDomain()
+		}];
+	}else if (PART_QUERY===undefined){
+		yield (null);	//NOT ENOUGH DIMENSIONS TO CHART YET
+	}//endif
+
 
 	var query={
 		"from":X.index,
@@ -124,11 +138,22 @@ var __createChart = function(){
 			createChart,
 			[
 //				{"id":"measurey", "name":"Measure X", "type":"code", "default":"simpleMeasurements.start"},
-				{"id":"measureX", "type":PartitionFilter.newInstance({
+				{"id":"X", "type":PartitionFilter.newInstance({
+					"id":"X",
 					"name":"Measure X",
 					"dimension":Mozilla.Telemetry,
 					"onlyOne":true,
-					"expandAll":true,
+					"expandDepth":2,
+					"callback":function(dim){
+						D.println("Chose "+dim.name);
+					}//method
+				})},
+				{"id":"Z", "type":PartitionFilter.newInstance({
+					"id":"Z",
+					"name":"Measure Z",
+					"dimension":Mozilla.Telemetry,
+					"onlyOne":true,
+					"expandDepth":2,
 					"callback":function(dim){
 						D.println("Chose "+dim.name);
 					}//method

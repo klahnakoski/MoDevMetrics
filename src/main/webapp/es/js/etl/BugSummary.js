@@ -196,6 +196,7 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 	};
 
 	//ADD FACETS TO COUNT ALL MOZILLA PROGRAMS
+	var programFilter=new ProgramFilter();
 	(yield (CUBE.calc2List({
 		"from":BUG_SUMMARY.allPrograms,
 		"edges":["projectName"]
@@ -206,7 +207,7 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 				"value_field": "modified_ts",
 				"size": 100000
 			},
-			"facet_filter":new ProgramFilter().makeFilter("bugs", [v.projectName])
+			"facet_filter":programFilter.makeFilter("bugs", [v.projectName])
 		};
 
 	});

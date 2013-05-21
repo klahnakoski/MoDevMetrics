@@ -265,6 +265,7 @@ Duration.prototype.toString = function(){
 
 
 	if (output.charAt(0)=="+") output=output.rightBut(1);
+	if (output.charAt(0)=='1' && !aMath.isNumeric(output.charAt(1))) output=output.rightBut(1);
 	return output;
 };//method
 

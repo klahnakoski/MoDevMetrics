@@ -9,7 +9,7 @@ if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 Dimension.addEdges(true,  Mozilla, [
 	{"name":"CurrentRecords", esfilter:{"range":{"expires_on":{"gt" :Date.now().addDay(1).getMilli()}}}},
 
-	{"name":"BugStatus", "partitions":[
+	{"name":"BugStatus", "index":"bugs", "partitions":[
 		{"name":"Open", "partitions":[
 			{"name":"New", "esfilter":{"term":{"bug_status":"new"}}},
 			{"name":"Assigned", "esfilter":{"term":{"bug_status":"assigned"}}},
@@ -33,7 +33,8 @@ Dimension.addEdges(true,  Mozilla, [
 			{"name":"Verified", "esfilter":{"term":{"bug_status":"verified"}}},
 			{"name":"Closed", "esfilter":{"term":{"bug_status":"closed"}}}
 		]}
-	]},
+	]
+	},
 
 	{"name":"People", "partitions":[
 		{"name":"MoCo", "esfilter":{}},
@@ -52,6 +53,7 @@ Dimension.addEdges(true,  Mozilla, [
 
 		{"name": "B2G 1.0.1 (Shira)",
 			"description":"Project was merged with TEF",
+			"expire":Date.newInstance("23FEB2013"),
 			"partitions":[
 				{"name":"nominated", "esfilter":{"term":{"cf_blocking_b2g":"shira?"}}},
 				{"name":"tracking", "esfilter":{"term":{"cf_blocking_b2g":"shira+"}}, "edges":[
@@ -75,6 +77,16 @@ Dimension.addEdges(true,  Mozilla, [
 				]}}
 			]
 		},
+
+		{"name": "B2G 1.0.1 (TEF -NPOTB -POVB)",  "description": "TEF, excluding partner bugs and excluding build bugs",
+			"esfilter":	{"and":[
+				{"term":{"cf_blocking_b2g":"tef+"}},
+				{"not":{"terms":{"status_whiteboard.tokenized":["npotb","povb"]}}}
+			]}
+		},
+
+
+
 
 		{"name": "B2G 1.1.0 (Leo)", "partitions":[
 			{"name":"nominated", "esfilter":{"term":{"cf_blocking_b2g":"leo?"}}},

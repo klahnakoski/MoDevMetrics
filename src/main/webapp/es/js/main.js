@@ -17,4 +17,5 @@ importScript("Hierarchy.js");
 
 importScript("Stats.js");
 importScript("CUBE.js");
+importScript("ScrumBugs.js");
 

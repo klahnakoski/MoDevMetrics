@@ -6,7 +6,7 @@
 importScript("ETL.js");
 
 var REVIEWS={};
-REVIEWS.BATCH_SIZE=20000;
+REVIEWS.BATCH_SIZE=10000;
 REVIEWS.aliasName="reviews";
 REVIEWS.newIndexName=undefined;  //CURRENT INDEX FOR INSERT
 REVIEWS.oldIndexName=undefined;  //WHERE THE CURENT ALIAS POINTS
@@ -333,7 +333,7 @@ REVIEWS.get=function(minBug, maxBug){
 					"modified_ts<=doneReview.modified_ts",
 				"allowNulls":true,
 				"value":undefined,
-				"domain":{"type":"set", "name":"doneReview", "key":[], "partitions":doneReview}
+				"domain":{"type":"set", "name":"doneReview", "partitions":doneReview}
 			}
 		]
 //		"where":"doneReview.review_end_reason!='reassigned'"
@@ -352,11 +352,7 @@ REVIEWS.insert=function(reviews){
 		insert.push(JSON.stringify(r));
 	});
 	var a=D.action("Push review queues to ES", true);
-	yield (Rest.post({
-		"url":ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName+"/_bulk",
-		"data":insert.join("\n")+"\n",
-		dataType: "text"
-	}));
+	yield (ElasticSearch.bulkInsert(REVIEWS.newIndexName, REVIEWS.typeName, insert));
 	D.actionDone(a);
 };//method
 
@@ -395,10 +391,7 @@ REVIEWS.postMarkup=function(){
 	ESQuery.INDEXES.reviews.path="/"+REVIEWS.newIndexName+"/review";
 
 	//UPDATE THE AUTO-INDEXING TO EVERY SECOND
-	data=yield (Rest.put({
-		"url": ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/_settings",
-		"data":{"index":{"refresh_interval":"1s"}}
-	}));
+	yield (ElasticSearch.setRefreshInterval(REVIEWS.newIndexName, "1s"));
 
 
 	////////////////////////////////////////////////////////////////////////////

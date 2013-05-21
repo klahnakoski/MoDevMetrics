@@ -33,8 +33,10 @@ ESQuery.DEBUG=false;
 // THESE ARE THE AVAILABLE ES INDEXES/TYPES
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
-	"bugs":{"path":"/bugs"},
-	"tor_bugs":{"host":"http://localhost:9200", "path":"/bugs/bug_version"},
+	"bugs":{"path":"/bugs/bug_version"},
+	"tor_bugs":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/bugs/bug_version"},
+//	"tor_bugs":{"host":"http://localhost:9200", "path":"/bugs/bug_version"},
+	"bug_hierarchy":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/bug_hierarchy/bug_hierarchy"},
 	"bugs.changes":{},
 	"bugs.attachments":{},
 	"bugs.attachments.flags":{},
@@ -72,7 +74,7 @@ ESQuery.parseColumns=function(indexName, esProperties){
 			//DEFINE PROPERTIES WITH "." IN NAME
 			forAllKey(property.properties, function(n, p, i){
 				if (["string", "boolean", "integer", "date", "long"].contains(p.type)){
-					columns.push({"name":name+"."+n, "type":p.type});
+					columns.push({"name":name+"."+n, "type":p.type, "useSource":p.index=="no"});
 				}else if (p.type===undefined){
 					//DO NOTHING
 				}else{
@@ -89,20 +91,31 @@ ESQuery.parseColumns=function(indexName, esProperties){
 		if (property.type == "multi_field"){
 			property.type = property.fields[name].type;  //PULL DEFAULT TYPE
 			forAllKey(property.fields, function(n, p, i){
-				if (n==name) return;
-				columns.push({"name":name+"."+n, "type":p.type});
+				if (n==name){
+					//DEFAULT
+					columns.push({"name":name, "type":p.type, "useSource":p.index=="no"});
+				}else{
+					columns.push({"name":name+"."+n, "type":p.type, "useSource":p.index=="no"});
+				}//endif
 			});
 			return;
 		}//endif
 
 
 		if (["string", "boolean", "integer", "date", "long"].contains(property.type)){
-			columns.push({"name":name, "type":property.type});
-			if (property.index_name && name!=property.index_name) columns.push({"name":property.index_name, "type":property.type});
+			columns.push({"name":name, "type":property.type, "useSource":property.index=="no"});
+			if (property.index_name && name!=property.index_name) columns.push({"name":property.index_name, "type":property.type, "useSource":property.index=="no"});
 		}else{
 			D.error("unknown type "+property.type);
 		}//endif
 	});
+
+	//SPECIAL CASE FOR PROPERTIES THAT WILL CAUSE OutOfMemory EXCEPTIONS
+	columns.forall(function(c){
+		if (indexName=="bugs" && (c.name=="dependson" || c.name=="blocked")) c.useSource=true;
+	});
+
+
 	return columns;
 };//method
 
@@ -148,7 +161,7 @@ ESQuery.run=function(query){
 	yield (ESQuery.loadColumns(query));
 	var esq=new ESQuery(query);
 
-	 if (Object.keys(esq.esQuery.facets).length==0)
+	 if (Object.keys(esq.esQuery.facets).length==0 && esq.esQuery.size==0)
 			D.error("ESQuery is sending no facets");
 
 
@@ -175,7 +188,7 @@ ESQuery.prototype.run = function(){
 	var postResult;
 	if (ESQuery.DEBUG) D.println(CNV.Object2JSON(this.esQuery));
 
-	if (Object.keys(this.esQuery.facets).length==0)
+	if (Object.keys(this.esQuery.facets).length==0 && this.esQuery.size==0)
 		D.error("ESQuery is sending no facets");
 
 	try{
@@ -213,7 +226,9 @@ ESQuery.prototype.run = function(){
 	}//try
 
 //	var a=D.action("Process ES Terms", true);
-	if (this.esMode == "terms"){
+	if (this.esMode == "fields"){
+		this.fieldsResults(postResult);
+	}else if (this.esMode == "terms"){
 		this.termsResults(postResult);
 	} else if (this.esMode == "setop"){
 		this.mvelResults(postResult);
@@ -277,7 +292,7 @@ ESQuery.prototype.compile = function(){
 
 
 	this.termsEdges = this.query.edges.copy();
-	this.select = CUBE.select2Array(this.query.select);
+	this.select = Array.newInstance(this.query.select);
 
 
 	if (this.termsEdges.length==0){
@@ -748,8 +763,8 @@ ESQuery.prototype.compileEdges2Term=function(constants){
 					self.query.from,
 					e.domain
 				),
-				"fromTerm":function(i){
-					return [e.domain.getPartByKey(term)];
+				"fromTerm":function(term){
+					return e.domain.getPartByKey(term);
 				}
 			};
 		}else{
@@ -955,6 +970,10 @@ ESQuery.compileNullTest=function(edge){
 };
 
 
+
+
+
+
 ESQuery.prototype.termsResults=function(data){
 	//THE FACET EDGES MUST BE RE-INTERLACED WITH THE PACKED EDGES
 
@@ -1157,11 +1176,23 @@ ESQuery.prototype.terms_statsResults = function(data){
 
 
 ESQuery.prototype.compileSetOp=function(){
+	self=this;
 	this.esQuery=this.buildESQuery();
-	var select=CUBE.select2Array(this.query.select);
+	var select=Array.newInstance(this.query.select);
+
+	//WE CAN OPTIMIZE WHEN ALL THE FIELDS ARE SIMPLE ENOUGH
+	this.esMode="fields";
+	select.forall(function(s, i){
+		if (!MVEL.isKeyword(s.value) || s.value.indexOf(".")>=0){
+			self.esMode="setop";  //RETURN TO setop
+		}//endif
+	});
 
 
-	if (select.length==1 && MVEL.isKeyword(select[0].value)){
+	if (this.esMode=="fields"){
+		this.esQuery.size=200000;
+		this.esQuery.fields=select.map(function(s){return s.value;});
+	}else if (select.length==1 && MVEL.isKeyword(select[0].value)){
 		this.esQuery.facets.mvel={
 			"terms":{
 				"field": select[0].value,
@@ -1179,8 +1210,28 @@ ESQuery.prototype.compileSetOp=function(){
 };
 
 
+
+ESQuery.prototype.fieldsResults=function(data){
+	var o = [];
+	var T = data.hits.hits;
+
+	if (this.query.select instanceof Array){
+		for(var i = T.length; i--;) o.push(T[i].fields);
+	}else{
+		//NOT ARRAY MEANS OUTPUT IS LIST OF VALUES, NOT OBJECTS
+		var n=this.query.select.name;
+		for(var i = T.length; i--;) o.push(T[i].fields[n]);
+	}//endif
+
+	this.query.list=o;
+};//method
+
+
+
+
+
 ESQuery.prototype.mvelResults=function(data){
-	var select=CUBE.select2Array(this.query.select);
+	var select=Array.newInstance(this.query.select);
 	if (select.length==1 && MVEL.isKeyword(select[0].value)){
 		//SPECIAL CASE FOR SINGLE TERM
 		var T = data.facets.mvel.terms;

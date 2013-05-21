@@ -1,0 +1,20 @@
+{
+	"from":"bugs.attachments",
+	"select":[
+		"bug_id",
+		"status",
+		"bugs.attachments.attach_id",
+		{
+			"name":"is_obsolete",
+			"value":"bugs.attachments[\"attachments.isobsolete\"]"
+		},
+		{
+			"name":"is_patch",
+			"value":"bugs.attachments[\"attachments.ispatch\"]"
+		},
+		"bugs.attachments.created_ts",
+		"bugs.attachments.modified_ts"
+	],
+	"where":{"and":[{"term":{"bugs.attachments[\"attachments.ispatch\"]":"1"}}]},
+	"esfilter":{"range":{"modified_ts":{"gte":1368100000000}}}
+}

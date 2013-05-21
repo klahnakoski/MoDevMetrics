@@ -3,6 +3,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
+importScript("aLibrary.js");
+
+
 var Hierarchy={};
 
 
@@ -46,36 +49,74 @@ Hierarchy.fromList=function(args){
 
 //EXPECTING CERTAIN PARAMETERS, WILL UPDATE ALL BUGS IN from WITH A descendants_field
 Hierarchy.addDescendants=function(args){
-	ASSERT.hasAttributes(args, ["from","id_field","children_field","descendants_field"]);
+	ASSERT.hasAttributes(args, ["from","id_field","fk_field","descendants_field"]);
 
 	var from=args.from;
-	var id_field=args.id_field;
-	var children_field=args.children_field;
+	var id=args.id_field;
+	var fk=args.fk_field;
 	var descendants_field=args.descendants_field;
+	var DEBUG=nvl(args.DEBUG, false);
+	var DEBUG_MIN=1000000;
 
-	//CAN NOT HANDLE CYCLES!!
-	var getDescendants=function(bug){
-		if (bug[descendants_field]!==undefined) return bug[descendants_field];
-		if (bug[children_field]===undefined){
-			bug[children_field]=[];
-		}//endif
-
-		var allD={};//OBJCET TO MAINTAIN JUST ONE RECORD PER BUG
-		bug[children_field].forall(function(c, i){
-			getDescendants(c).forall(function(d, i){
-				allD[d[id_field]]=d;
-			});
-			allD[c[id_field]]=c;
-		});
-		bug[descendants_field]=mapAllKey(allD, function(k, v){
-			return v;
-		});
-		return bug[descendants_field];
-	};//method
-
-	from.forall(function(v, i){
-		getDescendants(c);
+	//REVERSE POINTERS
+	var allParents=new aRelation();
+	var allDescendants=new aRelation();
+	from.forall(function(p){
+		var children=p[fk];
+		if (children) for(var i=children.length;i--;){
+			var c=children[i];
+			if (c=="") continue;
+			allParents.add(c, p[id]);
+			allDescendants.add(p[id], c);
+		}//for
 	});
+
+	//FIND DESCENDANTS
+	var a=D.action("Find Descendants", true);
+	yield (aThread.sleep(100));
+	var workQueue=new aQueue(Object.keys(allParents.map));
+
+	while(workQueue.length()>0){      //KEEP WORKING WHILE THERE ARE CHANGES
+		yield (aThread.yield());
+		if (DEBUG){
+			if (DEBUG_MIN>workQueue.length() && workQueue.length()%Math.pow(10, Math.round(Math.log(workQueue.length())/Math.log(10))-1)==0){
+				D.actionDone(a);
+				a=D.action("Work queue remaining: "+workQueue.length(), true);
+				DEBUG_MIN=workQueue.length();
+			}//endif
+		}//endif
+		var node=workQueue.pop();
+
+		var desc=allDescendants.get(node);
+
+		var parents=allParents.get(node);
+		for(var i=parents.length;i--;){
+			var parent=parents[i];
+
+			var original=allDescendants.getMap(parent);
+
+
+			if (original===undefined){
+				for(var d=desc.length;d--;){
+					allDescendants.add(parent, desc[d]);
+				}//for
+				workQueue.add(parent);
+			}else{
+				for(var d=desc.length;d--;){
+					if (original[desc[d]]) continue;
+					allDescendants.add(parent, desc[d]);
+					workQueue.add(parent);
+				}//for
+			}//endif
+		}//for
+	}//while
+
+	from.forall(function(p){
+		p[descendants_field]=allDescendants.get(p[id]);
+	});
+	
+	D.actionDone(a);
+	yield (null);
 };
 
 

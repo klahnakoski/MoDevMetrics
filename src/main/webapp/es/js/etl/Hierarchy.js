@@ -6,253 +6,370 @@
 importScript("ETL.js");
 
 
-var OneToMany=function(){
-	this.map={};
-};
+var HIERARCHY = {};
 
-OneToMany.prototype.add=function(from, to){
-	if (!this.map[from]) this.map[from]={};
-	this.map[from][to]=1;
-};
-
-//RETURN AN ARRAY OF OBJECTS THAT from MAPS TO
-OneToMany.prototype.get=function(from){
-	var o=this.map[from];
-	if (!(o instanceof Array)){
-		o=Object.keys(o);
-		this.map[from]=o;
-	}//endif
-	return o;
-};
-
-OneToMany.prototype.forall=function(func){
-	var keys=Object.keys(this.map);
-	for(var i=0;i<keys.length;i++){
-		func(keys[i], this.get(keys[i]), i);
-	}//for
-};
+(function(){
+	var DEBUG = false;
+	var DEBUG_MIN = 1000000;
 
 
+	
+
+	HIERARCHY.BATCH_SIZE = 10000;
+	HIERARCHY.aliasName = "bug_hierarchy";
+	HIERARCHY.newIndexName = undefined;  //CURRENT INDEX FOR INSERT
+	HIERARCHY.oldIndexName = undefined;  //WHERE THE CURENT ALIAS POINTS
+	HIERARCHY.typeName = "bug_hierarchy";
 
 
+	HIERARCHY.allPrograms = CNV.Table2List(MozillaPrograms);
 
 
-
-
-
-var HIERARCHY={};
-HIERARCHY_BATCH_SIZE=20000;
-HIERARCHY.aliasName="bug_hierarchy";
-HIERARCHY.newIndexName=undefined;  //CURRENT INDEX FOR INSERT
-HIERARCHY.oldIndexName=undefined;  //WHERE THE CURENT ALIAS POINTS
-HIERARCHY.typeName="bug_hierarchy";
-
-
-HIERARCHY.allPrograms = CNV.Table2List(MozillaPrograms);
-
-
-HIERARCHY.getLastUpdated=function(){
-	var data=yield (ESQuery.run({
-		"from":HIERARCHY.aliasName,
-		"select":[
-			{"name":"last_request", "value":"modified_time", "aggregate":"maximum"}
-		]
-	}));
-	yield (new Date(data.cube.last_request));
-};
-
-
-HIERARCHY.makeSchema=function(){
-	//MAKE SCHEMA
-	HIERARCHY.newIndexName=HIERARCHY.aliasName+Date.now().format("yyMMdd_HHmmss");
-
-	var setup={
-		"settings":{
-			"index.number_of_shards": 1,
-			"index.number_of_replicas": 1,
-			"index.routing.allocation.total_shards_per_node": 1
-		},
-		"mappings":
-			Map.newInstance(HIERARCHY.typeName, {
-				"_source":{"enabled": true},
-				"_all" : {"enabled" : false},
-				"properties":{
-					"bug_id":{"type":"integer", "store":"yes"},
-					"children":{"type":"integer", "store":"yes", "index":"not_analyzed"},
-					"parents":{"type":"integer", "store":"yes", "index":"not_analyzed"},
-					"descendants":{"type":"integer", "store":"yes", "index":"not_analyzed"}
-				}
-			})
+	HIERARCHY.getLastUpdated = function(){
+		var data = yield(ESQuery.run({
+			"from":HIERARCHY.aliasName,
+			"select":[
+				{"name":"last_request", "value":"modified_ts", "aggregate":"maximum"}
+			]
+		}));
+		yield (new Date(data.cube.last_request).addDay(-1));
 	};
 
-	var data=yield (Rest.post({
-		"url":ElasticSearch.pushURL+"/"+HIERARCHY.newIndexName,
-		"data":setup
-	}));
-	D.println(data);
+
+	HIERARCHY.makeSchema = function(){
+		//MAKE SCHEMA
+		HIERARCHY.newIndexName = HIERARCHY.aliasName + Date.now().format("yyMMdd_HHmmss");
+
+		var setup = {
+			"settings":{
+				"index.number_of_shards": 1,
+				"index.number_of_replicas": 1,
+				"index.routing.allocation.total_shards_per_node": 1
+			},
+			"mappings":
+				Map.newInstance(HIERARCHY.typeName, {
+					"_source":{"enabled": true},
+					"_all" : {"enabled" : false},
+					"_id" : {"path" : "bug_id"},
+					"properties":{
+						"bug_id":{"type":"integer", "store":"yes"},
+						"children.count":{"type":"integer", "store":"yes", "index":"not_analyzed"},
+						"children":{"type":"integer", "store":"yes", "index":"no"},
+						"parents.count":{"type":"integer", "store":"yes", "index":"not_analyzed"},
+						"parents":{"type":"integer", "store":"yes", "index":"no"},
+						"descendants.count":{"type":"integer", "store":"yes", "index":"not_analyzed"},
+						"descendants":{"type":"integer", "store":"yes", "index":"no"}
+					}
+				})
+		};
+
+		var data = yield(Rest.post({
+			"url":ElasticSearch.pushURL + "/" + HIERARCHY.newIndexName,
+			"data":setup
+		}));
+		D.println(data);
+	};
+
+	var DATA;   //MUST KEEP THE ACCUMULATED STATE OVER MANY CALLS
+
+	HIERARCHY.start=function(){
+		DATA={
+			"allParents":new aRelation(),
+			"allDescendants":new aRelation(),
+			"allChildren":new aRelation()
+		};
+		HIERARCHY.DATA=DATA;
+
+		yield (null);
+	};
 
 
-//		var lastAlias;  		//THE VERSION CURRENTLY IN USE
+	HIERARCHY.resume=function(){
+		DATA=yield (getCurrentTree());
+		yield (null);
+	};
 
-	//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
-	data=yield (Rest.get({url: ElasticSearch.pushURL+"/_aliases"}));
-	D.println(data);
 
-	var keys=Object.keys(data);
-	for(var k=keys.length;k--;){
-		var name=keys[k];
-		if (!name.startsWith(HIERARCHY.aliasName)) continue;
-		if (name==HIERARCHY.newIndexName) continue;
 
-		if (HIERARCHY.newIndexName===undefined || name>HIERARCHY.newIndexName){
-			HIERARCHY.newIndexName=name;
+	HIERARCHY.get = function(minBug, maxBug){
+		var esfilter;
+		if (minBug instanceof Array && maxBug==null){
+			esfilter={"terms":{"bug_id":minBug}};
+		}else{
+			esfilter={"range":{"bug_id":{"gte":minBug, "lt":maxBug}}};
 		}//endif
 
-		if (Object.keys(data[name].aliases).length>0){
-			HIERARCHY.oldIndexName=name;
-			continue;
-		}//endif
-
-		//OLD, REMOVE IT
-		yield (Rest["delete"]({url: ElasticSearch.pushURL+"/"+name}));
-	}//for
-
-};
 
 
+		if (DATA===undefined) D.error("Expecting start() or resume() to be called first");
+
+		var newChildren=yield (getAllChildren(esfilter));
+
+		yield (toFixPoint(newChildren, DATA));
+
+		yield (DATA);
+	};//method
 
 
+	HIERARCHY.incremental=function(minTime, maxTime){
+		if (DATA===undefined) D.error("Expecting resume() to be called first");
 
-HIERARCHY.get=function(minBug, maxBug){
+		var newChildren = yield(getAllChildren({"range":{"modified_ts":{"gte":minTime.getMilli(), "lt":maxTime.getMilli()}}}));
 
+		yield (toFixPoint(newChildren, DATA));
 
-	//DETERMINE IF WE ARE LOOKING AT A RANGE, OR A SPECIFIC SET, OF BUGS
-	var esfilter;
-	if (maxBug===undefined || maxBug==null){
-		esfilter={"terms":{"bug_id":minBug}};
-	}else{
-		esfilter={"range":{"bug_id":{"gte":minBug, "lt":maxBug}}};
-	}//endif
+		yield (DATA);
+	};
 
 
-	var a=D.action("Get largest bug_id", true);
-	var maxBugID=yield (ESQuery.run({
-		"from":"tor_bugs",
-		"select":{"value":"bug_id", "aggregate":"maximum"}
-	}));
-	maxBugID=maxBugID.cube.bug_id;
-	D.actionDone(a);
+	HIERARCHY.insertBatches = function(minTime, maxTime){
+		//GET ALL CHILDREN
+//	var allChildren=yield(HIERARCHY.get(831997,831998));
 
-	var connections=new OneToMany();  //SET TO STORE <parent> "-" <child> PAIRS
 
-	var BLOCK_SIZE=10000;
-	for(var i= 0;i<maxBugID+1;i+=BLOCK_SIZE){
-		esfilter={"and":[
-			{"range":{"bug_id":{"gte":i, "lt":i+BLOCK_SIZE}}},
-//			{"not":{"term":{"bug_id":41273}}}
-			{"not":{"term":{"bug_id":28424}}}  // WILL CAUSE OUT OF MEMORY EXCEPTION
-		]};
+		var allParents = new aRelation();
+		var allDescendants = new aRelation();
+		var allChildren = yield(getAllChildren(minTime, maxTime));
 
-		a=D.action("Get Current Bug Info between "+i+" and "+(i+BLOCK_SIZE), true);
-		var currentData=yield (ESQuery.run({
-			"from":"tor_bugs",
-			"select":["bug_id","blocked"],
+		//TEMP STORAGE
+		yield (HIERARCHY.makeSchema());
+		yield (ETL.removeOldIndexes(HIERARCHY));
+		yield (insert(allParents, allChildren, allDescendants));
+
+		yield (toFixPoint(allParents, allChildren, allDescendants));
+
+		yield (HIERARCHY.insert(allParents, allChildren, allDescendants));
+		yield (ETL.updateAlias(HIERARCHY));
+
+	};//method
+
+
+	
+	function getAllChildren(esfilter){
+		var a = D.action("Get largest bug_id", true);
+		var maxBugID = yield(ESQuery.run({
+			"from":"bugs",
+			"select":{"value":"bug_id", "aggregate":"maximum"}
+		}));
+		maxBugID = maxBugID.cube.bug_id;
+		D.actionDone(a);
+
+		var allChildren = new aRelation();  //SET TO STORE <parent> "-" <child> PAIRS
+
+		a = D.action("Get Current Bug Info "+CNV.Object2JSON(esfilter), true);
+		var currentData = yield(ESQuery.run({
+			"from":"bugs",
+			"select":[
+				"bug_id",
+				"dependson"
+			],
 			"esfilter":{"and":[
-				{"exists":{"field":"blocked"}},
-				esfilter,
-				{"or":[
-					{"term":{"changes.field_name":"blocked"}},
-					{"term":{"bug_version_num":1}}
-				]}
+				{"exists":{"field":"dependson"}},
+//				{"range":{"dependson.count":{"gt":0}}},
+				esfilter
 			]}
 		}));
 
-		D.println("Num hierarchy records from "+i+" to "+(i+BLOCK_SIZE)+": "+currentData.list.length);
+		if (DEBUG) D.println("Num hierarchy records using "+CNV.Object2JSON(esfilter)+" ("+ currentData.list.length+" records)");
 
 		//UPDATE THE MAP OF ALL EDGES
-		for (var k=currentData.list.length;k--;){
-			var c=currentData.list[k];
-			var blocked=c.blocked;
-			if (blocked.length){
-				for (var j=blocked.length;j--;) connections.add(c, blocked[j]);
-			}else{
-				connections.add(c, blocked);
-			}//endif
+		for(var k = currentData.list.length; k--;){
+			var c = currentData.list[k];
+//if ([852643, 862970].contains(c.bug_id-0)){
+//	D.println();
+//}
+			allChildren.addArray(c.bug_id, Array.newInstance(c.dependson));
+
+
 		}//for
 
 		D.actionDone(a);
-	}//for
 
-	D.println("Number of edges: "+Object.keys(connections).length);
+		if (DEBUG) D.println("Number of edges: " + Object.keys(allChildren).length);
 
-	yield (connections);
-};//method
-
+		yield (allChildren);
+	}//method
 
 
-HIERARCHY.insertBatches=function(){
-	//GET ALL CHILDREN
-	var children=yield(HIERARCHY.get(0,1000000000));
+//ADDS TO allDescendants UNTIL NO MORE CAN BE ADDED
+	function toFixPoint(newChildren, // **ADDITIONAL** CHILDREN TO BE ADDED TO allParents
+						data
+		){
 
-	//REVERSE POINTERS
-	var allParents=new OneToMany();
-	var descendants=new OneToMany();
-	children.forall(function(p, children){
-		descendants.add(p,p);
-		for(var i=children.length;i--;){
-			allParents.add(children[i], p);
-			descendants.add(p, children[i]);
-		}//for
-	});
+		var now=Date.now();
+		
+		var allParents=data.allParents;
+		var allChildren=data.allChildren;
+		var allDescendants=data.allDescendants;
+		var allTimes={};  data.allTimes=allTimes;
 
-	//FIND DESCENDANTS
-	var workQueue=new aQueue(Object.keys(children.map));
+		//ADD TO THE KNOWN PARENTS AND DESCENDANTS
+		newChildren.forall(function(p, children){
+			for(var i = children.length; i--;){
+				allParents.add(children[i], p);
+				allChildren.add(p, children[i]);
+				if (allDescendants.testAndAdd(p, children[i])){
+					allTimes[p]=now;
+				}//endif
+			}//for
+		});
 
 
-	var share=aThread.share(500,100);
-	while(workQueue.length>0){      //KEEP WORKING WHILE THERE ARE CHANGES
-		if (share.yield()) yield (aThread.Yield);
-		var node=workQueue.pop();
-		var desc=descendants.get(node);
 
-		var parents=allParents.get(node);
-		for(var i=parents.length;i--;){
-			var parent=parents[i];
+		//FIND DESCENDANTS
+		//PLAN IS TO LOOK AT PARENT'S DESCENDANTS, IF SELF HAS ANY NEW DESCENDANTS
+		//TO ADD, THEN ADD THEM AND ADD PARENT TO THE workQueue
+		var a = D.action("Find Descendants", true);
+		yield (aThread.sleep(100));
+		var workQueue = new aQueue(Object.keys(allParents.map));
 
-			var original=descendants.get(parent);
-			var more=original.union(desc);
+		while(!workQueue.isEmpty()){      //KEEP WORKING WHILE THERE ARE CHANGES
+			yield (aThread.yield());
+			if (DEBUG){
+				if (DEBUG_MIN > workQueue.length() && workQueue.length() % Math.pow(10, Math.round(Math.log(workQueue.length()) / Math.log(10)) - 1) == 0){
 
-			if (more.subtract(original).length>0){
-				descendants.put(parent, more);
-				workQueue.add(parent);
+					D.actionDone(a);
+					a = D.action("Work queue remaining: " + workQueue.length(), true);
+					DEBUG_MIN = workQueue.length();
+				}//endif
+			}//endif
+
+			var node = workQueue.pop();
+			var desc = allDescendants.get(node);
+			if (desc.length==0)
+				continue;
+
+			
+			var parents = allParents.get(node);
+			for(var i = parents.length; i--;){
+				var parent = parents[i];
+//if ([852643, 862970].contains(node-0)){
+//	D.println();
+//}
+
+				var added = false;
+				var original = allDescendants.getMap(parent);
+
+				if (original === undefined){
+					for(var d = desc.length; d--;){
+						allDescendants.add(parent, desc[d]);
+						added = true;
+					}//for
+				} else{
+					for(var d = desc.length; d--;){
+						if (original[desc[d]]) continue;
+						allDescendants.add(parent, desc[d]);
+						added = true;
+					}//for
+				}//endif
+
+				if (added){
+					workQueue.add(parent);
+					allTimes[parent]=now;
+				}//endif
+			}//for
+
+		}//while
+		D.actionDone(a);
+		yield (null);
+	}//method
+
+
+	if (DEBUG){
+
+		aThread.run(function(){
+			yield (HIERARCHY.start());
+			yield (toFixPoint(new aRelation().addArray("12", [45, 46, 47]).addArray(45, [1,2,3]), DATA));
+			if (DATA.allDescendants.get(12).length!=6) D.error();
+		});
+	}
+
+
+
+	function getCurrentTree(){
+		//TURN ON INDEXING TO GET DATA PULLED
+		yield (ElasticSearch.setRefreshInterval(HIERARCHY.newIndexName, "1s"));
+
+		//GET ALL RECORDS FROM
+		var a=D.action("Get current hierarchy", true);
+		var all = yield(ESQuery.run({
+			"url":ElasticSearch.pushURL+"/"+HIERARCHY.newIndexName+"/"+HIERARCHY.typeName,
+			"from":"bug_hierarchy",
+			"select":[
+				"bug_id",
+				"children",
+				"parents",
+				"descendants"
+			]
+		}));
+
+		//LOAD DATA STRUCTURES
+		var allChildren = new aRelation();
+		var allParents = new aRelation();
+		var allDescendants = new aRelation();
+
+		all.list.forall(function(bug){
+			allChildren.addArray(bug.bug_id, Array.newInstance(bug.children));
+			allParents.addArray(bug.bug_id, Array.newInstance(bug.parents));
+			allDescendants.addArray(bug.bug_id, Array.newInstance(bug.descendants));
+		});
+		D.actionDone(a);
+
+		yield ({"allParents":allParents, "allChildren":allChildren, "allDescendants":allDescendants});
+	}//method
+
+
+//EXPECT A LIST OF LINES TTO ADD
+
+
+	HIERARCHY.insert=function(data){
+		var BLOCK_SIZE = 10000;
+
+		var now=Date.now();
+		var minBug=null;
+		var maxBug=null;
+		
+		var insert = [];
+		var bug_ids = Object.keys(data.allDescendants.map);
+		for(var i = bug_ids.length; i--;){
+			var bug_id = bug_ids[i];
+			var desc = data.allDescendants.get(bug_id);
+			var parents = data.allParents.get(bug_id);
+			var children = data.allChildren.get(bug_id);
+			var time=data.allTimes[bug_id];
+
+
+			if (time!==undefined){
+				minBug=aMath.min(minBug, bug_id-0);
+				maxBug=aMath.max(maxBug, bug_id-0);
+
+				insert.push(JSON.stringify({ "create" : { "_id" : bug_id } }));
+				insert.push(JSON.stringify({
+					"bug_id":bug_id,
+					"modified_ts":time.getMilli(),
+					"descendants":desc,
+					"descendants.count":desc.length,
+					"parents":parents,
+					"parents.count":parents.length,
+					"children":children,
+					"children.count":children.length
+				}));
+			}//endif
+
+			if (insert.length >= BLOCK_SIZE){
+				var a = D.action("Push " + insert.length + "(min="+minBug+", max="+maxBug+") descendants to ES", true);
+				yield (ElasticSearch.bulkInsert(HIERARCHY.newIndexName, HIERARCHY.typeName, insert));
+				D.actionDone(a);
+				insert = [];
 			}//endif
 		}//for
-	}//while
 
-	D.println(CNV.Object2JSON(descendants));
-
-
-
-};//method
-
-
+		if (insert.length>0){
+			var a = D.action("Push last " + insert.length + "(min="+minBug+", max="+maxBug+") descendants to ES", true);
+			yield (ElasticSearch.bulkInsert(HIERARCHY.newIndexName, HIERARCHY.typeName, insert));
+			D.actionDone(a);
+		}//endif
+	}//method
 
 
-
-HIERARCHY.insert=function(hierarchy){
-	var uid=Util.UID();
-	var insert=[];
-	hierarchy.forall(function(r, i){
-		insert.push(JSON.stringify({ "create" : { "_id" : r.bug_id } }));
-		insert.push(JSON.stringify(r));
-	});
-	var a=D.action("Push bug summary to ES", true);
-	yield (Rest.post({
-		"url":ElasticSearch.pushURL+"/"+HIERARCHY.newIndexName+"/"+HIERARCHY.typeName+"/_bulk",
-		"data":insert.join("\n")+"\n",
-		dataType: "text"
-	}));
-	D.actionDone(a);
-};//method
-
-
+})();

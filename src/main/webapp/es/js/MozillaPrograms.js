@@ -5,12 +5,18 @@
 
 var MozillaPrograms = {
 	"columns":
-		["projectName", "attributeName", "attributeValue"],
+		["projectName", "attributeName", "attributeValue", "esfilter"],
 	"rows":[
-		["B2G 1.0.0 (TEF)", "cf_blocking_b2g", "tef+"],
 		["B2G 1.0.1 (TEF)", "cf_blocking_b2g", "tef+"],
+
+		["B2G 1.0.1 (TEF -NPOTB -POVB)",  null, null, {"and":[
+				{"term":{"cf_blocking_b2g":"tef+"}},
+				{"not":{"terms":{"status_whiteboard.tokenized":["npotb","povb"]}}}
+			]}
+		],
+
+
 		["TEF Triage (tef?)", "cf_blocking_b2g", "tef?"],
-		["B2G 1.0.1 (Shira)", "cf_blocking_b2g", "shira+"],
 		["B2G 1.1.0 (Leo)", "cf_blocking_b2g", "leo+"],
 		["Build Duty", "status_whiteboard.tokenized", "buildduty"],
 		["Boot2Gecko (B2G)", "cf_blocking_basecamp", "+"],

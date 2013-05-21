@@ -117,11 +117,7 @@ Telemetry.insert=function(people){
 	});
 
 	var a=D.action("Push people to ES", true);
-	var results=yield (Rest.post({
-		"url":ElasticSearch.pushURL + "/" + Telemetry.newIndexName + "/" + Telemetry.typeName + "/_bulk",
-		"data":insert.join("\n")+"\n",
-		"dataType":"text"
-	}));
+	var results=yield (ElasticSearch.bulkInsert(Telemetry.newIndexName, Telemetry.typeName, insert));
 	D.println(CNV.Object2JSON(CNV.JSON2Object(results)));
 
 	D.actionDone(a);

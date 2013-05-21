@@ -40,7 +40,7 @@ OrgChart.get=function(minBug, maxBug){
 	var people;
 //	var temp=window[OrgChart.JSONP_CALLBACK];
 	{
-		window[OrgChart.JSONP_CALLBACK]=function(json){
+		window[JSONP_CALLBACK]=function(json){
 			OrgChart.people=json;
 		};//method
 
@@ -109,28 +109,7 @@ OrgChart.makeSchema=function(){
 
 
 	//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
-	data=yield (Rest.get({url: ElasticSearch.pushURL+"/_aliases"}));
-	D.println(data);
-
-	var keys=Object.keys(data);
-	for(var k=keys.length;k--;){
-		var name=keys[k];
-		if (!name.startsWith(OrgChart.aliasName)) continue;
-		if (name==OrgChart.newIndexName) continue;
-
-		if (OrgChart.newIndexName===undefined || name>OrgChart.newIndexName){
-			OrgChart.newIndexName=name;
-		}//endif
-
-		if (Object.keys(data[name].aliases).length>0){
-			OrgChart.oldIndexName=name;
-			continue;
-		}//endif
-
-		//OLD, REMOVE IT
-		yield (Rest["delete"]({url: ElasticSearch.pushURL+"/"+name}));
-	}//for
-
+	yield (ETL.removeOldIndexes(OrgChart));
 };
 
 
@@ -143,11 +122,7 @@ OrgChart.insert=function(people){
 	});
 
 	var a=D.action("Push people to ES", true);
-	var results=yield (Rest.post({
-		"url":ElasticSearch.pushURL + "/" + OrgChart.newIndexName + "/" + OrgChart.typeName + "/_bulk",
-		"data":insert.join("\n")+"\n",
-		"dataType":"text"
-	}));
+	var results=yield (ElasticSearch.bulkInsert( OrgChart.newIndexName, OrgChart.typeName, insert));
 	if (DEBUG) D.println(CNV.Object2JSON(CNV.JSON2Object(results)));
 
 	D.actionDone(a);
