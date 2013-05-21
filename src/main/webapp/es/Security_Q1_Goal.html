@@ -286,6 +286,7 @@ var __createChart = function(){
 			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
 			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today().ceilingWeek()},
 			{"id":"teamFilter", "type":PartitionFilter.newInstance({
+				"id":"Teams",
 				"name":"All Teams",
 				"dimension":Mozilla.Security.Teams,
 				"onlyOne":true,

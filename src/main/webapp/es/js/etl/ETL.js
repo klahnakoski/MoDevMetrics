@@ -78,22 +78,33 @@ ETL.updateAlias=function(etl){
 	//UPDATE THE AUTO-INDEXING TO EVERY SECOND
 	yield (ElasticSearch.setRefreshInterval(etl.newIndexName, "1s"));
 
-	var a=D.action("Change alias pointer");
-	//MAKE ALIAS FROM reviews
-	var param={
+	var a=D.action("Change alias pointers");
+
+	//MAKE ALIAS
+	yield (Rest.post({
 		"url":ElasticSearch.pushURL+"/_aliases",
 		"data":{
 			"actions":[
 				{"add":{"index":etl.newIndexName, "alias":etl.aliasName}}
 			]
 		}
-	};
+	}));
 
 	if (etl.oldIndexName!==undefined && etl.oldIndexName!=etl.newIndexName){
-		param.data.actions.push({"remove":{"index":etl.oldIndexName, "alias":etl.aliasName}});
+		try{
+			yield (Rest.post({
+				"url":ElasticSearch.pushURL+"/_aliases",
+				"data":{
+					"actions":[
+						{"remove":{"index":etl.oldIndexName, "alias":etl.aliasName}}
+					]
+				}
+			}));
+		}catch(e){
+			D.warning("Could not remove alias from "+etl.oldIndexName, e);
+		}//try
 	}//endif
 
-	yield (Rest.post(param));
 };
 
 

@@ -49,7 +49,8 @@ D.error = function(description, cause){
 };//method
 
 D.warning = function(description, cause){
-	console.warn(description);
+	var e=new Exception(description, cause);
+	console.warn(e.toString());
 };//method
 
 D.alert=function(message, ok_callback, cancel_callback){

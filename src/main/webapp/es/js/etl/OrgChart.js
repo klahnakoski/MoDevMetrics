@@ -28,6 +28,12 @@ OrgChart.push=function(){
 
 
 
+OrgChart.start=function(){
+	OrgChart.oldIndexName=undefined;
+	yield (null);
+};
+	
+
 OrgChart.get=function(minBug, maxBug){
 
 	//AFTER MUCH PAIN, I DECIDED TO TRY SUBMITTING A BUG TO THE WEB PEOPLE TO
