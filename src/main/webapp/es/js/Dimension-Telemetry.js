@@ -31,13 +31,13 @@ Dimension.addEdges(false, Mozilla, [
 	{"name":"Telemetry", "index":"raw_telemetry", "edges":[
 		{"name":"Date",
 			"field":"date",
-			"type":"set",
-			"path":function(v){return [{
-				"name":Date.newInstance(v).format("dd MMM yyyy"),
-				"esfilter":{"term":{"date":v}}
-			}]},
-//			"type":"time",
-//			"min":Date.newInstance("10APR2013"), "max":Date.newInstance("16APR2013"), "interval":Duration.DAY
+//			"type":"set",
+//			"path":function(v){return [{
+//				"name":Date.newInstance(v).format("dd MMM yyyy"),
+//				"esfilter":{"term":{"date":v}}
+//			}]},
+			"type":"time",
+			"min":Date.newInstance("10APR2013"), "max":Date.newInstance("16APR2013"), "interval":Duration.DAY
 		},
 
 		{"name":"Measures", "edges":[
@@ -68,7 +68,9 @@ Dimension.addEdges(false, Mozilla, [
 		]},
 
 		{"name":"User Defined", "edges":[
-			{"name":"Ordered Startup", "partitions":[
+			{"name":"Ordered Startup",
+				"description":"Startup events can happen out of the usual order.  This edge partitions all samples into the ordered (main->creatTopLevelWindow->firstPaint->firstLoadURI->sessionRestored) and the unordered (all others).",
+				"partitions":[
 				{"name":"Orderly", "esfilter":{"and":[
 					{"term":{"simpleMeasurements.startupInterrupted":0}},
 					{"term":{"simpleMeasurements.debuggerAttached":0}},
@@ -89,7 +91,9 @@ Dimension.addEdges(false, Mozilla, [
 			{"name":"Warm/Cold", "esfilter":ESQuery.TrueFilter, "partitions":[
 				{"name":"Warm", "esfilter": {"script":{"script":"doc[\"simpleMeasurements.main\"].value - doc[\"simpleMeasurements.start\"].value <= 100"}}, "type":"boolean"},
 				{"name":"Cold", "esfilter": {"script":{"script":"doc[\"simpleMeasurements.main\"].value - doc[\"simpleMeasurements.start\"].value > 100"}}, "type":"boolean"}
-			]}
+			]},
+
+			{"name":"Startup Time", "field":"simpleMeasurements.main-simpleMeasurements.start", "type":"linear"}
 		]},
 
 		{"name":"Instance", "edges":[
@@ -120,7 +124,18 @@ Dimension.addEdges(false, Mozilla, [
 				"type":"set",
 				"path":string2path("info.appVersion", ".")
 			},
-			{"name":"Build ID", "field":"info.appBuildID", "value":"\"\"+info.appBuildID", "type":"set", "esfilter":ESQuery.TrueFilter},
+			{"name":"Build ID",
+				"field":"info.appBuildID",
+				"type":"set",
+				"path":function(v){
+					v=""+v;
+					return [//DATA IN yyyyMMddHHmmss FORMAT
+						{"name":v.left(8), "esfilter":{"range":{"info.appBuildID":{"gte":CNV.String2Integer(v.left(8)+"000000"), 'lt':CNV.String2Integer(v.left(8)+"000000")+1000000}}}},
+						{"name":v.rightBut(8), "esfilter":{"term":{"info.appBuildID": v}}}
+					]
+				},
+				"esfilter":ESQuery.TrueFilter
+			},
 			{"name":"Platform Build ID", "field":"info.platformBuildID", "type":"set", "esfilter":ESQuery.TrueFilter}
 		]},
 
@@ -139,13 +154,14 @@ Dimension.addEdges(false, Mozilla, [
 			{"name":"MemSize (Category)", "field":"info.memsize",
 				"type":"set",
 				"allowNulls":true,
-				"partitions":Array.newRange(0, 8).map(function(v){
+				"partitions":Array.newRange(0, 9).map(function(v){
 					return {
 						"name":(128*Math.pow(2, v))+"meg",
 						"value":(128*Math.pow(2, v))+"meg",
 						"esfilter":{"range":{"info.memsize":{"gte":128*Math.pow(2, v-.5), "lt":128*Math.pow(2, v+.5)}}}
 					};
-				})
+				}),
+				"value":"name"
 			},
 			{"name":"cpucount", "field":"info.cpucount", "type":"count"},
 			{"name":"DWriteVersion",

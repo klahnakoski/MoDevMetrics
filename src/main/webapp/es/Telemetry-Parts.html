@@ -67,8 +67,9 @@ var CUTOFF=Duration.newInstance("3week");
 $("#description").html(
 		"Simple heat grid to compare the various simple measures.  Least-squares regression line added to get sense of relationship."+
 		"We still need to add a the regression distribution, and a plethora of filters"+
+		'<br><br>The Z coordinate is used to determine the series set (each a separate colour).'+
 		'<br><br><span class="warning">This page points to my server behind the firewall.  You must have Toronto VPN access (vpn.tor1.mozilla.com).</span>'+
-		'<br><br><span class="warning">Limited to nightly, WINNT, and all zero-values removed</span>'
+		'<br><br><span class="warning">Limited to nightly, WINNT</span>'
 );
 
 var thread;
@@ -88,15 +89,19 @@ var __createChart = function(){
 	if (X===undefined) yield(null);	//NOT READY TO SHOW ANYTHING
 
 	var Z=GUI.state.Z.getSelectedParts()[0];
-	if (Z!==undefined){
+	if (Z!==undefined && Z.getDomain){	//PARTS DO NOT HAVE DOMAINS, SO JUST COUNT
+		if (Z.partitions instanceof aThread) yield (aThread.join(Z.partitions));
 		if (PART_QUERY===undefined) PART_QUERY={};
 
 		//LET Z REPLACE THE PART_QUERY EDGE
-		PART_QUERY.edges=[{
+		var edgeZ={
 			"name":"Z",
 			"value":Z.field,
+			"allowNulls":true,
 			"domain":Z.getDomain()
-		}];
+		};
+
+		PART_QUERY.edges=[edgeZ];
 	}else if (PART_QUERY===undefined){
 		yield (null);	//NOT ENOUGH DIMENSIONS TO CHART YET
 	}//endif
@@ -108,20 +113,48 @@ var __createChart = function(){
 	};
 
 	Map.copy(PART_QUERY, query);
-	query.edges.push({
+	var edgeX={
 		"name":"X",
 		"value":X.field,
+		"allowNulls":true,
 		"domain":X.getDomain()
-	});
+	};
+	query.edges.push(edgeX);
+
+	if (edgeX.domain.type=='linear'){
+		edgeX.domain.min=0,
+		edgeX.domain.max=GUI.state.maxX;
+		edgeX.domain.interval=GUI.state.maxX/GUI.state.numX;
+	}//endif
+
 
 
 	$("#cube").val(CNV.Object2JSON(query));
 
+
+	var a=D.action("Request Data from ES", true);
 	var chart=yield (ESQuery.run(query));
+	D.actionDone(a);
+
+	if (GUI.state.normalizeZ){
+		CUBE.normalizeByCohort(chart, 100);
+	}//endif
+	if (GUI.state.normalizeX){
+		CUBE.normalizeByX(chart, 100);
+
+	}//endif
+
+	edgeX.allowNulls=false;
+//	query.edges.forall(function(e){e.allowNulls=false;});  //DO NOT SHOW THE NULL VALUES (USUALLY VERY BIG)
+
+
+
 
 	aChart.show({
 		"id":"chart",
 		"cube":chart,
+		"stacked":GUI.state.normalizeX,		//THIS SHOULD BE A PART OF THE EDGE, AND USED INSIDE THE CHART API
+		"type":GUI.state.normalizeX ? "area" : undefined,
 		"titlePaddings":5,
 		"height":600,
 		"width":600
@@ -158,9 +191,11 @@ var __createChart = function(){
 						D.println("Chose "+dim.name);
 					}//method
 				})},
+				{"id":"normalizeZ", "name":"Normalize Z", "type":"boolean", "default":false},
 				{"id":"maxX", "name":"Max X", "type":"number", "default":"100"},
+				{"id":"numX", "name":"Num X", "type":"number", "default":"20"},
+				{"id":"normalizeX", "name":"Normalize X", "type":"boolean", "default":false},
 				{"id":"maxY", "name":"Max Y", "type":"number", "default":"200"},
-				{"id":"numParts", "name":"Num Parts", "type":"number", "default":"20"}
 			],
 			[
 //				"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"

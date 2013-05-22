@@ -287,7 +287,15 @@ GUI.AddParameters=function(parameters, relations){
 		html+=template.replaceVars({
 			"ID":param.id,
 			"NAME":param.name,
-			"TYPE":{"time":"text", "date":"text", "duration":"text", "text":"text", "json":"textarea", "code":"textarea"}[param.type]  //MAP PARAMETER TYPES TO HTML TYPES
+			"TYPE":{
+				"time":"text",
+				"date":"text",
+				"duration":"text",
+				"text":"text",
+				"boolean":"checkbox",
+				"json":"textarea",
+				"code":"textarea"
+			}[param.type]  //MAP PARAMETER TYPES TO HTML TYPES
 		});
 	});
 	$("#parameters").html(html);
@@ -330,6 +338,17 @@ GUI.AddParameters=function(parameters, relations){
 			});
 			defaultValue=defaultValue.toString();
 			$("#" + param.id).val(defaultValue);
+		////////////////////////////////////////////////////////////////////////
+		// BINARY
+		} else if (param.type=="boolean"){
+			$("#" + param.id).change(function(){
+				if (GUI.UpdateState()){
+					GUI.refreshChart();
+				}
+			});
+			$("#" + param.id).prop('checked', defaultValue);
+		////////////////////////////////////////////////////////////////////////
+		// JSON
 		} else if (param.type=="json"){
 			var codeDiv=$("#" + param.id);
 			codeDiv.linedtextarea();
@@ -388,6 +407,8 @@ GUI.State2Parameter = function (){
 
 		if (param.type=="json"){
 			$("#" + param.id).val(CNV.Object2JSON(GUI.state[param.id]));
+		}else if (param.type=="boolean"){
+			$("#" + param.id).prop("checked", GUI.state[param.id]);
 		}else{
 //		if (param.type.getSimpleState) return;  //param.type===GUI.state[param.id] NO ACTION REQUIRED
 			$("#" + param.id).val(GUI.state[param.id]);
@@ -401,6 +422,8 @@ GUI.Parameter2State = function(){
 	GUI.parameters.forEach(function(param){
 		if (param.type=="json"){
 			GUI.state[param.id] = CNV.JSON2Object($("#" + param.id).val());
+		}else if (param.type=="boolean"){
+			GUI.state[param.id]=$("#"+param.id).prop("checked");
 		}else{
 			GUI.state[param.id] = $("#" + param.id).val();
 		}//endif

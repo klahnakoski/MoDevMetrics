@@ -434,8 +434,21 @@ MVEL.Parts2Term = function(
 	domain.partitions.forall(function(v){
 		term +=	"if (" + mvel.where(v.esfilter) + ") "+ CNV.Value2Quote(domain.getKey(v)) + ";\n else ";
 	});
-	return "var _temp = function(){"+term+CNV.Value2Quote(domain.getKey(domain.NULL)) + ";}; _temp()";
+	var id=Util.UID();
+	return {
+		"head":"var _temp"+id+" = function(){"+term+CNV.Value2Quote(domain.getKey(domain.NULL)) + ";};\n",
+		"body":"_temp"+id+"()"
+	};
+	
+	//DOES NOT WORK BECAUSE THE CONTEXT VARS ARE NOT POPULATED
+//	var name="__temp"+Util.UID();
+//	MVEL.FUNCTIONS[name]="var "+name+" = function(){"+term+CNV.Value2Quote(domain.getKey(domain.NULL)) + ";};\n"; //ADD TO GENERAL SET OF FUNCTIONS
+//	return name+"()";
+
+	
 };//method
+
+
 
 
 //PREPEND THE REQUIRED MVEL FUNCTIONS TO THE CODE

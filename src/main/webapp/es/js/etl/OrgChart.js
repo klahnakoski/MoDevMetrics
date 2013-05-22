@@ -120,7 +120,7 @@ OrgChart.makeSchema=function(){
 
 
 OrgChart.insert=function(people){
-	var uid=Util.UID();
+	var uid=Util.GUID();
 	var insert=[];
 	people.forall(function(r, i){
 		insert.push(JSON.stringify({ "create" : { "_id" : uid+"-"+i } }));

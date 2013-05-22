@@ -729,6 +729,7 @@ ESQuery.prototype.compileEdges2Term=function(constants){
 				self.query.from,
 				edges[0].domain
 			);
+			script=script.head+script.body;
 			return {"type":"script", "value":MVEL.compile.expression(script, this.query, constants)};
 		}//endif
 
@@ -770,8 +771,10 @@ ESQuery.prototype.compileEdges2Term=function(constants){
 		}else{
 			t=ESQuery.compileString2Term(e);
 		}//for
+		if (t.toTerm.body===undefined) D.error();
+
 		fromTerm2Part.push(t.fromTerm);
-		mvel+=t.toTerm;
+		mvel=t.toTerm.head+mvel+t.toTerm.body;
 	});
 
 	//REGISTER THE DECODE FUNCTION
@@ -827,7 +830,7 @@ ESQuery.compileTime2Term=function(edge){
 
 	}//endif
 
-	return {"toTerm":partition2int, "fromTerm":int2Partition};
+	return {"toTerm":{"head":"", "body":partition2int}, "fromTerm":int2Partition};
 };
 
 //RETURN MVEL CODE THAT MAPS DURATION DOMAINS DOWN TO AN INTEGER AND
@@ -856,7 +859,7 @@ ESQuery.compileDuration2Term=function(edge){
 		return edge.domain.getPartByKey(ref.add(edge.domain.interval.multiply(value)));
 	};
 
-	return {"toTerm":partition2int, "fromTerm":int2Partition};
+	return {"toTerm":{"head":"", "body":partition2int}, "fromTerm":int2Partition};
 };
 
 //RETURN MVEL CODE THAT MAPS THE LINEAR DOMAIN DOWN TO AN INTEGER AND
@@ -899,7 +902,7 @@ ESQuery.compileLinear2Term=function(edge){
 		return edge.domain.getPartByKey((value * edge.domain.interval) + offset);
 	};
 
-	return {"toTerm":partition2int, "fromTerm":int2Partition};
+	return {"toTerm":{"head":"", "body":partition2int}, "fromTerm":int2Partition};
 };
 
 
@@ -911,7 +914,7 @@ ESQuery.compileString2Term=function(edge){
 	if (MVEL.isKeyword(value)) value="getDocValue(\""+value+"\")";
 
 	return {
-		"toTerm":'Value2Pipe('+value+')',
+		"toTerm":{"head":"", "body":'Value2Pipe('+value+')'},
 		"fromTerm":function(value){
 			return edge.domain.getPartByKey(CNV.Pipe2Value(value));
 		}

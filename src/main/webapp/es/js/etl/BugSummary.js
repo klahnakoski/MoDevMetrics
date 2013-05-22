@@ -287,7 +287,7 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 
 
 BUG_SUMMARY.insert=function(reviews){
-	var uid=Util.UID();
+	var uid=Util.GUID();
 	var insert=[];
 	reviews.forall(function(r, i){
 		insert.push(JSON.stringify({ "create" : { "_id" : r.bug_id } }));

@@ -150,9 +150,18 @@ Util.returnNull = function(__row){
 	return null;
 };//method
 
+(function(){
+	var next=0;
+
+	Util.UID=function(){
+		next++;
+		return next;
+	};//method
+})();
+
 
 //POOR IMPLEMENTATION
-Util.UID=function(){
+Util.GUID=function(){
 	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
 		var r = aMath.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
 		return v.toString(16);

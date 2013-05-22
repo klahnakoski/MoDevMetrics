@@ -138,12 +138,12 @@ Dimension.prototype={
 
 				dim.partitions=aThread.run(function(){
 					//IF dim.field IS A NUMBER, THEN SET-WISE EDGES DO NOT WORK (CLASS CAST EXCEPTION)
-					if (dim.field=="info.appBuildID"){
-						D.warning("Special case for info.appBuildID, please fix Telemetry schema");
-						edge={"name":dim.field, "value":"\"\"+"+dim.field};
-					}else{
+//					if (dim.field=="info.appBuildID"){
+//						D.warning("Special case for info.appBuildID, please fix Telemetry schema");
+//						edge={"name":dim.field, "value":"\"\"+"+dim.field};
+//					}else{
 						edge={"name":dim.field, "value":dim.field};
-					}//endif
+//					}//endif
 
 
 					var parts=yield (ESQuery.run({
@@ -171,6 +171,12 @@ Dimension.prototype={
 						if (dim.value===undefined) dim.value="name";
 						dim.partitions=temp.partitions;
 					}else{
+						if (dim.field=="info.appBuildID"){
+							D.println("");
+						}
+
+						dim.value="name";  //USE THE "name" ATTRIBUTE OF PARTS
+
 						//SIMPLE LIST OF PARTS RETURNED, BE SURE TO INTERRELATE THEM
 						dim.partitions=parts.cube.map(function(count, i){
 							return {

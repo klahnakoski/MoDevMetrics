@@ -9,6 +9,8 @@ window.Settings=Settings;
 
 if (window.location.hostname=="metrics.mozilla.com"){
 	Settings.basePath="https://metrics.mozilla.com/bugzilla-analysis";
+}else if (window.location.hostname=="people.mozilla.com"){
+	Settings.basePath="http://people.mozilla.com/~klahnakoski/test/es/";
 }else{
 	var find="src/main/webapp/es";
 	Settings.basePath=window.location.pathname.substring(0, window.location.pathname.indexOf(find)+find.length);
