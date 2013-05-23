@@ -42,9 +42,32 @@
 <h2>Bugzilla Anthropology Metrics Prototypes</h2>
 	<br>
 <table>
+
 	<tr>
 	<td>
-		<h4>May 14th 2013</h4>
+		<h3>May 14th 2013</h3>
+		<div class="description">
+			<p>Telemetry visualization is finally at a point where it is not a constant
+			disappointment.  My intent is to let the user pick the dimensions, and
+			assign them to the X, Y or Z coordinates on the chart.  This copies
+			what business intelligence tools can do already, but with a far worse interface :(
+			</p>
+			<p>
+			My objective with this code is to prove there can be a lightweight interface
+			to an ElasticSearch cluster that can be used to quickly understand
+			the data, along it's many dimensions quickly, and with minimal ETL.
+			</p>
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Telemetry-Parts.html">Rough Telemetry Cube</a>
+			<span class="info">Cut Telemetry data along multiple dimensions fast</span>
+		</div>
+	</td>
+	</tr>
+
+	<tr>
+	<td>
+		<h3>May 14th 2013</h3>
 		<div class="description">
 			<p>I was asked to look into the number of patches landing on our various products.
 			My first draft assumed patches are closed when they are marked obsolete, or the bug is closed.
@@ -67,14 +90,12 @@
 			<a href="https://metrics.mozilla.com/bugzilla-analysis/PatchRates.html">Patch Rates</a> <a href="es/PatchRates.png">(image)</a>
 			<span class="info">Summarize Patch Rates</span>
 		</div>
-
-
 	</td>
 	</tr>
 
 	<tr>
 	<td>
-		<h4>May 8th 2013</h4>
+		<h3>May 8th 2013</h3>
 		<div class="description">
 			<p>This past week I suffered through more ElasticSearch oddities: Where it will
 				run out of memory on seemingly simple queries.  It appears the OutOfMemory errors are caused
@@ -105,7 +126,7 @@
 
 	<tr>
 	<td>
-		<h4>April 29th 2013</h4>
+		<h3>April 29th 2013</h3>
 		<div class="description">
 			<p>I finally have had the opportunity to consider Mozilla's bug Triage process.
 				I am starting with Firefox OS' blocker bugs, where the triage process is probably simplest:
@@ -143,7 +164,7 @@
 
 	<tr>
 	<td>
-		<h4>April 24th 2013</h4>
+		<h3>April 24th 2013</h3>
 		<div class="description">
 			<p>This past week I spent the majority of my time enhancing the telemetry
 				visualization.  Unfortunately, I have succumbed to optimistic
@@ -181,7 +202,7 @@
 
 	<tr>
 	<td>
-		<h4>April 15th 2013</h4>
+		<h3>April 15th 2013</h3>
 		<div class="description">
 			<p>I have my first working Python environment!  For me this is special;
 				The hard work of learning a new system involves discovering the
@@ -206,7 +227,7 @@
 
 	<tr>
 	<td>
-		<h4>April 9th 2013</h4>
+		<h3>April 9th 2013</h3>
 		<div class="description">
 			<p>I am reading through the <a href="https://github.com/mozilla/datazilla">Datazilla code</a>
 				with the objective to reduce the false positive rate.  The
@@ -230,7 +251,7 @@
 
 	<tr>
 	<td>
-		<h4>April 5th 2013</h4>
+		<h3>April 5th 2013</h3>
 		<div class="description">
 			<p>I had done some work on Metro back in February, but I had to leave it
 				prematurely to work on other projects.  I decided to spend time yesterday
@@ -251,7 +272,7 @@
 
 	<tr>
 	<td>
-		<h4>April 2nd 2013</h4>
+		<h3>April 2nd 2013</h3>
 		<div class="description">
 		<p>After a week holiday, I am now back full time with Mozilla!  I am now a member of the <a href="https://wiki.mozilla.org/Auto-tools">Automation and Tools Engineering team</a></p>
 		</div>
@@ -266,7 +287,7 @@
 
 	<tr>
 	<td>
-		<h4>March 27th 2013</h4>
+		<h3>March 27th 2013</h3>
 		<div class="description">
 		<p>Still learning Pig Latin, and figuring out how to make Telemetry queries fast.</p>
 		</div>
@@ -283,7 +304,7 @@
 
 	<tr>
 	<td>
-		<h4>March 16th 2013</h4>
+		<h3>March 16th 2013</h3>
 		<div class="description">
 		<p>This past week-and-a-half I have been familiarizing myself with
 			Metric's Telemetry setup, learning Python for ReleaseManagement's
@@ -308,7 +329,7 @@
 
 	<tr>
 	<td>
-		<h4>March 8th 2013</h4>
+		<h3>March 8th 2013</h3>
 		<div class="description">
 		<p>Here is a small dashboard you can use to find your bug close rate, over a given set of bugs (as defined by the ES Filter)</p>
 		</div>
@@ -323,7 +344,7 @@
 
 	<tr>
 	<td>
-		<h4>February 28th 2013</h4>
+		<h3>February 28th 2013</h3>
 		<div class="description">
 		<p>I have been working on visualizing the agile process being used by the
 		<a href="https://wiki.mozilla.org/Firefox/Metro">Firefox Metro Development Project</a>.
@@ -352,7 +373,7 @@
 
 	<tr>
 	<td>
-		<h4>February 23th 2013</h4>
+		<h3>February 23th 2013</h3>
 		<div class="description">
 		It is important the dashboards I make are relevant to the people who view them.
 		This means they must be personalized to a certain degree.  Take, for example, defining the "age" of a bug:
@@ -375,7 +396,7 @@
 
 	<tr>
 	<td>
-		<h4>February 13th 2013</h4>
+		<h3>February 13th 2013</h3>
 		<div class="description">
 			I have been working on visualizing Metro's iterations.  But in the meantime,
 			I noticed a need for a basic burndown tracking
@@ -390,7 +411,7 @@
 
 	<tr >
 	<td>
-		<h4>February 5th 2013</h4>
+		<h3>February 5th 2013</h3>
 		<div class="items">
 			<a href="https://metrics.mozilla.com/bugzilla-analysis/Dashboard_byProject.html">Project Dashboard</a>
 			<span class="info"> Copies the B2G logic, and extended to all programs. (Added a Team filter)</span>
@@ -405,7 +426,7 @@
 
 	<tr >
 		<td>
-			<h4>January 31th 2013</h4>
+			<h3>January 31th 2013</h3>
 			<div class="items">
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Predictive_Simple.html">Burndown Prediction</a>
 				<span class="info">Uses up to the last 6 weeks of data to make a linear estimate of when project is complete</span>
@@ -418,7 +439,7 @@
 
 	<tr >
 		<td>
-			<h4>January 29th 2013</h4>
+			<h3>January 29th 2013</h3>
 			<div class="items">
 				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/Dashboard_byProject.html">Project Dashboard</a>
 				<span class="info">Copies the B2G logic, and extended to all programs</span></span>
@@ -430,7 +451,7 @@
 
 	<tr >
 		<td>
-			<h4>January 28th 2013</h4>
+			<h3>January 28th 2013</h3>
 			<div class="description">
 					My work on a better interface for all the filters found on the LHS of my charts had to be postponed in favour of showing
 			something interesting this week.
@@ -451,7 +472,7 @@
 
 	<tr >
 		<td>
-			<h4>January 21th 2013</h4>
+			<h3>January 21th 2013</h3>
 			<div class="description">
 					This past week was working on simple fixes and backend features.
 			</div>
@@ -473,7 +494,7 @@
 
 	<tr >
 		<td>
-			<h4>January 14th 2013</h4>
+			<h3>January 14th 2013</h3>
 			<div class="description">
 				I had stumbled upon why ES facets appeared slow to me: MVEL!
 				It turns out that script filters were the reason N facets were N times slower than one facet.
@@ -498,7 +519,7 @@
 	</tr>
 <tr>
 	<td>
-		<h4>January 5th 2012</h4>
+		<h3>January 5th 2012</h3>
 		<div class="description">
 			It is important to Mozilla that we respond to review requested by the community
 			promptly.  Here is an attempt to measure that response time in aggregate.
@@ -512,7 +533,7 @@
 
 <tr>
 	<td>
-		<h4>December 14th 2012</h4>
+		<h3>December 14th 2012</h3>
 		<div class="description">
 			Open source and community are important to Mozilla.  My professional experience
 			is with the banking industry, so community involvement is new to me:  I thought it best
@@ -535,7 +556,7 @@
 </tr>
 	<tr >
 		<td>
-			<h4>December 11th 2013</h4>
+			<h3>December 11th 2013</h3>
 			<div class="description">
 				Simply added click-to-see bug functionality to some charts.  Line charts do not sem to be clickable.
 			</div>
@@ -548,7 +569,7 @@
 
 	<tr>
 		<td>
-			<h4>December 3rd 2012</h4>
+			<h3>December 3rd 2012</h3>
 			<div class="description">
 				Added team filter that uses the Mozilla phone book to provide drill-down by team
 			</div>
@@ -571,7 +592,7 @@
 
 <tr>
 	<td>
-		<h4>November 28th 2012</h4>
+		<h3>November 28th 2012</h3>
 		<div class="description">
 			I started working on the ETL for bug history so that questions like "How long has this been a security bug?" can be answered fast, over time, for all security bugs.  I tried facets, but they are slow when they number in the tens or hundreds.  In the meantime, here is a B2G special:
 		</div>
@@ -588,7 +609,7 @@
 
 <tr>
 	<td>
-		<h4>November 28th 2012</h4>
+		<h3>November 28th 2012</h3>
 		<div class="description">
 			I started working on the ETL for bug history so that questions like "How long has this been a security bug?" can be answered fast, over time, for all security bugs.  I tried facets, but they are slow when they number in the tens or hundreds.  In the meantime, here is a B2G special:
 		</div>
@@ -602,7 +623,7 @@
 
 	<tr>
 		<td>
-			<h4>November 19th 2012</h4>
+			<h3>November 19th 2012</h3>
 			<div class="description">
 				With the ETL working, we can now count over millions of records fast and accurately.  Furthermore, I added cooperative multithreading to make the procedural code easier to read and still be asynchronous.
 			</div>
@@ -617,7 +638,7 @@
 
 	<tr>
 		<td>
-			<h4>November 11th 2012</h4>
+			<h3>November 11th 2012</h3>
 			<div class="description">
 				ElasticSearch is not good for counting nested documents: If a document matches, it is counted (or returned) only once.  When multiple nested documents exist, we need to use MVEL scripting to bring back all data, and count it locally.  This forces me to make an ES index for just reviews, and write the ETL to populate it.
 			</div>
@@ -634,7 +655,7 @@
 
 	<tr>
 		<td>
-			<h4>November 5th 2012</h4>
+			<h3>November 5th 2012</h3>
 			<div class="description">
 				<span class="warning">Please note:  There are still known issues with these charts.</span> (see <a href="https://metrics.mozilla.com/projects/browse/BA">https://metrics.mozilla.com/projects/browse/BA</a>)
 			</div>
@@ -651,7 +672,7 @@
 
 	<tr>
 		<td>
-			<h4>October 22nd 2012</h4>
+			<h3>October 22nd 2012</h3>
 
 			<div class="description">
 				These charts now work on the Metrics site without MV VPN access!
@@ -669,7 +690,7 @@
 	<tr>
 		<td>
 
- 			<h4>October 16th 2012</h4>
+ 			<h3>October 16th 2012</h3>
 			<div class="description">
 				A lot of my time is being spent on translating SQL-like queries into ES queries.  Specifically, the term packing I was using for pulling raw data is now being used for aggregates too.
 			</div>
@@ -702,7 +723,7 @@
 
 	<tr>
 		<td>
-			<h4>October 11th 2012</h4>
+			<h3>October 11th 2012</h3>
 
 			<div class="items">
 				<a href="https://metrics.mozilla.com/bugzilla-analysis/Burndown.html">Burndown.html</a><span class="info">Burndown by Program, Product, Component</span>

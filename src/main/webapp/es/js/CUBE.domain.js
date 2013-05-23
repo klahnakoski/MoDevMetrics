@@ -6,8 +6,8 @@
 if (CUBE===undefined) var CUBE = {};
 CUBE.domain = {};
 
-CUBE.domain.ALGEBRAIC=["time", "duration", "linear", "count"];  //DOMAINS THAT HAVE ALGEBRAIC OPERATIONS DEFINED
-CUBE.domain.KNOWN=["set", "boolean", "duration", "time", "linear"];    //DOMAINS THAT HAVE A KNOWN NUMBER FOR PARTS AT QUERY TIME
+CUBE.domain.ALGEBRAIC=["time", "duration", "numeric", "count"];  //DOMAINS THAT HAVE ALGEBRAIC OPERATIONS DEFINED
+CUBE.domain.KNOWN=["set", "boolean", "duration", "time", "numeric"];    //DOMAINS THAT HAVE A KNOWN NUMBER FOR PARTS AT QUERY TIME
 CUBE.domain.PARTITION=["set", "boolean"];    //DIMENSIONS WITH CLEAR PARTS
 
 CUBE.domain.compile = function(column, sourceColumns){
@@ -63,7 +63,7 @@ CUBE.domain.equals=function(a, b){
 		return true;
 	}else if (a.type="duration" && b.type=="duration"){
 		D.error("not completed");
-	}else if (a.type="linear" && b.type=="linear"){
+	}else if (a.type="numeric" && b.type=="numeric"){
 		D.error("not completed");
 	}else{
 		D.error("do not know what to do here");
@@ -505,7 +505,7 @@ CUBE.domain.duration.addRange = function(min, max, domain){
 
 
 
-CUBE.domain.linear = function(column, sourceColumns){
+CUBE.domain.numeric = function(column, sourceColumns){
 	function _floor(value, mod){
 		return aMath.floor(value/mod)*mod;
 	}
@@ -556,10 +556,10 @@ CUBE.domain.linear = function(column, sourceColumns){
 				if (this.min===undefined){
 					this.min = floor;
 					this.max = aMath.min(this.max, floor+this.interval);
-					CUBE.domain.linear.addRange(this.min, this.max, this);
+					CUBE.domain.numeric.addRange(this.min, this.max, this);
 				} else if (key < this.min){
 //					var newmin=floor;
-					CUBE.domain.linear.addRange(floor, this.min, this);
+					CUBE.domain.numeric.addRange(floor, this.min, this);
 					this.min = floor;
 				}//endif
 			} else if (this.min == null){
@@ -572,10 +572,10 @@ CUBE.domain.linear = function(column, sourceColumns){
 				if (this.max===undefined){
 					this.min = Math.max(this.min, floor);
 					this.max = floor+this.interval;
-					CUBE.domain.linear.addRange(this.min, this,max, this);
+					CUBE.domain.numeric.addRange(this.min, this,max, this);
 				} else if (key >= this.max){
 					var newmax = floor+this.interval;
-					CUBE.domain.linear.addRange(this.max, newmax, this);
+					CUBE.domain.numeric.addRange(this.max, newmax, this);
 					this.max = newmax;
 				}//endif
 			} else if (key >= this.max){
@@ -590,7 +590,7 @@ CUBE.domain.linear = function(column, sourceColumns){
 			d.map = {};
 			d.partitions = [];
 			if (!noMin && !noMax){
-				CUBE.domain.linear.addRange(d.min, d.max, d);
+				CUBE.domain.numeric.addRange(d.min, d.max, d);
 			}//endif
 		} else{
 			d.map = {};
@@ -599,7 +599,7 @@ CUBE.domain.linear = function(column, sourceColumns){
 			}//for
 		}//endif
 	} else{
-		d.error("matching multi to duration domain is not supported");
+		d.error("matching multi to numeric domain is not supported");
 	}//endif
 
 
@@ -621,13 +621,16 @@ CUBE.domain.linear = function(column, sourceColumns){
 	];
 
 
-
-	CUBE.domain.compileEnd(d);
+	if (d.value!=undefined){
+		CUBE.domain.compileEnd(d);
+	}else{
+		d.end=function(v){return v.value;};
+	}//endif
 
 };//method;
 
 
-CUBE.domain.linear.addRange = function(min, max, domain){
+CUBE.domain.numeric.addRange = function(min, max, domain){
 	for(var v = min; v < max; v = v + domain.interval){
 		var partition = {
 			"value":v,
@@ -697,10 +700,10 @@ CUBE.domain.count = function(column, sourceColumns){
 			if (noMax){//NO MAXIMUM REQUESTED
 				var newmax = floor+this.interval;
 				if (this.max===undefined){
-					CUBE.domain.linear.addRange(0, newmax, this);
+					CUBE.domain.numeric.addRange(0, newmax, this);
 					this.max = newmax;
 				}else if (key >= this.max){
-					CUBE.domain.linear.addRange(this.max, newmax, this);
+					CUBE.domain.numeric.addRange(this.max, newmax, this);
 					this.max = newmax;
 				}//endif
 			} else if (key >= this.max){
@@ -715,7 +718,7 @@ CUBE.domain.count = function(column, sourceColumns){
 			d.map = {};
 			d.partitions = [];
 			if (!(d.max === undefined)){
-				CUBE.domain.linear.addRange(d.min, d.max, d);
+				CUBE.domain.numeric.addRange(d.min, d.max, d);
 			}//endif
 		} else{
 			d.map = {};
@@ -745,9 +748,13 @@ CUBE.domain.count = function(column, sourceColumns){
 		{"name":"interval", "type":"number"}
 	];
 
+	if (d.value!=undefined){
+		CUBE.domain.compileEnd(d);
+	}else{
+		d.end=function(v){return v.value;};
+	}//endif
 
 
-	CUBE.domain.compileEnd(d);
 
 };//method;
 
@@ -1063,6 +1070,9 @@ CUBE.domain.set.compileKey=function(domain){
 // THAT VALUE, INSTEAD OF RETURNING THE DOMAIN OBJECT
 ////////////////////////////////////////////////////////////////////////////////
 CUBE.domain.compileEnd=function(domain){
+	if (domain.type=="count"){
+		D.println();
+	}//endif
 	if (domain.value!=undefined){
 		domain.end=function(part){
 			//HOPEFULLY THE FIRST RUN WILL HAVE ENOUGH PARTITIONS TO DETERMINE A TYPE
@@ -1078,22 +1088,22 @@ CUBE.domain.compileEnd=function(domain){
 	}//endif
 };
 
-//CONVERT ANY ALGEBRIC DOMAIN TO A LINEAR DOMAIN (FOR STATS PROCESSING)
-CUBE.domain.domain2linear=function(domain){
+//CONVERT ANY ALGEBRIC DOMAIN TO A numeric DOMAIN (FOR STATS PROCESSING)
+CUBE.domain.algebraic2numeric=function(domain){
 	if (["default", "set"].contains(domain.type)){
-		D.error("Can not convert <partitioned> domain to linear");
+		D.error("Can not convert <partitioned> domain to numeric");
 	}//endif
 
 	var output=Map.copy(domain);
-	if (domain.type=="linear"){
+	if (domain.type=="numeric"){
 		//do nothing
 	}else if (domain.type=="time"){
-		if (domain.interval.month!=0) D.error("Do not know how to convert monthly duration to linear");
+		if (domain.interval.month!=0) D.error("Do not know how to convert monthly duration to numeric");
 		output.min=domain.min.getMilli();
 		output.max=domain.max.getMilli();
 		output.interval=domain.interval.milli;
 	}else if (domain.type="duration"){
-		if (domain.interval.month!=0) D.error("Do not know how to convert monthly duration to linear");
+		if (domain.interval.month!=0) D.error("Do not know how to convert monthly duration to numeric");
 		output.min=domain.min.milli;
 		output.max=domain.max.milli;
 		output.interval=domain.interval.milli;

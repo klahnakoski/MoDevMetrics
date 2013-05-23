@@ -184,7 +184,7 @@ var __createChart = function(){
 			{"name":"num_total", "value":"1", "aggregate":"count"}
 		],
 		"edges":[
-			{"name":"requester_review_num", "value":"requester_review_num", "domain":{"type":"linear", "min":0, "max":20, "interval":1, "value":"value"}}
+			{"name":"requester_review_num", "value":"requester_review_num", "domain":{"type":"numeric", "min":0, "max":20, "interval":1, "value":"value"}}
 		],
 		"where":"request_time<"+sampleMax.getMilli()
 	}));
@@ -200,7 +200,7 @@ var __createChart = function(){
 		"from":totals, 
 		"select": {"name":"percent", "value":"aMath.round(100*num_next/aMath.max(1, num_total))", "aggregate":"one"},
 		"edges":[
-			{"value":"requester_review_num", "domain":{"type":"linear", "min":0, "max":20, "interval":1, "value":"value"}}
+			{"value":"requester_review_num", "domain":{"type":"numeric", "min":0, "max":20, "interval":1, "value":"value"}}
 		]
 	}));
 

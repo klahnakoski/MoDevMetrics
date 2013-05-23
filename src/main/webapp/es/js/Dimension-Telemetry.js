@@ -41,28 +41,28 @@ Dimension.addEdges(false, Mozilla, [
 		},
 
 		{"name":"Measures", "edges":[
-			{"name":"Start", "field":"simpleMeasurements.start", "type":"linear", "default":{"aggregate":["median", "average"]}},
-			{"name":"Main", "field":"simpleMeasurements.main", "type":"linear", "default":{"aggregate":["median", "average"]}},
-			{"name":"Top Window", "field":"simpleMeasurements.createTopLevelWindow", "type":"linear", "default":{"aggregate":["median", "average"]}},
-			{"name":"Session Restored", "field":"simpleMeasurements.sessionRestored", "type":"linear", "default":{"aggregate":["median", "average"]}},
-			{"name":"First Paint", "field":"simpleMeasurements.firstPaint", "type":"linear", "min":0, "max":2000, "interval":100, "default":{"aggregate":["median", "average"]}},
-			{"name":"First Load URI", "field":"simpleMeasurements.firstLoadURI", "type":"linear", "default":{"aggregate":["median", "average"]}},
+			{"name":"Start", "field":"simpleMeasurements.start", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+			{"name":"Main", "field":"simpleMeasurements.main", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+			{"name":"Top Window", "field":"simpleMeasurements.createTopLevelWindow", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+			{"name":"Session Restored", "field":"simpleMeasurements.sessionRestored", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+			{"name":"First Paint", "field":"simpleMeasurements.firstPaint", "type":"numeric", "min":0, "max":2000, "interval":100, "default":{"aggregate":["median", "average"]}},
+			{"name":"First Load URI", "field":"simpleMeasurements.firstLoadURI", "type":"numeric", "default":{"aggregate":["median", "average"]}},
 
-//			{"name":"", "field":"simpleMeasurements.sessionRestoreInitialized", "type":"linear", "default":{"aggregate":["median", "average"]}},
+//			{"name":"", "field":"simpleMeasurements.sessionRestoreInitialized", "type":"numeric", "default":{"aggregate":["median", "average"]}},
 
-//			{"name":"", "field":"simpleMeasurements.startupCrashDetectionBegin", "type":"linear", "default":{"aggregate":["median", "average"]}},
-//			{"name":"", "field":"simpleMeasurements.startupCrashDetectionEnd", "type":"linear", "default":{"aggregate":["median", "average"]}},
-//			{"name":"", "field":"simpleMeasurements.delayedStartupStarted", "type":"linear", "default":{"aggregate":["median", "average"]}},
-//			{"name":"", "field":"simpleMeasurements.delayedStartupFinished", "type":"linear", "default":{"aggregate":["median", "average"]}},
+//			{"name":"", "field":"simpleMeasurements.startupCrashDetectionBegin", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+//			{"name":"", "field":"simpleMeasurements.startupCrashDetectionEnd", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+//			{"name":"", "field":"simpleMeasurements.delayedStartupStarted", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+//			{"name":"", "field":"simpleMeasurements.delayedStartupFinished", "type":"numeric", "default":{"aggregate":["median", "average"]}},
 
 
-//			{"name":"", "field":"simpleMeasurements.startupSessionRestoreReadBytes", "type":"linear", "default":{"aggregate":["median", "average"]}},
-//			{"name":"", "field":"simpleMeasurements.startupSessionRestoreWriteBytes", "type":"linear", "default":{"aggregate":["median", "average"]}},
-//			{"name":"", "field":"simpleMeasurements.startupWindowVisibleReadBytes", "type":"linear", "default":{"aggregate":["median", "average"]}},
-//			{"name":"", "field":"simpleMeasurements.startupWindowVisibleWriteBytes", "type":"linear", "default":{"aggregate":["median", "average"]}},
+//			{"name":"", "field":"simpleMeasurements.startupSessionRestoreReadBytes", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+//			{"name":"", "field":"simpleMeasurements.startupSessionRestoreWriteBytes", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+//			{"name":"", "field":"simpleMeasurements.startupWindowVisibleReadBytes", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+//			{"name":"", "field":"simpleMeasurements.startupWindowVisibleWriteBytes", "type":"numeric", "default":{"aggregate":["median", "average"]}},
 
-//			{"name":"", "field":"simpleMeasurements.uptime", "type":"linear", "default":{"aggregate":["median", "average"]}},
-//			{"name":"", "field":"simpleMeasurements.shutdownDuration", "type":"linear", "default":{"aggregate":["median", "average"]}},
+//			{"name":"", "field":"simpleMeasurements.uptime", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+//			{"name":"", "field":"simpleMeasurements.shutdownDuration", "type":"numeric", "default":{"aggregate":["median", "average"]}},
 			{"name":"Startup Interrupted", "field":"simpleMeasurements.startupInterrupted", "type":"boolean"},
 			{"name":"Debugger Attached", "field":"simpleMeasurements.debuggerAttached", "type":"boolean"}
 		]},
@@ -93,7 +93,7 @@ Dimension.addEdges(false, Mozilla, [
 				{"name":"Cold", "esfilter": {"script":{"script":"doc[\"simpleMeasurements.main\"].value - doc[\"simpleMeasurements.start\"].value > 100"}}, "type":"boolean"}
 			]},
 
-			{"name":"Startup Time", "field":"simpleMeasurements.main-simpleMeasurements.start", "type":"linear"}
+			{"name":"Startup Time", "field":"simpleMeasurements.main-simpleMeasurements.start", "type":"numeric"}
 		]},
 
 		{"name":"Instance", "edges":[
@@ -150,7 +150,7 @@ Dimension.addEdges(false, Mozilla, [
 			},
 			{"name":"Arch", "field":"info.arch", "type":"set"},
 			{"name":"Locale", "field":"info.locale", "type":"set"},
-			{"name":"MemSize (Linear)", "field":"info.memsize", "type":"linear", "min":"0", "max":15000, "interval":1000, "aggregate":["median", "average"]},
+			{"name":"MemSize (Linear)", "field":"info.memsize", "type":"numeric", "min":"0", "max":15000, "interval":1000, "aggregate":["median", "average"]},
 			{"name":"MemSize (Category)", "field":"info.memsize",
 				"type":"set",
 				"allowNulls":true,
@@ -163,7 +163,7 @@ Dimension.addEdges(false, Mozilla, [
 				}),
 				"value":"name"
 			},
-			{"name":"cpucount", "field":"info.cpucount", "type":"count"},
+			{"name":"CPU Count", "field":"info.cpucount", "type":"count"},
 			{"name":"DWriteVersion",
 				"field":"info.DWriteVersion",
 				"type":"set",

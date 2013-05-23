@@ -146,11 +146,11 @@ var __createChart = function(){
 				{"name":measureY,
 					"value":measureY,
 					"allowNulls":false,
-					"domain":{"type":"linear", "min":"0", "max":maxY, "interval":maxY/numParts, "value":"min"}},
+					"domain":{"type":"numeric", "min":"0", "max":maxY, "interval":maxY/numParts, "value":"min"}},
 				{"name":measureX,
 					"value":measureX,
 					"allowNulls":false,
-					"domain":{"type":"linear", "min":"0", "max":maxX, "interval":maxX/numParts, "value":"min"}
+					"domain":{"type":"numeric", "min":"0", "max":maxX, "interval":maxX/numParts, "value":"min"}
 				}
 			],
 			"esfilter":esfilter
@@ -272,7 +272,7 @@ var __createChart = function(){
 //	//BUILD NEW QUERY WITH NEW CUBE
 //	yield (aThread.join(heatThread));
 //	var query=heatGrid;
-//	var domainX=CUBE.domain.domain2linear(query.edges[1].domain);
+//	var domainX=CUBE.domain.algebraic2numeric(query.edges[1].domain);
 //	var output=Map.copy(heatGrid);
 //	output.select={"name":query.edges[0].name};
 //	output.edges=[query.edges[1]];

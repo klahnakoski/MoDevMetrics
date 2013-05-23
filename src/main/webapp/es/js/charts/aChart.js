@@ -303,8 +303,8 @@ aChart.showPie=function(params){
 
 
 
-	aChart.show=function(params){
-	Map.expecting(params, ["cube"]);
+aChart.show=function(params){
+	Map.expecting(params, ["id", "cube"]);
 	var divName=params.id;
 
 	var chartCube=params.cube;
@@ -471,7 +471,7 @@ aChart.showPie=function(params){
 //			xAxisScale_dateTickPrecision: xaxis.domain.interval.milli
 			//set in miliseconds
 
-		    dot_shapeRadius: 4, //USEd IN LEGEND
+		    dot_shapeRadius: 4, //USEd IN LEGEND (VERSION 2)
             dot_shape:"circle",
 			line_lineWidth: 4
 //			line_strokeStyle:
@@ -689,7 +689,7 @@ function getAxisLabels(axis){
 				labels.push(v.toString());
 			}//endif
 		});
-	} else if (axis.domain.type == "linear"){
+	} else if (axis.domain.type == "numeric"){
 		axis.domain.partitions.forall(function(v, i){
 			labels.push(v.name);
 		});

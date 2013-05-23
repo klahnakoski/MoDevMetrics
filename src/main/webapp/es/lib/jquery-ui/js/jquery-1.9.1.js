@@ -9294,7 +9294,7 @@ jQuery.speed = function( speed, easing, fn ) {
 };
 
 jQuery.easing = {
-	linear: function( p ) {
+	numeric: function( p ) {
 		return p;
 	},
 	swing: function( p ) {

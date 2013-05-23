@@ -173,9 +173,9 @@ Stats.query2regression=function(query){
 		D.error("Not supported");
 	}//endif
 
-	//CONVERT LINEAR DOMAINS TO doubles
-	var domainY=CUBE.domain.domain2linear(query.edges[0].domain);
-	var domainX=CUBE.domain.domain2linear(query.edges[1].domain);
+	//CONVERT ALGEBRAIC DOMAINS TO doubles
+	var domainY=CUBE.domain.algebraic2numeric(query.edges[0].domain);
+	var domainX=CUBE.domain.algebraic2numeric(query.edges[1].domain);
 
 	//SEND TO REGRESSION CALC
 	var line=Stats.regression(CUBE.cube.transpose(query, [query.edges[1], query.edges[0]], select).cube, domainX, domainY);

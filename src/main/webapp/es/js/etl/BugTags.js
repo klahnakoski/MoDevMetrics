@@ -203,7 +203,7 @@ BUG_TAGS.addMissing=function(){
 		"from":"bug_tags",
 		"select":{"name":"count", "value":"1", "aggregate":"count"},
 		"edges":[
-			{"name":"bug_id", "value":"bug_id", "domain":{"type":"linear", "min":0, "max":maxBug, "interval":10000}},
+			{"name":"bug_id", "value":"bug_id", "domain":{"type":"numeric", "min":0, "max":maxBug, "interval":10000}},
 			{"name":"date", "value":"date", "domain":{"type":"date", "min":new Date(2000, 0, 1), "max":Date.eod(), "interval":"8week"}}
 		]
 	})));

@@ -756,8 +756,8 @@ ESQuery.prototype.compileEdges2Term=function(constants){
 			t=ESQuery.compileTime2Term(e);
 		}else if (e.domain.type=="duration"){
 			t=ESQuery.compileDuration2Term(e);
-		}else if (e.domain.type=="linear"){
-			t=ESQuery.compileLinear2Term(e);
+		}else if (CUBE.domain.ALGEBRAIC.contains(e.domain.type)){
+			t=ESQuery.compileNumeric2Term(e);
 		}else if (e.domain.type=="set" && e.domain.field===undefined){
 			t={
 				"toTerm":MVEL.Parts2Term(
@@ -862,12 +862,12 @@ ESQuery.compileDuration2Term=function(edge){
 	return {"toTerm":{"head":"", "body":partition2int}, "fromTerm":int2Partition};
 };
 
-//RETURN MVEL CODE THAT MAPS THE LINEAR DOMAIN DOWN TO AN INTEGER AND
+//RETURN MVEL CODE THAT MAPS THE numeric DOMAIN DOWN TO AN INTEGER AND
 //AND THE JAVASCRIPT THAT WILL TURN THAT INTEGER BACK INTO A PARTITION (INCLUDING NULLS)
-ESQuery.compileLinear2Term=function(edge){
+ESQuery.compileNumeric2Term=function(edge){
 	if (edge.script!==undefined) D.error("edge script not supported yet");
 
-	if (edge.domain.type!="linear") D.error("can only translate linear domains");
+	if (edge.domain.type!="numeric" && edge.domain.type!="count") D.error("can only translate numeric domains");
 
 	var numPartitions=edge.domain.partitions.length;
 	var value=edge.value;
