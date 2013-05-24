@@ -11,6 +11,7 @@
 
 <div id="status"></div>
 <div id="info"></div>
+<div id="tab"></div>
 <h2>Simple Query</h2>
 
 <div id="chart" style="width:800px;height:400px;"></div>
@@ -29,22 +30,33 @@
 			var temp = MVEL.compile.expression("getDocArray(dependson).length>0", {"from": "bugs"	  });
 
 
-			var esQuery = {
-	"query":{"filtered":{
-		"query":{"match_all":{}},
-		"filter":{"and":[
-			{"script":{"script":"true"}},
-			{"range":{"modified_ts":{"gte":1368100000000}}}
-		]}
-	}},
-	"from":0,
-	"size":200,
-	"sort":[],
-	"facets":{"mvel":{"terms":{
-		"script_field":"var Value2Pipe = function(value){\nif (value==null){ \"0\" }else if (value is ArrayList || value is org.elasticsearch.common.mvel2.util.FastList){var out = \"\";\nforeach (v : value) out = (out==\"\") ? v : out + \"|\" + Value2Pipe(v);\n'a'+Value2Pipe(out);\n}else \nif (value is Long || value is Integer){ 'n'+value; }else \nif (!(value is String)){ 's'+value.getClass().getName(); }else \n\"s\"+value.replace(\"\\\\\", \"\\\\\\\\\").replace(\"|\", \"\\\\p\");};\nvar get = function(hash, key){\nif (hash==null) null; else hash[key];\n};\nvar getDocValue = function(name){\nvar out = [];\nvar v = doc[name];\nif (v==null || v.value==null) { null; } else if (v.values.length<=1){ v.value; } else {for(k : v.values) out.add(k); out;}};\nvar _1000 = function(bugs){\nvar modified_ts = getDocValue(\"modified_ts\");\nvar created_ts = getDocValue(\"created_ts\");\nvar bug_id = getDocValue(\"bug_id\");\noutput=\"\";\nif (bugs.attachments!=null){ for(bugs1 : bugs.attachments){\nif (true){if (output!=\"\") output+=\"|\";\noutput+=Value2Pipe(bug_id)\n+\"|\"+Value2Pipe(bugs1.?attach_id)\n+\"|\"+Value2Pipe(bugs1.?isobsolete)\n+\"|\"+Value2Pipe(bugs1.?ispatch)\n+\"|\"+Value2Pipe(bugs1.?created_ts)\n+\"|\"+Value2Pipe(bugs1.?modified_ts)\n;\n}\n\n}}\noutput;\n};\n_1000(_source)\n",
-		"size":200000
-	}}}
-}
+			var esQuery = { "query":{"filtered":{ "query":{"match_all":{}}, "filter":{"and":[
+				{"script":{"script":"true"}},
+				{"and":[
+					{"and":[
+						{"term":{"appUpdateChannel":"nightly"}},
+						{"term":{"OS":"WINNT"}},
+						{"term":{"version":"6.1"}},
+						{"term":{"info.reason":"saved-session"}},
+						{"term":{"info.appVersion":"22.0a1"}},
+						{"term":{"simpleMeasurements.startupInterrupted":0}},
+						{"term":{"simpleMeasurements.debuggerAttached":0}},
+						{"script":{"script":"doc[\"simpleMeasurements.start\"].value <= doc[\"simpleMeasurements.main\"].value"}},
+						{"script":{"script":"doc[\"simpleMeasurements.main\"].value <= doc[\"simpleMeasurements.createTopLevelWindow\"].value"}},
+						{"script":{"script":"doc[\"simpleMeasurements.createTopLevelWindow\"].value <= doc[\"simpleMeasurements.firstPaint\"].value"}},
+						{"script":{"script":"doc[\"simpleMeasurements.firstPaint\"].value <= doc[\"simpleMeasurements.sessionRestored\"].value"}},
+						{"or":[
+							{"not":{"exists":{"field":"doc[\"simpleMeasurements.firstLoadURI\"].value"}}},
+							{"script":{"script":"doc[\"simpleMeasurements.firstPaint\"].value <= doc[\"simpleMeasurements.firstLoadURI\"].value"}},
+							{"script":{"script":"doc[\"simpleMeasurements.firstLoadURI\"].value <= doc[\"simpleMeasurements.sessionRestored\"].value"}}
+						]}
+					]},
+					{"or":[
+						{"prefix":{"info.addons.name":"{b9db16a4-6edc-47ec-a1f4-b86292ed211d}"}},
+						{"prefix":{"info.addons.name":"wrc@avast.com"}}
+					]}
+				]}
+			]} }}, "fields":["simpleMeasurements.firstPaint", "info.addons.name"], "from":0, "size":10, "sort":[]}
 
 
 					;
@@ -60,10 +72,10 @@
 				var data = yield(Rest.post({
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping?pretty=true",
 //			"url":'http://localhost:9200/bug_hierarchy/bug_hierarchy/_search',
-			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
-//			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/raw_telemetry/_search",
-//					"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/bugs/bug_version/_search",
-//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/raw_telemetry/_search",
+//			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/bugs/bug_version/_search",
+// 			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
 
 //			"url":"http://localhost:9200/reviews/review/_search",
 //			"url":"http://localhost:9200/bug_tags/bug_tags/_search",
@@ -82,6 +94,7 @@
 				var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));
 				$("#info").html(htmlSummary + "<br><br>" + htmlResults);
 
+//				$("#tab").html(CNV.String2HTMLTable(CNV.List2Tab(CNV.ESResult2List(data))));
 
 //		while(true){
 //			if (ETL.allFlags!==undefined) break;

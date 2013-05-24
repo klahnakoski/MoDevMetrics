@@ -28,6 +28,17 @@
 	};//method
 	
 
+	//WITH undefined AND nulls REMOVED
+	Array.prototype.cleanCopy=function(){
+		var output=[];
+		for(var i=0;i<this.length;i++){
+			if (this[i]===undefined || this[i]==null) continue;
+			output.push(this[i]);
+		}//for
+		return output;
+	};//method
+
+
 	Array.prototype.copy = function(){
 		return this.slice(0);
 	};//method
@@ -56,6 +67,7 @@
 		return output;
 	};//method
 
+
 	Array.prototype.select=function(attrName){
 		var output=[];
 		if (typeof(attrName)=="string"){
@@ -73,6 +85,16 @@
 		}//endif
 		return output;
 	};//method
+
+
+	Array.prototype.filter=function(func){
+		var output=[];
+		for(var i=0;i<this.length;i++){
+			if (func(this[i], i)) output.push(this[i]);
+		}//for
+		return output;
+	};//method
+
 
 
 	//RETURN A RANDOM SAMPLE OF VALUES
@@ -126,6 +148,9 @@
 	Array.prototype.left=function(num){
 		return this.slice(0, num);
 	};
+
+	//TRUNCATE ARRAY IF LONGER THAN num
+	Array.prototype.limit=Array.prototype.left;
 
 	Array.prototype.leftBut = function(amount){
 		return this.slice(0, this.length - amount);

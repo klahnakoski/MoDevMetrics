@@ -169,6 +169,10 @@ CNV.String2HTML = function(value){
 	return value;
 };//method
 
+CNV.String2HTMLTable = function(value){
+	value="<table><tr>"+value.replaceAll("\n", "</tr><tr>").replaceAll("\t", "</td><td>")+"</tr></table>";
+	return value;
+};//method
 
 CNV.String2Quote = function(str){
 	return "\"" + (str + '').replaceAll("\n", "\\n").replace(/([\n\\"'])/g, "\\$1").replace(/\0/g, "\\0") + "\"";

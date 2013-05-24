@@ -13,13 +13,21 @@ PartitionFilter = function(){};
 var DEFAULT_CHILD_LIMIT=20;     //IN THE EVENT THE PARTITION DOES NOT DECLARE A LIMIT, IMPOSE ONE SO THE GUI IS NOT OVERWHELMED
 
 PartitionFilter.newInstance=function(param){
+	//YOU MAY ALSO PASS A callback FUNCTION THAT ACCEPTS TWO ARRAYS:
+	//1st - LIST OF CHECKED NODES
+	//2nd - LIST OF PREVIOUSLY CHECKED NODES
+	//AND OPTIONALLY RETURNS AN ARRAY OF IDS TO CHECK INSTEAD
+
 	ASSERT.hasAttributes(param, [
 		"id",       //TO NAME THE DOM ELEMENTS
 		"name",     
 		"dimension",
-		"onlyOne",
+		["onlyOne","callback"], //CALLBACK WILL OVERRIDE THE onlyOne SHORTCUT
 		["expandDepth","expandAll"]
 	]);
+
+
+
 
 	var self=new PartitionFilter();
 	Map.copy(param, self);
@@ -173,26 +181,29 @@ PartitionFilter.prototype.makeTree=function(){
 		if (self.disableUI) return;
 
 		var checked = {};
-		if (self.onlyOne){
+		if (!self.callback && self.onlyOne){
 			//DID WE JUST CHECK OR UNCHECK?
 			$(".jstree-checked").each(function(){
-				if (data.rslt[0].id==$(this).attr("id"))checked=Map.newInstance(data.rslt[0].id, true);
+				if (data.rslt[0].id==$(this).attr("id")) checked=Map.newInstance(data.rslt[0].id, true);
 			});
 		}else{
 			//FIRST MAKE A HASH OF CHECKED ITEMS
-			$(".jstree-checked").each(function(){
+			data.inst.get_checked(null, true).each(function(){
+//			$(".jstree-checked").each(function(){
 				checked[$(this).attr("id")] = true;
 			});
 		}//endif
 
 		//WE NOW HAVE A RIDICULOUS NUMBER OF CHECKED ITEMS, REDUCE TO MINIMUM COVER
 
-		//IF MANAGER IS CHECKED, THEN DO NOT INCLUDE
+		//IF PARENT IS CHECKED, THEN DO NOT INCLUDE
 		var minCover = mapAllKey(checked, function(id, v, m){
 			if (checked[self.parents[id].id]) return;
 			return id;
 		});
 		minCover.sort();
+
+
 
 		//HAS ANYTHING CHANGED?
 		var hasChanged = false;
@@ -202,7 +213,23 @@ PartitionFilter.prototype.makeTree=function(){
 		}//for
 
 		if (hasChanged){
+			if (self.callback) var oldParts=self.getSelectedParts();
+
 			self.selectedIDs = minCover;
+
+			if (self.callback){
+				try{
+					var moreChanges=self.callback(self.getSelectedParts(), oldParts);
+					if (moreChanges){
+						//CONVERT FROM PARTS BACK TO
+						var idList=reverseMap(self.id2part, moreChanges);
+						self.selectedIDs=idList;
+					}
+				}catch(e){
+					D.warning("Can not callback to parameter "+self.name, e)
+				}//try
+			}//endif
+
 			GUI.refresh();
 		}//endif
 	}).bind("loaded.jstree", function(c, data){

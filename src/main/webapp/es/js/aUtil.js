@@ -126,6 +126,17 @@ var mapAllKey=function(map, func){
 	return output;
 };
 
+//USE THE MAP FOR REVERSE LOOKUP ON codomain VALUES PROVIDED
+//SINCE THE MAP CODOMAIN IS A VALUE, === IS USED FOR COMPARISION
+var reverseMap=function(map, codomain){
+	var output=[];
+	codomain.forall(function(c, i){
+		forAllKey(map, function(k, v){
+			if (v===c) output.push(k);
+		});
+	});
+	return output;
+};
 
 
 

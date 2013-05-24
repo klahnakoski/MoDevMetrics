@@ -59,7 +59,11 @@ Dimension.prototype={
 };
 
 
+
+
 (function(){
+
+
 
 	////////////////////////////////////////////////////////////////////////////
 	// BUILD A HIERARCHY BY REPEATEDLY CALLING THIS METHOD WITH VARIOUS childPaths
@@ -145,13 +149,14 @@ Dimension.prototype={
 						edge={"name":dim.field, "value":dim.field};
 //					}//endif
 
-
+					var a=D.action("Get parts of "+dim.name, true);
 					var parts=yield (ESQuery.run({
 						"from":dim.index,
 						"select":{"name":"count", "value":dim.field, "aggregate":"count"},
 						"edges":[edge],
 						"limit":dim.limit
 					}));
+					D.actionDone(a);
 
 					var d=parts.edges[0].domain;
 

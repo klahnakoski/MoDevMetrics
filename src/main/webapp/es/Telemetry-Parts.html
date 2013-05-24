@@ -96,20 +96,37 @@ var __createChart = function(){
 	var X=GUI.state.X.getSelectedParts()[0];
 	if (X===undefined) yield(null);	//NOT READY TO SHOW ANYTHING
 
-	var Z=GUI.state.Z.getSelectedParts()[0];
-	if (Z!==undefined && Z.getDomain){	//PARTS DO NOT HAVE DOMAINS, SO JUST COUNT
+	var Z=GUI.state.Z.getSelectedParts();
+	if (Z.length>0){
+		var zDomain=Z[0];
+
+		{//FIND THE DIMENSION
+			while(true){
+				if (zDomain.getDomain) break;
+				if (!zDomain.parent) break;
+				zDomain=zDomain.parent;
+			}//while
+		}
+
+		//PARTS DO NOT HAVE DOMAINS, SO JUST COUNT
 		if (Z.partitions instanceof aThread) yield (aThread.join(Z.partitions));
 		if (PART_QUERY===undefined) PART_QUERY={};
 
 		//LET Z REPLACE THE PART_QUERY EDGE
 		var edgeZ={
 			"name":"Z",
-			"value":Z.field,
+			"value":zDomain.field,
 			"allowNulls":true,
-			"domain":Z.getDomain()
+			"domain":zDomain.getDomain()
 		};
 
 		PART_QUERY.edges=[edgeZ];
+
+		//IF Z IS A PART(S), THEN ADD A FILTER TO LIMIT TO THOSE PARTS
+		var partNames=Z.select("name");
+		edgeZ.domain.partitions=edgeZ.domain.partitions.filter(function(p){return partNames.contains(p.name);});
+//		query.where=CNV.Object2JSON(Z.map(function(p){return p.name;}))+".contains(Z.name)";
+		
 	}else if (PART_QUERY===undefined){
 		yield (null);	//NOT ENOUGH DIMENSIONS TO CHART YET
 	}//endif
@@ -119,20 +136,11 @@ var __createChart = function(){
 		"select":{"name":"count", "value":"1", "aggregate":"count"},
 	};
 	Map.copy(PART_QUERY, query);
-	if (query.esfilter){
-		if (query.esfilter.and){
-			query.esfilter.and.push(GUI.state.esfilter);
-		}else{
-			query.esfilter={"and":[
-				GUI.state.esfilter,
-				query.esfilter
-			]};
-		}//endif
-	}else{
-		query.esfilter={"and":[
-			GUI.state.esfilter
-		]};
-	}//endif
+	query.esfilter={"and":[
+		query.esfilter,
+		GUI.state.esfilter,
+		{"or":Z.map(function(p){return p.esfilter;})}	//ADD ESFILTER FOR SPEED
+	].cleanCopy()};
 
 
 	var edgeX={
@@ -184,7 +192,26 @@ var __createChart = function(){
 	yield (null);
 
 };
+	//LIMITS THE HIERARCHY SELECTION TO ALL PARTS IN ONE DIMENSION
+	var callback=function(newDims, oldDims){
+		//PUT NEW SELECTION FIRST
+		newDims=new aQueue_usingArray(newDims.subtract(oldDims)).appendArray(newDims).array;
 
+		var selectedDim;
+		//REDUCE SELECTION TO ALL PARTS IN ONE DIMENSION
+		var output=newDims.map(function(v){
+			var d=v;
+			while(true){
+				if (d.getDomain){
+					selectedDim=nvl(selectedDim, d);
+					if (d==selectedDim) return v;
+				}//endif
+				if (!d.parent) break;
+				d=d.parent;
+			}//while
+		});
+		return output;
+	};//method
 
 
 	$(document).ready(function(){
@@ -196,21 +223,17 @@ var __createChart = function(){
 					"id":"X",
 					"name":"Measure X",
 					"dimension":Mozilla.Telemetry,
-					"onlyOne":true,
+					"onlyOne":false,
 					"expandDepth":2,
-					"callback":function(dim){
-						D.println("Chose "+dim.name);
-					}//method
+					"callback":callback
 				})},
 				{"id":"Z", "type":PartitionFilter.newInstance({
 					"id":"Z",
 					"name":"Measure Z",
 					"dimension":Mozilla.Telemetry,
-					"onlyOne":true,
+					"onlyOne":false,
 					"expandDepth":2,
-					"callback":function(dim){
-						D.println("Chose "+dim.name);
-					}//method
+					"callback":callback
 				})},
 				{"id":"normalizeZ", "name":"Normalize Z", "type":"boolean", "default":false},
 				{"id":"maxX", "name":"Max X", "type":"number", "default":"100"},
