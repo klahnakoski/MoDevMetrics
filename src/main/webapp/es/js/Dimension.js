@@ -30,7 +30,7 @@ Dimension.prototype={
 			"min":this.min,
 			"max":this.max,
 			"interval":this.interval,
-			"value":this.value,
+			"value":(!this.value && this.partitions) ? "name" : this.value,
 			"isFacet":this.isFacet
 
 		};

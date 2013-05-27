@@ -95,8 +95,14 @@ var __createChart = function(){
 
 	var X=GUI.state.X.getSelectedParts()[0];
 	if (X===undefined) yield(null);	//NOT READY TO SHOW ANYTHING
+	if (X.partitions instanceof aThread) yield (aThread.join(X.partitions));
 
 	var Z=GUI.state.Z.getSelectedParts();
+	if (Z===undefined || Z.length==0) yield(null);	//NOT READY TO SHOW ANYTHING
+
+	var zSpecificParts=(Z[0].getDomain===undefined); //IF WE ARE SELECTING PARTICULAR PARTS OF DOMAIN
+
+
 	if (Z.length>0){
 		var zDomain=Z[0];
 
@@ -124,7 +130,9 @@ var __createChart = function(){
 
 		//IF Z IS A PART(S), THEN ADD A FILTER TO LIMIT TO THOSE PARTS
 		var partNames=Z.select("name");
-		edgeZ.domain.partitions=edgeZ.domain.partitions.filter(function(p){return partNames.contains(p.name);});
+		if (zSpecificParts){
+			edgeZ.domain.partitions=edgeZ.domain.partitions.filter(function(p){return partNames.contains(p.name);});
+		}//endif
 //		query.where=CNV.Object2JSON(Z.map(function(p){return p.name;}))+".contains(Z.name)";
 		
 	}else if (PART_QUERY===undefined){
@@ -139,7 +147,7 @@ var __createChart = function(){
 	query.esfilter={"and":[
 		query.esfilter,
 		GUI.state.esfilter,
-		{"or":Z.map(function(p){return p.esfilter;})}	//ADD ESFILTER FOR SPEED
+		zSpecificParts ? {"or":Z.map(function(p){return p.esfilter;})} : undefined	//ADD ESFILTER FOR SPEED
 	].cleanCopy()};
 
 
@@ -162,7 +170,7 @@ var __createChart = function(){
 	$("#cube").val(CNV.Object2JSON(query));
 
 
-	var a=D.action("Request Data from ES", true);
+	var a=D.action("Request Data from ES", false);
 	var chart=yield (ESQuery.run(query));
 	D.actionDone(a);
 
@@ -236,7 +244,7 @@ var __createChart = function(){
 					"callback":callback
 				})},
 				{"id":"normalizeZ", "name":"Normalize Z", "type":"boolean", "default":false},
-				{"id":"maxX", "name":"Max X", "type":"number", "default":"100"},
+				{"id":"maxX", "name":"Max X", "type":"number", "default":"10000"},
 				{"id":"numX", "name":"Num X", "type":"number", "default":"20"},
 				{"id":"normalizeX", "name":"Normalize X", "type":"boolean", "default":false},
 				{"id":"maxY", "name":"Max Y", "type":"number", "default":"200"},

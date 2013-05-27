@@ -88,14 +88,13 @@ Dimension.addEdges(false, Mozilla, [
 				{"name":"Unorderly", "esfilter":ESQuery.TrueFilter}
 			]},
 
-			{"name":"Warm/Cold", "esfilter":ESQuery.TrueFilter, "partitions":[
-				{"name":"Warm", "esfilter": {"script":{"script":"doc[\"simpleMeasurements.main\"].value - doc[\"simpleMeasurements.start\"].value <= 100"}}, "type":"boolean"},
-				{"name":"Cold", "esfilter": {"script":{"script":"doc[\"simpleMeasurements.main\"].value - doc[\"simpleMeasurements.start\"].value > 100"}}, "type":"boolean"}
+			{"name":"Warm or Cold", "esfilter":ESQuery.TrueFilter, "partitions":[
+				{"name":"Warm", "esfilter": {"script":{"script":"doc[\"simpleMeasurements.main\"].value - doc[\"simpleMeasurements.start\"].value <= 100"}}},
+				{"name":"Cold", "esfilter": {"script":{"script":"doc[\"simpleMeasurements.main\"].value - doc[\"simpleMeasurements.start\"].value > 100"}}}
 			]},
 
-			{"name":"Startup Time", "field":"simpleMeasurements.main-simpleMeasurements.start", "type":"numeric"}
+			{"name":"Start to FirstPaint", "field":"simpleMeasurements.firstPaint-simpleMeasurements.start", "type":"numeric"}
 		]},
-
 		{"name":"Instance", "edges":[
 			{"name":"reason", "field":"info.reason", "type":"set"},
 			{
@@ -158,7 +157,7 @@ Dimension.addEdges(false, Mozilla, [
 					return {
 						"name":(128*Math.pow(2, v))+"meg",
 						"value":(128*Math.pow(2, v))+"meg",
-						"esfilter":{"range":{"info.memsize":{"gte":128*Math.pow(2, v-.5), "lt":128*Math.pow(2, v+.5)}}}
+						"esfilter":{"range":{"info.memsize":{"gte":aMath.round(128*Math.pow(2, v-.5),0), "lt":aMath.round(128*Math.pow(2, v+.5), 0)}}}
 					};
 				}),
 				"value":"name"
