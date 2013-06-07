@@ -220,11 +220,11 @@ var HIERARCHY = {};
 		//PLAN IS TO LOOK AT PARENT'S DESCENDANTS, IF SELF HAS ANY NEW DESCENDANTS
 		//TO ADD, THEN ADD THEM AND ADD PARENT TO THE workQueue
 		var a = D.action("Find Descendants", true);
-		yield (aThread.sleep(100));
+		yield (Thread.sleep(100));
 		var workQueue = new aQueue(Object.keys(allParents.map));
 
 		while(!workQueue.isEmpty()){      //KEEP WORKING WHILE THERE ARE CHANGES
-			yield (aThread.yield());
+			yield (Thread.yield());
 			if (DEBUG){
 				if (DEBUG_MIN > workQueue.length() && workQueue.length() % Math.pow(10, Math.round(Math.log(workQueue.length()) / Math.log(10)) - 1) == 0){
 
@@ -277,7 +277,7 @@ var HIERARCHY = {};
 
 	if (DEBUG){
 
-		aThread.run(function(){
+		Thread.run(function(){
 			yield (HIERARCHY.start());
 			yield (toFixPoint(new aRelation().addArray("12", [45, 46, 47]).addArray(45, [1,2,3]), DATA));
 			if (DATA.allDescendants.get(12).length!=6) D.error();

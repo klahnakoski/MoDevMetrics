@@ -22,7 +22,7 @@ TeamFilter.newInstance=function(field_name){
 	self.field_name=field_name;
 	self.selectedEmails=[];
 
-	aThread.run("get people", function(){
+	Thread.run("get people", function(){
 		//GET ALL PEOPLE
 		var people=(yield (ESQuery.run({
 			"from":"org_chart",
@@ -103,7 +103,7 @@ TeamFilter.newInstance=function(field_name){
 //		'#' + myid.replace(/(:|\.)/g,'\\$1');
 
 		while($("#"+CNV.String2JQuery("gkovacs@mozilla.com")).length==0){
-			yield (aThread.sleep(100));
+			yield (Thread.sleep(100));
 		}//while
 
 		self.people=people;
@@ -119,7 +119,7 @@ TeamFilter.prototype.makeHTML=function(){
 
 TeamFilter.prototype.getSummary=function(){
 	var html = "Teams: ";
-	var teams=aThread.runSynchronously(this.getSelectedPeople());
+	var teams=Thread.runSynchronously(this.getSelectedPeople());
 	if (teams.length == 0){
 		html += "All";
 	} else{
@@ -133,7 +133,7 @@ TeamFilter.prototype.getSelectedPeople=function(){
 	var self=this;
 
 	while(!self.people){
-		yield (aThread.sleep(100));
+		yield (Thread.sleep(100));
 	}//while
 
 	//CONVERT SELECTED LIST INTO PERSONS
@@ -169,7 +169,7 @@ TeamFilter.prototype.makeFilter = function(field_name){
 	field_name=nvl(field_name, this.field_name);
 	if (field_name==null) return ESQuery.TrueFilter;
 
-	var selected = aThread.runSynchronously(this.getSelectedPeople());
+	var selected = Thread.runSynchronously(this.getSelectedPeople());
 	if (selected.length == 0) return ESQuery.TrueFilter;
 
 	//FIND BZ EMAILS THAT THE GIVEN LIST MAP TO

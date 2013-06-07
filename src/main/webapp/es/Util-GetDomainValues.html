@@ -45,7 +45,7 @@ ElasticSearch.baseURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
 ElasticSearch.queryURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200/bugs/_search";
 	
 var createChart=function(){
-	aThread.run(function(){
+	Thread.run(function(){
 
 		yield (ESQuery.loadColumns({"from":"bugs"}));
 

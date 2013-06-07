@@ -34,17 +34,17 @@ importScript([
 
 	$("#get").click(function(){
 		if (mainThread!==undefined) mainThread.kill();
-		mainThread=aThread.run(OrgChart.get());
+		mainThread=Thread.run(OrgChart.get());
 	});
 
 	$("#push").click(function(){
 		if (mainThread!==undefined) mainThread.kill();
-		mainThread=aThread.run(OrgChart.push());
+		mainThread=Thread.run(OrgChart.push());
 	});
 
 	$("#both").click(function(){
 		if (mainThread!==undefined) mainThread.kill();
-		mainThread=aThread.run(function(){
+		mainThread=Thread.run(function(){
 			yield (OrgChart.start());
 			yield (OrgChart.get());
 			yield (OrgChart.push());

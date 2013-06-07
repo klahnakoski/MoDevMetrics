@@ -56,10 +56,10 @@ PartitionFilter.newInstance=function(param){
 
 function convertToTreeLater(self, treeNode, dimension){
 	self.numLater++;
-	aThread.run(function(){
+	Thread.run(function(){
 		//DO THIS ONE LATER
 //		treeNode.children = [];
-		while(dimension.partitions instanceof aThread) yield (aThread.join(dimension.partitions));
+		while(dimension.partitions instanceof Thread) yield (Thread.join(dimension.partitions));
 			treeNode.children = dimension.partitions.map(function(v, i){
 				if (i<nvl(dimension.limit, DEFAULT_CHILD_LIMIT)) return convertToTree(self, treeNode, v);
 			});
@@ -79,7 +79,7 @@ function convertToTree(self, parent, dimension){
 	self.parents[node.id]=parent;
 
 	if (dimension.partitions){
-		if (dimension.partitions instanceof aThread){
+		if (dimension.partitions instanceof Thread){
 			convertToTreeLater(self, node, dimension);
 		}else{
 			node.children=dimension.partitions.map(function(v,i){
@@ -155,8 +155,8 @@ PartitionFilter.prototype.makeTree=function(){
 	if (self.numLater>0){
 		if (self.refreshLater===undefined){
 			//WAIT FOR LOADING TO COMPLETE
-			self.refreshLater=aThread.run(function(){
-				while(self.numLater>0) yield(aThread.sleep(200));
+			self.refreshLater=Thread.run(function(){
+				while(self.numLater>0) yield(Thread.sleep(200));
 				self.refreshLater=undefined;
 				self.makeTree();
 			});

@@ -38,7 +38,7 @@ Bugzilla.linkToBug=function(bugList){
 Bugzilla.search=function(bugList, fields){
 	var BLOCK_SIZE=100;
 
-	var resume=yield (aThread.Resume);
+	var resume=yield (Thread.Resume);
 	var result=[];
 	var numCalls=aMath.floor((bugList.length+BLOCK_SIZE-1)/BLOCK_SIZE);
 	if (!fields.contains("id")) fields.prepend("id");
@@ -66,7 +66,7 @@ Bugzilla.search=function(bugList, fields){
 		});
 
 	}//for
-	yield (aThread.Suspend);
+	yield (Thread.Suspend);
 
 	yield (null);
 };//method

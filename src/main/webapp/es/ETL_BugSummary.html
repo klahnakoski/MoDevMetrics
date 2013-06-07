@@ -30,22 +30,22 @@ importScript([
 
 
 	$("#start").click(function(){
-		aThread.run(ETL.newInsert(BUG_SUMMARY));
+		Thread.run(ETL.newInsert(BUG_SUMMARY));
 	});
 
 	$("#resume").click(function(){
-		aThread.run(ETL.resumeInsert(BUG_SUMMARY));
+		Thread.run(ETL.resumeInsert(BUG_SUMMARY));
 	});
 
 	$("#inc").click(function(){
-		aThread.run(function(){
+		Thread.run(function(){
 			var startTime=yield (BUG_SUMMARY.getLastUpdated());
 			yield (ETL.incrementalInsert(BUG_SUMMARY, startTime));
 		});
 	});
 
 	$("#test").click(function(){
-		aThread.run(function(){
+		Thread.run(function(){
 			var reviews=yield (BUG_SUMMARY.get([635852 , 718121, 790640, 563491], undefined));
 			$("#results").html(CNV.List2HTMLTable(reviews));
 		});

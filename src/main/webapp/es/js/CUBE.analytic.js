@@ -102,7 +102,7 @@ CUBE.analytic.add=function(query, analytic){
 			trunk.push(row);
 		}//for
 	}//endif
-//	yield (aThread.yield());
+//	yield (Thread.yield());
 
 	//SORT
 	var sortFunction;

@@ -58,7 +58,7 @@ var thread;
 var createChart = function(){
 	if (thread !== undefined)
 		thread.kill();
-	thread = aThread.run(__createChart());
+	thread = Thread.run(__createChart());
 };
 
 var __createChart = function(){
@@ -96,7 +96,7 @@ var __createChart = function(){
 
 
 	
-	aThread.run(function(){
+	Thread.run(function(){
 		var a=D.action("Get Bug Details", true);
 		//FIND ALL BUGS
 		var historyBugs=yield (ElasticSearch.getMinMax({"and":[mainFilter, Mozilla.BugStatus.Open.esfilter]}));
@@ -207,7 +207,7 @@ var __createChart = function(){
 
 	$("#stats").html("");
 
-	aThread.run("Calc Past Stats", function(){
+	Thread.run("Calc Past Stats", function(){
 
 		var stats = yield(Q({
 			"from":flat,

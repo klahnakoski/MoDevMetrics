@@ -53,7 +53,7 @@ var thread;
 var createChart=function(){
 	if (thread!==undefined)
 		thread.kill();
-	thread=aThread.run( __createChart());
+	thread=Thread.run( __createChart());
 };
 
 var __createChart = function(){
@@ -84,7 +84,7 @@ var __createChart = function(){
 
 
 	//CHART PRODUCT BREAKDOWN
-	aThread.run(function(){
+	Thread.run(function(){
 		var q=new ESQuery({
 			"name":"Product Breakdown",
 			"from":"bugs",

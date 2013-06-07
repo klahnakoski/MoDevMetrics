@@ -615,7 +615,7 @@ function bugClicker(query, series, x){
 		//We can decide to drilldown, or show a bug list.
 		//Sometimes drill down is not available, and bug list is too big, so nothing happens
 		//When there is a drilldown, the decision to show bugs is made at a lower count (prefering drilldown)
-		aThread.run(function(){
+		Thread.run(function(){
 			var specific;
 			if (query.edges.length==2){
 				specific=CUBE.specificBugs(query, [series, x]);

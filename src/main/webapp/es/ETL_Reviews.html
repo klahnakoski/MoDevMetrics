@@ -32,21 +32,21 @@ importScript([
 	D.println(""+Date.newInstance(1351604852000).format("yy-MM-dd HH:mm:ss"));
 
 	$("#start").click(function(){
-		aThread.run(ETL.newInsert(REVIEWS));
+		Thread.run(ETL.newInsert(REVIEWS));
 	});
 
 	$("#resume").click(function(){
-		aThread.run(ETL.resumeInsert(REVIEWS));
+		Thread.run(ETL.resumeInsert(REVIEWS));
 	});
 
 	$("#inc").click(function(){
-		aThread.run(function(){
+		Thread.run(function(){
 			yield (ETL.incrementalInsert(REVIEWS));
 		});
 	});
 
 	$("#test").click(function(){
-		aThread.run((function(){
+		Thread.run((function(){
 			var bugs=yield(ESQuery.run({
 				"select" : [
 					{"name":"bug_id", "value":"bugs.bug_id"}
@@ -91,7 +91,7 @@ importScript([
 
 
 	$("#markup").click(function(){
-		aThread.run((function(){
+		Thread.run((function(){
 			var reviews=yield (REVIEWS.postMarkup());
 					})());
 	});

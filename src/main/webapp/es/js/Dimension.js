@@ -140,7 +140,7 @@ Dimension.prototype={
 //					D.println("");
 //				}
 
-				dim.partitions=aThread.run(function(){
+				dim.partitions=Thread.run(function(){
 					//IF dim.field IS A NUMBER, THEN SET-WISE EDGES DO NOT WORK (CLASS CAST EXCEPTION)
 //					if (dim.field=="info.appBuildID"){
 //						D.warning("Special case for info.appBuildID, please fix Telemetry schema");

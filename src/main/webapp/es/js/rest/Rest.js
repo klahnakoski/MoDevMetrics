@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-importScript("../aThread.js");
+importScript("../../lib/jsThreads/js/thread.js");
 
 
 var Rest={};
@@ -25,7 +25,7 @@ Rest.send=function(ajaxParam){
 	if (ajaxParam.query!==undefined) D.error("Do not set the query parameter, use 'data'");
 	if (ajaxParam.success!==undefined) D.error("This function will return data, it does not accept the success function");
 
-	var callback=yield (aThread.Resume);	//RESUME THREAD ON RETURN
+	var callback=yield (Thread.Resume);	//RESUME THREAD ON RETURN
 
 	//FILL IN THE OPTIONAL VALUES
 	if (ajaxParam.type===undefined) ajaxParam.type="POST";
@@ -96,7 +96,7 @@ Rest.send=function(ajaxParam){
 	};
 
 	request.send(ajaxParam.data);
-	var output=new aThread.Suspend((ajaxParam.doNotKill) ? undefined : request);
+	var output=new Thread.Suspend((ajaxParam.doNotKill) ? undefined : request);
 	yield (output);
 };//method
 

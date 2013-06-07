@@ -54,7 +54,7 @@ var thread;
 var createChart = function(){
 	if (thread !== undefined)
 		thread.kill();
-	thread = aThread.run(__createChart());
+	thread = Thread.run(__createChart());
 };
 
 var __createChart = function(){
@@ -218,7 +218,7 @@ var __createChart = function(){
 			"height":400,
 			"xAxisSize":50,
 			"clickAction":function(series, x, d){
-				aThread.run(function(){
+				Thread.run(function(){
 					var where;
 					if (series=="opened"){
 						where="min.floorDay().getMilli()=="+x.getMilli();
@@ -376,7 +376,7 @@ var __createChart = function(){
 			line_lineWidth: 3
 		},
 		"clickAction":function(series, x, d){
-			aThread.run(function(){
+			Thread.run(function(){
 				var buglist=(yield (ESQuery.run({
 					"from":"bugs",
 					"select":{"value":"bug_id", "aggregate":"minimum"},

@@ -64,7 +64,7 @@
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/aThread.js"></script>
+<script type="application/javascript;version=1.7" src="lib/jsThreads/js/thread.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.analytic.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
@@ -150,7 +150,7 @@ var threadPercentiles;
 var createChart=function(){
 	if (thread!==undefined) thread.kill();
 	if (threadPercentiles!==undefined) threadPercentiles.kill();
-	thread=aThread.run( __createChart());
+	thread=Thread.run( __createChart());
 };
 
 var __createChart = function(){
@@ -186,7 +186,7 @@ var __createChart = function(){
 	}));
 	D.actionDone(a);
 
-	aThread.run(function(){
+	Thread.run(function(){
 		var average=yield(ESQuery.run({
 			"from":"bug_summary",
 			"select":[
@@ -223,7 +223,7 @@ var __createChart = function(){
 	});
 
 
-	threadPercentiles=aThread.run(function(){
+	threadPercentiles=Thread.run(function(){
 
 		var a=D.action("Get Time Stats", true);
 		allBugs=yield(ESQuery.run({
@@ -289,7 +289,7 @@ var chartStat=function(description, timeDomain, sampleSize){
 
 	if (allBugs==null) D.error("Please wait for data collection");
 
-	aThread.run(function(){
+	Thread.run(function(){
 
 		//SOME BUGS HAVE NEGATIVE AGE!!
 		allBugs.list=allBugs.list.map(function(v, i){
@@ -300,7 +300,7 @@ var chartStat=function(description, timeDomain, sampleSize){
 //				allBugs.list[b].death=allBugs.list[b].birth+Duration.DAY.milli;
 ////				D.error();
 //		}//for
-		yield (aThread.yield());
+		yield (Thread.yield());
 
 //		Stats.calc2List({
 //			"from":allBugs,
@@ -342,7 +342,7 @@ var chartStat=function(description, timeDomain, sampleSize){
 			]
 		}));
 
-		yield (aThread.yield());
+		yield (Thread.yield());
 
 
 		$("#stats").append(

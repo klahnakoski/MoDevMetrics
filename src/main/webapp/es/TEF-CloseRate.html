@@ -56,7 +56,7 @@ var thread;
 var createChart = function(){
 	if (thread !== undefined)
 		thread.kill();
-	thread = aThread.run(__createChart());
+	thread = Thread.run(__createChart());
 };
 
 var __createChart = function(){
@@ -82,7 +82,7 @@ var __createChart = function(){
 
 	yield (ESQuery.loadColumns({"from":"bugs"}));
 
-	aThread.run(function(){
+	Thread.run(function(){
 		var a=D.action("Get Bug Details", true);
 
 		var mm=yield (ElasticSearch.getMinMax({"and":[
@@ -116,7 +116,7 @@ var __createChart = function(){
 		D.actionDone(a);
 
 		a=D.action("Calc Close Times", true);
-		yield (aThread.sleep(100));
+		yield (Thread.sleep(100));
 		
 		var bugList=yield (Q({
 			"from":mm,
@@ -148,7 +148,7 @@ var __createChart = function(){
 
 		D.actionDone(a);
 		a=D.action("Tally Close Times", true);
-		yield (aThread.sleep(100));
+		yield (Thread.sleep(100));
 
 		var chart=yield (Q({
 			"from":bugList,
@@ -192,7 +192,7 @@ var __createChart = function(){
 
 
 		var clicker=function(type, x, d){
-				aThread.run(function(){
+				Thread.run(function(){
 					var date=Date.newInstance(x);
 
 					var list=yield (CUBE.calc2List({

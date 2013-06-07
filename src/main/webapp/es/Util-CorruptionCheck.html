@@ -25,7 +25,7 @@ importScript(["js/main.js"], function(){
 
 	//ES CAN BE OUT-OF-SYNCH WITH BZ ON PARTICULAR BUGS DURING UNSTABLE PERIODS
 
-	aThread.run(function(){
+	Thread.run(function(){
 		var result=yield (ESQuery.run({
 			"from":"bugs",
 			"select":{"name":"num_null", "value":"expires_on>"+Date.eod().getMilli()+" ? 1 : 0", "aggregate":"sum"},

@@ -59,7 +59,7 @@ importScript([
 	var createChart=function(){
 		if (thread!==undefined) thread.kill();
 //		if (reviewRequest) reviewRequest.kill();
-		thread=aThread.run("createChart", __createChart());
+		thread=Thread.run("createChart", __createChart());
 	};
 
 	var __createChart = function(){
@@ -92,7 +92,7 @@ importScript([
 
 
 		//CHART OF AGGREGATE RESPONSE TIMES
-		aThread.run("Agg response times", function(){
+		Thread.run("Agg response times", function(){
 			var a=D.action("Grab Stats", true);
 			var ages=(yield (ESQuery.run({
 				"name":"DF",
@@ -118,7 +118,7 @@ importScript([
 
 
 			a=D.action("Calc Stats", true);
-			yield (aThread.yield());//GIVE THE MESSAGE OPPORTUNITY TO SHOW
+			yield (Thread.yield());//GIVE THE MESSAGE OPPORTUNITY TO SHOW
 
 			var percentile=yield(Q({
 				"from":ages,

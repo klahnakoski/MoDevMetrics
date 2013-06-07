@@ -1,0 +1,3 @@
+[submodule "src/main/webapp/es/lib/jsThreads"]
+	path = src/main/webapp/es/lib/jsThreads
+	url = https://github.com/mozilla/jsThreads.git

@@ -57,14 +57,14 @@
 importScript(['js/main.js', 'js/Dimension-Telemetry.js'], function(){
 
 //SOMETHING IS CHANGING THE position=relative
-var fixer=aThread.run("Monitor regression div", function(){
+var fixer=Thread.run("Monitor regression div", function(){
 
 	while(true){
 		$("#chartLine").css("position","absolute");
-		yield (aThread.sleep(1000));
+		yield (Thread.sleep(1000));
 	}//while
 });
-aThread.isRunning.remove(fixer);		//STEALTH MODE
+Thread.isRunning.remove(fixer);		//STEALTH MODE
 
 
 ElasticSearch.baseURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
@@ -81,7 +81,7 @@ var thread;
 
 var createChart=function(){
 	if (thread!==undefined) thread.kill();
-	thread=aThread.run( __createChart());
+	thread=Thread.run( __createChart());
 };
 
 var __createChart = function(){
@@ -137,7 +137,7 @@ var __createChart = function(){
 
 	//CHART PRODUCT BREAKDOWN
 	var heatGrid;
-	var heatThread=aThread.run("pull raw telemetry data", function(){
+	var heatThread=Thread.run("pull raw telemetry data", function(){
 		heatGrid=yield (ESQuery.run({
 			"name":"X vs Y",
 			"from":"raw_telemetry",
@@ -217,7 +217,7 @@ var __createChart = function(){
 //	var XY;
 
 //
-//	var threadXY=aThread.run("pull XY stats", function(){
+//	var threadXY=Thread.run("pull XY stats", function(){
 //		XY=yield (ESQuery.run({
 //			"from":"raw_telemetry",
 //			"select":[
@@ -230,7 +230,7 @@ var __createChart = function(){
 //		}));
 //	});
 //
-//	var threadX=aThread.run("pull X stats", function(){
+//	var threadX=Thread.run("pull X stats", function(){
 //		X=yield (ESQuery.run({
 //			"from":"raw_telemetry",
 //			"select":[
@@ -243,7 +243,7 @@ var __createChart = function(){
 //		}));
 //	});
 //
-//	var threadY=aThread.run("pull Y stats", function(){
+//	var threadY=Thread.run("pull Y stats", function(){
 //		Y=yield (ESQuery.run({
 //			"from":"raw_telemetry",
 //			"select":[
@@ -256,9 +256,9 @@ var __createChart = function(){
 //		}));
 //	});
 //
-//	yield (aThread.join(threadXY));
-//	yield (aThread.join(threadX));
-//	yield (aThread.join(threadY));
+//	yield (Thread.join(threadXY));
+//	yield (Thread.join(threadX));
+//	yield (Thread.join(threadY));
 //
 //	var line=Stats.regressionLine({
 //		"N":X.cube.count,
@@ -270,7 +270,7 @@ var __createChart = function(){
 //	});
 //
 //	//BUILD NEW QUERY WITH NEW CUBE
-//	yield (aThread.join(heatThread));
+//	yield (Thread.join(heatThread));
 //	var query=heatGrid;
 //	var domainX=CUBE.domain.algebraic2numeric(query.edges[1].domain);
 //	var output=Map.copy(heatGrid);

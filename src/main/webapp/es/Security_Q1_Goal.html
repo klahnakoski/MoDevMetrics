@@ -71,7 +71,7 @@ var thread;
 var createChart=function(){
 	if (thread!==undefined)
 		thread.kill();
-	thread=aThread.run( __createChart());
+	thread=Thread.run( __createChart());
 };
 
 var __createChart = function(){
@@ -112,7 +112,7 @@ var __createChart = function(){
 
 
 	var allBugs;
-	var allBugsThread=aThread.run(function(){
+	var allBugsThread=Thread.run(function(){
 		D.action("Request Bugs");
 
 		allBugs=yield (ElasticSearch.getMinMax(mainFilter));
@@ -150,7 +150,7 @@ var __createChart = function(){
 	});
 
 
-	aThread.run(function(){
+	Thread.run(function(){
 		var details=yield (ESQuery.run({
 			"from":"bugs",
 			"select":[
@@ -167,7 +167,7 @@ var __createChart = function(){
 
 		}));
 
-		yield (aThread.join(allBugsThread));
+		yield (Thread.join(allBugsThread));
 		//INSERT allBugs MIN/MAX VALUES INTO details
 		details.list.forall(function(v, i){
 			var mm=allBugs.get("bug_id", v.bug_id);
@@ -198,7 +198,7 @@ var __createChart = function(){
 	});
 
 
-	aThread.run(function(){
+	Thread.run(function(){
 		var a=D.action("Request Bugs", true);
 		var chart=yield (ESQuery.run({
 			"name":"Open Bug Count",
@@ -233,9 +233,9 @@ var __createChart = function(){
 	});
 
 
-	aThread.run(function(){
+	Thread.run(function(){
 
-		yield (aThread.join(allBugsThread));
+		yield (Thread.join(allBugsThread));
 
 		//SHOW BARS FOR EVERY DAY, IF LESS THAN A 3WEEKS
 		var interval;

@@ -31,19 +31,19 @@ importScript([
 	$("#start").click(function(){
 		ElasticSearch.pushURL="http://localhost:9200";
 		if (mainThread!==undefined) mainThread.kill();
-		mainThread=aThread.run(ETL.newInsert(HIERARCHY));
+		mainThread=Thread.run(ETL.newInsert(HIERARCHY));
 	});
 
 	$("#resume").click(function(){
 		ElasticSearch.pushURL="http://localhost:9200";
 		if (mainThread!==undefined) mainThread.kill();
-		mainThread=aThread.run(ETL.resumeInsert(HIERARCHY));
+		mainThread=Thread.run(ETL.resumeInsert(HIERARCHY));
 	});
 
 	$("#inc").click(function(){
 		ElasticSearch.pushURL="http://localhost:9200";
 		if (mainThread!==undefined) mainThread.kill();
-		mainThread=aThread.run(function(){
+		mainThread=Thread.run(function(){
 			yield (ETL.incrementalInsert(HIERARCHY));
 			window.close();  //TO CLEANUP THE PAGE'S MEMORY LEAK
 		});
@@ -51,7 +51,7 @@ importScript([
 
 	$("#test").click(function(){
 		if (mainThread!==undefined) mainThread.kill();
-		mainThread=aThread.run(function(){
+		mainThread=Thread.run(function(){
 //
 //			var temp=yield(ESQuery.run({
 //				"from":"bugs",

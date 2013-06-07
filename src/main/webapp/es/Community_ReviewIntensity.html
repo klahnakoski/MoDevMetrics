@@ -56,7 +56,7 @@
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/aThread.js"></script>
+<script type="application/javascript;version=1.7" src="js/../lib/jsThreads/js/thread.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.analytic.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
@@ -133,7 +133,7 @@
 	var createChart=function(){
 		if (thread!==undefined)
 			thread.kill();
-		thread=aThread.run( __createChart());
+		thread=Thread.run( __createChart());
 	};
 
 	var __createChart = function(){
@@ -155,7 +155,7 @@
 		GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
 
 		//CHART OF AGGREGATE RESPONSE TIMES
-		aThread.run(function(){
+		Thread.run(function(){
 			var response=yield (ESQuery.run({
 				"name":"Response Time Breakdown",
 				"from":"reviews",
@@ -184,7 +184,7 @@
 
 
 		//CHART OF AGGREGATE RESPONSE TIMES
-		aThread.run(function(){
+		Thread.run(function(){
 			var a=D.action("Grab Stats", true);
 
 			var df=(yield (ESQuery.run({
@@ -229,7 +229,7 @@
 		});
 
 		//CHART PRODUCT BREAKDOWN
-		aThread.run(function(){
+		Thread.run(function(){
 			var q=new ESQuery({
 				"name":"Product Breakdown",
 				"from":"reviews",

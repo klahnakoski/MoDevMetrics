@@ -48,7 +48,7 @@ var thread;
 var createChart=function(){
 	if (thread!==undefined)
 		thread.kill();
-	thread=aThread.run( __createChart());
+	thread=Thread.run( __createChart());
 };
 
 var __createChart = function(){
@@ -74,7 +74,7 @@ var __createChart = function(){
 
 	GUI.injectFilters(q);
 
-	aThread.run(function(){
+	Thread.run(function(){
 		var old=yield (q.run());
 
 		var a=D.action("Get Old Reviews", true);

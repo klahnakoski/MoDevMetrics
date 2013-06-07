@@ -277,7 +277,7 @@ Dimension.addEdges(true,  Mozilla, [
 					{"term":{"product":"core"}},
 					{"or":[
 						{"prefix":{"component":"webrtc"}},
-						{"terms":{"component":['video/audio']}}
+						{"terms":{"component":['video/audio', 'web audio']}}
 					]}
 				]}
 			},

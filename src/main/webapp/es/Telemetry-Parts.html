@@ -84,18 +84,18 @@ var thread;
 
 var createChart=function(){
 	if (thread!==undefined) thread.kill();
-	thread=aThread.run( __createChart());
+	thread=Thread.run( __createChart());
 };
 
 
 var __createChart = function(){
 	//REEMPTIVE LOAD SO THE EXPRESSION COMPILE WORKS
 	yield (ESQuery.loadColumns({"from": "raw_telemetry"}));
-	if (Mozilla.Telemetry.Instance.Addons.partitions instanceof aThread) yield (aThread.join(Mozilla.Telemetry.Instance.Addons.partitions));
+	if (Mozilla.Telemetry.Instance.Addons.partitions instanceof Thread) yield (Thread.join(Mozilla.Telemetry.Instance.Addons.partitions));
 
 	var X=GUI.state.X.getSelectedParts()[0];
 	if (X===undefined) yield(null);	//NOT READY TO SHOW ANYTHING
-	if (X.partitions instanceof aThread) yield (aThread.join(X.partitions));
+	if (X.partitions instanceof Thread) yield (Thread.join(X.partitions));
 
 	var Z=GUI.state.Z.getSelectedParts();
 	if (Z===undefined || Z.length==0) yield(null);	//NOT READY TO SHOW ANYTHING
@@ -115,7 +115,7 @@ var __createChart = function(){
 		}
 
 		//PARTS DO NOT HAVE DOMAINS, SO JUST COUNT
-		if (Z.partitions instanceof aThread) yield (aThread.join(Z.partitions));
+		if (Z.partitions instanceof Thread) yield (Thread.join(Z.partitions));
 		if (PART_QUERY===undefined) PART_QUERY={};
 
 		//LET Z REPLACE THE PART_QUERY EDGE

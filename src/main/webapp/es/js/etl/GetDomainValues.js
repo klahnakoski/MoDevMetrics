@@ -41,7 +41,7 @@ indexes.forall(function(index, i){
 					{"name":"max", "value":col.name, "aggregate":"maximum"}
 				]
 			};
-			aThread.run(function(){
+			Thread.run(function(){
 				var result=yield (ESQuery.run(query));
 				D.println(index+"."+col.name+"={min:"+result.min+",max:"+result.max+"}");
 			});

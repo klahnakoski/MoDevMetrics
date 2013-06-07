@@ -11,5 +11,5 @@ importScript("aDuration.js");
 importScript("aTimer.js");
 importScript("aColour.js");
 importScript("aDebug.js");
-importScript("aThread.js");
+importScript("../lib/jsThreads/js/thread.js");
 importScript("aFormat.js");

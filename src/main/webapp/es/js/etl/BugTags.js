@@ -209,7 +209,7 @@ BUG_TAGS.addMissing=function(){
 	})));
 
 
-//	var all=aThread.parallel(4);
+//	var all=Thread.parallel(4);
 	var pid=totals.edges[0].domain.partitions;
 	var mid=totals.edges[1].domain.partitions;
 

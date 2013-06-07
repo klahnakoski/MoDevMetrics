@@ -58,7 +58,7 @@ var thread;
 var createChart = function(){
 	if (thread !== undefined)
 		thread.kill();
-	thread = aThread.run(__createChart());
+	thread = Thread.run(__createChart());
 };
 
 var __createChart = function(){
@@ -77,7 +77,7 @@ var __createChart = function(){
 	yield (ESQuery.loadColumns({"from":"bugs"}));
 
 
-	aThread.run(function(){
+	Thread.run(function(){
 		var a=D.action("Get Bug Details", true);
 
 
@@ -111,7 +111,7 @@ var __createChart = function(){
 		D.actionDone(a);
 
 		a=D.action("Calc Close Times", true);
-		yield (aThread.yield());
+		yield (Thread.yield());
 		
 		var bugList=yield (Q({
 			"from":mm,
@@ -180,7 +180,7 @@ var __createChart = function(){
 				line_lineWidth: 2
 			},
 			"clickAction":function(resolution, x, d){
-				aThread.run(function(){
+				Thread.run(function(){
 					var date=Date.newInstance(x);
 
 					var list=yield (CUBE.calc2List({

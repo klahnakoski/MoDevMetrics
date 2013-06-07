@@ -40,7 +40,7 @@ Telemetry.get=function(minBug, maxBug){
 			Telemetry.people=json;
 		};//method
 
-		yield (aThread.yield());  //YIELD TO ALLOW FUNCTION TO BE ASSIGNED TO window
+		yield (Thread.yield());  //YIELD TO ALLOW FUNCTION TO BE ASSIGNED TO window
 
 		var url=Telemetry.URL+"/search.php?format=jsonp&callback="+Telemetry.JSONP_CALLBACK+"&query=*";
 		var html=$("<script type=\"application/javascript;version=1.9\" src=\""+url+"\"></script>");
@@ -48,7 +48,7 @@ Telemetry.get=function(minBug, maxBug){
 		body.append(html);
 
 		while(!Telemetry.people){
-			yield (aThread.sleep(1000));  //YIELD TO ALLOW SCRIPT TO LOAD AND EXECUTE
+			yield (Thread.sleep(1000));  //YIELD TO ALLOW SCRIPT TO LOAD AND EXECUTE
 		}//while
 		
 		//HERE WE JUST RETURN THE LOCAL COPY

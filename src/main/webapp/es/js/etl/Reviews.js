@@ -20,7 +20,7 @@ REVIEWS.ALIASES=[
 
 
 
-//aThread.run(function(){
+//Thread.run(function(){
 //	ETL.allFlags = yield (CUBE.calc2List({
 //		"from":CNV.Table2List(MozillaPrograms),
 //		"edges":["attributeName"],
@@ -267,29 +267,29 @@ REVIEWS.get=function(minBug, maxBug){
 
 
 	var inReview;
-	var A=aThread.run("Get Review Requests", function(){
+	var A=Thread.run("Get Review Requests", function(){
 		var a=D.action("Get Review Requests", true);
 		inReview=yield(reviewQuery.run());
 		D.actionDone(a);
 	});
 
 	var doneReview;
-	var B=aThread.run("Get Review Ends", function(){
+	var B=Thread.run("Get Review Ends", function(){
 		var a=D.action("Get Review Ends", true);
 		doneReview=yield(doneQuery.run());
 		D.actionDone(a);
 	});
 
 	var switchedReview;
-	var C=aThread.run("Get Review Re-assignments", function(){
+	var C=Thread.run("Get Review Re-assignments", function(){
 		var a=D.action("Get Review Re-assignments", true);
 		switchedReview=yield(switchedQuery.run());
 		D.actionDone(a);
 	});
 
-	yield (aThread.join(A));
-	yield (aThread.join(B));
-	yield (aThread.join(C));
+	yield (Thread.join(A));
+	yield (Thread.join(B));
+	yield (Thread.join(C));
 
 
 	var a=D.action("processing Data...", true);
@@ -439,10 +439,10 @@ REVIEWS.postMarkup=function(){
 			if (v.requester_review_num==v.old_requester_review_num)
 				continue;
 
-			while(maxPush<=0) yield(aThread.sleep(100));
+			while(maxPush<=0) yield(Thread.sleep(100));
 			maxPush--;
 
-			aThread.run("Send update to es", function(){
+			Thread.run("Send update to es", function(){
 				try{
 					yield (Rest.post({
 						"url":ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName+"/"+v._id+"/_update",

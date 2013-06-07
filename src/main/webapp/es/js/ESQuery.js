@@ -131,7 +131,7 @@ ESQuery.loadColumns=function(query){
 
 	//WE MANAGE ALL THE REQUESTS FOR THE SAME SCHEMA, DELAYING THEM IF THEY COME IN TOO FAST
 	if (indexInfo.fetcher === undefined) {
-		indexInfo.fetcher=aThread.run(function(){
+		indexInfo.fetcher=Thread.run(function(){
 			var URL=nvl(query.url, nvl(indexInfo.host, ElasticSearch.baseURL) + indexPath) + "/_mapping";
 
 			try{
@@ -151,7 +151,7 @@ ESQuery.loadColumns=function(query){
 		});
 	}//endif
 
-	yield (aThread.join(indexInfo.fetcher));
+	yield (Thread.join(indexInfo.fetcher));
 	yield (null);
 };//method
 
@@ -217,7 +217,7 @@ ESQuery.prototype.run = function(){
 		if (postResult._shards.failed>0){
 			D.action(postResult._shards.failed+"of"+postResult._shards.total+" shards failed.");
 			this.nextDelay=nvl(this.nextDelay, 500)*2;
-			yield (aThread.sleep(this.nextDelay));
+			yield (Thread.sleep(this.nextDelay));
 			D.action("Retrying Query...");
 			yield this.run();
 		}//endif

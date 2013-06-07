@@ -59,7 +59,7 @@ var thread;
 var createChart = function(){
 	if (thread !== undefined)
 		thread.kill();
-	thread = aThread.run(__createChart());
+	thread = Thread.run(__createChart());
 };
 
 var __createChart = function(){
@@ -94,7 +94,7 @@ var __createChart = function(){
 	// SHOW COUNT OF TIME
 	////////////////////////////////////////////////////////////////////////////
 
-	aThread.run(function(){
+	Thread.run(function(){
 
 		var a = D.action("Request Bugs", true);
 		var queue = yield(ESQuery.run({
@@ -130,7 +130,7 @@ var __createChart = function(){
 				line_lineWidth: 3
 			},
 			"clickAction":function(series, x, d){
-				aThread.run(function(){
+				Thread.run(function(){
 					var buglist=(yield (ESQuery.run({
 						"from":"bugs",
 						"select":{"value":"bug_id", "aggregate":"minimum"},
@@ -156,7 +156,7 @@ var __createChart = function(){
 	////////////////////////////////////////////////////////////////////////////
 	// DAILY CHANGE
 	////////////////////////////////////////////////////////////////////////////
-	aThread.run(function(){
+	Thread.run(function(){
 		a = D.action("Get TEF+/- Counts ", true);
 
 		//LOOK FOR FIRST-TIME MARKUP
@@ -249,7 +249,7 @@ var __createChart = function(){
 			"xAxisSize":50,
 			"timeSeries": true,
 			"clickAction":function(series, x, d){
-				aThread.run(function(){
+				Thread.run(function(){
 					var buglist=(yield (CUBE.calc2List({
 						"from":bugs,
 						"select":{"value":"bug_id"},
@@ -296,7 +296,7 @@ var __createChart = function(){
 	////////////////////////////////////////////////////////////////////////////
 	// CURRENT BUG LIST
 	////////////////////////////////////////////////////////////////////////////
-	aThread.run(function(){
+	Thread.run(function(){
 		var a=D.action("Get Bug Details", true);
 
 		var findBugs = yield(ESQuery.run({

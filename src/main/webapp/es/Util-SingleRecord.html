@@ -22,7 +22,7 @@
 	importScript([
 		"js/main.js"
 	], function(){
-		aThread.run(function(){
+		Thread.run(function(){
 
 			D.println(Date.newInstance(1352207434236).format("yyyy-NNN-dd HHmmss"));
 //		yield (ESQuery.loadColumns({"from":"bugs"}));
@@ -31,32 +31,12 @@
 
 
 			var esQuery = { "query":{"filtered":{ "query":{"match_all":{}}, "filter":{"and":[
-				{"script":{"script":"true"}},
-				{"and":[
-					{"and":[
-						{"term":{"appUpdateChannel":"nightly"}},
-						{"term":{"OS":"WINNT"}},
-						{"term":{"version":"6.1"}},
-						{"term":{"info.reason":"saved-session"}},
-						{"term":{"info.appVersion":"22.0a1"}},
-						{"term":{"simpleMeasurements.startupInterrupted":0}},
-						{"term":{"simpleMeasurements.debuggerAttached":0}},
-						{"script":{"script":"doc[\"simpleMeasurements.start\"].value <= doc[\"simpleMeasurements.main\"].value"}},
-						{"script":{"script":"doc[\"simpleMeasurements.main\"].value <= doc[\"simpleMeasurements.createTopLevelWindow\"].value"}},
-						{"script":{"script":"doc[\"simpleMeasurements.createTopLevelWindow\"].value <= doc[\"simpleMeasurements.firstPaint\"].value"}},
-						{"script":{"script":"doc[\"simpleMeasurements.firstPaint\"].value <= doc[\"simpleMeasurements.sessionRestored\"].value"}},
-						{"or":[
-							{"not":{"exists":{"field":"doc[\"simpleMeasurements.firstLoadURI\"].value"}}},
-							{"script":{"script":"doc[\"simpleMeasurements.firstPaint\"].value <= doc[\"simpleMeasurements.firstLoadURI\"].value"}},
-							{"script":{"script":"doc[\"simpleMeasurements.firstLoadURI\"].value <= doc[\"simpleMeasurements.sessionRestored\"].value"}}
-						]}
-					]},
-					{"or":[
-						{"prefix":{"info.addons.name":"{b9db16a4-6edc-47ec-a1f4-b86292ed211d}"}},
-						{"prefix":{"info.addons.name":"wrc@avast.com"}}
-					]}
-				]}
-			]} }}, "fields":["simpleMeasurements.firstPaint", "info.addons.name"], "from":0, "size":10, "sort":[]}
+				{"script":{"script":"true"}}
+			]} }},
+				"fields":["simpleMeasurements.firstPaint", "info.addons.name"],
+				"from":0,
+				"size":10,
+				"sort":[]}
 
 
 					;
@@ -98,7 +78,7 @@
 
 //		while(true){
 //			if (ETL.allFlags!==undefined) break;
-//			yield (aThread.sleep(200));
+//			yield (Thread.sleep(200));
 //		}//while
 //		var reviews=yield (REVIEWS.get(674239, 674240));
 //		$("#info").append(CNV.List2HTMLTable(reviews));

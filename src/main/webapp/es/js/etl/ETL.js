@@ -11,7 +11,7 @@ importScript("../CUBE.js");
 ETL={};
 
 
-aThread.run("get bug columns", function(){
+Thread.run("get bug columns", function(){
 	yield (ESQuery.loadColumns({"from":"bugs"}));
 
 	if (ESQuery.INDEXES.bugs.columns===undefined) yield (null);
@@ -276,7 +276,7 @@ ETL.chunk=function(insert, insertFunction){
 			s += 2;	//NOT THE PAIR THAT PUT IT OVER
 
 			var data = insert.substring(s, e).join("\n") + "\n";
-			threads.push(aThread.run("insert some data", insertFunction(data)));
+			threads.push(Thread.run("insert some data", insertFunction(data)));
 
 			e = s;
 			bytes = 0;
@@ -284,10 +284,10 @@ ETL.chunk=function(insert, insertFunction){
 	}//for
 
 	data = insert.substring(0, e).join("\n") + "\n";
-	threads.push(aThread.run("insert some data", insertFunction(data)));
+	threads.push(Thread.run("insert some data", insertFunction(data)));
 
 	for(var t=threads.length;t--;){
-		yield (aThread.join(threads[t]));
+		yield (Thread.join(threads[t]));
 	}//for
 
 };

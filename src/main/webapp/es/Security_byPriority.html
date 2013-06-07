@@ -56,7 +56,7 @@ var thread;
 var createChart=function(){
 	if (thread!==undefined)
 		thread.kill();
-	thread=aThread.run( __createChart());
+	thread=Thread.run( __createChart());
 };
 
 var __createChart = function(){

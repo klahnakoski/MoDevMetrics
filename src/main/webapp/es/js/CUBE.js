@@ -18,7 +18,7 @@ importScript("CUBE.cube.js");
 importScript("CUBE.domain.js");
 importScript("CUBE.analytic.js");
 
-importScript("aThread.js");
+importScript("../lib/jsThreads/js/thread.js");
 
 var Q;   //=Q
 
@@ -146,7 +146,7 @@ function calc2Tree(query){
 	var tree = {};
 	query.tree = tree;
 	FROM: for(var i = 0; i < from.length; i++){
-		yield (aThread.yield());
+		yield (Thread.yield());
 
 		var row = from[i];
 		//CALCULATE THE GROUP COLUMNS TO PLACE RESULT
@@ -263,7 +263,7 @@ CUBE.calc2List = function(query){
 
 	var output = [];
 	Tree2List(output, query.tree, select, edges, {}, 0);
-	yield (aThread.yield());
+	yield (Thread.yield());
 
 	//ORDER THE OUTPUT
 	if (query.sort === undefined) query.sort = [];

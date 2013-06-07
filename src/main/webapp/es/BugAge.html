@@ -61,7 +61,7 @@
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/aThread.js"></script>
+<script type="application/javascript;version=1.7" src="js/../lib/jsThreads/js/thread.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.analytic.js"></script>
 <script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
@@ -130,7 +130,7 @@ var thread;
 var createChart=function(){
 	if (thread!==undefined)
 		thread.kill();
-	thread=aThread.run( __createChart());
+	thread=Thread.run( __createChart());
 };
 
 var __createChart = function(){
@@ -175,7 +175,7 @@ var __createChart = function(){
 
 
 	$(document).ready(function(){
-//		aThread.run(function(){
+//		Thread.run(function(){
 
 			GUI.setup(createChart, [
 				{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},

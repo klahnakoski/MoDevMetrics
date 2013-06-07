@@ -50,7 +50,7 @@ OrgChart.get=function(minBug, maxBug){
 			OrgChart.people=json;
 		};//method
 
-		yield (aThread.yield());  //YIELD TO ALLOW FUNCTION TO BE ASSIGNED TO window
+		yield (Thread.yield());  //YIELD TO ALLOW FUNCTION TO BE ASSIGNED TO window
 
 		var url=PHONEBOOK_URL+"/search.php?format=jsonp&callback="+JSONP_CALLBACK+"&query=*";
 		var html=$("<script type=\"application/javascript;version=1.9\" src=\""+url+"\"></script>");
@@ -58,7 +58,7 @@ OrgChart.get=function(minBug, maxBug){
 		body.append(html);
 
 		while(!OrgChart.people){
-			yield (aThread.sleep(1000));  //YIELD TO ALLOW SCRIPT TO LOAD AND EXECUTE
+			yield (Thread.sleep(1000));  //YIELD TO ALLOW SCRIPT TO LOAD AND EXECUTE
 		}//while
 		
 		//HERE WE JUST RETURN THE LOCAL COPY

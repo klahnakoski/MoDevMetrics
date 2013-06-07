@@ -64,7 +64,7 @@ importScript([
 	var createChart=function(){
 		if (thread!==undefined)
 			thread.kill();
-		thread=aThread.run( __createChart());
+		thread=Thread.run( __createChart());
 	};
 
 	var __createChart = function(){
@@ -160,7 +160,7 @@ importScript([
 			"type":"area",
 			"stacked":true,
 			"clickAction":function(series, x, d){
-				aThread.run(function(){
+				Thread.run(function(){
 					var s=chart.select.map(function(v){ if (v.name==series) return v;})[0];
 
 					var buglist=(yield (CUBE.calc2List({
@@ -201,7 +201,7 @@ importScript([
 			"cube":diff,
 			"type":"bar",
 			"clickAction":function(series, x, d){
-				aThread.run(function(){
+				Thread.run(function(){
 					var s=chart.select.map(function(v){ if (v.name==series) return v;})[0];
 
 					var buglist=(yield (CUBE.calc2List({
@@ -248,7 +248,7 @@ importScript([
 			"cube":ages,
 			"type":"bar",
 			"clickAction":function(series, x, d){
-				aThread.run(function(){
+				Thread.run(function(){
 					if (x==ages.edges[0].domain.NULL.name){
 						var buglist=(yield (CUBE.calc2List({
 							"from":patches,

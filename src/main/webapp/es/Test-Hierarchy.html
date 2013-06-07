@@ -61,12 +61,12 @@ var thread;
 
 var createChart=function(){
 	if (thread!==undefined) thread.kill();
-	thread=aThread.run( __createChart());
+	thread=Thread.run( __createChart());
 };
 
 var __createChart = function(){
 
-//	aThread.run(function(){
+//	Thread.run(function(){
 		var topBugs=GUI.state.bugs.split(",");
 
 		var template='<table>'+
@@ -103,7 +103,7 @@ var __createChart = function(){
 
 
 		//GET SUMMARIES
-		var getBZ=aThread.run(function(){
+		var getBZ=Thread.run(function(){
 			var a=D.action("Get BZ Summaries", true);
 			var bugs=yield (Bugzilla.search(Object.keys(allBugs), ["summary"]));
 
@@ -119,7 +119,7 @@ var __createChart = function(){
 		var depGraph;
 
 		//GET SPECIFIC DEPENDENCIES, STATUS AND SCRUMBUGS DATA
-		var getDetails=aThread.run(function(){
+		var getDetails=Thread.run(function(){
 			var a=D.action("Get Bug Details", true);
 
 			var details=yield(ESQuery.run({
@@ -225,7 +225,7 @@ var __createChart = function(){
 
 
 			//SHOW A PROGRESS BAR
-			aThread.run(function(){
+			Thread.run(function(){
 				var progressBar=yield (Q({
 					"from":[bug],
 					"select":[
@@ -247,8 +247,8 @@ var __createChart = function(){
 
 
 
-		yield (aThread.join(getBZ));
-		yield (aThread.join(getDetails));
+		yield (Thread.join(getBZ));
+		yield (Thread.join(getDetails));
 
 		//SHOW TOP LEVEL BUGS
 		topBugs.forall(function(bug_id, i){

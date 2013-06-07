@@ -73,11 +73,11 @@ Hierarchy.addDescendants=function(args){
 
 	//FIND DESCENDANTS
 	var a=D.action("Find Descendants", true);
-	yield (aThread.sleep(100));
+	yield (Thread.sleep(100));
 	var workQueue=new aQueue(Object.keys(allParents.map));
 
 	while(workQueue.length()>0){      //KEEP WORKING WHILE THERE ARE CHANGES
-		yield (aThread.yield());
+		yield (Thread.yield());
 		if (DEBUG){
 			if (DEBUG_MIN>workQueue.length() && workQueue.length()%Math.pow(10, Math.round(Math.log(workQueue.length())/Math.log(10))-1)==0){
 				D.actionDone(a);
