@@ -1,6 +1,6 @@
 [submodule "src/main/webapp/es/lib/jsThreads"]
 	path = src/main/webapp/es/lib/jsThreads
 	url = https://github.com/mozilla/jsThreads.git
-[submodule "src\\main\\webapp\\es\\lib\\jsImport"]
-	path = src\\main\\webapp\\es\\lib\\jsImport
+[submodule "src/main/webapp/es/lib/jsImport"]
+	path = src/main/webapp/es/lib/jsImport
 	url = https://github.com/klahnakoski/jsImport.git
