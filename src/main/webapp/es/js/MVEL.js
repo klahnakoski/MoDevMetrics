@@ -89,7 +89,7 @@ MVEL.compile.setValues=function(expression, constants){
 			if (expression.charAt(s-1).match(/[0-9a-zA-Z_$]/g)) break;
 			if (expression.charAt(s+c.name.length).match(/[0-9a-zA-Z_$]/g)) break;
 
-			var v=MVEL.Value2Code(c.value);
+			var v=MVEL.Value2MVEL(c.value);
 			expression=expression.left(s)+""+v+expression.rightBut(s+c.name.length);
 		}//while
 	}//for
@@ -302,16 +302,16 @@ MVEL.prototype.where = function(esFilter){
 		var pair = esFilter[op];
 		var variableName = Object.keys(pair)[0];
 		var value = pair[variableName];
-		return this.translate(variableName) + "==" + MVEL.Value2Code(value);
+		return this.translate(variableName) + "==" + MVEL.Value2MVEL(value);
 	} else if (op == "terms"){
 		var pair = esFilter[op];
 		var variableName = Object.keys(pair)[0];
 		var valueList = pair[variableName];
 		if (valueList.length == 0) D.error("Expecting something in 'terms' array");
-		if (valueList.length == 1) return this.translate(variableName) + "==" + MVEL.Value2Code(valueList[0]);
+		if (valueList.length == 1) return this.translate(variableName) + "==" + MVEL.Value2MVEL(valueList[0]);
 		for(var i = 0; i < valueList.length; i++){
 			if (output != "") output += " || ";
-			output += "(" + this.translate(variableName) + "==" + MVEL.Value2Code(valueList[i]) + ")";
+			output += "(" + this.translate(variableName) + "==" + MVEL.Value2MVEL(valueList[i]) + ")";
 		}//for
 		return output;
 	}else if (op=="exists"){
@@ -347,26 +347,26 @@ MVEL.prototype.where = function(esFilter){
 		var upper = "";
 
 		if (!(range.gte === undefined)){
-			lower = MVEL.Value2Code(range.gte) + "<=" + this.translate(variableName);
+			lower = MVEL.Value2MVEL(range.gte) + "<=" + this.translate(variableName);
 		} else if (!(range.gt === undefined)){
-			lower = MVEL.Value2Code(range.gt) + "<" + this.translate(variableName);
+			lower = MVEL.Value2MVEL(range.gt) + "<" + this.translate(variableName);
 		} else if (!(range.from == undefined)){
 			if (range.include_lower == undefined || range.include_lower){
-				lower = MVEL.Value2Code(range.from) + "<=" + this.translate(variableName);
+				lower = MVEL.Value2MVEL(range.from) + "<=" + this.translate(variableName);
 			} else{
-				lower = MVEL.Value2Code(range.from) + "<" + this.translate(variableName);
+				lower = MVEL.Value2MVEL(range.from) + "<" + this.translate(variableName);
 			}//endif
 		}//endif
 
 		if (!(range.lte === undefined)){
-			upper = MVEL.Value2Code(range.lte) + ">=" + this.translate(variableName);
+			upper = MVEL.Value2MVEL(range.lte) + ">=" + this.translate(variableName);
 		} else if (!(range.lt === undefined)){
-			upper = MVEL.Value2Code(range.lt) + ">" + this.translate(variableName);
+			upper = MVEL.Value2MVEL(range.lt) + ">" + this.translate(variableName);
 		} else if (!(range.from == undefined)){
 			if (range.include_lower == undefined || range.include_lower){
-				upper = MVEL.Value2Code(range.from) + ">=" + this.translate(variableName);
+				upper = MVEL.Value2MVEL(range.from) + ">=" + this.translate(variableName);
 			} else{
-				upper = MVEL.Value2Code(range.from) + ">" + this.translate(variableName);
+				upper = MVEL.Value2MVEL(range.from) + ">" + this.translate(variableName);
 			}//endif
 		}//endif
 
@@ -382,7 +382,7 @@ MVEL.prototype.where = function(esFilter){
 		var pair = esFilter[op];
 		var variableName = Object.keys(pair)[0];
 		var value = pair[variableName];
-		return this.translate(variableName)+".startsWith(" + MVEL.Value2Code(value)+")";
+		return this.translate(variableName)+".startsWith(" + MVEL.Value2MVEL(value)+")";
 	} else{
 		D.error("'" + op + "' is an unknown aggregate");
 	}//endif
@@ -406,7 +406,7 @@ MVEL.isKeyword = function(value){
 };//method
 
 //FROM JAVASCRIPT VALUE TO MVEL EQUIVALENT
-MVEL.Value2Code = function(value){/*comment*/
+MVEL.Value2MVEL = function(value){/*comment*/
 	if (value.getMilli) return value.getMilli()+" /*"+value.format("yyNNNdd HHmmss")+"*/";		//TIME
 	if (value instanceof Duration)
 		return value.milli+" /*"+value.toString()+"*/";	//DURATION
@@ -414,6 +414,16 @@ MVEL.Value2Code = function(value){/*comment*/
 	if (aMath.isNumeric(value)) return "" + value;
 	return CNV.String2Quote(value);
 };//method
+
+//FROM JAVASCRIPT VALUE TO ES QUERY EQUIVALENT
+MVEL.Value2Query = function(value){
+	if (value.getMilli) return value.getMilli();
+	if (value instanceof Duration) return value.milli;
+
+	if (aMath.isNumeric(value)) return value;
+	return CNV.String2Quote(value);
+};//method
+
 
 //CONVERT FROM JAVASCRIPT VALUE TO ES EQUIVALENT
 MVEL.Value2Value = function(value){
@@ -474,11 +484,11 @@ MVEL.FUNCTIONS={
 	"String2Quote":
 		"var String2Quote = function(str){\n" +
 			"if (!(str is String)){ str; }else{\n" +	//LAST VALUE IS RETURNED.  "return" STOPS EXECUTION COMPLETELY!
-			"" + MVEL.Value2Code("\"") + "+" +
-			"str.replace(" + MVEL.Value2Code("\\") + "," + MVEL.Value2Code("\\\\") +
-			").replace(" + MVEL.Value2Code("\"") + "," + MVEL.Value2Code("\\\"") +
-			").replace(" + MVEL.Value2Code("\'") + "," + MVEL.Value2Code("\\\'") + ")+" +
-			MVEL.Value2Code("\"") + ";\n" +
+			"" + MVEL.Value2MVEL("\"") + "+" +
+			"str.replace(" + MVEL.Value2MVEL("\\") + "," + MVEL.Value2MVEL("\\\\") +
+			").replace(" + MVEL.Value2MVEL("\"") + "," + MVEL.Value2MVEL("\\\"") +
+			").replace(" + MVEL.Value2MVEL("\'") + "," + MVEL.Value2MVEL("\\\'") + ")+" +
+			MVEL.Value2MVEL("\"") + ";\n" +
 			"}};\n",
 
 	"Value2Pipe":

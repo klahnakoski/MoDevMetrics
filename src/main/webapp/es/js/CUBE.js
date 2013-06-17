@@ -811,8 +811,11 @@ CUBE.merge=function(query){
 
 		item.edges.forall(function(pe, i, edges){
 			item.from.edges.forall(function(pfe, j){
-				if (pfe.name==pe) edges[i]=pfe;
+				if (pfe.name==pe)
+					edges[i]=pfe;
 			});//for
+			if (typeof(edges[i])=="string")
+				D.error(edges[i]+" can not be found");
 		});
 	});
 

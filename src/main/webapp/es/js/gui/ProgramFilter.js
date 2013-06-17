@@ -103,7 +103,7 @@ ProgramFilter.makeQuery = function(filters){
 	for(var c in programCompares){
 		output.facets[c]={
 			"terms":{
-				"script_field":MVEL.Value2Code(c),//programCompares[c]+"return 'None'\n",
+				"script_field":MVEL.Value2MVEL(c),//programCompares[c]+"return 'None'\n",
 				"size":10000
 			},
 			"facet_filter":{

@@ -306,7 +306,7 @@ ETL.parseWhiteBoard=function(whiteboard){
 ETL.getFlags=function(){
 	var getFlags = "var _cf_ = \"\";\n";
 	ETL.allFlags.map(function(v){
-		getFlags += "_cf_+=getFlagValue(" + MVEL.Value2Code(v) + ");\n";
+		getFlags += "_cf_+=getFlagValue(" + MVEL.Value2MVEL(v) + ");\n";
 //		getFlags += "if (" + v + "\"]!=null && " + v + "\"].value!=null) output+=\" " + v + "\"+" + v + "\"].value.trim();\n";
 	});
 	getFlags += "_cf_ = _cf_.trim();\n_cf_;";

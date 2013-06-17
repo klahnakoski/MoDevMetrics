@@ -108,7 +108,7 @@ importScript([
 //						]},
 						"range":{"min":"request_time", "max":"review_time", "mode":"inclusive"},
 						
-//						"range":{"min":"request_time", "max":"minimum(request_time+"+MVEL.Value2Code(Duration.newInstance("18week"))+", coalesce(zero2null(review_time), "+MVEL.Value2Code(Date.eod())+"))"},
+//						"range":{"min":"request_time", "max":"minimum(request_time+"+MVEL.Value2MVEL(Duration.newInstance("18week"))+", coalesce(zero2null(review_time), "+MVEL.Value2MVEL(Date.eod())+"))"},
 						"domain":{"type":"date", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value", "key":"min"}
 					}
 				],

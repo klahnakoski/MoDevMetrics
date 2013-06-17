@@ -1,0 +1,171 @@
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="application/javascript;version=1.7" src="lib/jsImport/js/import.js"></script>
+</HEAD>
+<BODY>
+
+<div id="sidebar">
+	<br>
+	<br>
+
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3 id="title">Test Timing Results</h3>
+
+	<div id="chart" class="chart" style="float:none;width:800px;height:400px;"></div>
+
+
+
+	<div id="info"></div>
+	<div id="details"></div>
+</div>
+
+
+<script type="application/javascript;version=1.7">
+
+
+importScript('js/main.js', function(){
+	ElasticSearch.baseURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9200";
+
+
+	$("#description").html(
+			"Simple look at time series"
+	);
+
+
+	var thread;
+	var createChart = function(){
+		if (thread !== undefined)
+			thread.kill();
+		thread = Thread.run(__createChart());
+	};
+
+	var __createChart = function(){
+
+
+		var sampleMin = Date.newInstance(GUI.state.sampleMin);
+		var sampleMax = Date.newInstance(GUI.state.sampleMax).addDay(1);
+		var sampleInterval = Duration.HOUR;
+
+
+		Thread.run(function(){
+			D.action("Request Bugs");
+
+
+			//THIS IS COMPLICATED BECAUSE THE TEST DATA HAS AN UNSTABLE SCHEMA
+			//TEST RESULTS ARE IN json.results.<test_name>.moments.<Sx> RATHER THAN
+			//json.results[{"name":<test_name>, "moments":<Sx>}]
+
+
+
+			//GET ALL TESTS FROM SCHEMA (KEYS OF A FIELD)
+			var schema=yield (ElasticSearch.getSchema("datazilla", "test_results"));
+			var tests=mapAllKey(schema.properties.json.properties.results.properties, function(k){
+				if (["amazon_dot_com", "163_dot_com", "m_dot_accuweather_dot_com"].contains(k)){
+					return {"name":k, "esfilter":{"exists":{"field":"json.results."+k+".moments.s0"}}}
+				}//endif
+			});
+
+
+
+			var s0 = yield(ESQuery.run({
+				"name":"Timings",
+				"from":"datazilla",
+				"select": {"name":"s0", "value":'_source.json.results[test.name].moments.s0', "aggregate":"sum", "default":"0"},
+				"edges":[
+					{"name":"test_name", "domain":{"name":"test", "type":"set", "partitions":tests, "key":"name", "value":"name", "isFacet":true}},
+					{"name":"date",
+						"value":'json.testrun.date',
+						"allowNulls":false,
+						domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value"}
+					}
+				]
+			}));
+
+			var s1 = yield(ESQuery.run({
+				"name":"Timings",
+				"from":"datazilla",
+				"select": {"name":"s1", "value":'_source.json.results[test.name].moments.s1', "aggregate":"sum", "default":"0"},
+				"edges":[
+					{"name":"test_name", "domain":{"name":"test", "type":"set", "partitions":tests, "key":"name", "value":"name", "isFacet":true}},
+					{"name":"date",
+						"value":'json.testrun.date',
+						"allowNulls":false,
+						domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value"}
+					}
+				]
+			}));
+
+
+			var chart=yield (Q({
+				"from":CUBE.merge({"cubes":[
+					{"from":s0, "edges":["test_name", "date"]},
+					{"from":s1, "edges":["test_name", "date"]}
+				]}),
+				"select":{"name":"average", "value":"s0==0 ? 0 : s1/s0", "aggregate":"sum"},
+				"edges":["test_name", "date"]
+			}));
+			chart.name="Average Times";
+
+			
+
+
+			var a = D.action("Make chart", true);
+			aChart.show({
+				"id":"chart",
+				"sheetDiv":"info",
+				"type":"line",
+				"stacked":false,
+				"cube":chart,
+				"height":"400",
+				xAxisSize: 50
+			});
+			D.actionDone(a);
+		});
+
+		yield(null);
+	};
+
+
+	$(document).ready(function(){
+		GUI.setup(createChart, [
+				{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.newInstance("2013-Mar-12")},
+				{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.newInstance("2013-Mar-16")}
+			],
+			[
+			],
+			"datazilla",
+			false
+		);
+	});
+
+});
+
+</script>
+
+
+</BODY>
+</HTML>
+

@@ -176,10 +176,6 @@ Dimension.prototype={
 						if (dim.value===undefined) dim.value="name";
 						dim.partitions=temp.partitions;
 					}else{
-						if (dim.field=="info.appBuildID"){
-							D.println("");
-						}
-
 						dim.value="name";  //USE THE "name" ATTRIBUTE OF PARTS
 
 						//SIMPLE LIST OF PARTS RETURNED, BE SURE TO INTERRELATE THEM

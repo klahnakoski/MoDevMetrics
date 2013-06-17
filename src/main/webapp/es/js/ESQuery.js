@@ -46,7 +46,8 @@ ESQuery.INDEXES={
 	"org_chart":{"path":"/org_chart/person"},
 	"temp":{"path":""},
 	"telemetry":{"path":"/telemetry/data"},
-	"raw_telemetry":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/raw_telemetry/data"}
+	"raw_telemetry":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/raw_telemetry/data"},
+	"datazilla":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/datazilla/test_results"}
 //	"raw_telemetry":{"host":"http://localhost:9200", "path":"/raw_telemetry/data"}
 };
 
@@ -183,7 +184,7 @@ ESQuery.prototype.run = function(){
 	}//endif
 
 
-	if (!this.query.url.endsWith("/_search")) this.query.url+="/_search";  //WHEN QUERIES GET RECYCLED, THIER url IS SOMETIMES STILL AROUND
+	if (!this.query.url.endsWith("/_search")) this.query.url+="/_search";  //WHEN QUERIES GET RECYCLED, THEIR url IS SOMETIMES STILL AROUND
 	//var URL=window.ElasticSearch.baseURL+ESQuery.INDEXES[this.query.from.split(".")[0]].path+"/_search";
 	var postResult;
 	if (ESQuery.DEBUG) D.println(CNV.Object2JSON(this.esQuery));
@@ -520,7 +521,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 				}else{
 					//WHOA!! SUPER SLOW!!
 					output.and.push({"script":{"script":MVEL.compile.expression(
-						edge.range.min + " < " + MVEL.Value2Code(partition.max)
+						edge.range.min + " < " + MVEL.Value2MVEL(partition.max)
 					, query)}})
 				}//endif
 
@@ -532,7 +533,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 				}else{
 					//WHOA!! SUPER SLOW!!
 					output.and.push({"script":{"script":MVEL.compile.expression(
-						edge.range.max + " > " + MVEL.Value2Code(partition.min)
+						edge.range.max + " > " + MVEL.Value2MVEL(partition.min)
 					, query)}})
 				}//endif
 			}else{
@@ -542,7 +543,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 				}else{
 					//WHOA!! SUPER SLOW!!
 					output.and.push({"script":{"script":MVEL.compile.expression(
-						edge.range.min + "<=" + MVEL.Value2Code(partition.min)
+						edge.range.min + "<=" + MVEL.Value2MVEL(partition.min)
 					, query)}})
 				}//endif
 
@@ -554,7 +555,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 				}else{
 					//WHOA!! SUPER SLOW!!
 					output.and.push({"script":{"script":MVEL.compile.expression(
-						MVEL.Value2Code(partition.min) +" <= "+ edge.range.max
+						MVEL.Value2MVEL(partition.min) +" <= "+ edge.range.max
 					, query)}})
 				}//endif
 			}//endif
@@ -569,7 +570,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 		//USE FAST ES SYNTAX
 		if (CUBE.domain.ALGEBRAIC.contains(edge.domain.type)){
 			output.range = {};
-			output.range[edge.value] = {"gte":MVEL.Value2Code(partition.min), "lt":MVEL.Value2Code(partition.max)};
+			output.range[edge.value] = {"gte":MVEL.Value2Query(partition.min), "lt":MVEL.Value2Query(partition.max)};
 		} else if (edge.domain.type == "set"){
 			if (partition.value!==undefined){
 				if (partition.value!=edge.domain.getKey(partition)) D.error("please ensure the key attribute of the domain matches the value attribute of all partitions, if only because we are now using the former");
@@ -588,9 +589,9 @@ ESQuery.buildCondition = function(edge, partition, query){
 	} else{
 		//USE MVEL CODE
 		if (CUBE.domain.ALGEBRAIC.contains(edge.domain.type)){
-			output.script = {script:edge.value + ">=" + MVEL.Value2Code(partition.min) + " && " + edge.value + "<" + MVEL.Value2Code(partition.max)};
+			output.script = {script:edge.value + ">=" + MVEL.Value2MVEL(partition.min) + " && " + edge.value + "<" + MVEL.Value2MVEL(partition.max)};
 		} else {//if (edge.domain.type == "set"){
-			output.script = {script:"( "+edge.value + " ) ==" + MVEL.Value2Code(partition.value)};
+			output.script = {script:"( "+edge.value + " ) ==" + MVEL.Value2MVEL(partition.value)};
 		}//endif
 		output.script.script=MVEL.compile.addFunctions(output.script.script);
 		return output;
@@ -809,7 +810,7 @@ ESQuery.compileTime2Term=function(edge){
 	if (edge.domain.interval.month>0){
 		var offset=ref.subtract(ref.floorMonth(), Duration.DAY).milli;
 		if (offset>Duration.DAY.milli*28) offset=ref.subtract(ref.ceilingMonth(), Duration.DAY).milli;
-		partition2int="milli2Month("+value+", "+MVEL.Value2Code(offset)+")";
+		partition2int="milli2Month("+value+", "+MVEL.Value2MVEL(offset)+")";
 		partition2int="(("+nullTest+") ? 0 : "+partition2int+")";
 
 		int2Partition=function(value){
@@ -820,7 +821,7 @@ ESQuery.compileTime2Term=function(edge){
 			return edge.domain.getPartByKey(d);
 		};
 	}else{
-		partition2int="Math.floor(("+value+"-"+MVEL.Value2Code(ref)+")/"+edge.domain.interval.milli+")";
+		partition2int="Math.floor(("+value+"-"+MVEL.Value2MVEL(ref)+")/"+edge.domain.interval.milli+")";
 		partition2int="(("+nullTest+") ? "+numPartitions+" : "+partition2int+")";
 
 		int2Partition=function(value){
@@ -851,7 +852,7 @@ ESQuery.compileDuration2Term=function(edge){
 	if (edge.domain.interval.month>0)
 		ms=Duration.YEAR.milli/12*edge.domain.interval.month;
 
-	var partition2int="Math.floor(("+value+"-"+MVEL.Value2Code(ref)+")/"+ms+")";
+	var partition2int="Math.floor(("+value+"-"+MVEL.Value2MVEL(ref)+")/"+ms+")";
 		partition2int="(("+nullTest+") ? "+numPartitions+" : "+partition2int+")";
 
 	int2Partition=function(value){
@@ -877,21 +878,21 @@ ESQuery.compileNumeric2Term=function(edge){
 	if (edge.domain.max===undefined){
 		if (edge.domain.min===undefined){
 			ref=0;
-			partition2int="Math.floor("+value+")/"+MVEL.Value2Code(edge.domain.interval)+")";
+			partition2int="Math.floor("+value+")/"+MVEL.Value2MVEL(edge.domain.interval)+")";
 			nullTest="false";
 		}else{
-			ref=MVEL.Value2Code(edge.domain.min);
-			partition2int="Math.floor(("+value+"-"+ref+")/"+MVEL.Value2Code(edge.domain.interval)+")";
+			ref=MVEL.Value2MVEL(edge.domain.min);
+			partition2int="Math.floor(("+value+"-"+ref+")/"+MVEL.Value2MVEL(edge.domain.interval)+")";
 			nullTest=""+value+"<"+ref;
 		}//endif
 	}else if (edge.domain.min===undefined){
-		ref=MVEL.Value2Code(edge.domain.max);
-		partition2int="Math.floor(("+value+"-"+ref+")/"+MVEL.Value2Code(edge.domain.interval)+")";
+		ref=MVEL.Value2MVEL(edge.domain.max);
+		partition2int="Math.floor(("+value+"-"+ref+")/"+MVEL.Value2MVEL(edge.domain.interval)+")";
 		nullTest=""+value+">="+ref;
 	}else{
-		var top=MVEL.Value2Code(edge.domain.max);
-		    ref=MVEL.Value2Code(edge.domain.min);
-		partition2int="Math.floor(("+value+"-"+ref+")/"+MVEL.Value2Code(edge.domain.interval)+")";
+		var top=MVEL.Value2MVEL(edge.domain.max);
+		    ref=MVEL.Value2MVEL(edge.domain.min);
+		partition2int="Math.floor(("+value+"-"+ref+")/"+MVEL.Value2MVEL(edge.domain.interval)+")";
 		nullTest="("+value+"<"+ref+") || ("+value+">="+top+")";
 	}//endif
 
@@ -958,14 +959,14 @@ ESQuery.compileNullTest=function(edge){
 	var top, bot, nullTest;
 	if (edge.domain.max===undefined){
 		if (edge.domain.min===undefined) return false;
-		bot=MVEL.Value2Code(edge.domain.min);
+		bot=MVEL.Value2MVEL(edge.domain.min);
 		nullTest=""+value+"<"+bot;
 	}else if (edge.domain.min===undefined){
-		top=MVEL.Value2Code(edge.domain.max);
+		top=MVEL.Value2MVEL(edge.domain.max);
 		nullTest=                         ""+value+">="+top;
 	}else{
-		top=MVEL.Value2Code(edge.domain.max);
-		bot=MVEL.Value2Code(edge.domain.min);
+		top=MVEL.Value2MVEL(edge.domain.max);
+		bot=MVEL.Value2MVEL(edge.domain.min);
 		nullTest="("+value+"<"+bot+") || ("+value+">="+top+")";
 	}//endif
 

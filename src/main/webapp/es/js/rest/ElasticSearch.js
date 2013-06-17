@@ -29,12 +29,14 @@ if (window.location.hostname=="metrics.mozilla.com"){
 	ElasticSearch.pushURL="http://localhost:9200";
 //	ElasticSearch.pushURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
 //
-//	ElasticSearch.baseURL="http://localhost:9200";
+//	ElasticSearch.baseURL="http://localhost:5000";
 //	ElasticSearch.baseURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
+//	ElasticSearch.baseURL="http://klahnakoski-es.corp.tor1.mozilla.com:9292";
 	ElasticSearch.baseURL="http://elasticsearch8.metrics.scl3.mozilla.com:9200";
 
-//	ElasticSearch.queryURL = "http://localhost:9200/bugs/_search";
+//	ElasticSearch.queryURL = "http://localhost:5000/bugs/_search";
 //	ElasticSearch.queryURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9200/bugs/_search";
+//	ElasticSearch.queryURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9292/bugs/_search";
 	ElasticSearch.queryURL = "http://elasticsearch8.metrics.scl3.mozilla.com:9200/bugs/_search";
 
 
@@ -51,6 +53,19 @@ ElasticSearch.search=function(esquery){
 
 	yield (output);
 };
+
+
+//RETURN MAPPINGS FOR GIVEN INDEX AND TYPE
+ElasticSearch.getSchema=function(indexName, typeName){
+	var URL = ElasticSearch.baseURL + "/" + indexName +"/" + "/_mapping";
+
+	var schema = yield(Rest.get({
+		"url":URL
+	}));
+
+	yield (schema[indexName][typeName]);
+};
+
 
 
 ElasticSearch.setRefreshInterval=function(indexName, rate){

@@ -134,6 +134,12 @@ GUI.showLastUpdated = function(indexName){
 				"select":{"name":"max_date", "value":"modified_time", "aggregate":"maximum"}
 			}))).cube.max_date);
 			$("#testMessage").html("Bug Summaries Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
+		}else if (indexName=="datazilla"){
+			time=new Date((yield(ESQuery.run({
+				"from":"datazilla",
+				"select":{"name":"max_date", "value":"json.testrun.date", "aggregate":"maximum"}
+			}))).cube.max_date);
+			$("#testMessage").html("Datazilla Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 		}else{
 			D.actionDone(a);
 			return;

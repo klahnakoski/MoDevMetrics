@@ -750,7 +750,7 @@ Date.getDateFromFormat=function(val, format, isPastDate){
 // Returns a Date object or null if no patterns match.
 // ------------------------------------------------------------------
 {
-	var generalFormats = ['EE MMM d, yyyy', 'EE MMM d, yyyy @ hh:mm a', 'y - M - d',  'yyyy - MM - dd HH : mm : ss', 'MMM d, y', 'MMM d y', 'MMM d', 'y - MMM - d', 'yyyyMMMd', 'd - MMM - y', 'd MMM y'];
+	var generalFormats = ['EE MMM d, yyyy', 'EE MMM d, yyyy @ hh:mm a', 'y M d', 'y - M - d',  'yyyy - MM - dd HH : mm : ss', 'MMM d, y', 'MMM d y', 'MMM d', 'y - MMM - d', 'yyyyMMMd', 'd - MMM - y', 'd MMM y'];
 	var monthFirst = ['M / d / y', 'M - d - y', 'M . d . y', 'MMM - d', 'M / d', 'M - d'];
 	var dateFirst = ['d / M / y', 'd - M - y', 'd . M . y', 'd - MMM', 'd / M', 'd - M'];
 

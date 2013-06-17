@@ -8,7 +8,7 @@ if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// USE THE seperator TO SPLIT THE VALUE INTO A LIST OF PARTITION OBJECTS
+// USE THE separator TO SPLIT THE VALUE INTO A LIST OF PARTITION OBJECTS
 //
 function string2path(fieldName, separator){
 	return function(v){
