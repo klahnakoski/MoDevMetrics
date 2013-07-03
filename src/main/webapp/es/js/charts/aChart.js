@@ -160,7 +160,8 @@ var CHART_TYPES={
 	"bar":"BarChart",
 	"bullet":"BulletChart",
 	"scatter":"MetricDotChart",
-	"heat":"HeatGridChart"
+	"heat":"HeatGridChart",
+	"box":"BoxplotChart"
 };
 
 

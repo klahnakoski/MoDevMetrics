@@ -1,0 +1,5 @@
+{
+	"from":"datazilla",
+	"select":"datazilla.id",
+	"esfilter":{"and":[{"term":{"results.moments.s0":63000}}]}
+}

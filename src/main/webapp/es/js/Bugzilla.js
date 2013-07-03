@@ -57,10 +57,23 @@ Bugzilla.search=function(bugList, fields){
 			numCalls--;
 			D.println(result.length+"+"+data.length);
 
+			for(var r=data.length;r--;){
+				var b=data[r];
+				for(var c=fields.length;c--;){
+					var f=fields[c];
+					b[f]=nvl(b[f], null);
+				}
+			}
+
 			result.appendArray(data);
 			if (numCalls==0){
 				var missing=bugList.subtract(result.map(function(b){return b.id;}));
-				result.appendArray(missing.map(function(m){return {"id":m};}));
+				result.appendArray(missing.map(function(m){
+					var output={};
+					for(var c=fields.length;c--;) output[fields[c]]=null;
+					output.id=m;
+					return output;
+				}));
 				resume(result);
 			}
 		});

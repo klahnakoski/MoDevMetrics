@@ -67,71 +67,93 @@ importScript('js/main.js', function(){
 
 		var sampleMin = Date.newInstance(GUI.state.sampleMin);
 		var sampleMax = Date.newInstance(GUI.state.sampleMax).addDay(1);
-		var sampleInterval = Duration.HOUR;
+		var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
 
 
 		Thread.run(function(){
 			D.action("Request Bugs");
 
 
-			//THIS IS COMPLICATED BECAUSE THE TEST DATA HAS AN UNSTABLE SCHEMA
-			//TEST RESULTS ARE IN json.results.<test_name>.moments.<Sx> RATHER THAN
-			//json.results[{"name":<test_name>, "moments":<Sx>}]
-
-
-
-			//GET ALL TESTS FROM SCHEMA (KEYS OF A FIELD)
-			var schema=yield (ElasticSearch.getSchema("datazilla", "test_results"));
-			var tests=mapAllKey(schema.properties.json.properties.results.properties, function(k){
-				if (["amazon_dot_com", "163_dot_com", "m_dot_accuweather_dot_com"].contains(k)){
-					return {"name":k, "esfilter":{"exists":{"field":"json.results."+k+".moments.s0"}}}
-				}//endif
-			});
-
+			var esfilter={"term":{"testrun.suite": "tp5o"}};
 
 
 			var s0 = yield(ESQuery.run({
 				"name":"Timings",
-				"from":"datazilla",
-				"select": {"name":"s0", "value":'_source.json.results[test.name].moments.s0', "aggregate":"sum", "default":"0"},
+				"from":"datazilla.results",
+				"select": {"name":"s0", "value":'datazilla.results.moments.s0', "aggregate":"sum", "default":"0"},
 				"edges":[
-					{"name":"test_name", "domain":{"name":"test", "type":"set", "partitions":tests, "key":"name", "value":"name", "isFacet":true}},
+					{"name":"page", "value":"datazilla.results.page", "domain":{"type":"default", "isFacet":true}},
 					{"name":"date",
-						"value":'json.testrun.date',
+						"value":'datazilla.testrun.date',
 						"allowNulls":false,
 						domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value"}
 					}
-				]
+				],
+				"esfilter":esfilter
 			}));
 
 			var s1 = yield(ESQuery.run({
 				"name":"Timings",
 				"from":"datazilla",
-				"select": {"name":"s1", "value":'_source.json.results[test.name].moments.s1', "aggregate":"sum", "default":"0"},
+				"select": {"name":"s1", "value":'results.moments.s1', "aggregate":"sum", "default":"0"},
 				"edges":[
-					{"name":"test_name", "domain":{"name":"test", "type":"set", "partitions":tests, "key":"name", "value":"name", "isFacet":true}},
+					{"name":"page", "value":"results.page"},
 					{"name":"date",
-						"value":'json.testrun.date',
+						"value":'testrun.date',
 						"allowNulls":false,
 						domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value"}
 					}
-				]
+				],
+				"esfilter":esfilter
 			}));
 
+			var s2 = yield(ESQuery.run({
+				"name":"Timings",
+				"from":"datazilla",
+				"select": {"name":"s2", "value":'results.moments.s2', "aggregate":"sum", "default":"0"},
+				"edges":[
+					{"name":"page", "value":"results.page"},
+					{"name":"date",
+						"value":'testrun.date',
+						"allowNulls":false,
+						domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value"}
+					}
+				],
+				"esfilter":esfilter
+			}));
 
-			var chart=yield (Q({
+			var stats=yield (Q({
 				"from":CUBE.merge({"cubes":[
-					{"from":s0, "edges":["test_name", "date"]},
-					{"from":s1, "edges":["test_name", "date"]}
+					{"from":s0, "edges":["page", "date"]},
+					{"from":s1, "edges":["page", "date"]},
+					{"from":s2, "edges":["page", "date"]}
 				]}),
-				"select":{"name":"average", "value":"s0==0 ? 0 : s1/s0", "aggregate":"sum"},
-				"edges":["test_name", "date"]
+				"select":[
+//					{"name":"count", "value":"s0"},
+					{"name":"avg", "value":"s0==0 ? 0 : s1/s0", "aggregate":"one"},
+//					{"name":"std", "value":"s0==0 ? 0 : Math.sqrt((s0*s2 - s1*s1)/(s0*(s0-1.0)))", "aggregate":"one"}
+				],
+				"edges":["page", "date"]
 			}));
+
+
+			var chart=stats;
+//			var chart=yield(Q({
+//				"from":stats,
+//				"select":[
+//					"count",
+////					{"name":"p5", "value":"avg-(std*3)"},
+//					{"name":"p25", "value":"avg-std"},
+//					{"name":"p75", "value":"avg+std"},
+//					{"name":"std", "value":"std*10"},
+////					{"name":"p95", "value":"avg+(std*3)"}
+//				],
+//				"edges":["date"],
+//				"where":"page=='amazon.com'"
+//			}));
 			chart.name="Average Times";
 
 			
-
-
 			var a = D.action("Make chart", true);
 			aChart.show({
 				"id":"chart",
@@ -151,8 +173,9 @@ importScript('js/main.js', function(){
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [
-				{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.newInstance("2013-Mar-12")},
-				{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.newInstance("2013-Mar-16")}
+				{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.getDateFromFormat("2013-Jan-01 19:00:00", "yyyy-MMM-dd HH:mm:ss")},
+				{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.getDateFromFormat("2013-Apr-30 21:00:00", "yyyy-MMM-dd HH:mm:ss")},
+				{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.DAY}
 			],
 			[
 			],

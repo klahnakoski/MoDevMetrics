@@ -74,7 +74,7 @@ ESQuery.parseColumns=function(indexName, esProperties){
 		if (property.properties !== undefined) {
 			//DEFINE PROPERTIES WITH "." IN NAME
 			forAllKey(property.properties, function(n, p, i){
-				if (["string", "boolean", "integer", "date", "long"].contains(p.type)){
+				if (["string", "boolean", "integer", "date", "long", "double"].contains(p.type)){
 					columns.push({"name":name+"."+n, "type":p.type, "useSource":p.index=="no"});
 				}else if (p.type===undefined){
 					//DO NOTHING
@@ -726,11 +726,10 @@ ESQuery.prototype.compileEdges2Term=function(constants){
 		};
 
 		if (edges[0].value===undefined && edges[0].domain.partitions!==undefined){
-			var script=MVEL.Parts2Term(
+			var script=MVEL.Parts2TermScript(
 				self.query.from,
 				edges[0].domain
 			);
-			script=script.head+script.body;
 			return {"type":"script", "value":MVEL.compile.expression(script, this.query, constants)};
 		}//endif
 

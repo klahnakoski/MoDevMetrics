@@ -1,0 +1,9 @@
+{
+	"from":"bugs",
+	"select":{"name":"open","value":"modified_ts","aggregate":"minimum"},
+	"edges":["bug_id"],
+	"esfilter":{"and":[
+		{"term":{"component":"repository account requests"}},
+		{"not":{"terms":{"bug_status":["resolved","verified","closed"]}}}
+	]}
+}

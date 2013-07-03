@@ -311,7 +311,10 @@ var __createChart = function(){
 
 		//CURRENT STATUS
 		var aa=D.action("Pull from BZ", true);
-		var currentBugs=yield (Bugzilla.search(findBugs.edges[0].domain.partitions.map(function(v){return v.value;}), ["id", "summary", "assignee", "status", "resolution" ]));
+		var currentBugs=yield (Bugzilla.search(
+			findBugs.edges[0].domain.partitions.map(function(v){return v.value;}),
+			["id", "summary", "assignee", "status", "resolution" ]
+		));
 		D.actionDone(aa);
 
 		//FORMAT THE BUGS FOR TABLE

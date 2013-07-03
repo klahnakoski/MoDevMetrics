@@ -15,11 +15,11 @@
 
 <script>
 	importScript(["js/main.js"], function(){
-		var urlState = jQuery.bbq.getState();
-		var temp=$("#url");
-
-		//WOW!  I CAN NOT FIND THE CODE TO TURN AN OBJECT INTO href PRAMETERS!!!
-		temp.param(urlState);		//DOES NOT WORK
+		window.location=jQuery.param.fragment(
+			$("#url").attr("href"),
+			jQuery.bbq.getState(),
+			0
+		);
 	});
 </script>
 

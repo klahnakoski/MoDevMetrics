@@ -52,7 +52,7 @@ Dimension.prototype={
 
 		var output={
 			"name":this.name,
-			"value":MVEL.Parts2Term(this.index, domain)
+			"value":MVEL.Parts2TermScript(this.index, domain)
 		};
 		return output;
 	}

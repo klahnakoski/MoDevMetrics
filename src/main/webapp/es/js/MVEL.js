@@ -432,6 +432,7 @@ MVEL.Value2Value = function(value){
 	return value;
 };//method
 
+
 //CONVERT AN ARRAY OF PARTS{name, esfilter} TO AN MVEL EXPRESSION
 MVEL.Parts2Term = function(
 	indexName,  //NAME OF INDEX
@@ -455,8 +456,13 @@ MVEL.Parts2Term = function(
 //	MVEL.FUNCTIONS[name]="var "+name+" = function(){"+term+CNV.Value2Quote(domain.getKey(domain.NULL)) + ";};\n"; //ADD TO GENERAL SET OF FUNCTIONS
 //	return name+"()";
 
-	
 };//method
+
+
+MVEL.Parts2TermScript=function(indexName, domain){
+	var c=MVEL.Parts2Term(indexName, domain);
+	return c.head+c.body;
+};
 
 
 

@@ -101,11 +101,11 @@ var __createChart = function(){
 		}
 
 
-
 		//GET SUMMARIES
 		var getBZ=Thread.run(function(){
-			var a=D.action("Get BZ Summaries", true);
-			var bugs=yield (Bugzilla.search(Object.keys(allBugs), ["summary"]));
+			var bugList=Object.keys(allBugs);
+			var a=D.action("Get "+bugList.length+" BZ Summaries", true);
+			var bugs=yield (Bugzilla.search(bugList, ["summary"]));
 
 			bugs.forall(function(b){
 				Map.copy(b, allBugs[b.id]);

@@ -137,7 +137,7 @@ GUI.showLastUpdated = function(indexName){
 		}else if (indexName=="datazilla"){
 			time=new Date((yield(ESQuery.run({
 				"from":"datazilla",
-				"select":{"name":"max_date", "value":"json.testrun.date", "aggregate":"maximum"}
+				"select":{"name":"max_date", "value":"testrun.date", "aggregate":"maximum"}
 			}))).cube.max_date);
 			$("#testMessage").html("Datazilla Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 		}else{
@@ -535,7 +535,7 @@ GUI.refresh=function(){
 
 		var threads=[];
 		GUI.customFilters.forall(function(f, i){
-			threads.push("run custom filter", Thread.run(function(){
+			threads.push(Thread.run(function(){
 				yield (f.refresh());
 			}));
 		});
