@@ -10,6 +10,9 @@ importScript("aDate.js");
 importScript("aDuration.js");
 importScript("aTimer.js");
 importScript("aColour.js");
-importScript("aDebug.js");
-importScript("../lib/jsThreads/js/thread.js");
+
+importScript([
+	"aDebug.js",
+	"../lib/jsThreads/js/thread.js"
+]);
 importScript("aFormat.js");

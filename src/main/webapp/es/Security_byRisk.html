@@ -111,7 +111,7 @@ var __createChart = function(){
 		"select":{"name":"Risk Index", "value":"total * Priority.weight", "aggregate":"sum"},
 		"edges":[
 			{"name":"Team", "value":"Team.name"},
-			{"name":"date", "value":"date.value", "allowNulls":false, "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}}
+			{"name":"date", "value":"date", "allowNulls":false, "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}}
 		]
 	}));
 

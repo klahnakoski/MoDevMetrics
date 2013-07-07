@@ -54,7 +54,14 @@ var thread;
 var createChart = function(){
 	if (thread !== undefined)
 		thread.kill();
-	thread = Thread.run(__createChart());
+	thread = Thread.run(function(){
+		try{
+			yield (__createChart());
+		}catch(e){
+			if (e.contains(Thread.Interrupted)) return;
+			throw e;
+		}//try
+	});
 };
 
 var __createChart = function(){
@@ -131,7 +138,7 @@ var __createChart = function(){
 			{"name":"total", "value":"num_bug", "aggregate":"sum"}
 		],
 		"edges":[
-			{"name":"date", "value":"date.value",
+			{"name":"date", "value":"date",
 				"allowNulls":false,
 				"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value"}
 			}

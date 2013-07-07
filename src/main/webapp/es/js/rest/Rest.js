@@ -87,17 +87,20 @@ Rest.send=function(ajaxParam){
 		request.upload.addEventListener("progress",Rest.progress(ajaxParam.progress),false);
 	}//endif
 
-// progress on transfers from the server to the client (downloads)
-
 	request.kill=function(){
 		if (request.readyState==4) return;  //TOO LATE
-		request.abort();
-		callback(ajaxParam.error("Aborted"));
+		ajaxParam.error=function(){};//STANDARD ERROR HANDLING DOES NOT APPLY
+		try{
+			request.abort();   //abort() CALLS readyStateChange() WHICH CAN CALL ajaxParam.error()
+		}catch(e){
+			//IGNORE
+		}//try
+		//WE DO NOT CALL THE CALLBACK BECAUSE THE THREAD WILL BE CALLING INTERRUPT SHORTLY
+		//callback(new Exception("Aborted"));
 	};
 
 	request.send(ajaxParam.data);
-	var output=new Thread.Suspend((ajaxParam.doNotKill) ? undefined : request);
-	yield (output);
+	yield (Thread.suspend((ajaxParam.doNotKill) ? undefined : request));
 };//method
 
 

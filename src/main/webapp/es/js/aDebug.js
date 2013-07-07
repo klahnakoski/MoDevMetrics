@@ -17,11 +17,21 @@ var D = new function(){
 
 D.logs=[];
 
-D.addLog=function(id){
-	D.logs.push(id);
-	$("#"+id).html("");
+D.addLog=function(logger){
+	if (!logger.println) D.println("Expecting a logger with println() method");
+	D.logs.push(logger);
 };
 
+D.addLog({"println":function(message){console.info(message);}});
+
+D.addLogToElement=function(id){
+	$("#"+id).html("");
+	D.addLog({
+		"println":function(message){
+			$("#"+id).append(CNV.String2HTML(message)+"<br>");
+		}
+	});
+};
 
 D.println = function(message){
 	try{
@@ -30,20 +40,14 @@ D.println = function(message){
 	}//try
 	message=Date.now().addTimezone().format("HH:mm:ss - ")+message;
 
-	console.info(message);
-
-	D.logs.forall(function(v, i){
-		try{
-			var ele=$("#"+v);
-			ele.append(CNV.String2HTML(message)+"<br>");
-		}catch(e){
-		}//try
+	D.logs.forall(function(v){
+		v.println(message);
 	});
 };//method
 
 D.error = function(description, cause){
 	var e=new Exception(description, cause);
-	D.alert(description);
+//	D.alert(description);
 	console.error(e.toString());
 	throw e;
 };//method
@@ -56,7 +60,7 @@ D.warning = function(description, cause){
 D.alert=function(message, ok_callback, cancel_callback){
 	D.println(message);
 	
-	$('<div>'+message+"</div>").dialog({
+	var d=$('<div>'+message+"</div>").dialog({
 		title:"Alert",
 		draggable: false,
 		modal: true,
@@ -67,6 +71,10 @@ D.alert=function(message, ok_callback, cancel_callback){
 			"Cancel":cancel_callback ? function () { $(this).dialog("close"); cancel_callback(); } : undefined
 		}
 	});
+
+//	if (!ok_callback && !cancel_callback){
+//		setTimeout(function(){$(d).dialog("close");}, 10000);
+//	}//endif
 };//method
 
 
@@ -152,6 +160,22 @@ Exception.error=function(){
 	return new Exception("error called with arguments("+args.join(",\n"+")"), null);
 };
 
+
+Exception.prototype.contains=function(type){
+	if (this==type) return true;
+	if (this.message==type) return true;
+
+	if (this.cause===undefined){
+		return false;
+	}else if (this.cause instanceof Array){
+		for(var i=this.cause.length;i--;){
+			if (this.cause[i].contains(type)) return true;
+		}//for
+		return false;
+	}else{
+		return this.cause.contains(type);
+	}//endif
+};
 
 
 Exception.prototype.toString=function(){

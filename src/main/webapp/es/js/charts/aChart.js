@@ -583,7 +583,7 @@ function fixClickAction(chartParams){
 	chartParams.clickAction = function(series, x, d, elem){
 		if (series.atoms !== undefined){
 			//CCC VERSION 2
-			var s = series.atoms.series.value;
+			var s = nvl(series.atoms.series, {"value":"data"}).value;
 			var c = series.atoms.category.value;
 			var v = series.atoms.value.value;
 			if (c instanceof Date){  //CCC 2 DATES ARE IN LOCAL TZ

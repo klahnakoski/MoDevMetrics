@@ -335,7 +335,7 @@ CUBE.domain.time = function(column, sourceColumns){
 		return partition.value;
 	};//method
 
-	CUBE.domain.compileEnd(d);
+	d.end=function(p){return p.value;};
 
 };//method;
 
@@ -1070,10 +1070,7 @@ CUBE.domain.set.compileKey=function(domain){
 // THAT VALUE, INSTEAD OF RETURNING THE DOMAIN OBJECT
 ////////////////////////////////////////////////////////////////////////////////
 CUBE.domain.compileEnd=function(domain){
-	if (domain.type=="count"){
-		D.println();
-	}//endif
-	if (domain.value!=undefined){
+	if (domain.end===undefined && domain.value!=undefined){
 		domain.end=function(part){
 			//HOPEFULLY THE FIRST RUN WILL HAVE ENOUGH PARTITIONS TO DETERMINE A TYPE
 			if (!domain.columns){

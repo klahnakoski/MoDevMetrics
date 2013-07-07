@@ -562,7 +562,11 @@ CUBE.Cube2List=function(query){
 		"var end<NUM>=query.edges[<NUM>].domain.end;\n"+
 		"var name<NUM>=query.edges[<NUM>].name;\n"+
 		"var partValue<NUM>=[];\n"+
-		"for(var p<NUM>=0; p<NUM><parts<NUM>.length; p<NUM>++) partValue<NUM>.push(end<NUM>(parts<NUM>[p<NUM>]));\n"+
+		"for(var p<NUM>=0; p<NUM><parts<NUM>.length; p<NUM>++) partValue<NUM>.push("+
+			"end<NUM>("+
+			"parts<NUM>[p<NUM>]"+
+			")"+
+		");\n"+
 		""
 	;
 

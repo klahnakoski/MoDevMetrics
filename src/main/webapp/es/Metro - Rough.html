@@ -199,16 +199,20 @@ var __createChart = function(){
 	iterations[3].startDate=Date.newInstance("2013FEB27");
 	iterations[3].endDate=Date.newInstance("2013MAR13");
 	iterations[4].startDate=Date.newInstance("2013MAR15");
-	iterations[4].endDate=Date.newInstance("2013MAR29");
-	iterations[5].startDate=Date.newInstance("2013APR02");
-	iterations[5].endDate=Date.newInstance("2013APR15");	//WEEKEND
-	iterations[6].startDate=iterations[5].startDate.addWeekday(12);
-	iterations[6].endDate=iterations[5].endDate.addWeekday(12);
-	iterations[7].startDate=iterations[6].startDate.addWeekday(12);
-	iterations[7].endDate=iterations[6].endDate.addWeekday(12);
-	iterations[8].startDate=iterations[7].startDate.addWeekday(12);
-	iterations[8].endDate=iterations[7].endDate.addWeekday(12);
-	var currentIteration=iterations.map(function(i){if (endDate.between(i.startDate, i.endDate)) return i;})[0];
+	iterations[4].endDate=Date.newInstance("2013MAR30");
+	iterations[5].startDate=Date.newInstance("2013APR01").addWeekday(1);
+	iterations[5].  endDate=Date.newInstance("2013APR12").addWeekday(3);
+	iterations[6].startDate=Date.newInstance("2013APR17").addWeekday(1);
+	iterations[6].  endDate=Date.newInstance("2013APR30").addWeekday(3);
+	iterations[7].startDate=Date.newInstance("2013MAY02").addWeekday(1);
+	iterations[7].  endDate=Date.newInstance("2013MAY23").addWeekday(3);
+	iterations[8].startDate=Date.newInstance("2013MAY28").addWeekday(1);
+	iterations[8].  endDate=Date.newInstance("2013JUN10").addWeekday(3);
+	iterations[9].startDate=Date.newInstance("2013JUN11").addWeekday(1);
+	iterations[9].  endDate=Date.newInstance("2013JUN25").addWeekday(3);
+	iterations[10].startDate=Date.newInstance("2013JUN28").addWeekday(1);
+	iterations[10].  endDate=Date.newInstance("2013JUL17").addWeekday(3);
+	var currentIteration=iterations.map(function(i){if (endDate<i.endDate) return i;}).last();
 
 
 	////////////////////////////////////////////////////////////////////////////

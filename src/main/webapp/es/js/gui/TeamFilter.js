@@ -102,7 +102,7 @@ TeamFilter.newInstance=function(field_name){
 		//HOPEFULLY IT WILL EXIST WHEN THE HEAD EXISTS
 //		'#' + myid.replace(/(:|\.)/g,'\\$1');
 
-		while($("#"+CNV.String2JQuery("gkovacs@mozilla.com")).length==0){
+		while($("#"+CNV.String2JQuery("other@mozilla.com")).length==0){
 			yield (Thread.sleep(100));
 		}//while
 

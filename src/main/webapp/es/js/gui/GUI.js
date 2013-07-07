@@ -29,6 +29,7 @@ importScript("ProgramFilter.js");
 importScript("PartitionFilter.js");
 importScript("TeamFilter.js");
 
+importScript("../../lib/jsThreads/js/thread.js");
 importScript("../aCompiler.js");
 
 GUI = {};
@@ -38,11 +39,15 @@ GUI.customFilters = [];
 
 
 
+Thread.showWorking=function showWorking(){
+	var l=$(".loading");
+	l.show();
+};//function
 
-
-
-
-
+Thread.hideWorking=function(){
+	var l=$(".loading");
+	l.hide();
+};//function
 
 
 
@@ -535,9 +540,11 @@ GUI.refresh=function(){
 
 		var threads=[];
 		GUI.customFilters.forall(function(f, i){
-			threads.push(Thread.run(function(){
+			var t=Thread.run(function(){
 				yield (f.refresh());
-			}));
+			});
+			t.name=GUI.customFilters[i].name;
+			threads.push(t);
 		});
 
 		for(var i=0;i<threads.length;i++){

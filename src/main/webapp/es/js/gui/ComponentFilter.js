@@ -17,55 +17,60 @@ ComponentFilter.prototype.makeFilter = function(){
 
 
 ComponentFilter.prototype.refresh = function(){
-	if (this.refreshThread!==undefined) this.refreshThread.kill();
+	if (this.refreshThread!==undefined)
+		this.refreshThread.kill();
 
 	var self=this;
 	this.refreshThread=Thread.run("get components", function(){
-		var components=yield (ESQuery.run({
-			"from":"bugs",
-			"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
-			"edges":[
-				{"name":"term", "value":"component"}
-			],
-			"esfilter":{"and":[
-				Mozilla.CurrentRecords.esfilter,
-				Mozilla.BugStatus.Open.esfilter,
-				GUI.state.productFilter.makeFilter()   //PULL DATA FROM THE productFilter
-			]}
-		}));
+		try{
+			var components=yield (ESQuery.run({
+				"from":"bugs",
+				"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
+				"edges":[
+					{"name":"term", "value":"component"}
+				],
+				"esfilter":{"and":[
+					Mozilla.CurrentRecords.esfilter,
+					Mozilla.BugStatus.Open.esfilter,
+					GUI.state.productFilter.makeFilter()   //PULL DATA FROM THE productFilter
+				]}
+			}));
 
-		components = yield (CUBE.Cube2List(components));
-		var terms = components.map(function(v, i){return v.term;});
+			components = yield (CUBE.Cube2List(components));
+			var terms = components.map(function(v, i){return v.term;});
 
-		self.selected = self.selected.intersect(terms);
-//		var self=this;
+			self.selected = self.selected.intersect(terms);
+	//		var self=this;
 
 
-//		GUI.State2URL();
-		self.injectHTML(components);
-		$("#componentsList").selectable({
-			selected: function(event, ui){
-				var didChange = false;
-				if (ui.selected.id == "component_ALL"){
-					if (self.selected.length > 0) didChange = true;
-					self.selected = [];
-				} else{
-					if (!include(self.selected, ui.selected.id.rightBut("component_".length))){
-						self.selected.push(ui.selected.id.rightBut("component_".length));
-						didChange = true;
+	//		GUI.State2URL();
+			self.injectHTML(components);
+			$("#componentsList").selectable({
+				selected: function(event, ui){
+					var didChange = false;
+					if (ui.selected.id == "component_ALL"){
+						if (self.selected.length > 0) didChange = true;
+						self.selected = [];
+					} else{
+						if (!include(self.selected, ui.selected.id.rightBut("component_".length))){
+							self.selected.push(ui.selected.id.rightBut("component_".length));
+							didChange = true;
+						}//endif
 					}//endif
-				}//endif
 
-				if (didChange) GUI.refresh();
-			},
-			unselected: function(event, ui){
-				var i = self.selected.indexOf(ui.unselected.id.rightBut("component_".length));
-				if (i != -1){
-					self.selected.splice(i, 1);
-					GUI.refresh();
+					if (didChange) GUI.refresh();
+				},
+				unselected: function(event, ui){
+					var i = self.selected.indexOf(ui.unselected.id.rightBut("component_".length));
+					if (i != -1){
+						self.selected.splice(i, 1);
+						GUI.refresh();
+					}
 				}
-			}
-		});
+			});
+		}catch(e){
+			D.warning("component filter got exception", e);
+		}
 	});
 };
 

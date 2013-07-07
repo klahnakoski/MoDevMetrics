@@ -79,9 +79,7 @@ Bugzilla.search=function(bugList, fields){
 		});
 
 	}//for
-	yield (Thread.Suspend);
-
-	yield (null);
+	yield (Thread.suspend());
 };//method
 
 

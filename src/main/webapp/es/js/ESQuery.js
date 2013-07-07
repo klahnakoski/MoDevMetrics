@@ -141,8 +141,11 @@ ESQuery.loadColumns=function(query){
 					"doNotKill":true        //WILL NEED THE SCHEMA EVENTUALLY
 				}));
 			}catch(e){
-				//NEVER RUN WHEN THREAD IS KILLED
-				yield (null);       //RETURN
+				if (e.contains(Thread.Interrupted)){
+					D.warning("Tried to kill, but ignoring");
+					yield (Thread.suspend());
+				}//endif
+				D.error("problem with call to load columns", e);
 			}//try
 
 			var properties = schema[indexPath.split("/")[2]].properties;
