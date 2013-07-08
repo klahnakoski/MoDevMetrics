@@ -103,6 +103,7 @@ Dimension.addEdges(false, Mozilla, [
 				"type":"set",
 				"esfilter":ESQuery.TrueFilter,
 				"isFacet":true,
+				"end":function(p){return p.name;},
 				"path":function(v){
 					//MAP TO HUMANE NAMES, IF POSSIBLE
 					return [{

@@ -12,7 +12,7 @@ var Dimension={};
 var DEFAULT_QUERY_LIMIT=20;
 
 Dimension.prototype={
-	"getDomain":function(){
+	"getDomain":function(simpleNames){
 		var self=this;
 		var output={
 			"type":this.type,
@@ -31,7 +31,7 @@ Dimension.prototype={
 			"max":this.max,
 			"interval":this.interval,
 			"value": (!this.value && this.partitions) ? "name" : this.value,
-			"end":(this.type=="set" && this.name!==undefined) ? function(v){return v;} : undefined,
+			"end":nvl(this.end, (this.type=="set" && this.name!==undefined) ? function(v){return v;} : undefined),
 //			"value":(!this.value && this.partitions) ? "name" : this.value,
 			"isFacet":this.isFacet
 
