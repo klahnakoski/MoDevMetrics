@@ -6,7 +6,7 @@
 if (CUBE===undefined) var CUBE = {};
 CUBE.domain = {};
 
-CUBE.domain.ALGEBRAIC=["time", "duration", "numeric", "count"];  //DOMAINS THAT HAVE ALGEBRAIC OPERATIONS DEFINED
+CUBE.domain.ALGEBRAIC=["time", "duration", "numeric", "count", "datetime"];  //DOMAINS THAT HAVE ALGEBRAIC OPERATIONS DEFINED
 CUBE.domain.KNOWN=["set", "boolean", "duration", "time", "numeric"];    //DOMAINS THAT HAVE A KNOWN NUMBER FOR PARTS AT QUERY TIME
 CUBE.domain.PARTITION=["set", "boolean"];    //DIMENSIONS WITH CLEAR PARTS
 
@@ -572,7 +572,7 @@ CUBE.domain.numeric = function(column, sourceColumns){
 				if (this.max===undefined){
 					this.min = Math.max(this.min, floor);
 					this.max = floor+this.interval;
-					CUBE.domain.numeric.addRange(this.min, this,max, this);
+					CUBE.domain.numeric.addRange(this.min, this.max, this);
 				} else if (key >= this.max){
 					var newmax = floor+this.interval;
 					CUBE.domain.numeric.addRange(this.max, newmax, this);

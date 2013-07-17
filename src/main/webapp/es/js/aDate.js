@@ -496,6 +496,30 @@ Date.getBestFormat=function(minDate, maxDate, interval){
 };//method
 
 
+Date.getBestInterval=function(minDate, maxDate, numIntervals){
+	Map.expecting(numIntervals, ["min", "max"]);
+
+	var dur=maxDate.subtract(minDate);
+	if (dur.milli>Duration.MONTH.milli*numIntervals.min){
+		dur=maxDate.subtract(minDate, Duration.MONTH);
+
+		let biggest=dur.divideBy(numIntervals.min).month;
+		let best=Duration.COMMON_INTERVALS[0];
+		for(let i=0;i<Duration.COMMON_INTERVALS.length;i++){
+			if (biggest>Duration.COMMON_INTERVALS[i].month) best=Duration.COMMON_INTERVALS[i];
+		}//for
+		return best;
+	}else{
+		let biggest=dur.divideBy(numIntervals.min).milli;
+		let best=Duration.COMMON_INTERVALS[0];
+		for(let i=0;i<Duration.COMMON_INTERVALS.length;i++){
+			if (biggest>Duration.COMMON_INTERVALS[i].milli) best=Duration.COMMON_INTERVALS[i];
+		}//for
+		return best;
+	}//endif
+};
+
+
 // ------------------------------------------------------------------
 // Utility functions for parsing in getDateFromFormat()
 // ------------------------------------------------------------------

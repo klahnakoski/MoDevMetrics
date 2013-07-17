@@ -326,7 +326,7 @@ CNV.Cube2HTMLTable=function(query){
 			header += HTML.tag("th", query.select.name);
 
 			content=e.domain.partitions.map(function(p, i){
-				return "<tr>"+HTML.tag("th", e.domain.end(p))+HTML.tag("td", query.cube[i][p.name])+"</tr>";
+				return "<tr>"+HTML.tag("th", e.domain.end(p))+HTML.tag("td", query.cube[i])+"</tr>";
 			}).join("\n");
 		}//endif
 	}else if (query.edges.length==2){

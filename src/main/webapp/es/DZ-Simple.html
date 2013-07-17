@@ -77,10 +77,14 @@ importScript('js/main.js', function(){
 			var esfilter={"term":{"testrun.suite": "tp5o"}};
 
 
-			var s0 = yield(ESQuery.run({
+			var s = yield(ESQuery.run({
 				"name":"Timings",
-				"from":"datazilla.results",
-				"select": {"name":"s0", "value":'datazilla.results.moments.s0', "aggregate":"sum", "default":"0"},
+				"from":"datazilla",
+				"select":[
+					{"name":"s0", "value":'results.moments.s0', "aggregate":"sum", "default":"0"},
+					{"name":"s1", "value":'results.moments.s1', "aggregate":"sum", "default":"0"},
+					{"name":"s2", "value":'results.moments.s2', "aggregate":"sum", "default":"0"}
+				],
 				"edges":[
 					{"name":"page", "value":"datazilla.results.page", "domain":{"type":"default", "isFacet":true}},
 					{"name":"date",
@@ -92,42 +96,9 @@ importScript('js/main.js', function(){
 				"esfilter":esfilter
 			}));
 
-			var s1 = yield(ESQuery.run({
-				"name":"Timings",
-				"from":"datazilla",
-				"select": {"name":"s1", "value":'results.moments.s1', "aggregate":"sum", "default":"0"},
-				"edges":[
-					{"name":"page", "value":"results.page"},
-					{"name":"date",
-						"value":'testrun.date',
-						"allowNulls":false,
-						domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value"}
-					}
-				],
-				"esfilter":esfilter
-			}));
-
-			var s2 = yield(ESQuery.run({
-				"name":"Timings",
-				"from":"datazilla",
-				"select": {"name":"s2", "value":'results.moments.s2', "aggregate":"sum", "default":"0"},
-				"edges":[
-					{"name":"page", "value":"results.page"},
-					{"name":"date",
-						"value":'testrun.date',
-						"allowNulls":false,
-						domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value"}
-					}
-				],
-				"esfilter":esfilter
-			}));
 
 			var stats=yield (Q({
-				"from":CUBE.merge({"cubes":[
-					{"from":s0, "edges":["page", "date"]},
-					{"from":s1, "edges":["page", "date"]},
-					{"from":s2, "edges":["page", "date"]}
-				]}),
+				"from":s,
 				"select":[
 //					{"name":"count", "value":"s0"},
 					{"name":"avg", "value":"s0==0 ? 0 : s1/s0", "aggregate":"one"},

@@ -33,7 +33,7 @@ Rest.send=function(ajaxParam){
 	if (ajaxParam.dataType===undefined) ajaxParam.dataType="json";
 	if (ajaxParam.error===undefined){
 		ajaxParam.error=function(errorData){
-			callback(new Exception(errorData));
+			callback(new Exception("Error while calling "+ajaxParam.url+": "+errorData));
 		};
 	}//endif
 	if (typeof(ajaxParam.data)!="string") ajaxParam.data=CNV.Object2JSON(ajaxParam.data);

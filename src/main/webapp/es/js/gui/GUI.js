@@ -34,6 +34,8 @@ importScript("../aCompiler.js");
 
 GUI = {};
 
+(function(){
+
 GUI.state = {};
 GUI.customFilters = [];
 
@@ -59,7 +61,7 @@ GUI.fixEndDate=function(startDate, endDate, interval){
 	startDate=Date.newInstance(startDate);
 	endDate=Date.newInstance(endDate);
 	interval=Duration.newInstance(interval);
-	
+
 	var diff=endDate.add(interval).subtract(startDate, interval);
 
 	var newEnd=startDate.add(diff.floor(interval));
@@ -111,6 +113,7 @@ GUI.setup = function(refreshChart, parameters, relations, indexName, showDefault
 	GUI.refresh();
 };
 
+var esHasErrorInIndex;
 
 //SHOW THE LAST TIME ES WAS UPDATED
 GUI.showLastUpdated = function(indexName){
@@ -131,15 +134,18 @@ GUI.showLastUpdated = function(indexName){
 			time=yield (REVIEWS.getLastUpdated());
 			$("#testMessage").html("Reviews Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 		}else if (indexName=="bug_tags"){
+			esHasErrorInIndex=false;
 			time=yield (BUG_TAGS.getLastUpdated());
 			$("#testMessage").html("Bugs Last Updated " + time.addTimezone().format("NNN dd"));
 		}else if (indexName=="bug_summary"){
+			esHasErrorInIndex=false;
 			time=new Date((yield(ESQuery.run({
 				"from":"bug_summary",
 				"select":{"name":"max_date", "value":"modified_time", "aggregate":"maximum"}
 			}))).cube.max_date);
 			$("#testMessage").html("Bug Summaries Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 		}else if (indexName=="datazilla"){
+			esHasErrorInIndex=false;
 			time=new Date((yield(ESQuery.run({
 				"from":"datazilla",
 				"select":{"name":"max_date", "value":"testrun.date", "aggregate":"maximum"}
@@ -151,19 +157,20 @@ GUI.showLastUpdated = function(indexName){
 		}//endif
 
 		var age=aMath.round(Date.now().subtract(time).divideBy(Duration.DAY), 1);
-		if (age>1 || is_error){
+		if (age>1 || esHasErrorInIndex){
 			GUI.bigWarning("#testMessage", aMath.max(3, aMath.floor(age)));
 		}//endif
 		D.actionDone(a);
 
 
-		var a=D.action("Verify ES Consistency", true);
-		var is_error=yield(GUI.corruptionCheck());
-		if (is_error){
-			$("#testMessage").append("<br>ES IS CORRUPTED!!!");
+		if (esHasErrorInIndex===undefined){
+			a=D.action("Verify ES Consistency", true);
+			esHasErrorInIndex=yield(GUI.corruptionCheck());
+			if (esHasErrorInIndex){
+				$("#testMessage").append("<br>ES IS CORRUPTED!!!");
+			}//endif
+			D.actionDone(a);
 		}//endif
-		D.actionDone(a);
-
 
 	});
 };//method
@@ -236,7 +243,7 @@ GUI.State2URL = function(){
 		jQuery.bbq.removeState(removeList);
 		jQuery.bbq.pushState(Map.copy(simplestate));
 	}
-	
+
 };
 
 GUI.State2URL.isEnabled=false;
@@ -318,8 +325,27 @@ GUI.AddParameters=function(parameters, relations){
 
 
 		////////////////////////////////////////////////////////////////////////
+		// DATETIME
+		if (param.type=="datetime"){
+			$("#" + param.id).change(function(){
+				try{
+					$("#"+$(this).id+"_error").html("");
+					var value=Date.newInstance($(this).text());
+					$(this).val(value.format("yyyy-MM-dd HH:mm:ss"));
+				}catch(e){
+					$("#"+$(this).id+"_error").html("&gt;- ERROR, expecting a valid date and time");
+					return;
+				}//try
+
+				if (GUI.UpdateState()){
+					GUI.refreshChart();
+				}
+			});
+			defaultValue=defaultValue.format("yyyy-MM-dd HH:mm:ss");
+			$("#" + param.id).val(defaultValue);
+		////////////////////////////////////////////////////////////////////////
 		// DATE
-		if (param.type=="date" ||param.type=="time"){
+		}else if (param.type=="date" ||param.type=="time"){
 			$("#" + param.id).datepicker({ });
 			$("#" + param.id).datepicker("option", "dateFormat", "yy-mm-dd");
 
@@ -485,7 +511,7 @@ GUI.FixState=function(){
 
 GUI.makeSelectionPanel = function (){
 	if (GUI.customFilters.length==0) return;
-	
+
 	var html = "";
 
 	html += '<h4><a href="#">Selection</a></h4>';
@@ -576,7 +602,7 @@ GUI.injectFilters = function(chartRequest){
 	if (chartRequest.esQuery === undefined)
 		D.error("Expecting chart requests to have a \"esQuery\", not \"query\"");
 
-	
+
 	var indexName;
 	if (chartRequest.query!==undefined && chartRequest.query.from!==undefined){
 		indexName=chartRequest.query.from;
@@ -592,10 +618,14 @@ GUI.injectFilters = function(chartRequest){
 
 GUI.getFilters=function(indexName){
 	if (GUI.customFilters.length==0) return ESQuery.TrueFilter;
-	
+
 	var output={"and":[]};
 	GUI.customFilters.forall(function(f, i){
 		output.and.push(f.makeFilter());
 	});
 	return output;
 };
+
+
+})();
+

@@ -4,6 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 importScript("aDate.js");
+importScript("aDuration.js");
 
 
 
@@ -292,3 +293,27 @@ Duration.WEEK=Duration.newInstance("week");
 Duration.MONTH=Duration.newInstance("month");
 Duration.QUARTER=Duration.newInstance("quarter");
 Duration.YEAR=Duration.newInstance("year");
+
+Duration.COMMON_INTERVALS=[
+	Duration.newInstance("second"),
+	Duration.newInstance("15second"),
+	Duration.newInstance("30second"),
+	Duration.newInstance("minute"),
+	Duration.newInstance("5minute"),
+	Duration.newInstance("15minute"),
+	Duration.newInstance("30minute"),
+	Duration.newInstance("hour"),
+	Duration.newInstance("2hour"),
+	Duration.newInstance("3hour"),
+	Duration.newInstance("6hour"),
+	Duration.newInstance("12hour"),
+	Duration.newInstance("day"),
+	Duration.newInstance("2day"),
+	Duration.newInstance("week"),
+	Duration.newInstance("2week"),
+	Duration.newInstance("month"),
+	Duration.newInstance("2month"),
+	Duration.newInstance("quarter"),
+	Duration.newInstance("6month"),
+	Duration.newInstance("year")
+];

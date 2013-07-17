@@ -134,11 +134,14 @@ function calc2Tree(query){
 		D.println("");
 
 	var sourceColumns  = yield (CUBE.getColumnsFromQuery(query));
+	if (sourceColumns===undefined){
+		D.error("Can not get column definitions from query:\n"+CNV.Object2JSON(query).indent(1))
+	}//endif
 	var from = query.from.list;
 
-	var select = Array.newInstance(query.select);
 	var edges = query.edges;
 	query.columns = CUBE.compile(query, sourceColumns);
+	var select = Array.newInstance(query.select);
 	var where = CUBE.where.compile(query.where, sourceColumns, edges);
 	var numWhereFalse=0;
 
@@ -621,11 +624,9 @@ CUBE.Cube2List=function(query){
 	
 
 	{//EVAL
-		let start=Date.now();
+		var t=new aTimer("Convert from cube to list", Duration.SECOND);
 		var output=yield (cube2list(query));
-		let convertTime=Date.now().subtract(start);
-		if (convertTime.milli>Duration.SECOND.milli)
-			D.warning("Convert from cube to list takes "+convertTime.toString());
+		t.end();
 	}
 
 };//method
@@ -1061,6 +1062,43 @@ CUBE.drill=function(query, parts){
 	return newQuery;
 
 };
+
+	//SELECT ARE JUST ANOTHER DIMENSION (ALTHOUGH DIMENSION OF MANY TYPES)
+	//HERE WE CONVERT IT EXPLICITLY
+	CUBE.merge=function(query, edgeName, valueName){
+		//ADD ANOTHER DIMENSION TO EDGE, AND ALTER CUBE
+		if (!query.select instanceof Array) D.error("single cube with no objects does not need to be stacked");
+
+		//GET select NAMES
+		var parts=Array.newInstance(query.select);
+		var output={"edges":query.edges.copy()};
+		output.select={"name":valueName};
+		output.edges.append({
+			"name":edgeName,
+			"domain":{"type":"set", "partitions":parts, "key":"name", "end":function(p){return p.name;}}
+		});
+		output.columns=output.edges.copy();
+		output.columns.append(output.select);
+
+		function stackSelect(arr){
+			if (arr instanceof Array){
+				return arr.map(stackSelect);
+			}//endif
+
+			//CONVERT OBJECT INTO ARRAY
+			var a=[];
+			for(var p=parts.length;p--;){
+				var part=parts[p];
+				a[p]=arr[part.name];
+			}//for
+			return a;
+		}//method
+
+		output.cube=stackSelect(query.cube);
+		return output;
+	};
+
+
 
 
 	CUBE.query={};

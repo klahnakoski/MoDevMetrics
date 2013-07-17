@@ -30,6 +30,16 @@ Dimension.prototype={
 			"min":this.min,
 			"max":this.max,
 			"interval":this.interval,
+			//THE COMPLICATION IS THAT SOMETIMES WE WANT SIMPLE PARTITIONS, LIKE
+			//STRINGS, DATES, OR NUMBERS.  OTHER TIMES WE WANT PARTITION OBJECTS
+			//WITH NAME, VALUE, AND OTHER MARKUP.
+			//USUALLY A "set" IS MEANT TO BE SIMPLE, BUT THE end() FUNCTION IS
+			//OVERRIDES EVERYTHING AND IS EXPLICIT.  - NOT A GOOD SOLUTION BECAUSE
+			//end() IS USED BOTH TO INDICATE THE QUERY PARTITIONS *AND* DISPLAY
+			//COORDINATES ON CHARTS
+
+			//PLEASE SPLIT end() INTO value() (replacing the string value) AND
+			//label() (for presentation)
 			"value": (!this.value && this.partitions) ? "name" : this.value,
 			"end":nvl(this.end, (this.type=="set" && this.name!==undefined) ? function(v){return v;} : undefined),
 //			"value":(!this.value && this.partitions) ? "name" : this.value,

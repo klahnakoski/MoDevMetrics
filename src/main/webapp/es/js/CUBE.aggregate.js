@@ -108,6 +108,7 @@ CUBE.aggregate.average = function(select){
 	};
 };
 CUBE.aggregate.avg=CUBE.aggregate.average;
+CUBE.aggregate.mean=CUBE.aggregate.average;
 
 ////////////////////////////////////////////////////////////////////////////////
 // THIS VALUE WILL BE SET ONCE AND ONLY ONCE
@@ -199,10 +200,63 @@ CUBE.aggregate.X2 = function(select){
 		if (value == null && select["default"]!==undefined) return eval(select["default"]);
 		return value;
 	};//method
-
-
-
 };
+
+
+//SUM OF SQUARES
+CUBE.aggregate.stddev = function(select){
+	select.defaultValue = function(){
+		return {z0:0.0, z1:0.0, z2:0.0};
+	};//method
+
+	select.add = function(total, v){
+		if (v === undefined || v == null) return total;
+
+		total.z0++;
+		total.z1+=v;
+		total.z2=v*v;
+
+		return total;
+	};//method
+
+	select.domain = {
+
+		compare:function(a, b){
+			a = select.end(a);
+			b = select.end(b);
+
+			if (a == null){
+				if (b == null) return 0;
+				return -1;
+			} else if (b == null){
+				return 1;
+			}//endif
+
+			return ((a < b) ? -1 : ((a > b) ? +1 : 0));
+		},
+
+		NULL:null,
+
+		getCanonicalPart:function(value){
+			return value;
+		},
+
+		getKey:function(partition){
+			return partition;
+		},
+
+		end :function(total){
+			if (total.count == 0){
+				if (select["default"]!==undefined) return select["default"];
+				return null;
+			}//endif
+			return (total.z2-(total.z1*total.z1/total.z0))/total.z0;
+		}
+	};
+};
+
+
+
 
 
 //RETURN ZERO (FOR NO DATA) OR ONE (FOR DATA)

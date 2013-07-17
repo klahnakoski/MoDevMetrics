@@ -27,6 +27,7 @@ if (window.location.hostname=="metrics.mozilla.com"){
 //	ElasticSearch.queryURL = "http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search";
 
 	ElasticSearch.pushURL="http://localhost:9200";
+//	ElasticSearch.pushURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
 //	ElasticSearch.pushURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
 //
 //	ElasticSearch.baseURL="http://localhost:5000";

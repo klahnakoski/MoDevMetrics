@@ -181,6 +181,9 @@ ESQuery.run=function(query){
 
 ESQuery.prototype.run = function(){
 
+	if (this.query.from=="bugs")
+		D.println("");
+
 	if (!this.query.url){
 		var indexInfo=ESQuery.INDEXES[this.query.from.split(".")[0]];
 		this.query.url=nvl(indexInfo.host, window.ElasticSearch.baseURL)+indexInfo.path;
@@ -326,7 +329,11 @@ ESQuery.prototype.compile = function(){
 
 	//PICK FIRST AND ONLY SELECT
 	if (this.select.length>1){
-		D.error("Can not have an array of select columns, only one allowed");
+		var allSame=true;
+		for(var s=this.select.length;s--;){
+			if (this.select[s].value!=this.select[0].value) allSame=false;
+		}//for
+		if (!allSame) D.error("Can not have an array of select columns, only one allowed");
 	}else if (this.select.length==0){
 		this.select=undefined;
 	}//endif
@@ -1065,6 +1072,7 @@ ESQuery.agg2es = {
 	"minimum":"min",
 	"max":"max",
 	"min":"min",
+	"mean":"mean",
 	"average":"mean",
 	"avg":"mean",
 	"N":"count",
@@ -1072,6 +1080,7 @@ ESQuery.agg2es = {
 	"X1":"total",
 	"X2":"sum_of_squares",
 	"std":"std_deviation",
+	"stddev":"std_deviation",
 	"var":"variance",
 	"variance":"variance"
 };
@@ -1226,7 +1235,11 @@ ESQuery.prototype.fieldsResults=function(data){
 	}else{
 		//NOT ARRAY MEANS OUTPUT IS LIST OF VALUES, NOT OBJECTS
 		var n=this.query.select.name;
-		for(var i = T.length; i--;) o.push(T[i].fields[n]);
+		if (this.query.select.value=="_source"){
+			for(var i = T.length; i--;) o.push(T[i]._source);
+		}else{
+			for(var i = T.length; i--;) o.push(T[i].fields[n]);
+		}//endif
 	}//endif
 
 	this.query.list=o;

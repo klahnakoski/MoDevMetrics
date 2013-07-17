@@ -44,6 +44,62 @@
 <table>
 	<tr>
 	<td>
+		<h3>July 17th 2013 - Datazilla Update</h3>
+		<div class="description">
+			<p>Since I still have little to present directly, I will summarize
+				the code I have been working on to support the <a href="https://github.com/klahnakoski/datazilla-alerts">Datazilla Alert System</a>
+				code.</p>
+			<p>This is just another example of the core production code representing
+			a quarter (1/4) if the total code; the other 3/4 being testing and
+			ephemeral code to support development.</p>
+
+			<ul>
+				<li><a href="https://github.com/klahnakoski/datazilla-alerts/blob/master/scripts/sql/Update%20test_data_all_dimensions.sql">
+					SQL script</a> to translate from Datazilla normalized tables to
+					<code>test_data_all_dimensions</code> (a data cube) - turns out
+				this can not be used because the current Datazilla code can not
+					handle the large number of test replicates (up to 60,000)</li>
+				<li>Python script to pull from Talos production and push to Datazilla objectstore</li>
+				<li><a href="https://github.com/klahnakoski/Datazilla2ElasticSearch/blob/master/Extract_usingID.py">
+					Python script</a> to pull data from talos production and
+					push to ES - Required for charting</li>
+				<li>SQL script to translate objectstore to test_data_all_dimension</li>
+				<li>Code to present page timing stats, and zoom in to single test</li>
+				<li><a href="https://github.com/klahnakoski/Datazilla2ElasticSearch/blob/master/SummarizeTalos.py">
+					Python Pandas code</a> to summarize Talos test data</li>
+			</ul>
+		</div>
+		<div class="items">
+		</div>
+	</td>
+	</tr>
+
+	<tr>
+	<td>
+		<h3>July 10th 2013 - Q2 Goals</h3>
+		<div class="description">
+			<p>My goals are part of the greater <a href="https://wiki.mozilla.org/Auto-tools/Goals/2013Q3">Auto-Tools Goals</a>:</p>
+			<ul>
+				<li>Finish <a href="https://github.com/klahnakoski/datazilla-alerts">Datazilla Alerts</a>
+					- get emails out to select individuals and have correctness verified.
+				</li>
+				<li>Participate in <a href="https://wiki.mozilla.org/Blackhole">Mozilla Blackhole</a>
+					with an eye for scale and configuration that supports queries</li>
+				<li>Prototype a plugin, or add-on, that will add charts to
+					<a href="https://wiki.mozilla.org">wiki.mozilla.org</a> </li>
+				<li>Fork <a href="https://github.com/mozilla-metrics/bugzilla_etl/tree/es_schema_v2">
+					Metric's code for Bugzilla ETL to ElasticSearch</a>, and
+					<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=879835">
+					extend for the public DB</a></li>
+			</ul>
+		</div>
+		<div class="items">
+		</div>
+	</td>
+	</tr>
+
+	<tr>
+	<td>
 		<h3>July 3rd 2013</h3>
 		<div class="description">
 			<p>I have been busy working Datazilla, and have very little to present
