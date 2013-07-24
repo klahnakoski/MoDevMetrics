@@ -330,7 +330,7 @@ GUI.AddParameters=function(parameters, relations){
 			$("#" + param.id).change(function(){
 				try{
 					$("#"+$(this).id+"_error").html("");
-					var value=Date.newInstance($(this).text());
+					var value=Date.newInstance($(this).val());
 					$(this).val(value.format("yyyy-MM-dd HH:mm:ss"));
 				}catch(e){
 					$("#"+$(this).id+"_error").html("&gt;- ERROR, expecting a valid date and time");
@@ -341,7 +341,7 @@ GUI.AddParameters=function(parameters, relations){
 					GUI.refreshChart();
 				}
 			});
-			defaultValue=defaultValue.format("yyyy-MM-dd HH:mm:ss");
+			defaultValue=Date.newInstance(defaultValue).format("yyyy-MM-dd HH:mm:ss");
 			$("#" + param.id).val(defaultValue);
 		////////////////////////////////////////////////////////////////////////
 		// DATE
@@ -446,6 +446,8 @@ GUI.State2Parameter = function (){
 			$("#" + param.id).val(CNV.Object2JSON(GUI.state[param.id]));
 		}else if (param.type=="boolean"){
 			$("#" + param.id).prop("checked", GUI.state[param.id]);
+		}else if (param.type=="datetime"){
+			$("#" + param.id).val(Date.newInstance(GUI.state[param.id]).format("yyyy-MM-dd HH:mm:ss"))
 		}else{
 //		if (param.type.getSimpleState) return;  //param.type===GUI.state[param.id] NO ACTION REQUIRED
 			$("#" + param.id).val(GUI.state[param.id]);

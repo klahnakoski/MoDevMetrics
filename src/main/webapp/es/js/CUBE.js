@@ -1065,16 +1065,16 @@ CUBE.drill=function(query, parts){
 
 	//SELECT ARE JUST ANOTHER DIMENSION (ALTHOUGH DIMENSION OF MANY TYPES)
 	//HERE WE CONVERT IT EXPLICITLY
-	CUBE.merge=function(query, edgeName, valueName){
+	CUBE.stack=function(query, newEdgeName, newSelectName){
 		//ADD ANOTHER DIMENSION TO EDGE, AND ALTER CUBE
 		if (!query.select instanceof Array) D.error("single cube with no objects does not need to be stacked");
 
 		//GET select NAMES
 		var parts=Array.newInstance(query.select);
 		var output={"edges":query.edges.copy()};
-		output.select={"name":valueName};
+		output.select={"name":newSelectName};
 		output.edges.append({
-			"name":edgeName,
+			"name":newEdgeName,
 			"domain":{"type":"set", "partitions":parts, "key":"name", "end":function(p){return p.name;}}
 		});
 		output.columns=output.edges.copy();

@@ -293,6 +293,8 @@ ETL.chunk=function(insert, insertFunction){
 };
 
 ETL.parseWhiteBoard=function(whiteboard){
+	if (whiteboard==null || whiteboard===undefined)
+		return "";
 	return whiteboard.split("[").map(function(v, i){
 		var index=v.indexOf("]");
 		if (index==-1) index=v.indexOf(" ");

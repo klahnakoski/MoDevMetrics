@@ -71,7 +71,7 @@ var __createChart = function(){
 	
 	var sampleInterval = Duration.DAY;
 
-	var DUE_DATE = Date.newInstance(GUI.state.dueDate);
+	var DUE_DATE = Date.newInstance(GUI.state.dueDate); //.addDay(1)
 	var MAX_CHART_DATE=DUE_DATE.addDay(1);
 
 
@@ -343,6 +343,10 @@ $(document).ready(function(){
 			{"term":{"cf_blocking_b2g":"leo+"}},
 			{"not":{"terms":{"cf_status_b2g18":["fixed","verified","unaffected","wontfix"]}}}
 		]}
+//		{"and":[
+//			{"term":{"status_whiteboard.tokenized":"abouthome-hackathon"}},
+//			{"not":{"term":{"status_whiteboard.tokenized":"fixed-fig"}}}
+//		]}
 
 //		{"and":[
 //			{"term":{"blocked_by":"862793"}},

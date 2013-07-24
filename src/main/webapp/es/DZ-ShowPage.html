@@ -69,8 +69,12 @@ importScript('js/main.js',function(){
 		var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
 		var sampleMax = Date.newInstance(GUI.state.sampleMax).add(sampleInterval);
 		var page='results.'+GUI.state.page.replaceAll(".", "_dot_");
+		var branch=GUI.state.branch
 
-		var esfilter={"term":{"testrun.suite": "tp5o"}};
+		var esfilter={"and":[
+			{"term":{"testrun.suite": "tp5o"}},
+			{"term":{"test_build.branch": branch}}
+		]}
 
 
 		var chart = yield(ESQuery.run({
@@ -83,7 +87,7 @@ importScript('js/main.js',function(){
 			],
 			"edges":[
 				{"name":"date",
-					"value":'testrun.date',
+					"value":'test_build.push_date',
 					"allowNulls":false,
 					domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value"}
 				}
@@ -145,7 +149,9 @@ importScript('js/main.js',function(){
 				{"id":"sampleMin", "name":"Start Date", "type":"datetime", "default":Date.getDateFromFormat("2013-May-26 19:00:00", "yyyy-MMM-dd HH:mm:ss")},
 				{"id":"sampleMax", "name":"End Date", "type":"datetime", "default":Date.getDateFromFormat("2013-Jul-01 21:00:00", "yyyy-MMM-dd HH:mm:ss")},
 				{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.DAY},
-				{"id":"page", "name":"Page URL", "type":"string", "default":"amazon.com"}
+				{"id":"page", "name":"Page URL", "type":"string", "default":"amazon.com"},
+				{"id":"branch", "name":"Branch", "type":"string", "default":"inbound"}
+
 			],
 			[
 				'sampleInterval=Date.getBestInterval(Date.newInstance(sampleMin), Date.newInstance(sampleMax), {"min":100, "max":1000})'
