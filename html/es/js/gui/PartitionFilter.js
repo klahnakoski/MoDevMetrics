@@ -137,7 +137,7 @@ PartitionFilter.prototype.setSimpleState=function(value){
 
 	//SOME VALUES WILL BE IMPOSSIBLE, SO SHOULD BE REMOVED
 	this.selectedIDs=this.getSelectedNodes().map(function(v, i){return v.id;});
-	this.refresh();
+//	this.refresh();
 };
 
 

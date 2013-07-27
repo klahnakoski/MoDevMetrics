@@ -6,7 +6,6 @@ ComponentFilter = function(){
 	this.name="Components";
 	this.isFilter=true;
 	this.selected=[];
-	this.refresh()
 };
 
 
@@ -98,7 +97,7 @@ ComponentFilter.prototype.setSimpleState=function(value){
 	}else{
 		this.selected=value.split(",").map(function(v){return v.trim();});
 	}//endif
-	this.refresh();
+//	this.refresh();
 
 };
 

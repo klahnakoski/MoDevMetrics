@@ -10,7 +10,6 @@ ProductFilter = function(){
 	this.name="Products";
 	this.isFilter=true;
 	this.selected=[];
-	this.refresh();
 };
 
 

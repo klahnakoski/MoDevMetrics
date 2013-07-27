@@ -12,7 +12,7 @@ if (window.location.hostname=="metrics.mozilla.com"){
 }else if (window.location.hostname=="people.mozilla.com"){
 	Settings.basePath="http://people.mozilla.com/~klahnakoski/test/es/";
 }else{
-	var find="src/main/webapp/es";
+	var find="html/es";
 	Settings.basePath=window.location.pathname.substring(0, window.location.pathname.indexOf(find)+find.length);
 }//endif
 

@@ -53,13 +53,13 @@
 			ephemeral code to support development.</p>
 		</div>
 		<div class="items">
-			<a href="https://github.com/klahnakoski/Datazilla2ElasticSearch/blob/master/SummarizeTalos.py">
+			<a href="https://github.com/klahnakoski/Datazilla2ElasticSearch/blob/master/src/python/SummarizeTalos.py">
 				SummarizeTalos.py</a>
 			<span class="info">Python Pandas code to summarize Talos test data.
 				This is where we discovered some tests were generating 60,000 samples.</span>
 
 
-			<a href="https://github.com/klahnakoski/datazilla-alerts/blob/master/scripts/sql/Update%20test_data_all_dimensions.sql">
+			<a href="https://github.com/klahnakoski/datazilla-alerts/blob/master/tests/setup/sql/normalized_to_cube.sql">
 				DZ <span class="code">-&gt;</span> Cube</a>
 			<span class="info">Script to translate from Datazilla normalized tables to
 				<span class="code">test_data_all_dimensions</span> (a data cube).  Turns  out
@@ -67,21 +67,21 @@
 				handle the egregious number of test replicates.  The normalized tables
 				can not be filled fast enough.</span>
 
-			<a href="https://github.com/klahnakoski/datazilla-alerts/blob/master/datazilla/daemons/production_copy.py">
+			<a href="https://github.com/klahnakoski/datazilla-alerts/blob/master/tests/setup/python/prod_to_objectstore.py">
 				Talos <span class="code">-&gt;</span> objectstore</a>
 			<span class="info">Python script to pull from Talos production and push to Datazilla objectstore</span>
 
-			<a href="https://github.com/klahnakoski/datazilla-alerts/blob/master/scripts/sql/objectstore2test_data_all_dimensions.sql">
+			<a href="https://github.com/klahnakoski/datazilla-alerts/blob/master/tests/setup/python/objectstore_to_cube.py">
 				objectstore <span class="code">-&gt;</span> Cube</a>
 			<span class="info">SQL script to translate objectstore to <span class="code">test_data_all_dimension</span></span>
 
-			<a href="https://github.com/klahnakoski/Datazilla2ElasticSearch/blob/master/Extract_usingID.py">
+			<a href="https://github.com/klahnakoski/Datazilla2ElasticSearch/blob/master/src/python/Extract.py">
 				Talos <span class="code">-&gt;</span> ES</a>
 			<span class="info">Python script to pull data from Talos production and
 				push to ES.  Required for charting.</span>
 
 			<!--https://metrics.mozilla.com/bugzilla-analysis/DZ-ShowPage.html-->
-			<a href="https://github.com/klahnakoski/MoDevMetrics/blob/master/src/main/webapp/es/DZ-ShowPage.html">
+			<a href="https://github.com/klahnakoski/MoDevMetrics/blob/master/html/es/DZ-ShowPage.html">
 				DZ-ShowPage.html</a>
 			<span class="info">Code to present page timing stats, and zoom in to single test</span>
 		</div>

@@ -80,7 +80,12 @@ GUI.setup = function(refreshChart, parameters, relations, indexName, showDefault
 	//IF THERE ARE ANY CUSTOM FILTERS, THEN TURN OFF THE DEFAULTS
 	var isCustom=false;
 	parameters.forall(function(f, i){
-		if (f.type.isFilter) isCustom=true;
+		if (f.type.isFilter){
+			isCustom=true;
+			
+			f.type.setSimpleState(f["default"]);
+			f.type.name=f.name;
+		}
 	});
 
 	if (((showDefaultFilters===undefined) && !isCustom) || showDefaultFilters){

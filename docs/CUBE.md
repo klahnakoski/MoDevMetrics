@@ -171,7 +171,7 @@ Each analytic column defines an additional attribute for the result set.  An ana
 USING PRE-DEFINED DIMENSIONS
 ----------------------------
 
-Pre-defined dimensions simplify queries, and double as type information for the dataset.     In this project [```Mozilla.*``` have been pre-defined](https://github.com/klahnakoski/MoDevMetrics/blob/master/src/main/webapp/es/js/Dimension-Bugzilla.js).  [More documentation here](Dimension Definitions.md)
+Pre-defined dimensions simplify queries, and double as type information for the dataset.     In this project [```Mozilla.*``` have been pre-defined](https://github.com/klahnakoski/MoDevMetrics/blob/master/html/es/js/Dimension-Bugzilla.js).  [More documentation here](Dimension Definitions.md)
 
   - **select** - Any pre-defined dimension with a partition defined can be used in a select query (see ```Mozilla.BugStatus.getSelect()```): Each record will be assigned it's part.
  

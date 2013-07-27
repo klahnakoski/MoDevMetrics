@@ -1,1 +1,1 @@
-These queries are throw-away tests that I use in src\main\webapp\es\util\QueryTool.html to view the resulting tranformation
+These queries are throw-away tests that I use in html\es\util\QueryTool.html to view the resulting tranformation

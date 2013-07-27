@@ -43,6 +43,12 @@ Dimension.addEdges(true,  Mozilla, [
 
 
 	{"name":"Projects", "edges":[
+		{"name": "B2G (KOI)", "partitions":[
+			{"name":"nominated", "esfilter":{"term":{"cf_blocking_b2g":"koi?"}}},
+			{"name":"tracking", "esfilter":{"term":{"cf_blocking_b2g":"koi+"}}}
+		]},
+
+
 		{"name": "B2G 1.0.0 (TEF)", "partitions":[
 			{"name":"nominated", "esfilter":{"term":{"cf_blocking_b2g":"tef?"}}},
 			{"name":"tracking", "esfilter":{"term":{"cf_blocking_b2g":"tef+"}}, "edges":[

@@ -90,7 +90,7 @@ importScript('js/main.js',function(){
 
 			$("#charts").append('<div id="chart'+i+'" class="chart" style="float:none;width:800px;height:400px;"></div>');
 
-			var measurements=test.results[page].map(function(v, i){return {"value":v, "index":i};});
+			var measurements=test.results[page].series.map(function(v, i){return {"value":v, "index":i};});
 			var chart=yield (Q({
 				"from":measurements,
 				"select":{"value":"value", "aggregate":"none"},

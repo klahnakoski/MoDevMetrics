@@ -68,7 +68,7 @@ importScript('js/main.js',function(){
 		var sampleMin = Date.newInstance(GUI.state.sampleMin);
 		var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
 		var sampleMax = Date.newInstance(GUI.state.sampleMax).add(sampleInterval);
-		var page='results.'+GUI.state.page.replaceAll(".", "_dot_");
+		var page='results.'+GUI.state.page.replaceAll(".", "_dot_")+".last_20";
 		var branch=GUI.state.branch
 
 		var esfilter={"and":[
@@ -119,7 +119,7 @@ importScript('js/main.js',function(){
 							"select":{"name":"id", "value":"datazilla.id"},
 							"esfilter":{"and":[
 								esfilter,
-								{"range":{"testrun.date":{"gte":part.min.getMilli(), "lt":part.max.getMilli()}}}
+								{"range":{"test_build.push_date":{"gte":part.min.getMilli(), "lt":part.max.getMilli()}}}
 							]}
 						}));
 						ids=ids.list.join(",");

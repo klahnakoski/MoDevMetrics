@@ -7,6 +7,7 @@ var MozillaPrograms = {
 	"columns":
 		["projectName", "attributeName", "attributeValue", "esfilter"],
 	"rows":[
+		["B2G 1.2.0 (Koi)", "cf_blocking_b2g", "koi+"],
 		["B2G 1.0.1 (TEF)", "cf_blocking_b2g", "tef+"],
 
 		["B2G 1.0.1 (TEF -NPOTB -POVB)",  null, null, {"and":[
@@ -14,6 +15,7 @@ var MozillaPrograms = {
 				{"not":{"terms":{"status_whiteboard.tokenized":["npotb","povb"]}}}
 			]}
 		],
+
 
 
 		["TEF Triage (tef?)", "cf_blocking_b2g", "tef?"],
