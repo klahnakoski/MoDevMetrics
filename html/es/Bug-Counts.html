@@ -17,12 +17,9 @@
 	</div>
 
 	<hr>
-	<div id="description">Summarize age of bugs over the sample given<br><br>
-		This is best used on a small number of bugs because bugs details must be
+	<div id="description">Summarize number of of bugs over the sample given<br><br>
+		This is best used on a small number of bugs because details must be
 		brought to the client for further processing<br><br>
-		Please look at the <a href='./js/etl/bug_version.json'>ES Schema</a> to
-		get a full listing of fields available.  Field names are a little
-		different from BZ.
 	</div>
 	<hr>
 	<div id="testMessage"></div>
@@ -38,7 +35,7 @@
 	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
 </div>
 <div style="align:left;position:relative;float:left;width:800px;">
-	<h3 id="title">Age of Open Bugs</h3>
+	<h3 id="title"></h3>
 	<div id="chartCount"  class="chart" style="float:none;width:800px;height:300px;"></div>
 	<div id="chartChurn"  class="chart" style="float:none;width:800px;height:300px;"></div>
 	<div id="chart"       class="chart" style="float:none;width:800px;height:300px;"></div>
@@ -66,13 +63,14 @@ var __createChart = function(){
 
 	var sampleMin=Date.newInstance(GUI.state.sampleMin);
 	var sampleMax=Date.newInstance(GUI.state.sampleMax).addDay(1);
-	var sampleInterval=Duration.DAY;
+	var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
 
 	var createTime="doc[\"create_time\"].value";
 //	var idTime=GUI.state.programFilter.bugStatusMinimum_fromSource();
 //	var testValue=GUI.state.programFilter.bugStatusMinimum_fromDoc();
 	
-	
+
+
 //	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
 
 	var mainFilter={"and":[
@@ -80,7 +78,33 @@ var __createChart = function(){
 		Mozilla.BugStatus.Open.esfilter
 	]};
 
+	//COMPLICATED TITLE LOGIC
+	if (GUI.state.programFilter.selected.length==0){
+		if (GUI.state.componentFilter.selected.length==0){
+			if (GUI.state.productFilter.selected.length==0){
+				$("#title").html("No Program, Product or Component Selected.");
+				yield (null)
+			}else{
+				$("#title").html("Programs: "+GUI.state.productFilter.selected.join(" & "));
+			}//endif
+		}else{
+			$("#title").html("Components: "+GUI.state.productFilter.selected.join(" & "));
+		}//endif
+	}else{
+		if (GUI.state.componentFilter.selected.length==0){
+			if (GUI.state.productFilter.selected.length==0){
+				$("#title").html(GUI.state.programFilter.selected.join(" and "));
+			}else{
+				$("#title").html(GUI.state.programFilter.selected.join(" and ")+" - "+GUI.state.productFilter.selected.join(" & "));
+			}//endif
+		}else{
+			$("#title").html(GUI.state.programFilter.selected.join(" and ")+" - "+GUI.state.componentFilter.selected.join(" & "));
+		}//endif
 
+
+	}//endif
+
+	
 	var allBugs;
 	var allBugsThread=Thread.run(function(){
 		D.action("Request Bugs");
@@ -98,7 +122,7 @@ var __createChart = function(){
 				{"name":"date",
 					"range":{"min":"min", "max":"max"},
 					"allowNulls":false,
-					domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+					domain:{"type":"time", "min":sampleMin, "max":sampleMax.add(sampleInterval), "interval":sampleInterval}
 				}
 			]
 		}));
@@ -205,25 +229,17 @@ var __createChart = function(){
 
 		yield (Thread.join(allBugsThread));
 
-		//SHOW BARS FOR EVERY DAY, IF LESS THAN A 3WEEKS
-		var interval;
-		if (sampleMax.subtract(sampleMin).round(Duration.WEEK, 0)<=3){
-			interval=Duration.DAY;
-		}else{
-			interval=Duration.WEEK;
-		}//endif
-
 		var churn=yield(Q({
 			"from":allBugs,
 			"name":"New and Closed Bugs",
 			"select":[
-				{"name":"New", "value":"time.value.getMilli()==min.floor(\""+interval.toString()+"\").getMilli() ? 1 : 0", "aggregate":"sum", "default":"0", "style":{"color":"seagreen"}},
-				{"name":"Closed", "value":"(max!=null && time.value.getMilli()==max.floor(\""+interval.toString()+"\").getMilli()) ? -1 : 0", "aggregate":"sum", "default":"0", "style":{"color":"goldenrod"}}
+				{"name":"New", "value":"time.value.getMilli()==min.floor(\""+sampleInterval.toString()+"\").getMilli() ? 1 : 0", "aggregate":"sum", "default":"0", "style":{"color":"seagreen"}},
+				{"name":"Closed", "value":"(max!=null && time.value.getMilli()==max.floor(\""+sampleInterval.toString()+"\").getMilli()) ? -1 : 0", "aggregate":"sum", "default":"0", "style":{"color":"goldenrod"}}
 			],
 			"edges":[
 				{"name":"date",
-					"test":"time.value.getMilli()==min.floor(\""+interval.toString()+"\").getMilli() || (max==null || time.value.getMilli()==max.floor(\""+interval.toString()+"\").getMilli())",
-					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":interval}
+					"test":"time.value.getMilli()==min.floor(\""+sampleInterval.toString()+"\").getMilli() || (max==null || time.value.getMilli()==max.floor(\""+sampleInterval.toString()+"\").getMilli())",
+					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
 				}
 			]
 		}));
@@ -256,8 +272,8 @@ var __createChart = function(){
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"week"}
 		],
 		[
-			"if (Date.newInstance(sampleMax).subtract(Date.newInstance(sampleMin)).round(Duration.WEEK, 0)>=5) sampleInterval='week'",
-			"if (Date.newInstance(sampleMax).subtract(Date.newInstance(sampleMin)).round(Duration.WEEK, 0)<=3) sampleInterval='day'",
+//			"if (Date.newInstance(sampleMax).subtract(Date.newInstance(sampleMin)).round(Duration.WEEK, 0)>=5) sampleInterval='week'",
+//			"if (Date.newInstance(sampleMax).subtract(Date.newInstance(sampleMin)).round(Duration.WEEK, 0)<=3) sampleInterval='day'",
 			"sampleMin=Date.newInstance(sampleMin).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
 			"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')"
 		],
