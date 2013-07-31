@@ -72,8 +72,8 @@ importScript('js/main.js',function(){
 
 
 		var esfilter={"and":[
-			{"term":{"testrun.suite": "tp5o"}},
-			{"terms":{"datazilla.id":ids}}
+//			{"term":{"testrun.suite": "tp5o"}},
+			{"terms":{"datazilla.test_run_id":ids}}
 		]};
 
 
@@ -118,7 +118,7 @@ importScript('js/main.js',function(){
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [
-				{"id":"id", "name":"DZ IDs", "type":"string", "default":""},
+				{"id":"id", "name":"Test Run IDs", "type":"string", "default":""},
 				{"id":"page", "name":"Page URL", "type":"string", "default":"amazon.com"},
 				{"id":"start", "name":"Ignore", "type":"numeric", "default":0}
 			],

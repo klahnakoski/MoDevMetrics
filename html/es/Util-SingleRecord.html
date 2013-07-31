@@ -29,16 +29,25 @@
 
 //			var temp = MVEL.compile.expression("getDocArray(dependson).length>0", {"from": "bugs"	  });
 
+//			var esQuery = { "query":{"filtered":{ "query":{"match_all":{}}, "filter":{"and":[
+//				{"script":{"script":"true"}},
+//				{"and":[
+////					{"exists":{"field":"results.amazon_dot_com"}},
+//					{"terms":{"bug_id":[895819]}}
+//				]}
+//			]} }}, "fields":["bug_id", "status_whiteboard", "status_whiteboard.tokenized"], "from":0, "size":200, "sort":["bug_version_num"] }
+//
+//
+//					;
+
 			var esQuery = { "query":{"filtered":{ "query":{"match_all":{}}, "filter":{"and":[
 				{"script":{"script":"true"}},
 				{"and":[
 //					{"exists":{"field":"results.amazon_dot_com"}},
-					{"terms":{"bug_id":[895819]}}
+					{"terms":{"datazilla.test_run_id":[1993645]}}
 				]}
-			]} }}, "fields":["bug_id", "status_whiteboard", "status_whiteboard.tokenized"], "from":0, "size":200, "sort":["bug_version_num"] }
+			]} }}, "from":0, "size":200, "sort":[] };
 
-
-					;
 //		{
 //			"facets":{"mvel":{"terms":{ "size":200000, "script_field":"doc[\"dependson\"].value"}}},
 //			"sort":[], "size":0, "from":0, "query":{"filtered":{ "filter":{"and":[
@@ -51,8 +60,8 @@
 				var data = yield(Rest.post({
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping?pretty=true",
 //			"url":'http://localhost:9200/bug_hierarchy/bug_hierarchy/_search',
-			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
-//			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/datazilla/_search",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/datazilla/_search",
 
 
 //			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/raw_telemetry/_search",
