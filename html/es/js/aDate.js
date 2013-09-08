@@ -504,7 +504,7 @@ Date.getBestFormat=function(minDate, maxDate, interval){
 };//method
 
 
-Date.getBestInterval=function(minDate, maxDate, numIntervals){
+Date.getBestInterval=function(minDate, maxDate, requestedInterval, numIntervals){
 	Map.expecting(numIntervals, ["min", "max"]);
 
 	var dur=maxDate.subtract(minDate);
@@ -518,12 +518,23 @@ Date.getBestInterval=function(minDate, maxDate, numIntervals){
 		}//for
 		return best;
 	}else{
+		let requested=requestedInterval.milli;
+		let smallest=dur.divideBy(numIntervals.max).milli;
 		let biggest=dur.divideBy(numIntervals.min).milli;
-		let best=Duration.COMMON_INTERVALS[0];
-		for(let i=0;i<Duration.COMMON_INTERVALS.length;i++){
-			if (biggest>Duration.COMMON_INTERVALS[i].milli) best=Duration.COMMON_INTERVALS[i];
-		}//for
-		return best;
+
+		if (smallest<=requested && requested<biggest) return requestedInterval;
+		if (requested>biggest){
+			for(let i=Duration.COMMON_INTERVALS.length;i--;){
+				if (biggest>Duration.COMMON_INTERVALS[i].milli) return Duration.COMMON_INTERVALS[i];
+			}//for
+			return Duration.COMMON_INTERVALS[0];
+		}else if (requested<smallest){
+			for(let i=0;i<Duration.COMMON_INTERVALS.length;i++){
+				if (smallest<=Duration.COMMON_INTERVALS[i].milli) return Duration.COMMON_INTERVALS[i];
+			}//for
+			return Duration.COMMON_INTERVALS.last();
+		}//endif
+
 	}//endif
 };
 

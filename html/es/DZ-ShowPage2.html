@@ -74,7 +74,7 @@ importScript('js/main.js',function(){
 		var esfilter={"and":[
 			{"term":{"testrun.suite": "tp5o"}},
 			{"term":{"test_build.branch": branch}}
-		]}
+		]};
 
 
 		var chart = yield(ESQuery.run({
@@ -83,17 +83,28 @@ importScript('js/main.js',function(){
 			"select": [
 				{"name":"count", "value":page, "aggregate":"count"},
 				{"name":"mean", "value":page, "aggregate":"mean"},
-				{"name":"std", "value":page, "aggregate":"stddev"}
+				{"name":"std", "value":page, "aggregate":"stddev"},
+				{"name":"date", "value":'test_build.push_date'}
 			],
 			"edges":[
 				{"name":"date",
 					"value":'test_build.push_date',
 					"allowNulls":false,
-					domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value"}
-				}
+					domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":Duration.SECOND, "value":"value"}
+				},
+				{"name":"branch", "value":"test_build.branch"},
+				{"name":"revision", "value":"test_build.revision"}
 			],
 			"esfilter":esfilter
 		}));
+
+		chart=CUBE.Cube2List(chart);
+
+		
+		
+
+
+
 
 
 		aChart.show({

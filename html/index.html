@@ -45,6 +45,25 @@
 
 	<tr>
 	<td>
+		<h3>August 5th 2013</h3>
+		<div class="description">
+			<p>The past week the Metric's ElasticSearch cluster has changed.  This
+			has caused the queries in my ETL to fail due to OutOfMemory errors.
+			My next step is to replicate their cluster and do more testing on what's
+			happening.
+
+			<p class="warning">ALL CHARTS INVOLVING REVIEWS DO NOT WORK</p>
+		</div>
+		<div class="items">
+		</div>
+	</td>
+	</tr>
+
+
+
+
+	<tr>
+	<td>
 		<h3>July 28th 2013</h3>
 		<div class="description">
 			<p>I now have my second opportunity to present triage: This time it is
@@ -55,7 +74,7 @@
 		</div>
 		<div class="items">
 			<a href="https://metrics.mozilla.com/bugzilla-analysis/Bug-Counts.html">Final Burndown</a>
-			<span class="info">Fixes to the simple burndown chart</span>
+			<span class="info">Fixes to the simple burn down chart</span>
 			<a href="https://metrics.mozilla.com/bugzilla-analysis/KOI-TriageRate.html">KOI Triage</a>
 			<span class="info">Triage Queue that can be filtered by product and component.
 			It depends on Mozilla's standard practice using a tracking flag to mark bug one
@@ -866,7 +885,7 @@
 				$(v).attr('href', path.replace("https://metrics.mozilla.com/bugzilla-analysis", "es"));
 
 			});
-		}else if (window.location.pathname=="/~klahnakoski/test/"){//STAGING
+		}else if (window.location.pathname.startsWith("/~klahnakoski/test/")){//STAGING
 			a=$("a");
 			a.each(function(i, v){
 				var path=$(v).attr('href');

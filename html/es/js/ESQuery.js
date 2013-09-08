@@ -647,8 +647,9 @@ ESQuery.prototype.buildESCountQuery=function(value){
 	if (MVEL.isKeyword(value)){
 		output.facets["0"]={
 			"terms":{
-				"field":value,
-				"size": 200000
+				"script_field":"1",
+				"size": 200000,
+				"filter":{"exists":{"field":value}}
 			}
 		};
 	}else{

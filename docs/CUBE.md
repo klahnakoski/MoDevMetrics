@@ -40,8 +40,8 @@ There are cases, when dealing with normalized data, and in ETL situations, where
 ORDER OF OPERATIONS
 -------------------
 Each of the clauses are executed in a particular order, irrespective of their order in the JSON structure.   This is most limiting in the case of the where clause.  Use sub queries to get around this limitation for now.
-from – the array, or list, to operate on.  Can also be the results of a query, or an in-lined subquery.  
 
+  - **from** – the array, or list, to operate on.  Can also be the results of a query, or an in-lined subquery.  
   - **edges** – definition of the edge names and their domains 
   - **where** – early in the processing to limit rows and aggregation: has access to domain names
   - **select** – additional aggregate columns added
@@ -55,7 +55,7 @@ Queries are in a JSON structure which can be interpreted by ESQuery.js (for ES r
 
 from
 ----
-The table, index, or relation that is being processed by the query.  In Javascript this can be an array of objects, a cube, or an in-lined query.  In the case of ES, this is the name of the index being scanned.  Nested ES documents can be pulled by using a dots (.) as a path separator to nested property.  
+The from clause states the table, index, or relation that is being processed by the query.  In Javascript this can be an array of objects, a cube, or an in-lined query.  In the case of ES, this is the name of the index being scanned.  Nested ES documents can be pulled by using a dots (.) as a path separator to nested property.
 
 Example: Patches are pulled from the BZ
 
@@ -76,9 +76,9 @@ ESQuery.js can pull individual nested documents from ES.  ES on it’s own can o
 select 
 ------
 
-Can be a single attribute definition, or an array of attribute definitions.  The former will result in nameless value in each data element of the resulting cube.  The latter will result in an object, with given attributes, in each data element
-name – The name of the attribute.   Optional if ```value``` is a simple variable name. 
+The select clause can be a single attribute definition, or an array of attribute definitions.  The former will result in nameless value in each data element of the resulting cube.  The latter will result in an object, with given attributes, in each data element
 
+  - **name** – The name of the attribute.   Optional if ```value``` is a simple variable name. 
   - **value** – Code to generate the attribute value (MVEL for ES, Javascript otherwise)
 aggregate – one of many aggregate operations
   - **none** – when expecting only one value 

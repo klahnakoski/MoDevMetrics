@@ -196,6 +196,7 @@ Dimension.addEdges(true,  Mozilla, [
 			"partitions":[
 				{"name":"Critical", "weight":5, "style":{"color":"red"}, "esfilter":
 					{"or":[
+						{"term":{"status_whiteboard.tokenized": "sg:crit"}},
 						{"term":{"status_whiteboard.tokenized": "sg:critical"}},
 						{"term":{"keywords": "sec-critical"}}
 					]}
