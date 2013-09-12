@@ -236,10 +236,10 @@ PartitionFilter.prototype.makeTree=function(){
 		if (self.expandDepth!==undefined){
 			var t=data.inst;
 			t.get_container().find('li').each(function(i) {
-                if(t.get_path($(this)).length<=self.expandDepth){
-                    t.open_node($(this));
-                }
-            });
+				if(t.get_path($(this)).length<=self.expandDepth){
+					t.open_node($(this));
+				}
+			});
 		}//endif
 			
 		if (self.expandAll) $(self.FIND_TREE).jstree('open_all');

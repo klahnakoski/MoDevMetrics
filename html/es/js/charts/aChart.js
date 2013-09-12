@@ -476,8 +476,8 @@ aChart.show=function(params){
 //			xAxisScale_dateTickPrecision: xaxis.domain.interval.milli
 			//set in miliseconds
 
-		    dot_shapeRadius: 4, //USEd IN LEGEND (VERSION 2)
-            dot_shape:"circle",
+			dot_shapeRadius: 4, //USEd IN LEGEND (VERSION 2)
+			dot_shape:"circle",
 			line_lineWidth: 4
 //			line_strokeStyle:
 		},

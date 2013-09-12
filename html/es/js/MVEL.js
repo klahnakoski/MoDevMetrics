@@ -186,7 +186,7 @@ MVEL.compile.getContextVariables=function(indexName, body){
 // indexName NAME USED TO REFER TO HIGH LEVEL DOCUMENT
 // loopVariablePrefix PREFIX FOR LOOP VARABLES
 MVEL.prototype.from = function(fromPath, loopVariablePrefix){
-	var loopCode = "if (<LIST>!=null){ for(<VAR> : <LIST>){\n<CODE>\n}}\n";
+	var loopCode = "if (<PATH>!=null){ for(<VAR> : <PATH>){\n<CODE>\n}}\n";
 	this.prefixMap = [];
 	var code = "<CODE>";
 
@@ -194,14 +194,27 @@ MVEL.prototype.from = function(fromPath, loopVariablePrefix){
 
 	var currPath = [];
 	currPath.push(path[0]);
+	this.prefixMap.unshift({"path":path[0], "variable":path[0]});   //USED TO MAKE THE TRANSLATE CONVERT bug.attachments TO bugs.?attachments
 	for(var i = 1; i < path.length; i++){
 		var loopVariable = loopVariablePrefix + i;
 		currPath.push(path[i]);
 		var pathi = String.join(currPath, ".");
+//        var ifPath = String.join(currPath, ".?");
 		var shortPath = this.translate(pathi);
 		this.prefixMap.unshift({"path":pathi, "variable":loopVariable});
 
-		var loop = loopCode.replaceAll("<VAR>", loopVariable).replaceAll("<LIST>", shortPath);
+		var loop;
+
+//        if (i==1){
+//            loop = loopCode
+//                .replaceAll("<VAR>", loopVariable)
+//                .replaceAll("<PATH>", "getDocValue(\""+path[i]+"\")");
+//        }else{
+			loop = loopCode
+				.replaceAll("<VAR>", loopVariable)
+	//            .replaceAll("<IF_PATH>", shortIfPath)
+				.replaceAll("<PATH>", shortPath);
+//        }//endif
 		code = code.replaceAll("<CODE>", loop);
 	}//for
 

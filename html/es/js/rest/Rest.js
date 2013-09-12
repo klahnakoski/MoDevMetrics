@@ -68,6 +68,8 @@ Rest.send=function(ajaxParam){
 					response=CNV.JSON2Object(response);
 				}//endif
 				ajaxParam.success(response);
+			}else if (request.isTimeout){
+				callback(new Exception("Error while calling "+ajaxParam.url, Exception.TIMEOUT));
 			}else{
 				ajaxParam.error("Bad response: "+CNV.String2Quote(request.responseText));
 			}//endif
@@ -98,6 +100,16 @@ Rest.send=function(ajaxParam){
 		//WE DO NOT CALL THE CALLBACK BECAUSE THE THREAD WILL BE CALLING INTERRUPT SHORTLY
 		//callback(new Exception("Aborted"));
 	};
+
+	if (ajaxParam.timeout!==undefined){
+		setTimeout(
+			function(){
+				request.isTimeout=true;
+				request.abort()
+			},
+			ajaxParam.timeout
+		);
+	}
 
 	request.send(ajaxParam.data);
 	yield (Thread.suspend((ajaxParam.doNotKill) ? undefined : request));

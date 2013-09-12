@@ -199,15 +199,28 @@ ESQuery.prototype.run = function(){
 		D.error("ESQuery is sending no facets");
 
 	try{
-		postResult=yield (Rest.post({
-			url: this.query.url,
-			data: CNV.Object2JSON(this.esQuery),
-			dataType: "json",
-			headers:{
-				"Accept-Encoding": "gzip,deflate"//Accept-Encoding: gzip,deflate
-//				"http.compress":"true"
-			}
-		}));
+		try{
+			postResult=yield (Rest.post({
+				url: this.query.url,
+				data: CNV.Object2JSON(this.esQuery),
+				dataType: "json",
+				headers:{
+					"Accept-Encoding": "gzip,deflate"//Accept-Encoding: gzip,deflate
+	//				"http.compress":"true"
+				},
+				timeout:this.query.timeout
+			}));
+		}catch(e){
+			if (!e.contains(Exception.TIMEOUT)){
+				throw e;
+			}else{
+				D.action("Query timeout");
+				this.nextDelay = nvl(this.nextDelay, 500) * 2;
+				yield (Thread.sleep(this.nextDelay));
+				D.action("Retrying Query...");
+				yield this.run();
+			}//endif
+		}//try
 
 		var self=this;
 		if (postResult.facets) forAllKey(postResult.facets, function(facetName, f){
@@ -218,8 +231,6 @@ ESQuery.prototype.run = function(){
 				D.error("Not all data delivered ("+f.terms.length+"/"+f.total+") try smaller range");
 			}//endif
 		});
-
-		
 
 		if (postResult._shards.failed>0){
 			D.action(postResult._shards.failed+"of"+postResult._shards.total+" shards failed.");
@@ -901,7 +912,7 @@ ESQuery.compileNumeric2Term=function(edge){
 		nullTest=""+value+">="+ref;
 	}else{
 		var top=MVEL.Value2MVEL(edge.domain.max);
-		    ref=MVEL.Value2MVEL(edge.domain.min);
+			ref=MVEL.Value2MVEL(edge.domain.min);
 		partition2int="Math.floor(("+value+"-"+ref+")/"+MVEL.Value2MVEL(edge.domain.interval)+")";
 		nullTest="("+value+"<"+ref+") || ("+value+">="+top+")";
 	}//endif

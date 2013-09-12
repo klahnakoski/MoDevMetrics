@@ -52,7 +52,7 @@ BUG_TAGS.makeSchema=function(){
 
 	var setup={
 		"index" : {
-     	   "refresh_interval" : "-1"
+	 	   "refresh_interval" : "-1"
    		},
 		"mappings":{
 		}

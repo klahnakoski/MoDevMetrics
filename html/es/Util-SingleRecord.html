@@ -29,24 +29,63 @@
 
 //			var temp = MVEL.compile.expression("getDocArray(dependson).length>0", {"from": "bugs"	  });
 
+			var esQuery = { "query":{"filtered":{ "query":{"match_all":{}}, "filter":{"and":[
+				{"script":{"script":"true"}},
+				{"and":[
+					{"range":{"bug_id":{"gte":0,"lt":100000}}}
+				]}
+			]} }}, "from":0, "size":0, "sort":[], "facets":{"mvel":{"terms":{ "script_field":
+					"var Value2Pipe = function(value){\n"+
+"if (value==null){ \"0\" }else if (value is ArrayList || value is org.elasticsearch.common.mvel2.util.FastList){var out = \"\";\n"+
+"foreach (v : value) out = (out==\"\") ? v : out + \"|\" + Value2Pipe(v);\n"+
+"'a'+Value2Pipe(out);\n"+
+"}else \n"+
+"if (value is Long || value is Integer){ 'n'+value; }else \n"+
+"if (!(value is String)){ 's'+value.getClass().getName(); }else \n"+
+"\"s\"+value.replace(\"\\\\\", \"\\\\\\\\\").replace(\"|\", \"\\\\p\");};\n"+
+"var get = function(hash, key){\n"+
+"if (hash==null) null; else hash[key];\n"+
+"};\n"+
+"var getDocValue = function(name){\n"+
+"var out = [];\n"+
+"var v = doc[name];\n"+
+"if (v==null || v.value==null) { null; } else if (v.values.length<=1){ v.value; } else {for(k : v.values) out.add(k); out;}};\n"+
+"var _1000 = function(bugs){\n"+
+"var product = getDocValue(\"product\");\n"+
+"var modified_ts = getDocValue(\"modified_ts\");\n"+
+"var id = getDocValue(\"id\");\n"+
+"var component = getDocValue(\"component\");\n"+
+"var bug_id = getDocValue(\"bug_id\");\n"+
+"output=\"\";\n"+
+"if (bugs.?changes!=null){ for(bugs1 : bugs.changes){\n"+
+"if ((bugs1.?field_name==\"flags\") && ((bugs1.?field_value.startsWith(\"review?\")) || (bugs1.?field_value.startsWith(\"superreview?\"))) && ((bugs1.?field_value_removed.startsWith(\"review?\")) || (bugs1.?field_value_removed.startsWith(\"superreview?\")))){if (output!=\"\") output+=\"|\";\n"+
+"output+=Value2Pipe(bugs.bug_id)\n"+
+"+\"|\"+Value2Pipe(bugs1.?attach_id)\n"+
+"+\"|\"+Value2Pipe(bugs.modified_ts)\n"+
+"+\"|\"+Value2Pipe(bugs1.?field_value_removed)\n"+
+"+\"|\"+Value2Pipe(null)\n"+
+"+\"|\"+Value2Pipe(bugs.product)\n"+
+"+\"|\"+Value2Pipe(bugs.component)\n"+
+"+\"|\"+Value2Pipe('reassigned')\n"+
+";\n"+
+"}\n"+
+"\n"+
+"}}\n"+
+"output;\n"+
+"};\n"+
+"_1000(_source)\n"+
+"", "size":200000 }}} }
+
+
+					;
+
 //			var esQuery = { "query":{"filtered":{ "query":{"match_all":{}}, "filter":{"and":[
 //				{"script":{"script":"true"}},
 //				{"and":[
 ////					{"exists":{"field":"results.amazon_dot_com"}},
-//					{"terms":{"bug_id":[895819]}}
+//					{"terms":{"datazilla.test_run_id":[1993645]}}
 //				]}
-//			]} }}, "fields":["bug_id", "status_whiteboard", "status_whiteboard.tokenized"], "from":0, "size":200, "sort":["bug_version_num"] }
-//
-//
-//					;
-
-			var esQuery = { "query":{"filtered":{ "query":{"match_all":{}}, "filter":{"and":[
-				{"script":{"script":"true"}},
-				{"and":[
-//					{"exists":{"field":"results.amazon_dot_com"}},
-					{"terms":{"datazilla.test_run_id":[1993645]}}
-				]}
-			]} }}, "from":0, "size":200, "sort":[] };
+//			]} }}, "from":0, "size":200, "sort":[] };
 
 //		{
 //			"facets":{"mvel":{"terms":{ "size":200000, "script_field":"doc[\"dependson\"].value"}}},
@@ -60,8 +99,8 @@
 				var data = yield(Rest.post({
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping?pretty=true",
 //			"url":'http://localhost:9200/bug_hierarchy/bug_hierarchy/_search',
-//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
-			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/datazilla/_search",
+//      		"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/bugs/_search",
 
 
 //			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/raw_telemetry/_search",

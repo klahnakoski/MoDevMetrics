@@ -190,5 +190,5 @@ Exception.prototype.toString=function(){
 	}//endif
 };
 
-
+Exception.TIMEOUT=new Exception("Timeout", undefined);
 

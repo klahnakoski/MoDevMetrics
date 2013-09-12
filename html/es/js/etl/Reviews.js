@@ -134,13 +134,28 @@ REVIEWS.get=function(minBug, maxBug){
 	//DETERMINE IF WE ARE LOOKING AT A RANGE, OR A SPECIFIC SET, OF BUGS
 	var esfilter;
 	if (maxBug===undefined || maxBug==null){
-		esfilter={"terms":{"bug_id":minBug}};
+		esfilter={"and":[
+			{"terms":{"bug_id":minBug}},
+//            {"nested":{
+//                "path":"attachments",
+//                "query":{"filtered":{
+//                    "query":{"match_all": {}},
+//                    "filter": {
+//                        "exists":{"field":"attachments.attach_id"}
+//                    }
+//                }}
+//            }}
+		]};
 	}else{
-		esfilter={"range":{"bug_id":{"gte":minBug, "lt":maxBug}}};
+		esfilter={"and":[
+			{"range":{"bug_id":{"gte":minBug, "lt":maxBug}}},
+//            {"not":{"missing":{"field":"attachments", "null_value":true}}}
+		]};
 	}//endif
 
 
 	var reviewQuery=new ESQuery({
+		"timeout":60000,
 		"select" : [
 			{"name":"bug_id", "value":"bugs.bug_id"},
 			{"name":"attach_id", "value":"bugs.attachments.attach_id"},
@@ -196,6 +211,7 @@ REVIEWS.get=function(minBug, maxBug){
 
 
 	var doneQuery = new ESQuery({
+		"timeout":60000,
 		"select" : [
 			{"name":"bug_id", "value":"bugs.bug_id"},
 			{"name":"attach_id", "value":"bugs.attachments.attach_id"},
@@ -237,6 +253,7 @@ REVIEWS.get=function(minBug, maxBug){
 
 	//REVIEWS END WHEN REASSIGNED TO SOMEONE ELSE
 	var switchedQuery = new ESQuery({
+		"timeout":60000,
 		"select" : [
 			{"name":"bug_id", "value":"bugs.bug_id"},
 			{"name":"attach_id", "value":"bugs.changes.attach_id"},
