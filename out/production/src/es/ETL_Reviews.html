@@ -1,0 +1,112 @@
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="application/javascript;version=1.7" src="lib/jsImport/js/import.js"></script>
+</HEAD>
+<BODY>
+
+
+<div style="height: 30px; text-align: center;vertical-align:middle;">
+	<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+</div>
+<a id="start" class="button" href="#">Start</a>
+<a id="resume" class="button" href="#">Resume</a>
+<a id="inc" class="button" href="#">Incremental Update</a>
+<a id="test" class="button" href="#">Single test</a>
+<a id="markup" class="button" href="#">post markup</a>
+<div id="results">No Results</div>
+
+
+
+<script type="application/javascript;version=1.7">
+importScript([
+	"js/main.js",
+	"js/etl/Reviews.js"
+], function(){
+
+
+	D.println(""+Date.newInstance(1351473569000	).format("yy-MM-dd HH:mm:ss"));
+	D.println(""+Date.newInstance(1351604852000).format("yy-MM-dd HH:mm:ss"));
+
+	$("#start").click(function(){
+		Thread.run(ETL.newInsert(REVIEWS));
+	});
+
+	$("#resume").click(function(){
+		Thread.run(ETL.resumeInsert(REVIEWS));
+	});
+
+	$("#inc").click(function(){
+		Thread.run(function(){
+			yield (ETL.incrementalInsert(REVIEWS));
+		});
+	});
+
+	$("#test").click(function(){
+		Thread.run((function(){
+			var bugs=yield(ESQuery.run({
+				"select" : [
+					{"name":"bug_id", "value":"bugs.bug_id"}
+				],
+				"from":
+					"bugs.attachments.flags",
+				"where":
+					{"and" : [
+						{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
+						{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+						{"script" :{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}},
+						{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}},
+						{"term":{"bugs.attachments.created_by":"artpar@gmail.com"}}
+					]},
+				"esfilter":
+					{ "nested": {
+						"path" : "attachments",
+						"query": {
+							"filtered" : {
+								"query" : {
+									"match_all" : {}
+								},
+								"filter" : {
+									"term" : {"attachments.created_by" : "artpar@gmail.com"}
+								}
+							}
+						}
+					}}
+			}));
+
+			bugs=yield(Q({
+				"from":bugs,
+				"select":{"name":"unique", "value":"bug_id", "aggregate":"one"},
+				"edges":["bug_id"]
+
+			}));
+
+			var reviews=yield (REVIEWS.get(bugs.cube));
+			$("#results").html(CNV.List2HTMLTable(reviews));
+		})());
+	});
+
+
+	$("#markup").click(function(){
+		Thread.run((function(){
+			var reviews=yield (REVIEWS.postMarkup());
+					})());
+	});
+
+	D.addLogToElement("results");
+
+
+	//ALLOW URL PARAMETER TO PRESS ONE OF THE BUTTON
+	var urlState = jQuery.bbq.getState();
+	if (urlState.pressButton){
+		$("#"+urlState.pressButton).click();
+	}//endif
+});
+</script>
+
+
+</BODY>
+</HTML>

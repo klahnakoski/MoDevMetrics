@@ -1,0 +1,232 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+
+<HEAD>
+<script type="application/javascript;version=1.7" src="js/Settings.js">
+</script></HEAD>
+<BODY>
+
+<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
+<script type="application/javascript;version=1.7" src="lib/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="lib/jstree/jquery.jstree.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/lib/protovis-d3.3.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/lib/jquery.tipsy.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/lib/tipsy.js"></script>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
+
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvc.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcPanel.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcLegend.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcWaterfall.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcPie.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcBar.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcLine.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcData.js"></script>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
+
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvcDocUtils.js"></script>
+
+<link type="text/css" rel="stylesheet" href="lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css" />
+<script type="application/javascript;version=1.7" src="lib/jquery-ui/js/jquery-ui-1.10.2.custom.js"></script>
+<script type="application/javascript;version=1.7" src="lib/jquery.ba-bbq/jquery.ba-bbq.js"></script>
+
+<link type="text/css" rel="stylesheet" href="css/menu.css"/>
+
+
+<script type="application/javascript;version=1.7" src="js/aUtil.js"></script>
+<script type="application/javascript;version=1.7" src="js/aArray.js"></script>
+<script type="application/javascript;version=1.7" src="js/aString.js"></script>
+<script type="application/javascript;version=1.7" src="js/aMath.js"></script>
+<script type="application/javascript;version=1.7" src="js/CNV.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/aDate.js"></script>
+<script type="application/javascript;version=1.7" src="js/aDuration.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
+<script type="application/javascript;version=1.7" src="js/Dimension.js"></script><script type="application/javascript;version=1.7" src="js/Dimension-Bugzilla.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script>
+<script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/Stats.js"></script>
+<script type="application/javascript;version=1.7" src="js/aDebug.js"></script>
+<script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
+<script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
+
+<script type="application/javascript;version=1.7" src="lib/jsThreads/js/thread.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.analytic.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script>
+<script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
+<script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
+
+
+<script type="application/javascript;version=1.7" src="js/charts/HelperFunctions.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/ElasticSearch.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/charts/DataSet.js"></script>
+<script type="application/javascript;version=1.7" src="js/charts/RangeCharts.js"></script>
+<script type="application/javascript;version=1.7" src="js/charts/RangeIterator.js"></script>
+<script type="application/javascript;version=1.7" src="js/charts/DateRangeIterator.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/gui/Filter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ComponentFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/TeamFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ProductFilter.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/gui/ProgramFilter.js"></script>
+
+
+<script type="application/javascript;version=1.7" src="js/etl/Reviews.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script><script type="application/javascript;version=1.7" src="js/aTimer.js"></script>
+
+
+<h3>Individual Review History</h3>
+<div id="sidebar">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div id="chart" class="chart" style="position:relative;"></div>
+
+<div id="info"></div>
+<div id="report"></div>
+
+<script type="application/javascript;version=1.7">
+
+	$("#description").html("Shows the pending reviews for each interval.  This can include new reviews, or reviews untouched since the previous interval.  This chart is only good for identifying individual bugs, it is not good for seeing review volume.");
+
+	var thread;
+	var createChart=function(){
+		if (thread!==undefined)
+			thread.kill();
+		thread=Thread.run( __createChart());
+	};
+
+	var __createChart = function(){
+
+		var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
+		var sampleMin=Date.newInstance(GUI.state.sampleMin);//.floor(sampleInterval);
+		var sampleMax=sampleMin.add(Date.newInstance(GUI.state.sampleMax).add(sampleInterval).subtract(sampleMin, sampleInterval).floor(sampleInterval));
+
+
+		var esQuery = new ESQuery({
+			"from":"reviews",
+			"select":[
+				{"name":"bug_id", "value":"reviews.bug_id"},
+				{"name":"attach_id", "value":"reviews.attach_id"},
+				{"name":"request_time", "value":"reviews.request_time"},
+				{"name":"review_time", "value":"reviews.review_time"}
+			],
+			"esfilter":{"and":[
+				{"term":{"reviewer":GUI.state.requestee}},
+				{"range":{"request_time":{"lt":sampleMax.getMilli()}}},
+				{"or":[
+					{"range":{"review_time":{"gt":sampleMin.getMilli()}}},
+					{"missing":{"field":"review_time"}}
+				]}
+			]}
+		});
+
+		console.info(CNV.Object2JSON(esQuery.esQuery));
+
+		D.action("Call ES");
+		var reviewQueues=yield (esQuery.run());
+
+		D.action("Prep Chart");
+
+
+
+		var ordering=yield (CUBE.calc2List({
+			"from":reviewQueues,
+			"select":[
+				{"value":"request_time", "aggregate":"minimum"},
+				{"value":"review_time", "aggregate":"maximum"}
+			],
+			"edges":[
+				"bug_id"
+			],
+			"sort":["request_time", "review_time"]
+		}));
+
+
+//D.println(CNV.List2Tab(reviewQueues));
+
+		var chart=yield (Q({
+			"name":
+				"Historical Review Queue for "+GUI.state.requestee,
+			"from":reviewQueues,
+			"select":{"name":"Pending", "value":"1", aggregate:"sum", "default":"0"},
+			"edges":[
+				{"name":"Bug ID", "value":"bug_id", "domain":{"type":"set", "partitions":ordering, "key":"bug_id", "value":"bug_id"}},
+				{"name":"Date",
+					"range":{"min":"Date.newInstance(request_time)", "max":"nvl(Date.newInstance(review_time), Date.eod())"},
+					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, value:"value"}
+				}
+			]
+		}));
+
+
+
+		aChart.show({
+			"id":"chart",
+			"sheetDiv":"info",
+			"type":"stacked",
+			"cube":chart,
+			"showLegend":false,
+			extensionPoints: {
+				dot_shapeRadius: 0, //USED ON CHART (CCC v1)
+				line_lineWidth: 0
+			}
+		});
+
+
+	};//createChart
+
+
+	$(document).ready(function(){
+		GUI.setup(createChart, [
+			{"id":"requestee", "name":"Reviewer Email", "type":"text", "default":"nobody@mozilla.org"},
+			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.today().add("-14day")},
+			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.today()},
+			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.DAY},
+			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
+		],
+		[
+			"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+		],
+		"reviews");
+	});
+
+//	createChart();
+
+</script>
+
+
+</BODY>
+</HTML>

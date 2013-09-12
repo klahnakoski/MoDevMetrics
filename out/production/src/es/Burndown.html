@@ -1,0 +1,215 @@
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+<script type="application/javascript;version=1.7" src="js/Settings.js">
+</script></HEAD>
+<BODY>
+
+
+<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
+<script type="application/javascript;version=1.7" src="lib/jquery.js"></script>
+<script type="application/javascript;version=1.7" src="lib/jstree/jquery.jstree.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/lib/protovis-d3.3.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/lib/jquery.tipsy.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/lib/tipsy.js"></script>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
+
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvc.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcPanel.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcLegend.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcWaterfall.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcPie.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcBar.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcLine.js"></script>
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcData.js"></script>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
+
+<script type="application/javascript;version=1.7" src="lib/webdetails/pvcDocUtils.js"></script>
+
+<link type="text/css" rel="stylesheet" href="lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css" />
+<script type="application/javascript;version=1.7" src="lib/jquery-ui/js/jquery-ui-1.10.2.custom.js"></script>
+<script type="application/javascript;version=1.7" src="lib/jquery.ba-bbq/jquery.ba-bbq.js"></script>
+
+<link type="text/css" rel="stylesheet" href="css/menu.css"/>
+
+
+
+
+<script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/aArray.js"></script><script type="application/javascript;version=1.7" src="js/aString.js"></script><script type="application/javascript;version=1.7" src="js/aMath.js"></script><script type="application/javascript;version=1.7" src="js/CNV.js"></script>
+<script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/aArray.js"></script><script type="application/javascript;version=1.7" src="js/aString.js"></script><script type="application/javascript;version=1.7" src="js/aMath.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script><script type="application/javascript;version=1.7" src="js/aDuration.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/Dimension.js"></script><script type="application/javascript;version=1.7" src="js/Dimension-Bugzilla.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/Stats.js"></script>
+<script type="application/javascript;version=1.7" src="js/aDebug.js"></script>
+<script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
+<script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
+
+<script type="application/javascript;version=1.7" src="lib/jsThreads/js/thread.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.analytic.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
+<script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script>
+<script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
+<script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
+
+
+<script type="application/javascript;version=1.7" src="js/charts/HelperFunctions.js"></script>
+<script type="application/javascript;version=1.7" src="js/rest/ElasticSearch.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/charts/DataSet.js"></script>
+<script type="application/javascript;version=1.7" src="js/charts/RangeCharts.js"></script>
+<script type="application/javascript;version=1.7" src="js/charts/RangeIterator.js"></script>
+<script type="application/javascript;version=1.7" src="js/charts/DateRangeIterator.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/gui/Filter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ComponentFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/TeamFilter.js"></script>
+<script type="application/javascript;version=1.7" src="js/gui/ProductFilter.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/gui/ProgramFilter.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script><script type="application/javascript;version=1.7" src="js/aTimer.js"></script>
+
+<script type="application/javascript;version=1.7" src="js/etl/Reviews.js"></script>
+
+<h3>BurnDown</h3>
+<div id="sidebar">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div id="chart" style="position:relative;"></div>
+
+<div id="info"></div>
+<div id="report"></div>
+
+
+
+<script type="application/javascript;version=1.7">
+	$("#description").html("This chart only counts the number of bugs that are open at, or after, the start date.  The difference between the lines is the number of closed bugs.");
+
+
+
+	var rangeChart = null;
+
+	var createChart = function(){
+
+//		var sampleX=Duration.newInstance(GUI.state.sampleX);
+//		var startDate=Date.newInstance(GUI.state.startDate);
+//		var endDate=startDate.add(Date.newInstance(GUI.state.endDate).add(sampleX).subtract(startDate, sampleX).floor(sampleX));
+
+
+
+
+		if (rangeChart != undefined){
+			rangeChart.kill();
+		}
+
+		var chartRequest = {
+			"requests" :[
+				{
+					"esQuery" : {
+						"query": {
+							"match_all" : {}
+						},
+						"filter" : {
+							"and":[
+								Mozilla.BugStatus.Open.esfilter
+							]
+						},
+						"from" : 0,
+						"size" : 0,
+						"sort" : []
+					},
+					"seriesName" : "Open"
+				},
+				{
+					"esQuery" : {
+						"query": {
+							"match_all" : {}
+						},
+						"filter" : {
+							"and":[
+							]
+						},
+						"from" : 0,
+						"size" : 0,
+						"sort" : []
+					},
+					"seriesName" : "Total"
+				}
+			],
+//			"evaluations":[
+//				{"seriesName":"NewAndOpen", "code":"Total"
+//
+////			]
+			"baseline" : [{
+				"name" : "New and Open",
+				"data" : "Total",
+				"start" : "Open"
+			}],
+////					"track" : true,
+			"showSeries" : ["Open", "New and Open"],
+			"chartTitle" : "Burndown",
+			"canvas" : "chart",
+//			"originZero" : true,
+			"chartType" : "LineChart",
+			"interval" : GUI.state.intervalX,
+			"startDate" : GUI.state["startDate"],
+			"endDate" : GUI.state["endDate"]
+		};
+
+		GUI.injectFilterss(chartRequest.requests);
+
+		console.log("chartRequest: " + CNV.Object2JSON(chartRequest));
+
+		rangeChart = new RangeChart(chartRequest);
+		rangeChart.run();
+	};
+
+
+
+
+	$(document).ready(function(){
+		GUI.setup(createChart, [
+			{"id":"startDate", "name":"Start Date", "type":"time", "default":Date.today().add("-52week")},
+			{"id":"endDate", "name":"End Date", "type":"time", "default":Date.today()},
+			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.WEEK}
+		],
+		[
+			"endDate=GUI.fixEndDate(Date.newInstance(startDate), Date.newInstance(endDate).addDay(-1), Duration.newInstance(intervalX)).addDay(1).format('yyyy-MM-dd')"
+		]);
+
+		createChart();
+	});
+</script>
+
+
+</BODY>
+</HTML>

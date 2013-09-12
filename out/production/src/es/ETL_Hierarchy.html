@@ -1,0 +1,101 @@
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="application/javascript;version=1.7" src="lib/jsImport/js/import.js"></script>
+</HEAD>
+<BODY>
+
+<div style="height: 30px; text-align: center;vertical-align:middle;">
+	<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+</div>
+<a id="start" class="button" href="#">Start</a>
+<a id="resume" class="button" href="#">Resume</a>
+<a id="inc" class="button" href="#">Incremental Update</a>
+<a id="test" class="button" href="#">Single test</a>
+<a id="kill" class="button" href="#">Stop</a>
+<div id="results">No Results</div>
+
+
+
+<script type="application/javascript;version=1.7">
+importScript([
+	"js/main.js",
+	"js/etl/Hierarchy.js"
+], function(){
+	var mainThread;
+
+
+	function closeWindow() {
+		window.open('','_self','');
+		window.close();
+	}
+
+
+
+	$("#start").click(function(){
+		ElasticSearch.pushURL="http://localhost:9200";
+		if (mainThread!==undefined) mainThread.kill();
+		mainThread=Thread.run(ETL.newInsert(HIERARCHY));
+	});
+
+	$("#resume").click(function(){
+		ElasticSearch.pushURL="http://localhost:9200";
+		if (mainThread!==undefined) mainThread.kill();
+		mainThread=Thread.run(ETL.resumeInsert(HIERARCHY));
+	});
+
+	$("#inc").click(function(){
+		ElasticSearch.pushURL="http://localhost:9200";
+		if (mainThread!==undefined) mainThread.kill();
+		mainThread=Thread.run(function(){
+			yield (ETL.incrementalInsert(HIERARCHY));
+			closeWindow();  //TO CLEANUP THE PAGE'S MEMORY LEAK
+		});
+	});
+
+	$("#test").click(function(){
+		if (mainThread!==undefined) mainThread.kill();
+		mainThread=Thread.run(function(){
+//
+//			var temp=yield(ESQuery.run({
+//				"from":"bugs",
+//				"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
+//				"edges":["bug_id"],
+//				"esfilter":{"range":{"bug_id":{"gte":0, "lt":30000}}}
+//			}));
+//
+//			$("#results").html(CNV.Cube2HTMLTable(temp));
+
+
+			yield (HIERARCHY.start());
+			var hier=yield (HIERARCHY.get([870142,860899,731280,841999,831997], null));
+			if (HIERARCHY.DATA.allDescendants.getMap(831997)[870142]!=1) D.error();
+
+			$("#results").html(CNV.List2HTMLTable(hier));
+		});
+	});
+	
+	$("#kill").click(function(){
+		if (mainThread!==undefined) mainThread.kill();
+	});
+
+	D.addLogToElement("results");
+
+	//ALLOW URL PARAMETER TO PRESS ONE OF THE BUTTON
+	var urlState = jQuery.bbq.getState();
+	if (urlState.pressButton){
+		$("#"+urlState.pressButton).click();
+	}//endif
+
+
+	D.action("Ready");
+
+});
+</script>
+
+
+</BODY>
+</HTML>

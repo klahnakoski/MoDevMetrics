@@ -1,0 +1,171 @@
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="application/javascript;version=1.7" src="lib/jsImport/js/import.js"></script>
+</HEAD>
+<BODY>
+
+<div id="sidebar">
+	<br>
+	<br>
+
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3 id="title">Test Timing Results</h3>
+
+	<div id="chart" class="chart" style="float:none;width:800px;height:400px;"></div>
+
+
+
+	<div id="info"></div>
+	<div id="details"></div>
+</div>
+
+
+<script type="application/javascript;version=1.7">
+
+
+importScript('js/main.js',function(){
+	ElasticSearch.baseURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9200";
+
+
+	$("#description").html(
+			"Simple look at time series"
+	);
+
+
+	var thread;
+	var createChart = function(){
+		if (thread !== undefined)
+			thread.kill();
+		thread = Thread.run(__createChart());
+	};
+
+	var __createChart = function(){
+
+
+		var sampleMin = Date.newInstance(GUI.state.sampleMin);
+		var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
+		var sampleMax = Date.newInstance(GUI.state.sampleMax).add(sampleInterval);
+		var page='results.'+GUI.state.page.replaceAll(".", "_dot_")+".last_20";
+		var branch=GUI.state.branch
+
+		var esfilter={"and":[
+			{"term":{"testrun.suite": "tp5o"}},
+			{"term":{"test_build.branch": branch}}
+		]}
+
+
+		var chart = yield(ESQuery.run({
+			"name":"Page Load Times",
+			"from":"datazilla",
+			"select": [
+				{"name":"count", "value":page, "aggregate":"count"},
+				{"name":"mean", "value":page, "aggregate":"mean"},
+				{"name":"std", "value":page, "aggregate":"stddev"}
+			],
+			"edges":[
+				{"name":"date",
+					"value":'test_build.push_date',
+					"allowNulls":false,
+					domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value"}
+				}
+			],
+			"esfilter":esfilter
+		}));
+
+
+		aChart.show({
+			"id":"chart",
+			"sheetDiv":"info",
+			"type":"scatter",
+			"stacked":false,
+			"cube":chart,
+			"height":"400",
+			xAxisSize: 50,
+			extensionPoints: {
+				line_lineWidth: 2
+			},
+			"clickAction":function(series, x, d, elem){
+				var edge=chart.getEdge("date");
+				var part=edge.domain.getPartByKey(x);
+
+				if (edge.domain.interval.milli<15000 || chart.get("date", x).count<=25){
+					//PULL ORIGINAL SOURCE
+					Thread.run("Show specific page series", function(){
+						var ids=yield (ESQuery.run({
+							"from":"datazilla",
+							"select":{"name":"id", "value":"datazilla.test_run_id"},
+							"esfilter":{"and":[
+								esfilter,
+								{"range":{"test_build.push_date":{"gte":part.min.getMilli(), "lt":part.max.getMilli()}}}
+							]}
+						}));
+						ids=ids.list.join(",");
+						window.open("DZ-ShowSpecificPage.html#page="+GUI.state.page+"&start=5&id="+ids);
+					});
+					return;
+				}//endif
+
+
+
+				var newMin=part.min.subtract(edge.domain.interval);
+				var newMax=part.max.add(edge.domain.interval);
+				var interval=Date.getBestInterval(newMin, newMax, Duration.SECOND, {"min":10, "max":40});
+				GUI.state.sampleMin=newMin;
+				GUI.state.sampleMax=newMax;
+				GUI.state.sampleInterval=interval;
+				GUI.State2Parameter();
+				GUI.refresh();
+			}
+		});
+		yield(null);
+	};
+
+
+	$(document).ready(function(){
+		GUI.setup(createChart, [
+				{"id":"sampleMin", "name":"Start Date", "type":"datetime", "default":Date.getDateFromFormat("2013-May-26 19:00:00", "yyyy-MMM-dd HH:mm:ss")},
+				{"id":"sampleMax", "name":"End Date", "type":"datetime", "default":Date.getDateFromFormat("2013-Jul-01 21:00:00", "yyyy-MMM-dd HH:mm:ss")},
+				{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.DAY},
+				{"id":"page", "name":"Page URL", "type":"string", "default":"amazon.com"},
+				{"id":"branch", "name":"Branch", "type":"string", "default":"inbound"}
+
+			],
+			[
+				'sampleInterval=Date.getBestInterval(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval), {"min":100, "max":1000})'
+			],
+			"datazilla",
+			false
+		);
+	});
+
+});
+
+</script>
+
+
+</BODY>
+</HTML>
+

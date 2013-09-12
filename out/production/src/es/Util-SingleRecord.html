@@ -1,0 +1,109 @@
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="application/javascript;version=1.7" src="lib/jsImport/js/import.js"></script>
+</HEAD>
+<BODY>
+
+
+<div id="status"></div>
+<div id="info"></div>
+<div id="tab"></div>
+<h2>Simple Query</h2>
+
+<div id="chart" style="width:800px;height:400px;"></div>
+<div id="chart2" style="width:800px;height:400px;"></div>
+
+
+<script type="application/javascript;version=1.7">
+	importScript([
+		"js/main.js"
+	], function(){
+		Thread.run(function(){
+
+			D.println(Date.newInstance(1352207434236).format("yyyy-NNN-dd HHmmss"));
+//		yield (ESQuery.loadColumns({"from":"bugs"}));
+
+//			var temp = MVEL.compile.expression("getDocArray(dependson).length>0", {"from": "bugs"	  });
+
+//			var esQuery = { "query":{"filtered":{ "query":{"match_all":{}}, "filter":{"and":[
+//				{"script":{"script":"true"}},
+//				{"and":[
+////					{"exists":{"field":"results.amazon_dot_com"}},
+//					{"terms":{"bug_id":[895819]}}
+//				]}
+//			]} }}, "fields":["bug_id", "status_whiteboard", "status_whiteboard.tokenized"], "from":0, "size":200, "sort":["bug_version_num"] }
+//
+//
+//					;
+
+			var esQuery = { "query":{"filtered":{ "query":{"match_all":{}}, "filter":{"and":[
+				{"script":{"script":"true"}},
+				{"and":[
+//					{"exists":{"field":"results.amazon_dot_com"}},
+					{"terms":{"datazilla.test_run_id":[1993645]}}
+				]}
+			]} }}, "from":0, "size":200, "sort":[] };
+
+//		{
+//			"facets":{"mvel":{"terms":{ "size":200000, "script_field":"doc[\"dependson\"].value"}}},
+//			"sort":[], "size":0, "from":0, "query":{"filtered":{ "filter":{"and":[
+////			{"term":{"bug_id":180171}}  //BAD
+////			{"term":{"bug_id":6625}}	//GOOD
+//		]}, "query":{"match_all":{}} }} };
+
+
+			try{
+				var data = yield(Rest.post({
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping?pretty=true",
+//			"url":'http://localhost:9200/bug_hierarchy/bug_hierarchy/_search',
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/datazilla/_search",
+
+
+//			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/raw_telemetry/_search",
+//			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/bugs/bug_version/_search",
+// 			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
+
+//			"url":"http://localhost:9200/reviews/review/_search",
+//			"url":"http://localhost:9200/bug_tags/bug_tags/_search",
+//			"url":"http://localhost:9200/raw_telemetry/data/_search",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews/review/_search",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_tags/bug_tags/_search",
+//				"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/telemetry/_search",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/org_chart/person/_search",
+					"data":esQuery
+				}));
+
+
+				D.println(CNV.Object2JSON(data));
+
+				var htmlSummary = CNV.ESResult2HTMLSummaries(data);
+				var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));
+				$("#info").html(htmlSummary + "<br><br>" + htmlResults);
+
+//				$("#tab").html(CNV.String2HTMLTable(CNV.List2Tab(CNV.ESResult2List(data))));
+
+//		while(true){
+//			if (ETL.allFlags!==undefined) break;
+//			yield (Thread.sleep(200));
+//		}//while
+//		var reviews=yield (REVIEWS.get(674239, 674240));
+//		$("#info").append(CNV.List2HTMLTable(reviews));
+//
+
+
+			} catch(e){
+				D.warning("Error sending requests", e);
+				document.getElementById("info").innerHTML = "Response Error.  Make sure you are connected to the MPT network.";
+			}
+
+		});
+	});
+</script>
+
+</BODY>
+</HTML>

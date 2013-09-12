@@ -1,0 +1,43 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+		"http://www.w3.org/TR/html4/loose.dtd">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<head>
+	<title></title>
+</head>
+<body>
+	<div id="testid"></div>
+	<script type="application/javascript;version=1.7">
+
+
+
+		var importedScripts={};
+		var importScripts=function(path){
+			if (importedScripts[path]===undefined){
+				importedScripts[path]=path;
+				//IMPORT
+				//OPEN FILE
+				//EVAL CONTENT
+				
+			}//endif
+
+		};//method
+
+
+
+
+		importScripts("js/aUtil.js");
+
+		$("#testid").html(""+("this is a test".indexOf("test")));
+
+
+
+
+	</script>
+
+
+
+</body>
+</html>

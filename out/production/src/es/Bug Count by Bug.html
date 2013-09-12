@@ -1,0 +1,66 @@
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+<script type="application/javascript;version=1.7" src="js/Settings.js">
+</script></HEAD>
+<BODY>
+
+
+<script type="application/javascript;version=1.7" src="js/charts/HelperFunctions.js"></script>
+<script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/aArray.js"></script><script type="application/javascript;version=1.7" src="js/aString.js"></script><script type="application/javascript;version=1.7" src="js/aMath.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script><script type="application/javascript;version=1.7" src="js/aDuration.js"></script>
+<script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/aArray.js"></script><script type="application/javascript;version=1.7" src="js/aString.js"></script><script type="application/javascript;version=1.7" src="js/aMath.js"></script><script type="application/javascript;version=1.7" src="js/CNV.js"></script>
+
+<div id="info"></div>
+
+<script type="application/javascript;version=1.7">
+	var query = {
+		"query" : {
+			"filtered" : {
+				"query": {
+					"match_all" : {}
+				},
+				"filter" : {
+					"and" : [
+						Mozilla.BugStatus.Open.esfilter
+					]
+				}
+			}
+		},
+		"from": 0,
+		"size": 20,
+		"sort": [],
+		"facets":{
+			"Bugs per Bug": {
+				"terms": {
+					"field": "assigned_to",
+					"size": 10,
+					"sort":"count"
+				}
+			}
+		}
+
+	};
+
+	ElasticSearchQuery.Run({
+		"query":query,
+		success: function(data){
+			D.println(CNV.Object2JSON(data));
+
+			var htmlSummary = CNV.ESResult2HTMLSummaries(data);
+			var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));
+
+			document.getElementById("info").innerHTML = htmlSummary + "<br><br>" + htmlResults;
+		},
+
+		error: function (errorData, errorMsg, errorThrown){
+			document.getElementById("info").innerHTML = "Response Error.  Make sure you are connected to the MPT network.";
+		}
+	});
+
+</script>
+
+</BODY>
+</HTML>

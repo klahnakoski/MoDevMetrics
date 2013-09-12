@@ -1,0 +1,902 @@
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="application/javascript;version=1.7" src="es/lib/jsImport/js/import.js"></script>
+	<link type="text/css" rel="stylesheet" href="es/css/menu.css"/>
+</HEAD>
+<BODY>
+
+
+
+
+<div id="sidebar">
+	<br>
+	<h3>Kyle Lahnakoski</h3>
+	<img src="./es/images/kyle - mini.jpg" alt="Kyle is a worker bee" style="width:7.7em;height:7.7em;">
+	<br><br>
+
+	<h4>Contact Info</h4>
+	Phone: 416 892 7784 <br>
+	Email: <a href="mailto://klahnakoski@mozilla.com">klahnakoski@mozilla.com</a>
+	<br><br>
+
+	<h4>About Project</h4>
+	The bugzilla data is in Metric's ElasticSearch container, and is updated every 10 minutes.  My goal is to provide metrics and numbers to development teams that can not be easily pulled from Bugzilla directly.
+	<br><br>
+
+	<h4>Code!</h4>
+	<a href="https://github.com/klahnakoski/MoDevMetrics">https://github.com/klahnakoski/MoDevMetrics</a>
+	<br><br>
+
+	<h4>Bugs!!</h4>
+	<a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=bugzilla.mozilla.org&component=Bugzilla%20Anthropology%20Metrics">bugzilla.mozilla.org</a>
+	<!--<a href="https://metrics.mozilla.com/projects/browse/BA">https://metrics.mozilla.com/projects/browse/BA</a>-->
+	<br><br>
+</div>
+
+
+<div id="content_area">
+<h2>Bugzilla Anthropology Metrics Prototypes</h2>
+	<br>
+<table>
+
+	<tr>
+	<td>
+		<h3>August 5th 2013</h3>
+		<div class="description">
+			<p>The past week the Metric's ElasticSearch cluster has changed.  This
+			has caused the queries in my ETL to fail due to OutOfMemory errors.
+			My next step is to replicate their cluster and do more testing on what's
+			happening.
+
+			<p class="warning">ALL CHARTS INVOLVING REVIEWS DO NOT WORK</p>
+		</div>
+		<div class="items">
+		</div>
+	</td>
+	</tr>
+
+
+
+
+	<tr>
+	<td>
+		<h3>July 28th 2013</h3>
+		<div class="description">
+			<p>I now have my second opportunity to present triage: This time it is
+			B2G 1.2.  This project wants to see it's triage and backlog split by the various
+			products and components.  B2G 1.2 is still in it's infancy, and is growing fast.  Burndown
+			charts are premature at this time, but total bug counts and triage
+			backlog are needed now.</p>
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Bug-Counts.html">Final Burndown</a>
+			<span class="info">Fixes to the simple burn down chart</span>
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/KOI-TriageRate.html">KOI Triage</a>
+			<span class="info">Triage Queue that can be filtered by product and component.
+			It depends on Mozilla's standard practice using a tracking flag to mark bug one
+			of "?" (triage), "+" (taracked), "-" (not tracked)</span>
+		</div>
+	</td>
+	</tr>
+
+
+
+
+	<tr>
+	<td>
+		<h3>July 17th 2013 - Datazilla Update</h3>
+		<div class="description">
+			<p>Since I still have nothing to present directly, I will summarize
+				the code I have been working on to support the <a href="https://github.com/klahnakoski/datazilla-alerts">Datazilla Alert System</a>
+				This is just another example of the production code being
+				dwarfed by the peripheral code for testing and
+			ephemeral code to support development.</p>
+		</div>
+		<div class="items">
+			<a href="https://github.com/klahnakoski/Datazilla2ElasticSearch/blob/master/src/python/SummarizeTalos.py">
+				SummarizeTalos.py</a>
+			<span class="info">Python Pandas code to summarize Talos test data.
+				This is where we discovered some tests were generating 60,000 samples.</span>
+
+
+			<a href="https://github.com/klahnakoski/datazilla-alerts/blob/master/tests/setup/sql/normalized_to_cube.sql">
+				DZ <span class="code">-&gt;</span> Cube</a>
+			<span class="info">Script to translate from Datazilla normalized tables to
+				<span class="code">test_data_all_dimensions</span> (a data cube).  Turns  out
+				this can't be used because the current Datazilla code can not
+				handle the egregious number of test replicates.  The normalized tables
+				can not be filled fast enough.</span>
+
+			<a href="https://github.com/klahnakoski/datazilla-alerts/blob/master/tests/setup/python/prod_to_objectstore.py">
+				Talos <span class="code">-&gt;</span> objectstore</a>
+			<span class="info">Python script to pull from Talos production and push to Datazilla objectstore</span>
+
+			<a href="https://github.com/klahnakoski/datazilla-alerts/blob/master/tests/setup/python/objectstore_to_cube.py">
+				objectstore <span class="code">-&gt;</span> Cube</a>
+			<span class="info">SQL script to translate objectstore to <span class="code">test_data_all_dimension</span></span>
+
+			<a href="https://github.com/klahnakoski/Datazilla2ElasticSearch/blob/master/src/python/Extract.py">
+				Talos <span class="code">-&gt;</span> ES</a>
+			<span class="info">Python script to pull data from Talos production and
+				push to ES.  Required for charting.</span>
+
+			<!--https://metrics.mozilla.com/bugzilla-analysis/DZ-ShowPage.html-->
+			<a href="https://github.com/klahnakoski/MoDevMetrics/blob/master/html/es/DZ-ShowPage.html">
+				DZ-ShowPage.html</a>
+			<span class="info">Code to present page timing stats, and zoom in to single test</span>
+		</div>
+	</td>
+	</tr>
+
+	<tr>
+	<td>
+		<h3>July 10th 2013 - Q2 Goals</h3>
+		<div class="description">
+			<p>My goals are part of the greater <a href="https://wiki.mozilla.org/Auto-tools/Goals/2013Q3">Auto-Tools Goals</a>:</p>
+			<ol>
+				<li>Finish <a href="https://github.com/klahnakoski/datazilla-alerts">Datazilla Alerts</a>
+					- get emails out to select individuals and have correctness verified.
+				</li>
+				<li>Fork <a href="https://github.com/mozilla-metrics/bugzilla_etl/tree/es_schema_v2">
+					Metric's code for Bugzilla ETL to ElasticSearch</a>, and
+					<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=879835">
+					extend for the public DB</a></li>
+				<li>Participate in <a href="https://wiki.mozilla.org/Blackhole">Mozilla Blackhole</a>
+					with an eye for scale and configuration that supports queries</li>
+				<li>Prototype a plugin, or add-on, that will add charts to
+					<a href="https://wiki.mozilla.org">wiki.mozilla.org</a> </li>
+
+			</ol>
+		</div>
+		<div class="items">
+		</div>
+	</td>
+	</tr>
+
+	<tr>
+	<td>
+		<h3>July 3rd 2013</h3>
+		<div class="description">
+			<p>I have been busy working Datazilla, and have very little to present
+			I had hoped to get a staging server that mimicked production, but the
+			volume of data has slowed my debug cycle.  Maybe by next week.</p>
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Dashboard-FinalBurndown.html">Final Burndown</a>
+			<span class="info">Fixes to the simple burndown chart</span>
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Bug-Ages.html">Bug Ages</a>
+			<span class="info">Track the ages of bugs that match some given criterion</span>
+		</div>
+	</td>
+	</tr>
+	<tr>
+	<td>
+		<h3>May 22th 2013</h3>
+		<div class="description">
+			<p>Telemetry visualization is finally at a point where it is not a constant
+			disappointment.  My intent is to let the user pick the dimensions, and
+			assign them to the X, Y or Z coordinates on the chart.  This attempts to copy
+			what business intelligence tools can do already, but with a far worse interface :(
+			</p>
+			<p>
+			My objective with this code is to prove there can be a lightweight interface
+			to an ElasticSearch cluster that can be used to quickly get a superficial understanding of the
+			the data, along it's many dimensions quickly, and with minimal ETL.
+			</p>
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Telemetry-Parts.html">Rough Telemetry Cube</a>
+			<span class="info">Cut Telemetry data along multiple dimensions fast</span>
+		</div>
+	</td>
+	</tr>
+
+	<tr>
+	<td>
+		<h3>May 14th 2013</h3>
+		<div class="description">
+			<p>I was asked to look into the number of patches landing on our various products.
+			My first draft assumed patches are closed when they are marked obsolete, or the bug is closed.
+			That definition leaves about 9% of patches never closed.  Further breakdown revealed:
+				<ul>
+			<li>56% - Have successfully passed review (review+)</li>
+			<li>27% - Are in the middle of review (review?)</li>
+			<li>10% - Have the feedback flag, which I assume will eventually enter review</li>
+			<li> 7% - All others, various reasons</li>
+				</ul>
+
+			Of course I now have more questions:  Are the reviewed patches landing?
+			All categories appear to be accelerating; Is this real, or another poor definition?
+			The number of patches being closed has been dropping in the past few weeks; Is this
+			seasonal (good weather/vacations)? Was there a work week? Is effort being diverted
+			from patch review to some other project?
+			</p>
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/PatchRates.html">Patch Rates</a> <a href="es/PatchRates.png">(image)</a>
+			<span class="info">Summarize Patch Rates</span>
+		</div>
+	</td>
+	</tr>
+
+	<tr>
+	<td>
+		<h3>May 8th 2013</h3>
+		<div class="description">
+			<p>This past week I suffered through more ElasticSearch oddities: Where it will
+				run out of memory on seemingly simple queries.  It appears the OutOfMemory errors are caused
+				by searching too many multi-valued indexes.  For example, this can happen when looking for all words
+				in the <span class="code">status_whiteboard</span>, or finding bugs using <span class="code">dependson</span>.
+				For now the solution is to avoid these types of queries and turn off indexing if not needed.
+				<br><br>
+				I have been working on ETL to store bug dependency gra<nothing reason="removing this tag will disable rendering!">p</nothing>hs so that they can be queried quickly.  The changing
+				nature of those dependencies was a complication I did not want to deal with; so I used a shortcut:
+				<i>The transitive closure of all dependencies over time creates a reasonable cover.</i>  This cover
+				can be served quickly to the client, and the client can use it a short-list for further data pulls.
+
+				<br><br>
+				There are cases when the cover is much larger than the current dependencies: Like the
+				<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=838081">Metro Backlog meta bug</a>.  But these cases
+				are rare enough that that they have little impact on total index size.
+			</p>
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Test-Hierarchy.html">Test Bug Dependency Tracking</a>
+			<span class="info">This is a UI to demonstrate the new Hierarchy ETL.</span>
+		</div>
+
+
+	</td>
+	</tr>
+
+
+	<tr>
+	<td>
+		<h3>April 29th 2013</h3>
+		<div class="description">
+			<p>I finally have had the opportunity to consider Mozilla's bug Triage process.
+				I am starting with Firefox OS' blocker bugs, where the triage process is probably simplest:
+				Blockers are nominated with <span class="code">tef?</span>,
+				and are then triaged to <span class="code">tef+</span> or <span class="code">tef-</span>.
+				The triage queue has some of the complications that can be found in code review queues;
+				where one bug can have multiple <span class="code">tef?</span>, and <span class="code">tef-</span>
+				can be realized in multiple ways.  But overall, the triage queue in the FFOS case
+				is simple because it does not need to handle the state found in the review queues.
+
+			</p>
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Bug-TriageRate.html">TEF Triage</a>
+			<span class="info">View total bugs awaiting triage, historical triage rates, and breakdown of triage results</span>
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/B2G-TriageRate.html#sampleInterval=week&sampleMax=2013-01-26&sampleMin=2012-08-26">Basecamp Triage</a>
+			<span class="info">For an earlier view</span>
+
+
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/TEF-CloseRate.html">TEF vs B2G Fix Rate</a>
+			<span class="info">Compare the fix rates for Boot2Gecko product and TEF+ blockers</span>
+
+
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Bug-CloseRate.html">Bug Close Rate</a>
+			<span class="info">Added better summary of resolution breakdown, better ESFilter textbox</span>
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Predictive_Simple.html">Burndown Prediction</a>
+			<span class="info">Minor fixes</span>
+		</div>
+
+
+	</td>
+	</tr>
+
+
+
+	<tr>
+	<td>
+		<h3>April 24th 2013</h3>
+		<div class="description">
+			<p>This past week I spent the majority of my time enhancing the telemetry
+				visualization.  Unfortunately, I have succumbed to optimistic
+				estimation and this is taking longer than expected.
+			</p>
+			<p>I have spent a couple of days reading through the datazilla code
+				responsible for doing the statistical analysis.  Aside a few
+				questions for <a href="https://phonebook.mozilla.org/tree.php#search/jeads@mozilla.com">Jeads</a>,
+				I believe I understand what the code is doing.  I still have not found a
+				test case or data to run it through the debugger, but I have come
+				to the conclusion that the one-test-at-a-time procedure it uses can be improved:
+			</p>
+			<p>I suggest the overall procedure will look like this:
+				<ol>
+					<li>Grab all the test results for some time (revision) range</li>
+					<li>Use existing statistical libraries to annotate the test results.</li>
+					<li>Compare annotations to previous annotations calculated for that data range. </li>
+					<li>Update database where there are differences, making sure the <span class="code">modified_date</span> is updated. </li>
+				</ol>
+			This set-wise procedure has the immediate benefit of providing time series
+			in the form the statistical libraries need it.  Furthermore, being able to process, and
+			reprocess the series will allow us to compensate for previously missing data that can alter our
+			conclusions.  Finally, as test results arrive, the egregious regressions
+			can be marked immediately, while the more subtle regressions (that require
+			more samples to improve confidence) can be marked later.
+			</p>
+		</div>
+		<div class="items">
+		</div>
+
+
+	</td>
+	</tr>
+
+
+	<tr>
+	<td>
+		<h3>April 15th 2013</h3>
+		<div class="description">
+			<p>I have my first working Python environment!  For me this is special;
+				The hard work of learning a new system involves discovering the
+				necessary binaries and their inter-dependencies, finding and filling
+				the configuration files, and debugging a setup I know nothing about.
+				Frustrating because nothing can get done until everything works. </p>
+			<p>The rest of the learning curve is much more forgiving; the the number of
+				Python frameworks and libraries is large, but at least I do not need to
+				know all of it to get something done.  Furthermore, with a working debugger,
+				I can easily discover what data the libraries require, and better
+				diagnose how I should be calling them.</p>
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Telemetry - Test.html">Telemetry Test</a>
+			<span class="info">Fresh Data (Apr1 to Apr9), and better ETL.</span>
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Predictive_Simple.html">Burndown Prediction</a>
+			<span class="info">Added new and closed bugs by day, and can now click on charts to get specific bug lists.</span>
+		</div>
+	</td>
+	</tr>
+
+
+	<tr>
+	<td>
+		<h3>April 9th 2013</h3>
+		<div class="description">
+			<p>I am reading through the <a href="https://github.com/mozilla/datazilla">Datazilla code</a>
+				with the objective to reduce the false positive rate.  The
+				<a href="https://github.com/mozilla/datazilla-metrics/blob/master/dzmetrics/data_smoothing.py">data smoothing code</a>
+				may be the culprit.  <span class="AM">"smooth"_s = a*"new"_s + (1-a)*"old"_s</span>
+				does not appear to be a germain aggregate on standard deviation (<span class="AM">sqrt(sum_(i)x_i^2)</span>).
+				I suspect something like <span class="AM">"smooth"_s = sqrt(a*"new"_s^2 + ((1-a)*"old"_s)^2)</span>, which
+				assumes an exponentially decreasing weight function on the samples.  But more work needs to be done
+			</p>
+			<p>First, I must recreate the problem and hopefully characterize what is going
+				wrong with the current code.  Then I will prove the correctness of new smoothing code.
+			</p>
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Telemetry - Test.html">Telemetry Test</a>
+			<span class="info">Some minor improvements on interface.</span>
+		</div>
+	</td>
+	</tr>
+
+
+	<tr>
+	<td>
+		<h3>April 5th 2013</h3>
+		<div class="description">
+			<p>I had done some work on Metro back in February, but I had to leave it
+				prematurely to work on other projects.  I decided to spend time yesterday
+				to get what little code I did have into a runnable state.</p>
+			<p>At some later date I will continue working on Marco Mucci's wishlist;
+				specifically to add drill-downs to see specific iteration stats and
+				bug lists.</p>
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Metro - Rough.html">Rough Metro</a>
+			<span class="info">A very slow and clunky set of charts.</span>
+
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Telemetry - Test.html">Telemetry Test</a>
+			<span class="info">Added regression line.</span>
+		</div>
+	</td>
+	</tr>
+
+	<tr>
+	<td>
+		<h3>April 2nd 2013</h3>
+		<div class="description">
+		<p>After a week holiday, I am now back full time with Mozilla!  I am now a member of the <a href="https://wiki.mozilla.org/Auto-tools">Automation and Tools Engineering team</a></p>
+		</div>
+		<div class="items">
+
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Telemetry - Test.html">Telemetry Test</a>
+			<span class="info">Simple heat grid to compare simple measures.</span>
+		</div>
+	</td>
+	</tr>
+
+
+	<tr>
+	<td>
+		<h3>March 27th 2013</h3>
+		<div class="description">
+		<p>Still learning Pig Latin, and figuring out how to make Telemetry queries fast.</p>
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_OverTime.html">Review Intensity Over Time</a>
+			<span class="info">Visualize the age of review queues over time.</span>
+		</div>
+	</td>
+	</tr>
+
+
+
+
+
+	<tr>
+	<td>
+		<h3>March 16th 2013</h3>
+		<div class="description">
+		<p>This past week-and-a-half I have been familiarizing myself with
+			Metric's Telemetry setup, learning Python for ReleaseManagement's
+			new dashboards, and trying to push something out for the Metro project.</p>
+		<p>The biggest barrier to Metro is the limitation of my charting library,
+			<a href="http://www.webdetails.pt/ctools.html#tabccc">CCC (Community Chart Components)</a>.  They have released version 2, and I was still stuck on version 1.
+		The new version has about 100 javascript files, and would be a pain to include all my pages (did I mention I have no server,
+			and all my pages are static?).  I would consider using the minimized version in a single file, but these libraries are still new, and require some
+			debugging to work properly on the edge cases I will inevitably encounter.  
+		</p>
+			<p>The solution is to use something like require.js to manage the packaging of this
+			large library, and the many other module dependencies.</p>
+		</div>
+		<div class="items">
+			<!--<a href="https://metrics.mozilla.com/bugzilla-analysis/Metro - Rough.html">Rough Metro</a>-->
+			<!--<span class="info">A very slow and clunky set of charts.  Mostly for my own use to verify counts.</span>-->
+		</div>
+	</td>
+	</tr>
+
+
+
+	<tr>
+	<td>
+		<h3>March 8th 2013</h3>
+		<div class="description">
+		<p>Here is a small dashboard you can use to find your bug close rate, over a given set of bugs (as defined by the ES Filter)</p>
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Bug-CloseRate.html">Bug Close Rate</a>
+			<span class="info">Visualize your bug close rate over time, and show average.</span>
+		</div>
+	</td>
+	</tr>
+
+
+
+	<tr>
+	<td>
+		<h3>February 28th 2013</h3>
+		<div class="description">
+		<p>I have been working on visualizing the agile process being used by the
+		<a href="https://wiki.mozilla.org/Firefox/Metro">Firefox Metro Development Project</a>.
+		I am assuming that stories are direct children of iterations; so I can
+		pull the stories, and their point values, with a simple query</p>
+
+		<p>The technical complication is pulling bug counts:  The DAG formed by bug dependencies is ever-changing,
+		and to get accurate historical counts I need the structure from any point in time.
+		I have tried pulling the current DAG and assuming it does not change
+		much, but that gives terrible results.</p>
+
+		<p>In general, being able to follow the DAG over time will allow developers and
+		managers see the full scope of a project; and be able to zoom in on past state to
+		identify patterns.  Furthermore, in theory, developers need only add a new bug to
+		the DAG at any depth, and it's effort (along with all dependencies) will be automatically
+		reported to the projects affected.</p>
+
+		<p>I hope with some powerful dependency reporting, Mozilla will get more use out of
+		the bug dependency field in Bugzilla.</p>
+		</div>
+		<div class="items">
+		</div>
+	</td>
+	</tr>
+
+
+	<tr>
+	<td>
+		<h3>February 23th 2013</h3>
+		<div class="description">
+		It is important the dashboards I make are relevant to the people who view them.
+		This means they must be personalized to a certain degree.  Take, for example, defining the "age" of a bug:
+		Is it time since created?, since triaged?, since flagged? since confirmed? since assigned?
+		Each is relevant in a different way to each team.  I am still a long way off
+		from providing this fine detail to any team, but I am making good first steps to
+		defining "age" for security bugs:  Age is defined from the time it is first
+		identified as a security bug, to the time it is closes. This definition may still not be
+		accurate, but this is an iterative process.
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Security_Q1_Goal.html">Security's 2013 Q1 Goal</a>
+			<span class="info">The Security Teams have an ambitious goal to limit the age of high+ security bugs.  This dashboard is meant to help visualize progress toward those goals.</span>
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Util-CorruptionCheck.html">Corruption Check</a>
+			<span class="info">Until ES is put onto production hardware, I have a check to ensure no corruption is introduced by downtime.</span>
+		</div>
+	</td>
+	</tr>
+
+
+	<tr>
+	<td>
+		<h3>February 13th 2013</h3>
+		<div class="description">
+			I have been working on visualizing Metro's iterations.  But in the meantime,
+			I noticed a need for a basic burndown tracking
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Dashboard - Final_Burndown.html">Final Burndown Dashboard</a>
+			<span class="info">Basic burndown for small number of bugs.</span>
+		</div>
+	</td>
+	</tr>
+
+
+	<tr >
+	<td>
+		<h3>February 5th 2013</h3>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Dashboard_byProject.html">Project Dashboard</a>
+			<span class="info"> Copies the B2G logic, and extended to all programs. (Added a Team filter)</span>
+
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Community_FirstReview.html">First Time Review Requests</a>
+			<span class="info">List of all first time review requests</span>
+		</div>
+	</td>
+	</tr>
+
+
+
+	<tr >
+		<td>
+			<h3>January 31th 2013</h3>
+			<div class="items">
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Predictive_Simple.html">Burndown Prediction</a>
+				<span class="info">Uses up to the last 6 weeks of data to make a linear estimate of when project is complete</span>
+
+			</div>
+		</td>
+	</tr>
+
+
+
+	<tr >
+		<td>
+			<h3>January 29th 2013</h3>
+			<div class="items">
+				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/Dashboard_byProject.html">Project Dashboard</a>
+				<span class="info">Copies the B2G logic, and extended to all programs</span></span>
+
+			</div>
+		</td>
+	</tr>
+
+
+	<tr >
+		<td>
+			<h3>January 28th 2013</h3>
+			<div class="description">
+					My work on a better interface for all the filters found on the LHS of my charts had to be postponed in favour of showing
+			something interesting this week.
+			</div>
+			<div class="items">
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Age_overTime.html">Time to Resolution over Time</a>
+				<span class="info">This is my first attempt at showing percentile ages of open and closed bugs.  Even though charting
+					the ages of closed bugs makes sense, charting the age history of closed bugs has little value.  It is much better
+					to chart the age of open bugs.  After all, all closed bugs were open at sometime.</span>
+
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Age_OpenBugs.html">Open Bug Count</a>
+				<span class="info">This is an improved version, which adds a second chart that traces the percentile ages of all
+					the open bugs.  One interesting thing: By looking at the percentiles you can almost see bugs being closed,
+					and how old they were.</span>
+			</div>
+		</td>
+	</tr>
+
+	<tr >
+		<td>
+			<h3>January 21th 2013</h3>
+			<div class="description">
+					This past week was working on simple fixes and backend features.
+			</div>
+			<div class="items">
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_NoReviewer.html">R? and missing Requestee</a>
+				<span class="info">List of all bugs with no reviewer (The old version missed some.)</span>
+
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Util-QueryTool.html">B.A. Query Tool</a>
+				<span class="info">Added some basic features to the query tool I use. It still needs documentation.</span>
+
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/OpenBugCount.html">OpenBugCount.html</a>
+				<span class="info">Many of the charts have table (<img src="es/images/Spreadsheet.png" style="vertical-align: middle;width:16px;height:16px;">) button at bottom right to provide a grid of numbers at the bottom of the page (popup to come shortly).  It can be used to cut-and-paste to a spreadsheet.</span>
+
+			</div>
+		</td>
+	</tr>
+
+
+
+	<tr >
+		<td>
+			<h3>January 14th 2013</h3>
+			<div class="description">
+				I had stumbled upon why ES facets appeared slow to me: MVEL!
+				It turns out that script filters were the reason N facets were N times slower than one facet.
+				When scripts are avoided, ES facets run at incredible speed; allowing hundreds of facets in
+				a single query with almost no noticeable slowdown!
+			</div>
+
+			<div class="items">
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Security_byPriority.html">Security_byPriority</a>
+				<span class="info">Replicating the Security's counts to ensure my code is correct.</span>
+
+
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Security_byRisk.html">Security_byRisk.html</a>
+				<span class="info">Mimicking Security's risk assessment.  This one is a little slower because the facet logic is too complex.</span>
+
+
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/OpenBugCount.html">OpenBugCount.html</a>
+				<span class="info">Finally, I can produce bug counts over time fast.</span>
+
+			</div>
+		</td>
+	</tr>
+<tr>
+	<td>
+		<h3>January 5th 2012</h3>
+		<div class="description">
+			It is important to Mozilla that we respond to review requested by the community
+			promptly.  Here is an attempt to measure that response time in aggregate.
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Community_ReviewIntensity.html">Community_ReviewIntensity</a>
+			<span class="info">An attempt to show MoCo response time to first-time incoming review requests</span>
+		</div>
+	</td>
+</tr>
+
+<tr>
+	<td>
+		<h3>December 14th 2012</h3>
+		<div class="description">
+			Open source and community are important to Mozilla.  My professional experience
+			is with the banking industry, so community involvement is new to me:  I thought it best
+			I connect to people in Mozilla that understand our community best, and I find out how I can help. <br><br>
+
+			Being an analytical guy, I started with some charts as a first step at looking at "community" retention rates.
+			I hope to start uncovering instances where Mozilla goes right or wrong so that we can learn how best to respect
+			those many volunteers do a significant amount of work.<br><br>
+
+			These charts are noisy, they do not properly follow cohorts, and answer no questions.  What I need now is someone
+			to ask questions to help direct my efforts toward a more meaningful analysis.
+		</div>
+		<div class="items">
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Community_NextReviews.html">Community_NextReviews</a>
+			<span class="info">An attempt to show community retention rates by looking at outgoing review requests</span>
+			<a href="https://metrics.mozilla.com/bugzilla-analysis/Community_Retention.html">Community_Retention</a>
+			<span class="info">Same as above, but looking at change over time</span>
+		</div>
+	</td>
+</tr>
+	<tr >
+		<td>
+			<h3>December 11th 2013</h3>
+			<div class="description">
+				Simply added click-to-see bug functionality to some charts.  Line charts do not sem to be clickable.
+			</div>
+			<div class="items"></div>
+
+		</td>
+	</tr>
+
+
+
+	<tr>
+		<td>
+			<h3>December 3rd 2012</h3>
+			<div class="description">
+				Added team filter that uses the Mozilla phone book to provide drill-down by team
+			</div>
+			<div class="items">
+ 				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity.html">ReviewIntensity</a>
+				<span class="info">Show total volume of reviews, and any review backlog, for an individual</span>
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_First.html">ReviewIntensity_First</a>
+				<span class="info">Same as above but only counting the first review for a bug</span>
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_Requester.html">ReviewIntensity_Requester</a>
+				<span class="info">The the number of reviews requested</span>
+			</div>
+
+
+
+		</td>
+
+	</tr>
+
+
+
+<tr>
+	<td>
+		<h3>November 28th 2012</h3>
+		<div class="description">
+			I started working on the ETL for bug history so that questions like "How long has this been a security bug?" can be answered fast, over time, for all security bugs.  I tried facets, but they are slow when they number in the tens or hundreds.  In the meantime, here is a B2G special:
+		</div>
+		<div class="items">
+ 				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_First.html">ReviewIntensity_First</a>
+				<span class="info">Same as above but only counting the first incoming review for a bug</span></span>
+
+				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_Requester.html">Outgoing Reviews</a>
+				<span class="info">The the number of outgoing reviews</span></span>
+		</div>
+	</td>
+</tr>
+
+
+<tr>
+	<td>
+		<h3>November 28th 2012</h3>
+		<div class="description">
+			I started working on the ETL for bug history so that questions like "How long has this been a security bug?" can be answered fast, over time, for all security bugs.  I tried facets, but they are slow when they number in the tens or hundreds.  In the meantime, here is a B2G special:
+		</div>
+		<div class="items">
+				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_B2G.html">ReviewIntensity_B2G</a>
+				<span class="info">Same as above for all B2G (only because Program filtering does not work right now)</span></span>
+		</div>
+	</td>
+</tr>
+
+
+	<tr>
+		<td>
+			<h3>November 19th 2012</h3>
+			<div class="description">
+				With the ETL working, we can now count over millions of records fast and accurately.  Furthermore, I added cooperative multithreading to make the procedural code easier to read and still be asynchronous.
+			</div>
+			<div class="items">
+				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity.html">ReviewIntensity</a>
+				<span class="info">Show total volume of reviews, and any review backlog</span></span>
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_Pending_18.html">Reviews_Pending_18.html</a>
+				<span class="info">Overview of Reviews in the past 18weeks</span>
+			</div>
+		</td>
+	</tr>
+
+	<tr>
+		<td>
+			<h3>November 11th 2012</h3>
+			<div class="description">
+				ElasticSearch is not good for counting nested documents: If a document matches, it is counted (or returned) only once.  When multiple nested documents exist, we need to use MVEL scripting to bring back all data, and count it locally.  This forces me to make an ES index for just reviews, and write the ETL to populate it.
+			</div>
+			<div class="items">
+ 				<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewHistory.html">ReviewHistory.html</a>
+				<span class="info">FAST! - Visualize each review request over time.  Add your mail BZ mail address to see your own.</span>
+				
+			</div>
+		</td>
+	</tr>
+
+
+
+
+	<tr>
+		<td>
+			<h3>November 5th 2012</h3>
+			<div class="description">
+				<span class="warning">Please note:  There are still known issues with these charts.</span> (see <a href="https://metrics.mozilla.com/projects/browse/BA">https://metrics.mozilla.com/projects/browse/BA</a>)
+			</div>
+			<div class="items">
+
+				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewHistory.html">ReviewHistory.html</a>
+				<span class="info">SLOW (about 30sec) - Visualize each review request over time.  Add your mail BZ mail address to see your own.  BUG - First request of the day will show more reviews than existing.  Reload.</span></span>
+ 				<a href="https://metrics.mozilla.com/bugzilla-analysis/BugAge.html">BugAge.html</a>
+ 				<span class="info">FAST! - Age of closed bugs - Uses ES term packing</span>
+			</div>
+		</td>
+	</tr>
+
+
+	<tr>
+		<td>
+			<h3>October 22nd 2012</h3>
+
+			<div class="description">
+				These charts now work on the Metrics site without MV VPN access!
+				Still requires LDAP, of course.
+			</div>
+			<div class="items">
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/ResolutionsOverTime.html">ResolutionsOverTime.html</a>
+				<span class="info">FAST! - Show number of each Resolution by the age of the bug.  This query packs mutiple data partitions into a single &quot;term&quot; facet</span>
+				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_Pending_OldCore.html">Reviews_Pending_OldCore.html</a>
+				<span class="info">SLOW - List of ALL bugs pending review for over 3 months, only for Firefox and Core, grouped by requestee</span></span>
+
+			</div>
+		</td>
+	</tr>
+	<tr>
+		<td>
+
+ 			<h3>October 16th 2012</h3>
+			<div class="description">
+				A lot of my time is being spent on translating SQL-like queries into ES queries.  Specifically, the term packing I was using for pulling raw data is now being used for aggregates too.
+			</div>
+
+
+ 			<div class="items">
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Burnup.html">Burnup.html</a>
+				<span class="info">Closed Bug Count by Program, Product, Component</span>
+				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/NewAndClosed.html">NewAndClosed.html</a>
+				<span class="info">Show weekly totals for new bugs and closed bugs (new bugs by Program are artificially low because not marked upon creation) </span></span>
+				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/BugAge.html">BugAge.html</a>
+				<span class="info">SLOW (about 3min) - Age of closed bugs - Pulls large amount of data from ES (?delay is due to 50meg transfer?), and processes locally </span></span>
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/TimeToResolution.html">TimeToResolution.html</a>
+				<span class="info">SLOW (about 30sec) - Same as bug age, only measurment stars when bug is marked as belonging to Program, Product or Component</span>
+				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewTimes.html">ReviewTimes.html</a>
+				<span class="info">SLOW (about 3min) - Length of time a bug waits for a review</span></span>
+				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/ResolutionsOverTime.html">ResolutionsOverTime.html</a>
+				<span class="info">SLOW (3min) - Show number of each Resolution by the age of the bug.  This query uses ES facets to gather data.  The amount of download data is small, but ES computing is slow.  Only 21 facets (for 21 days) are used here. </span></span>
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_Pending.html">Reviews_Pending.html</a>
+				<span class="info">List of all bugs pending review, grouped by requestee</span>
+				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_NoReviewer.html">Reviews_NoReviewer.html</a>
+				<span class="info">List of all bugs with no reviewer</span></span>
+				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_Basecamp_Only.html">Reviews_Basecamp_Only.html</a>
+				<span class="info">Andrew's Basecamp Blockers - but using the ES document store instead</span></span>
+
+ 			</div>
+ 		</td>
+ 	</tr>
+
+
+	<tr>
+		<td>
+			<h3>October 11th 2012</h3>
+
+			<div class="items">
+				<a href="https://metrics.mozilla.com/bugzilla-analysis/Burndown.html">Burndown.html</a><span class="info">Burndown by Program, Product, Component</span>
+				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/BugAge.html">BugAge.html</a><span class="info">Work in Progress - Age of closed bugs</span></span>
+				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/TimeToResolution.html">TimeToResolution.html</a><span class="info">Work in Progress - Same as bug age, only measurement starts when bug is marked as belonging to Program, Product or Component</span></span>
+				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewTimes.html">ReviewTimes.html</a><span class="info">Length of time a bug waits for a review</span></span>
+				<span class="expired"><a href="https://metrics.mozilla.com/bugzilla-analysis/Basecamp_Pending.html">Basecamp_Pending.html</a><span class="info">Andrew's Basecamp Blockers - but using the ES document store instead</span></span>
+			</div>
+		</td>
+	</tr>
+
+
+
+
+
+</table>
+</div>
+<script type="application/javascript;version=1.7">
+	importScript([
+		"es/lib/jquery.js",
+		"es/lib/ASCIIMathML.js"
+	], function(){
+
+		var a;
+		if (window.location.protocol=="file:"){	//FOR DEVELOPMENT
+			a=$("a");
+			a.each(function(i, v){
+				var path=$(v).attr('href');
+				$(v).attr('href', path.replace("https://metrics.mozilla.com/bugzilla-analysis", "es"));
+
+			});
+		}else if (window.location.pathname.startsWith("/~klahnakoski/test/")){//STAGING
+			a=$("a");
+			a.each(function(i, v){
+				var path=$(v).attr('href');
+				$(v).attr('href', path.replace("https://metrics.mozilla.com/bugzilla-analysis", "es"));
+
+			});
+		}
+	});
+
+//	$('.new').effect("pulsate", { times:3 }, 1000);
+</script>
+
+</BODY>
+</HTML>
