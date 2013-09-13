@@ -67,6 +67,9 @@ Rest.send=function(ajaxParam){
 				if (ajaxParam.dataType=='json'){
 					response=CNV.JSON2Object(response);
 				}//endif
+				if (response===undefined){
+					D.warning("Appears to have no response!!")
+				}//endif
 				ajaxParam.success(response);
 			}else if (request.isTimeout){
 				callback(new Exception("Error while calling "+ajaxParam.url, Exception.TIMEOUT));
