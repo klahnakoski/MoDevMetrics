@@ -60,37 +60,40 @@ Rest.send=function(ajaxParam){
 		}//for
 	}//endif
 
-	request.onreadystatechange=function(){
-  		if (request.readyState==4){
-			if (request.status==200){
-				var response=request.responseText;
-				if (ajaxParam.dataType=='json'){
-					response=CNV.JSON2Object(response);
+	request.onreadystatechange = function(){
+		if (request.readyState == 4){
+			if (request.status == 200){
+				var response = request.responseText;
+				if (ajaxParam.dataType == 'json'){
+					response = CNV.JSON2Object(response);
 				}//endif
-				if (response===undefined){
+				if (response === undefined){
 					D.warning("Appears to have no response!!")
 				}//endif
 				ajaxParam.success(response);
-			}else if (request.isTimeout){
-				callback(new Exception("Error while calling "+ajaxParam.url, Exception.TIMEOUT));
-			}else{
-				ajaxParam.error("Bad response: "+CNV.String2Quote(request.responseText));
+			} else if (request.isTimeout){
+				callback(new Exception("Error while calling " + ajaxParam.url, Exception.TIMEOUT));
+			} else{
+				ajaxParam.error("Bad response: " + CNV.String2Quote(request.responseText));
 			}//endif
-		}else{
+		} else if (request.readyState == 3){
+			//RESPONSE IS ARRIVING, DISABLE TIMEOUT
+			request.timeoutFunction=function(){}
+		} else{
 //			D.println(CNV.Object2JSON(request));
 //			D.println(request.getAllResponseHeaders());
 		}//endif
 	};
 
-	if (Rest.progressListener){
-		request.addEventListener("progress",Rest.progress(Rest.progressListener),false);
-		request.upload.addEventListener("progress",Rest.progress(Rest.progressListener),false);
-	}//endif
-
-	if (ajaxParam.progress){
-		request.addEventListener("progress",Rest.progress(ajaxParam.progress),false);
-		request.upload.addEventListener("progress",Rest.progress(ajaxParam.progress),false);
-	}//endif
+//	if (Rest.progressListener){
+//		request.addEventListener("progress",Rest.progress(Rest.progressListener),false);
+//		request.upload.addEventListener("progress",Rest.progress(Rest.progressListener),false);
+//	}//endif
+//
+//	if (ajaxParam.progress){
+//		request.addEventListener("progress",Rest.progress(ajaxParam.progress),false);
+//		request.upload.addEventListener("progress",Rest.progress(ajaxParam.progress),false);
+//	}//endif
 
 	request.kill=function(){
 		if (request.readyState==4) return;  //TOO LATE
@@ -105,11 +108,13 @@ Rest.send=function(ajaxParam){
 	};
 
 	if (ajaxParam.timeout!==undefined){
+		request.timeoutFunction=function(){
+			request.isTimeout=true;
+			request.abort()
+		};
+
 		setTimeout(
-			function(){
-				request.isTimeout=true;
-				request.abort()
-			},
+			request.timeoutFunction,
 			ajaxParam.timeout
 		);
 	}

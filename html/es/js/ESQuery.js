@@ -210,6 +210,10 @@ ESQuery.prototype.run = function(){
 				},
 				timeout:this.query.timeout
 			}));
+
+			if (postResult){
+				
+			}//endif
 		}catch(e){
 			if (!e.contains(Exception.TIMEOUT)){
 				throw e;
@@ -218,7 +222,8 @@ ESQuery.prototype.run = function(){
 				this.nextDelay = nvl(this.nextDelay, 500) * 2;
 				yield (Thread.sleep(this.nextDelay));
 				D.action("Retrying Query...");
-				yield this.run();
+				var output=yield (this.run());
+				yield output;
 			}//endif
 		}//try
 
@@ -237,7 +242,8 @@ ESQuery.prototype.run = function(){
 			this.nextDelay=nvl(this.nextDelay, 500)*2;
 			yield (Thread.sleep(this.nextDelay));
 			D.action("Retrying Query...");
-			yield this.run();
+			output=yield (this.run());
+			yield output;
 		}//endif
 	}catch(e){
 		D.error("Error with ESQuery", e);

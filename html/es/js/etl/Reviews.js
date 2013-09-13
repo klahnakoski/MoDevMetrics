@@ -134,23 +134,9 @@ REVIEWS.get=function(minBug, maxBug){
 	//DETERMINE IF WE ARE LOOKING AT A RANGE, OR A SPECIFIC SET, OF BUGS
 	var esfilter;
 	if (maxBug===undefined || maxBug==null){
-		esfilter={"and":[
-			{"terms":{"bug_id":minBug}},
-//            {"nested":{
-//                "path":"attachments",
-//                "query":{"filtered":{
-//                    "query":{"match_all": {}},
-//                    "filter": {
-//                        "exists":{"field":"attachments.attach_id"}
-//                    }
-//                }}
-//            }}
-		]};
+		esfilter={"terms":{"bug_id":minBug}}
 	}else{
-		esfilter={"and":[
-			{"range":{"bug_id":{"gte":minBug, "lt":maxBug}}},
-//            {"not":{"missing":{"field":"attachments", "null_value":true}}}
-		]};
+		esfilter={"range":{"bug_id":{"gte":minBug, "lt":maxBug}}}
 	}//endif
 
 
