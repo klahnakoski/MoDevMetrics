@@ -12,7 +12,7 @@ importScript("aTimer.js");
 importScript("aColour.js");
 
 importScript([
-	"aDebug.js",
+	"debug/aLog.js",
 	"../lib/jsThreads/js/thread.js"
 ]);
 importScript("aFormat.js");

@@ -24,7 +24,7 @@
 	], function(){
 		Thread.run(function(){
 
-			D.println(Date.newInstance(1352207434236).format("yyyy-NNN-dd HHmmss"));
+			Log.note(Date.newInstance(1352207434236).format("yyyy-NNN-dd HHmmss"));
 //		yield (ESQuery.loadColumns({"from":"bugs"}));
 
 //			var temp = MVEL.compile.expression("getDocArray(dependson).length>0", {"from": "bugs"	  });
@@ -118,7 +118,7 @@
 				}));
 
 
-				D.println(CNV.Object2JSON(data));
+				Log.note(CNV.Object2JSON(data));
 
 				var htmlSummary = CNV.ESResult2HTMLSummaries(data);
 				var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));
@@ -136,7 +136,7 @@
 
 
 			} catch(e){
-				D.warning("Error sending requests", e);
+				Log.warning("Error sending requests", e);
 				document.getElementById("info").innerHTML = "Response Error.  Make sure you are connected to the MPT network.";
 			}
 

@@ -170,7 +170,7 @@ Stats.query2regression=function(query){
 	if (query.edges.length==2 && select.length==1){
 		//WE ASSUME THE SELECT IS THE WEIGHT FUNCTION
 	}else{
-		D.error("Not supported");
+		Log.error("Not supported");
 	}//endif
 
 	//CONVERT ALGEBRAIC DOMAINS TO doubles
@@ -181,8 +181,8 @@ Stats.query2regression=function(query){
 	var line=Stats.regression(CUBE.cube.transpose(query, [query.edges[1], query.edges[0]], select).cube, domainX, domainY);
 
 	//CONVERT BACK TO DOMAIN (result REFERS TO
-	if (["time", "duration"].contains(domainX.type)) D.error("Can not convert back to original domain, not implemented yet");
-	if (["time", "duration"].contains(domainY.type)) D.error("Can not convert back to original domain, not implemented yet");
+	if (["time", "duration"].contains(domainX.type)) Log.error("Can not convert back to original domain, not implemented yet");
+	if (["time", "duration"].contains(domainY.type)) Log.error("Can not convert back to original domain, not implemented yet");
 
 
 	//BUILD NEW QUERY WITH NEW CUBE
@@ -203,10 +203,10 @@ Stats.query2regression=function(query){
 //ASSUMES A CUBE OF WEIGHT VALUES
 //RETURN THE REGRESSION LINE FOR THE GIVEN CUBE
 Stats.regression=function(weights, domainX, domainY){
-	if (DEBUG) D.println(CNV.Object2JSON([weights, {"min":domainX.min, "max":domainX.max, "interval":domainX.interval}, {"min":domainY.min, "max":domainY.max, "interval":domainY.interval}]));
+	if (DEBUG) Log.note(CNV.Object2JSON([weights, {"min":domainX.min, "max":domainX.max, "interval":domainX.interval}, {"min":domainY.min, "max":domainY.max, "interval":domainY.interval}]));
 
-	if (((domainX.max-domainX.min)/domainX.interval)<=1) D.error("Can not do regression with only one value");
-	if (((domainY.max-domainY.min)/domainY.interval)<=1) D.error("Can not do regression with only one value");
+	if (((domainX.max-domainX.min)/domainX.interval)<=1) Log.error("Can not do regression with only one value");
+	if (((domainY.max-domainY.min)/domainY.interval)<=1) Log.error("Can not do regression with only one value");
 
 	var t={};
 	t.N=0;
@@ -239,7 +239,7 @@ Stats.regression=function(weights, domainX, domainY){
 		}//for
 		i++;
 	}//for
-	if (DEBUG) D.println(desc);
+	if (DEBUG) Log.note(desc);
 
 	return Stats.regressionLine(t);
 };
@@ -267,11 +267,11 @@ Stats.regressionLine=function(terms){
 
 if (DEBUG){
 	try{
-		if (Stats.regression([[0, 1], [0, 1], [0, 1]], {"min":0, "max":3, "interval":1}, {"min":0, "max":2, "interval":1}).offset!=1.5) D.error();
-		if (Stats.regression([[1, 1, 1], [1, 1, 1], [1, 1, 1]], {"min":0, "max":3, "interval":1}, {"min":0, "max":3, "interval":1}).slope!=0) D.error();
-		if (Stats.regression([[1, 0, 0], [0, 1, 0], [0, 0, 1]], {"min":0, "max":3, "interval":1}, {"min":0, "max":3, "interval":1}).slope!=1) D.error();
-		if (Stats.regression([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]], {"min":0, "max":3, "interval":1}, {"min":0, "max":3, "interval":1}).slope!=1) D.error();
-		if (Stats.regression([[10, 0, 0, 0], [0, 10, 0, 0], [0, 0, 10, 0]], {"min":0, "max":3, "interval":1}, {"min":0, "max":3, "interval":1}).slope!=1) D.error();
+		if (Stats.regression([[0, 1], [0, 1], [0, 1]], {"min":0, "max":3, "interval":1}, {"min":0, "max":2, "interval":1}).offset!=1.5) Log.error();
+		if (Stats.regression([[1, 1, 1], [1, 1, 1], [1, 1, 1]], {"min":0, "max":3, "interval":1}, {"min":0, "max":3, "interval":1}).slope!=0) Log.error();
+		if (Stats.regression([[1, 0, 0], [0, 1, 0], [0, 0, 1]], {"min":0, "max":3, "interval":1}, {"min":0, "max":3, "interval":1}).slope!=1) Log.error();
+		if (Stats.regression([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]], {"min":0, "max":3, "interval":1}, {"min":0, "max":3, "interval":1}).slope!=1) Log.error();
+		if (Stats.regression([[10, 0, 0, 0], [0, 10, 0, 0], [0, 0, 10, 0]], {"min":0, "max":3, "interval":1}, {"min":0, "max":3, "interval":1}).slope!=1) Log.error();
 
 		var result=Stats.regression([
 				[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -281,8 +281,8 @@ if (DEBUG){
 			],
 			{"min":0,"max":20,"interval":5},
 			{"min":0,"max":105,"interval":5});
-		if (aMath.round(result.offset, 2)!=7.55) D.error();
-		if (aMath.round(result.slope, 4)!=-0.2037) D.error();
+		if (aMath.round(result.offset, 2)!=7.55) Log.error();
+		if (aMath.round(result.slope, 4)!=-0.2037) Log.error();
 
 
 
@@ -311,14 +311,14 @@ if (DEBUG){
 			],
 			{"min":0,"max":105,"interval":5},
 			{"min":0,"max":105,"interval":5});
-		if (aMath.round(result.offset, 2)!=-6.39) D.error();
-		if (aMath.round(result.slope, 4)!=0.5207) D.error();
+		if (aMath.round(result.offset, 2)!=-6.39) Log.error();
+		if (aMath.round(result.slope, 4)!=0.5207) Log.error();
 
-//	if (Stats.regression([[1, 1, 1]], {"min":0, "max":3, "interval":1}, {"min":0, "max":1, "interval":1}).offset!=1) D.error();
+//	if (Stats.regression([[1, 1, 1]], {"min":0, "max":3, "interval":1}, {"min":0, "max":1, "interval":1}).offset!=1) Log.error();
 	}catch(e){
-		D.error("Test failure", e);
+		Log.error("Test failure", e);
 	}//try
-	D.println("All tests pass");
+	Log.note("All tests pass");
 }//endif
 
 })();

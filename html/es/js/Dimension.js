@@ -117,7 +117,7 @@ Dimension.prototype={
 				if (lowerCaseOnly) part.esfilter=CNV.JSON2Object(CNV.Object2JSON(part.esfilter).toLowerCase());
 			}else if (part.partitions){
 				if (part.partitions.length>100){
-					D.error("Must define an esfilter on "+part.name+", there are too many partitions ("+part.partitions.length+")");
+					Log.error("Must define an esfilter on "+part.name+", there are too many partitions ("+part.partitions.length+")");
 				}else{
 					//DEFAULT esfilter IS THE UNION OF ALL CHILD FILTERS
 					if (part.partitions){
@@ -129,7 +129,7 @@ Dimension.prototype={
 
 		function convertDim(dim){
 //			if (dim.name=="DWriteEnabled"){
-//				D.println();
+//				Log.note();
 //			}
 
 
@@ -149,26 +149,26 @@ Dimension.prototype={
 
 			if (dim.field!==undefined && CUBE.domain.PARTITION.contains(dim.type) && dim.partitions===undefined){
 //				if (dim.type=="boolean"){
-//					D.println("");
+//					Log.note("");
 //				}
 
 				dim.partitions=Thread.run(function(){
 					//IF dim.field IS A NUMBER, THEN SET-WISE EDGES DO NOT WORK (CLASS CAST EXCEPTION)
 //					if (dim.field=="info.appBuildID"){
-//						D.warning("Special case for info.appBuildID, please fix Telemetry schema");
+//						Log.warning("Special case for info.appBuildID, please fix Telemetry schema");
 //						edge={"name":dim.field, "value":"\"\"+"+dim.field};
 //					}else{
 						edge={"name":dim.field, "value":dim.field};
 //					}//endif
 
-					var a=D.action("Get parts of "+dim.name, true);
+					var a=Log.action("Get parts of "+dim.name, true);
 					var parts=yield (ESQuery.run({
 						"from":dim.index,
 						"select":{"name":"count", "value":dim.field, "aggregate":"count"},
 						"edges":[edge],
 						"limit":dim.limit
 					}));
-					D.actionDone(a);
+					Log.actionDone(a);
 
 					var d=parts.edges[0].domain;
 
@@ -177,7 +177,7 @@ Dimension.prototype={
 						var temp={"partitions":[]};
 						parts.cube.forall(function(count, i){
 							var a=dim.path(d.end(d.partitions[i]));
-							if (!(a instanceof Array)) D.error("The path function on "+dim.name+" must return an ARRAY of parts");
+							if (!(a instanceof Array)) Log.error("The path function on "+dim.name+" must return an ARRAY of parts");
 							addParts(
 								temp,
 								dim.path(d.end(d.partitions[i])),

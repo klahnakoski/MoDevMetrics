@@ -18,9 +18,9 @@ var importScript;
 	var DEBUG=false;
 
 
-	if (typeof(window.D) == "undefined"){
-		window.D={
-			"println":function(message){
+	if (typeof(window.Log) == "undefined"){
+		window.Log={
+			"note":function(message){
 				console.log(message);
 			},
 			"error":function(message){
@@ -106,15 +106,15 @@ var importScript;
 			request.open('GET', url);
 			request.isDone=false;
 			request.onreadystatechange=function(){
-//				if (DEBUG) D.println("GOT (readyState="+request.readyState+", requestStatus="+request.status+")"+url);
+//				if (DEBUG) Log.note("GOT (readyState="+request.readyState+", requestStatus="+request.status+")"+url);
 				if (request.readyState==4){
 					if (request.status==200 || request.status==0){
 						if (request.isDone) return;
 						request.isDone=true;
-						if (DEBUG) D.println("GOT "+url);
+						if (DEBUG) Log.note("GOT "+url);
 						callback(request.responseText);
 					}else{
-						D.error("What!?!");
+						Log.error("What!?!");
 						callback(null);
 					}//endif
 				}//endif
@@ -123,17 +123,17 @@ var importScript;
 				if (request.status==200 || request.status==0){
 					if (request.isDone) return;
 					request.isDone=true;
-					if (DEBUG) D.println("GOT "+url);
+					if (DEBUG) Log.note("GOT "+url);
 					callback(request.responseText);
 				}else{
-					D.error("What!?!");
+					Log.error("What!?!");
 					callback(null);
 				}//endif
 			};
-			if (DEBUG) D.println("GET "+url);
+			if (DEBUG) Log.note("GET "+url);
 			request.send(null);
 		}catch(e){
-			D.error("Can not read "+fullPath+" ("+e.message+")");
+			Log.error("Can not read "+fullPath+" ("+e.message+")");
 			callback(null);
 		}//try
 	}
@@ -199,7 +199,7 @@ var importScript;
 		paths=subtract(paths, existingScripts);
 
 		var numLoaded=paths.length;
-		if (DEBUG) D.println("Waiting for "+numLoaded+" scripts to load");
+		if (DEBUG) Log.note("Waiting for "+numLoaded+" scripts to load");
 		function onLoadCallback(){
 			numLoaded--;
 			if (numLoaded==0){
@@ -208,7 +208,7 @@ var importScript;
 		}
 
 		for(var i=0;i<paths.length;i++){
-			if (DEBUG) D.println("Add script: "+shortPath(paths[i]));
+			if (DEBUG) Log.note("Add script: "+shortPath(paths[i]));
 			if (paths[i].substring(paths[i].length-4)==".css"){
 				//<link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
 				var newCSS=document.createElement('link');
@@ -225,7 +225,7 @@ var importScript;
 				head.appendChild(script);
 			}//endif
 		}//for
-		if (DEBUG) D.println("Added "+paths.length+" scripts");
+		if (DEBUG) Log.note("Added "+paths.length+" scripts");
 	}//function
 
 
@@ -253,12 +253,12 @@ var importScript;
 				//WORKING ON THOSE
 					if (queue.length==0 && unprocessed.length>0){
 						var hasParent=unprocessed.map(function(v,i){if (graph[v].__parent!==undefined ) return v;});
-						if (hasParent.length==0) D.error("Isolated cycle found");
+						if (hasParent.length==0) Log.error("Isolated cycle found");
 						hasParent=subtract(hasParent, processed);
 						unprocessed=subtract(unprocessed, hasParent);
 						for(var k=0;k<hasParent.length;k++){
 							if (DEBUG && contains(processed, hasParent[k]))
-								D.error("Duplicate pushed!!");
+								Log.error("Duplicate pushed!!");
 							queue.push(hasParent[k]);
 //							unprocessed.remove([hasParent[k]]);
 						}
@@ -283,7 +283,7 @@ var importScript;
 
 			var node=graph[nodeId].id;
 			if (DEBUG && contains(processed, node))
-				D.error("Duplicate pushed!!");
+				Log.error("Duplicate pushed!!");
 			processed.push(node);
 		}//method
 
@@ -296,7 +296,7 @@ var importScript;
 				n.children=[];
 				graph[name]=n;
 				if (DEBUG && contains(unprocessed, name))
-					D.error("Duplicate pushed!!");
+					Log.error("Duplicate pushed!!");
 				unprocessed.push(name);
 			}//endif
 		}//method
@@ -305,7 +305,7 @@ var importScript;
 		//POPULATE STRUCTURES TO DO THE SORTING
 		var graph={};
 		for(var i=0;i<edges.length;i++){
-//			if (DEBUG) D.println(JSON.stringify(e));
+//			if (DEBUG) Log.note(JSON.stringify(e));
 			var e=edges[i];
 			addVertex(e.file);
 			addVertex(e.import);
@@ -316,7 +316,7 @@ var importScript;
 		var numberOfNodes = Object.keys(graph).length;
 		processList();
 
-		if (processed.length!=numberOfNodes) D.error("broken");
+		if (processed.length!=numberOfNodes) Log.error("broken");
 		return processed;
 	}//method
 

@@ -81,7 +81,7 @@ Date.prototype.between=function(min, max){
 
 Date.prototype.add = function(interval){
 	if (interval===undefined || interval==null){
-		D.error("expecting an interval to add");
+		Log.error("expecting an interval to add");
 	}//endif
 
 	var i = Duration.newInstance(interval);
@@ -93,7 +93,7 @@ Date.prototype.add = function(interval){
 
 
 Date.prototype.subtract=function(time, interval){
-	if (typeof(time)=="string") D.error("expecting to subtract a Duration or Date object, not a string");
+	if (typeof(time)=="string") Log.error("expecting to subtract a Duration or Date object, not a string");
 
 	if (interval===undefined || interval.month==0){
 		if (time.getMilli){
@@ -153,7 +153,7 @@ Date.diffWeekday=function(endTime, startTime){
 
 
 	if (out!=aMath.ceil(output))
-		D.error("Weekday calculation failed internal test");
+		Log.error("Weekday calculation failed internal test");
 
 
 	return output;
@@ -179,7 +179,7 @@ Date.diffMonth=function(endTime, startTime){
 	}//while
 	testMonth--;
 	if (testMonth!=numMonths)
-		D.error("Error calculating number of months between ("+startTime.format("yy-MM-dd HH:mm:ss")+") and ("+endTime.format("yy-MM-dd HH:mm:ss")+")");
+		Log.error("Error calculating number of months between ("+startTime.format("yy-MM-dd HH:mm:ss")+") and ("+endTime.format("yy-MM-dd HH:mm:ss")+")");
 	// DONE TEST
 	////////////////////////////////////////////////////////////////////////////
 
@@ -187,7 +187,7 @@ Date.diffMonth=function(endTime, startTime){
 	output.month=numMonths;
 	output.milli=endTime.getMilli()-startTime.addMonth(numMonths).getMilli()+(numMonths*Duration.MILLI_VALUES.month);
 //	if (output.milli>=Duration.MILLI_VALUES.day*31)
-//		D.error("problem");
+//		Log.error("problem");
 	return output;
 };//method
 
@@ -285,7 +285,7 @@ Date.prototype.floor = function(interval, minDate){
 		if (interval.indexOf("week")>=0) return this.floorWeek();
 		if (interval.indexOf("day")>=0) return this.floorDay();
 		if (interval.indexOf("hour")>=0) return this.floorHour();
-		D.error("Can not floor interval '" + interval + "'");
+		Log.error("Can not floor interval '" + interval + "'");
 	}//endif
 
 	return minDate.add(this.subtract(minDate).floor(interval));
@@ -458,7 +458,7 @@ Date.Timezones = {
 
 
 Date.getTimezone = function(){
-	D.warning("Date.getTimezone is incomplete!");
+	Log.warning("Date.getTimezone is incomplete!");
 	Date.getTimezone=function(){
 		var offset = new Date().getTimezoneOffset();
 

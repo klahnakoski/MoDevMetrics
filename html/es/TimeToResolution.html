@@ -60,7 +60,7 @@
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
-<script type="application/javascript;version=1.7" src="js/aDebug.js"></script>
+<script type="application/javascript;version=1.7" src="js/debug/aLog.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
 
@@ -151,7 +151,7 @@ var __createChart = function(){
 	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(doc[\"close_time\"].value), "+sampleMax.getMilli()+"))";
 
 	
-	var a=D.action("Download Times", true);
+	var a=Log.action("Download Times", true);
 	var durations=yield(ESQuery.run({
 		"from":"bug_summary",
 		"select":
@@ -167,7 +167,7 @@ var __createChart = function(){
 			GUI.state.componentFilter.makeFilter()
 		]}
 	}));
-	D.actionDone(a);
+	Log.actionDone(a);
 
 	var average=yield(ESQuery.run({
 		"from":"bug_summary",
@@ -203,7 +203,7 @@ var __createChart = function(){
 
 	durations.edges[1].domain.NULL.name="Over "+GUI.state.maxX;
 
-	var a=D.action("Make chart", true);
+	var a=Log.action("Make chart", true);
 	aChart.show({
 		"id":"chart",
 		"sheetDiv":"info",
@@ -212,7 +212,7 @@ var __createChart = function(){
 		"stacked":true,
 		"cube":durations
 	});
-	D.actionDone(a);
+	Log.actionDone(a);
 
 
 };

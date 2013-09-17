@@ -17,11 +17,11 @@ aMath.isNaN = function(n){
 };
 
 
-if (!aMath.isNaN(NaN)) D.error();
-if (aMath.isNaN("test")) D.error();
-if (aMath.isNaN(0)) D.error();
-if (aMath.isNaN(42)) D.error();
-if (aMath.isNaN({"hi":42})) D.error();
+if (!aMath.isNaN(NaN)) Log.error();
+if (aMath.isNaN("test")) Log.error();
+if (aMath.isNaN(0)) Log.error();
+if (aMath.isNaN(42)) Log.error();
+if (aMath.isNaN({"hi":42})) Log.error();
 
 
 

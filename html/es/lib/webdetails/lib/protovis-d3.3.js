@@ -5262,7 +5262,7 @@ pv.SvgScene.dispatch = pv.listener(function(e) {
 
 	try{
 		if (!["mouseover","mousemove","mouseout","point","unpoint","mousedown", "mouseup"].contains(type)){
-			D.println("");
+			Log.note("");
 		}//endif
 	}catch(e){}
 
@@ -7709,7 +7709,7 @@ pv.Mark.prototype.context = function(scene, index, f) {
 pv.Mark.dispatch = function(type, scene, index) {
 	try{
 		if (!(["mouseover","mousemove","mouseout","point","unpoint","mousedown", "mouseup"].contains(type))){
-			D.println("");
+			Log.note("");
 		}//endif
 	}catch(e){}
 
@@ -7721,7 +7721,7 @@ pv.Mark.dispatch = function(type, scene, index) {
   m.context(scene, index, function() {
 	  try{
 		  if (!(["mouseover","mousemove","mouseout","point","unpoint","mousedown", "mouseup"].contains(type))){
-			  D.println("");
+			  Log.note("");
 		  }//endif
 	  }catch(e){}
 

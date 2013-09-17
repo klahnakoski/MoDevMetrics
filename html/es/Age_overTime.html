@@ -60,7 +60,7 @@
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
-<script type="application/javascript;version=1.7" src="js/aDebug.js"></script>
+<script type="application/javascript;version=1.7" src="js/debug/aLog.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
 
@@ -168,7 +168,7 @@ var __createChart = function(){
 	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(doc[\"close_time\"].value), "+sampleMax.getMilli()+"))";
 
 	
-	var a=D.action("Download Times", true);
+	var a=Log.action("Download Times", true);
 	var durations=yield(ESQuery.run({
 		"from":"bug_summary",
 		"select":
@@ -184,7 +184,7 @@ var __createChart = function(){
 			GUI.state.componentFilter.makeFilter()
 		]}
 	}));
-	D.actionDone(a);
+	Log.actionDone(a);
 
 	Thread.run(function(){
 		var average=yield(ESQuery.run({
@@ -225,7 +225,7 @@ var __createChart = function(){
 
 	threadPercentiles=Thread.run(function(){
 
-		var a=D.action("Get Time Stats", true);
+		var a=Log.action("Get Time Stats", true);
 		allBugs=yield(ESQuery.run({
 			"from":"bug_summary",
 			"select":[
@@ -240,7 +240,7 @@ var __createChart = function(){
 			]}
 //			"sort":[birth]
 		}));
-		D.actionDone(a);
+		Log.actionDone(a);
 
 
 
@@ -269,7 +269,7 @@ var __createChart = function(){
 
 	durations.edges[1].domain.NULL.name="Over "+aMath.floor(Duration.newInstance(GUI.state.chartMax).divideBy(Duration.WEEK))+"weeks";
 
-	a=D.action("Make chart", true);
+	a=Log.action("Make chart", true);
 	aChart.show({
 		"id":"chart",
 		"sheetDiv":"sheet",
@@ -279,7 +279,7 @@ var __createChart = function(){
 		"height":400,
 		"width":800
 	});
-	D.actionDone(a);
+	Log.actionDone(a);
 
 
 
@@ -287,7 +287,7 @@ var __createChart = function(){
 
 var chartStat=function(description, timeDomain, sampleSize){
 
-	if (allBugs==null) D.error("Please wait for data collection");
+	if (allBugs==null) Log.error("Please wait for data collection");
 
 	Thread.run(function(){
 
@@ -298,7 +298,7 @@ var chartStat=function(description, timeDomain, sampleSize){
 //		for(var b=0;b<allBugs.list.length;b++){
 //			if (allBugs.list[b].birth>allBugs.list[b].death)
 //				allBugs.list[b].death=allBugs.list[b].birth+Duration.DAY.milli;
-////				D.error();
+////				Log.error();
 //		}//for
 		yield (Thread.yield());
 
@@ -350,7 +350,7 @@ var chartStat=function(description, timeDomain, sampleSize){
 		);
 
 
-		a=D.action("Make chart", true);
+		a=Log.action("Make chart", true);
 		aChart.show({
 			"id":"timechart",
 			"sheetDiv":"sheet",
@@ -360,7 +360,7 @@ var chartStat=function(description, timeDomain, sampleSize){
 			"height":400,
 			"width":800
 		});
-		D.actionDone(a);
+		Log.actionDone(a);
 
 	});
 

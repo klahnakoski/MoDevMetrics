@@ -104,13 +104,13 @@ var __createChart = function(){
 		//GET SUMMARIES
 		var getBZ=Thread.run(function(){
 			var bugList=Object.keys(allBugs);
-			var a=D.action("Get "+bugList.length+" BZ Summaries", true);
+			var a=Log.action("Get "+bugList.length+" BZ Summaries", true);
 			var bugs=yield (Bugzilla.search(bugList, ["summary"]));
 
 			bugs.forall(function(b){
 				Map.copy(b, allBugs[b.id]);
 			});
-			D.actionDone(a);
+			Log.actionDone(a);
 
 			yield (null);
 		});
@@ -120,7 +120,7 @@ var __createChart = function(){
 
 		//GET SPECIFIC DEPENDENCIES, STATUS AND SCRUMBUGS DATA
 		var getDetails=Thread.run(function(){
-			var a=D.action("Get Bug Details", true);
+			var a=Log.action("Get Bug Details", true);
 
 			var details=yield(ESQuery.run({
 				"from":"bugs",
@@ -138,8 +138,8 @@ var __createChart = function(){
 				]}
 			}));
 
-			D.actionDone(a);
-			a=D.action("Process Bug Details", true);
+			Log.actionDone(a);
+			a=Log.action("Process Bug Details", true);
 
 			details.list.forEach(function(d){
 				d.scrum=ScrumBugs.parse(d["status_whiteboard"]);
@@ -194,7 +194,7 @@ var __createChart = function(){
 //				Map.copy(v, summary.edges[0].domain.partitions[i]);
 //			});
 
-			D.actionDone(a);
+			Log.actionDone(a);
 			yield (null);
 		});
 

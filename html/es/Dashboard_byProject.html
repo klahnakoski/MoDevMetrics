@@ -52,7 +52,7 @@
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
-<script type="application/javascript;version=1.7" src="js/aDebug.js"></script>
+<script type="application/javascript;version=1.7" src="js/debug/aLog.js"></script>
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
@@ -225,13 +225,13 @@ var __createChart = function(){
 		}
 	};
 
-	var a=D.action("Get ES Data", true);
+	var a=Log.action("Get ES Data", true);
 	try{
 		var data=yield (ElasticSearch.search(query));
 	}catch(e){
-		D.warning("Problem with ES request");
+		Log.warning("Problem with ES request");
 	}//try
-	D.actionDone(a);
+	Log.actionDone(a);
 
 	if (GUI.state.programFilter.selected.length==0){
 		$("#header").html("Project Status Dashboard");
@@ -263,7 +263,7 @@ var __createChart = function(){
 
 
 	Thread.run(function(){
-		var a=D.action("Process Pending", true);
+		var a=Log.action("Process Pending", true);
 
 
 
@@ -298,11 +298,11 @@ var __createChart = function(){
 
 		$("#pending").html("<h3>Pending Review (R?)</h3>" + CNV.List2HTMLTable(result));
 
-		D.actionDone(a);
+		Log.actionDone(a);
 	});
 
 	Thread.run(function(){
-		var a=D.action("Process Completed Review", true);
+		var a=Log.action("Process Completed Review", true);
 
 		var esResult3 = MVEL.esFacet2List(data.facets.reviewed, [
 			{"name":"bug_id", "value":"bugs.bug_id"},
@@ -342,12 +342,12 @@ var __createChart = function(){
 
 		$("#complete").html("<h3>Review Completed (R+)</h3>" + CNV.List2HTMLTable(result3));
 
-		D.actionDone(a);
+		Log.actionDone(a);
 	});
 
 
 	Thread.run(function(){
-		var a=D.action("Process Assigned", true);
+		var a=Log.action("Process Assigned", true);
 
 		var assigned = MVEL.esFacet2List(data.facets.assigned, [{"name":"bug_id"},{"name":"assigned_to"}]);
 
@@ -379,7 +379,7 @@ var __createChart = function(){
 
 		$("#open").html("<h3>Assigned To</h3>" + CNV.List2HTMLTable(result));
 
-		D.actionDone(a);
+		Log.actionDone(a);
 	});
 
 };//createChart

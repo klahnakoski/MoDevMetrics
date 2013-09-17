@@ -51,7 +51,7 @@
 <script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
-<script type="application/javascript;version=1.7" src="js/aDebug.js"></script>
+<script type="application/javascript;version=1.7" src="js/debug/aLog.js"></script>
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
@@ -188,7 +188,7 @@
 		}
 	};
 
-	D.println(query.facets.assigned.terms.script_field);
+	Log.note(query.facets.assigned.terms.script_field);
 
 
 	ElasticSearchQuery.Run({

@@ -36,15 +36,15 @@ var REMOVE_BUTTON='<div class="smalltoolbutton" title="Remove Filter"><img src="
 PickDim.prototype._findPart=function(name){
 	var selected;
 
-	if (!this.focus) D.error("Must add a dimension before finding a part");
+	if (!this.focus) Log.error("Must add a dimension before finding a part");
 	var parts = nvl(this.focus.edge.edges, this.focus.edge.partitions);
-	if (!parts) D.error("No part by name of " + name);
+	if (!parts) Log.error("No part by name of " + name);
 
 	parts.forall(function(v, i){
 		if (v.name == name) selected = v;
 	});
 	if (!selected)
-		D.error("No part by name of " + name);
+		Log.error("No part by name of " + name);
 
 	return selected;
 };//method
@@ -271,7 +271,7 @@ PickDim.prototype.removeEdge=function(filter){
 		}//endif
 	}//for
 
-	D.error("should never happen");
+	Log.error("should never happen");
 
 };//method
 
@@ -318,7 +318,7 @@ PickDim.prototype.getQuery=function(){
 					}
 				});
 			}else if (self.focus.edge.isFacet){
-				D.error("not completed");
+				Log.error("not completed");
 				//PARTS NOT DEFINED BY FIELD, BUT RATHER AN esfilter
 
 			}else{

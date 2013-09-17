@@ -10,7 +10,7 @@ if (CUBE===undefined) var CUBE = {};
 importScript("CNV.js");
 importScript("aDate.js");
 importScript("aUtil.js");
-importScript("aDebug.js");
+importScript("debug/aLog.js");
 importScript("MVEL.js");
 importScript("CUBE.aggregate.js");
 importScript("CUBE.column.js");
@@ -47,7 +47,7 @@ CUBE.compile = function(query, sourceColumns, useMVEL){
 		if (e.allowNulls === undefined) e.allowNulls = false;
 		e.columnIndex=g;
 
-		if (uniqueColumns[e.name]!==undefined) D.error("All edges must have different names");
+		if (uniqueColumns[e.name]!==undefined) Log.error("All edges must have different names");
 		columns[e.columnIndex] = e;
 		uniqueColumns[e.name]=e;
 
@@ -66,7 +66,7 @@ CUBE.compile = function(query, sourceColumns, useMVEL){
 	for(var s = 0; s < select.length; s++){
 		if (typeof(select[s])=="string") select[s]={"value":select[s]};
 		if (select[s].name===undefined) select[s].name=select[s].value.split(".").last();
-		if (uniqueColumns[select[s].name]!==undefined) D.error("All columns must have different names");
+		if (uniqueColumns[select[s].name]!==undefined) Log.error("All columns must have different names");
 		select[s].columnIndex=s+edges.length;
 		columns[select[s].columnIndex] = select[s];
 		uniqueColumns[select[s].name] = select[s];
@@ -129,13 +129,13 @@ function calcAgg(row, result, query, select){
 
 function calc2Tree(query){
 	if (query.edges.length == 0)
-		D.error("Tree processing requires an edge");
+		Log.error("Tree processing requires an edge");
 	if (query.where=="bug!=null")
-		D.println("");
+		Log.note("");
 
 	var sourceColumns  = yield (CUBE.getColumnsFromQuery(query));
 	if (sourceColumns===undefined){
-		D.error("Can not get column definitions from query:\n"+CNV.Object2JSON(query).indent(1))
+		Log.error("Can not get column definitions from query:\n"+CNV.Object2JSON(query).indent(1))
 	}//endif
 	var from = query.from.list;
 
@@ -189,7 +189,7 @@ function calc2Tree(query){
 				//STANDARD 1-1 MATCH VALUE TO DOMAIN
 				var p = edge.domain.getPartByKey(v);
 				if (p === undefined){
-					D.error("getPartByKey() must return a partition, or null");
+					Log.error("getPartByKey() must return a partition, or null");
 				}//endif
 				if (p == edge.domain.NULL){
 					edge.outOfDomainCount++;
@@ -220,9 +220,9 @@ function calc2Tree(query){
 
 	for(var g = 0; g < edges.length; g++){
 		if (edges[g].outOfDomainCount > 0)
-			D.warning(edges[g].name + " has " + edges[g].outOfDomainCount + " records outside domain " + edges[g].domain.name);
+			Log.warning(edges[g].name + " has " + edges[g].outOfDomainCount + " records outside domain " + edges[g].domain.name);
 	}//for
-	if (DEBUG) D.println("Where clause rejected "+numWhereFalse+" rows");
+	if (DEBUG) Log.note("Where clause rejected "+numWhereFalse+" rows");
 
 
 	yield query;
@@ -235,7 +235,7 @@ CUBE.listAlert=false;
 
 CUBE.calc2List = function(query){
 	if (!CUBE.listAlert){
-//		D.alert("Please do not use CUBE.calc2List()");
+//		Log.alert("Please do not use CUBE.calc2List()");
 		CUBE.listAlert=true;
 	}//endif
 
@@ -258,7 +258,7 @@ CUBE.calc2List = function(query){
 	}//endif
 
 	if (query.edges.length == 0)
-		D.error("Tree processing requires an edge");
+		Log.error("Tree processing requires an edge");
 
 	yield (calc2Tree(query));
 
@@ -277,7 +277,7 @@ CUBE.calc2List = function(query){
 	for(var ci=0;ci<query.columns.length;ci++){
 		var col=query.columns[ci];
 		if (col.domain===undefined){
-			D.error("expecting all columns to have a domain");
+			Log.error("expecting all columns to have a domain");
 		}//endif
 		var d = col.domain;
 		if (d.end === undefined) continue;
@@ -338,7 +338,7 @@ function calc2Cube(query){
 //CONVERT LIST TO CUBE
 CUBE.List2Cube=function(query){
 
-	if (query.list!==undefined) D.error("Can only convert list to a cube at this time");
+	if (query.list!==undefined) Log.error("Can only convert list to a cube at this time");
 
 	//ASSIGN dataIndex TO ALL PARTITIONS
 	var edges = query.edges;
@@ -403,7 +403,7 @@ function aggOP(query){
 	for(var c=0;c<columns.length;c++){
 		var s=columns[c];
 		if (s.domain===undefined){
-			D.error("expectin all columns to have a domain");
+			Log.error("expectin all columns to have a domain");
 		}//endif
 		var r = columns[c].domain.end;
 		if (r === undefined) continue;
@@ -515,8 +515,8 @@ function setOP(query){
 ////////////////////////////////////////////////////////////////////////////////
 CUBE.toTable=function(query){
 
-	if (query.cube===undefined) D.error("Can only turn a cube into a table at this time");
-	if (query.edges.length!=2) D.error("can only handle 2D cubes right now.");
+	if (query.cube===undefined) Log.error("Can only turn a cube into a table at this time");
+	if (query.edges.length!=2) Log.error("can only handle 2D cubes right now.");
 
 	var columns=[];
 	var parts=[];
@@ -553,7 +553,7 @@ CUBE.toTable=function(query){
 CUBE.Cube2List=function(query){
 	var name=Array.newInstance(query.select)[0].name;
 	if (query.select instanceof Array) name=undefined;
-	if (query.cube===undefined) D.error("Can only turn a cube into a table at this time");
+	if (query.cube===undefined) Log.error("Can only turn a cube into a table at this time");
 	if (query.cube.length==0) yield ([]);
 	var sample=query.cube; for(var i=0;i<query.edges.length;i++) sample=sample[0];
 	var isArray=(sample instanceof Array);
@@ -638,7 +638,7 @@ CUBE.Cube2List=function(query){
 ////////////////////////////////////////////////////////////////////////////////
 CUBE.normalizeByCohort=function(query, multiple){
 	if (multiple===undefined) multiple=1.0;
-	if (query.cube===undefined) D.error("Can only normalize a cube into a table at this time");
+	if (query.cube===undefined) Log.error("Can only normalize a cube into a table at this time");
 
 //	SELECT
 //		count/sum(count over Cohort) AS nCount
@@ -659,7 +659,7 @@ CUBE.normalizeByCohort=function(query, multiple){
 ////////////////////////////////////////////////////////////////////////////////
 CUBE.normalizeByX=function(query, multiple){
 	if (multiple===undefined) multiple=1;
-	if (query.cube===undefined) D.error("Can only normalize a cube into a table at this time");
+	if (query.cube===undefined) Log.error("Can only normalize a cube into a table at this time");
 
 //	SELECT
 //		count/sum(count over Cohort) AS nCount
@@ -772,7 +772,7 @@ CUBE.getColumnsFromQuery=function(query){
 		query.from=yield (CUBE.calc2List(query.from));
 		sourceColumns=yield (CUBE.getColumnsFromQuery(query));
 	}else{
-		D.error("Do not know how to handle this");
+		Log.error("Do not know how to handle this");
 	}//endif
 	yield (sourceColumns);
 };//method
@@ -812,7 +812,7 @@ CUBE.getColumnsFromList = function(data){
 CUBE.merge=function(query){
 	//MAP THE EDGE NAMES TO ACTUAL EDGES IN THE from QUERY
 	query.cubes.forall(function(item){
-		if (item.edges.length!=item.from.edges.length) D.error("do not know how to join just some of the edges");
+		if (item.edges.length!=item.from.edges.length) Log.error("do not know how to join just some of the edges");
 
 		item.edges.forall(function(pe, i, edges){
 			item.from.edges.forall(function(pfe, j){
@@ -820,7 +820,7 @@ CUBE.merge=function(query){
 					edges[i]=pfe;
 			});//for
 			if (typeof(edges[i])=="string")
-				D.error(edges[i]+" can not be found");
+				Log.error(edges[i]+" can not be found");
 		});
 	});
 
@@ -845,10 +845,10 @@ CUBE.merge=function(query){
 
 
 		//VERIFY DOMAINS ARE IDENTICAL, AND IN SAME ORDER
-		if (item.edges.length!=commonEdges.length) D.error("Expecting all partitions to have same number of (common) edges declared");
+		if (item.edges.length!=commonEdges.length) Log.error("Expecting all partitions to have same number of (common) edges declared");
 		item.edges.forall(function(edge, i){
-			if (typeof(edge)=="string") D.error("can not find edge named '"+edge+"'");
-			if (!CUBE.domain.equals(commonEdges[i].domain, edge.domain)) D.error("Edges domains ("+item.from.name+", edge="+edge.name+") and ("+query.cubes[0].from.name+", edge="+commonEdges[i].name+") are different");
+			if (typeof(edge)=="string") Log.error("can not find edge named '"+edge+"'");
+			if (!CUBE.domain.equals(commonEdges[i].domain, edge.domain)) Log.error("Edges domains ("+item.from.name+", edge="+edge.name+") and ("+query.cubes[0].from.name+", edge="+commonEdges[i].name+") are different");
 		});
 
 
@@ -858,7 +858,7 @@ CUBE.merge=function(query){
 		}else if (item.from.list!==undefined){
 			item.cube=CUBE.List2Cube(item.from).cube;
 		}else{
-			D.error("do not know how to handle");
+			Log.error("do not know how to handle");
 		}//endif
 
 
@@ -868,10 +868,10 @@ CUBE.merge=function(query){
 			let parts=output.edges[0].domain.partitions;
 			let num=parts.length;
 			if (output.edges[0].allowNulls){
-				if (parts[parts.length-1]!=output.edges[0].domain.NULL) D.error("Expecting NULL in the partitions");
+				if (parts[parts.length-1]!=output.edges[0].domain.NULL) Log.error("Expecting NULL in the partitions");
 			}else{
 				if (parts[parts.length-1]==output.edges[0].domain.NULL){
-					D.error("When !allowNulls, then there should be no NULL in the partitions");
+					Log.error("When !allowNulls, then there should be no NULL in the partitions");
 					num--;
 				}//endif
 			}//endif
@@ -879,7 +879,7 @@ CUBE.merge=function(query){
 			if (item.from.select instanceof Array){
 				for(let i=num;i--;){
 					if (item.edges[0].domain.partitions[i].dataIndex!=i)
-						D.error("do not know how to handle");
+						Log.error("do not know how to handle");
 					var row=output.cube[i];
 					Map.copy(item.from.cube[i], row);
 				}//for
@@ -887,7 +887,7 @@ CUBE.merge=function(query){
 				//CUBE HAS VALUES, NOT OBJECTS
 				for(let i=num;i--;){
 					if (item.edges[0].domain.partitions[i].dataIndex!=i)
-						D.error("do not know how to handle");
+						Log.error("do not know how to handle");
 					output.cube[i][item.from.select.name]=item.from.cube[i];
 				}//for
 			}//endif
@@ -901,19 +901,19 @@ CUBE.merge=function(query){
 			var num1=parts1.length;
 
 			if (output.edges[0].allowNulls){
-				if (parts0[parts0.length-1]!=output.edges[0].domain.NULL) D.error("Expecting NULL in the partitions");
+				if (parts0[parts0.length-1]!=output.edges[0].domain.NULL) Log.error("Expecting NULL in the partitions");
 			}else{
 				if (parts0[parts0.length-1]==output.edges[0].domain.NULL){
-					D.error("When !allowNulls, then there should be no NULL in the partitions");
+					Log.error("When !allowNulls, then there should be no NULL in the partitions");
 					num0--;
 				}//endif
 			}//endif
 
 			if (output.edges[1].allowNulls){
-				if (parts1[parts1.length-1]!=output.edges[1].domain.NULL) D.error("Expecting NULL in the partitions");
+				if (parts1[parts1.length-1]!=output.edges[1].domain.NULL) Log.error("Expecting NULL in the partitions");
 			}else{
 				if (parts1[parts1.length-1]==output.edges[1].domain.NULL){
-					D.error("When !allowNulls, then there should be no NULL in the partitions");
+					Log.error("When !allowNulls, then there should be no NULL in the partitions");
 					num1--;
 				}//endif
 			}//endif
@@ -936,7 +936,7 @@ CUBE.merge=function(query){
 			}//endif
 
 		}else{
-			D.error("Can not copy more than two dimensional cube");
+			Log.error("Can not copy more than two dimensional cube");
 		}//endif
 
 	});
@@ -967,14 +967,14 @@ CUBE.sort.compile=function(sortOrder, columns, useNames){
 		for(var i=columns.length;i--;){
 			if (columns[i].name==v && !(columns[i].sortOrder==0)) return columns[i];
 		}//for
-		D.error("Sorting can not find column named '"+v+"'");
+		Log.error("Sorting can not find column named '"+v+"'");
 	});
 
 	var f="totalSort = function(a, b){\nvar diff;\n";
 	for(var o = 0; o < orderedColumns.length; o++){
 		var col = orderedColumns[o];
 		if (orderedColumns[o].domain === undefined){
-			D.warning("what?");
+			Log.warning("what?");
 		}//endif
 
 		var index=useNames ? CNV.String2Quote(col.name) : col.columnIndex;
@@ -1016,7 +1016,7 @@ CUBE.specificBugs=function(query, filterParts){
 
 //parts IS AN ARRAY OF PART NAMES CORRESPONDING TO EACH QUERY EDGE
 CUBE.drill=function(query, parts){
-	if (query.analytic) D.error("Do not know how to drill down on an analytic");
+	if (query.analytic) Log.error("Do not know how to drill down on an analytic");
 
 	var newQuery={};
 	Map.copy(query, newQuery);
@@ -1056,7 +1056,7 @@ CUBE.drill=function(query, parts){
 			newQuery.esfilter.and.push(filter);
 			return;  //CONTINUE
 		}//endif
-		D.error("No drilling happening!");
+		Log.error("No drilling happening!");
 	});
 
 	return newQuery;
@@ -1067,7 +1067,7 @@ CUBE.drill=function(query, parts){
 	//HERE WE CONVERT IT EXPLICITLY
 	CUBE.stack=function(query, newEdgeName, newSelectName){
 		//ADD ANOTHER DIMENSION TO EDGE, AND ALTER CUBE
-		if (!query.select instanceof Array) D.error("single cube with no objects does not need to be stacked");
+		if (!query.select instanceof Array) Log.error("single cube with no objects does not need to be stacked");
 
 		//GET select NAMES
 		var parts=Array.newInstance(query.select);
@@ -1107,7 +1107,7 @@ CUBE.drill=function(query, parts){
 	CUBE.query.prototype.get=function(name, value){
 		if (this.edges.length>1)
 			//THIS ONLY INDEXES INTO A SINGLE DIMENSION
-			D.error("can not handle more than one dimension at this time");
+			Log.error("can not handle more than one dimension at this time");
 		var edge=this.getEdge(name);
 		return this.cube[edge.domain.getPartByKey(value).dataIndex];
 	};

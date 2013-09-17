@@ -236,11 +236,11 @@ aChart.showPie=function(params){
 	var chartCube=params.cube;
 
 	if (chartCube.cube.length==0){
-		D.warning("Nothing to pie-chart");
+		Log.warning("Nothing to pie-chart");
 		return;
 	}//endif
-	if (chartCube.edges.length!=1) D.error("Only one dimension suuported");
-	if (chartCube.select instanceof Array) D.error("Can not chart when select clause is an array");
+	if (chartCube.edges.length!=1) Log.error("Only one dimension suuported");
+	if (chartCube.select instanceof Array) Log.error("Can not chart when select clause is an array");
 
 
 	var seriesLabels=getAxisLabels(chartCube.edges[0]);
@@ -344,7 +344,7 @@ aChart.show=function(params){
 				}//endif
 			}//endif
 		}else{
-			D.error("Can not handle more than 2 edges");
+			Log.error("Can not handle more than 2 edges");
 		}//endif
 	}else if (["stacked", "stackedarea", "area"].contains(type)){
 		stacked=true;
@@ -365,7 +365,7 @@ aChart.show=function(params){
 		});
 	}else if (chartCube.edges.length==2){
 		if (chartCube.select instanceof Array){
-			D.error("Can not chart when select clause is an array");
+			Log.error("Can not chart when select clause is an array");
 		}//endif
 
 		categoryLabels=getAxisLabels(chartCube.edges[0]);
@@ -386,7 +386,7 @@ aChart.show=function(params){
 			});
 			params.orthoAxisFixedMax=max==0 ? 1 : max;  //DO NOT USE ZERO
 		}else{
-			D.error("Not supported yet");
+			Log.error("Not supported yet");
 		}
 	}//endif
 
@@ -418,17 +418,17 @@ aChart.show=function(params){
 	if (chartCube.edges.length==1){
 		if (chartCube.select instanceof Array){
 			for(let i=0;i<chartCube.select.length;i++){
-				if (chartCube.select[i].color!==undefined) D.error("expecting color in style attribute (style.color)");
+				if (chartCube.select[i].color!==undefined) Log.error("expecting color in style attribute (style.color)");
 				if (chartCube.select[i].style!==undefined) styles[i]=chartCube.select[i].style;
 			}//for
 		}else{
-			if (chartCube.select.color!==undefined) D.error("expecting color in style attribute (style.color)");
+			if (chartCube.select.color!==undefined) Log.error("expecting color in style attribute (style.color)");
 			if (chartCube.select.style!==undefined) styles[0]=chartCube.select.style;
 		}//endif
 	}else{
 		let parts=chartCube.edges[0].domain.partitions;
 		for(let i=0;i<parts.length;i++){
-			if (parts[i].color!==undefined) D.error("expecting color in style attribute (style.color)");
+			if (parts[i].color!==undefined) Log.error("expecting color in style attribute (style.color)");
 			if (parts[i].style!==undefined) styles[i]=parts[i].style;
 		}//for
 	}//endif
@@ -516,7 +516,7 @@ aChart.show=function(params){
 
 	data.forall(function(v,i,d){
 		v=v.copy();
-		for(var j=0;j<v.length;j++) if (v[j]==null) D.error("Charting library can not handle null values");
+		for(var j=0;j<v.length;j++) if (v[j]==null) Log.error("Charting library can not handle null values");
 		v.splice(0,0, categoryLabels[i]);
 		d[i]=v;
 	});
@@ -631,7 +631,7 @@ function bugClicker(query, series, x){
 
 
 			if (buglist.cube.length>BZ_SHOW_BUG_LIMIT){
-				D.alert("Too many bugs. Truncating to "+BZ_SHOW_BUG_LIMIT+".", function(){
+				Log.alert("Too many bugs. Truncating to "+BZ_SHOW_BUG_LIMIT+".", function(){
 					Bugzilla.showBugs(buglist.cube.substring(0, BZ_SHOW_BUG_LIMIT));
 				});
 			}else{
@@ -665,7 +665,7 @@ function JavaDateFormat2ProtoVisDateFormat(format){
 function getAxisLabels(axis){
 	var labels=[];
 	if (axis.domain.type == "time"){
-		if (axis.domain.allowNulls) D.error("Charting lib can not handle NULL domain value.");
+		if (axis.domain.allowNulls) Log.error("Charting lib can not handle NULL domain value.");
 //		var bestFormat = Date.getBestFormat(axis.domain.min, axis.domain.max, axis.domain.interval);
 //		var bestFormat=TIME_FORMAT;  //WILL NOT WORK UNTIL ALL NULL PARTS ARE REMOVED
 		axis.domain.partitions.forall(function(v, i){

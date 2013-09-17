@@ -63,12 +63,12 @@ BUG_TAGS.makeSchema=function(){
 		"url":ElasticSearch.pushURL+"/"+BUG_TAGS.newIndexName,
 		"data":setup
 	}));
-	D.println(data);
+	Log.note(data);
 
 
 	//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
 	data=yield (Rest.get({url: ElasticSearch.pushURL+"/_aliases"}));
-	D.println(data);
+	Log.note(data);
 
 	var keys=Object.keys(data);
 	for(var k=keys.length;k--;){
@@ -117,7 +117,7 @@ BUG_TAGS.get=function(minBug, maxBug, minDate, maxDate){
 	]};
 //{"terms" : { "bug_status" : ["resolved", "verified", "closed"] }}
 
-	var a=D.action("Get Current Bug Info", true);
+	var a=Log.action("Get Current Bug Info", true);
 	var current=yield (ESQuery.run({
 		"from":"bugs",
 		"select":[
@@ -141,11 +141,11 @@ BUG_TAGS.get=function(minBug, maxBug, minDate, maxDate){
 		"esfilter":
 			dateFilter
 	}));
-	D.actionDone(a);
+	Log.actionDone(a);
 
-//D.println(CNV.List2Tab(current.list));
+//Log.note(CNV.List2Tab(current.list));
 	
-	D.action("Generate per-day stats");
+	Log.action("Generate per-day stats");
 	var results=(yield(CUBE.calc2List({
 		"from":current,
 		"select":[
@@ -176,7 +176,7 @@ BUG_TAGS.insert=function(tags){
 		insert.push(JSON.stringify(r));
 	});
 
-	D.action("Push bug tags to ES");
+	Log.action("Push bug tags to ES");
 	yield ETL.chunk(insert, function(data){
 		try{
 			yield (Rest.post({
@@ -185,7 +185,7 @@ BUG_TAGS.insert=function(tags){
 				"dataType":"text"
 			}));
 		} catch(e){
-			D.warning("problem with _bulk", e)
+			Log.warning("problem with _bulk", e)
 		}//try
 	});
 };//method
@@ -218,12 +218,12 @@ BUG_TAGS.addMissing=function(){
 		for(var p=0;p<pid.length;p++){
 			var part=pid[p];
 			if (totals.cube[p][m]==0){
-				D.println("Get tags for bugs from "+part.min+" to "+part.max+" between "+month.min.format("dd MMM yyyy")+" and "+month.max.format("dd MMM yyyy"));
+				Log.note("Get tags for bugs from "+part.min+" to "+part.max+" between "+month.min.format("dd MMM yyyy")+" and "+month.max.format("dd MMM yyyy"));
 
 				//GET INFO FOR THIS RANGE OF BUGS
 				var tags=(yield (BUG_TAGS.get(part.min, part.max, month.min, month.max)));
-				D.println("Writing "+tags.length+" tags");
-				D.action("Writing Tags");
+				Log.note("Writing "+tags.length+" tags");
+				Log.action("Writing Tags");
 				yield (BUG_TAGS.insert(tags));
 			}//endif
 		}//for

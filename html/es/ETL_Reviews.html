@@ -28,8 +28,8 @@ importScript([
 ], function(){
 
 
-	D.println(""+Date.newInstance(1351473569000	).format("yy-MM-dd HH:mm:ss"));
-	D.println(""+Date.newInstance(1351604852000).format("yy-MM-dd HH:mm:ss"));
+	Log.note(""+Date.newInstance(1351473569000	).format("yy-MM-dd HH:mm:ss"));
+	Log.note(""+Date.newInstance(1351604852000).format("yy-MM-dd HH:mm:ss"));
 
 	$("#start").click(function(){
 		Thread.run(ETL.newInsert(REVIEWS));
@@ -96,7 +96,7 @@ importScript([
 					})());
 	});
 
-	D.addLogToElement("results");
+	Log.addLogToElement("results");
 
 
 	//ALLOW URL PARAMETER TO PRESS ONE OF THE BUTTON

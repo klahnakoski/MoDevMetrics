@@ -113,7 +113,7 @@ var __createChart = function(){
 
 	var allBugs;
 	var allBugsThread=Thread.run(function(){
-		D.action("Request Bugs");
+		Log.action("Request Bugs");
 
 		allBugs=yield (ElasticSearch.getMinMax(mainFilter));
 
@@ -136,7 +136,7 @@ var __createChart = function(){
 		}));
 
 
-		var a=D.action("Make chart", true);
+		var a=Log.action("Make chart", true);
 		aChart.show({
 			"id":"chart",
 			"sheetDiv":"info",
@@ -146,7 +146,7 @@ var __createChart = function(){
 			"height":"300",
 			xAxisSize: 50
 		});
-		D.actionDone(a);
+		Log.actionDone(a);
 	});
 
 
@@ -199,7 +199,7 @@ var __createChart = function(){
 
 
 	Thread.run(function(){
-		var a=D.action("Request Bugs", true);
+		var a=Log.action("Request Bugs", true);
 		var chart=yield (ESQuery.run({
 			"name":"Open Bug Count",
 			"from":"bugs",
@@ -213,10 +213,10 @@ var __createChart = function(){
 			],
 			"esfilter":mainFilter
 		}));
-		D.actionDone(a);
+		Log.actionDone(a);
 
 
-		var a=D.action("Make chart", true);
+		var a=Log.action("Make chart", true);
 		aChart.show({
 			"id":"chartCount",
 			"sheetDiv":"info",
@@ -227,7 +227,7 @@ var __createChart = function(){
 			xAxisSize: 50,
 			"width":800
 		});
-		D.actionDone(a);
+		Log.actionDone(a);
 
 
 	});

@@ -57,7 +57,7 @@
 <script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
-<script type="application/javascript;version=1.7" src="js/aDebug.js"></script>
+<script type="application/javascript;version=1.7" src="js/debug/aLog.js"></script>
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
@@ -155,10 +155,10 @@
 
 		console.info(CNV.Object2JSON(esQuery.esQuery));
 
-		D.action("Call ES");
+		Log.action("Call ES");
 		var reviewQueues=yield (esQuery.run());
 
-		D.action("Prep Chart");
+		Log.action("Prep Chart");
 
 
 
@@ -175,7 +175,7 @@
 		}));
 
 
-//D.println(CNV.List2Tab(reviewQueues));
+//Log.note(CNV.List2Tab(reviewQueues));
 
 		var chart=yield (Q({
 			"name":

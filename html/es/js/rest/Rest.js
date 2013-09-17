@@ -22,8 +22,8 @@ Rest.addProgressListener=function(callback){
 
 
 Rest.send=function(ajaxParam){
-	if (ajaxParam.query!==undefined) D.error("Do not set the query parameter, use 'data'");
-	if (ajaxParam.success!==undefined) D.error("This function will return data, it does not accept the success function");
+	if (ajaxParam.query!==undefined) Log.error("Do not set the query parameter, use 'data'");
+	if (ajaxParam.success!==undefined) Log.error("This function will return data, it does not accept the success function");
 
 	var callback=yield (Thread.Resume);	//RESUME THREAD ON RETURN
 
@@ -68,7 +68,7 @@ Rest.send=function(ajaxParam){
 					response = CNV.JSON2Object(response);
 				}//endif
 				if (response === undefined){
-					D.warning("Appears to have no response!!")
+					Log.warning("Appears to have no response!!")
 				}//endif
 				ajaxParam.success(response);
 			} else if (request.isTimeout){
@@ -80,8 +80,8 @@ Rest.send=function(ajaxParam){
 			//RESPONSE IS ARRIVING, DISABLE TIMEOUT
 			request.timeoutFunction=function(){}
 		} else{
-//			D.println(CNV.Object2JSON(request));
-//			D.println(request.getAllResponseHeaders());
+//			Log.note(CNV.Object2JSON(request));
+//			Log.note(request.getAllResponseHeaders());
 		}//endif
 	};
 
@@ -140,7 +140,7 @@ Rest.post=function(ajaxParam){
 };//method
 
 Rest["delete"]=function(ajaxParam){
-//	D.warning("DISABLED DELETE OF "+ajaxParam.url);
+//	Log.warning("DISABLED DELETE OF "+ajaxParam.url);
 //	yield (null);
 	ajaxParam.type="DELETE";
 	return Rest.send(ajaxParam);

@@ -1,6 +1,6 @@
 importScript("aDate.js");
 importScript("aDuration.js");
-importScript("aDebug.js");
+importScript("debug/aLog.js");
 
 
 var aTimer=function(){};
@@ -18,9 +18,9 @@ aTimer.prototype.end=function(){
 	var end=window.performance.now();
 	var dur=Duration.newInstance(end-this.start);
 	if (this.warningDuration===undefined){
-		D.println(this.name+" ("+dur.toString()+")");
+		Log.note(this.name+" ("+dur.toString()+")");
 	}else if (dur.getMilli()>this.warningDuration){
-		D.warning(this.name+" ("+dur.toString()+")");
+		Log.warning(this.name+" ("+dur.toString()+")");
 	}//endif
 };//method
 

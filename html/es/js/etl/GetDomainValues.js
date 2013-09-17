@@ -31,7 +31,7 @@ indexes.forall(function(index, i){
 				]
 			}));
 
-			D.println(index+"."+col.name+"="+result2.list.map(function(v){return v[col.name];}));
+			Log.note(index+"."+col.name+"="+result2.list.map(function(v){return v[col.name];}));
 
 		}else if (["boolean", "integer", "date", "long"].contains(col.type)){
 			var query={
@@ -43,10 +43,10 @@ indexes.forall(function(index, i){
 			};
 			Thread.run(function(){
 				var result=yield (ESQuery.run(query));
-				D.println(index+"."+col.name+"={min:"+result.min+",max:"+result.max+"}");
+				Log.note(index+"."+col.name+"={min:"+result.min+",max:"+result.max+"}");
 			});
 		}else{
-			D.error("do not know what to do here");
+			Log.error("do not know what to do here");
 		}//endif
 
 

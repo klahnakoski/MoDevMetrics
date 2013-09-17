@@ -68,7 +68,7 @@ ComponentFilter.prototype.refresh = function(){
 				}
 			});
 		}catch(e){
-			D.warning("component filter got exception", e);
+			Log.warning("component filter got exception", e);
 		}
 	});
 };

@@ -108,7 +108,7 @@ var __createChart = function(){
 
 	Thread.run(function(){
 
-		var a = D.action("Request Bugs", true);
+		var a = Log.action("Request Bugs", true);
 		var queue = yield(ESQuery.run({
 			"name":"Number of Bugs in Queue",
 			"from":"bugs",
@@ -161,7 +161,7 @@ var __createChart = function(){
 			}//click
 		});
 
-		D.actionDone(a);
+		Log.actionDone(a);
 	});
 
 
@@ -169,7 +169,7 @@ var __createChart = function(){
 	// DAILY CHANGE
 	////////////////////////////////////////////////////////////////////////////
 	Thread.run(function(){
-		a = D.action("Get "+MARK.toUpperCase()+"+/- Counts ", true);
+		a = Log.action("Get "+MARK.toUpperCase()+"+/- Counts ", true);
 
 		//LOOK FOR FIRST-TIME MARKUP
 		var start = yield(ESQuery.run({
@@ -272,7 +272,7 @@ var __createChart = function(){
 				});
 			}//click
 		});
-		D.actionDone(a);
+		Log.actionDone(a);
 
 
 
@@ -309,7 +309,7 @@ var __createChart = function(){
 	// CURRENT BUG LIST
 	////////////////////////////////////////////////////////////////////////////
 	Thread.run(function(){
-		var a=D.action("Get Bug Details", true);
+		var a=Log.action("Get Bug Details", true);
 
 		var findBugs = yield(ESQuery.run({
 			"from":"bugs",
@@ -323,12 +323,12 @@ var __createChart = function(){
 		}));
 
 		//CURRENT STATUS
-		var aa=D.action("Pull from BZ", true);
+		var aa=Log.action("Pull from BZ", true);
 		var currentBugs=yield (Bugzilla.search(
 			findBugs.edges[0].domain.partitions.map(function(v){return v.value;}),
 			["id", "summary", "assignee", "status", "resolution" ]
 		));
-		D.actionDone(aa);
+		Log.actionDone(aa);
 
 		//FORMAT THE BUGS FOR TABLE
 		var showBugs=yield(CUBE.calc2List({
@@ -346,7 +346,7 @@ var __createChart = function(){
 
 		$("#report").html(CNV.List2HTMLTable(showBugs));
 
-		D.actionDone(a);
+		Log.actionDone(a);
 
 	});
 

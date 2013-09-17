@@ -72,7 +72,7 @@ GUI.fixEndDate=function(startDate, endDate, interval){
 GUI.setup = function(refreshChart, parameters, relations, indexName, showDefaultFilters){
 
 	if (typeof(refreshChart)!="function"){
-		D.error("Expecting first parameter to be a refresh (creatChart) function");
+		Log.error("Expecting first parameter to be a refresh (creatChart) function");
 	}//endif
 	GUI.refreshChart=refreshChart;
 
@@ -125,7 +125,7 @@ GUI.showLastUpdated = function(indexName){
 	Thread.run("show last updated timestamp", function(){
 		var time;
 
-		var a=D.action("Get Status of ES Index", true);
+		var a=Log.action("Get Status of ES Index", true);
 		if (indexName===undefined || indexName=="bugs"){
 			var result=yield (ESQuery.run({
 				"from":"bugs",
@@ -157,7 +157,7 @@ GUI.showLastUpdated = function(indexName){
 			}))).cube.max_date);
 			$("#testMessage").html("Datazilla Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 		}else{
-			D.actionDone(a);
+			Log.actionDone(a);
 			return;
 		}//endif
 
@@ -165,16 +165,16 @@ GUI.showLastUpdated = function(indexName){
 		if (age>1 || esHasErrorInIndex){
 			GUI.bigWarning("#testMessage", aMath.max(3, aMath.floor(age)));
 		}//endif
-		D.actionDone(a);
+		Log.actionDone(a);
 
 
 		if (esHasErrorInIndex===undefined){
-			a=D.action("Verify ES Consistency", true);
+			a=Log.action("Verify ES Consistency", true);
 			esHasErrorInIndex=yield(GUI.corruptionCheck());
 			if (esHasErrorInIndex){
 				$("#testMessage").append("<br>ES IS CORRUPTED!!!");
 			}//endif
-			D.actionDone(a);
+			Log.actionDone(a);
 		}//endif
 
 	});
@@ -269,7 +269,7 @@ GUI.URL2State = function(){
 				v=v.escape(Map.inverse(GUI.urlMap));
 				GUI.state[k] = CNV.JSON2Object(v);
 			}catch(e){
-				D.error("Malformed JSON: "+v);
+				Log.error("Malformed JSON: "+v);
 			}//try
 		}else if (p && p.type=="text"){
 			v=v.escape(Map.inverse(GUI.urlMap));
@@ -410,7 +410,7 @@ GUI.AddParameters=function(parameters, relations){
 						GUI.refreshChart();
 					}//endif
 				}catch(e){
-					D.alert(e.message);
+					Log.alert(e.message);
 				}//try
 				this.isChanging=false;
 			});
@@ -596,7 +596,7 @@ GUI.refresh=function(){
 
 GUI.injectFilterss = function(chartRequests){
 	if (!(chartRequests instanceof Array))
-		D.error("Expecting an array of chartRequests");
+		Log.error("Expecting an array of chartRequests");
 	for(var i = 0; i < chartRequests.length; i++){
 		(GUI.injectFilters(chartRequests[i]));
 	}//for
@@ -604,10 +604,10 @@ GUI.injectFilterss = function(chartRequests){
 
 GUI.injectFilters = function(chartRequest){
 	if ((chartRequest instanceof Array))
-		D.error("Expecting a chartRequest");
+		Log.error("Expecting a chartRequest");
 
 	if (chartRequest.esQuery === undefined)
-		D.error("Expecting chart requests to have a \"esQuery\", not \"query\"");
+		Log.error("Expecting chart requests to have a \"esQuery\", not \"query\"");
 
 
 	var indexName;

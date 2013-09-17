@@ -32,7 +32,7 @@ PartitionFilter.newInstance=function(param){
 	var self=new PartitionFilter();
 	Map.copy(param, self);
 
-	if (self.dimension.partitions===undefined && self.dimension.edges===undefined) D.error(self.dimension.name+" does not have a partition defined");
+	if (self.dimension.partitions===undefined && self.dimension.edges===undefined) Log.error(self.dimension.name+" does not have a partition defined");
 
 //	self.id=self.dimension.parent.name.replaceAll(" ", "_");
 	self.isFilter=true;
@@ -226,7 +226,7 @@ PartitionFilter.prototype.makeTree=function(){
 						self.selectedIDs=idList;
 					}
 				}catch(e){
-					D.warning("Can not callback to parameter "+self.name, e)
+					Log.warning("Can not callback to parameter "+self.name, e)
 				}//try
 			}//endif
 

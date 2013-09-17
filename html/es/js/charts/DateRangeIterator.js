@@ -25,7 +25,7 @@ DateRangeIterator.prototype.NextQuery = function(){
 };
 
 DateRangeIterator.prototype.InjectDate = function(){
-	//D.println("InjuectDate: " + CNV.Object2JSON( this.chartRequest ));
+	//Log.note("InjuectDate: " + CNV.Object2JSON( this.chartRequest ));
 
 	var chartRequest = Map.jsonCopy(this.queries);
 
@@ -41,7 +41,7 @@ DateRangeIterator.prototype.InjectDate = function(){
 		}//endif
 	}//for
 
-	//D.println("InjuectDate: " + CNV.Object2JSON( chartRequest ));
+	//Log.note("InjuectDate: " + CNV.Object2JSON( chartRequest ));
 
 	return chartRequest;
 };

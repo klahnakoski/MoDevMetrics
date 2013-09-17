@@ -154,7 +154,7 @@ var __createChart = function(){
 //	var bugs={"838829":{"bug_id":838829, "dependson":["837155", "837145", "839392"]}};
 	var bugs=yield(getDescendants(metro, startDate, endDate));
 
-//	D.println(Object.keys(bugs));
+//	Log.note(Object.keys(bugs));
 
 
 	var metroSummary=yield (Q({
@@ -272,7 +272,7 @@ var __createChart = function(){
 	var totalThread=Thread.run(function(){
 
 
-		var a=D.action("Count Backlog", true);
+		var a=Log.action("Count Backlog", true);
 
 		//THE CURRENT SPRINT IS NOT COMPLETED, SO BACKLOG SHOULD INCLUDE THOSE BUGS
 
@@ -292,8 +292,8 @@ var __createChart = function(){
 			]}
 		}));
 
-		D.println("Backlog="+backlogCount.cube.total_points);
-		D.actionDone(a);
+		Log.note("Backlog="+backlogCount.cube.total_points);
+		Log.actionDone(a);
 	});
 
 //	var allAssignedBugs=yield(getIterationRanges(bugs[iterationParent].dependson));
@@ -305,7 +305,7 @@ var __createChart = function(){
 	var iterTotal;
 	var iterTotalThread=Thread.run(function(){
 
-		var a=D.action("Get Points over Time", true);
+		var a=Log.action("Get Points over Time", true);
 
 		iterTotal=yield (ESQuery.run({
 			"from":"bugs",
@@ -350,7 +350,7 @@ var __createChart = function(){
 			}
 		});
 
-		D.actionDone(a);
+		Log.actionDone(a);
 
 	});
 
@@ -361,7 +361,7 @@ var __createChart = function(){
 	////////////////////////////////////////////////////////////////////////////
 	Thread.run(function(){
 
-		var a=D.action("Get Open points over time", true);
+		var a=Log.action("Get Open points over time", true);
 
 
 		var open=yield (ESQuery.run({
@@ -389,7 +389,7 @@ var __createChart = function(){
 
 		});
 
-		D.actionDone(a);
+		Log.actionDone(a);
 	});
 
 
@@ -402,7 +402,7 @@ var __createChart = function(){
 
 
 
-		var a=D.action("Calc Stats", true);
+		var a=Log.action("Calc Stats", true);
 
 
 		//FIND START AND END POINTS FOR EACH ITERATION
@@ -600,7 +600,7 @@ var __createChart = function(){
 		});
 
 
-		D.actionDone(a);
+		Log.actionDone(a);
 
 
 	});
@@ -696,7 +696,7 @@ function showStories(stories){
 
 function getDescendants(parent, startDate, endDate){
 //FIND DEPENDENCY FIXPOINT
-	var a=D.action("Trace Bug Dependencies", true);
+	var a=Log.action("Trace Bug Dependencies", true);
 
 	var lookFor = [parent];
 	var dep=yield (ESQuery.run({
@@ -771,7 +771,7 @@ function getDescendants(parent, startDate, endDate){
 			}//endif
 
 			if (b.bug_id==836963){
-				D.println("");
+				Log.note("");
 			}//endif
 
 			var deps=nvl(b.dependson, []);
@@ -782,28 +782,28 @@ function getDescendants(parent, startDate, endDate){
 				}//endif
 			});
 		});
-		D.println(Object.keys(bugs).length + " bugs");
+		Log.note(Object.keys(bugs).length + " bugs");
 
 		if (Map.domain(lookFor) == 0) break;
 
 	}//while
-	D.actionDone(a);
+	Log.actionDone(a);
 
 
 	//GO TO BZ TO GET DESCRIPTIONS
 	var getBZ=Thread.run(function(){
-		var a=D.action("Ask BZ for Summaries", true);
+		var a=Log.action("Ask BZ for Summaries", true);
 		var temp=yield (Bugzilla.search(Object.keys(bugs), ["id", "summary"]));
 		temp.forall(function(v, i){
 			bugs[v.id].summary=v.summary;
 		});
-		D.actionDone(a);
+		Log.actionDone(a);
 		yield (null);
 	});
 
 	//AGE OF ALL BUGS FROM ES
 	var getAges=Thread.run(function(){
-		var a=D.action("Get Bug Ages", true);
+		var a=Log.action("Get Bug Ages", true);
 		var ages = yield (ElasticSearch.getMinMax({"and":[
 			{"terms":{"bug_id":Object.keys(bugs)}},
 			Mozilla.BugStatus.Open.esfilter
@@ -815,7 +815,7 @@ function getDescendants(parent, startDate, endDate){
 			bugs[v.bug_id].open_time=v.min;
 			bugs[v.bug_id].close_time=v.max;
 		});
-		D.actionDone(a);
+		Log.actionDone(a);
 
 		yield (true);
 	});
@@ -862,7 +862,7 @@ function getDescendants(parent, startDate, endDate){
 
 	}//for
 
-	D.actionDone(a);
+	Log.actionDone(a);
 
 	yield (bugs);
 }//method

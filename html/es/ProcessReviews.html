@@ -70,7 +70,7 @@
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
-<script type="application/javascript;version=1.7" src="js/aDebug.js"></script>
+<script type="application/javascript;version=1.7" src="js/debug/aLog.js"></script>
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
@@ -205,20 +205,20 @@
 
 
 		////////////////////////////////////////////////////////////////////////
-		D.action("Get Review Requests");
+		Log.action("Get Review Requests");
 		esQuery.run(function(inReview){
-		D.action("Get Review Ends");
+		Log.action("Get Review Ends");
 		esQuery2.run(function(doneReview){
-		a=D.action("Get Review Re-assignments");
+		a=Log.action("Get Review Re-assignments");
 		esQuery3.run(function(switchedReview){
 		////////////////////////////////////////////////////////////////////////
 
-		D.action("processing Data");
+		Log.action("processing Data");
 
 
-//	D.println(CNV.List2Tab(inReview.list));
-//	D.println(CNV.List2Tab(doneReview.list));
-//	D.println(CNV.List2Tab(switchedReview.list));
+//	Log.note(CNV.List2Tab(inReview.list));
+//	Log.note(CNV.List2Tab(doneReview.list));
+//	Log.note(CNV.List2Tab(switchedReview.list));
 
 		doneReview.list.appendArray(switchedReview.list);
 

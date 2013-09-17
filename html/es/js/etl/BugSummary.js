@@ -91,13 +91,13 @@ BUG_SUMMARY.makeSchema=function(){
 		"data":setup
 	}));
 
-	D.println(data);
+	Log.note(data);
 
 //		var lastAlias;  		//THE VERSION CURRENTLY IN USE
 
 	//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
 	data=yield (Rest.get({url: ElasticSearch.pushURL+"/_aliases"}));
-	D.println(data);
+	Log.note(data);
 
 	var keys=Object.keys(data);
 	for(var k=keys.length;k--;){
@@ -152,9 +152,9 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 	});
 	ElasticSearch.injectFilter(current.esQuery, esfilter);
 
-	var a=D.action("Get Current Bug Info", true);
+	var a=Log.action("Get Current Bug Info", true);
 	var currentData=yield (current.run());
-	D.actionDone(a);
+	Log.actionDone(a);
 
 
 	//WE SOMETIMES GET MORE THAN ONE "CURRENT" RECORD FROM ES, THIS WILL FIND
@@ -215,12 +215,12 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 
 
 
-	a=D.action("Get Historical Timestamps", true);
+	a=Log.action("Get Historical Timestamps", true);
 	var timesData=yield (Rest.post({
 		"url":window.ElasticSearch.queryURL,
 		"data":times
 	}));
-	D.actionDone(a);
+	Log.actionDone(a);
 
 
 	var joinItAll={
@@ -259,10 +259,10 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 //		j.edges.forall(function(v, i){
 //			v.domain.partitions=undefined;
 //		});
-//		D.println(CNV.Object2JSON(j));
+//		Log.note(CNV.Object2JSON(j));
 //	}
 
-	a=D.action("Process Data", true);
+	a=Log.action("Process Data", true);
 
 	var r=(yield (CUBE.calc2List(joinItAll))).list;
 
@@ -280,7 +280,7 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 			if (r[i][k]==null) r[i][k]=undefined;
 		}//for
 	}//for
-	D.actionDone(a);
+	Log.actionDone(a);
 
 	yield r;
 };//method
@@ -293,13 +293,13 @@ BUG_SUMMARY.insert=function(reviews){
 		insert.push(JSON.stringify({ "create" : { "_id" : r.bug_id } }));
 		insert.push(JSON.stringify(r));
 	});
-	var a=D.action("Push bug summary to ES", true);
+	var a=Log.action("Push bug summary to ES", true);
 	yield (Rest.post({
 		"url":ElasticSearch.pushURL+"/"+BUG_SUMMARY.newIndexName+"/"+BUG_SUMMARY.typeName+"/_bulk",
 		"data":insert.join("\n")+"\n",
 		dataType: "text"
 	}));
-	D.actionDone(a);
+	Log.actionDone(a);
 };//method
 
 

@@ -67,7 +67,7 @@ var HIERARCHY = {};
 			"url":ElasticSearch.pushURL + "/" + HIERARCHY.newIndexName,
 			"data":setup
 		}));
-		D.println(data);
+		Log.note(data);
 	};
 
 	var DATA;   //MUST KEEP THE ACCUMULATED STATE OVER MANY CALLS
@@ -101,7 +101,7 @@ var HIERARCHY = {};
 
 
 
-		if (DATA===undefined) D.error("Expecting start() or resume() to be called first");
+		if (DATA===undefined) Log.error("Expecting start() or resume() to be called first");
 
 		var newChildren=yield (getAllChildren(esfilter));
 
@@ -112,7 +112,7 @@ var HIERARCHY = {};
 
 
 	HIERARCHY.incremental=function(minTime, maxTime){
-		if (DATA===undefined) D.error("Expecting resume() to be called first");
+		if (DATA===undefined) Log.error("Expecting resume() to be called first");
 
 		var newChildren = yield(getAllChildren({"range":{"modified_ts":{"gte":minTime.getMilli(), "lt":maxTime.getMilli()}}}));
 
@@ -146,17 +146,17 @@ var HIERARCHY = {};
 
 	
 	function getAllChildren(esfilter){
-		var a = D.action("Get largest bug_id", true);
+		var a = Log.action("Get largest bug_id", true);
 		var maxBugID = yield(ESQuery.run({
 			"from":"bugs",
 			"select":{"value":"bug_id", "aggregate":"maximum"}
 		}));
 		maxBugID = maxBugID.cube.bug_id;
-		D.actionDone(a);
+		Log.actionDone(a);
 
 		var allChildren = new aRelation();  //SET TO STORE <parent> "-" <child> PAIRS
 
-		a = D.action("Get Current Bug Info "+CNV.Object2JSON(esfilter), true);
+		a = Log.action("Get Current Bug Info "+CNV.Object2JSON(esfilter), true);
 		var currentData = yield(ESQuery.run({
 			"from":"bugs",
 			"select":[
@@ -170,22 +170,22 @@ var HIERARCHY = {};
 			]}
 		}));
 
-		if (DEBUG) D.println("Num hierarchy records using "+CNV.Object2JSON(esfilter)+" ("+ currentData.list.length+" records)");
+		if (DEBUG) Log.note("Num hierarchy records using "+CNV.Object2JSON(esfilter)+" ("+ currentData.list.length+" records)");
 
 		//UPDATE THE MAP OF ALL EDGES
 		for(var k = currentData.list.length; k--;){
 			var c = currentData.list[k];
 //if ([852643, 862970].contains(c.bug_id-0)){
-//	D.println();
+//	Log.note();
 //}
 			allChildren.addArray(c.bug_id, Array.newInstance(c.dependson));
 
 
 		}//for
 
-		D.actionDone(a);
+		Log.actionDone(a);
 
-		if (DEBUG) D.println("Number of edges: " + Object.keys(allChildren).length);
+		if (DEBUG) Log.note("Number of edges: " + Object.keys(allChildren).length);
 
 		yield (allChildren);
 	}//method
@@ -219,7 +219,7 @@ var HIERARCHY = {};
 		//FIND DESCENDANTS
 		//PLAN IS TO LOOK AT PARENT'S DESCENDANTS, IF SELF HAS ANY NEW DESCENDANTS
 		//TO ADD, THEN ADD THEM AND ADD PARENT TO THE workQueue
-		var a = D.action("Find Descendants", true);
+		var a = Log.action("Find Descendants", true);
 		yield (Thread.sleep(100));
 		var workQueue = new aQueue(Object.keys(allParents.map));
 
@@ -228,8 +228,8 @@ var HIERARCHY = {};
 			if (DEBUG){
 				if (DEBUG_MIN > workQueue.length() && workQueue.length() % Math.pow(10, Math.round(Math.log(workQueue.length()) / Math.log(10)) - 1) == 0){
 
-					D.actionDone(a);
-					a = D.action("Work queue remaining: " + workQueue.length(), true);
+					Log.actionDone(a);
+					a = Log.action("Work queue remaining: " + workQueue.length(), true);
 					DEBUG_MIN = workQueue.length();
 				}//endif
 			}//endif
@@ -244,7 +244,7 @@ var HIERARCHY = {};
 			for(var i = parents.length; i--;){
 				var parent = parents[i];
 //if ([852643, 862970].contains(node-0)){
-//	D.println();
+//	Log.note();
 //}
 
 				var added = false;
@@ -270,7 +270,7 @@ var HIERARCHY = {};
 			}//for
 
 		}//while
-		D.actionDone(a);
+		Log.actionDone(a);
 		yield (null);
 	}//method
 
@@ -280,7 +280,7 @@ var HIERARCHY = {};
 		Thread.run(function(){
 			yield (HIERARCHY.start());
 			yield (toFixPoint(new aRelation().addArray("12", [45, 46, 47]).addArray(45, [1,2,3]), DATA));
-			if (DATA.allDescendants.get(12).length!=6) D.error();
+			if (DATA.allDescendants.get(12).length!=6) Log.error();
 		});
 	}
 
@@ -291,7 +291,7 @@ var HIERARCHY = {};
 		yield (ElasticSearch.setRefreshInterval(HIERARCHY.newIndexName, "1s"));
 
 		//GET ALL RECORDS FROM
-		var a=D.action("Get current hierarchy", true);
+		var a=Log.action("Get current hierarchy", true);
 		var all = yield(ESQuery.run({
 			"url":ElasticSearch.pushURL+"/"+HIERARCHY.newIndexName+"/"+HIERARCHY.typeName,
 			"from":"bug_hierarchy",
@@ -313,7 +313,7 @@ var HIERARCHY = {};
 			allParents.addArray(bug.bug_id, Array.newInstance(bug.parents));
 			allDescendants.addArray(bug.bug_id, Array.newInstance(bug.descendants));
 		});
-		D.actionDone(a);
+		Log.actionDone(a);
 
 		yield ({"allParents":allParents, "allChildren":allChildren, "allDescendants":allDescendants});
 	}//method
@@ -357,17 +357,17 @@ var HIERARCHY = {};
 			}//endif
 
 			if (insert.length >= BLOCK_SIZE){
-				var a = D.action("Push " + insert.length + "(min="+minBug+", max="+maxBug+") descendants to ES", true);
+				var a = Log.action("Push " + insert.length + "(min="+minBug+", max="+maxBug+") descendants to ES", true);
 				yield (ElasticSearch.bulkInsert(HIERARCHY.newIndexName, HIERARCHY.typeName, insert));
-				D.actionDone(a);
+				Log.actionDone(a);
 				insert = [];
 			}//endif
 		}//for
 
 		if (insert.length>0){
-			var a = D.action("Push last " + insert.length + "(min="+minBug+", max="+maxBug+") descendants to ES", true);
+			var a = Log.action("Push last " + insert.length + "(min="+minBug+", max="+maxBug+") descendants to ES", true);
 			yield (ElasticSearch.bulkInsert(HIERARCHY.newIndexName, HIERARCHY.typeName, insert));
-			D.actionDone(a);
+			Log.actionDone(a);
 		}//endif
 	}//method
 

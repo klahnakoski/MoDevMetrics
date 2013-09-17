@@ -83,7 +83,7 @@ var __createChart = function(){
 	yield (ESQuery.loadColumns({"from":"bugs"}));
 
 	Thread.run(function(){
-		var a=D.action("Get Bug Details", true);
+		var a=Log.action("Get Bug Details", true);
 
 		var mm=yield (ElasticSearch.getMinMax({"and":[
 			{"range":{"expires_on":{"gte":sampleMin.getMilli()}}},
@@ -113,9 +113,9 @@ var __createChart = function(){
 
 		var res=yield(CUBE.Cube2List(resolutions));
 
-		D.actionDone(a);
+		Log.actionDone(a);
 
-		a=D.action("Calc Close Times", true);
+		a=Log.action("Calc Close Times", true);
 		yield (Thread.sleep(100));
 		
 		var bugList=yield (Q({
@@ -146,8 +146,8 @@ var __createChart = function(){
 			]
 		};
 
-		D.actionDone(a);
-		a=D.action("Tally Close Times", true);
+		Log.actionDone(a);
+		a=Log.action("Tally Close Times", true);
 		yield (Thread.sleep(100));
 
 		var chart=yield (Q({
@@ -162,7 +162,7 @@ var __createChart = function(){
 			]
 		}));
 		
-		D.actionDone(a);
+		Log.actionDone(a);
 
 
 		var numWeeks=sampleMax.subtract(sampleMin).round(sampleInterval);
@@ -188,7 +188,7 @@ var __createChart = function(){
 		);
 
 
-		D.actionDone(a);
+		Log.actionDone(a);
 
 
 		var clicker=function(type, x, d){
@@ -245,7 +245,7 @@ var __createChart = function(){
 
 
 
-		D.actionDone(a);
+		Log.actionDone(a);
 
 
 	});

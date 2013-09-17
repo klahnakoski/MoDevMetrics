@@ -71,7 +71,7 @@ importScript('js/main.js', function(){
 
 
 		Thread.run(function(){
-			D.action("Request Bugs");
+			Log.action("Request Bugs");
 
 
 			var esfilter={"term":{"testrun.suite": "tp5o"}};
@@ -125,7 +125,7 @@ importScript('js/main.js', function(){
 			chart.name="Average Times";
 
 			
-			var a = D.action("Make chart", true);
+			var a = Log.action("Make chart", true);
 			aChart.show({
 				"id":"chart",
 				"sheetDiv":"info",
@@ -135,7 +135,7 @@ importScript('js/main.js', function(){
 				"height":"400",
 				xAxisSize: 50
 			});
-			D.actionDone(a);
+			Log.actionDone(a);
 		});
 
 		yield(null);

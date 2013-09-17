@@ -75,7 +75,7 @@ importScript([
 
 
 		//GET ALL PATCHES
-		var a=D.action("Pull from ES", true);
+		var a=Log.action("Pull from ES", true);
 		var rawPatches=yield (ESQuery.run({
 			"from":"bugs.attachments.flags",
 			"select":[
@@ -110,10 +110,10 @@ importScript([
 				Mozilla.CurrentRecords.esfilter
 			]}
 		}));
-		D.actionDone(a);
+		Log.actionDone(a);
 
 		//PACK PATCHES TO THEIR OPEN/CLOSE EVENTS
-		a=D.action("Calc Open/Close times", true);
+		a=Log.action("Calc Open/Close times", true);
 		var patches=yield (Q({
 			"from":rawPatches,
 			"select":[
@@ -128,13 +128,13 @@ importScript([
 				{"name":"attachment", "value":"bug_id+'|'+attach_id"}
 			]
 		}));
-		D.actionDone(a);
+		Log.actionDone(a);
 
 
 		////////////////////////////////////////////////////////////////////////
 		// OPEN SUMMARY
 		////////////////////////////////////////////////////////////////////////
-		a=D.action("Calc Time Series", true);
+		a=Log.action("Calc Time Series", true);
 		var chart=yield (Q({
 			"name":"Open Patches Over Time",
 			"from":patches,
@@ -151,7 +151,7 @@ importScript([
 				}
 			]
 		}));
-		D.actionDone(a);
+		Log.actionDone(a);
 
 
 		aChart.show({
@@ -222,7 +222,7 @@ importScript([
 		////////////////////////////////////////////////////////////////////////
 		// AGE BREAKDOWN
 		////////////////////////////////////////////////////////////////////////
-		a=D.action("Age Breakdown", true);
+		a=Log.action("Age Breakdown", true);
 		var ages=yield (Q({
 			"name":"Age Breakdown",
 			"from":patches,
@@ -237,7 +237,7 @@ importScript([
 			],
 			"where":"closed_ts==Date.eod().getMilli()"
 		}));
-		D.actionDone(a);
+		Log.actionDone(a);
 
 
 		ages.edges[0].domain.NULL.name="Over 12 weeks";

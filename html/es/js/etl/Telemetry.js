@@ -56,7 +56,7 @@ Telemetry.get=function(minBug, maxBug){
 			return {"id":v.dn, "name":v.cn, "manager":v.manager ? v.manager.dn : null, "email":v.bugzillaemail};
 		});
 
-		D.println(people.length+" people found")
+		Log.note(people.length+" people found")
 
 	}
 //	window[Telemetry.JSONP_CALLBACK]=temp;
@@ -79,12 +79,12 @@ Telemetry.makeSchema=function(){
 		"url":ElasticSearch.pushURL+"/"+Telemetry.newIndexName,
 		"data":{"mappings":{"data":TelemetrySchema}}
 	}));
-	D.println(data);
+	Log.note(data);
 
 
 	//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
 	data=yield (Rest.get({url: ElasticSearch.pushURL+"/_aliases"}));
-	D.println(data);
+	Log.note(data);
 
 	var keys=Object.keys(data);
 	for(var k=keys.length;k--;){
@@ -116,10 +116,10 @@ Telemetry.insert=function(people){
 		insert.push(JSON.stringify(r));
 	});
 
-	var a=D.action("Push people to ES", true);
+	var a=Log.action("Push people to ES", true);
 	var results=yield (ElasticSearch.bulkInsert(Telemetry.newIndexName, Telemetry.typeName, insert));
-	D.println(CNV.Object2JSON(CNV.JSON2Object(results)));
+	Log.note(CNV.Object2JSON(CNV.JSON2Object(results)));
 
-	D.actionDone(a);
+	Log.actionDone(a);
 };//method
 

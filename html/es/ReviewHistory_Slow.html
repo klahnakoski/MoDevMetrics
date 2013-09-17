@@ -70,7 +70,7 @@
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
-<script type="application/javascript;version=1.7" src="js/aDebug.js"></script>
+<script type="application/javascript;version=1.7" src="js/debug/aLog.js"></script>
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
@@ -209,7 +209,7 @@
 
 		console.info(CNV.Object2JSON(esQuery));
 
-		D.action("Call ES");
+		Log.action("Call ES");
 
 
 //		ElasticSearchQuery.Use(
@@ -219,8 +219,8 @@
 		ElasticSearchQuery.Run({
 			"query":esQuery,
 			"success" : function(data){
-//D.println(CNV.List2Tab(data.facets.inReview));
-D.println(CNV.Object2JSON(data));
+//Log.note(CNV.List2Tab(data.facets.inReview));
+Log.note(CNV.Object2JSON(data));
 				var inReview = MVEL.esFacet2List(data.facets.inReview, [
 									{"name":"bug_id", "value":"bugs.bug_id"},
 									{"name":"attach_id", "value":"bugs.attachments.attach_id"},
@@ -325,15 +325,15 @@ D.println(CNV.Object2JSON(data));
 					};
 
 				console.info(CNV.Object2JSON(esQuery2));
-				D.action("Call ES, again");
+				Log.action("Call ES, again");
 
 
 				ElasticSearchQuery.Run({
 					"query":esQuery2,
 					"success":function(data){
 
-//D.println(CNV.List2Tab(data.facets.doneReview));
-					D.action("processing Data");
+//Log.note(CNV.List2Tab(data.facets.doneReview));
+					Log.action("processing Data");
 					var doneReview = MVEL.esFacet2List(data.facets.doneReview, [
 						{"name":"bug_id", "value":"bugs.bug_id"},
 						{"name":"attach_id", "value":"bugs.attachments.attach_id"},
@@ -341,9 +341,9 @@ D.println(CNV.Object2JSON(data));
 						{"name":"requestee", "value":"bugs.attachments.flags.requestee==null ? bugs.attachments.modified_by : bugs.attachments.flags.requestee"}
 					]);
 
-D.println(CNV.Object2JSON(data));
-//D.println(CNV.List2Tab(inReview));
-//D.println(CNV.List2Tab(doneReview));
+Log.note(CNV.Object2JSON(data));
+//Log.note(CNV.List2Tab(inReview));
+//Log.note(CNV.List2Tab(doneReview));
 
 
 					var flooring=GUI.state.sampleInterval;
@@ -378,7 +378,7 @@ D.println(CNV.Object2JSON(data));
 
 
 
-D.println(CNV.List2Tab(reviewQueues));
+Log.note(CNV.List2Tab(reviewQueues));
 
 					var chart=Q({
 						"name":

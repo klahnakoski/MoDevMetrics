@@ -80,7 +80,7 @@ var __createChart = function(){
 	priorityDomain.value="name";	//HAVE DOMAIN RETURN STRING VALUES FOR CHART
 
 
-	var a=D.action("Request Bugs", true);
+	var a=Log.action("Request Bugs", true);
 	var chart=yield (ESQuery.run({
 		"name":"Open Bug Count",
 		"from":"bugs",
@@ -103,10 +103,10 @@ var __createChart = function(){
 		]}
 	}));
 
-	D.actionDone(a);
+	Log.actionDone(a);
 
 
-	a=D.action("Make chart", true);
+	a=Log.action("Make chart", true);
 	aChart.show({
 		"id":"chart",
 		"sheetDiv":"info",
@@ -114,7 +114,7 @@ var __createChart = function(){
 		"stacked":true,
 		"cube":chart
 	});
-	D.actionDone(a);
+	Log.actionDone(a);
 
 
 };

@@ -72,7 +72,7 @@ importScript([
 
 			yield (HIERARCHY.start());
 			var hier=yield (HIERARCHY.get([870142,860899,731280,841999,831997], null));
-			if (HIERARCHY.DATA.allDescendants.getMap(831997)[870142]!=1) D.error();
+			if (HIERARCHY.DATA.allDescendants.getMap(831997)[870142]!=1) Log.error();
 
 			$("#results").html(CNV.List2HTMLTable(hier));
 		});
@@ -82,7 +82,7 @@ importScript([
 		if (mainThread!==undefined) mainThread.kill();
 	});
 
-	D.addLogToElement("results");
+	Log.addLogToElement("results");
 
 	//ALLOW URL PARAMETER TO PRESS ONE OF THE BUTTON
 	var urlState = jQuery.bbq.getState();
@@ -91,7 +91,7 @@ importScript([
 	}//endif
 
 
-	D.action("Ready");
+	Log.action("Ready");
 
 });
 </script>

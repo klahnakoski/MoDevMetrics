@@ -103,7 +103,7 @@ var __createChart = function(){
 
 
 
-	var a = D.action("Request Bugs", true);
+	var a = Log.action("Request Bugs", true);
 	try{
 		var chart = yield(ESQuery.run({
 			"from":"bugs",
@@ -121,12 +121,12 @@ var __createChart = function(){
 			"esfilter":mainFilter
 		}));
 	}catch(e){
-		D.warning("Thread killed", e);
-		D.actionDone(a);
+		Log.warning("Thread killed", e);
+		Log.actionDone(a);
 		return;
 	}//try
 
-	D.actionDone(a);
+	Log.actionDone(a);
 
 
 	//CONVERT EDGE TO ATTRIBUTES
@@ -215,7 +215,7 @@ var __createChart = function(){
 		}));
 
 
-		a = D.action("Make chart", true);
+		a = Log.action("Make chart", true);
 		aChart.show({
 			"id":"chart_diff",
 			"sheetDiv":"info",
@@ -243,7 +243,7 @@ var __createChart = function(){
 				});
 			}//click
 		});
-		D.actionDone(a);
+		Log.actionDone(a);
 
 		var perDay = (yield(CUBE.calc2List({
 			"from":diff,
@@ -368,7 +368,7 @@ var __createChart = function(){
 	}));
 
 
-	a = D.action("Make chart", true);
+	a = Log.action("Make chart", true);
 	aChart.show({
 		"id":"chart",
 		"sheetDiv":"info",
@@ -403,7 +403,7 @@ var __createChart = function(){
 			});
 		}//click
 	});
-	D.actionDone(a);
+	Log.actionDone(a);
 
 };
 

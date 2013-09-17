@@ -97,7 +97,7 @@ var __createChart = function(){
 
 	
 	Thread.run(function(){
-		var a=D.action("Get Bug Details", true);
+		var a=Log.action("Get Bug Details", true);
 		//FIND ALL BUGS
 		var historyBugs=yield (ElasticSearch.getMinMax({"and":[mainFilter, Mozilla.BugStatus.Open.esfilter]}));
 		//ASSIGN bug_id AS OBJECT ATTRIBUTE
@@ -113,9 +113,9 @@ var __createChart = function(){
 		//CURRENT STATUS
 		var bugs=historyBugs.edges[0].domain.partitions.map(function(v){return v.value;});
 		if (bugs.length>0){
-			var aa=D.action("Pull "+bugs.length+" bugs from BZ", true);
+			var aa=Log.action("Pull "+bugs.length+" bugs from BZ", true);
 			var currentBugs=yield (Bugzilla.search(bugs, ["id", "summary", "assignee", "status", "resolution" ]));
-			D.actionDone(aa);
+			Log.actionDone(aa);
 		}else{
 			currentBugs=[];
 		}//endif
@@ -141,12 +141,12 @@ var __createChart = function(){
 		}));
 
 		$("#info").html(CNV.List2HTMLTable(showBugs));
-		D.actionDone(a);
+		Log.actionDone(a);
 	});
 
 
 
-	var a = D.action("Request Bugs", true);
+	var a = Log.action("Request Bugs", true);
 	try{
 		var chart = yield(ESQuery.run({
 			"from":"bugs",
@@ -164,12 +164,12 @@ var __createChart = function(){
 			"esfilter":mainFilter
 		}));
 	}catch(e){
-		D.warning("Thread killed", e);
-		D.actionDone(a);
+		Log.warning("Thread killed", e);
+		Log.actionDone(a);
 		return;
 	}//try
 
-	D.actionDone(a);
+	Log.actionDone(a);
 
 
 	//CONVERT EDGE TO ATTRIBUTES
@@ -312,7 +312,7 @@ var __createChart = function(){
 	}));
 
 
-	a = D.action("Make chart", true);
+	a = Log.action("Make chart", true);
 	aChart.show({
 		"id":"chart",
 		"sheetDiv":"info",
@@ -326,7 +326,7 @@ var __createChart = function(){
 			line_lineWidth: 2
 		}
 	});
-	D.actionDone(a);
+	Log.actionDone(a);
 
 };
 

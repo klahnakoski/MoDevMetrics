@@ -72,7 +72,7 @@ Hierarchy.addDescendants=function(args){
 	});
 
 	//FIND DESCENDANTS
-	var a=D.action("Find Descendants", true);
+	var a=Log.action("Find Descendants", true);
 	yield (Thread.sleep(100));
 	var workQueue=new aQueue(Object.keys(allParents.map));
 
@@ -80,8 +80,8 @@ Hierarchy.addDescendants=function(args){
 		yield (Thread.yield());
 		if (DEBUG){
 			if (DEBUG_MIN>workQueue.length() && workQueue.length()%Math.pow(10, Math.round(Math.log(workQueue.length())/Math.log(10))-1)==0){
-				D.actionDone(a);
-				a=D.action("Work queue remaining: "+workQueue.length(), true);
+				Log.actionDone(a);
+				a=Log.action("Work queue remaining: "+workQueue.length(), true);
 				DEBUG_MIN=workQueue.length();
 			}//endif
 		}//endif
@@ -115,7 +115,7 @@ Hierarchy.addDescendants=function(args){
 		p[descendants_field]=allDescendants.get(p[id]);
 	});
 	
-	D.actionDone(a);
+	Log.actionDone(a);
 	yield (null);
 };
 
@@ -181,7 +181,7 @@ Hierarchy.topologicalSort=function(args){
 			//WORKING ON THOSE
 				if (queue.length==0 && unprocessed.length>0){
 					var hasParent=unprocessed.map(function(v,i){if (graph[v].__parent!==undefined) return v;});
-					if (hasParent.length==0) D.error("Isolated cycle found");
+					if (hasParent.length==0) Log.error("Isolated cycle found");
 					queue.appendArray(hasParent);
 				}//endif
 			}//END OF HACK
@@ -210,7 +210,7 @@ Hierarchy.topologicalSort=function(args){
 			if (node[children_field]===undefined) node[children_field]=[];
 
 //			if (nodeId=="836963"){
-//				D.println("");
+//				Log.note("");
 //			}//endif
 
 			node[children_field].forall(function(e){
@@ -232,6 +232,6 @@ Hierarchy.topologicalSort=function(args){
 	populateIndegreesAndUnprocessed();
 	processList();
 
-	if (processed.length!=numberOfNodes) D.error("broken");
+	if (processed.length!=numberOfNodes) Log.error("broken");
 	return processed;
 };//method

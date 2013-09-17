@@ -34,7 +34,7 @@ MVEL.prototype.code = function(query){
 	var context=MVEL.compile.getContextVariables(indexName, body, query.isLean);
 
 	if (body.indexOf("<BODY")>=0)
-		D.error();
+		Log.error();
 
 	var func=MVEL.compile.uniqueFunction();
 	var output = MVEL.compile.addFunctions(
@@ -45,7 +45,7 @@ MVEL.prototype.code = function(query){
 		func+'(_source)\n'
 	);
 
-//	if (console !== undefined && D.println != undefined) D.println(output);
+//	if (console !== undefined && Log.note != undefined) Log.note(output);
 	return output;
 };//method
 
@@ -104,7 +104,7 @@ MVEL.compile.expression = function(expression, query, constants){
 	expression=MVEL.compile.setValues(expression, constants);
 
 
-	if (query===undefined) D.error("Expecting call to MVEL.compile.expression to be given a reference to the query");
+	if (query===undefined) Log.error("Expecting call to MVEL.compile.expression to be given a reference to the query");
 	var fromPath = query.from;			//FIRST NAME IS THE INDEX
 	var indexName=fromPath.split(".")[0];
 //	var whereClause = query.where;
@@ -123,7 +123,7 @@ MVEL.compile.expression = function(expression, query, constants){
 		func+'(_source)\n'
 	);
 
-//	if (console !== undefined && D.println != undefined) D.println(output);
+//	if (console !== undefined && Log.note != undefined) Log.note(output);
 	return output;
 };//method
 
@@ -296,11 +296,11 @@ MVEL.prototype.where = function(esFilter){
 	var output = "";
 
 	var keys = Object.keys(esFilter);
-	if (keys.length != 1) D.error("Expecting only one filter aggregate");
+	if (keys.length != 1) Log.error("Expecting only one filter aggregate");
 	var op = keys[0];
 	if (op == "and"){
 		var list = esFilter[op];
-		if (list.length == 0) D.error("Expecting something in 'and' array");
+		if (list.length == 0) Log.error("Expecting something in 'and' array");
 		if (list.length == 1) return this.where(list[0]);
 		for(var i = 0; i < list.length; i++){
 			if (output != "") output += " && ";
@@ -309,7 +309,7 @@ MVEL.prototype.where = function(esFilter){
 		return output;
 	} else if (op == "or"){
 		var list = esFilter[op];
-		if (list.length == 0) D.error("Expecting something in 'or' array");
+		if (list.length == 0) Log.error("Expecting something in 'or' array");
 		if (list.length == 1) return this.where(list[0]);
 		for(var i = 0; i < list.length; i++){
 			if (output != "") output += " || ";
@@ -327,7 +327,7 @@ MVEL.prototype.where = function(esFilter){
 		var pair = esFilter[op];
 		var variableName = Object.keys(pair)[0];
 		var valueList = pair[variableName];
-		if (valueList.length == 0) D.error("Expecting something in 'terms' array");
+		if (valueList.length == 0) Log.error("Expecting something in 'terms' array");
 		if (valueList.length == 1) return this.translate(variableName) + "==" + MVEL.Value2MVEL(valueList[0]);
 		for(var i = 0; i < valueList.length; i++){
 			if (output != "") output += " || ";
@@ -349,7 +349,7 @@ MVEL.prototype.where = function(esFilter){
 		var testExistence=esFilter[op].existence;
 		var testNull=esFilter[op].null_value;
 
-		if (testExistence===undefined || testNull===undefined) D.error("must have 'existence' and 'null_value' attributes");
+		if (testExistence===undefined || testNull===undefined) Log.error("must have 'existence' and 'null_value' attributes");
 
 		var output=[];
 		if (testExistence && !testNull){
@@ -404,7 +404,7 @@ MVEL.prototype.where = function(esFilter){
 		var value = pair[variableName];
 		return this.translate(variableName)+".startsWith(" + MVEL.Value2MVEL(value)+")";
 	} else{
-		D.error("'" + op + "' is an unknown aggregate");
+		Log.error("'" + op + "' is an unknown aggregate");
 	}//endif
 
 	return "";
@@ -415,7 +415,7 @@ MVEL.prototype.where = function(esFilter){
 //RETURN TRUE IF THE value IS JUST A NAME OF A FIELD (OR A VALUE)
 MVEL.isKeyword = function(value){
 	if (value===undefined || value.charAt===undefined)
-		D.error("Expecting a string");
+		Log.error("Expecting a string");
 
 
 	for(var c = 0; c < value.length; c++){

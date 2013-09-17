@@ -63,7 +63,7 @@ Duration.String2Duration = function(text){
 	var amount = (s == 0 ? 1 : CNV.String2Integer(text.left(s)));
 
 	if (Duration.MILLI_VALUES[interval] === undefined)
-		D.error(interval + " is not a recognized duration type (did you use the pural form by mistake?");
+		Log.error(interval + " is not a recognized duration type (did you use the pural form by mistake?");
 	if (Duration.MONTH_VALUES[interval] == 0){
 		output.milli = amount * Duration.MILLI_VALUES[interval];
 	} else{
@@ -108,7 +108,7 @@ Duration.newInstance = function(obj){
 	} else if (isNaN(obj)){
 		//return null;
 	} else{
-		D.error("Do not know type of object (" + CNV.Object2JSON(obj) + ")of to make a Duration");
+		Log.error("Do not know type of object (" + CNV.Object2JSON(obj) + ")of to make a Duration");
 	}//endif
 	return output;
 };//method
@@ -126,7 +126,7 @@ Duration.prototype.multiply=function(amount){
 	var output=new Duration();
 	output.milli=this.milli*amount;
 //	if (output.milli==Duration.MILLI_VALUES.day*31)
-//		D.error("problem");
+//		Log.error("problem");
 	output.month=this.month*amount;
 	return output;
 };//method
@@ -146,7 +146,7 @@ Duration.prototype.divideBy=function(amount){
 		}else{
 			r=(r-(this.month*Duration.MILLI_VALUES.month));
 			if (r>=Duration.MILLI_VALUES.day*31)
-				D.error("Do not know how to handle");
+				Log.error("Do not know how to handle");
 		}//endif
 		r=aMath.min(29/30, (r+tod)/(Duration.MILLI_VALUES.day*30));
 
@@ -175,7 +175,7 @@ Duration.prototype.subtract = function(duration){
 
 Duration.prototype.floor = function(interval){
 	if (interval===undefined || interval.milli === undefined)
-		D.error("Expecting an interval as a Duration object");
+		Log.error("Expecting an interval as a Duration object");
 	var output = new Duration();
 
 	if (interval.month != 0){
@@ -183,7 +183,7 @@ Duration.prototype.floor = function(interval){
 			output.month = aMath.floor(this.month/interval.month)*interval.month;
 //			var rest=(this.milli - (Duration.MILLI_VALUES.month * output.month));
 //			if (rest>Duration.MILLI_VALUES.day*31){	//WE HOPE THIS BIGGER VALUE WILL STILL CATCH POSSIBLE LOGIC PROBLEMS
-//				D.error("This duration has more than a month's worth of millis, can not handle this rounding");
+//				Log.error("This duration has more than a month's worth of millis, can not handle this rounding");
 //			}//endif
 //			while (rest<0){
 //				output.month-=interval.month;

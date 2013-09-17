@@ -78,7 +78,7 @@ var __createChart = function(){
 	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
 
 
-	var a=D.action("Request Bugs", true);
+	var a=Log.action("Request Bugs", true);
 
 	var data=yield (ESQuery.run({
 		"from":"bugs",
@@ -102,7 +102,7 @@ var __createChart = function(){
 		]}
 	}));
 
-	D.actionDone(a);
+	Log.actionDone(a);
 
 
 	var chart=yield (Q({
@@ -116,7 +116,7 @@ var __createChart = function(){
 	}));
 
 
-	var a=D.action("Make chart", true);
+	var a=Log.action("Make chart", true);
 	aChart.show({
 		"id":"chart",
 		"sheetDiv":"info",
@@ -124,7 +124,7 @@ var __createChart = function(){
 		"stacked":true,
 		"cube":chart
 	});
-	D.actionDone(a);
+	Log.actionDone(a);
 
 
 };

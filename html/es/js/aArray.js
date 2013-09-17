@@ -20,7 +20,7 @@
 
 	Array.newRange=function(min, max, interval){
 		if (interval===undefined) interval=1;
-		if (min>max) D.error();
+		if (min>max) Log.error();
 
 		var output=[];
 		for(var i=min;i<max;i+=interval) output.push(i);
@@ -126,7 +126,7 @@
 	if (DEBUG){
 		var temp=[0,1,2].appendArray([3,4,5]);
 		for(var i=0;i<6;i++) if (temp[i]!=i)
-			D.error();
+			Log.error();
 	}//endif
 
 

@@ -114,7 +114,7 @@ var __createChart = function(){
 
 
 
-	var a=D.action("Request Bugs", true);
+	var a=Log.action("Request Bugs", true);
 	var chart=yield (ESQuery.run({
 		"from":"bugs",
 		"select":{"name":"num_bug", "value":"bug_id", "aggregate":"count"},
@@ -129,10 +129,10 @@ var __createChart = function(){
 	}));
 
 
-	D.actionDone(a);
+	Log.actionDone(a);
 
 
-	var a=D.action("Make chart", true);
+	var a=Log.action("Make chart", true);
 	aChart.show({
 		"id":"chart",
 		"sheetDiv":"info",
@@ -140,7 +140,7 @@ var __createChart = function(){
 		"stacked":true,
 		"cube":chart
 	});
-	D.actionDone(a);
+	Log.actionDone(a);
 
 };
 

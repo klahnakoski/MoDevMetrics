@@ -84,7 +84,7 @@ ElasticSearch.setRefreshInterval=function(indexName, rate){
 		"url": ElasticSearch.pushURL+"/"+indexName+"/_settings",
 		"data":{"index":{"refresh_interval":"1s"}}
 	}));
-	D.println("Refresh Interval to "+rate+": "+CNV.Object2JSON(data));
+	Log.note("Refresh Interval to "+rate+": "+CNV.Object2JSON(data));
 	yield (data);
 };//method
 
@@ -98,7 +98,7 @@ ElasticSearch.bulkInsert=function(indexName, typeName, dataArray){
 			dataType: "text"
 		}));
 //	} catch(e){
-//		D.warning("problem with _bulk", e)
+//		Log.warning("problem with _bulk", e)
 //	}//try
 };
 
@@ -186,12 +186,12 @@ ElasticSearch.injectFilter=function(esquery, filter){
 var ElasticSearchQuery = function(query, successFunction, errorFunction){
 	if (query.success!==undefined){
 		if (query.query===undefined)
-			D.error("if passing a parameter object, it must have both query and success attributes");
+			Log.error("if passing a parameter object, it must have both query and success attributes");
 		this.callbackObject = query;
 		this.query = query.query;
 	}else{
 		if (successFunction===undefined)
-			D.error("expecting an object to report back response");
+			Log.error("expecting an object to report back response");
 		this.callbackObject = {"success":successFunction, "error":errorFunction};
 		this.query = query;
 	}//endif
@@ -224,8 +224,8 @@ ElasticSearchQuery.Use = function(data, reportBackObj, id, esQuery){
 };//method
 
 ElasticSearchQuery.prototype.Run = function(){
-	if (this.callbackObject.success===undefined) D.error();
-	if (ElasticSearchQuery.DEBUG) D.println(CNV.Object2JSON(this.query));
+	if (this.callbackObject.success===undefined) Log.error();
+	if (ElasticSearchQuery.DEBUG) Log.note(CNV.Object2JSON(this.query));
 
 	var self = this;
 	this.request = $.ajax({
@@ -243,21 +243,21 @@ ElasticSearchQuery.prototype.Run = function(){
 
 ElasticSearchQuery.prototype.success = function(data){
 	if (data==null){
-		D.action("Not connected?");
-		D.warning("Maybe you are not connected to Mozilla-MPT?");
+		Log.action("Not connected?");
+		Log.warning("Maybe you are not connected to Mozilla-MPT?");
 		if (data==null && this.callbackObject===undefined) return;	//CAN HAPPEN WHEN REQUEST HAS NOT BEEN SENT, YET HAS BEEN KILLED
 		try{
 			this.callbackObject.success(data);
 		}catch(e){
-			D.warning("Problem calling success()", e);
+			Log.warning("Problem calling success()", e);
 		}//try
 		return;
 	}//endif
 	if (this.callbackObject===undefined) return;
-	if (this.callbackObject.success===undefined) D.error("ElasticSearchQuery - Can not report back success!!");
+	if (this.callbackObject.success===undefined) Log.error("ElasticSearchQuery - Can not report back success!!");
 
 	if (data._shards.failed>0){
-		D.warning("Must resend query...");
+		Log.warning("Must resend query...");
 		var self=this;
 		self.timeout=nvl(self.timeout, 1000)*2;
 		setTimeout(function(){self.Run();}, self.timeout);
@@ -268,26 +268,26 @@ ElasticSearchQuery.prototype.success = function(data){
 	try{
 		this.callbackObject.success(data);
 	}catch(e){
-		D.warning("Problem calling success()", e);
+		Log.warning("Problem calling success()", e);
 	}//try
 };
 
 
 ElasticSearchQuery.prototype.error = function(errorData, errorMsg, errorThrown){
 	if (this.callbackObject===undefined) return;
-	if (this.callbackObject.error===undefined) D.error(errorMsg);
+	if (this.callbackObject.error===undefined) Log.error(errorMsg);
 	
 	try{
 		this.callbackObject.error(this, errorData, errorMsg, errorThrown);
 	}catch(e){
-		D.warning("Problem with reporting back error: '"+errorMsg+"'", e);
+		Log.warning("Problem with reporting back error: '"+errorMsg+"'", e);
 	}//try
 };
 
 
 ElasticSearchQuery.prototype.kill = function(data){
 	this.callbackObject=undefined;
-	if (ElasticSearchQuery.DEBUG) D.println("request killed, callback set to undefined");
+	if (ElasticSearchQuery.DEBUG) Log.note("request killed, callback set to undefined");
 	if (this.request != undefined){
 		try{
 			this.request.abort();
@@ -320,7 +320,7 @@ MultiElasticSearchQuery.prototype.Run = function(param){
 				"index":i,
 				"query":self.chartRequests[i].esQuery,
 				"success":function(data){
-	D.println("Success with index="+i);
+	Log.note("Success with index="+i);
 					self.results[i] = data;
 					if (self.isComplete()){
 						self.callbackObject.success(self.results);
@@ -328,7 +328,7 @@ MultiElasticSearchQuery.prototype.Run = function(param){
 				},
 				"error":function(errorMsg, errorData, errorThrown){
 					self.kill();
-					D.error(errorMsg, errorThrown);
+					Log.error(errorMsg, errorThrown);
 				}
 			});
 		})(i);

@@ -120,7 +120,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js'], function(){
 
 		//CHART AGE BREAKDOWN
 		Thread.run(function(){
-			var a = D.action("Get Age Distribution", true);
+			var a = Log.action("Get Age Distribution", true);
 			var durations = yield(ESQuery.run({
 				"name":"Age Distribution",
 				"from":"bug_summary",
@@ -137,12 +137,12 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js'], function(){
 					GUI.state.componentFilter.makeFilter()
 				]}
 			}));
-			D.actionDone(a);
+			Log.actionDone(a);
 
 
 			durations.edges[1].domain.NULL.name = "Over 12weeks";
 
-			a = D.action("Make chart", true);
+			a = Log.action("Make chart", true);
 			aChart.show({
 				"id":"chartResponse",
 				"sheetDiv":"sheet",
@@ -153,7 +153,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js'], function(){
 				"width":400,
 				xAxisSize: 50
 			});
-			D.actionDone(a);
+			Log.actionDone(a);
 
 		});
 
@@ -165,7 +165,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js'], function(){
 			//REQUESTED UNTIL AFTER THE QUERY OBJECT IS CONSTRUCTED IN run()
 			yield(ESQuery.loadColumns({"from":"bug_summary"}));
 
-			var a = D.action("Get Time Stats", true);
+			var a = Log.action("Get Time Stats", true);
 
 			var allBugs = yield(ElasticSearch.getMinMax({"and":[
 				GUI.getFilters("bugs"),
@@ -196,9 +196,9 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js'], function(){
 //			]}
 ////			"sort":[birth]
 //		}));
-			D.actionDone(a);
+			Log.actionDone(a);
 //var temp=yield (CUBE.Cube2List(allBugs));
-//D.println(CNV.List2Tab(temp));
+//Log.note(CNV.List2Tab(temp));
 
 
 			var chart = yield(Q({
@@ -229,7 +229,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js'], function(){
 //		);
 
 
-			a = D.action("Make chart", true);
+			a = Log.action("Make chart", true);
 			aChart.show({
 				"id":"chartPercentile",
 				"sheetDiv":"sheet",
@@ -240,13 +240,13 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js'], function(){
 				"width":800,
 				xAxisSize: 50
 			});
-			D.actionDone(a);
+			Log.actionDone(a);
 
 
 		});
 
 
-		var a = D.action("Request Bugs", true);
+		var a = Log.action("Request Bugs", true);
 		var chart = yield(ESQuery.run({
 			"name":"Open Bug Count",
 			"from":"bugs",
@@ -261,7 +261,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js'], function(){
 			"esfilter":mainFilter
 		}));
 
-//	var a=D.action("Request Bugs", true);
+//	var a=Log.action("Request Bugs", true);
 //	var chart=yield (ESQuery.run({
 //		"name":"Open Bug Count",
 //		"from":"bugs",
@@ -278,10 +278,10 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js'], function(){
 //	}));
 
 
-		D.actionDone(a);
+		Log.actionDone(a);
 
 
-		var a = D.action("Make chart", true);
+		var a = Log.action("Make chart", true);
 		aChart.show({
 			"id":"chart",
 			"sheetDiv":"info",
@@ -291,7 +291,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js'], function(){
 			"height":300,
 			"width":800
 		});
-		D.actionDone(a);
+		Log.actionDone(a);
 
 	};
 

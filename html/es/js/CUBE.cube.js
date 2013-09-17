@@ -45,7 +45,7 @@ function remap(oldColumns, newColumns){
 			if (newColumns[snew].name == oldColumns[sold].name) smap[snew] = sold;
 		}//for
 	}//for
-	for(var s = 0; s < newColumns.length; s++) if (smap[s]===undefined) D.error("problem remapping columns, '"+newColumns[snew].name+"' can not be found in old columns");
+	for(var s = 0; s < newColumns.length; s++) if (smap[s]===undefined) Log.error("problem remapping columns, '"+newColumns[snew].name+"' can not be found in old columns");
 	return smap;
 }//method
 
@@ -112,7 +112,7 @@ CUBE.cube.toList=function(query){
 			output.push(obj);
 		}//for
 	}else{
-		D.error("can only convert 1D cubes");
+		Log.error("can only convert 1D cubes");
 	}//endif
 
 	return output;
@@ -123,9 +123,9 @@ CUBE.cube.toList=function(query){
 // UNION THE CUBES, AND ADD PARTITIONS AS NEEDED
 CUBE.cube.union=function(cubeA, cubeB){
 	//ENSURE NAMES MATCH SO MERGE IS POSSIBLE
-	if (cubeA.edges.length!=cubeB.edges.length) D.error("Expecting cubes to have smae number of edges, with matching names");
+	if (cubeA.edges.length!=cubeB.edges.length) Log.error("Expecting cubes to have smae number of edges, with matching names");
 	for(var i=cubeA.edges.length;i--;){
-		if (cubeA.edges[i].name!=cubeB.edges[i].name) D.error("Expecting both cubes to have edges in the same order");
+		if (cubeA.edges[i].name!=cubeB.edges[i].name) Log.error("Expecting both cubes to have edges in the same order");
 	}//for
 
 		

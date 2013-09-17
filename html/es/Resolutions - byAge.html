@@ -49,7 +49,7 @@
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
-<script type="application/javascript;version=1.7" src="js/aDebug.js"></script>
+<script type="application/javascript;version=1.7" src="js/debug/aLog.js"></script>
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
@@ -146,21 +146,21 @@ var __createChart = function(){
 
 		(GUI.injectFilters(query));
 
-		D.println(CNV.Object2JSON(query.esQuery));
+		Log.note(CNV.Object2JSON(query.esQuery));
 
-		D.action("Calling ES");
+		Log.action("Calling ES");
 		var chartCube=(yield (query.run()));
 
 		CUBE.normalizeByX(chartCube, 100);
 
-		var a=D.action("Make chart", true);
+		var a=Log.action("Make chart", true);
 		aChart.show({
 			"id":"chart",
 		"sheetDiv":"info",
 			"type":"stacked",
 			"cube":chartCube
 		});
-		D.actionDone(a);
+		Log.actionDone(a);
 			};
 
 	$(document).ready(function(){

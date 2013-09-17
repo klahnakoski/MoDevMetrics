@@ -113,7 +113,7 @@ importScript([
 
 		//CHART OF AGGREGATE RESPONSE TIMES
 		Thread.run(function(){
-			var a=D.action("Grab Stats", true);
+			var a=Log.action("Grab Stats", true);
 
 			var df=(yield (ESQuery.run({
 				"name":"DF",
@@ -128,9 +128,9 @@ importScript([
 				],
 				"esfilter":mainFilter
 			})));
-			D.actionDone(a);
+			Log.actionDone(a);
 
-			a=D.action("Calc Stats", true);
+			a=Log.action("Calc Stats", true);
 			var percentile90=Stats.df.percentile(df.cube, 0.90)/24;  //INTERVALS ARE IN HOURS, CONVERT TO DAYS
 
 
@@ -153,7 +153,7 @@ importScript([
 				'<span class="parameter_name">% Over 10days:</span><b>'+aMath.round(stats.over_10_days/stats.total*100, 1)+'%</b><br>'+
 				'<span class="parameter_name">90th percentile:</span><b>'+aMath.round(percentile90, 1)+'days</b><br>'
 			);
-			D.actionDone(a);
+			Log.actionDone(a);
 		});
 
 		//CHART PRODUCT BREAKDOWN
@@ -180,7 +180,7 @@ importScript([
 		});
 
 
-		var a=D.action("Get Review Data", true);
+		var a=Log.action("Get Review Data", true);
 
 		var q1=new ESQuery({
 			"from":"reviews",
@@ -253,7 +253,7 @@ importScript([
 				}
 			]
 		}));
-		D.actionDone(a);
+		Log.actionDone(a);
 
 
 		//WE HAVE THREE SERIES, ALL DEFINED OVER THE SAME DOMAIN, WHAT TO DO?

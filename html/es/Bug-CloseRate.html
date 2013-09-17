@@ -78,7 +78,7 @@ var __createChart = function(){
 
 
 	Thread.run(function(){
-		var a=D.action("Get Bug Details", true);
+		var a=Log.action("Get Bug Details", true);
 
 
 		var resolutionParts=[
@@ -108,9 +108,9 @@ var __createChart = function(){
 			]}
 		}));
 
-		D.actionDone(a);
+		Log.actionDone(a);
 
-		a=D.action("Calc Close Times", true);
+		a=Log.action("Calc Close Times", true);
 		yield (Thread.yield());
 		
 		var bugList=yield (Q({
@@ -142,7 +142,7 @@ var __createChart = function(){
 			]
 		}));
 		
-		D.actionDone(a);
+		Log.actionDone(a);
 
 		var numWeeks=sampleMax.subtract(sampleMin).round(sampleInterval);
 		var stats=yield (Q({
@@ -165,7 +165,7 @@ var __createChart = function(){
 		);
 
 
-		D.actionDone(a);
+		Log.actionDone(a);
 
 		aChart.show({
 			"id":"chart",
@@ -197,7 +197,7 @@ var __createChart = function(){
 
 			}
 		});
-		D.actionDone(a);
+		Log.actionDone(a);
 
 
 	});

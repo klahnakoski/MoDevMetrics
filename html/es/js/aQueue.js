@@ -35,7 +35,7 @@ var aQueue_usingArray;  //SLOW, BUT GOOD FOR WHEN DEALING WITH PURE OBJECTS
 
 	aQueue_test.prototype.add=function(v){
 		if (typeof(v) != "string")
-			D.error("Can only work with strings");
+			Log.error("Can only work with strings");
 		this.A.add(v);
 		this.B.add(v);
 		return this;
@@ -51,7 +51,7 @@ var aQueue_usingArray;  //SLOW, BUT GOOD FOR WHEN DEALING WITH PURE OBJECTS
 		var a=this.A.pop();
 		var b=this.B.pop();
 		if (a!=b){
-			D.error();
+			Log.error();
 		}
 		return a;
 	};
@@ -66,7 +66,7 @@ var aQueue_usingArray;  //SLOW, BUT GOOD FOR WHEN DEALING WITH PURE OBJECTS
 		var a=this.A.isEmpty();
 		var b=this.B.isEmpty();
 		if (a!=b){
-			D.error();
+			Log.error();
 		}
 		return a;
 	};//method
@@ -77,7 +77,7 @@ var aQueue_usingArray;  //SLOW, BUT GOOD FOR WHEN DEALING WITH PURE OBJECTS
 		var a=this.A.length();
 		var b=this.B.length();
 		if (a!=b){
-			D.warning("diff queue lengths ("+a+" vs "+b+")");
+			Log.warning("diff queue lengths ("+a+" vs "+b+")");
 		}
 		return a;
 	};

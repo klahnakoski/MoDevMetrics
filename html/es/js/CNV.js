@@ -86,7 +86,7 @@ CNV.JSON2Object = function(json){
 	try{
 		return JSON.parse(json);
 	}catch(e){
-		D.error("Can not parse json:\n"+json.indent(1), e);
+		Log.error("Can not parse json:\n"+json.indent(1), e);
 	}//try
 };//method
 
@@ -99,7 +99,7 @@ CNV.Object2JSON = function(json){
 			let singleLine=JSON.stringify(json);
 			if (singleLine.length<60) return singleLine;
 		}catch(e){
-			D.warning("Problem turning array to json:", e);
+			Log.warning("Problem turning array to json:", e);
 		}//try
 
 		if (json.length==0) return "[]";
@@ -126,7 +126,7 @@ CNV.Object2JSON = function(json){
 			let singleLine=JSON.stringify(json);
 			if (singleLine.length<60) return singleLine;
 		}catch(e){
-			D.warning("Problem turning object to json:", e);
+			Log.warning("Problem turning object to json:", e);
 		}//try
 
 		var keys=Object.keys(json);
@@ -281,7 +281,7 @@ CNV.Pipe2Value=function(value){
 	if (type=='n') return CNV.String2Integer(value.substring(1));
 
 	if (type!='s' && type!='a')
-		D.error("unknown pipe type");
+		Log.error("unknown pipe type");
 
 	//EXPECTING MOST STRINGS TO NOT HAVE ESCAPED CHARS
 	var output=unPipe(value);
@@ -331,7 +331,7 @@ CNV.Cube2HTMLTable=function(query){
 		}//endif
 	}else if (query.edges.length==2){
 		if (query.select instanceof Array){
-			D.error("Can not display cube: select clause can not be array, or there can be only one edge");
+			Log.error("Can not display cube: select clause can not be array, or there can be only one edge");
 		}else{
 
 			header+=HTML.tag("td", query.edges[1].name);	//COLUMN FOR SECOND EDGE
@@ -339,7 +339,7 @@ CNV.Cube2HTMLTable=function(query){
 				var name=e.domain.end(p);
 				if (name==p && typeof(name)!="string") name=p.name;
 				if (p.name!==undefined && p.name!=name)
-					D.error("make sure part.name matches the end(part)=="+name+" codomain");
+					Log.error("make sure part.name matches the end(part)=="+name+" codomain");
 				header += "<td>" + CNV.String2HTML(name) + "</td>";
 			});
 
@@ -348,7 +348,7 @@ CNV.Cube2HTMLTable=function(query){
 				var name=query.edges[1].domain.end(p);
 				if (name==p && typeof(name)!="string") name=p.name;
 				if (p.name!==undefined && p.name!=name)
-					D.error("make sure part.name matches the end(part)=="+name+" codomain");
+					Log.error("make sure part.name matches the end(part)=="+name+" codomain");
 				content+="<tr>"+HTML.tag("th", name);
 				for(var c=0;c<query.cube.length;c++){
 					content+=HTML.tag("td", query.cube[c][r]);
@@ -382,7 +382,7 @@ CNV.Cube2HTMLTable=function(query){
 //			}).join("");
 		}//endif
 	}else{
-		D.error("Actual cubes not supported !!")
+		Log.error("Actual cubes not supported !!")
 	}//endif
 
 	return "<table class='table'>" +
@@ -552,7 +552,7 @@ CNV.List2Table = function(list, columnOrder){
 					continue OO;
 				}//endif
 			}//for
-			D.error("Can not find column by name of '" + columnOrder[o] + "'");
+			Log.error("Can not find column by name of '" + columnOrder[o] + "'");
 		}//for
 
 		CC: for(var c = 0; c < columns.length; c++){

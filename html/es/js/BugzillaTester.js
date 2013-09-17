@@ -156,7 +156,7 @@ IntegrityTest.prototype.ParseBugzillaIDs = function(){
 	}
 
 	this.dataSet.bugzilla.raw = {};
-//	D.println( CNV.Object2JSON(this.dataSet))
+//	Log.note( CNV.Object2JSON(this.dataSet))
 }
 
 IntegrityTest.prototype.ParseElasticIDs = function(){
@@ -168,7 +168,7 @@ IntegrityTest.prototype.ParseElasticIDs = function(){
 	}
 
 	this.dataSet.elastic.raw = {};
-	D.println(CNV.Object2JSON(this.dataSet))
+	Log.note(CNV.Object2JSON(this.dataSet))
 }
 
 function arr_diff(a1, a2){

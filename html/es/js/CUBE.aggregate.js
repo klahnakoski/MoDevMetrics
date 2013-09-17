@@ -14,7 +14,7 @@ CUBE.aggregate.compile = function(select){
 	if (select.aggregate === undefined) select.aggregate = "none";
 
 	if (CUBE.aggregate[select.aggregate] === undefined){
-		D.error("Do not know aggregate aggregate '" + select.aggregate + "'");
+		Log.error("Do not know aggregate aggregate '" + select.aggregate + "'");
 	}//endif
 
 	CUBE.aggregate[select.aggregate](select);
@@ -120,7 +120,7 @@ CUBE.aggregate.none = function(select){
 	select.add = function(total, v){
 		if (v === undefined || v == null) return total;
 		if (total == null) return v;
-		D.error("Not expecting to aggregate, only one non-null value allowed per set");
+		Log.error("Not expecting to aggregate, only one non-null value allowed per set");
 		return null;
 	};//method
 
@@ -142,7 +142,7 @@ CUBE.aggregate.one = function(select){
 		if (v === undefined || v == null) return total;
 		if (total == null) return v;
 		if (total==v) return total;
-		D.error("Expecting only one value to aggregate");
+		Log.error("Expecting only one value to aggregate");
 		return null;
 	};//method
 
@@ -348,7 +348,7 @@ CUBE.aggregate.percentile = function(select){
 	select.domain = {
 		//HOPEFULLY WE WILL NEVER NEED TO SORT PERCENTILES!!!
 		compare:function(a, b){
-			D.error("Please, NO!");
+			Log.error("Please, NO!");
 
 			a = select.end(a);
 			b = select.end(b);

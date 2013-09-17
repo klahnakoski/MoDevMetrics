@@ -71,7 +71,7 @@ TeamFilter.newInstance=function(field_name){
 			if (v.email==null) v.email=v.id;
 
 			if (self.managers[v.id])
-				D.warning(v.id+" is not unique");
+				Log.warning(v.id+" is not unique");
 			self.managers[v.id]= v.manager;
 
 			//USED BY TREE VIEW

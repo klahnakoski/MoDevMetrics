@@ -93,7 +93,7 @@ importScript([
 
 		//CHART OF AGGREGATE RESPONSE TIMES
 		Thread.run("Agg response times", function(){
-			var a=D.action("Grab Stats", true);
+			var a=Log.action("Grab Stats", true);
 			var ages=(yield (ESQuery.run({
 				"name":"DF",
 				"from":"reviews",
@@ -114,10 +114,10 @@ importScript([
 				],
 				"esfilter":mainFilter
 			})));
-			D.actionDone(a);
+			Log.actionDone(a);
 
 
-			a=D.action("Calc Stats", true);
+			a=Log.action("Calc Stats", true);
 			yield (Thread.yield());//GIVE THE MESSAGE OPPORTUNITY TO SHOW
 
 			var percentile=yield(Q({
@@ -134,10 +134,10 @@ importScript([
 				],
 				"where":"wait_time<"+Duration.newInstance("18week").milli
 			}));
-			D.actionDone(a);
+			Log.actionDone(a);
 
 
-			var a=D.action("Make chart", true);
+			var a=Log.action("Make chart", true);
 			aChart.show({
 				"id":"chart",
 				"sheetDiv":"info",
@@ -148,7 +148,7 @@ importScript([
 				xAxisSize: 50,
 				legendSize: 50
 			});
-			D.actionDone(a);
+			Log.actionDone(a);
 
 
 			yield (null);

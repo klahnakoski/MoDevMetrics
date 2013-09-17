@@ -78,7 +78,7 @@ var __createChart = function(){
 	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(doc[\"close_time\"].value), "+sampleMax.getMilli()+"))";
 
 	
-	var a=D.action("Download Times", true);
+	var a=Log.action("Download Times", true);
 	var durations=yield(ESQuery.run({
 		"from":"bugs",
 		"select":
@@ -94,7 +94,7 @@ var __createChart = function(){
 			GUI.state.componentFilter.makeFilter()
 		]}
 	}));
-	D.actionDone(a);
+	Log.actionDone(a);
 
 	Thread.run(function(){
 		var average=yield(ESQuery.run({

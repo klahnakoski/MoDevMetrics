@@ -64,7 +64,7 @@
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
-<script type="application/javascript;version=1.7" src="js/aDebug.js"></script>
+<script type="application/javascript;version=1.7" src="js/debug/aLog.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
 
@@ -194,11 +194,11 @@
 		(GUI.injectFilters({"esQuery":esQuery}));
 
 
-		D.action("Call ES");
+		Log.action("Call ES");
 		ElasticSearchQuery.OldRun(
 			{
 				"success" : function(data){
-					D.action("processing Data");
+					Log.action("processing Data");
 					var inReview = MVEL.esFacet2List(data.facets.inReview);
 					var doneReview = MVEL.esFacet2List(data.facets.doneReview);
 

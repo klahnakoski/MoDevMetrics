@@ -52,7 +52,7 @@ var createChart=function(){
 
 
 		
-		D.addLogToElement("results");
+		Log.addLogToElement("results");
 
 //EXTRACT ALL DOMAIN VALUES TO CHARACTERIZE THE ES STORE
 
@@ -152,10 +152,10 @@ var createChart=function(){
 
 					addToTable(col.name, "{min:"+result.facets.all.min+",max:"+result.facets.all.max+"}");
 				}else{
-					D.error("do not know what to do here");
+					Log.error("do not know what to do here");
 				}//endif
 				}catch(e){
-					D.warning("problem with "+col.name, e);
+					Log.warning("problem with "+col.name, e);
 				}//try
 			}//for
 

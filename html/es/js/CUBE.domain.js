@@ -18,7 +18,7 @@ CUBE.domain.compile = function(column, sourceColumns){
 
 	if (column.domain.type===undefined && column.domain.partitions!==undefined){
 		column.domain.type="set";
-		if (column.domain.name==="undefined") D.warning("it is always good to name your domain");
+		if (column.domain.name==="undefined") Log.warning("it is always good to name your domain");
 	}//endif
 	if (column.domain.type=="date"){
 		if (column.domain.name===undefined) column.domain.name="date"; //KEEP THE NAME
@@ -30,14 +30,14 @@ CUBE.domain.compile = function(column, sourceColumns){
 	}//endif
 	
 	if (column.domain.type===undefined)
-		D.error("Expecting a domain to have a 'type' attribute");
+		Log.error("Expecting a domain to have a 'type' attribute");
 
 	if (column.domain.type=="value"){
 		column.domain=CUBE.domain.value;
 	}else if (CUBE.domain[column.domain.type]){
 		CUBE.domain[column.domain.type](column, sourceColumns);
 	} else{
-		D.error("Do not know how to compile a domain of type '" + column.domain.type + "'");
+		Log.error("Do not know how to compile a domain of type '" + column.domain.type + "'");
 	}//endif
 };//method
 
@@ -62,11 +62,11 @@ CUBE.domain.equals=function(a, b){
 		if (a.max.getMilli()!=b.max.getMilli()) return false;
 		return true;
 	}else if (a.type="duration" && b.type=="duration"){
-		D.error("not completed");
+		Log.error("not completed");
 	}else if (a.type="numeric" && b.type=="numeric"){
-		D.error("not completed");
+		Log.error("not completed");
 	}else{
-		D.error("do not know what to do here");
+		Log.error("do not know what to do here");
 	}//endif
 };//method
 
@@ -219,7 +219,7 @@ CUBE.domain.time = function(column, sourceColumns){
 		eval(f);
 	}else if (column.range){
 		if (column.range.min===undefined && column.range.max===undefined){
-			D.error("Expecting the range parameter to have a min, or max, or both");
+			Log.error("Expecting the range parameter to have a min, or max, or both");
 		}//endif
 
 
@@ -241,7 +241,7 @@ CUBE.domain.time = function(column, sourceColumns){
 		}//for
 
 //if (column.range.max=="max"){
-//	D.println("");
+//	Log.note("");
 //}//endif
 		var condition;
 		if (column.range.type!==undefined && column.range.type=="inclusive"){
@@ -299,12 +299,12 @@ CUBE.domain.time = function(column, sourceColumns){
 			key=new Date(key);
 		if (key < this.min || this.max <= key) return this.NULL;
 //if (key.getMilli()==new Date(2012, 3, 1).floorDay().getMilli())
-//	D.println("");
+//	Log.note("");
 
 		var i=aMath.floor(key.subtract(this.min, this.interval).divideBy(this.interval));
 
 		if (this.partitions[i].min>key || key>=this.partitions[i].max)
-			D.error("programmer error");
+			Log.error("programmer error");
 		return this.partitions[i];
 	};//method
 
@@ -368,7 +368,7 @@ CUBE.domain.duration = function(column, sourceColumns){
 
 	var d = column.domain;
 	if (d.name === undefined) d.name = d.type;
-	if (d.interval===undefined) D.error("Expecting domain '"+d.name+"' to have an interval defined");
+	if (d.interval===undefined) Log.error("Expecting domain '"+d.name+"' to have an interval defined");
 	d.NULL = {"value":null, "name":"null"};
 	d.interval = Duration.newInstance(d.interval);
 	d.min = d.min!==undefined ? Duration.newInstance(d.min).floor(d.interval) : undefined;
@@ -396,7 +396,7 @@ CUBE.domain.duration = function(column, sourceColumns){
 
 
 	if (column.range){
-		D.error("duration ranges not supported yet");
+		Log.error("duration ranges not supported yet");
 	}else if (column.test === undefined){
 		var noMin=(d.min===undefined);
 		var noMax=(d.max===undefined);
@@ -407,7 +407,7 @@ CUBE.domain.duration = function(column, sourceColumns){
 			try{
 				var floor = key.floor(this.interval);
 			}catch(e){
-				D.error();
+				Log.error();
 
 			}
 			if (noMin){//NO MINIMUM REQUESTED
@@ -421,7 +421,7 @@ CUBE.domain.duration = function(column, sourceColumns){
 					this.min = floor;
 				}//endif
 			} else if (this.min == null){
-				D.error("Should not happen");
+				Log.error("Should not happen");
 			} else if (key.milli < this.min.milli){
 				return this.NULL;
 			}//endif
@@ -512,7 +512,7 @@ CUBE.domain.numeric = function(column, sourceColumns){
 
 	var d = column.domain;
 	if (d.name === undefined) d.name = d.type;
-	if (d.interval===undefined) D.error("Expecting domain '"+d.name+"' to have an interval defined");
+	if (d.interval===undefined) Log.error("Expecting domain '"+d.name+"' to have an interval defined");
 	d.NULL = {"value":null, "name":"null"};
 	d.interval = CNV.String2Integer(d.interval);
 	d.min = d.min===undefined ? undefined : _floor(CNV.String2Integer(d.min), d.interval);
@@ -548,7 +548,7 @@ CUBE.domain.numeric = function(column, sourceColumns){
 			try{
 				var floor = _floor(key, d.interval);
 			}catch(e){
-				D.error();
+				Log.error();
 
 			}
 
@@ -563,7 +563,7 @@ CUBE.domain.numeric = function(column, sourceColumns){
 					this.min = floor;
 				}//endif
 			} else if (this.min == null){
-				D.error("Should not happen");
+				Log.error("Should not happen");
 			} else if (key < this.min){
 				return this.NULL;
 			}//endif
@@ -690,7 +690,7 @@ CUBE.domain.count = function(column, sourceColumns){
 			try{
 				var floor = _floor(key, d.interval);
 			}catch(e){
-				D.error();
+				Log.error();
 			}
 			if (key < 0){
 				column.outOfDomainCount++;
@@ -771,7 +771,7 @@ CUBE.domain.set = function(column, sourceColumns){
 	if (d.name === undefined) d.name = d.type;
 
 
-	if (d.partitions === undefined) D.error("Expecting domain " + d.name + " to have a 'partitions' attribute to define the set of partitions that compose the domain");
+	if (d.partitions === undefined) Log.error("Expecting domain " + d.name + " to have a 'partitions' attribute to define the set of partitions that compose the domain");
 
 	if (d.partitions.list!=undefined && d.partitions.columns!=undefined){
 		//THE PARTITIONS LOOK LIKE A QUERY, USE IT
@@ -812,7 +812,7 @@ CUBE.domain.set = function(column, sourceColumns){
 	//ALL PARTS MUST BE FORMAL OBJECTS SO THEY CAN BE ANNOTATED
 	if (typeof(d.partitions[0])=="string"){
 		d.partitions.forall(function(part, i){
-			if (typeof(part)!="string") D.error("Partition list can not be heterogeneous");
+			if (typeof(part)!="string") Log.error("Partition list can not be heterogeneous");
 			part={"name":part, "value":part};
 			d.partitions[i]=part;
 		});
@@ -838,9 +838,9 @@ CUBE.domain.set = function(column, sourceColumns){
 
 			var key=d.getKey(part);
 			if (key === undefined)
-				D.error("Expecting object to have '" + d.key + "' attribute:" + CNV.Object2JSON(part));
+				Log.error("Expecting object to have '" + d.key + "' attribute:" + CNV.Object2JSON(part));
 			if (d.map[key] !== undefined){
-				D.error("Domain '" + d.name + "' was given two partitions that map to the same value (a[\"" + d.key + "\"]==b[\"" + d.key + "\"]): where a=" + CNV.Object2JSON(part) + " and b=" + CNV.Object2JSON(d.map[key]));
+				Log.error("Domain '" + d.name + "' was given two partitions that map to the same value (a[\"" + d.key + "\"]==b[\"" + d.key + "\"]): where a=" + CNV.Object2JSON(part) + " and b=" + CNV.Object2JSON(d.map[key]));
 			}//endif
 			d.map[key] = part;
 		}//for
@@ -855,7 +855,7 @@ CUBE.domain.set = function(column, sourceColumns){
 		//SQUARE OR CUBE QUICKLY WITHOUT IT
 		////////////////////////////////////////////////////////////////////////
 		if (column.test.indexOf("||") >= 0){
-			D.warning("Can not optimize test condition with a OR operator: {" + column.test + "}");
+			Log.warning("Can not optimize test condition with a OR operator: {" + column.test + "}");
 			CUBE.domain.set.compileSimpleLookup(column, d, sourceColumns);
 			return;
 		} else{
@@ -884,7 +884,7 @@ CUBE.domain.set = function(column, sourceColumns){
 				}//endif
 			}//for
 			if (indexVars.length==0){
-				D.warning("test clause is too complicated to optimize: {" + column.test + "}");
+				Log.warning("test clause is too complicated to optimize: {" + column.test + "}");
 				CUBE.domain.set.compileSimpleLookup(column, d, sourceColumns);
 				return;
 			}//endif
@@ -914,7 +914,7 @@ CUBE.domain.set = function(column, sourceColumns){
 			try{
 				CUBE.domain.set.compileMappedLookup2(column, d, sourceColumns, lookupVars);
 			}catch(e){
-				D.error("test parameter is malformed", e);
+				Log.error("test parameter is malformed", e);
 			}//try
 		}//endif
 	}//endif
@@ -1088,24 +1088,24 @@ CUBE.domain.compileEnd=function(domain){
 //CONVERT ANY ALGEBRIC DOMAIN TO A numeric DOMAIN (FOR STATS PROCESSING)
 CUBE.domain.algebraic2numeric=function(domain){
 	if (["default", "set"].contains(domain.type)){
-		D.error("Can not convert <partitioned> domain to numeric");
+		Log.error("Can not convert <partitioned> domain to numeric");
 	}//endif
 
 	var output=Map.copy(domain);
 	if (domain.type=="numeric"){
 		//do nothing
 	}else if (domain.type=="time"){
-		if (domain.interval.month!=0) D.error("Do not know how to convert monthly duration to numeric");
+		if (domain.interval.month!=0) Log.error("Do not know how to convert monthly duration to numeric");
 		output.min=domain.min.getMilli();
 		output.max=domain.max.getMilli();
 		output.interval=domain.interval.milli;
 	}else if (domain.type="duration"){
-		if (domain.interval.month!=0) D.error("Do not know how to convert monthly duration to numeric");
+		if (domain.interval.month!=0) Log.error("Do not know how to convert monthly duration to numeric");
 		output.min=domain.min.milli;
 		output.max=domain.max.milli;
 		output.interval=domain.interval.milli;
 	}else{
-		D.error("do not know what to do here");
+		Log.error("do not know what to do here");
 	}//endif
 	return output;
 };//method

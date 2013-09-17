@@ -12,7 +12,7 @@
 
 <script type="application/javascript;version=1.7" src="js/charts/HelperFunctions.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/aDebug.js"></script>
+<script type="application/javascript;version=1.7" src="js/debug/aLog.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
 <script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/aArray.js"></script><script type="application/javascript;version=1.7" src="js/aString.js"></script><script type="application/javascript;version=1.7" src="js/aMath.js"></script><script type="application/javascript;version=1.7" src="js/CNV.js"></script>
@@ -29,8 +29,8 @@
 <div id="info"></div>
 
 <script type="application/javascript;version=1.7">
-	D.println(Date.newInstance(1347753600000).format("yyyy-NNN-dd HHmmss"));
-	D.println(Date.newInstance(1348358400000).format("yyyy-NNN-dd HHmmss"));
+	Log.note(Date.newInstance(1347753600000).format("yyyy-NNN-dd HHmmss"));
+	Log.note(Date.newInstance(1348358400000).format("yyyy-NNN-dd HHmmss"));
 
 	////////////////////////////////////////////////////////////////////////////
 	// WARNING, DOUBLE COUNTS REOPENED BUGS
@@ -74,7 +74,7 @@
 
 
 		success: function(data){
-			D.println(CNV.Object2JSON(data));
+			Log.note(CNV.Object2JSON(data));
 
 //			var bugCount=(yield (CUBE.calc2List({
 //				"from":data.facets.owners,

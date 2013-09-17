@@ -33,7 +33,7 @@ Thread.run("get bug columns", function(){
 ETL.removeOldIndexes=function(etl){
 	//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
 	var data=yield (Rest.get({url: ElasticSearch.pushURL+"/_aliases"}));
-	D.println(data);
+	Log.note(data);
 
 	var keys=Object.keys(data);
 	for(var k=keys.length;k--;){
@@ -78,7 +78,7 @@ ETL.updateAlias=function(etl){
 	//UPDATE THE AUTO-INDEXING TO EVERY SECOND
 	yield (ElasticSearch.setRefreshInterval(etl.newIndexName, "1s"));
 
-	var a=D.action("Change alias pointers");
+	var a=Log.action("Change alias pointers");
 
 	//MAKE ALIAS
 	yield (Rest.post({
@@ -101,7 +101,7 @@ ETL.updateAlias=function(etl){
 				}
 			}));
 		}catch(e){
-			D.warning("Could not remove alias from "+etl.oldIndexName, e);
+			Log.warning("Could not remove alias from "+etl.oldIndexName, e);
 		}//try
 	}//endif
 
@@ -138,7 +138,7 @@ ETL.newInsert=function(etl){
 	if (etl.postMarkup) yield (etl.postMarkup());
 
 	yield(ETL.updateAlias(etl));
-	D.action("Success!");
+	Log.action("Success!");
 };
 
 
@@ -168,7 +168,7 @@ ETL.resumeInsert=function(etl){
 		minBug=yield (ETL.getMaxBugID());
 		maxBug=minBug;
 	}//endif
-//D.warning("minbug set to 750000");
+//Log.warning("minbug set to 750000");
 //minBug=750000;
 
 	if (etl.resume) yield (etl.resume());
@@ -181,7 +181,7 @@ ETL.resumeInsert=function(etl){
 
 	yield (ETL.updateAlias(etl));
 
-	D.action("Success!");
+	Log.action("Success!");
 };
 
 
@@ -189,7 +189,7 @@ ETL.resumeInsert=function(etl){
 ETL.getCurrentIndex=function(etl){
 
 	var data = yield(Rest.get({url: ElasticSearch.pushURL + "/_aliases"}));
-	D.println(data);
+	Log.note(data);
 	var keys = Object.keys(data);
 	for(var k = keys.length; k--;){
 		var name = keys[k];
@@ -206,14 +206,14 @@ ETL.getCurrentIndex=function(etl){
 ETL.incrementalInsert=function(etl){
 
 	yield (ETL.getCurrentIndex(etl));
-	if (etl.newIndexName===undefined) D.error("No index found! (Initial ETL not completed?)");
+	if (etl.newIndexName===undefined) Log.error("No index found! (Initial ETL not completed?)");
 	var startTime=yield (etl.getLastUpdated());
 
 	if (etl.resume) yield (etl.resume());
 
 
 	//FIND RECENTLY TOUCHED BUGS
-	var a=D.action("Get changed bugs", true);
+	var a=Log.action("Get changed bugs", true);
 	var data=yield (ESQuery.run({
 		"from":"bugs",
 		"select": {"name":"bug_id", "value":"bug_id", "aggregate":"count"},
@@ -224,27 +224,27 @@ ETL.incrementalInsert=function(etl){
 			"range":{"modified_ts":{"gte":startTime.addHour(-4).getMilli()}}
 		}
 	}));
-	D.actionDone(a);
+	Log.actionDone(a);
 
 
 	var buglist=[]=data.edges[0].domain.partitions.map(function(v,i){
 		return v.value;
 	});
-	D.println(buglist.length+" bugs found: "+JSON.stringify(buglist));
+	Log.note(buglist.length+" bugs found: "+JSON.stringify(buglist));
 	//FIND EXISTING RECORDS FOR THOSE BUGS
 
 	//GET NEW RECORDS FOR THOSE BUGS
 	var bugSummaries=yield (etl.get(buglist, null));
 
-//	D.action("remove changed bugs");
+//	Log.action("remove changed bugs");
 //	yield (etl["delete"](buglist));				//NEVER DO THIS, ENSURE _id IS ALWAYS THE SAME
-	a=D.action("insert changed bugs", true);
+	a=Log.action("insert changed bugs", true);
 	yield (etl.insert(bugSummaries));
-	D.actionDone(a);
+	Log.actionDone(a);
 
 	if (etl.postMarkup) yield (etl.postMarkup());
 
-	D.println("Done incremental update");
+	Log.note("Done incremental update");
 };
 
 
@@ -256,7 +256,7 @@ ETL.insertBatches=function(etl, fromBatch, toBatch, maxBatch){
 		var data=yield (etl.get(b*etl.BATCH_SIZE, (b+1)*etl.BATCH_SIZE));
 		if (data instanceof Array && data.length==0) continue;
 		yield (etl.insert(data));
-		D.println("Done batch "+b+"/"+maxBatch+" (from "+(b*etl.BATCH_SIZE)+" to "+((b+1)*etl.BATCH_SIZE)+") into "+etl.newIndexName);
+		Log.note("Done batch "+b+"/"+maxBatch+" (from "+(b*etl.BATCH_SIZE)+" to "+((b+1)*etl.BATCH_SIZE)+") into "+etl.newIndexName);
 	}//for
 };//method
 

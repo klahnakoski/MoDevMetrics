@@ -25,7 +25,7 @@ CUBE.analytic.run=function(query){
 CUBE.analytic.add=function(query, analytic){
 
 	var edges = analytic.edges;		//ARRAY OF COLUMN NAMES
-	if (edges===undefined) D.error("Analytic expects 'edges' to be defined, even if empty");
+	if (edges===undefined) Log.error("Analytic expects 'edges' to be defined, even if empty");
 	var sourceColumns=query.columns;
 
 	var copyEdge=false;         //I WISH THE ELEMENT DID NOT HAVE TO BE POLLUTED WITH THE EDGE VALUE
@@ -38,13 +38,13 @@ CUBE.analytic.add=function(query, analytic){
 	}else if (query.list!=undefined){
 		from=query.list;
 	}else{
-		D.error("Analytic not defined, yet");
+		Log.error("Analytic not defined, yet");
 	}//endif
 	
 	//FILL OUT THE ANALYTIC A BIT MORE
 	if (analytic.name===undefined) analytic.name=analytic.value.split(".").last();
 	sourceColumns.forall(function(v){ if (v.name==analytic.name)
-		D.error("All columns must have different names");});
+		Log.error("All columns must have different names");});
 	analytic.columnIndex=sourceColumns.length;
 	sourceColumns[analytic.columnIndex] = analytic;
 	analytic.calc=CUBE.analytic.compile(sourceColumns, analytic.value);
@@ -135,7 +135,7 @@ CUBE.analytic.add=function(query, analytic){
 		from[i][analytic.name]=analytic.calc(from[i][CUBE.analytic.ROWS], from[i][CUBE.analytic.ROWNUM], from[i]);
 
 		if (isNaN(from[i][analytic.name])){
-			D.println("");
+			Log.note("");
 		}//enidf
 
 		from[i][CUBE.analytic.ROWNUM]=undefined;	//CLEANUP
@@ -149,7 +149,7 @@ CUBE.analytic.compile = function(sourceColumns, expression){
 	var func;
 
 
-	if (expression === undefined) D.error("Expecting expression");
+	if (expression === undefined) Log.error("Expecting expression");
 
 //COMPILE THE CALCULATION OF THE DESTINATION COLUMN USING THE SOURCE COLUMNS
 	var f = "func=function(rows, rownum, __source){\n";
@@ -164,10 +164,10 @@ CUBE.analytic.compile = function(sourceColumns, expression){
 		"var output;\n" +
 			"try{ " +
 			" output=" + expression + "; " +
-			" if (output===undefined) D.error(\"analytic returns undefined\");\n" +
+			" if (output===undefined) Log.error(\"analytic returns undefined\");\n" +
 			" return output;\n" +
 			"}catch(e){\n" +
-			" D.error("+
+			" Log.error("+
 				"\"Problem with definition of value=" + CNV.String2Quote(CNV.String2Quote(expression)).leftBut(1).rightBut(1) + " when operating on __source=\"+CNV.Object2JSON(__source)"+
 				"+\" Are you trying to get an attribute value from a NULL part?\"" +
 			", e)"+
@@ -175,7 +175,7 @@ CUBE.analytic.compile = function(sourceColumns, expression){
 	try{
 		eval(f);
 	} catch(e){
-		D.error("can not compile " + f, e);
+		Log.error("can not compile " + f, e);
 	}//try
 	return func;
 };//method

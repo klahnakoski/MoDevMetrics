@@ -5,7 +5,7 @@
 
 
 importScript("../MozillaPrograms.js");
-importScript("../aDebug.js");
+importScript("../debug/aLog.js");
 importScript("../CNV.js");
 
 
@@ -190,7 +190,7 @@ ProgramFilter.prototype.refresh = function(){
 //		GUI.state.productFilter.makeFilter()
 	]);
 
-//	D.println(CNV.Object2JSON(this.query));
+//	Log.note(CNV.Object2JSON(this.query));
 	this.ElasticSearchQuery = OldElasticSearchQuery(this, 0, this.query);
 	this.results = null;
 	this.ElasticSearchQuery.Run();

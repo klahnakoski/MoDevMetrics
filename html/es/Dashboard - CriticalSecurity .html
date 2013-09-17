@@ -58,7 +58,7 @@
 <script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
 
 <script type="application/javascript;version=1.7" src="js/Stats.js"></script>
-<script type="application/javascript;version=1.7" src="js/aDebug.js"></script>
+<script type="application/javascript;version=1.7" src="js/debug/aLog.js"></script>
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
 
@@ -172,7 +172,7 @@ var createChart = function(){
 	(GUI.injectFilters(queryClosed));
 
 
-	D.action("Calling ES");
+	Log.action("Calling ES");
 	query.run(function(openBugAges){
 		queryClosed.run(function(closedBugAges){
 

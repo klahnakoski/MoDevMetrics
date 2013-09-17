@@ -6,7 +6,7 @@
 importScript("CNV.js");
 importScript("aDate.js");
 importScript("aUtil.js");
-importScript("aDebug.js");
+importScript("debug/aLog.js");
 importScript("MVEL.js");
 importScript("CUBE.js");
 
@@ -27,7 +27,7 @@ var ESQuery = function(query){
 
 ESQuery.TrueFilter = {"script":{"script":"true"}};
 
-ESQuery.DEBUG=true;
+ESQuery.DEBUG=false;
 
 ////////////////////////////////////////////////////////////////////////////////
 // THESE ARE THE AVAILABLE ES INDEXES/TYPES
@@ -79,7 +79,7 @@ ESQuery.parseColumns=function(indexName, esProperties){
 				}else if (p.type===undefined){
 					//DO NOTHING
 				}else{
-					D.error("unknown subtype "+p.type);
+					Log.error("unknown subtype "+p.type);
 				}//endif
 			});
 
@@ -107,7 +107,7 @@ ESQuery.parseColumns=function(indexName, esProperties){
 			columns.push({"name":name, "type":property.type, "useSource":property.index=="no"});
 			if (property.index_name && name!=property.index_name) columns.push({"name":property.index_name, "type":property.type, "useSource":property.index=="no"});
 		}else{
-			D.error("unknown type "+property.type);
+			Log.error("unknown type "+property.type);
 		}//endif
 	});
 
@@ -142,10 +142,10 @@ ESQuery.loadColumns=function(query){
 				}));
 			}catch(e){
 				if (e.contains(Thread.Interrupted)){
-					D.warning("Tried to kill, but ignoring");
+					Log.warning("Tried to kill, but ignoring");
 					yield (Thread.suspend());
 				}//endif
-				D.error("problem with call to load columns", e);
+				Log.error("problem with call to load columns", e);
 			}//try
 
 			var properties = schema[indexPath.split("/")[2]].properties;
@@ -166,7 +166,7 @@ ESQuery.run=function(query){
 	var esq=new ESQuery(query);
 
 	 if (Object.keys(esq.esQuery.facets).length==0 && esq.esQuery.size==0)
-			D.error("ESQuery is sending no facets");
+			Log.error("ESQuery is sending no facets");
 
 
 	var output=yield (esq.run());
@@ -174,7 +174,7 @@ ESQuery.run=function(query){
 	Map.copy(CUBE.query.prototype, output);
 
 	if (output===undefined)
-		D.error("what happened here?");
+		Log.error("what happened here?");
 	yield output;
 };
 
@@ -182,7 +182,7 @@ ESQuery.run=function(query){
 ESQuery.prototype.run = function(){
 
 	if (this.query.from=="bugs")
-		D.println("");
+		Log.note("");
 
 	if (!this.query.url){
 		var indexInfo=ESQuery.INDEXES[this.query.from.split(".")[0]];
@@ -193,10 +193,10 @@ ESQuery.prototype.run = function(){
 	if (!this.query.url.endsWith("/_search")) this.query.url+="/_search";  //WHEN QUERIES GET RECYCLED, THEIR url IS SOMETIMES STILL AROUND
 	//var URL=window.ElasticSearch.baseURL+ESQuery.INDEXES[this.query.from.split(".")[0]].path+"/_search";
 	var postResult;
-	if (ESQuery.DEBUG) D.println(CNV.Object2JSON(this.esQuery));
+	if (ESQuery.DEBUG) Log.note(CNV.Object2JSON(this.esQuery));
 
 	if (Object.keys(this.esQuery.facets).length==0 && this.esQuery.size==0)
-		D.error("ESQuery is sending no facets");
+		Log.error("ESQuery is sending no facets");
 
 	try{
 		try{
@@ -218,10 +218,10 @@ ESQuery.prototype.run = function(){
 			if (!e.contains(Exception.TIMEOUT)){
 				throw e;
 			}else{
-				D.action("Query timeout");
+				Log.action("Query timeout");
 				this.nextDelay = nvl(this.nextDelay, 500) * 2;
 				yield (Thread.sleep(this.nextDelay));
-				D.action("Retrying Query...");
+				Log.action("Retrying Query...");
 				//TODO: TRY TO DO TAIL-RECURSION
 				var output=yield (this.run());
 				yield output;
@@ -234,24 +234,24 @@ ESQuery.prototype.run = function(){
 			if (!f.terms) return;
 			
 			if (!ESQuery.DEBUG && f.terms.length==self.query.essize){
-				D.error("Not all data delivered ("+f.terms.length+"/"+f.total+") try smaller range");
+				Log.error("Not all data delivered ("+f.terms.length+"/"+f.total+") try smaller range");
 			}//endif
 		});
 
 		if (postResult._shards.failed>0){
-			D.action(postResult._shards.failed+"of"+postResult._shards.total+" shards failed.");
+			Log.action(postResult._shards.failed+"of"+postResult._shards.total+" shards failed.");
 			this.nextDelay=nvl(this.nextDelay, 500)*2;
 			yield (Thread.sleep(this.nextDelay));
-			D.action("Retrying Query...");
+			Log.action("Retrying Query...");
 			//TODO: TRY TO DO TAIL-RECURSION
 			output=yield (this.run());
 			yield output;
 		}//endif
 	}catch(e){
-		D.error("Error with ESQuery", e);
+		Log.error("Error with ESQuery", e);
 	}//try
 
-//	var a=D.action("Process ES Terms", true);
+//	var a=Log.action("Process ES Terms", true);
 	if (this.esMode == "fields"){
 		this.fieldsResults(postResult);
 	}else if (this.esMode == "terms"){
@@ -263,7 +263,7 @@ ESQuery.prototype.run = function(){
 	} else{//statistical
 		this.statisticalResults(postResult);
 	}//endif
-//	D.actionDone(a);
+//	Log.actionDone(a);
 
 
 	yield this.query;
@@ -271,7 +271,7 @@ ESQuery.prototype.run = function(){
 
 
 ESQuery.prototype.kill = function(){
-	D.warning("do not need to call this anymore");
+	Log.warning("do not need to call this anymore");
 //
 //	if (this.esRequest!==undefined){
 //		try{
@@ -312,7 +312,7 @@ ESQuery.prototype.compile = function(){
 
 	var esFacets;
 	if (this.columns[0].name=="Team"){
-		D.println("");
+		Log.note("");
 	}
 
 
@@ -330,7 +330,7 @@ ESQuery.prototype.compile = function(){
 		}else{
 			var value=this.select[0].value;
 			for(var k=this.select.length;k--;){
-				if (this.select[k].value!=value) D.error("ES Query with multiple select columns must all have the same value");
+				if (this.select[k].value!=value) Log.error("ES Query with multiple select columns must all have the same value");
 			}//for
 
 			if (this.query.select===undefined || (this.select.length==1 && this.select[0].aggregate=="count")){
@@ -352,13 +352,13 @@ ESQuery.prototype.compile = function(){
 		for(var s=this.select.length;s--;){
 			if (this.select[s].value!=this.select[0].value) allSame=false;
 		}//for
-		if (!allSame) D.error("Can not have an array of select columns, only one allowed");
+		if (!allSame) Log.error("Can not have an array of select columns, only one allowed");
 	}else if (this.select.length==0){
 		this.select=undefined;
 	}//endif
 
 	if (this.query.where)
-		D.error("ESQuery does not support the where clause, use esfilter instead");
+		Log.error("ESQuery does not support the where clause, use esfilter instead");
 
 	//VERY IMPORTANT!! ES CAN ONLY USE TERM PACKING ON terms FACETS, THE OTHERS WILL REQUIRE EVERY PARTITION BEING A FACET
 	this.esMode = "terms_stats";
@@ -366,7 +366,7 @@ ESQuery.prototype.compile = function(){
 		this.esMode="terms";
 	}//endif
 	if (ESQuery.agg2es[this.select[0].aggregate]===undefined){
-		D.error("ES can not aggregate "+this.select[0].name+" because '"+this.select[0].aggregate+"' is not a recognized aggregate");
+		Log.error("ES can not aggregate "+this.select[0].name+" because '"+this.select[0].aggregate+"' is not a recognized aggregate");
 	}//endif
 
 	this.facetEdges=[];	//EDGES THAT WILL REQUIRE A FACET FOR EACH PART
@@ -391,7 +391,7 @@ ESQuery.prototype.compile = function(){
 		} else if (this.esMode=="terms"){
 			//NO SPECIAL EDGES FOR terms FACETS (ALL ARE SPECIAL!!)
 		} else{
-			if (this.specialEdge != null) D.error("There is more than one open-ended edge: this can not be handled");
+			if (this.specialEdge != null) Log.error("There is more than one open-ended edge: this can not be handled");
 			this.specialEdge = this.termsEdges[f];
 			this.termsEdges.splice(f, 1);
 			f--;
@@ -590,7 +590,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 			}//endif
 			return output;
 		} else {
-			D.error("Do not know how to handle range query on non-continuous domain");
+			Log.error("Do not know how to handle range query on non-continuous domain");
 		}//endif
 	}else 	if (edge.value===undefined){
 		//MUST USE THIS' esFacet, AND NOT(ALL THOSE ABOVE)
@@ -602,7 +602,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 			output.range[edge.value] = {"gte":MVEL.Value2Query(partition.min), "lt":MVEL.Value2Query(partition.max)};
 		} else if (edge.domain.type == "set"){
 			if (partition.value!==undefined){
-				if (partition.value!=edge.domain.getKey(partition)) D.error("please ensure the key attribute of the domain matches the value attribute of all partitions, if only because we are now using the former");
+				if (partition.value!=edge.domain.getKey(partition)) Log.error("please ensure the key attribute of the domain matches the value attribute of all partitions, if only because we are now using the former");
 				//DEFAULT TO USING THE .value ATTRIBUTE, IF ONLY BECAUSE OF LEGACY REASONS
 				output.term = Map.newInstance(edge.value, partition.value);
 			}else{
@@ -612,7 +612,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 			output.term = {};
 			output.term[edge.value] = partition.value;
 		} else{
-			D.error("Edge \"" + edge.name + "\" is not supported");
+			Log.error("Edge \"" + edge.name + "\" is not supported");
 		}//endif
 		return output;
 	} else{
@@ -723,7 +723,7 @@ ESQuery.prototype.compileEdges2Term=function(constants){
 			};
 
 			//ONLY USED BY terms_stats, AND VALUE IS IN THE SELECT CLAUSE
-			if (!MVEL.isKeyword(specialEdge.value)) D.error("Can not handle complex edge value with "+this.select[0].aggregate);
+			if (!MVEL.isKeyword(specialEdge.value)) Log.error("Can not handle complex edge value with "+this.select[0].aggregate);
 			if (MVEL.isKeyword(this.select[0].value)){
 				return {"type":"field", "field":specialEdge.value, "value":this.select[0].value};
 			}else{
@@ -801,7 +801,7 @@ ESQuery.prototype.compileEdges2Term=function(constants){
 		}else{
 			t=ESQuery.compileString2Term(e);
 		}//for
-		if (t.toTerm.body===undefined) D.error();
+		if (t.toTerm.body===undefined) Log.error();
 
 		fromTerm2Part.push(t.fromTerm);
 		mvel=t.toTerm.head+mvel+t.toTerm.body;
@@ -824,7 +824,7 @@ ESQuery.prototype.compileEdges2Term=function(constants){
 //RETURN MVEL CODE THAT MAPS TIME AND DURATION DOMAINS DOWN TO AN INTEGER AND
 //AND THE JAVASCRIPT THAT WILL TURN THAT INTEGER BACK INTO A PARTITION (INCLUDING NULLS)
 ESQuery.compileTime2Term=function(edge){
-	if (edge.esscript) D.error("edge script not supported yet");
+	if (edge.esscript) Log.error("edge script not supported yet");
 
 	//IS THERE A LIMIT ON THE DOMAIN?
 	var numPartitions=edge.domain.partitions.length;
@@ -866,7 +866,7 @@ ESQuery.compileTime2Term=function(edge){
 //RETURN MVEL CODE THAT MAPS DURATION DOMAINS DOWN TO AN INTEGER AND
 //AND THE JAVASCRIPT THAT WILL TURN THAT INTEGER BACK INTO A PARTITION (INCLUDING NULLS)
 ESQuery.compileDuration2Term=function(edge){
-	if (edge.esscript) D.error("edge script not supported yet");
+	if (edge.esscript) Log.error("edge script not supported yet");
 
 	//IS THERE A LIMIT ON THE DOMAIN?
 	var numPartitions=edge.domain.partitions.length;
@@ -895,9 +895,9 @@ ESQuery.compileDuration2Term=function(edge){
 //RETURN MVEL CODE THAT MAPS THE numeric DOMAIN DOWN TO AN INTEGER AND
 //AND THE JAVASCRIPT THAT WILL TURN THAT INTEGER BACK INTO A PARTITION (INCLUDING NULLS)
 ESQuery.compileNumeric2Term=function(edge){
-	if (edge.script!==undefined) D.error("edge script not supported yet");
+	if (edge.script!==undefined) Log.error("edge script not supported yet");
 
-	if (edge.domain.type!="numeric" && edge.domain.type!="count") D.error("can only translate numeric domains");
+	if (edge.domain.type!="numeric" && edge.domain.type!="count") Log.error("can only translate numeric domains");
 
 	var numPartitions=edge.domain.partitions.length;
 	var value=edge.value;
@@ -938,7 +938,7 @@ ESQuery.compileNumeric2Term=function(edge){
 
 
 ESQuery.compileString2Term=function(edge){
-	if (edge.esscript) D.error("edge script not supported yet");
+	if (edge.esscript) Log.error("edge script not supported yet");
 
 	var value=edge.value;
 	if (MVEL.isKeyword(value)) value="getDocValue(\""+value+"\")";
@@ -979,7 +979,7 @@ ESQuery.compileES2Term=function(edge){
 //RETURN A MVEL EXPRESSION THAT WILL EVALUATE TO true FOR OUT-OF-BOUNDS
 ESQuery.compileNullTest=function(edge){
 	if (!CUBE.domain.ALGEBRAIC.contains(edge.domain.type))
-		D.error("can only translate time and duration domains");
+		Log.error("can only translate time and duration domains");
 
 	//IS THERE A LIMIT ON THE DOMAIN?
 	var value=edge.value;
@@ -1338,7 +1338,7 @@ ESFilter.removeOr=function(esfilter){
 ESFilter.normalize=function(esfilter){
 	if (esfilter.isNormal) return esfilter;
 
-D.println("from: "+CNV.Object2JSON(esfilter));
+Log.note("from: "+CNV.Object2JSON(esfilter));
 	var output=esfilter;
 
 	while(output!=null){
@@ -1438,7 +1438,7 @@ D.println("from: "+CNV.Object2JSON(esfilter));
 			break;
 		}//endif
 	}//while
-D.println("  to: "+CNV.Object2JSON(esfilter));
+Log.note("  to: "+CNV.Object2JSON(esfilter));
 
 	esfilter.isNormal=true;
 	return esfilter;

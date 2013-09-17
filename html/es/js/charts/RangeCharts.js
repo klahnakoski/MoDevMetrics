@@ -23,7 +23,7 @@ RangeChart = function(chartRequest){
 		this.dataSet.maxIndex = chartRequest["iterations"] - 1;
 	}
 
-	D.println("ChangeChart Called.");
+	Log.note("ChangeChart Called.");
 };
 
 RangeChart.prototype.defaults=function(){
@@ -198,14 +198,14 @@ RangeChart.prototype.BuildEquationString = function(seriesName){
 RangeChart.prototype.Evaluate = function(){
 	if (this.evaluations == null)
 		return;
-	//D.println("Evaluation Called.")
+	//Log.note("Evaluation Called.")
 
 	for(var e=0;e<this.evaluations.length;e++){
 		if (e in this.dataSet.store) this.dataSet.store[e] = {};
 
 		var equation = this.BuildEquationString(e);
 
-		//D.println("Build Equation: " + equation);
+		//Log.note("Build Equation: " + equation);
 
 		var firstSeries = null;
 
@@ -217,7 +217,7 @@ RangeChart.prototype.Evaluate = function(){
 		for(var i=0;i<firstSeries.length;i++){
 			var value = eval(equation);
 
-			//D.println("Evaluated String: " + value);
+			//Log.note("Evaluated String: " + value);
 			if (this.iterator == "date")
 				this.dataSet.addData(e, i, "date", firstSeries[i].date);
 
@@ -341,7 +341,7 @@ RangeChart.prototype.ConvertToChartData = function(){
 		}
 	}
 
-	//D.println( CNV.Object2JSON( chartData ));
+	//Log.note( CNV.Object2JSON( chartData ));
 
 	return chartData;
 };
@@ -359,7 +359,7 @@ RangeChart.prototype.showSeriesCheck = function(seriesName){
 };
 
 RangeChart.prototype.success = function(data, id){
-	if (id!=this.dataSet.currentIndex) D.error("should not happen");
+	if (id!=this.dataSet.currentIndex) Log.error("should not happen");
 
 
 	for(var i = 0; i < data.length; i++){
@@ -371,7 +371,7 @@ RangeChart.prototype.success = function(data, id){
 
 	if (this.dataSet.currentIndex <= this.dataSet.maxIndex){
 
-		D.action("Processing: " + ( this.dataSet.currentIndex + 1 ) + " out of " + parseInt(this.dataSet.maxIndex + 1));
+		Log.action("Processing: " + ( this.dataSet.currentIndex + 1 ) + " out of " + parseInt(this.dataSet.maxIndex + 1));
 
 		var progress = (this.dataSet.currentIndex + 1 ) / ( this.dataSet.maxIndex + 1 ) * 100;
 
@@ -379,14 +379,14 @@ RangeChart.prototype.success = function(data, id){
 			"value" : progress
 		});
 	}else{
-		D.action("Chart Rendering Complete");
+		Log.action("Chart Rendering Complete");
 	}
 
 	this.renderChart();
 };
 
 RangeChart.prototype.error = function(requestObject, errorData, errorMsg, errorThrown){
-	D.println(errorMsg + ": " + errorThrown);
+	Log.note(errorMsg + ": " + errorThrown);
 };
 
 chart = null;

@@ -97,12 +97,12 @@ REVIEWS.makeSchema=function(successFunction){
 		"url":ElasticSearch.pushURL+"/"+REVIEWS.newIndexName,
 		"data":setup
 	}));
-	D.println(data);
+	Log.note(data);
 
 	//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
 	data=yield (Rest.get({url: ElasticSearch.pushURL+"/_aliases"}));
 
-	D.println(data);
+	Log.note(data);
 
 	//REMOVE ALL BUT MOST RECENT REVIEW
 	//				forAllKeys(data, function(name){
@@ -274,23 +274,23 @@ REVIEWS.get=function(minBug, maxBug){
 
 	var inReview;
 	var A=Thread.run("Get Review Requests", function(){
-		var a=D.action("Get Review Requests", true);
+		var a=Log.action("Get Review Requests", true);
 		inReview=yield(reviewQuery.run());
-		D.actionDone(a);
+		Log.actionDone(a);
 	});
 
 	var doneReview;
 	var B=Thread.run("Get Review Ends", function(){
-		var a=D.action("Get Review Ends", true);
+		var a=Log.action("Get Review Ends", true);
 		doneReview=yield(doneQuery.run());
-		D.actionDone(a);
+		Log.actionDone(a);
 	});
 
 	var switchedReview;
 	var C=Thread.run("Get Review Re-assignments", function(){
-		var a=D.action("Get Review Re-assignments", true);
+		var a=Log.action("Get Review Re-assignments", true);
 		switchedReview=yield(switchedQuery.run());
-		D.actionDone(a);
+		Log.actionDone(a);
 	});
 
 	yield (Thread.join(A));
@@ -298,11 +298,11 @@ REVIEWS.get=function(minBug, maxBug){
 	yield (Thread.join(C));
 
 
-	var a=D.action("processing Data...", true);
+	var a=Log.action("processing Data...", true);
 
-//	D.println(CNV.List2Tab(inReview.list));
-//	D.println(CNV.List2Tab(doneReview.list));
-//	D.println(CNV.List2Tab(switchedReview.list));
+//	Log.note(CNV.List2Tab(inReview.list));
+//	Log.note(CNV.List2Tab(doneReview.list));
+//	Log.note(CNV.List2Tab(switchedReview.list));
 
 	doneReview.list.appendArray(switchedReview.list);
 
@@ -345,7 +345,7 @@ REVIEWS.get=function(minBug, maxBug){
 //		"where":"doneReview.review_end_reason!='reassigned'"
 	}))).list;
 
-	D.actionDone(a);
+	Log.actionDone(a);
 	yield (reviewQueues);
 };//method
 
@@ -357,9 +357,9 @@ REVIEWS.insert=function(reviews){
 		insert.push(JSON.stringify({ "index" : { "_id" : r.bug_id+"-"+r.attach_id } }));
 		insert.push(JSON.stringify(r));
 	});
-	var a=D.action("Push review queues to ES", true);
+	var a=Log.action("Push review queues to ES", true);
 	yield (ElasticSearch.bulkInsert(REVIEWS.newIndexName, REVIEWS.typeName, insert));
-	D.actionDone(a);
+	Log.actionDone(a);
 };//method
 
 
@@ -404,7 +404,7 @@ REVIEWS.postMarkup=function(){
 	// MAIN UPDATE FUNCTION
 	////////////////////////////////////////////////////////////////////////////
 	var update=function(emails){
-		var a=D.action("Get reviews by requester", true);
+		var a=Log.action("Get reviews by requester", true);
 		var firstTime=yield(ESQuery.run({
 			"url":ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName,
 			"from":"reviews",
@@ -421,9 +421,9 @@ REVIEWS.postMarkup=function(){
 //				,{"term":{"requester":"artpar@gmail.com"}}
 			]}
 		}));
-		D.actionDone(a);
+		Log.actionDone(a);
 
-		a=D.action("Calculate request ordering", true);
+		a=Log.action("Calculate request ordering", true);
 		var review_count=yield (CUBE.calc2List({//FIRST REVIEW FOR EACH BUG BY REQUESTER
 			"from":firstTime,
 			"analytic":[
@@ -432,12 +432,12 @@ REVIEWS.postMarkup=function(){
 			],
 			"sort":["requester_review_num"]
 		}));
-		D.actionDone(a);
+		Log.actionDone(a);
 
 //		$("#results").html(CNV.List2HTMLTable(review_count.list));
 
 
-		a=D.action("Sending "+review_count.list.length+" changes to "+ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName, true);
+		a=Log.action("Sending "+review_count.list.length+" changes to "+ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName, true);
 		var maxPush=6;
 		for(var i=0;i<review_count.list.length;i++){
 			var v=review_count.list[i];
@@ -457,12 +457,12 @@ REVIEWS.postMarkup=function(){
 						}
 					}));
 				}catch(e){
-					D.error("problem updating review", e);
+					Log.error("problem updating review", e);
 				}//try
 				maxPush++;
 			});
 		}//for
-		D.actionDone(a);
+		Log.actionDone(a);
 	};
 
 

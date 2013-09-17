@@ -55,7 +55,7 @@ Bugzilla.search=function(bugList, fields){
 				throw new Exception("can not get bugs!");
 			}//endif
 			numCalls--;
-			D.println(result.length+"+"+data.length);
+			Log.note(result.length+"+"+data.length);
 
 			for(var r=data.length;r--;){
 				var b=data[r];

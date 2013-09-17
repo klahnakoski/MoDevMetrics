@@ -94,12 +94,12 @@
 				yield(null);
 			}//try
 
-			var a = D.action("Sending query", true);
+			var a = Log.action("Sending query", true);
 
 			try{
 				var data = yield(cubeQuery.run());
 
-				D.action("Got result");
+				Log.action("Got result");
 
 				if (data.cube !== undefined){
 					data.list = yield(CUBE.Cube2List(data));
@@ -110,11 +110,11 @@
 					$("#result").html(CNV.String2HTML(CNV.Object2JSON(data)));
 				}//endif
 			} catch(e){
-				D.action(e.message);
+				Log.action(e.message);
 				if (e.data !== undefined) $("#result").html(e.data.response);
 			}//try
 
-			D.actionDone(a);
+			Log.actionDone(a);
 		};
 
 

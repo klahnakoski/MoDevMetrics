@@ -170,9 +170,9 @@ var __createChart = function(){
 	$("#cube").val(CNV.Object2JSON(query));
 
 
-	var a=D.action("Request Data from ES", false);
+	var a=Log.action("Request Data from ES", false);
 	var chart=yield (ESQuery.run(query));
-	D.actionDone(a);
+	Log.actionDone(a);
 
 	if (GUI.state.normalizeZ){
 		CUBE.normalizeByCohort(chart, 100);

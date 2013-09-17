@@ -75,7 +75,7 @@ var __createChart = function(){
 	GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
 
 
-	D.action("Download Times");
+	Log.action("Download Times");
 	var requestTimes=yield(ESQuery.run({
 		"from":"reviews",
 		"select":[
@@ -129,7 +129,7 @@ var __createChart = function(){
 
 //	durations.edges[1].domain.NULL.name="Over "+GUI.state.maxX;
 
-	var a=D.action("Make chart", true);
+	var a=Log.action("Make chart", true);
 	aChart.show({
 		"id":"chart",
 		"sheetDiv":"info",
@@ -139,7 +139,7 @@ var __createChart = function(){
 		"height":500,
 		showValues: false
 	});
-	D.actionDone(a);
+	Log.actionDone(a);
 
 };
 

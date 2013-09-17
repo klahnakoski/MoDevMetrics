@@ -9,7 +9,7 @@ CUBE.column = {};
 CUBE.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //useMVEL TO INDICATE THIS IS AN ES COLUMN
 
 	if (typeof(resultColumn)=='string'){
-		D.error("expecting a column definition, not a string");
+		Log.error("expecting a column definition, not a string");
 	}//endif
 	if (resultColumn.name===undefined) resultColumn.name=resultColumn.value;
 
@@ -24,7 +24,7 @@ CUBE.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //
 	resultColumn.sortOrder = 1;
 	if (resultColumn.sort== "descending") resultColumn.sortOrder = -1;
 	if (resultColumn.sort!=undefined && ["descending", "none", "ascending"].indexOf(resultColumn.sort)==-1){
-		D.error(resultColumn.name+' has unknown sort order, pick one of ["descending", "none", "ascending"]');
+		Log.error(resultColumn.name+' has unknown sort order, pick one of ["descending", "none", "ascending"]');
 	}//endif
 
 	if (useMVEL!==undefined && useMVEL) return;
@@ -46,7 +46,7 @@ CUBE.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //
 		//ONLY DEFINE VARS THAT ARE USED
 		if (resultColumn.value.indexOf(columnName) != -1){
 			f += "var " + columnName + "=__source." + columnName + ";\n";
-//				"if (" + columnName + "===undefined) D.error(\"" + columnName + " is undefined\");\n";
+//				"if (" + columnName + "===undefined) Log.error(\"" + columnName + " is undefined\");\n";
 		}//endif
 	}//for
 	if (edges !== undefined) for(var i = 0; i < edges.length; i++){
@@ -56,12 +56,12 @@ CUBE.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //
 		if (domainName!==undefined){
 			if (resultColumn.value.indexOf(domainName + ".") != -1){
 				f += "var " + domainName + "=__result["+i+"];\n";
-//				"if (" + domainName + "===undefined) D.error(\"" + domainName + " is undefined\");\n";
+//				"if (" + domainName + "===undefined) Log.error(\"" + domainName + " is undefined\");\n";
 			}//endif
 			
 			var reg=new RegExp(domainName+"\\s*==", "g");
 			if (reg.test(resultColumn.value)){
-				D.error("Using domain '"+domainName+"' on it's own is a good idea, it is just not implemented yet");
+				Log.error("Using domain '"+domainName+"' on it's own is a good idea, it is just not implemented yet");
 			}//endif
 		}//endif
 	}//for
@@ -70,10 +70,10 @@ CUBE.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //
 		"var output;\n"+
 		"try{ " +
 			"	output=" + resultColumn.value + "; " +
-			"	if (output===undefined || aMath.isNaN(output)) D.error(\"" + resultColumn.name + " returns \"+CNV.Value2Quote(output));\n"+
+			"	if (output===undefined || aMath.isNaN(output)) Log.error(\"" + resultColumn.name + " returns \"+CNV.Value2Quote(output));\n"+
 			"	return output;\n" +
 			"}catch(e){\n" +
-			"	D.error("+
+			"	Log.error("+
 					"\"Problem with definition of name=\\\"" + resultColumn.name +
 					"\\\" value=" + CNV.String2Quote(CNV.String2Quote(resultColumn.value)).leftBut(1).rightBut(1) +
 					" when operating on __source=\"+CNV.Object2JSON(__source)+\" and __result=\"+CNV.Object2JSON(__result)"+
@@ -83,7 +83,7 @@ CUBE.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //
 	try{
 		eval(f);
 	} catch(e){
-		D.error("can not compile " + f, e);
+		Log.error("can not compile " + f, e);
 	}//try
 
 };//method
@@ -122,12 +122,12 @@ CUBE.where.compile = function(whereClause, sourceColumns, edges){
 		"try{\n" +
 			"	return (" + whereClause + ");\n" +
 			"}catch(e){\n" +
-			"	D.warning(\"Problem with definition of the where clause " + CNV.String2Quote(whereClause).rightBut(1).leftBut(1) + "\", e);\n" +
+			"	Log.warning(\"Problem with definition of the where clause " + CNV.String2Quote(whereClause).rightBut(1).leftBut(1) + "\", e);\n" +
 			"}}";
 	try{
 		eval(f);
 	}catch(e){
-		D.error("Can not compile where clause {\n"+f+"\n}", e);
+		Log.error("Can not compile where clause {\n"+f+"\n}", e);
 	}//try
 
 	return whereMethod;

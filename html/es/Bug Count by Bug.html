@@ -47,7 +47,7 @@
 	ElasticSearchQuery.Run({
 		"query":query,
 		success: function(data){
-			D.println(CNV.Object2JSON(data));
+			Log.note(CNV.Object2JSON(data));
 
 			var htmlSummary = CNV.ESResult2HTMLSummaries(data);
 			var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));

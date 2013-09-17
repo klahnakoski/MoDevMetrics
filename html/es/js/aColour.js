@@ -1050,7 +1050,7 @@ function Rgb2Xyz(rgb){
 	if (DEBUG){
 		var test=Xyz2Rgb(output);
 		if (!Map.equals(rgb, test)){
-			D.error("");
+			Log.error("");
 		}//endif
 	}//endif
 	return output;
@@ -1161,7 +1161,7 @@ function Xyz2Rgb(xyz){
 	if (DEBUG){
 		var test=Luv2Xyz(output);
 		if (!Map.equals(xyz, test)){
-			D.error("");
+			Log.error("");
 		}//endif
 	}//endif
 	return output;
