@@ -31,7 +31,7 @@ MVEL.prototype.code = function(query){
 		"output;\n";
 
 	//ADD REFERENCED CONTEXT VARIABLES
-	var context=MVEL.compile.getContextVariables(indexName, body);
+	var context=MVEL.compile.getContextVariables(indexName, body, query.isLean);
 
 	if (body.indexOf("<BODY")>=0)
 		D.error();
@@ -109,7 +109,7 @@ MVEL.compile.expression = function(expression, query, constants){
 	var indexName=fromPath.split(".")[0];
 //	var whereClause = query.where;
 
-	var context = MVEL.compile.getContextVariables(indexName, expression);
+	var context = MVEL.compile.getContextVariables(indexName, expression, query.isLean);
 	if (context=="") return MVEL.compile.addFunctions(expression);
 
 //	var body = "output = "+expression+"; output;\n";
@@ -128,7 +128,7 @@ MVEL.compile.expression = function(expression, query, constants){
 };//method
 
 
-MVEL.compile.getContextVariables=function(indexName, body){
+MVEL.compile.getContextVariables=function(indexName, body, isLean){
 	var context = "";
 	var columns = ESQuery.getColumns(indexName);
 
@@ -163,13 +163,20 @@ MVEL.compile.getContextVariables=function(indexName, body){
 				}//endif
 			}//function
 
-			if (c.useSource){
-				context += "var " + c.name + " = _source." + c.name + ";\n";
-			}else if (c.name.indexOf(".")>=0){
-				var parentName=defParent(c.name.split(".").leftBut(1).join("."));
-				context += c.name + " = getDocValue(\"" + c.name + "\");\n";
+			if (isLean || c.useSource){
+				if (c.name.indexOf(".")>=0){
+					var parent=defParent(c.name.split(".").leftBut(1).join("."));
+					context += c.name + " = getSourceValue(\""+ c.name + "\");\n";
+				}else{
+					context += "var " + c.name + " = _source[\"" + c.name + "\"];\n";
+				}//endif
 			}else{
-				context += "var " + c.name + " = getDocValue(\"" + c.name + "\");\n";
+				if (c.name.indexOf(".")>=0){
+					defParent(c.name.split(".").leftBut(1).join("."));
+					context += c.name + " = getDocValue(\"" + c.name + "\");\n";
+				}else{
+					context += "var " + c.name + " = getDocValue(\"" + c.name + "\");\n";
+				}//endif
 			}//endif
 			break;
 		}//while
@@ -596,8 +603,8 @@ MVEL.FUNCTIONS={
 
 	"getFlagValue":  //SPECIFICALLY FOR cf_* FLAGS: CONCATENATE THE ATTRIBUTE NAME WITH ATTRIBUTE VALUE, IF EXISTS
 		"var getFlagValue = function(name){\n"+
-			"if (doc[name]!=null && doc[name].value!=null)" +
-				"\" \"+name+doc[name].stringValue.trim();\n"+
+			"if (_source[name]!=null)" +
+				"\" \"+name+_source[name];\n"+
 			"else \n"+
 				"\"\";\n"+
 		"};\n",
@@ -610,6 +617,16 @@ MVEL.FUNCTIONS={
 			"if (v==null || v.value==null) { null; } else " +
 			"if (v.values.length<=1){ v.value; } else " + //ES MAKES NO DISTINCTION BETWEEN v or [v], SO NEITHER DO I
 			"{for(k : v.values) out.add(k); out;}" +
+		"};\n",
+
+	"getSourceValue":
+		"var getSourceValue = function(name){\n"+
+			"var out = [];\n"+
+			"var v = _source[name];\n"+
+//			"if (v is org.elasticsearch.common.mvel2.ast.Function) v = v();=n" +
+			"if (v==null) { null; } else " +
+			"if (v.values.length<=1){ v.value; } else " + //ES MAKES NO DISTINCTION BETWEEN v or [v], SO NEITHER DO I
+			"{for(k : v) out.add(k); out;}" +
 		"};\n",
 
 	"getDocArray":

@@ -142,6 +142,7 @@ REVIEWS.get=function(minBug, maxBug){
 
 	var reviewQuery=new ESQuery({
 		"timeout":60000,
+		"isLean":true,
 		"select" : [
 			{"name":"bug_id", "value":"bugs.bug_id"},
 			{"name":"attach_id", "value":"bugs.attachments.attach_id"},
@@ -198,6 +199,7 @@ REVIEWS.get=function(minBug, maxBug){
 
 	var doneQuery = new ESQuery({
 		"timeout":60000,
+		"isLean":true,
 		"select" : [
 			{"name":"bug_id", "value":"bugs.bug_id"},
 			{"name":"attach_id", "value":"bugs.attachments.attach_id"},
@@ -240,6 +242,7 @@ REVIEWS.get=function(minBug, maxBug){
 	//REVIEWS END WHEN REASSIGNED TO SOMEONE ELSE
 	var switchedQuery = new ESQuery({
 		"timeout":60000,
+		"isLean":true,
 		"select" : [
 			{"name":"bug_id", "value":"bugs.bug_id"},
 			{"name":"attach_id", "value":"bugs.changes.attach_id"},

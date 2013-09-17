@@ -27,7 +27,7 @@ var ESQuery = function(query){
 
 ESQuery.TrueFilter = {"script":{"script":"true"}};
 
-ESQuery.DEBUG=false;
+ESQuery.DEBUG=true;
 
 ////////////////////////////////////////////////////////////////////////////////
 // THESE ARE THE AVAILABLE ES INDEXES/TYPES
@@ -222,6 +222,7 @@ ESQuery.prototype.run = function(){
 				this.nextDelay = nvl(this.nextDelay, 500) * 2;
 				yield (Thread.sleep(this.nextDelay));
 				D.action("Retrying Query...");
+				//TODO: TRY TO DO TAIL-RECURSION
 				var output=yield (this.run());
 				yield output;
 			}//endif
@@ -242,6 +243,7 @@ ESQuery.prototype.run = function(){
 			this.nextDelay=nvl(this.nextDelay, 500)*2;
 			yield (Thread.sleep(this.nextDelay));
 			D.action("Retrying Query...");
+			//TODO: TRY TO DO TAIL-RECURSION
 			output=yield (this.run());
 			yield output;
 		}//endif
