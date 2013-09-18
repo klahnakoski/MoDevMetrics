@@ -1100,7 +1100,6 @@ CUBE.drill=function(query, parts){
 
 
 
-
 	CUBE.query={};
 	CUBE.query.prototype={};
 	//GET THE SUB-CUBE THE HAD name=value

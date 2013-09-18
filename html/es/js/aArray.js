@@ -86,6 +86,18 @@
 		return output;
 	};//method
 
+	Array.prototype.groupBy=function(size){
+		if (size===undefined){
+			Log.error("Can only handle size parameter right now");
+		}//endif
+
+		var output=[];
+		for(var i=0;i<this.length;i+=size){
+			output.append({"group":i/size, "values":this.slice(i, i+size)})
+		}//for
+		return output;
+	};//method
+
 
 	Array.prototype.filter=function(func){
 		var output=[];

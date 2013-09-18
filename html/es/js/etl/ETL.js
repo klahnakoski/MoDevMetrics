@@ -173,7 +173,7 @@ ETL.resumeInsert=function(etl){
 
 	if (etl.resume) yield (etl.resume());
 
-	var toBatch=aMath.floor(minBug/etl.BATCH_SIZE)-1;
+	var toBatch=aMath.floor(minBug/etl.BATCH_SIZE);
 
 	yield (ETL.insertBatches(etl, 0, toBatch, aMath.floor(maxBug/etl.BATCH_SIZE)));
 
@@ -234,13 +234,17 @@ ETL.incrementalInsert=function(etl){
 	//FIND EXISTING RECORDS FOR THOSE BUGS
 
 	//GET NEW RECORDS FOR THOSE BUGS
-	var bugSummaries=yield (etl.get(buglist, null));
+	var batches=buglist.groupBy(etl.BATCH_SIZE);
+	for(var b=0;b<batches.length;b++){
+		a=Log.action("get changed bugs", true);
+		var batch=batches[i].values;
+		var bugSummaries=yield (etl.get(batch, null));
+		Log.actionDone(a);
 
-//	Log.action("remove changed bugs");
-//	yield (etl["delete"](buglist));				//NEVER DO THIS, ENSURE _id IS ALWAYS THE SAME
-	a=Log.action("insert changed bugs", true);
-	yield (etl.insert(bugSummaries));
-	Log.actionDone(a);
+		a=Log.action("insert changed bugs", true);
+		yield (etl.insert(bugSummaries));
+		Log.actionDone(a);
+	}//for
 
 	if (etl.postMarkup) yield (etl.postMarkup());
 
