@@ -128,11 +128,6 @@ Dimension.prototype={
 		}
 
 		function convertDim(dim){
-//			if (dim.name=="DWriteEnabled"){
-//				Log.note();
-//			}
-
-
 			if (dim.edges){
 				//ALLOW ACCESS TO SUB-PART BY NAME (IF ONLY THERE IS NO NAME COLLISION)
 				dim.edges.forall(function(e, i){
@@ -148,10 +143,6 @@ Dimension.prototype={
 			if (dim.limit===undefined) dim.limit=DEFAULT_QUERY_LIMIT;
 
 			if (dim.field!==undefined && CUBE.domain.PARTITION.contains(dim.type) && dim.partitions===undefined){
-//				if (dim.type=="boolean"){
-//					Log.note("");
-//				}
-
 				dim.partitions=Thread.run(function(){
 					//IF dim.field IS A NUMBER, THEN SET-WISE EDGES DO NOT WORK (CLASS CAST EXCEPTION)
 //					if (dim.field=="info.appBuildID"){

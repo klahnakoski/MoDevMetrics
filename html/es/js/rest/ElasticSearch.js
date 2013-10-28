@@ -26,13 +26,9 @@ if (window.location.hostname=="metrics.mozilla.com"){
 //	ElasticSearch.baseURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
 //	ElasticSearch.queryURL = "http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search";
 
-//	ElasticSearch.pushURL="http://localhost:9200";
-	ElasticSearch.pushURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
+	ElasticSearch.pushURL="http://localhost:9200";
+//	ElasticSearch.pushURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
 //	ElasticSearch.pushURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
-//
-//	ElasticSearch.baseURL="http://localhost:5000";
-	ElasticSearch.baseURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
-//	ElasticSearch.baseURL="http://klahnakoski-es.corp.tor1.mozilla.com:9292";
 
 	//THESE ARE NOW ALL GOOD NODES!!
 	//(2:13:01 PM) mreid: ekyle, if you've still got things set to only hit elasticsearch7, you should probably change it to know about all 4 nodes
@@ -42,13 +38,16 @@ if (window.location.hostname=="metrics.mozilla.com"){
 	//(2:18:16 PM) ekyle: thanks, I will see what I can do to distribute load!
 //	ElasticSearch.baseURL="http://elasticsearch4.metrics.scl3.mozilla.com:9200";
 //	ElasticSearch.baseURL="http://elasticsearch5.metrics.scl3.mozilla.com:9200";
-//	ElasticSearch.baseURL="http://elasticsearch8.metrics.scl3.mozilla.com:9200";
+	ElasticSearch.baseURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
 //	ElasticSearch.baseURL="http://elasticsearch8.metrics.scl3.mozilla.com:9200";
 
-//	ElasticSearch.queryURL = "http://localhost:5000/bugs/_search";
-	ElasticSearch.queryURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9200/bugs/_search";
+//	ElasticSearch.baseURL="http://klahnakoski-es.corp.tor1.mozilla.com:9292";
+//	ElasticSearch.baseURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
+
+
 //	ElasticSearch.queryURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9292/bugs/_search";
-//	ElasticSearch.queryURL = "http://elasticsearch8.metrics.scl3.mozilla.com:9200/bugs/_search";
+//	ElasticSearch.queryURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9200/bugs/_search";
+	ElasticSearch.queryURL = "http://elasticsearch8.metrics.scl3.mozilla.com:9200/bugs/_search";
 
 
 }//endif

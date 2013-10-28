@@ -402,7 +402,7 @@ MVEL.prototype.where = function(esFilter){
 		var pair = esFilter[op];
 		var variableName = Object.keys(pair)[0];
 		var value = pair[variableName];
-		return this.translate(variableName)+".startsWith(" + MVEL.Value2MVEL(value)+")";
+		return this.translate(variableName)+".startsWith(" + CNV.String2Quote(value)+")";
 	} else{
 		Log.error("'" + op + "' is an unknown aggregate");
 	}//endif

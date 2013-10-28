@@ -21,11 +21,11 @@ Dimension.addEdges(true,  Mozilla, [
 			{"name":"Resolved",
 				"esfilter":{"term":{"bug_status":"resolved"}},
 				"field":"resolution", "partitions":[
-					{"name":"Fixed", "value":"fixed", "style":{}},
-					{"name":"Duplicate", "value":"duplicate", "style":{"visibility":"hidden"}},
-					{"name":"Invalid", "value":"invalid", "style":{"visibility":"hidden"}},
-					{"name":"Won't Fix", "value":"wontfix", "style":{"visibility":"hidden"}},
-					{"name":"WorksForMe", "value":"worksforme", "style":{"visibility":"hidden"}}
+					{"name":"Fixed", "value":"fixed", "style":{}, "esfilter":{"term":{"resolution":"fixed"}}},
+					{"name":"Duplicate", "value":"duplicate", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"duplicate"}}},
+					{"name":"Invalid", "value":"invalid", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"invalid"}}},
+					{"name":"Won't Fix", "value":"wontfix", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"wontfix"}}},
+					{"name":"WorksForMe", "value":"worksforme", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"worksforme"}}}
 				],
 				"key":"value",
 				"value":"name"
@@ -43,7 +43,7 @@ Dimension.addEdges(true,  Mozilla, [
 
 
 	{"name":"Projects", "edges":[
-		{"name": "B2G (KOI)", "partitions":[
+		{"name": "B2G 1.2.0 (KOI)", "partitions":[
 			{"name":"nominated", "esfilter":{"term":{"cf_blocking_b2g":"koi?"}}},
 			{"name":"tracking", "esfilter":{"term":{"cf_blocking_b2g":"koi+"}}}
 		]},
@@ -275,7 +275,13 @@ Dimension.addEdges(true,  Mozilla, [
 					{"or":[
 						{"prefix":{"component":"layout"}},
 						{"prefix":{"component":"print"}},
-						{"terms":{"component":['style system (css)','svg','internationalization', 'mathml']}}
+						{"terms":{"component":[
+							'css parsing and computation',
+							'style system (css)',
+							'svg',
+							'internationalization',
+							'mathml'
+						]}}
 					]}
 				]}
 			},

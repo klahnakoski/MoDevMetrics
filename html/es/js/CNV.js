@@ -600,3 +600,117 @@ CNV.String2JQuery=function(str){
 //	output=output.replaceAll(" ", "\\ ");
 	return output;
 };//method
+
+
+//CONVERT ES FILTER TO JAVASCRIPT EXPRESSION
+CNV.esFilter2Expression=function(esFilter){
+	if (esFilter === undefined) return "true";
+
+	var output = "";
+
+	var keys = Object.keys(esFilter);
+	if (keys.length != 1) Log.error("Expecting only one filter aggregate");
+	var op = keys[0];
+	if (op == "and"){
+		var list = esFilter[op];
+		if (list.length == 0) Log.error("Expecting something in 'and' array");
+		if (list.length == 1) return CNV.esFilter2Expression(list[0]);
+		for(var i = 0; i < list.length; i++){
+			if (output != "") output += " && ";
+			output += "(" + CNV.esFilter2Expression(list[i]) + ")";
+		}//for
+		return output;
+	} else if (op == "or"){
+		var list = esFilter[op];
+		if (list.length == 0) Log.error("Expecting something in 'or' array");
+		if (list.length == 1) return CNV.esFilter2Expression(list[0]);
+		for(var i = 0; i < list.length; i++){
+			if (output != "") output += " || ";
+			output += "(" + CNV.esFilter2Expression(list[i]) + ")";
+		}//for
+		return output;
+	} else if (op == "not"){
+		return "!(" + CNV.esFilter2Expression(esFilter[op]) + ")";
+	} else if (op == "term"){
+		var pair = esFilter[op];
+		var variableName = Object.keys(pair)[0];
+		var value = pair[variableName];
+		return (variableName) + "==" + CNV.Value2Quote(value);
+	} else if (op == "terms"){
+		var pair = esFilter[op];
+		var variableName = Object.keys(pair)[0];
+		var valueList = pair[variableName];
+		if (valueList.length == 0) Log.error("Expecting something in 'terms' array");
+		if (valueList.length == 1) return (variableName) + "==" + CNV.Value2Quote(valueList[0]);
+		output += "[" + valueList.map(CNV.String2Quote).join(", ") + "].contains(" + variableName + ")";
+		return output;
+	}else if (op=="exists"){
+		//"exists":{"field":"myField"}
+		var pair = esFilter[op];
+		var variableName = pair.field;
+		return "(" + variableName + ")";
+	}else if (op=="missing"){
+//		"missing" : {
+//			"field" : "requestee",
+//			"existence" : true,
+//			"null_value" : true
+//		}
+		var fieldName=(esFilter[op].field);
+		var testExistence=esFilter[op].existence;
+		var testNull=esFilter[op].null_value;
+		return "(!" + variableName + ")";
+	} else if (op == "range"){
+		var pair = esFilter[op];
+		var variableName = Object.keys(pair)[0];
+		var range = pair[variableName];
+		var lower = "";
+		var upper = "";
+
+		if (!(range.gte === undefined)){
+			lower = CNV.Value2Quote(range.gte) + "<=" + (variableName);
+		} else if (!(range.gt === undefined)){
+			lower = CNV.Value2Quote(range.gt) + "<" + (variableName);
+		} else if (!(range.from == undefined)){
+			if (range.include_lower == undefined || range.include_lower){
+				lower = CNV.Value2Quote(range.from) + "<=" + (variableName);
+			} else{
+				lower = CNV.Value2Quote(range.from) + "<" + (variableName);
+			}//endif
+		}//endif
+
+		if (!(range.lte === undefined)){
+			upper = CNV.Value2Quote(range.lte) + ">=" + (variableName);
+		} else if (!(range.lt === undefined)){
+			upper = CNV.Value2Quote(range.lt) + ">" + (variableName);
+		} else if (!(range.from == undefined)){
+			if (range.include_lower == undefined || range.include_lower){
+				upper = CNV.Value2Quote(range.from) + ">=" + (variableName);
+			} else{
+				upper = CNV.Value2Quote(range.from) + ">" + (variableName);
+			}//endif
+		}//endif
+
+		if (upper == "" || lower == ""){
+			return "(" + upper + lower + ")";
+		} else{
+			return "(" + upper + ") && (" + lower + ")";
+		}//endif
+	} else if (op=="script"){
+		var script = esFilter[op].script;
+		return (script);
+	}else if (op=="prefix"){
+		var pair = esFilter[op];
+		var variableName = Object.keys(pair)[0];
+		var value = pair[variableName];
+		return (variableName)+".startsWith(" + CNV.Value2Quote(value)+")";
+	} else{
+		Log.error("'" + op + "' is an unknown operation");
+	}//endif
+
+	return "";
+
+
+
+
+
+};//method

@@ -1226,7 +1226,9 @@ ESQuery.prototype.compileSetOp=function(){
 
 	if (this.esMode=="fields"){
 		this.esQuery.size=200000;
-		this.esQuery.fields=select.map(function(s){return s.value;});
+		if (this.query.select.value!="_source"){
+			this.esQuery.fields=select.map(function(s){return s.value;});
+		}//endif
 	}else if (select.length==1 && MVEL.isKeyword(select[0].value)){
 		this.esQuery.facets.mvel={
 			"terms":{

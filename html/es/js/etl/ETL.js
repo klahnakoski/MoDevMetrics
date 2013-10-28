@@ -237,7 +237,7 @@ ETL.incrementalInsert=function(etl){
 	var batches=buglist.groupBy(etl.BATCH_SIZE);
 	for(var b=0;b<batches.length;b++){
 		a=Log.action("get changed bugs", true);
-		var batch=batches[i].values;
+		var batch=batches[b].values;
 		var bugSummaries=yield (etl.get(batch, null));
 		Log.actionDone(a);
 

@@ -1,6 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 if (CUBE===undefined) var CUBE = {};
 
 
@@ -30,9 +31,24 @@ CUBE.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //
 	if (useMVEL!==undefined && useMVEL) return;
 
 	if (resultColumn.value === undefined){
-		//NO NEED TO COMPILE THE value IF THERE IS NONE
-		resultColumn.calc = Util.returnNull;
-		return;
+		//TODO: RUN MORE TEST TO VERIFY CORRECTNESS
+		var all_have_filters=true;
+		var calc_val="(function(){";
+		resultColumn.domain.partitions.forall(function(v){
+			if (!v.esfilter){
+				all_have_filters=false;
+			}else{
+				calc_val+="if ("+CNV.esFilter2Expression(v.esfilter)+") return "+CNV.Value2Quote(v.value)+";\nelse ";
+			}//endif
+		});
+		calc_val+="return null;\n";
+		calc_val+="})()";
+		if (all_have_filters){
+			resultColumn.value=calc_val;
+		}else{
+			resultColumn.calc = Util.returnNull;
+			return;
+		}//endif
 	}else if (resultColumn.value instanceof Date){
 		resultColumn.value="Date.newInstance("+resultColumn.value.getMilli()+")";
 	}else if (aMath.isNumeric(resultColumn.value)){

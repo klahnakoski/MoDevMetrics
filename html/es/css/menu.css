@@ -87,6 +87,11 @@ a.tabzilla:hover, a.tabzilla:active {
 }
 
 
+.indent {
+	margin-left: 30px;
+
+}
+
 
 body {
     position: relative;
@@ -185,7 +190,7 @@ h4 {
 }
 
 mstyle{
-	font-size: .8em;
+	font-size: 1em;
 	color: black;
 	font-family: 'Open Sans', sans-serif;
 }

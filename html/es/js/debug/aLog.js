@@ -13,7 +13,7 @@ importScript("aException.js");
 
 
 
-var D = new function(){
+var Log = new function(){
 };
 
 Log.loggers=[];

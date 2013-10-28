@@ -12,7 +12,7 @@ var Exception=function(description, cause){
 	this.cause=cause;
 };
 
-//MAKE A GENERIC ERROR OBJECT DECRIBING THE ARGUMENTS PASSED
+//MAKE A GENERIC ERROR OBJECT DESCRIBING THE ARGUMENTS PASSED
 Exception.error=function(){
 	var args = Array.prototype.slice.call(arguments).map(function(v,i){
 		if (typeof(v)=="string") return v;
