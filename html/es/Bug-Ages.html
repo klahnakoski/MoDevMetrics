@@ -78,6 +78,7 @@ var __createChart = function(){
 //	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
 
 	var mainFilter={"and":[
+		GUI.getFilters("bugs"),
 		GUI.state.filter,
 		Mozilla.BugStatus.Open.esfilter
 	]};
