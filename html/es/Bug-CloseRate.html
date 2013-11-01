@@ -70,7 +70,7 @@ var __createChart = function(){
 
 	var sampleMin = Date.newInstance(GUI.state.sampleMin);
 	var sampleMax =Date.newInstance(GUI.state.sampleMax).addDay(1);
-	var sampleInterval = Duration.WEEK;
+	var sampleInterval = Duration.newInstance(GUI.state.sampleInterval)
 
 	var customFilter=GUI.state.filter;
 
@@ -88,25 +88,27 @@ var __createChart = function(){
 			{"name":"wontfix", "style":{"visibility":"hidden"}},
 			{"name":"worksforme", "style":{"visibility":"hidden"}}
 		];
-		
-		var mm=yield (ElasticSearch.getMinMax({"and":[
-			{"range":{"expires_on":{"gte":sampleMin.getMilli()}}},
-			{"range":{"modified_ts":{"lte":sampleMax.getMilli()}}},
-			customFilter,
-			Mozilla.BugStatus.Open.esfilter
-		]}));
 
-//$("#info").html(CNV.Cube2HTMLTable(mm));
 
 		var resolutions=yield (ESQuery.run({
-			"from":"bugs",
+			"from":bugs,
 			"select":["bug_id", "resolution"],
 			"esfilter":{"and":[
 				Mozilla.CurrentRecords.esfilter,
 				Mozilla.BugStatus.Closed.esfilter,
-				customFilter
+				customFilter,
+				GUI.getFilters("bugs")
 			]}
 		}));
+
+
+		var mm=yield (ElasticSearch.getMinMax({"and":[
+			{"range":{"expires_on":{"gte":sampleMin.getMilli()}}},
+			{"range":{"modified_ts":{"lte":sampleMax.getMilli()}}},
+			{"terms":{"bug_id":resolutions.select("bug_id")}},
+			Mozilla.BugStatus.Open.esfilter
+		]}));
+
 
 		Log.actionDone(a);
 
@@ -212,19 +214,21 @@ var __createChart = function(){
 $(document).ready(function(){
 	GUI.setup(createChart, [
 		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().addMonth(-2)},//Date.now().addDay(-15).floorMonth()},
-		{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.eod()},//Date.now().addMonth(1).floorDay()},
+		{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.eod()},
+		{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.WEEK},
 		{"id":"filter", "name":"ES Filter", "type":"json", "default":{"and":[
 				{"term":{"product":"boot2gecko"}},
 				{"not":{"terms":{"cf_blocking_b2g":["tef+","shira+","leo+"]}}}
 			]}
-		}
+		},
+		{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
 		],
 		[
-				"sampleMin=Date.newInstance(sampleMin).floorWeek().format('yyyy-MM-dd')",
-				"sampleMax=Date.newInstance(sampleMax).addDay(1).floorWeek().addDay(-1).format('yyyy-MM-dd')"
+				"sampleMin=Date.newInstance(sampleMin).floor(sampleInterval).format('yyyy-MM-dd')",
+				"sampleMax=Date.newInstance(sampleMax).add(sampleInterval).floor(sampleInterval).addDay(-1).format('yyyy-MM-dd')"
 		],
 		"bugs",
-		false		//DO NOT SHOW DEFAULT FILTERS
+		true	//DO NOT SHOW DEFAULT FILTERS
 	);
 
 //	GUI.state.productFilter = ["B2G 1.0.0 (TEF)"];
