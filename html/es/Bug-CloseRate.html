@@ -63,8 +63,10 @@ var createChart = function(){
 
 var __createChart = function(){
 	$("#title").html("Bug Close Rate");
-	$("#description").html("Shows the number of bugs closed over the given interval, and calculates the average close rate.  You must provide JSON that will be used as the ES Filter."
-	+'<br><br><span class="warning">This chart is slower than most.  Please be patient.</span>'
+	$("#description").html("Shows the number of bugs closed over the given interval, and calculates the average close rate."
+	+"You must provide JSON that will be used as the ES Filter."
+	+"The team filter will filter who was assigned the bug"
+	+'<br><br><span class="warning">This chart must download all relevant bugs states.  The more you filter, the faster this chart will go.</span>'
 	);
 
 
