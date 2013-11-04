@@ -274,18 +274,35 @@ Date.prototype.addYear = function(value){
 	return output;
 };//method
 
+
 //RETURN A DATE ROUNDED DOWN TO THE CLOSEST FULL INTERVAL
-//
 Date.prototype.floor = function(interval, minDate){
 	if (minDate===undefined){
-		if (interval.milli!=undefined) interval=interval.toString();
+		if (interval.month!==undefined && interval.month>0){
+			if (interval.month % 12 ==0){
+				return this.addMonth(-interval.month+12).floorYear()
+			}else if ([1, 2, 3, 4, 6].contains(interval.month)){
+				var temp=this.floorYear();
+				return temp.add(this.subtract(temp).floor(interval))
+			}else{
+				Log.error("Can not floor interval '"+interval.toString()+"'")
+			}//endif
+		}//endif
 
-		if (interval.indexOf("year")>=0) return this.floorYear();
-		if (interval.indexOf("month")>=0) return this.floorMonth();
-		if (interval.indexOf("week")>=0) return this.floorWeek();
-		if (interval.indexOf("day")>=0) return this.floorDay();
-		if (interval.indexOf("hour")>=0) return this.floorHour();
-		Log.error("Can not floor interval '" + interval + "'");
+		var interval_str;
+		if (interval.milli!=undefined){
+			interval_str=interval.toString();
+		}else{
+			interval_str=interval
+			interval=Duration.newInstance(interval_str)
+		}//endif
+
+		if (interval_str.indexOf("year")>=0) return this.floorYear();
+		if (interval_str.indexOf("month")>=0) return this.floorMonth();
+		if (interval_str.indexOf("week")>=0) return this.floorWeek();
+		if (interval_str.indexOf("day")>=0) return this.floorDay();
+		if (interval_str.indexOf("hour")>=0) return this.floorHour();
+		Log.error("Can not floor interval '" + interval_str + "'");
 	}//endif
 
 	return minDate.add(this.subtract(minDate).floor(interval));
@@ -819,7 +836,7 @@ Date.tryParse=function(val, isFutureDate){
 };//method
 
 
-
+Date.EPOCH=Date.newInstance("1/1/1970");
 
 
 

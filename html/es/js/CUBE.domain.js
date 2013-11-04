@@ -298,13 +298,14 @@ CUBE.domain.time = function(column, sourceColumns){
 		if (typeof(key)=="number")
 			key=new Date(key);
 		if (key < this.min || this.max <= key) return this.NULL;
-//if (key.getMilli()==new Date(2012, 3, 1).floorDay().getMilli())
-//	Log.note("");
 
 		var i=aMath.floor(key.subtract(this.min, this.interval).divideBy(this.interval));
 
-		if (this.partitions[i].min>key || key>=this.partitions[i].max)
-			Log.error("programmer error");
+		if (i>=this.partitions.length) return this.NULL;
+		if (this.partitions[i].min>key || key>=this.partitions[i].max){
+			i=aMath.floor(key.subtract(this.min, this.interval).divideBy(this.interval));
+			Log.warning("programmer error "+i);
+		}//endif
 		return this.partitions[i];
 	};//method
 

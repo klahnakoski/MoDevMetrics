@@ -150,8 +150,7 @@ Duration.prototype.divideBy=function(amount){
 		}//endif
 		r=aMath.min(29/30, (r+tod)/(Duration.MILLI_VALUES.day*30));
 
-
-		var output=(m/amount.month)+r;
+		var output=aMath.floor(m/amount.month)+r;
 		return output
 	}else if (amount.milli===undefined){
 		var output=new Duration();

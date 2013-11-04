@@ -73,6 +73,9 @@ var __createChart = function(){
 	var sampleInterval = Duration.newInstance(GUI.state.sampleInterval)
 
 	var customFilter=GUI.state.filter;
+	if (Object.keys(customFilter).length==0){
+		customFilter=ESQuery.TrueFilter
+	}//endif
 
 	yield (ESQuery.loadColumns({"from":"bugs"}));
 
@@ -91,7 +94,7 @@ var __createChart = function(){
 
 
 		var resolutions=yield (ESQuery.run({
-			"from":bugs,
+			"from":"bugs",
 			"select":["bug_id", "resolution"],
 			"esfilter":{"and":[
 				Mozilla.CurrentRecords.esfilter,
@@ -105,7 +108,7 @@ var __createChart = function(){
 		var mm=yield (ElasticSearch.getMinMax({"and":[
 			{"range":{"expires_on":{"gte":sampleMin.getMilli()}}},
 			{"range":{"modified_ts":{"lte":sampleMax.getMilli()}}},
-			{"terms":{"bug_id":resolutions.select("bug_id")}},
+			{"terms":{"bug_id":resolutions.list.select("bug_id")}},
 			Mozilla.BugStatus.Open.esfilter
 		]}));
 
@@ -156,14 +159,16 @@ var __createChart = function(){
 			"where":sampleMin.getMilli()+"<=closeTime.getMilli() && closeTime.getMilli()<"+sampleMax.getMilli()
 		}));
 
+		var interval_str=GUI.state.sampleInterval
+
 		$("#stats").html(
-			'<span class="parameter_name">Number of Weeks:</span>' + sampleMax.subtract(sampleMin).round(sampleInterval) + '<br><br>'+
+			'<span class="parameter_name">Number of '+interval_str+'s:</span>' + sampleMax.subtract(sampleMin).round(sampleInterval) + '<br><br>'+
 			//ARG!! I REALLY WANT PRESENTATION CUBES!!
-			'<span class="parameter_name">Fixed/Week:</span>' + aMath.round(stats.cube[0].average, 1) + '<br>'+
-			'<span class="parameter_name">Duplicate/Week:</span>' + aMath.round(stats.cube[1].average, 1) + '<br>'+
-			'<span class="parameter_name">Invalid/Week:</span>' + aMath.round(stats.cube[2].average, 1) + '<br>'+
-			'<span class="parameter_name">Wont\'Fix/Week:</span>' + aMath.round(stats.cube[3].average, 1) + '<br>'+
-			'<span class="parameter_name">WorksForMe/Week:</span>' + aMath.round(stats.cube[4].average, 1) + '<br>'
+			'<span class="parameter_name">Fixed/'+interval_str+':</span>' + aMath.round(stats.cube[0].average, 1) + '<br>'+
+			'<span class="parameter_name">Duplicate/'+interval_str+':</span>' + aMath.round(stats.cube[1].average, 1) + '<br>'+
+			'<span class="parameter_name">Invalid/'+interval_str+':</span>' + aMath.round(stats.cube[2].average, 1) + '<br>'+
+			'<span class="parameter_name">Wont\'Fix/'+interval_str+':</span>' + aMath.round(stats.cube[3].average, 1) + '<br>'+
+			'<span class="parameter_name">WorksForMe/'+interval_str+':</span>' + aMath.round(stats.cube[4].average, 1) + '<br>'
 		);
 
 
@@ -224,8 +229,8 @@ $(document).ready(function(){
 		{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
 		],
 		[
-				"sampleMin=Date.newInstance(sampleMin).floor(sampleInterval).format('yyyy-MM-dd')",
-				"sampleMax=Date.newInstance(sampleMax).add(sampleInterval).floor(sampleInterval).addDay(-1).format('yyyy-MM-dd')"
+				"sampleMin=Date.newInstance(sampleMin).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
+				"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')"
 		],
 		"bugs",
 		true	//DO NOT SHOW DEFAULT FILTERS
