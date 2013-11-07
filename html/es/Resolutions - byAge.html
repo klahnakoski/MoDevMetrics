@@ -4,91 +4,13 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-<script type="application/javascript;version=1.7" src="js/Settings.js">
+	<script type="application/javascript;version=1.7" src="lib/jsImport/js/import.js"></script>
 </script></HEAD>
 <BODY>
 
-<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
-<script type="application/javascript;version=1.7" src="lib/jquery.js"></script>
-<script type="application/javascript;version=1.7" src="lib/jstree/jquery.jstree.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/lib/protovis-d3.3.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/lib/jquery.tipsy.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/lib/tipsy.js"></script>
-<link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
-
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvc.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcPanel.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcLegend.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcWaterfall.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcPie.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcBar.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcLine.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcData.js"></script>
-<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
-<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
-
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvcDocUtils.js"></script>
-
-<link type="text/css" rel="stylesheet" href="lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css" />
-<script type="application/javascript;version=1.7" src="lib/jquery-ui/js/jquery-ui-1.10.2.custom.js"></script>
-<script type="application/javascript;version=1.7" src="lib/jquery.ba-bbq/jquery.ba-bbq.js"></script>
-
-<link type="text/css" rel="stylesheet" href="css/menu.css"/>
 
 
 
-
-<script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/aArray.js"></script><script type="application/javascript;version=1.7" src="js/aString.js"></script><script type="application/javascript;version=1.7" src="js/aMath.js"></script><script type="application/javascript;version=1.7" src="js/CNV.js"></script>
-<script type="application/javascript;version=1.7" src="js/aUtil.js"></script><script type="application/javascript;version=1.7" src="js/aArray.js"></script><script type="application/javascript;version=1.7" src="js/aString.js"></script><script type="application/javascript;version=1.7" src="js/aMath.js"></script><script type="application/javascript;version=1.7" src="js/aDate.js"></script><script type="application/javascript;version=1.7" src="js/aDuration.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script><script type="application/javascript;version=1.7" src="js/Dimension.js"></script><script type="application/javascript;version=1.7" src="js/Dimension-Bugzilla.js"></script>
-<script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script><script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/Stats.js"></script>
-<script type="application/javascript;version=1.7" src="js/debug/aLog.js"></script>
-<script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
-<script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
-
-<script type="application/javascript;version=1.7" src="lib/jsThreads/js/thread.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.analytic.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
-<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script>
-<script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
-<script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
-
-
-<script type="application/javascript;version=1.7" src="js/charts/HelperFunctions.js"></script>
-<script type="application/javascript;version=1.7" src="js/rest/ElasticSearch.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/charts/DataSet.js"></script>
-<script type="application/javascript;version=1.7" src="js/charts/RangeCharts.js"></script>
-<script type="application/javascript;version=1.7" src="js/charts/RangeIterator.js"></script>
-<script type="application/javascript;version=1.7" src="js/charts/DateRangeIterator.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/gui/Filter.js"></script>
-<script type="application/javascript;version=1.7" src="js/gui/ComponentFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/gui/TeamFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/gui/ProductFilter.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/gui/ProgramFilter.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script><script type="application/javascript;version=1.7" src="js/aTimer.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/etl/Reviews.js"></script>
-
-
-
-
-
-<h3>Resolutions Over Time</h3>
 <div id="sidebar">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
@@ -108,30 +30,34 @@
 <div style="float:right;display: inline;">
 	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
 </div>
-<div id="chart" style="height:300px"></div>
+
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3>Resolutions Over Time</h3>
+	<div id="chart_abs" style="height:200px"></div>
+	<div id="chart_norm" style="height:200px"></div>
+</div>
+
 
 <script type="application/javascript;version=1.7">
+importScript('js/main.js', function(){
+	$("#description").html("This chart counts all closed bugs in the given sample, and the resolution categories each falls into.");
 
-$("#description").html("This chart counts all closed bugs in the given sample, and the resolution categories each falls into.");
+	var thread;
+	var createChart=function(){
+		if (thread!==undefined)
+			thread.kill();
+		thread=Thread.run( __createChart());
+	};
 
+	var __createChart = function(){
+		var a=Log.action("Calling ES", true);
 
-
-var thread;
-var createChart=function(){
-	if (thread!==undefined)
-		thread.kill();
-	thread=Thread.run( __createChart());
-};
-
-var __createChart = function(){
-
-		var query = new ESQuery({
-			"name":"Resolution by Bug Age",
+		var chartCube = yield (ESQuery.run({
+			"name":"Resolution by Bug Age (count)",
 			"from":"bugs",
 			"select":{"name":"Count", "value":"1", "aggregate":"count"},
 			"edges":[
 				{"name":"Resolution Type", "value":'resolution'},
-				//{"name":"Cohort", "value":'modified_ts', "domain":{"type":"time", "min":Date.now().add("-6month"), "max":Date.now().add("-1second"), "interval":"6month"}},
 				{"name":"Age", "value":'doc["modified_ts"].value-doc["created_ts"].value', "domain":{"type":"duration", "min":GUI.state.minX, "max":GUI.state.maxX, "interval":GUI.state.intervalX}}
 			],
 			"esfilter":{"and":[
@@ -139,29 +65,33 @@ var __createChart = function(){
 				Mozilla.BugStatus.Closed.esfilter,
 				{"range":{"modified_ts":{"gte":Date.newInstance(GUI.state.sampleMin).getMilli()}}},
 				{"range":{"modified_ts":{"lte":Date.newInstance(GUI.state.sampleMax).getMilli()}}},
-				{"script":{"script":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value'}}
+				{"script":{"script":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value'}},
+				GUI.getFilters("bugs")
 			]},
 			"essize":GUI.state.esSize
-		});
-
-		(GUI.injectFilters(query));
-
-		Log.note(CNV.Object2JSON(query.esQuery));
-
-		Log.action("Calling ES");
-		var chartCube=(yield (query.run()));
-
-		CUBE.normalizeByX(chartCube, 100);
-
-		var a=Log.action("Make chart", true);
+		}));
+		Log.actionDone(a);
+		
 		aChart.show({
-			"id":"chart",
-		"sheetDiv":"info",
+			"id":"chart_abs",
+			"sheetDiv":"info",
 			"type":"stacked",
+			"height":300,
 			"cube":chartCube
 		});
-		Log.actionDone(a);
-			};
+
+
+		chartCube.name="Resolution by Bug Age (%)";
+		CUBE.normalizeByX(chartCube, 100);
+
+		aChart.show({
+			"id":"chart_norm",
+			"sheetDiv":"info",
+			"type":"stacked",
+			"height":300,
+			"cube":chartCube
+		});
+	};
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [
@@ -174,9 +104,13 @@ var __createChart = function(){
 		],
 		[
 			"maxX=Duration.newInstance(maxX).add(Duration.newInstance(intervalX)).add(Duration.newInstance('-second')).floor(Duration.newInstance(intervalX)).toString()"
-		]);
-	});
+		],
+		"bugs",
+		true
+		);
 
+	});
+});
 </script>
 
 
