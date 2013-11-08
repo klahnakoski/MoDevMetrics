@@ -249,12 +249,12 @@ var __createChart = function(){
 			"from":allBugs,
 			"name":"New and Closed Bugs",
 			"select":[
-				{"name":"New", "value":"time.value.getMilli()==min.floor(\""+interval.toString()+"\").getMilli() ? 1 : 0", "aggregate":"sum", "default":"0", "style":{"color":"seagreen"}},
-				{"name":"Closed", "value":"(max!=null && time.value.getMilli()==max.floor(\""+interval.toString()+"\").getMilli()) ? -1 : 0", "aggregate":"sum", "default":"0", "style":{"color":"goldenrod"}}
+				{"name":"New", "value":"min.between(time.min, time.max) ? 1 : 0", "aggregate":"sum", "default":"0", "style":{"color":"seagreen"}},
+				{"name":"Closed", "value":"(max!==undefined && max.between(time.min, time.max)) ? -1 : 0", "aggregate":"sum", "default":"0", "style":{"color":"goldenrod"}}
 			],
 			"edges":[
 				{"name":"date",
-					"test":"time.value.getMilli()==min.floor(\""+interval.toString()+"\").getMilli() || (max==null || time.value.getMilli()==max.floor(\""+interval.toString()+"\").getMilli())",
+					"test":"min.between(time.min, time.max) || (max!==undefined && max.between(time.min, time.max))",
 					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":interval}
 				}
 			]
@@ -268,7 +268,21 @@ var __createChart = function(){
 			"cube":churn,
 			"height":"300",
 			xAxisSize: 50,
-			"width":800
+			"width":800,
+			"clickAction":function(series, x, d){
+				var part=churn.edges[0].domain.getPartByKey(x);
+				var field = {"New":"min", "Closed":"max"}[series];
+
+				Thread.run(function(){
+					var buglist=(yield (CUBE.calc2List({
+						"from":allBugs,
+						"select":{"value":"bug_id"},
+						"where":""+field+"!==undefined && "+field+".between("+CNV.Date2Code(part.min)+", "+CNV.Date2Code(part.max)+")"
+					})));
+
+					Bugzilla.showBugs(buglist.list);
+				});
+			}//click
 		});
 	});
 
