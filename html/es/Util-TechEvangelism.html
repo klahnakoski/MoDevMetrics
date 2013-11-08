@@ -64,7 +64,9 @@
 
 			} catch(e){
 				Log.warning("Error sending requests", e);
-				document.getElementById("info").innerHTML = "Response Error.  Make sure you are connected to the MPT network.";
+				document.getElementById("info").innerHTML = "Response Error."+
+					"<ul><li>Ensure you are connected to the MPT network.</li>"+
+				"<li style=\"vertical-align:top; \">Ensure your browser is not blocking http content <image src=\"images/http_from_https.png\"  style=\"height:96px;width:128px;vertical-align:top; \"/></li></ul>";
 			}
 
 		});
