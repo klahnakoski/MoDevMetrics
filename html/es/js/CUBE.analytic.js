@@ -157,7 +157,12 @@ CUBE.analytic.compile = function(sourceColumns, expression){
 		var columnName = sourceColumns[s].name;
 //ONLY DEFINE VARS THAT ARE USED
 		if (expression.indexOf(columnName) != -1){
-			f += "var " + columnName + "=__source." + columnName + ";\n";
+			f += "var ";
+			var parents = columnName.split(".").leftBut(1);
+			for (var p=0;p<parents.length;p++){
+				f += parents.left(p+1).join(".") + " = {};\n";
+			}//for
+			f += columnName + "=__source." + columnName + ";\n";
 		}//endif
 	}//for
 	f +=

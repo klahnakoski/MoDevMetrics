@@ -114,7 +114,7 @@ CNV.Object2JSON = function(json){
 	}else if (json instanceof Duration){
 		return CNV.String2Quote(json.toString());
 	}else if (json instanceof Date){
-		return CNV.String2Quote(json.format("yyyy-NNN-dd HH:mm:ss"));
+		return CNV.String2Quote(json.format("dd-NNN-yyyy HH:mm:ss"));
 //	}else if (typeof(json)=="string"){
 //		var s=CNV.String2Quote(json);
 //		if (json.length>30 && json.indexOf("\n")>0){
@@ -460,9 +460,9 @@ HTML.tag=function(tagName, value){
 			//PROBABLY A TIMESTAMP
 			value=new Date(value);
 			if (value.floorDay().getMilli()==value.getMilli()){
-				return "<"+tagName+">" + new Date(value).format("yyyy-NNN-dd") + "</"+tagName+">";
+				return "<"+tagName+">" + new Date(value).format("dd-NNN-yyyy") + "</"+tagName+">";
 			}else{
-				return "<"+tagName+">" + new Date(value).format("yyyy-NNN-dd HH:mm:ss") + "</"+tagName+">";
+				return "<"+tagName+">" + new Date(value).format("dd-NNN-yyyy HH:mm:ss") + "</"+tagName+">";
 			}//endif
 		}else{
 			return "<"+tagName+" style='text-align:right;'>" + value + "</"+tagName+">";
@@ -472,9 +472,9 @@ HTML.tag=function(tagName, value){
 		return "<"+tagName+">" + value.toString() + "</"+tagName+">";
 	} else if (value.getTime){
 		if (value.floorDay().getMilli()==value.getMilli()){
-			return "<"+tagName+">" + new Date(value).format("yyyy-NNN-dd") + "</"+tagName+">";
+			return "<"+tagName+">" + new Date(value).format("dd-NNN-yyyy") + "</"+tagName+">";
 		}else{
-			return "<"+tagName+">" + new Date(value).format("yyyy-NNN-dd HH:mm:ss") + "</"+tagName+">";
+			return "<"+tagName+">" + new Date(value).format("dd-NNN-yyyy HH:mm:ss") + "</"+tagName+">";
 		}//endif
 //	} else if (value.toString !== undefined){
 //		return "<"+tagName+">" + CNV.String2HTML(value.toString()) + "</"+tagName+">";

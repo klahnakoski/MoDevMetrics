@@ -1,0 +1,75 @@
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="application/javascript;version=1.7" src="lib/jsImport/js/import.js"></script>
+</HEAD>
+<BODY>
+
+
+<h2>All Closed Tech Evangelism</h2>
+<div id="info"></div>
+
+<script type="application/javascript;version=1.7">
+	importScript([
+		"js/main.js"
+	], function(){
+		Thread.run(function(){
+			try{
+				var raw_bugs = yield(Rest.post({
+					"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+					"data":{
+						"query":{"filtered":{
+								"query":{"match_all":{}},
+								"filter":{"and":[
+									Mozilla.BugStatus.Closed.esfilter,
+									{"range":{"expires_on":{"gte":Date.now().getMilli()}}},
+									{"terms":{"product":["tech evangelism"]}}
+								]}
+						}},
+						"from":0,
+						"size":100000,
+						"fields":[
+							"bug_id",
+							"component",
+							"created_ts",
+							"modified_ts",
+							"modified_by",
+							"reported_by",
+							"bug_status",
+							"resolution",
+							"status_whiteboard",
+							"previous_values",
+							"dupe_of"
+						]
+					}
+				}));
+
+				data=yield (CUBE.calc2List({
+					"from":raw_bugs.hits.hits.select("fields"),
+					"analytic":[
+						{"name":"age", "value":"Math.max(previous_values.bug_status_change_away_ts, created_ts)- created_ts", "edges":[]},
+						{"name":"closed_ts", "value":"nvl(previous_values.bug_status_change_away_ts, modified_ts)", "edges":[]},
+						{"name":"previous_bug_status", "value":"previous_values.bug_status_value", "edges":[]}
+					]
+				}));
+
+				data.list.forall(function(v){v.previous_values=undefined;})
+
+				var htmlResults = CNV.List2HTMLTable(data);
+				$("#info").html(htmlResults);
+
+
+			} catch(e){
+				Log.warning("Error sending requests", e);
+				document.getElementById("info").innerHTML = "Response Error.  Make sure you are connected to the MPT network.";
+			}
+
+		});
+	});
+</script>
+
+</BODY>
+</HTML>
