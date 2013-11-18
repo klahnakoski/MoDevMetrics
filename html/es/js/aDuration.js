@@ -32,7 +32,8 @@ Duration.MILLI_VALUES = {
 	"day":24 * 60 * 60 * 1000,
 	"hour":60 * 60 * 1000,
 	"minute":60 * 1000,
-	"second":1000
+	"second":1000,
+	"milli":1
 };
 
 Duration.MONTH_VALUES = {
@@ -43,7 +44,8 @@ Duration.MONTH_VALUES = {
 	"day":0,
 	"hour":0,
 	"minute":0,
-	"second":0
+	"second":0,
+	"milli":0
 };
 
 //A REAL MONTH IS LARGER THAN THE CANONICAL MONTH

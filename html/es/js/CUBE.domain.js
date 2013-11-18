@@ -16,28 +16,42 @@ CUBE.domain.compile = function(column, sourceColumns){
 		return;
 	}//endif
 
-	if (column.domain.type===undefined && column.domain.partitions!==undefined){
-		column.domain.type="set";
-		if (column.domain.name==="undefined") Log.warning("it is always good to name your domain");
+	var domain=column.domain;
+	var type=domain.type;
+
+	if (type===undefined && domain.partitions!==undefined){
+		type="set";
+		if (domain.name==="undefined") Log.warning("it is always good to name your domain");
 	}//endif
-	if (column.domain.type=="date"){
-		if (column.domain.name===undefined) column.domain.name="date"; //KEEP THE NAME
-		column.domain.type="time";
+	if (type=="date"){
+		if (domain.name===undefined) domain.name="date"; //KEEP THE NAME
+		type="time";
 	}//endif
-	if (column.domain.type=="boolean"){
-		if (column.domain.name===undefined) column.domain.name="boolean"; //KEEP THE NAME
-		column.domain.type="set";
+	if (type=="boolean"){
+		if (domain.name===undefined) domain.name="boolean"; //KEEP THE NAME
+		type="set";
 	}//endif
 	
-	if (column.domain.type===undefined)
+	if (type===undefined)
 		Log.error("Expecting a domain to have a 'type' attribute");
 
-	if (column.domain.type=="value"){
-		column.domain=CUBE.domain.value;
-	}else if (CUBE.domain[column.domain.type]){
-		CUBE.domain[column.domain.type](column, sourceColumns);
+	if (type=="value"){
+		domain=CUBE.domain.value;
+	}else if (domain.interval=="none" && CUBE.domain.ALGEBRAIC.contains(type)){
+		//CONTINUOUS ALGEBRAIC EDGE MEANS COMPILATION IS NOT POSSIBLE
+		if (type=="time"){
+			if (domain.format === undefined) domain.format="yyyy-MM-dd HH:mm:ss";
+			domain.formatValue = function(value){
+				return Date.newInstance(value).format(domain.format);
+			};//method
+		}else{
+			Log.error("Continuous algebraic domain of type "+type+", not supported yet.");
+		}//endif
+
+	}else if (CUBE.domain[type]){
+		CUBE.domain[type](column, sourceColumns);
 	} else{
-		Log.error("Do not know how to compile a domain of type '" + column.domain.type + "'");
+		Log.error("Do not know how to compile a domain of type '" + type + "'");
 	}//endif
 };//method
 
@@ -407,35 +421,37 @@ CUBE.domain.duration = function(column, sourceColumns){
 			if (typeof(key)=="string") key=Duration.newInstance(key);
 			try{
 				var floor = key.floor(this.interval);
+				var ceil = floor.add(this.interval);
 			}catch(e){
 				Log.error();
 
 			}
 			if (noMin){//NO MINIMUM REQUESTED
-				if (noMin && noMax){
-					this.min = floor;
-					this.max = nvl(this.max, floor.add(this.interval));
-					CUBE.domain.duration.addRange(this.min, this.max, this);
-				} else if (key.milli < this.min.milli){
-//					var newmin=floor;
+				if (this.min===undefined){
+					if (noMax || key.milli < this.max.milli){
+						this.min = floor;
+						this.max = nvl(this.max, ceil);
+						CUBE.domain.duration.addRange(this.min, this.max, this);
+					}//endif
+				}else if (key.milli < this.min.milli){
 					CUBE.domain.duration.addRange(floor, this.min, this);
 					this.min = floor;
 				}//endif
-			} else if (this.min == null){
-				Log.error("Should not happen");
 			} else if (key.milli < this.min.milli){
+				column.outOfDomainCount++;
 				return this.NULL;
 			}//endif
 
 			if (noMax){//NO MAXIMUM REQUESTED
-				if (noMin && noMax){
-					this.min = nvl(this.min, floor);
-					this.max = floor.add(this.interval);
-					CUBE.domain.duration.addRange(this.min, this.max, this);
+				if (this.max===undefined){
+					if (noMin || this.min.milli <= key.milli){
+						this.min = nvl(this.min, floor);
+						this.max = ceil;
+						CUBE.domain.duration.addRange(this.min, this.max, this);
+					}//endif
 				} else if (key.milli >= this.max.milli){
-					var newmax = floor.add(this.interval);
-					CUBE.domain.duration.addRange(this.max, newmax, this);
-					this.max = newmax;
+					CUBE.domain.duration.addRange(this.max, ceil, this);
+					this.max = ceil;
 				}//endif
 			} else if (key.milli >= this.max.milli){
 				column.outOfDomainCount++;

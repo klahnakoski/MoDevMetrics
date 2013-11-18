@@ -46,6 +46,12 @@ Log.note = function(message){
 	});
 };//method
 
+Log.debug=function(){
+	Log.loggers.forall(function(v){
+		v.write("debug message");
+	});
+};//method
+
 Log.error = function(description, cause){
 	var e=new Exception(description, cause);
 //	Log.alert(description);

@@ -41,7 +41,8 @@ Dimension.prototype={
 			//PLEASE SPLIT end() INTO value() (replacing the string value) AND
 			//label() (for presentation)
 			"value": (!this.value && this.partitions) ? "name" : this.value,
-			"end":nvl(this.end, (this.type=="set" && this.name!==undefined) ? function(v){return v;} : undefined),
+			"label":nvl(this.label, (this.type=="set" && this.name!==undefined) ? function(v){return v.name;} : undefined),
+			"end":nvl(this.end, (this.type=="set" && this.name!==undefined) ? function(v){return v;} : undefined),  //I DO NOT KNOW WHY IS NOT return v.name
 //			"value":(!this.value && this.partitions) ? "name" : this.value,
 			"isFacet":this.isFacet
 

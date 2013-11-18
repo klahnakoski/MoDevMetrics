@@ -47,7 +47,11 @@ ESQuery.INDEXES={
 	"temp":{"path":""},
 	"telemetry":{"path":"/telemetry/data"},
 	"raw_telemetry":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/raw_telemetry/data"},
-	"datazilla":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/datazilla/test_results"}
+	"datazilla":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/datazilla/test_results"},
+
+	"perfy":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/perfy/scores"},
+	"local_perfy":{"host":"http://localhost:9200", "path":"/perfy/scores"}
+
 //	"raw_telemetry":{"host":"http://localhost:9200", "path":"/raw_telemetry/data"}
 };
 
@@ -60,29 +64,22 @@ ESQuery.getColumns=function(indexName){
 
 
 //RETURN THE COLUMN DEFINITIONS IN THE GIVEN esProperties OBJECT
-ESQuery.parseColumns=function(indexName, esProperties){
+ESQuery.parseColumns=function(indexName, parentName, esProperties){
 	var columns = [];
 	forAllKey(esProperties, function(name, property){
+		var fullName=[parentName, name].concatenate(".");
+
 		if (property.type == "nested"){
 			//NESTED TYPE IS A NEW TYPE DEFINITION
 			let nestedName=indexName+"."+name;
 			if (ESQuery.INDEXES[nestedName]===undefined) ESQuery.INDEXES[nestedName]={};
-			ESQuery.INDEXES[nestedName].columns=ESQuery.parseColumns(nestedName, property.properties);
+			ESQuery.INDEXES[nestedName].columns=ESQuery.parseColumns(nestedName, parentName, property.properties);
 			return;
 		}//endif
 
 		if (property.properties !== undefined) {
-			//DEFINE PROPERTIES WITH "." IN NAME
-			forAllKey(property.properties, function(n, p, i){
-				if (["string", "boolean", "integer", "date", "long", "double"].contains(p.type)){
-					columns.push({"name":name+"."+n, "type":p.type, "useSource":p.index=="no"});
-				}else if (p.type===undefined){
-					//DO NOTHING
-				}else{
-					Log.error("unknown subtype "+p.type);
-				}//endif
-			});
-
+			var childColumns=ESQuery.parseColumns(indexName, fullName, property.properties);
+			columns.appendArray(childColumns);
 			return;
 		}//endif
 
@@ -94,18 +91,19 @@ ESQuery.parseColumns=function(indexName, esProperties){
 			forAllKey(property.fields, function(n, p, i){
 				if (n==name){
 					//DEFAULT
-					columns.push({"name":name, "type":p.type, "useSource":p.index=="no"});
+					columns.push({"name":fullName, "type":p.type, "useSource":p.index=="no"});
 				}else{
-					columns.push({"name":name+"."+n, "type":p.type, "useSource":p.index=="no"});
+					columns.push({"name":fullName+"."+n, "type":p.type, "useSource":p.index=="no"});
 				}//endif
 			});
 			return;
 		}//endif
 
 
-		if (["string", "boolean", "integer", "date", "long"].contains(property.type)){
-			columns.push({"name":name, "type":property.type, "useSource":property.index=="no"});
-			if (property.index_name && name!=property.index_name) columns.push({"name":property.index_name, "type":property.type, "useSource":property.index=="no"});
+		if (["string", "boolean", "integer", "date", "long", "double"].contains(property.type)){
+			columns.push({"name":fullName, "type":property.type, "useSource":property.index=="no"});
+			if (property.index_name && name!=property.index_name)
+				columns.push({"name":property.index_name, "type":property.type, "useSource":property.index=="no"});
 		}else{
 			Log.error("unknown type "+property.type);
 		}//endif
@@ -150,7 +148,7 @@ ESQuery.loadColumns=function(query){
 
 			var properties = schema[indexPath.split("/")[2]].properties;
 
-			indexInfo.columns = ESQuery.parseColumns(indexName, properties);
+			indexInfo.columns = ESQuery.parseColumns(indexName, undefined, properties);
 			yield(null);
 		});
 	}//endif
@@ -316,9 +314,23 @@ ESQuery.prototype.compile = function(){
 	}
 
 
+	//THESE SMOOTH EDGES REQUIRE ALL DATA (SETOP)
+	var extraSelect=[];
+	this.query.edges.forall(function(e){
+		if (e.domain !== undefined && e.domain.interval == "none"){
+			extraSelect.append({"name":e.name, "value":e.value});
+		}//endif
+	});
 
-	this.termsEdges = this.query.edges.copy();
-	this.select = Array.newInstance(this.query.select);
+
+	if (extraSelect.length == this.query.edges.length){
+		this.termsEdges = [];
+		this.select = Array.newInstance(this.query.select);
+		this.select.appendArray(extraSelect)
+	}else{
+		this.termsEdges = this.query.edges.copy();
+		this.select = Array.newInstance(this.query.select);
+	}//endif
 
 
 	if (this.termsEdges.length==0){

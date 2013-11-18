@@ -385,6 +385,8 @@ Date.prototype.ceilingMonth = function(){
 // Hour (1-24)  | kk (2 digits)      | k (1 or 2 digits)
 // Minute       | mm (2 digits)      | m (1 or 2 digits)
 // Second       | ss (2 digits)      | s (1 or 2 digits)
+// MilliSecond  | fff (3 digits)     |
+// MicroSecond  | ffffff (6 digits)  | 
 // AM/PM        | a                  |
 //
 // NOTE THE DIFFERENCE BETWEEN MM and mm! Month=MM, not mm!
@@ -417,6 +419,7 @@ Date.prototype.format = function(format){
 	var H = this.getUTCHours();
 	var m = this.getUTCMinutes();
 	var s = this.getUTCSeconds();
+	var f = this.getUTCMilliseconds();
 
 	var v = {};
 	v["y"] = y;
@@ -443,6 +446,8 @@ Date.prototype.format = function(format){
 	v["mm"] = Date.LZ(m);
 	v["s"] = s;
 	v["ss"] = Date.LZ(s);
+	v["fff"] = f;
+	v["ffffff"] = f*1000;
 
 
 	var output = "";
@@ -582,7 +587,7 @@ function _getInt(str, i, minlength, maxlength){
 }
 
 
-function internalChecks(year, month, date, hh, mm, ss, ampm){
+function internalChecks(year, month, date, hh, mm, ss, fff, ampm){
 	// Is date valid for month?
 	if (month == 2){
 		//LEAP YEAR
@@ -603,7 +608,7 @@ function internalChecks(year, month, date, hh, mm, ss, ampm){
 		hh -= 12;
 	}//endif
 
-	var newDate = new Date(Date.UTC(year, month - 1, date, hh, mm, ss));
+	var newDate = new Date(Date.UTC(year, month - 1, date, hh, mm, ss, fff));
 	//newDate=newDate.addMinutes(new Date().getTimezoneOffset());
 	return newDate;
 }//method
@@ -641,6 +646,7 @@ Date.getDateFromFormat=function(val, format, isPastDate){
 	var hh = 0;
 	var mm = 0;
 	var ss = 0;
+	var fff = 0;
 	var ampm = "";
 
 	while(formatIndex < format.length){
@@ -757,6 +763,19 @@ Date.getDateFromFormat=function(val, format, isPastDate){
 				return 0;
 			}
 			valueIndex += ss.length;
+		} else if (token == "fff"){
+			fff = _getInt(val, valueIndex, token.length, 3);
+			if (fff == null || (fff < 0) || (fff > 999)){
+				return 0;
+			}
+			valueIndex += fff.length;
+		} else if (token == "ffffff"){
+			fff = _getInt(val, valueIndex, token.length, 6);
+			if (fff == null || (fff < 0) || (fff > 999999)){
+				return 0;
+			}
+			fff/=1000
+			valueIndex += fff.length;
 		} else if (token == "a"){
 			if (val.substring(valueIndex, valueIndex + 2).toLowerCase() == "am"){
 				ampm = "AM";
@@ -783,17 +802,17 @@ Date.getDateFromFormat=function(val, format, isPastDate){
 		//WE HAVE TO GUESS THE YEAR
 		year = now.getFullYear();
 		var oldDate = (now.getTime()) - 86400000;
-		var newDate = internalChecks(year, month, dayOfMonth, hh, mm, ss, ampm);
+		var newDate = internalChecks(year, month, dayOfMonth, hh, mm, ss, fff, ampm);
 		if (isPastDate){
 			if (newDate != 0 && (newDate + "") < (oldDate + "")) return newDate;
-			return internalChecks(year - 1, month, dayOfMonth, hh, mm, ss, ampm);
+			return internalChecks(year - 1, month, dayOfMonth, hh, mm, ss, fff, ampm);
 		} else{
 			if (newDate != 0 && (newDate + "") > (oldDate + "")) return newDate;
-			return internalChecks(year + 1, month, dayOfMonth, hh, mm, ss, ampm);
+			return internalChecks(year + 1, month, dayOfMonth, hh, mm, ss, fff, ampm);
 		}//endif
 	}//endif
 
-	return internalChecks(year, month, dayOfMonth, hh, mm, ss, ampm);
+	return internalChecks(year, month, dayOfMonth, hh, mm, ss, fff, ampm);
 };//method
 
 // ------------------------------------------------------------------

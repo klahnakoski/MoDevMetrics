@@ -678,6 +678,62 @@ CUBE.normalizeByX=function(query, multiple){
 };//method
 
 
+CUBE.removeZeroParts=function(query, edgeIndex){
+	if (query.cube===undefined) Log.error("Can only normalize a cube into a table at this time");
+
+	var zeros=query.edges[edgeIndex].domain.partitions.map(function(){ return true;});
+
+	if (query.edges.length!=2){
+		Log.error("not implemented yet");
+
+	}else{
+		if (edgeIndex==0){
+			for(var c=0;c<query.cube.length;c++){
+				for(var e=0;e<query.cube[c].length;e++){
+					if (query.cube[c][e]!=0) zeros[c]=false;
+				}//for
+			}//for
+
+			query.edges[0].domain.partitions=query.edges[0].domain.partitions.map(function(part, i){
+				if (zeros[i]) return undefined;
+				var output=Map.copy(part);
+				output.dataIndex=i;
+				return output;
+			});
+			query.edges[0].domain.NULL.index=query.edges[0].domain.partitions.length;
+			query.cube=query.cube.map(function(v, i){
+				if (zeros[i]) return undefined;
+				return v;
+			});
+		}else if (edgeIndex==1){
+			for(var c=0;c<query.cube.length;c++){
+				for(var e=0;e<query.cube[c].length;e++){
+					if (query.cube[c][e]!=0) zeros[e]=false;
+				}//for
+			}//for
+			query.edges[1].domain.partitions=query.edges[1].domain.partitions.map(function(part, i){
+				if (zeros[i]) return undefined;
+				var output=Map.copy(part);
+				output.dataIndex=i;
+				return output;
+			});
+			query.edges[1].domain.NULL.index=query.edges[1].domain.partitions.length;
+			query.cube=query.cube.map(function(r, i){
+				return r.map(function(c, j){
+					if (zeros[j]) return undefined;
+					return c;
+				})
+			});
+
+
+
+
+		}//endif
+
+	}//endif
+};
+
+
 
 
 

@@ -182,6 +182,12 @@ CNV.Date2Code = function(date){
 	return "Date.newInstance("+date.getMilli()+")";
 };//method
 
+CNV.Date2milli = function(date){
+	return date.getMilli();
+};//method
+
+
+
 //CONVERT TO SOME MOSTLY HUMAN READABLE FORM (MEANT TO BE DIGESTED BY OTHER TEXT TOOLS)
 CNV.Value2Text=function(value){
 	if (value === undefined){

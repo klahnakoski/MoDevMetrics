@@ -180,8 +180,10 @@
 		}//while
 	};
 
-	//[].remove("a");
-
+	
+	Array.prototype.concatenate=function(separator){
+		return this.map(function(v){return v;}).join(separator);
+	};
 
 	//RETURN TRUE IF VALUE IS FOUND IN ARRAY
 	Array.prototype.contains = function(value){

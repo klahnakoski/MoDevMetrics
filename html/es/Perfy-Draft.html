@@ -1,0 +1,128 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="application/javascript;version=1.7" src="lib/jsImport/js/import.js"></script>
+</HEAD>
+<BODY>
+
+<div id="sidebar">
+	<br>
+	<br>
+
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3 id="title">Perfy!</h3>
+	<div id="chart" class="chart" style="float:none;width:800px;height:400px;"></div>
+	<div id="info"></div>
+	<div id="details"></div>
+</div>
+
+
+<script type="application/javascript;version=1.7">
+
+
+importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
+	//POINT TO KNOWN CLUSTER
+	ElasticSearch.baseURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9200";
+//	ElasticSearch.baseURL = "http://localhost:9200";
+
+	var thread;
+	var createChart = function(){
+		if (thread !== undefined)
+			thread.kill();
+		thread = Thread.run(__createChart());
+	};
+
+	var __createChart = function(){
+		var sampleDate = Date.newInstance(GUI.state.date);
+		var benchmark=GUI.state.benchmark;
+
+		var esfilter={"and":[
+			{"range":{"info.started":{"gte":sampleDate.floorDay().getMilli(), "lt":sampleDate.ceilingDay().getMilli()}}},
+			GUI.getFilters("perfy")
+		]};
+
+		while (Mozilla.Perfy.Test.partitions instanceof Thread){
+			yield (Thread.sleep(200));
+		}//while
+
+		var data = yield(ESQuery.run({
+			"name":"Results",
+			"from":"perfy",
+			"select": {"name":"score", "value":"score", "aggregate":"average"},
+			"edges":[
+				{"name":"Browser", "domain":Mozilla.Perfy.Browser.getDomain()},
+				{"name":"Test", "value":Mozilla.Perfy.Test.field, "domain":Mozilla.Perfy.Test.getDomain()}
+			],
+			"esfilter":esfilter
+		}));
+
+		//REMOVE ZERO EDGES
+		CUBE.removeZeroParts(data, 0);
+		CUBE.removeZeroParts(data, 1);
+		
+
+		aChart.show({
+			"id":"chart",
+			"sheetDiv":"info",
+			"type":"bar",
+			"stacked":false,
+			"cube":data,
+			xAxisSize: 50,
+			extensionPoints: {
+				line_lineWidth: 2
+			}
+		});
+
+		yield (null);
+
+	};
+	
+
+	$(document).ready(function(){
+		GUI.setup(createChart, [
+				{"id":"date", "name":"Test Date", "type":"date", "default":Date.getDateFromFormat("2013-Sep-03", "yyyy-MMM-dd")},
+				{"id":"benchmark", "name":"Benchmark", "type":PartitionFilter.newInstance({
+					"id":"benchmark",
+					"name":"Benchmark",
+					"dimension":Mozilla.Perfy.Benchmark,
+					"onlyOne":true,
+					"expandAll":true
+				})}
+			],
+			[
+			],
+			"perfy",
+			false
+		);
+	});
+
+});
+
+</script>
+
+
+</BODY>
+</HTML>
+
