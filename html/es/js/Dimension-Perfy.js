@@ -18,7 +18,6 @@ Dimension.addEdges(false,  Mozilla, [
 		{
 			"name":"Benchmark",
 			"type":"set",
-			"partitions"
 			"field":"info.benchmark"
 		},
 		{
