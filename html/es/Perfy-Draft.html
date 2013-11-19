@@ -63,7 +63,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			GUI.getFilters("perfy")
 		]};
 
-		while (Mozilla.Perfy.Test.partitions instanceof Thread){
+		while (Mozilla.Perfy.Benchmark.partitions instanceof Thread){
 			yield (Thread.sleep(200));
 		}//while
 
@@ -73,7 +73,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			"select": {"name":"score", "value":"score", "aggregate":"average"},
 			"edges":[
 				{"name":"Browser", "domain":Mozilla.Perfy.Browser.getDomain()},
-				{"name":"Test", "value":Mozilla.Perfy.Test.field, "domain":Mozilla.Perfy.Test.getDomain()}
+				{"name":"Test", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":1})}
 			],
 			"esfilter":esfilter
 		}));

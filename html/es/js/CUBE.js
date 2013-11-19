@@ -734,9 +734,6 @@ CUBE.removeZeroParts=function(query, edgeIndex){
 };
 
 
-
-
-
 // CONVERT THE tree STRUCTURE TO A FLAT LIST FOR output
 function Tree2List(output, tree, select, edges, coordinates, depth){
 	if (depth == edges.length){

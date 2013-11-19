@@ -73,6 +73,8 @@ aMath.add=function(){
 	return add;
 };//add
 
+aMath.sum=aMath.add;
+
 
 aMath.mean=function(){
 	var add=null;

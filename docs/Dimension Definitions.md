@@ -10,9 +10,9 @@ Dimensions are similar to domain clauses in CUBE queries, with additional attrib
 
   - **name** - humane words to describe the child dimension
   - **field** - full path name of a field in the json record.  This will be used as the value in the query's edge
-  - **value** - function to convert a part object into a humane string for final presentation.
+  - **value** - function to convert a part object into a humane string for final presentation.  **Default:** ```function(v){return v.name;}```
   - **format** - convenience attribute instead of using the value function to convert a part to a string.  This will look at the type of domain, and use the default formatting function for that type.
-  - **set** - type of domain
+  - **type** - type of domain ("set", "time", "duration", "numeric", "count", "boolean")
   - **esfilter** - limits the domain to a subset.  If this is undefined, then it will default to the union of all child dimensions.  This can often be bad because the esfilter can get complicated.  You will often see "esfilter":ESQuery.TrueFilter to simply set the domain to everything.
   - **isFacet** - force the partitions of this dimension to be split into ES facets.  This is required when the documents need to be multiply counted
   - **path** -  function that will map a value (usually pulled from ```field```) and converts it to partition path.  The dimension definition allows the programmer to define partitions of partitions, forming a tree.  A partition path is a path through that tree.  In the event the tree is left undefined, the datasource will be used to find all values and build the tree using the path function.  Return a single value if you want to simply parse a value into a nicer set of parts.
@@ -20,3 +20,38 @@ Dimensions are similar to domain clauses in CUBE queries, with additional attrib
   - **default** - suggested limits for algebraic dimensions ( min, max, interval)
   - **partitions** - he child partitions, which can be further partitioned if required
 
+
+Hierarical Partitions
+---------------------
+
+Some properties domain values are functionally dependent on another.  You can have the field attribute be a list of property names, in dependency order.  This will make a hierarchy of partiitons for you,  while merging the two properties in to the effective one that they are.
+
+Example:  Perfy test results have multiple benchmarks, each with a suite of tests.  Here is a simplified example of one test result
+
+    {
+        "info":{
+            "benchmark":"octane",
+            "test":"Box2D"
+        },
+        "score":200
+    }
+    
+The ```Box2D``` test can not be found in the other benchmarks, so is effectively one part of ```octane```.  The ```test``` property is a child of the ```benchmark``` property, and we declare it as such in the dimension definition:
+
+    {
+        "name":"Benchmark",
+        "type":"set",
+        "field":["info.benchmark", "info.test"]
+    }
+    
+If we were to organize the data to properly reflect the hierarchal nature, we could have used
+
+    {
+        "octane":{
+            "Box2D":{
+                "score":200
+            }
+        }
+    }
+
+But this deeper structure would probably require more ETL, it looses the name of the properties ("benchmark" and "test"), and will require a more complicated dimension definition (which is not even supported yet).

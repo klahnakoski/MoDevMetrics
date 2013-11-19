@@ -1,4 +1,4 @@
-var ../schema/TelemetrySchema={
+var TelemetrySchema={
 	"_all":{
 		"enabled":false
 	},
