@@ -62,19 +62,19 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		var totalsFilter={"terms":{"info.test":["total", "Kraken", "Octane"]}};
 
 		//DIFFICULT TO FIND TEST DATA, LOOK FOR LATEST IN EACH COMBO
-		var max_date=yield (ESQuery.run({
-			"from":"perfy",
-			"select":{"value":"info.started", "aggregate":"max"},
-			"edges":[
-				{"name":"Browser", "domain":Mozilla.Perfy.Browser.getDomain()},
-				{"name":"Test", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":1})}
-			],
-			"esfilter":{"and":[
-				{"not":totalsFilter}, //IGNORE AGGREGATE VALUES
-				{"range":{"info.started":{"lt":sampleDate.ceilingDay().getMilli()}}},
-				GUI.getFilters("perfy")
-			]}
-		}));
+//		var max_date=yield (ESQuery.run({
+//			"from":"perfy",
+//			"select":{"value":"info.started", "aggregate":"max"},
+//			"edges":[
+//				{"name":"Browser", "domain":Mozilla.Perfy.Browser.getDomain()},
+//				{"name":"Test", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":1})}
+//			],
+//			"esfilter":{"and":[
+//				{"not":totalsFilter}, //IGNORE AGGREGATE VALUES
+//				{"range":{"info.started":{"lt":sampleDate.ceilingDay().getMilli()}}},
+//				GUI.getFilters("perfy")
+//			]}
+//		}));
 
 
 
