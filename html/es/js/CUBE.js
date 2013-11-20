@@ -768,6 +768,10 @@ function Tree2Cube(query, cube, tree, depth){
 		let keys=Object.keys(tree);
 		for(var k=keys.length;k--;){
 			var p=domain.getPartByKey(keys[k]).dataIndex;
+			if (cube[p]===undefined){
+				Log.debug();
+				p=domain.getPartByKey(keys[k]).dataIndex;
+			}//endif
 			Tree2Cube(query, cube[p], tree[keys[k]], depth+1);
 		}//for
 		return;

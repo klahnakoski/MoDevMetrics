@@ -55,6 +55,7 @@ PartitionFilter.newInstance=function(param){
 
 function convertToTreeLater(self, treeNode, dimension){
 	self.numLater++;
+	GUI.pleaseRefreshLater=true;
 	Thread.run(function(){
 		//DO THIS ONE LATER
 //		treeNode.children = [];
