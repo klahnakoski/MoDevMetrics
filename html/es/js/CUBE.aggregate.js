@@ -395,3 +395,43 @@ CUBE.aggregate.percentile = function(select){
 		}
 	};
 };
+
+
+
+CUBE.aggregate.array = function(select){
+	select.defaultValue = function(){
+		return {list:[]};
+	};//method
+
+	select.add = function(total, v){
+		if (v === undefined || v == null) return total;
+		total.list.push(v);
+		return total;
+	};//method
+
+	select.domain = {
+		//HOPEFULLY WE WILL NEVER NEED TO SORT ARRAY OBJECTS
+		compare:function(a, b){
+			Log.error("Please, NO!");
+		},
+
+		NULL:null,
+
+		getCanonicalPart:function(value){
+			return value;
+		},
+
+		getKey:function(partition){
+			return partition;
+		},
+
+		end :function(total){
+			if (select.sort==1){
+				total.list.sort(function(a, b){return a-b;});
+			}else if (select.sort==-1){
+				total.list.sort(function(a, b){return b-a;});
+			}//endif
+			return total.list;
+		}
+	};
+};

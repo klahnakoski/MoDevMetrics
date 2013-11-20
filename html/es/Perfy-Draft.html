@@ -34,6 +34,7 @@
 <div style="align:left;position:relative;float:left;width:800px;">
 	<h3 id="title">Perfy!</h3>
 	<div id="chart" class="chart" style="float:none;width:800px;height:400px;"></div>
+	<div id="confidence" class="confidence" style="float:none;width:800px;height:400px;"></div>
 	<div id="info"></div>
 	<div id="details"></div>
 </div>
@@ -59,6 +60,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		var benchmark=GUI.state.benchmark;
 
 		var esfilter={"and":[
+			{"not":{"terms":{"info.test":["total", "Kraken", "Octane"]}}}, //IGNORE AGGREGATE VALUES
 			{"range":{"info.started":{"gte":sampleDate.floorDay().getMilli(), "lt":sampleDate.ceilingDay().getMilli()}}},
 			GUI.getFilters("perfy")
 		]};
@@ -67,35 +69,102 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			yield (Thread.sleep(200));
 		}//while
 
-		var data = yield(ESQuery.run({
-			"name":"Results",
-			"from":"perfy",
-			"select": {"name":"score", "value":"score", "aggregate":"average"},
-			"edges":[
-				{"name":"Browser", "domain":Mozilla.Perfy.Browser.getDomain()},
-				{"name":"Test", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":1})}
-			],
-			"esfilter":esfilter
-		}));
 
-		//REMOVE ZERO EDGES
-		CUBE.removeZeroParts(data, 0);
-		CUBE.removeZeroParts(data, 1);
-		
+		Thread.run(function(){
+			var data = yield(ESQuery.run({
+				"name":"Results for"+GUI.state.benchmark.getSimpleState(),
+				"from":"perfy",
+				"select": {"name":"score", "value":"score", "aggregate":"average"},
+				"edges":[
+					{"name":"Browser", "domain":Mozilla.Perfy.Browser.getDomain()},
+					{"name":"Test", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":1})}
+				],
+				"esfilter":esfilter
+			}));
 
-		aChart.show({
-			"id":"chart",
-			"sheetDiv":"info",
-			"type":"bar",
-			"stacked":false,
-			"cube":data,
-			xAxisSize: 50,
-			extensionPoints: {
-				line_lineWidth: 2
-			}
+			//REMOVE ZERO EDGES
+			CUBE.removeZeroParts(data, 0);
+			CUBE.removeZeroParts(data, 1);
+
+
+			aChart.show({
+				"id":"chart",
+				"sheetDiv":"info",
+				"type":"bar",
+				"stacked":false,
+				"cube":data,
+				"legendPosition":"right",
+				"legendSize":150,
+				xAxisSize: 100,
+				extensionPoints: {
+					line_lineWidth: 2
+				}
+			});
 		});
 
-		yield (null);
+		
+
+
+		Thread.run(function(){
+			var data = yield(ESQuery.run({
+				"name":"Results",
+				"from":"perfy",
+				"select": [
+					Mozilla.Perfy.Browser.getSelect(),
+					Mozilla.Perfy.Benchmark.getSelect({"depth":1}),
+					{"name":"score", "value":"score"}
+				],
+				"esfilter":esfilter
+			}));
+
+			var range=yield (Q({
+				"from":data,
+				"select":
+					{"value":"score", "aggregate":"array", "sort":1}
+				,
+				"edges":[
+					{"name":"Browser", "value":"Browser"},
+					{"name":"Benchmark", "value":"Benchmark"}
+				]
+			}));
+
+			var domain=Mozilla.Perfy.Benchmark.getDomain({"depth":1});
+			domain.partitions=domain.partitions.map(function(v){
+				return v.name;
+			});
+//			domain.partitions.sort();
+
+			var range2=yield (Q({
+				"from":range,
+				"select":
+					//REPORT 90% OF VALUES
+					{"name":"range", "value":"(function(){if (score.length<2) return 0; var n=Math.floor(score.length/20); return score[score.length-1-n]-score[n];})()"}
+				,
+				"edges":[
+					{"name":"Browser", "value":"Browser", "domain":Mozilla.Perfy.Browser},
+					{"name":"Benchmark", "value":"Benchmark", "domain":{"type":"set", "partitions":domain.partitions}}
+				]
+			}));
+
+			CUBE.removeZeroParts(range2, 0);
+			CUBE.removeZeroParts(range2, 1);
+
+			aChart.show({
+				"name":"Range of Middle 90%",
+				"id":"confidence",
+				"sheetDiv":"info",
+				"type":"bar",
+				"stacked":false,
+				"cube":range2,
+				"legendPosition":"right",
+				"legendSize":150,
+				xAxisSize: 100,
+				extensionPoints: {
+					line_lineWidth: 2
+				}
+			});
+		});
+
 
 	};
 	
@@ -107,6 +176,13 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 					"id":"benchmark",
 					"name":"Benchmark",
 					"dimension":Mozilla.Perfy.Benchmark,
+					"onlyOne":true,
+					"expandAll":true
+				})},
+				{"id":"platform", "name":"Platform", "type":PartitionFilter.newInstance({
+					"id":"platform",
+					"name":"Platform",
+					"dimension":Mozilla.Perfy.Platform,
 					"onlyOne":true,
 					"expandAll":true
 				})}

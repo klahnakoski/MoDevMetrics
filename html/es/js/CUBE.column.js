@@ -24,8 +24,8 @@ CUBE.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //
 
 	resultColumn.sortOrder = 1;
 	if (resultColumn.sort== "descending") resultColumn.sortOrder = -1;
-	if (resultColumn.sort!=undefined && ["descending", "none", "ascending"].indexOf(resultColumn.sort)==-1){
-		Log.error(resultColumn.name+' has unknown sort order, pick one of ["descending", "none", "ascending"]');
+	if (resultColumn.sort!=undefined && !["descending", "none", "ascending", "-1", "0", "1"].contains(""+resultColumn.sort)){
+		Log.error(resultColumn.name+' has unknown sort order, pick one of ["descending", "none", "ascending", -1, 0, 1]');
 	}//endif
 
 	if (useMVEL!==undefined && useMVEL) return;

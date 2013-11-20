@@ -162,18 +162,32 @@ Dimension.addEdges(false,  Mozilla, [
 			"name":"Browser",
 			"value":"name",
 			"partitions":[
-				{"name":"Firefox23", "style":{"color":"#f9cb9c"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"version":23}}]}},
-				{"name":"Firefox24", "style":{"color":"#f6b26b"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"version":24}}]}},
-				{"name":"Firefox25", "style":{"color":"#e06666"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"version":25}}]}},
-				{"name":"Firefox26", "style":{"color":"#cc0000"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"version":26}}]}},
-				{"name":"Firefox27", "style":{"color":"#cc0000"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"version":27}}]}},
-				{"name":"Firefox28", "style":{"color":"#cc0000"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"version":28}}]}},
-				{"name":"Firefox29", "style":{"color":"#cc0000"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"version":29}}]}},
-				{"name":"Firefox30", "style":{"color":"#cc0000"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"version":30}}]}},
-				{"name":"Chrome28", "style":{"color":"#b4a7d6"}, "esfilter":{"and":[{"term":{"browser.name":"Chrome"}}, {"term":{"version":28}}]}},
-				{"name":"Chrome29", "style":{"color":"#8e7cc3"}, "esfilter":{"and":[{"term":{"browser.name":"Chrome"}}, {"term":{"version":29}}]}},
-				{"name":"Chrome30", "style":{"color":"#8e7cc3"}, "esfilter":{"and":[{"term":{"browser.name":"Chrome"}}, {"term":{"version":30}}]}},
-				{"name":"Chrome31", "style":{"color":"#8e7cc3"}, "esfilter":{"and":[{"term":{"browser.name":"Chrome"}}, {"term":{"version":31}}]}}
+				{"name":"Firefox23", "style":{"color":"#f9cb9c"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"browser.version":23}}]}},
+				{"name":"Firefox24", "style":{"color":"#f6b26b"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"browser.version":24}}]}},
+				{"name":"Firefox25", "style":{"color":"#e06666"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"browser.version":25}}]}},
+				{"name":"Firefox26", "style":{"color":"#cc0000"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"browser.version":26}}]}},
+				{"name":"Firefox27", "style":{"color":"#cc0000"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"browser.version":27}}]}},
+				{"name":"Firefox28", "style":{"color":"#cc0000"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"browser.version":28}}]}},
+				{"name":"Firefox29", "style":{"color":"#cc0000"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"browser.version":29}}]}},
+				{"name":"Firefox30", "style":{"color":"#E66000"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"browser.version":30}}]}},
+				{"name":"Chrome28", "style":{"color":"#b4a7d6"}, "esfilter":{"and":[{"term":{"browser.name":"Chrome"}}, {"term":{"browser.version":28}}]}},
+				{"name":"Chrome29", "style":{"color":"#8e7cc3"}, "esfilter":{"and":[{"term":{"browser.name":"Chrome"}}, {"term":{"browser.version":29}}]}},
+				{"name":"Chrome30", "style":{"color":"#8e7cc3"}, "esfilter":{"and":[{"term":{"browser.name":"Chrome"}}, {"term":{"browser.version":30}}]}},
+				{"name":"Chrome31", "style":{"color":"#8e7cc3"}, "esfilter":{"and":[{"term":{"browser.name":"Chrome"}}, {"term":{"browser.version":31}}]}}
+			]
+		},
+		{
+			"name":"Platform",
+			"value":"name",
+			"partitions":[
+				{"name":"Desktop", "partitions":[
+					{"name":"Windows 7", "style":{"color":"#136bab"}, "esfilter":{"term":{"browser.platform":"Windows 7"}}},
+					{"name":"Linux", "style":{"color":"#de4815"}, "esfilter":{"term":{"browser.platform":"Linux"}}}
+				]},
+				{"name":"Mobile", "partitions":[
+					{"name":"Andriod", "style":{"color":"#a4c739"}, "esfilter":{"term":{"browser.platform":"Andriod"}}},
+					{"name":"Firefox OS", "style":{"color":"#ff4e00"}, "esfilter":{"term":{"browser.platform":"Firefox OS"}}}
+				]}
 			]
 		}
 	]}

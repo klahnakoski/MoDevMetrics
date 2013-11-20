@@ -788,7 +788,8 @@ CUBE.domain.set = function(column, sourceColumns){
 	if (d.name === undefined) d.name = d.type;
 
 
-	if (d.partitions === undefined) Log.error("Expecting domain " + d.name + " to have a 'partitions' attribute to define the set of partitions that compose the domain");
+	if (d.partitions === undefined)
+		Log.error("Expecting domain " + d.name + " to have a 'partitions' attribute to define the set of partitions that compose the domain");
 
 	if (d.partitions.list!=undefined && d.partitions.columns!=undefined){
 		//THE PARTITIONS LOOK LIKE A QUERY, USE IT

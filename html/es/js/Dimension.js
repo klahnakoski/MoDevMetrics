@@ -21,15 +21,14 @@ Dimension.prototype={
 			};
 		}//endif
 		param.depth=nvl(param.depth, 0);
-		param.sparator=nvl(param.separator, ".");
+		param.separator=nvl(param.separator, ".");
 
-
-		//HIERACHAL QUERY
+		var self=this;
 		var partitions=null;
 
-		if (!partitions){
+		if (!this.partitions){
 			partitions=undefined;
-		}else if (param.depth==1){
+		}else if (param.depth==0){
 			partitions=this.partitions.map(function(v, i){
 				if (i>=nvl(self.limit, DEFAULT_QUERY_LIMIT)) return undefined;
 				return {
@@ -40,20 +39,20 @@ Dimension.prototype={
 					"weight":v.weight   //YO!  WHAT DO WE *NOT* COPY?
 				};
 			})
-		}else if (param.depth==2){
+		}else if (param.depth==1){
 			partitions=[];
 			var rownum=0;
 			self.partitions.forall(function(part, i){
+				if (i>=nvl(self.limit, DEFAULT_QUERY_LIMIT)) return undefined;
+				rownum++;
 				part.partitions.forall(function(subpart, j){
-					if (rownum>=nvl(self.limit, DEFAULT_QUERY_LIMIT)) return undefined;
-					rownum++;
-					return {
-						"name":[subpart.parent.name, subpart.name].join(param.separator),
+					partitions.append({
+						"name":[subpart.name, subpart.parent.name].join(param.separator),
 						"value":subpart.value,
 						"esfilter":subpart.esfilter,
 						"style":nvl(subpart.style, subpart.parent.style),
 						"weight":subpart.weight   //YO!  WHAT DO WE *NOT* COPY?
-					};
+					});
 
 				})
 			})
@@ -61,7 +60,6 @@ Dimension.prototype={
 			Log.error("deeper than 2 is not supported yet")
 		}//endif
 
-		var self=this;
 		var output={
 			"type":this.type,
 			"name":this.name,
@@ -97,8 +95,8 @@ Dimension.prototype={
 //		return Map.copy(output);
 	},//method
 
-	"getSelect":function(){
-		var domain=this.getDomain();
+	"getSelect":function(param){
+		var domain=this.getDomain(param);
 		if (domain.getKey===undefined) domain.getKey=function(v){return v.name;}; //BASIC COMPILE
 		if (domain.NULL===undefined) domain.NULL={"name":"Other"};
 

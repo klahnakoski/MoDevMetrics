@@ -312,7 +312,9 @@ CNV.Cube2HTMLTable=function(query){
 
 	var e=query.edges[0];
 
-	if (query.edges.length==1){
+	if (query.edges.length==0){
+		return CNV.List2HTMLTable(query);
+	}else if (query.edges.length==1){
 		header += "<td>" + CNV.String2HTML(e.name) + "</td>";
 
 		if (query.select instanceof Array){

@@ -690,7 +690,8 @@ CUBE.removeZeroParts=function(query, edgeIndex){
 		if (edgeIndex==0){
 			for(var c=0;c<query.cube.length;c++){
 				for(var e=0;e<query.cube[c].length;e++){
-					if (query.cube[c][e]!=0) zeros[c]=false;
+					var v=query.cube[c][e];
+					if (v!==undefined && v!=null && query.cube[c][e]!=0) zeros[c]=false;
 				}//for
 			}//for
 
@@ -708,7 +709,8 @@ CUBE.removeZeroParts=function(query, edgeIndex){
 		}else if (edgeIndex==1){
 			for(var c=0;c<query.cube.length;c++){
 				for(var e=0;e<query.cube[c].length;e++){
-					if (query.cube[c][e]!=0) zeros[e]=false;
+					var v=query.cube[c][e];
+					if (v!==undefined && v!=null && query.cube[c][e]!=0) zeros[e]=false;
 				}//for
 			}//for
 			query.edges[1].domain.partitions=query.edges[1].domain.partitions.map(function(part, i){

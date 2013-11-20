@@ -641,12 +641,7 @@ aChart.show=function(params){
 
 
 
-	var height;
-	if (chartCube.edges.length>1){
-		height=600+(chartCube.edges[0].domain.partitions.length/17*24);
-	}else{
-		height=600;
-	}
+	var height=$("#"+divName).height();
 
 	var chartParams={
 		canvas: divName,
