@@ -59,11 +59,33 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		var sampleDate = Date.newInstance(GUI.state.date);
 		var benchmark=GUI.state.benchmark;
 
+		var totalsFilter={"terms":{"info.test":["total", "Kraken", "Octane"]}};
+
+		//DIFFICULT TO FIND TEST DATA, LOOK FOR LATEST IN EACH COMBO
+		var max_date=yield (ESQuery.run({
+			"from":"perfy",
+			"select":{"value":"info.started", "aggregate":"max"},
+			"edges":[
+				{"name":"Browser", "domain":Mozilla.Perfy.Browser.getDomain()},
+				{"name":"Test", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":1})}
+			],
+			"esfilter":{"and":[
+				{"not":totalsFilter}, //IGNORE AGGREGATE VALUES
+				{"range":{"info.started":{"lt":sampleDate.ceilingDay().getMilli()}}},
+				GUI.getFilters("perfy")
+			]}
+		}));
+
+
+
 		var esfilter={"and":[
-			{"not":{"terms":{"info.test":["total", "Kraken", "Octane"]}}}, //IGNORE AGGREGATE VALUES
+			{"not":totalsFilter}, //IGNORE AGGREGATE VALUES
 			{"range":{"info.started":{"gte":sampleDate.floorDay().getMilli(), "lt":sampleDate.ceilingDay().getMilli()}}},
 			GUI.getFilters("perfy")
 		]};
+
+
+
 
 		while (Mozilla.Perfy.Benchmark.partitions instanceof Thread){
 			yield (Thread.sleep(200));
