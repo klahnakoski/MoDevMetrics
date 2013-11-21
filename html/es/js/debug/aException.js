@@ -33,8 +33,10 @@ Exception.prototype.contains=function(type){
 			if (this.cause[i].contains(type)) return true;
 		}//for
 		return false;
-	}else{
+	}else if (typeof(this.cause)=="function"){
 		return this.cause.contains(type);
+	}else{
+		return this.cause.message.indexOf(type)>=0;
 	}//endif
 };
 
