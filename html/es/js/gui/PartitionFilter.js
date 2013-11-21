@@ -11,6 +11,7 @@ PartitionFilter = function(){};
 
 
 var DEFAULT_CHILD_LIMIT=20;     //IN THE EVENT THE PARTITION DOES NOT DECLARE A LIMIT, IMPOSE ONE SO THE GUI IS NOT OVERWHELMED
+var WAITING_FOR_RESULTS={"name":"WAITING_FOR_RESULTS"};
 
 PartitionFilter.newInstance=function(param){
 	//YOU MAY ALSO PASS A callback FUNCTION THAT ACCEPTS TWO ARRAYS:
@@ -25,9 +26,6 @@ PartitionFilter.newInstance=function(param){
 		["onlyOne","callback"], //CALLBACK WILL OVERRIDE THE onlyOne SHORTCUT
 		["expandDepth","expandAll"]
 	]);
-
-
-
 
 	var self=new PartitionFilter();
 	Map.copy(param, self);
@@ -48,7 +46,8 @@ PartitionFilter.newInstance=function(param){
 	self.id2node=[];
 
 	self.parents={};
-	self.hierarchy=convertToTree(self, {"id":undefined}, self.dimension).children;
+	var tree=convertToTree(self, {"id":undefined}, self.dimension);
+	self.hierarchy=tree.children;
 
 	return self;
 };
@@ -56,13 +55,20 @@ PartitionFilter.newInstance=function(param){
 
 function convertToTreeLater(self, treeNode, dimension){
 	self.numLater++;
+	GUI.pleaseRefreshLater=true;
 	Thread.run(function(){
 		//DO THIS ONE LATER
 //		treeNode.children = [];
 		while(dimension.partitions instanceof Thread) yield (Thread.join(dimension.partitions));
-			treeNode.children = dimension.partitions.map(function(v, i){
-				if (i<nvl(dimension.limit, DEFAULT_CHILD_LIMIT)) return convertToTree(self, treeNode, v);
-			});
+		var pleaseUpdate = (treeNode.children==WAITING_FOR_RESULTS);
+		treeNode.children = dimension.partitions.map(function(v, i){
+			if (i<nvl(dimension.limit, DEFAULT_CHILD_LIMIT)) return convertToTree(self, treeNode, v);
+		});
+		if (pleaseUpdate){
+			self.hierarchy=treeNode.children;
+			self.setSimpleState(self.selectedIDs.join(","));
+			GUI.refresh();
+		}//endif
 		self.numLater--;
 		yield (null);
 	});
@@ -80,10 +86,12 @@ function convertToTree(self, parent, dimension){
 
 	if (dimension.partitions){
 		if (dimension.partitions instanceof Thread){
+			node.children=WAITING_FOR_RESULTS;
 			convertToTreeLater(self, node, dimension);
 		}else{
 			node.children=dimension.partitions.map(function(v,i){
-				if (i<nvl(dimension.limit, DEFAULT_CHILD_LIMIT)) return convertToTree(self, node, v);
+				if (i<nvl(dimension.limit, DEFAULT_CHILD_LIMIT))
+					return convertToTree(self, node, v);
 			});
 		}//endif
 	}//endif
@@ -129,6 +137,10 @@ PartitionFilter.prototype.getSimpleState=function(){
 	
 //RETURN SOMETHING SIMPLE ENOUGH TO BE USED IN A URL
 PartitionFilter.prototype.setSimpleState=function(value){
+	if (value!==undefined){
+		Log.debug()
+	}//endif
+
 	if (!value || value.trim()==""){
 		this.selectedIDs=[];
 	}else{
@@ -136,8 +148,8 @@ PartitionFilter.prototype.setSimpleState=function(value){
 	}//endif
 
 	//SOME VALUES WILL BE IMPOSSIBLE, SO SHOULD BE REMOVED
-	this.selectedIDs=this.getSelectedNodes().map(function(v, i){return v.id;});
-//	this.refresh();
+	if (this.hierarchy!=WAITING_FOR_RESULTS)
+		this.selectedIDs=this.getSelectedNodes().map(function(v, i){return v.id;});
 };
 
 
@@ -157,8 +169,8 @@ PartitionFilter.prototype.makeTree=function(){
 			//WAIT FOR LOADING TO COMPLETE
 			self.refreshLater=Thread.run(function(){
 				while(self.numLater>0) yield(Thread.sleep(200));
-				self.refreshLater=undefined;
 				self.makeTree();
+				self.refreshLater=undefined;
 			});
 		}//endif
 		return;

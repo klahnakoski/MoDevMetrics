@@ -1,4 +1,4 @@
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <!-- This Source Code Form is subject to the terms of the Mozilla Public
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
@@ -46,10 +46,10 @@
 <script type="application/javascript;version=1.7">
 
 
-importScript('js/main.js',function(){
+importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 	ElasticSearch.baseURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9200";
 
-
+	
 	$("#description").html(
 			"Simple look at time series"
 	);
@@ -63,98 +63,140 @@ importScript('js/main.js',function(){
 	};
 
 	var __createChart = function(){
-
-
 		var sampleMin = Date.newInstance(GUI.state.sampleMin);
 		var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
 		var sampleMax = Date.newInstance(GUI.state.sampleMax).add(sampleInterval);
-		var page='results.'+GUI.state.page.replaceAll(".", "_dot_")+".last_20";
-		var branch=GUI.state.branch
+		var page='results.'+GUI.state.page.replaceAll(".", "_dot_").toLowerCase()+".last_20";
+		var branch=GUI.state.branch;
 
 		var esfilter={"and":[
 			{"term":{"testrun.suite": "tp5o"}},
-			{"term":{"test_build.branch": branch}}
-		]}
+			{"range":{"testrun.date":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
+			GUI.getFilters("datazilla")
+		]};
 
+		while (Mozilla.Talos.Branch.partitions instanceof Thread){
+			yield (Thread.sleep(200));
+		}//while
 
-		var chart = yield(ESQuery.run({
+		//HOW MANY SAMPLES DO WE HAVE, TOO MANY AND WE USE A HEAT GRID
+		var sample = yield(ESQuery.run({
 			"name":"Page Load Times",
 			"from":"datazilla",
-			"select": [
-				{"name":"count", "value":page, "aggregate":"count"},
-				{"name":"mean", "value":page, "aggregate":"mean"},
-				{"name":"std", "value":page, "aggregate":"stddev"}
-			],
+			"select": {"name":"count", "value":page, "aggregate":"count"},
 			"edges":[
-				{"name":"date",
-					"value":'test_build.push_date',
-					"allowNulls":false,
-					domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value"}
-				}
+				{"name":"branch", "value":Mozilla.Talos.Branch.field, "domain":Mozilla.Talos.Branch.getDomain()}
 			],
 			"esfilter":esfilter
 		}));
 
+		var total=aMath.add.apply(null, sample.cube);
 
-		aChart.show({
-			"id":"chart",
-			"sheetDiv":"info",
-			"type":"scatter",
-			"stacked":false,
-			"cube":chart,
-			"height":"400",
-			xAxisSize: 50,
-			extensionPoints: {
-				line_lineWidth: 2
-			},
-			"clickAction":function(series, x, d, elem){
-				var edge=chart.getEdge("date");
-				var part=edge.domain.getPartByKey(x);
+		if (total>1000){
+			var chart = yield(ESQuery.run({
+				"name":"Page Load Times",
+				"from":"datazilla",
+				"select": {"name":"count", "value":"1", "aggregate":"count"},
+				"edges":[
+					{"name":"mean", "value":page, "domain":{"type":"duration", "min":0, "interval":Duration.newInstance("50milli")}},
+					{"name":"date", "value":'testrun.date', "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}}
+				],
+				"esfilter":esfilter
+			}));
 
-				if (edge.domain.interval.milli<15000 || chart.get("date", x).count<=25){
-					//PULL ORIGINAL SOURCE
-					Thread.run("Show specific page series", function(){
-						var ids=yield (ESQuery.run({
-							"from":"datazilla",
-							"select":{"name":"id", "value":"datazilla.test_run_id"},
-							"esfilter":{"and":[
-								esfilter,
-								{"range":{"test_build.push_date":{"gte":part.min.getMilli(), "lt":part.max.getMilli()}}}
-							]}
-						}));
-						ids=ids.list.join(",");
-						window.open("DZ-ShowSpecificPage.html#page="+GUI.state.page+"&start=5&id="+ids);
-					});
-					return;
-				}//endif
+			aChart.show({
+				"id":"chart",
+				"sheetDiv":"info",
+				"type":"heat",
+				"stacked":false,
+				"cube":chart,
+				"height":"400",
+				xAxisSize: 50,
+				extensionPoints: {
+					line_lineWidth: 2
+				},
+				"clickAction":function(series, x, d, elem){
+					var edge=chart.getEdge("date");
+					var part=edge.domain.getPartByKey(x);
+
+					if (edge.domain.interval.milli<15000 || chart.get("date", x).count<=25){
+						//PULL ORIGINAL SOURCE
+						Thread.run("Show specific page series", function(){
+							var ids=yield (ESQuery.run({
+								"from":"datazilla",
+								"select":{"name":"id", "value":"test_run_id"},
+								"esfilter":{"and":[
+									esfilter,
+									{"range":{"test_build.push_date":{"gte":part.min.getMilli(), "lt":part.max.getMilli()}}}
+								]}
+							}));
+							ids=ids.list.join(",");
+							window.open("DZ-ShowSpecificPage.html#page="+GUI.state.page+"&start=5&id="+ids);
+						});
+						return;
+					}//endif
 
 
 
-				var newMin=part.min.subtract(edge.domain.interval);
-				var newMax=part.max.add(edge.domain.interval);
-				var interval=Date.getBestInterval(newMin, newMax, Duration.SECOND, {"min":10, "max":40});
-				GUI.state.sampleMin=newMin;
-				GUI.state.sampleMax=newMax;
-				GUI.state.sampleInterval=interval;
-				GUI.State2Parameter();
-				GUI.refresh();
-			}
-		});
-		yield(null);
+					var newMin=part.min.subtract(edge.domain.interval);
+					var newMax=part.max.add(edge.domain.interval);
+					var interval=Date.getBestInterval(newMin, newMax, Duration.SECOND, {"min":10, "max":40});
+					GUI.state.sampleMin=newMin;
+					GUI.state.sampleMax=newMax;
+					GUI.state.sampleInterval=interval;
+					GUI.State2Parameter();
+					GUI.refresh();
+				}
+			});
+
+		}else{
+			var chart = yield(ESQuery.run({
+				"name":"Page Load Times",
+				"from":"datazilla",
+				"select": [
+					{"name":"mean", "value":page}
+				],
+				"edges":[
+					{"name":"date", "value":'testrun.date', "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":"none"}}
+				],
+				"esfilter":esfilter
+			}));
+
+			chart.list.forall(function(v){
+				v.mean=aMath.mean.apply(null, v.mean);
+			});
+	
+			aChart.showScatter({
+				"id":"chart",
+				"sheetDiv":"info",
+				"cube":chart,
+				"height":"400",
+				xAxisSize: 50
+			});
+		}//endif
+
+		yield (null);
+
 	};
-
+	
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [
-				{"id":"sampleMin", "name":"Start Date", "type":"datetime", "default":Date.getDateFromFormat("2013-May-26 19:00:00", "yyyy-MMM-dd HH:mm:ss")},
-				{"id":"sampleMax", "name":"End Date", "type":"datetime", "default":Date.getDateFromFormat("2013-Jul-01 21:00:00", "yyyy-MMM-dd HH:mm:ss")},
-				{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.DAY},
-				{"id":"page", "name":"Page URL", "type":"string", "default":"amazon.com"},
-				{"id":"branch", "name":"Branch", "type":"string", "default":"inbound"}
+				{"id":"sampleMin", "name":"Start Date", "type":"datetime", "default":Date.getDateFromFormat("2013-May-01", "yyyy-MMM-dd")},
+				{"id":"sampleMax", "name":"End Date", "type":"datetime", "default":Date.getDateFromFormat("2013-Sep-01", "yyyy-MMM-dd")},
+				{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.MONTH},
+				{"id":"page", "name":"Page URL", "type":"string", "default":"cnn_dot_com"},
+				{"id":"branch", "name":"Branch", "type":PartitionFilter.newInstance({
+					"id":"Branch",
+					"name":"Branches",
+					"dimension":Mozilla.Talos.Branch,
+					"onlyOne":true,
+					"expandAll":true
+				})}
 
 			],
 			[
-				'sampleInterval=Date.getBestInterval(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval), {"min":100, "max":1000})'
+				'sampleInterval=Date.getBestInterval(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval), {"min":10, "max":100})'
 			],
 			"datazilla",
 			false

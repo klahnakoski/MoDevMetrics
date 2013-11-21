@@ -31,7 +31,7 @@ MVEL.prototype.code = function(query){
 		"output;\n";
 
 	//ADD REFERENCED CONTEXT VARIABLES
-	var context=MVEL.compile.getContextVariables(indexName, body, query.isLean);
+	var context=MVEL.compile.getFrameVariables(indexName, body, query.isLean);
 
 	if (body.indexOf("<BODY")>=0)
 		Log.error();
@@ -109,7 +109,7 @@ MVEL.compile.expression = function(expression, query, constants){
 	var indexName=fromPath.split(".")[0];
 //	var whereClause = query.where;
 
-	var context = MVEL.compile.getContextVariables(indexName, expression, query.isLean);
+	var context = MVEL.compile.getFrameVariables(indexName, expression, query.isLean);
 	if (context=="") return MVEL.compile.addFunctions(expression);
 
 //	var body = "output = "+expression+"; output;\n";
@@ -128,8 +128,8 @@ MVEL.compile.expression = function(expression, query, constants){
 };//method
 
 
-MVEL.compile.getContextVariables=function(indexName, body, isLean){
-	var context = "";
+MVEL.compile.getFrameVariables=function(indexName, body, isLean){
+	var contextVariables = "";
 	var columns = ESQuery.getColumns(indexName);
 
 	var parentVarNames={};	//ALL PARENTS OF VARIABLES WITH "." IN NAME
@@ -156,33 +156,33 @@ MVEL.compile.getContextVariables=function(indexName, body, isLean){
 				}
 
 				if (name.indexOf(".")<0){
-					context+="var "+name+" = new HashMap();\n";
+					contextVariables+="var "+name+" = new HashMap();\n";
 				}else{
 					defParent(name.split(".").leftBut(1).join("."));
-					context+=name+" = new HashMap();\n";
+					contextVariables+=name+" = new HashMap();\n";
 				}//endif
 			}//function
 
 			if (isLean || c.useSource){
 				if (c.name.indexOf(".")>=0){
 					var parent=defParent(c.name.split(".").leftBut(1).join("."));
-					context += c.name + " = getSourceValue(\""+ c.name + "\");\n";
+					contextVariables += c.name + " = getSourceValue(\""+ c.name + "\");\n";
 				}else{
-					context += "var " + c.name + " = _source[\"" + c.name + "\"];\n";
+					contextVariables += "var " + c.name + " = _source[\"" + c.name + "\"];\n";
 				}//endif
 			}else{
 				if (c.name.indexOf(".")>=0){
 					defParent(c.name.split(".").leftBut(1).join("."));
-					context += c.name + " = getDocValue(\"" + c.name + "\");\n";
+					contextVariables += c.name + " = getDocValue(\"" + c.name + "\");\n";
 				}else{
-					context += "var " + c.name + " = getDocValue(\"" + c.name + "\");\n";
+					contextVariables += "var " + c.name + " = getDocValue(\"" + c.name + "\");\n";
 				}//endif
 			}//endif
 			break;
 		}//while
 
 	});
-	return context;
+	return contextVariables;
 };//method
 
 
@@ -525,7 +525,7 @@ MVEL.FUNCTIONS={
 			"foreach (v : value) out = (out==\"\") ? v : out + \"|\" + Value2Pipe(v);\n"+
 			"'a'+Value2Pipe(out);\n"+
 			"}else \n" +
-			"if (value is Long || value is Integer){ 'n'+value; }else \n" +
+			"if (value is Long || value is Integer || value is Double){ 'n'+value; }else \n" +
 			"if (!(value is String)){ 's'+value.getClass().getName(); }else \n" +
 			'"s"+value.replace("\\\\", "\\\\\\\\").replace("|", "\\\\p");'+  //CAN NOT ""+value TO MAKE NUMBER A STRING (OR EVEN TO PREPEND A STRING!)
 		"};\n",

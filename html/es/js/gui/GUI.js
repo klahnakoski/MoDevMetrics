@@ -75,7 +75,7 @@ GUI.setup = function(refreshChart, parameters, relations, indexName, showDefault
 		Log.error("Expecting first parameter to be a refresh (creatChart) function");
 	}//endif
 	GUI.refreshChart=refreshChart;
-
+	GUI.pleaseRefreshLater=nvl(GUI.pleaseRefreshLater, false);
 
 	//IF THERE ARE ANY CUSTOM FILTERS, THEN TURN OFF THE DEFAULTS
 	var isCustom=false;
@@ -115,7 +115,10 @@ GUI.setup = function(refreshChart, parameters, relations, indexName, showDefault
 	GUI.State2URL();
 	GUI.State2Parameter();
 
-	GUI.refresh();
+	if (!GUI.pleaseRefreshLater){
+		//SOMETIMES SETUP NEEDS TO BE DELAYED A BIT MORE
+		GUI.refresh();
+	}//endif
 };
 
 var esHasErrorInIndex;

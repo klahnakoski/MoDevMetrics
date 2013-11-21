@@ -4,8 +4,6 @@
 
 
 importScript([
-
-//	"../../lib/ccc/cdf/jquery.js",
 	"../../lib/jquery.js",
 	"../../lib/jquery.numberformatter.js",
 
@@ -149,7 +147,6 @@ var aChart={};
 
 (function(){
 
-var PVC_TIME_FORMAT="%y-%m-%d %H:%M:%S";
 var TIME_FORMAT="yyyy-MM-dd HH:mm:ss";
 
 	//STATIC MAP FROM MY CHART TYPES TO CCC CLASS NAMES
@@ -257,8 +254,7 @@ aChart.showPie=function(params){
 //		legendAlign: "center",
 		legendSize:100,
 		orientation: 'vertical',
-		timeSeries: false, //(xaxis.domain.type=="time"),
-//		timeSeriesFormat: PVC_TIME_FORMAT,
+		timeSeries: false,
 		valuesVisible:false,
 		showValues: false,
 		extensionPoints: {
@@ -306,6 +302,215 @@ aChart.showPie=function(params){
 };//method
 
 
+aChart.showScatter=function(params){
+	Map.expecting(params, ["id", "cube"]);
+	var divName=params.id;
+
+	var chartCube=params.cube;
+	var type="scatter";
+	var stacked=nvl(params.stacked, false);
+
+
+	////////////////////////////////////////////////////////////////////////////
+	// SERIES (ONLY IF MORE THAN ONE EDGE)
+	////////////////////////////////////////////////////////////////////////////
+	var xaxis=chartCube.edges[chartCube.edges.length-1];
+
+	////////////////////////////////////////////////////////////////////////////
+	// SET MAX WITHOUT "NICE" ROUNDING BUFFER
+	////////////////////////////////////////////////////////////////////////////
+	if (params.orthoAxisFixedMax==true){
+		if (stacked && chartCube.edges.length==1){
+			var max=undefined;
+			chartCube.edges[0].domain.partitions.forall(function(part,i){
+				var total=0;
+				Array.newInstance(chartCube.select).forall(function(s){
+					total+=nvl(chartCube.cube[i][s.name], 0);
+				});
+				max=aMath.max(max, total);
+			});
+			params.orthoAxisFixedMax=max==0 ? 1 : max;  //DO NOT USE ZERO
+		}else{
+			Log.error("Not supported yet");
+		}
+	}//endif
+
+	////////////////////////////////////////////////////////////////////////////
+	// STYLES
+	////////////////////////////////////////////////////////////////////////////
+	var styles = [
+		{"color":"#1f77b4"},
+		{"color":"#ff7f0e"},
+		{"color":"#2ca02c"},
+		{"color":"#d62728"},
+		{"color":"#9467bd"},
+		{"color":"#8c564b"},
+		{"color":"#e377c2"},
+		{"color":"#7f7f7f"},
+		{"color":"#bcbd22"},
+		{"color":"#17becf"}
+	];
+
+	if (chartCube.edges.length==1){
+		if (chartCube.select instanceof Array){
+			for(let i=0;i<chartCube.select.length;i++){
+				if (chartCube.select[i].color!==undefined) Log.error("expecting color in style attribute (style.color)");
+				if (chartCube.select[i].style!==undefined) styles[i]=chartCube.select[i].style;
+			}//for
+		}else{
+			if (chartCube.select.color!==undefined) Log.error("expecting color in style attribute (style.color)");
+			if (chartCube.select.style!==undefined) styles[0]=chartCube.select.style;
+		}//endif
+	}else{
+		let parts=chartCube.edges[0].domain.partitions;
+		for(let i=0;i<parts.length;i++){
+			if (parts[i].color!==undefined) Log.error("expecting color in style attribute (style.color)");
+			if (parts[i].style!==undefined) styles[i]=parts[i].style;
+		}//for
+	}//endif
+
+
+
+
+	var height;
+	if (chartCube.edges.length>1){
+		height=600+(chartCube.edges[0].domain.partitions.length/17*24);
+	}else{
+		height=600;
+	}
+
+	var chartParams={
+		canvas: divName,
+		width: 800,
+		height: height,
+		animate:false,
+		title: nvl(params.name, chartCube.name),
+		legend: (chartCube.edges.length!=1 || Array.newInstance(chartCube.select).length>1),		//DO NOT SHOW LEGEND IF NO CATEGORIES
+		legendPosition: "bottom",
+		legendAlign: "center",
+
+		orientation: 'vertical',
+		timeSeries: (xaxis.domain.type=="time"),
+		timeSeriesFormat: JavaDateFormat2ProtoVisDateFormat(xaxis.domain.format),
+		showDots:true,
+		showValues: false,
+		originIsZero: this.originZero,
+		yAxisPosition: "right",
+		yAxisSize: 50,
+		xAxisSize: 50,
+		"colors":styles.map(function(s){return s.color;}),
+		plotFrameVisible: false,
+//		"colorNormByCategory": false,        //FOR HEAT CHARTS
+		extensionPoints: {
+			noDataMessage_text: "No Data To Chart",
+			xAxisLabel_textAngle: aMath.PI/4,
+			xAxisLabel_textAlign: "left",
+			xAxisLabel_textBaseline: "top",
+//			label_textStyle:"white",
+//			xAxisScale_dateTickFormat: "%Y/%m/%d",
+//			xAxisScale_dateTickPrecision: xaxis.domain.interval.milli
+			//set in miliseconds
+
+			dot_shapeRadius: 4, //USEd IN LEGEND (VERSION 2)
+			dot_shape:"circle",
+			line_lineWidth: 4
+//			line_strokeStyle:
+		}
+	};
+
+
+
+	copyParam(params, chartParams);
+
+
+	var chart = new pvc[CHART_TYPES[type]](chartParams);
+
+	//SCATTER REQUIRES ONE RECORD PER DATA POINT
+	//first column is category names, second column is series names, third is value
+	var data;
+	var categoryLabels=[];
+	if (chartCube.edges.length==1){
+		valueName=Array.newInstance(chartCube.select)[0].name;
+		seriesName=xaxis.name;
+		seriesFormatter=xaxis.domain.formatValue;
+		columns=[seriesName, valueName];
+		//GIVE EACH SELECT A ROW
+		data=chartCube.list.map(function(v, i){
+			return [
+				seriesFormatter(v[seriesName]),
+				v[valueName],
+				""
+			];
+		});
+	}else{
+		categoryName=chartCube.edges[0].name;
+		categoryLabels=aSet.newInstance(data.map(function(v){
+			return v[categoryName]
+		})).getArray();
+
+		valueName=Array.newInstance(chartCube.select)[0].name;
+		seriesName=xaxis.name;
+		seriesFormatter=xaxis.domain.formatValue;
+		columns=[seriesName, valueName, categoryName];
+		//GIVE EACH SELECT A ROW
+		data=chartCube.list.map(function(v, i){
+			return [
+				seriesFormatter(v[seriesName]),
+				v[valueName],
+				v[categoryName]
+			];
+		});
+	}//endif
+
+	//CCC2 - metadata MUST BE IN x, y, category ORDER!
+	var metadata=columns.map(function(v, i){ return {"colIndex":i, "colName":v, "colType":i==2?"String":"Numeric"};});
+
+	var cccData = {
+		"resultset":data,
+		"metadata":metadata
+	};
+
+	chart.setData(cccData, {crosstabMode: false, seriesInRows: false});
+	chart.render();
+
+	//STARTS AS VISIBLE, SO TOGGLE TO HIDE
+	styles.forall(function(s, i){
+		if (s.visibility && s.visibility=="hidden"){
+			var datums=chart.legendPanel.data._datums.map(function(d){
+				if (d.key.indexOf(","+categoryLabels[i]+",")>=0) return d;
+			});
+			pvc.data.Data.setVisible(datums, false);
+		}
+	});
+	chart.render(true, true, false);
+
+
+
+//	chart.basePanel.chart.legendPanel
+
+	//ADD BUTTON TO SHOW SHEET
+	if (params.sheetDiv){
+
+
+		var sheetButtonID=divName+"-showSheet";
+		var html='<div id='+CNV.String2Quote(sheetButtonID)+' class="toolbutton" style="right:3;bottom:3" title="Show Table"><img src="'+Settings.imagePath+'/Spreadsheet.png"></div>';
+
+
+		$("#"+divName).append(html);
+		$("#"+sheetButtonID).click(function(){
+			var oldHtml=$("#"+params.sheetDiv).html();
+			var newHtml=CNV.Cube2HTMLTable(chartCube);
+
+			if (oldHtml!=""){
+				$("#"+params.sheetDiv).html("");
+			}else{
+				$("#"+params.sheetDiv).html(newHtml);
+			}//endif
+		});
+	}//endif
+
+
+};
 
 
 aChart.show=function(params){
@@ -436,12 +641,7 @@ aChart.show=function(params){
 
 
 
-	var height;
-	if (chartCube.edges.length>1){
-		height=600+(chartCube.edges[0].domain.partitions.length/17*24);
-	}else{
-		height=600;
-	}
+	var height=$("#"+divName).height();
 
 	var chartParams={
 		canvas: divName,
@@ -539,7 +739,7 @@ aChart.show=function(params){
 				if (d.key.indexOf(","+categoryLabels[i]+",")>=0) return d;
 			});
 			pvc.data.Data.setVisible(datums, false);
-		}
+		}//endif
 	});
 	chart.render(true, true, false);
 
@@ -699,7 +899,12 @@ function getAxisLabels(axis){
 			}else if (aMath.isNumeric(v)){
 				labels.push(""+v);
 			}else{
-				labels.push(""+axis.domain.end(v));
+				if (axis.domain.label!==undefined){
+					//ALL DOMAINS EXPECTED TO HAVE LABELS
+					labels.push(""+axis.domain.label(v));
+				}else{
+					labels.push(""+axis.domain.end(v));
+				}//endif
 			}//endif
 		});
 	}//endif

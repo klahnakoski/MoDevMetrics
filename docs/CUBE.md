@@ -80,21 +80,24 @@ The select clause can be a single attribute definition, or an array of attribute
 
   - **name** – The name of the attribute.   Optional if ```value``` is a simple variable name. 
   - **value** – Code to generate the attribute value (MVEL for ES, Javascript otherwise)
-aggregate – one of many aggregate operations
-  - **none** – when expecting only one value 
-  - **one** – when expecting all values to be identical
-  - **binary** – returns 1 if value found, 0 for no value
-  - **exists** – same as binary
-  - **count** – count number of values
-  - **sum** – mathematical summation of values
+  - **aggregate** – one of many aggregate operations
+      - **none** – when expecting only one value 
+      - **one** – when expecting all values to be identical
+      - **binary** – returns 1 if value found, 0 for no value
+      - **exists** – same as binary
+      - **count** – count number of values
+      - **sum** – mathematical summation of values
       - **average** – mathematical average of values
-  - **select.default** to replace null in the event there is no data
-  - **minimum** – return minimum value observed
-  - **maximum** – return maximum value observed
-  - **percentile** – return given percentile
-      - **select.percentile** defined from 0.0 to 1.0 (required)
-      - **select.default** to replace null in the event there is no data
-  - **join** – concatenate all values to a single string (optional ```select.separator``` to use a separator)
+      - **minimum** – return minimum value observed
+      - **maximum** – return maximum value observed
+      - **percentile** – return given percentile
+          - **select.percentile** defined from 0.0 to 1.0 (required)
+          - **select.default** to replace null in the event there is no data
+      - **join** – concatenate all values to a single string
+          - **select.separator** to put between each of the joined values
+      - **array** - return an array of values (which can have duplicates)
+          - **select.sort** - optional, to return the array sorted
+  - **default** to replace null in the event there is no data
   - **sort** – one of ```increasing```, ```decreasing``` or ```none``` (default).  Only meaningful when the output of the query is a list, not a cube.
 
 where
@@ -155,13 +158,14 @@ Every edge must be limited to one of a few basic domain types.  Which further de
   - **set** – An explicit set of unique values 
       - **edge.domain.partitions** – the set of values allowed.  These can be compound objects, but ```edge.test``` and ```edge.domain.value``` need to be defined.
 
-analytic
---------
+window
+------
 
-Each analytic column defines an additional attribute for the result set.  An analytic does not change the number of rows returned.  For each analytic, the data is grouped, sorted and assigned a ```rownum``` attribute that can be used to calculate the attribute value.
+Each window column defines an additional attribute for the result set.  An window column does not change the number of rows returned.  For each window, the data is grouped, sorted and assigned a ```rownum``` attribute that can be used to calculate the attribute value.
 
   - **name** – name given to resulting attribute
-  - **value** – code to determine the attribute value.  It has access to two special variables: 
+  - **value** – can be a function (or a string containing javascript code) to determine the attribute value.  The functions is passed three special variables: 
+      - ```row``` – the row being processed
       - ```rownum``` – which is integer, starting at zero for the first row
       - ```rows``` – an array of all data in the group.
   - **edges** – an array of column names used to determine the groups 
@@ -176,7 +180,7 @@ Pre-defined dimensions simplify queries, and double as type information for the 
   - **select** - Any pre-defined dimension with a partition defined can be used in a select query (see ```Mozilla.BugStatus.getSelect()```): Each record will be assigned it's part.
  
         var details=yield(ESQuery.run({
-        	"from":"bugs",
+            "from":"bugs",
 			"select":[
 				"bug_id",
 				Mozilla.BugStatus.getSelect(),

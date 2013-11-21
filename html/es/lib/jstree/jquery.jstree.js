@@ -106,6 +106,11 @@
 
 	// jQuery plugin wrapper (thanks to jquery UI widget function)
 	$.fn.jstree = function (settings) {
+
+		if (settings.hasOwnProperty("json_data")){
+			Log.debug();
+		}//endif
+
 		var isMethodCall = (typeof settings == 'string'), // is this a method call like $().jstree("open_node")
 			args = Array.prototype.slice.call(arguments, 1), 
 			returnValue = this;

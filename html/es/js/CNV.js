@@ -182,6 +182,12 @@ CNV.Date2Code = function(date){
 	return "Date.newInstance("+date.getMilli()+")";
 };//method
 
+CNV.Date2milli = function(date){
+	return date.getMilli();
+};//method
+
+
+
 //CONVERT TO SOME MOSTLY HUMAN READABLE FORM (MEANT TO BE DIGESTED BY OTHER TEXT TOOLS)
 CNV.Value2Text=function(value){
 	if (value === undefined){
@@ -306,7 +312,9 @@ CNV.Cube2HTMLTable=function(query){
 
 	var e=query.edges[0];
 
-	if (query.edges.length==1){
+	if (query.edges.length==0){
+		return CNV.List2HTMLTable(query);
+	}else if (query.edges.length==1){
 		header += "<td>" + CNV.String2HTML(e.name) + "</td>";
 
 		if (query.select instanceof Array){

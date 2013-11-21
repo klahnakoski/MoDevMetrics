@@ -12,12 +12,24 @@ var Dimension={};
 var DEFAULT_QUERY_LIMIT=20;
 
 Dimension.prototype={
-	"getDomain":function(simpleNames){
+	"getDomain":function(param){
+		//param.depth IS MEANT TO REACH INTO SUB-PARTITIONS
+		if (param===undefined){
+			param={
+				"depth":0,
+				"separator":"."
+			};
+		}//endif
+		param.depth=nvl(param.depth, 0);
+		param.separator=nvl(param.separator, ".");
+
 		var self=this;
-		var output={
-			"type":this.type,
-			"name":this.name,
-			"partitions":!this.partitions ? undefined : this.partitions.map(function(v, i){
+		var partitions=null;
+
+		if (!this.partitions){
+			partitions=undefined;
+		}else if (param.depth==0){
+			partitions=this.partitions.map(function(v, i){
 				if (i>=nvl(self.limit, DEFAULT_QUERY_LIMIT)) return undefined;
 				return {
 					"name":v.name,
@@ -26,7 +38,32 @@ Dimension.prototype={
 					"style":v.style,
 					"weight":v.weight   //YO!  WHAT DO WE *NOT* COPY?
 				};
-			}),
+			})
+		}else if (param.depth==1){
+			partitions=[];
+			var rownum=0;
+			self.partitions.forall(function(part, i){
+				if (i>=nvl(self.limit, DEFAULT_QUERY_LIMIT)) return undefined;
+				rownum++;
+				part.partitions.forall(function(subpart, j){
+					partitions.append({
+						"name":[subpart.name, subpart.parent.name].join(param.separator),
+						"value":subpart.value,
+						"esfilter":subpart.esfilter,
+						"style":nvl(subpart.style, subpart.parent.style),
+						"weight":subpart.weight   //YO!  WHAT DO WE *NOT* COPY?
+					});
+
+				})
+			})
+		}else{
+			Log.error("deeper than 2 is not supported yet")
+		}//endif
+
+		var output={
+			"type":this.type,
+			"name":this.name,
+			"partitions":partitions,
 			"min":this.min,
 			"max":this.max,
 			"interval":this.interval,
@@ -41,7 +78,8 @@ Dimension.prototype={
 			//PLEASE SPLIT end() INTO value() (replacing the string value) AND
 			//label() (for presentation)
 			"value": (!this.value && this.partitions) ? "name" : this.value,
-			"end":nvl(this.end, (this.type=="set" && this.name!==undefined) ? function(v){return v;} : undefined),
+			"label":nvl(this.label, (this.type=="set" && this.name!==undefined) ? function(v){return v.name;} : undefined),
+			"end":nvl(this.end, (this.type=="set" && this.name!==undefined) ? function(v){return v;} : undefined),  //I DO NOT KNOW WHY IS NOT return v.name
 //			"value":(!this.value && this.partitions) ? "name" : this.value,
 			"isFacet":this.isFacet
 
@@ -57,8 +95,8 @@ Dimension.prototype={
 //		return Map.copy(output);
 	},//method
 
-	"getSelect":function(){
-		var domain=this.getDomain();
+	"getSelect":function(param){
+		var domain=this.getDomain(param);
 		if (domain.getKey===undefined) domain.getKey=function(v){return v.name;}; //BASIC COMPILE
 		if (domain.NULL===undefined) domain.NULL={"name":"Other"};
 
@@ -143,20 +181,19 @@ Dimension.prototype={
 			if (dim.limit===undefined) dim.limit=DEFAULT_QUERY_LIMIT;
 
 			if (dim.field!==undefined && CUBE.domain.PARTITION.contains(dim.type) && dim.partitions===undefined){
+				dim.field=Array.newInstance(dim.field);
+
 				dim.partitions=Thread.run(function(){
 					//IF dim.field IS A NUMBER, THEN SET-WISE EDGES DO NOT WORK (CLASS CAST EXCEPTION)
-//					if (dim.field=="info.appBuildID"){
-//						Log.warning("Special case for info.appBuildID, please fix Telemetry schema");
-//						edge={"name":dim.field, "value":"\"\"+"+dim.field};
-//					}else{
-						edge={"name":dim.field, "value":dim.field};
-//					}//endif
+					var edges=dim.field.map(function(f){
+						return {"name":f, "value":f}
+					});
 
 					var a=Log.action("Get parts of "+dim.name, true);
 					var parts=yield (ESQuery.run({
 						"from":dim.index,
-						"select":{"name":"count", "value":dim.field, "aggregate":"count"},
-						"edges":[edge],
+						"select":{"name":"count", "value":"1", "aggregate":"count"},
+						"edges":edges,
 						"limit":dim.limit
 					}));
 					Log.actionDone(a);
@@ -164,6 +201,7 @@ Dimension.prototype={
 					var d=parts.edges[0].domain;
 
 					if (dim.path!==undefined){
+						if (edges.length>1) Log.error("Not supported yet");
 						//EACH TERM RETURNED IS A PATH INTO A PARTITION TREE
 						var temp={"partitions":[]};
 						parts.cube.forall(function(count, i){
@@ -178,18 +216,50 @@ Dimension.prototype={
 						});
 						if (dim.value===undefined) dim.value="name";
 						dim.partitions=temp.partitions;
-					}else{
+					}else if (edges.length==1){
 						dim.value="name";  //USE THE "name" ATTRIBUTE OF PARTS
 
 						//SIMPLE LIST OF PARTS RETURNED, BE SURE TO INTERRELATE THEM
 						dim.partitions=parts.cube.map(function(count, i){
-							return {
+							var part={
 								"name":""+d.partitions[i].name,  //CONVERT TO STRING
 								"value":d.end(d.partitions[i]),
-								"esfilter":{"term":Map.newInstance(dim.field, d.partitions[i].value)},
+								"esfilter":{"term":Map.newInstance(dim.field[0], d.partitions[i].value)},
 								"count":count
 							};
+							return part;
 						});
+					}else if (edges.length==2){
+						dim.value="name";  //USE THE "name" ATTRIBUTE OF PARTS
+
+						var d2=parts.edges[1].domain;
+
+						//SIMPLE LIST OF PARTS RETURNED, BE SURE TO INTERRELATE THEM
+						dim.partitions=parts.cube.map(function(subcube, i){
+							var part={
+								"name":""+d.partitions[i].name,  //CONVERT TO STRING
+								"value":d.end(d.partitions[i]),
+								"esfilter":{"term":Map.newInstance(dim.field[0], d.partitions[i].value)},
+								"count":aMath.sum(subcube)
+							};
+							part.partitions=subcube.map(function(count2, j){
+								if (count2>0){  //ONLY INCLUDE PROPERTIES THAT EXIST
+									return {
+										"name":""+d2.partitions[j].name,  //CONVERT TO STRING
+										"value":d.end(d.partitions[i])+"."+d2.end(d2.partitions[j]),
+										"parent": part,
+										"esfilter":{"and":[
+											{"term":Map.newInstance(dim.field[0], d.partitions[i].value)},
+											{"term":Map.newInstance(dim.field[1], d2.partitions[j].value)}
+										]},
+										"count":count2
+									};
+								}//endif
+							});
+							return part;
+						});
+					}else{
+						Log.error("Not supported")
 					}//endif
 
 					convertPart(dim);//RELATE THE PARTS TO THE PARENTS

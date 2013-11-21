@@ -1,4 +1,4 @@
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <!-- This Source Code Form is subject to the terms of the Mozilla Public
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
@@ -9,11 +9,11 @@
 <BODY>
 
 
+
+<h2>Simple Query</h2>
 <div id="status"></div>
 <div id="info"></div>
 <div id="tab"></div>
-<h2>Simple Query</h2>
-
 <div id="chart" style="width:800px;height:400px;"></div>
 <div id="chart2" style="width:800px;height:400px;"></div>
 
@@ -29,23 +29,42 @@
 
 //			var temp = MVEL.compile.expression("getDocArray(dependson).length>0", {"from": "bugs"	  });
 
-var esQuery =
-{
-        "query":{"filtered":{
-                "query":{"match_all":{}},
-                "filter":{"and":[
-                       	{"terms":{"bug_id":["902525"]}}
-                ]}
-        }},
-        "from":0,
-        "size":200,
-		"sort":["bug_version_num"],
-	"fields":["_id", "bug_id", "modified_ts", "expires_on", "bug_version_num"],
-        "facets":{}
-};
+//var esQuery = {
+//	"query":{"filtered":{ "query":{"match_all":{}}, "filter":{"and":[
+//		{"script":{"script":"true"}},
+//		{"and":[
+//			{"term":{"testrun.suite":"tp5o"}},
+//			{"range":{"testrun.date":{"gte":1371588795000}}},
+//			{"term":{"results.cnn_dot_com.last_20":"282"}}
+//		]}
+//	]} }},
+//	"from":0,
+//	"size":20,
+//	"sort":[],
+//	"facets":{
+//		"97":{ "statistical":{"field":"results.cnn_dot_com.last_20"}, "facet_filter":{"and":[
+//			{"range":{"testrun.date":{"gte":1371588795000}}}
+//		]} }
+//	}
+//};
 
 
-
+			var esQuery = { "query":{"filtered":{ "query":{"match_all":{}}, "filter":{"and":[
+				{"script":{"script":"true"}},
+				{"and":[
+//					{"range":{"info.started":{"gte":0,"lt":1378252800000}}},
+					{"and":[
+						{"script":{"script":"true"}}
+					]}
+				]}
+			]} }}, "from":0, "size":0, "sort":[], "facets":{ "0,0":{ "statistical":{"field":"score"}, "facet_filter":{"and":[
+				{"and":[
+					{"script":{"script":"true"}},
+					{"term":{"browser.name":"Firefox"}},
+					{"term":{"browser.version":23}}
+				]},
+				{"term":{"info.test":"section-math"}}
+			]} }}};
 
 //		{
 //			"facets":{"mvel":{"terms":{ "size":200000, "script_field":"doc[\"dependson\"].value"}}},
@@ -59,12 +78,14 @@ var esQuery =
 				var data = yield(Rest.post({
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping?pretty=true",
 //			"url":'http://localhost:9200/bug_hierarchy/bug_hierarchy/_search',
-      		"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+//      		"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
 //			"url":"http://10.242.30.66:9200/makes/_search",
 
 
+//			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/datazilla20131108_213623/_search",
 //			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/raw_telemetry/_search",
-//			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/bugs/bug_version/_search",
+//			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/public_bugs/bug_version/_search",
+			"url":"http://localhost:9200/perfy/_search",
 //			"url":"http://129.97.26.17:9200/bugs/bug_version/_search",
 // 			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
 

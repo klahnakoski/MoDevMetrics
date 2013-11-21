@@ -61,6 +61,38 @@ aMath.min=function(){
 };//method
 
 
+aMath.add=function(){
+	var add=null;
+	for(var i=0;i<arguments.length;i++){
+		if (arguments[i]==null) continue;
+		if (add==null)
+			add=arguments[i];
+		else
+			add+=arguments[i];
+	}//for
+	return add;
+};//add
+
+aMath.sum=aMath.add;
+
+
+aMath.mean=function(){
+	var add=null;
+	var count=0;
+	for(var i=0;i<arguments.length;i++){
+		if (arguments[i]==null) continue;
+		if (add==null)
+			add=arguments[i]-0;
+		else
+			add+=arguments[i]-0;
+		count++
+	}//for
+
+	if (add==null) return null;
+	return add/count;
+};//add
+
+
 aMath.max=function(){
 	var max=null;
 	for(var i=0;i<arguments.length;i++){
