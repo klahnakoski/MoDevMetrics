@@ -177,6 +177,18 @@ Dimension.addEdges(false,  Mozilla, [
 			]
 		},
 		{
+			"name":"Channel",
+			"value":"name",
+			"partitions":[
+				{"name":"Firefox Release", "style":{"color":"#f9cb9c"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"browser.channel":"Release"}}]}},
+				{"name":"Firefox Beta", "style":{"color":"#f6b26b"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"browser.channel":"Beta"}}]}},
+				{"name":"Firefox Aurora", "style":{"color":"#e06666"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"browser.channel":"Aurora"}}]}},
+				{"name":"Firefox Nightly", "style":{"color":"#cc0000"}, "esfilter":{"and":[{"term":{"browser.name":"Firefox"}}, {"term":{"browser.channel":"Nightly"}}]}},
+				{"name":"Chrome Stable", "style":{"color":"#b4a7d6"}, "esfilter":{"and":[{"term":{"browser.name":"Chrome"}}, {"term":{"browser.channel":"Stable"}}]}},
+				{"name":"Chrome Beta", "style":{"color":"#8e7cc3"}, "esfilter":{"and":[{"term":{"browser.name":"Chrome"}}, {"term":{"browser.channel":"Beta"}}]}}
+			]
+		},
+		{
 			"name":"Platform",
 			"value":"name",
 			"partitions":[
@@ -185,7 +197,7 @@ Dimension.addEdges(false,  Mozilla, [
 					{"name":"Linux", "style":{"color":"#de4815"}, "esfilter":{"term":{"browser.platform":"Linux"}}}
 				]},
 				{"name":"Mobile", "partitions":[
-					{"name":"Andriod", "style":{"color":"#a4c739"}, "esfilter":{"term":{"browser.platform":"Andriod"}}},
+					{"name":"Android", "style":{"color":"#a4c739"}, "esfilter":{"term":{"browser.platform":"Android"}}},
 					{"name":"Firefox OS", "style":{"color":"#ff4e00"}, "esfilter":{"term":{"browser.platform":"Firefox OS"}}}
 				]}
 			]

@@ -627,8 +627,15 @@ aChart.show=function(params){
 				if (chartCube.select[i].style!==undefined) styles[i]=chartCube.select[i].style;
 			}//for
 		}else{
-			if (chartCube.select.color!==undefined) Log.error("expecting color in style attribute (style.color)");
-			if (chartCube.select.style!==undefined) styles[0]=chartCube.select.style;
+			if (chartCube.select.style!==undefined){
+				styles[0]=chartCube.select.style;
+			}else{
+				let parts=chartCube.edges[0].domain.partitions;
+				for(let i=0;i<parts.length;i++){
+					if (parts[i].color!==undefined) Log.error("expecting color in style attribute (style.color)");
+					if (parts[i].style!==undefined) styles[i]=parts[i].style;
+				}//for
+			}//endif
 		}//endif
 	}else{
 		let parts=chartCube.edges[0].domain.partitions;
@@ -642,10 +649,11 @@ aChart.show=function(params){
 
 
 	var height=$("#"+divName).height();
+	var width=$("#"+divName).width();
 
 	var chartParams={
 		canvas: divName,
-		width: 800,
+		width: width,
 		height: height,
 		animate:false,
 		title: nvl(params.name, chartCube.name),

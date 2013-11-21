@@ -33,8 +33,15 @@
 </div>
 <div style="align:left;position:relative;float:left;width:800px;">
 	<h3 id="title">Perfy!</h3>
-	<div id="chart" class="chart" style="float:none;width:800px;height:400px;"></div>
-	<div id="confidence" class="confidence" style="float:none;width:800px;height:400px;"></div>
+	<table>
+		<tr><td>
+			<div id="chart" class="chart" style="float:none;width:800px;height:400px;"></div>
+		</td><td>
+			<div id="overall" class="chart" style="float:left;width:150px;height:400px;"></div>
+		</td></tr>
+	</table>
+
+	<div id="confidence" class="chart" style="float:none;width:800px;height:400px;"></div>
 	<div id="info"></div>
 	<div id="details"></div>
 </div>
@@ -57,48 +64,59 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 
 	var __createChart = function(){
 		var sampleDate = Date.newInstance(GUI.state.date);
-		var benchmark=GUI.state.benchmark;
-
+//		var benchmark=GUI.state.benchmark;
 		var totalsFilter={"terms":{"info.test":["total", "Kraken", "Octane"]}};
 
-		//DIFFICULT TO FIND TEST DATA, LOOK FOR LATEST IN EACH COMBO
-//		var max_date=yield (ESQuery.run({
-//			"from":"perfy",
-//			"select":{"value":"info.started", "aggregate":"max"},
-//			"edges":[
-//				{"name":"Browser", "domain":Mozilla.Perfy.Browser.getDomain()},
-//				{"name":"Test", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":1})}
-//			],
-//			"esfilter":{"and":[
-//				{"not":totalsFilter}, //IGNORE AGGREGATE VALUES
-//				{"range":{"info.started":{"lt":sampleDate.ceilingDay().getMilli()}}},
-//				GUI.getFilters("perfy")
-//			]}
-//		}));
 
-
-
-		var esfilter={"and":[
-			{"not":totalsFilter}, //IGNORE AGGREGATE VALUES
-			{"range":{"info.started":{"gte":sampleDate.floorDay().getMilli(), "lt":sampleDate.ceilingDay().getMilli()}}},
-			GUI.getFilters("perfy")
-		]};
-
-
-
-
+		//WAIT FOR MENU TO LOAD
 		while (Mozilla.Perfy.Benchmark.partitions instanceof Thread){
 			yield (Thread.sleep(200));
 		}//while
 
+		//LOOK FOR LATEST TEST DATA
+		var max_date=yield (ESQuery.run({
+			"from":"perfy",
+			"select":{"value":"info.started", "aggregate":"maximum"},
+			"edges":[
+				{"name":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()},
+				{"name":"Test", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":0})}
+			],
+			"esfilter":{"and":[
+				totalsFilter,
+				{"range":{"info.started":{"lt":sampleDate.ceilingDay().getMilli()}}},
+				GUI.state.platform.makeFilter()
+			]}
+		}));
+
+		//FILTER SPECIFICALLY FOR THE LATEST TESTS
+		var testFilter=[];
+		Mozilla.Perfy.Channel.partitions.forall(function(channel, c){
+			Mozilla.Perfy.Benchmark.partitions.forall(function(benchmark, b){
+				if (aMath.isNumeric(max_date.cube[c][b])){
+					testFilter.append({"and":[
+						channel.esfilter,
+						benchmark.esfilter,
+						{"term":{"info.started":max_date.cube[c][b]}}
+					]});
+				}//endif
+			});
+		});
+		testFilter={"or":testFilter};
+
+
+		var esfilter={"and":[
+			{"not":totalsFilter}, //IGNORE AGGREGATE VALUES
+			testFilter,
+			GUI.getFilters("perfy")
+		]};
 
 		Thread.run(function(){
 			var data = yield(ESQuery.run({
-				"name":"Results for"+GUI.state.benchmark.getSimpleState(),
+				"name":"Results for "+GUI.state.benchmark.getSimpleState(),
 				"from":"perfy",
 				"select": {"name":"score", "value":"score", "aggregate":"average"},
 				"edges":[
-					{"name":"Browser", "domain":Mozilla.Perfy.Browser.getDomain()},
+					{"name":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()},
 					{"name":"Test", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":1})}
 				],
 				"esfilter":esfilter
@@ -125,6 +143,49 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		});
 
 		
+		Thread.run(function(){
+			var data = yield(ESQuery.run({
+				"name":"Overall "+GUI.state.benchmark.getSimpleState(),
+				"from":"perfy",
+				"select": {"name":"score", "value":"score", "aggregate":"average"},
+				"edges":[
+					{"name":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()},
+					{"name":"Test", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":0})}
+				],
+				"esfilter":{"and":[
+					totalsFilter, //ONLY AGGREGATE VALUES
+					testFilter,
+					GUI.getFilters("perfy")
+				]}
+			}));
+
+			//REMOVE ZERO EDGES
+			CUBE.removeZeroParts(data, 0);
+			CUBE.removeZeroParts(data, 1);
+
+			if (data.cube.length==0){
+				$("#overall").html("");
+				yield (null);
+			}//endif
+
+			aChart.show({
+				"id":"overall",
+				"sheetDiv":"info",
+				"type":"bar",
+				"stacked":false,
+				"cube":data,
+				"legend":false,
+				xAxisSize: 100,
+				extensionPoints: {
+					line_lineWidth: 2
+				}
+			});
+
+
+		});
+
+
+
 
 
 		Thread.run(function(){
@@ -132,30 +193,32 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 				"name":"Results",
 				"from":"perfy",
 				"select": [
-					Mozilla.Perfy.Browser.getSelect(),
+					Mozilla.Perfy.Channel.getSelect(),
 					Mozilla.Perfy.Benchmark.getSelect({"depth":1}),
 					{"name":"score", "value":"score"}
 				],
 				"esfilter":esfilter
 			}));
 
+			//SORT THE SCORES
 			var range=yield (Q({
 				"from":data,
 				"select":
 					{"value":"score", "aggregate":"array", "sort":1}
 				,
 				"edges":[
-					{"name":"Browser", "value":"Browser"},
+					{"name":"Channel", "value":"Channel"},
 					{"name":"Benchmark", "value":"Benchmark"}
 				]
 			}));
 
+			//ENSURE WE MAINTAIN ORDER OF PARTS
 			var domain=Mozilla.Perfy.Benchmark.getDomain({"depth":1});
 			domain.partitions=domain.partitions.map(function(v){
 				return v.name;
 			});
-//			domain.partitions.sort();
 
+			//PICK MIDDLE 90% (ROUNDED UP)
 			var range2=yield (Q({
 				"from":range,
 				"select":
@@ -163,7 +226,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 					{"name":"range", "value":"(function(){if (score.length<2) return 0; var n=Math.floor(score.length/20); return score[score.length-1-n]-score[n];})()"}
 				,
 				"edges":[
-					{"name":"Browser", "value":"Browser", "domain":Mozilla.Perfy.Browser},
+					{"name":"Channel", "value":"Channel", "domain":Mozilla.Perfy.Channel},
 					{"name":"Benchmark", "value":"Benchmark", "domain":{"type":"set", "partitions":domain.partitions}}
 				]
 			}));
