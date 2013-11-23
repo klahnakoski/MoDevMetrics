@@ -256,7 +256,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [
-				{"id":"date", "name":"Test Date", "type":"date", "default":Date.getDateFromFormat("2013-Sep-03", "yyyy-MMM-dd")},
+				{"id":"date", "name":"Test Date", "type":"date", "default":Date.today()},
 				{"id":"benchmark", "name":"Benchmark", "type":PartitionFilter.newInstance({
 					"id":"benchmark",
 					"name":"Benchmark",
