@@ -49,22 +49,97 @@
 //};
 
 
-			var esQuery = { "query":{"filtered":{ "query":{"match_all":{}}, "filter":{"and":[
-				{"script":{"script":"true"}},
-				{"and":[
-//					{"range":{"info.started":{"gte":0,"lt":1378252800000}}},
-					{"and":[
-						{"script":{"script":"true"}}
-					]}
-				]}
-			]} }}, "from":0, "size":0, "sort":[], "facets":{ "0,0":{ "statistical":{"field":"score"}, "facet_filter":{"and":[
-				{"and":[
-					{"script":{"script":"true"}},
-					{"term":{"browser.name":"Firefox"}},
-					{"term":{"browser.version":23}}
-				]},
-				{"term":{"info.test":"section-math"}}
-			]} }}};
+			var esQuery = {
+	"query":{"filtered":{
+		"query":{"match_all":{}},
+		"filter":{"and":[
+			{"script":{"script":"true"}},
+			{"range":{"bug_id":{"gte":906000,"lt":907000}}}
+		]}
+	}},
+	"from":0,
+	"size":0,
+	"sort":[],
+	"facets":{"mvel":{"terms":{
+		"script_field":"var Value2Pipe = function(value){\n"+
+"if (value==null){ \"0\" }else if (value is ArrayList || value is org.elasticsearch.common.mvel2.util.FastList){var out = \"\";\n"+
+"foreach (v : value) out = (out==\"\") ? v : out + \"|\" + Value2Pipe(v);\n"+
+"'a'+Value2Pipe(out);\n"+
+"}else \n"+
+"if (value is Long || value is Integer || value is Double){ 'n'+value; }else \n"+
+"if (!(value is String)){ 's'+value.getClass().getName(); }else \n"+
+"\"s\"+value.replace(\"\\\\\", \"\\\\\\\\\").replace(\"|\", \"\\\\p\");};\n"+
+"var maximum = function(a, b){if (a==null) b; else if (b==null) a; else if (a>b) a; else b;\n"+
+"};\n"+
+"var get = function(hash, key){\n"+
+"if (hash==null) null; else hash[key];\n"+
+"};\n"+
+"var getSourceValue = function(name){\n"+
+"var out = [];\n"+
+"var v = _source[name];\n"+
+"if (v==null) { null; }\n"+
+"else if (v[\"values\"]==null || v.values.length<=1){\n"+
+" v.value;\n"+
+" } else {\n"+
+"for(k : v) out.add(k);\n"+
+" out;\n"+
+"}};\n"+
+"var _1000 = function(bugs){\n"+
+//"var product = _source[\"product\"];\n"+
+//"var previous_values = new HashMap();\n"+
+//"previous_values.bug_status_value = getSourceValue(\"previous_values.bug_status_value\");\n"+
+//"var modified_ts = _source[\"modified_ts\"];\n"+
+//"var modified_by = _source[\"modified_by\"];\n"+
+//"var id = _source[\"id\"];\n"+
+"var component = _source[\"component\"];\n"+
+"var bug_status = _source[\"bug_status\"];\n"+
+"var status = _source[\"status\"];\n"+
+"var bug_id = _source[\"bug_id\"];\n"+
+"var attachments = new HashMap();\n"+
+"attachments.isobsolete = getSourceValue(\"attachments.isobsolete\");\n"+
+"output=\"\";\n"+
+//"if (bugs.?attachments!=null){ for(bugs1 : bugs.?attachments){\n"+
+//"if (bugs1.?flags!=null){ for(bugs2 : bugs1.?flags){\n"+
+//"if ((!((bugs2.?request_type==null))) && ((bugs2.?request_type==\"review\") || (bugs2.?request_type==\"superreview\")) && ((!(bugs2.?request_status==\"?\")) || ((bugs1[\"attachments.isobsolete\"]==1) && (!((bugs.?previous_values==null))) && (bugs.?previous_values[\"attachments.isobsolete_values\"]==0)) || (((bugs.?bug_status==\"resolved\") || (bugs.?bug_status==\"verified\") || (bugs.?bug_status==\"closed\")) && (!((bugs.?previous_values==null))) && (!((bugs.?previous_values.bug_status_value==null))) && (!((bugs.?previous_values.bug_status_value==\"resolved\") || (bugs.?previous_values.bug_status_value==\"verified\") || (bugs.?previous_values.bug_status_value==\"closed\")))))){\n"+
+//"if (output!=\"\") output+=\"|\";\n"+
+//"output+=Value2Pipe(bugs.?bug_id)\n"+
+//"+\"|\"+Value2Pipe(bugs1.?attach_id)\n"+
+//"+\"|\"+Value2Pipe(maximum(bugs.?modified_ts, maximum(bugs1.?modified_ts, bugs2.?modified_ts)))\n"+
+//"+\"|\"+Value2Pipe(bugs2.?requestee)\n"+
+//"+\"|\"+Value2Pipe(bugs2.?modified_by)\n"+
+//"+\"|\"+Value2Pipe(bugs.?product)\n"+
+//"+\"|\"+Value2Pipe(bugs.?component)\n"+
+//"+\"|\"+Value2Pipe(bugs2.?request_status!='?' ? 'done' : (bugs1[\"attachments.isobsolete\"]==1 ? 'obsolete' : 'closed'))\n"+
+//"+\"|\"+Value2Pipe(bugs2.?request_status=='+' ? '+' : (bugs2.?request_status=='-' ? '-' : '?'))\n"+
+//";\n"+
+//"}\n"+
+//"\n"+
+//"}}\n"+
+//"\n"+
+//"}}\n"+
+"output;\n"+
+"};\n"+
+"_1000(_source)\n"+
+"",
+		"size":200000
+	}}}
+};
+
+
+//esQuery = {
+//	"query":{"filtered":{
+//		"query":{"match_all":{}},
+//		"filter":{"and":[
+//			{"script":{"script":"true"}},
+//			{"range":{"bug_id":{"gte":906000,"lt":907000}}}
+//		]}
+//	}},
+//	"from":0,
+//	"size":20000,
+//	"sort":["bug_version_num"],
+//	"fields":["bug_id", "bug_version_num"]
+//};
+
 
 //		{
 //			"facets":{"mvel":{"terms":{ "size":200000, "script_field":"doc[\"dependson\"].value"}}},
@@ -85,7 +160,8 @@
 //			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/datazilla20131108_213623/_search",
 //			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/raw_telemetry/_search",
 //			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/public_bugs/bug_version/_search",
-			"url":"http://localhost:9200/perfy/_search",
+			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/bugs/bug_version/_search",
+//			"url":"http://localhost:9200/perfy/_search",
 //			"url":"http://129.97.26.17:9200/bugs/bug_version/_search",
 // 			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
 

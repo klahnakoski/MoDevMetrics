@@ -138,16 +138,19 @@ MVEL.compile.getFrameVariables=function(indexName, body, isLean){
 	columns.forall(function(c, i){
 		var j=body.indexOf(c.name, 0);
 		while(j>=0){
-			var test1=body.substring(j-5, j+c.name.length+2);
-			var test2=body.substring(j-13, j+c.name.length+2);
+			var test0=body.substring(j-1, j+c.name.length+1);
+//			var test1=body.substring(j-5, j+c.name.length+2);
+//			var test2=body.substring(j-13, j+c.name.length+2);
 			var test3=body.substring(j-8, j+c.name.length+2);
-			var test4=body.substring(j-14, j+c.name.length+2);
+//			var test4=body.substring(j-14, j+c.name.length+2);
 			j=body.indexOf(c.name, j+1);
 
-			if (test1=="doc[\"" + c.name + "\"]") continue; //BUT NOT ALREADY IN USE By doc["x"]
-			if (test2=="getDocValue(\"" + c.name + "\")") continue;
+			if (test0=="\"" + c.name + "\"") continue;
+			if (test0=="\"" + c.name + "_") continue;
+//			if (test1=="doc[\"" + c.name + "\"]") continue; //BUT NOT ALREADY IN USE By doc["x"]
+//			if (test2=="getDocValue(\"" + c.name + "\")") continue;
 			if (test3=="_source." + c.name) continue;
-			if (test4=="get(_source, \"" + c.name+ "\")") continue;
+//			if (test4=="get(_source, \"" + c.name+ "\")") continue;
 
 			function defParent(name){
 				{//DO NOT MAKE THE SAME PARENT TWICE
@@ -625,7 +628,7 @@ MVEL.FUNCTIONS={
 			"var v = _source[name];\n"+
 //			"if (v is org.elasticsearch.common.mvel2.ast.Function) v = v();=n" +
 			"if (v==null) { null; } else " +
-			"if (v.values.length<=1){ v.value; } else " + //ES MAKES NO DISTINCTION BETWEEN v or [v], SO NEITHER DO I
+			"if (v[\"values\"]==null || v.values.length<=1){ v.value; } else " + //ES MAKES NO DISTINCTION BETWEEN v or [v], SO NEITHER DO I
 			"{for(k : v) out.add(k); out;}" +
 		"};\n",
 

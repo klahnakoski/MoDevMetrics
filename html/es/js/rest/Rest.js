@@ -4,6 +4,10 @@
 
 
 importScript("../../lib/jsThreads/js/thread.js");
+importScript("../debug/aLog.js");
+
+
+var DEBUG = false;
 
 
 var Rest={};
@@ -37,6 +41,11 @@ Rest.send=function(ajaxParam){
 		};
 	}//endif
 	if (typeof(ajaxParam.data)!="string") ajaxParam.data=CNV.Object2JSON(ajaxParam.data);
+	
+	if (DEBUG){
+		Log.note(ajaxParam.data)
+	}//endif
+
 	if (!ajaxParam.async) ajaxParam.async=true;
 	ajaxParam.success=callback;
 
