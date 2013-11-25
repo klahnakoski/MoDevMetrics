@@ -26,9 +26,9 @@ if (window.location.hostname=="metrics.mozilla.com"){
 //	ElasticSearch.baseURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
 //	ElasticSearch.queryURL = "http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search";
 
-	ElasticSearch.pushURL="http://localhost:9200";
+//	ElasticSearch.pushURL="http://localhost:9200";
 //	ElasticSearch.pushURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
-//	ElasticSearch.pushURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
+	ElasticSearch.pushURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
 
 	//THESE ARE NOW ALL GOOD NODES!!
 	//(2:13:01 PM) mreid: ekyle, if you've still got things set to only hit elasticsearch7, you should probably change it to know about all 4 nodes
