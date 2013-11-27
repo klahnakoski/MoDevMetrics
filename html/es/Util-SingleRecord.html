@@ -49,22 +49,7 @@
 //};
 
 
-			var esQuery = { "query":{"filtered":{ "query":{"match_all":{}}, "filter":{"and":[
-				{"script":{"script":"true"}},
-				{"and":[
-//					{"range":{"info.started":{"gte":0,"lt":1378252800000}}},
-					{"and":[
-						{"script":{"script":"true"}}
-					]}
-				]}
-			]} }}, "from":0, "size":0, "sort":[], "facets":{ "0,0":{ "statistical":{"field":"score"}, "facet_filter":{"and":[
-				{"and":[
-					{"script":{"script":"true"}},
-					{"term":{"browser.name":"Firefox"}},
-					{"term":{"browser.version":23}}
-				]},
-				{"term":{"info.test":"section-math"}}
-			]} }}};
+			var esQuery = {"query":{ "filtered":{ "query":{"match_all":{}}, "filter":{"and":[{"range":{"bug_id":{"gte":886800, "lt":886900}}}]} }, "from":0, "size":2000, "sort":[] }};
 
 //		{
 //			"facets":{"mvel":{"terms":{ "size":200000, "script_field":"doc[\"dependson\"].value"}}},
@@ -84,8 +69,8 @@
 
 //			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/datazilla20131108_213623/_search",
 //			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/raw_telemetry/_search",
-//			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/public_bugs/bug_version/_search",
-			"url":"http://localhost:9200/perfy/_search",
+			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/public_bugs/bug_version/_search",
+//			"url":"http://localhost:9200/perfy/_search",
 //			"url":"http://129.97.26.17:9200/bugs/bug_version/_search",
 // 			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
 

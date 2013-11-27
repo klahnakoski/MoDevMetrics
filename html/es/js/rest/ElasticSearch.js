@@ -39,18 +39,18 @@ if (window.location.hostname=="metrics.mozilla.com"){
 
 //	ElasticSearch.baseURL="http://elasticsearch4.metrics.scl3.mozilla.com:9200";
 //	ElasticSearch.baseURL="http://elasticsearch5.metrics.scl3.mozilla.com:9200";
-//	ElasticSearch.baseURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
+	ElasticSearch.baseURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
 //	ElasticSearch.baseURL="http://elasticsearch8.metrics.scl3.mozilla.com:9200";
 
 //	ElasticSearch.baseURL="http://localhost:9292";
-	ElasticSearch.baseURL="http://klahnakoski-es.corp.tor1.mozilla.com:9292";
+//	ElasticSearch.baseURL="http://klahnakoski-es.corp.tor1.mozilla.com:9292";
 //	ElasticSearch.baseURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
 
 
 //	ElasticSearch.queryURL = "http://localhost:9292/bugs/_search";
-	ElasticSearch.queryURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9292/bugs/_search";
+//	ElasticSearch.queryURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9292/bugs/_search";
 //	ElasticSearch.queryURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9200/bugs/_search";
-//	ElasticSearch.queryURL = "http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search";
+	ElasticSearch.queryURL = "http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search";
 
 
 }//endif

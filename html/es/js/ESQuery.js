@@ -45,7 +45,7 @@ ESQuery.INDEXES={
 	"bug_tags":{"path":"/bug_tags/bug_tags"},
 	"org_chart":{"path":"/org_chart/person"},
 	"temp":{"path":""},
-	"telemetry":{"path":"/telemetry/data"},
+	"telemetry":{"path":"/telemetry_agg_valid_201305/data"},
 	"raw_telemetry":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/raw_telemetry/data"},
 	"datazilla":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/datazilla/test_results"},
 
