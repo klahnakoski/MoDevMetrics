@@ -32,16 +32,27 @@
 	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
 </div>
 <div style="align:left;position:relative;float:left;width:800px;">
-	<h3 id="title">Perfy!</h3>
-	<table>
-		<tr><td>
-			<div id="overall" class="chart" style="float:left;width:150px;height:200px;"></div>
-		</td><td>
-			<div id="chart" class="chart" style="float:none;width:800px;height:200px;"></div>
-		</td></tr>
+	<table id="main">
+		<tr><td colspan="2"><h3 id="title">Perfy!</h3></td></tr>
+		<tr>
+			<td>
+				<div id="overall" class="chart" style="float:left;width:150px;height:200px;"></div>
+			</td><td>
+				<div id="chart" class="chart" style="float:none;width:800px;height:200px;"></div>
+			</td>
+		</tr>
 	</table>
-
 </div>
+<table id="template" style="visibility: hidden">
+	<tr><td colspan="2"><h4 id="title<NUM>"></h4></td></tr>
+	<tr>
+		<td>
+			<div id="overall<NUM>" class="chart" style="float:left;width:150px;height:200px;"></div>
+		</td><td>
+			<div id="chart<NUM>" class="chart" style="float:none;width:800px;height:200px;"></div>
+		</td>
+	</tr>
+</table>
 
 
 <script type="application/javascript;version=1.7">
@@ -50,6 +61,8 @@
 importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 	//POINT TO KNOWN CLUSTER
 	ElasticSearch.baseURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9200";
+	var totalsFilter={"terms":{"info.test":["total", "Kraken", "Octane"]}};
+
 //	ElasticSearch.baseURL = "http://localhost:9200";
 
 	var thread;
@@ -63,7 +76,6 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		var sampleDate = Date.newInstance(GUI.state.date);
 		var sampleDuration = Duration.newInstance("4month");
 //		var benchmark=GUI.state.benchmark;
-		var totalsFilter={"terms":{"info.test":["total", "Kraken", "Octane"]}};
 
 		var benchmarkName=GUI.state.benchmark.getSelectedParts()[0].name.toUpperCase();
 		var platformName=GUI.state.platform.getSelectedParts()[0].name;
@@ -83,6 +95,86 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			totalsFilter,
 			GUI.getFilters("perfy")
 		]};
+
+		Log.action("Find Last Tests");
+
+		//LOOK FOR LATEST TEST DATA
+		var max_date=yield (ESQuery.run({
+			"from":"perfy",
+			"select":{"value":"info.started", "aggregate":"maximum"},
+			"edges":[
+				{"name":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()}
+			],
+			"esfilter":{"and":[
+				esfilter,
+				{"range":{"info.started":{"lt":sampleDate.ceilingDay().getMilli()}}}
+			]}
+		}));
+
+		//FILTER SPECIFICALLY FOR THE LATEST TESTS
+		var latestTests=[];
+		Mozilla.Perfy.Channel.partitions.forall(function(channel, c){
+			if (aMath.isNumeric(max_date.cube[c])){
+				latestTests.append({"and":[
+					channel.esfilter,
+					{"term":{"info.started":max_date.cube[c]}}
+				]});
+			}//endif
+		});
+		latestTests = {"or":latestTests};
+
+
+		showAllTests(
+			GUI.state.benchmark.getSelectedParts()[0],
+			latestTests
+		);
+
+
+
+
+	};
+
+
+	function showAllTests(benchmark, latestTests){
+		var template=$("#template").find("tbody").html();
+		var rows=$("#main tbody");
+		rows.children().remove();
+
+		//SHOW TOTALS
+		var benchmarkName=benchmark.name.toUpperCase();
+		var platformName=GUI.state.platform.getSelectedParts()[0].name;
+
+		rows.append(template.replaceAll("<NUM>", "").replaceAll("h4", "h3"));
+		showOneTest(
+			"",
+			"Perfy - "+benchmarkName+" on "+platformName,
+			{"and":[
+				totalsFilter,
+				GUI.getFilters("perfy")
+			]},
+			latestTests
+		);
+
+		//SHOW DETAILS
+		benchmark.partitions.forall(function(part, i){
+			var testName=part.name;
+
+			rows.append(template.replaceAll("<NUM>", ""+i));
+			showOneTest(
+				i,
+				testName,
+				{"and":[
+					part.esfilter,
+					GUI.getFilters("perfy")
+				]},
+				latestTests
+			);
+		});
+	}//method
+
+
+	function showOneTest(i, testName, esfilter, latestTests){
+		$("#title"+i).html(testName);
 
 		//OVERALL TIME SERIES
 		var maxScore;
@@ -117,10 +209,9 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 
 			//DUE TO INCOMPLETE Q(), I MUST
 			range.list = yield(CUBE.Cube2List(range, {"useStruct":true}));
-//			range.list = range.list.filter(function(v){ return v.score!=null && v.score!=0;});
 
 			aChart.showScatter({
-				"id":"chart",
+				"id":"chart"+i,
 				"sheetDiv":"info",
 				"cube":range,
 				"legendPosition":"right",
@@ -135,33 +226,6 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		});
 
 		Thread.run(function(){
-			//LOOK FOR LATEST TEST DATA
-			var max_date=yield (ESQuery.run({
-				"from":"perfy",
-				"select":{"value":"info.started", "aggregate":"maximum"},
-				"edges":[
-					{"name":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()}
-				],
-				"esfilter":{"and":[
-					totalsFilter,
-					{"range":{"info.started":{"lt":sampleDate.ceilingDay().getMilli()}}},
-					GUI.getFilters("perfy")
-				]}
-			}));
-
-			//FILTER SPECIFICALLY FOR THE LATEST TESTS
-			var testFilter=[];
-			Mozilla.Perfy.Channel.partitions.forall(function(channel, c){
-				if (aMath.isNumeric(max_date.cube[c])){
-					testFilter.append({"and":[
-						channel.esfilter,
-						{"term":{"info.started":max_date.cube[c]}}
-					]});
-				}//endif
-			});
-			testFilter={"or":testFilter};
-
-			
 			var data = yield(ESQuery.run({
 				"from":"perfy",
 				"select": {"name":"score", "value":"score", "aggregate":"average", "default":0},
@@ -169,17 +233,16 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 					{"name":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()}
 				],
 				"esfilter":{"and":[
-					totalsFilter, //ONLY AGGREGATE VALUES
-					testFilter,
-					GUI.getFilters("perfy")
+					esfilter,
+					latestTests
 				]}
 			}));
 
 			//WAIT FOR THE maxScore TO BE CALCULATED
 			yield (timeseriesThread.join());
-			
+
 			aChart.show({
-				"id":"overall",
+				"id":"overall"+i,
 				"sheetDiv":"info",
 				"type":"bar",
 				"stacked":false,
@@ -191,16 +254,11 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 					line_lineWidth: 2
 				}
 			});
-
-
-
-
 		});
 
+	}//method
 
 
-	};
-	
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [
