@@ -1,0 +1,238 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="application/javascript;version=1.7" src="lib/jsImport/js/import.js"></script>
+</HEAD>
+<BODY>
+
+<div id="sidebar">
+	<br>
+	<br>
+
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3 id="title">Perfy!</h3>
+	<table>
+		<tr><td>
+			<div id="overall" class="chart" style="float:left;width:150px;height:200px;"></div>
+		</td><td>
+			<div id="chart" class="chart" style="float:none;width:800px;height:200px;"></div>
+		</td></tr>
+	</table>
+
+</div>
+
+
+<script type="application/javascript;version=1.7">
+
+
+importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
+	//POINT TO KNOWN CLUSTER
+	ElasticSearch.baseURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9200";
+//	ElasticSearch.baseURL = "http://localhost:9200";
+
+	var thread;
+	var createChart = function(){
+		if (thread !== undefined)
+			thread.kill();
+		thread = Thread.run(__createChart());
+	};
+
+	var __createChart = function(){
+		var sampleDate = Date.newInstance(GUI.state.date);
+		var sampleDuration = Duration.newInstance("4month");
+//		var benchmark=GUI.state.benchmark;
+		var totalsFilter={"terms":{"info.test":["total", "Kraken", "Octane"]}};
+
+		var benchmarkName=GUI.state.benchmark.getSelectedParts()[0].name.toUpperCase();
+		var platformName=GUI.state.platform.getSelectedParts()[0].name;
+
+		$("#title").html("Perfy - "+benchmarkName+" on "+platformName);
+
+		//WAIT FOR MENU TO LOAD
+		while (Mozilla.Perfy.Benchmark.partitions instanceof Thread){
+			yield (Thread.sleep(200));
+		}//while
+
+		//WE ARE ASKING FOR AGGREGATES, OR FOR SINGLE TEST RESULTS
+		//{"name":"Test", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":1})}
+
+
+		var esfilter={"and":[
+			totalsFilter,
+			GUI.getFilters("perfy")
+		]};
+
+		//OVERALL TIME SERIES
+		var maxScore;
+		var timeseriesThread=Thread.run(function(){
+			var data = yield(ESQuery.run({
+				"from":"perfy",
+				"select": [
+					{"name":"score", "value":"score"},
+					Mozilla.Perfy.Channel.getSelect(),
+					{"name":"date", "value":"info.started"}
+				],
+				"esfilter":esfilter
+			}));
+
+			//RECORD MEDIAN
+			var range=yield (Q({
+				"from":data,
+				"select":
+					{"value":"score", "aggregate":"percentile", "percentile":0.5}
+				,
+				"edges":[
+					{"value":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()},
+					{"value":"date", "domain":{"type":"time"}}
+				]
+			}));
+
+			var max=(yield (Q({
+				"from":range,
+				"select": {"value":"score", "aggregate":"maximum"}
+			}))).cube.score;
+			maxScore=aMath.niceCeiling(max);
+
+			//DUE TO INCOMPLETE Q(), I MUST
+			range.list = yield(CUBE.Cube2List(range, {"useStruct":true}));
+//			range.list = range.list.filter(function(v){ return v.score!=null && v.score!=0;});
+
+			aChart.showScatter({
+				"id":"chart",
+				"sheetDiv":"info",
+				"cube":range,
+				"legendPosition":"right",
+				"legendSize":150,
+				xAxisSize: 40,
+				axisOriginIsZero : true,
+				orthoAxisFixedMax:maxScore,
+				extensionPoints: {
+					line_lineWidth: 2
+				}
+			});
+		});
+
+		Thread.run(function(){
+			//LOOK FOR LATEST TEST DATA
+			var max_date=yield (ESQuery.run({
+				"from":"perfy",
+				"select":{"value":"info.started", "aggregate":"maximum"},
+				"edges":[
+					{"name":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()}
+				],
+				"esfilter":{"and":[
+					totalsFilter,
+					{"range":{"info.started":{"lt":sampleDate.ceilingDay().getMilli()}}},
+					GUI.getFilters("perfy")
+				]}
+			}));
+
+			//FILTER SPECIFICALLY FOR THE LATEST TESTS
+			var testFilter=[];
+			Mozilla.Perfy.Channel.partitions.forall(function(channel, c){
+				if (aMath.isNumeric(max_date.cube[c])){
+					testFilter.append({"and":[
+						channel.esfilter,
+						{"term":{"info.started":max_date.cube[c]}}
+					]});
+				}//endif
+			});
+			testFilter={"or":testFilter};
+
+			
+			var data = yield(ESQuery.run({
+				"from":"perfy",
+				"select": {"name":"score", "value":"score", "aggregate":"average", "default":0},
+				"edges":[
+					{"name":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()}
+				],
+				"esfilter":{"and":[
+					totalsFilter, //ONLY AGGREGATE VALUES
+					testFilter,
+					GUI.getFilters("perfy")
+				]}
+			}));
+
+			//WAIT FOR THE maxScore TO BE CALCULATED
+			yield (timeseriesThread.join());
+			
+			aChart.show({
+				"id":"overall",
+				"sheetDiv":"info",
+				"type":"bar",
+				"stacked":false,
+				"cube":data,
+				"legend":false,
+				orthoAxisFixedMax:maxScore,
+				xAxisSize: 40,
+				extensionPoints: {
+					line_lineWidth: 2
+				}
+			});
+
+
+
+
+		});
+
+
+
+	};
+	
+
+	$(document).ready(function(){
+		GUI.setup(createChart, [
+				{"id":"date", "name":"Test Date", "type":"date", "default":Date.today()},
+				{"id":"benchmark", "name":"Benchmark", "type":PartitionFilter.newInstance({
+					"id":"benchmark",
+					"name":"Benchmark",
+					"dimension":Mozilla.Perfy.Benchmark,
+					"onlyOne":true,
+					"expandAll":true
+				})},
+				{"id":"platform", "name":"Platform", "type":PartitionFilter.newInstance({
+					"id":"platform",
+					"name":"Platform",
+					"dimension":Mozilla.Perfy.Platform,
+					"onlyOne":true,
+					"expandAll":true,
+					"treeDepth":1
+				})}
+			],
+			[
+			],
+			"perfy",
+			false
+		);
+	});
+
+});
+
+</script>
+
+
+</BODY>
+</HTML>
+

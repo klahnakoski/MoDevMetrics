@@ -159,6 +159,13 @@ GUI.showLastUpdated = function(indexName){
 				"select":{"name":"max_date", "value":"testrun.date", "aggregate":"maximum"}
 			}))).cube.max_date);
 			$("#testMessage").html("Datazilla Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
+		}else if (indexName=="perfy"){
+			esHasErrorInIndex=false;
+			time=new Date((yield(ESQuery.run({
+				"from":"perfy",
+				"select":{"name":"max_date", "value":"info.started", "aggregate":"maximum"}
+			}))).cube.max_date);
+			$("#testMessage").html("Perfy Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 		}else{
 			Log.actionDone(a);
 			return;

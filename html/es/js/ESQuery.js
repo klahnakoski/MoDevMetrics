@@ -317,7 +317,7 @@ ESQuery.prototype.compile = function(){
 	//THESE SMOOTH EDGES REQUIRE ALL DATA (SETOP)
 	var extraSelect=[];
 	this.query.edges.forall(function(e){
-		if (e.domain !== undefined && e.domain.interval == "none"){
+		if (e.domain !== undefined && CUBE.domain.ALGEBRAIC.contains(e.domain.type) &&  e.domain.interval == "none"){
 			extraSelect.append({"name":e.name, "value":e.value});
 		}//endif
 	});
@@ -1120,14 +1120,17 @@ ESQuery.agg2es = {
 //PROCESS RESULTS FROM THE ES STATISTICAL FACETS
 ESQuery.prototype.statisticalResults = function(data){
 	var cube;
+	var agg=this.select.map(function(s){ return ESQuery.agg2es[s.aggregate];});
+	var agg0=agg[0];
+	var self=this;
 
 	if (this.query.edges.length==0){ //ZERO DIMENSIONS
 		if (this.select.length==0){
-			cube = data.facets["0"][ESQuery.agg2es[this.select[i].aggregate]];
+			cube = data.facets["0"][agg0];
 		}else{
 			cube={};
 			for(var i=this.select.length;i--;){
-				cube[this.select[i].name]= data.facets["0"][ESQuery.agg2es[this.select[i].aggregate]];
+				cube[this.select[i].name]= data.facets["0"][agg[i]];
 			}//for
 		}//endif
 		this.query.cube = cube;
@@ -1138,23 +1141,39 @@ ESQuery.prototype.statisticalResults = function(data){
 	cube = CUBE.cube.newInstance(this.query.edges, 0, this.query.select);
 
 	//FILL CUBE
-	var keys = Object.keys(data.facets);
-	for(var k = 0; k < keys.length; k++){
-		var edgeName = keys[k];
-		var coord = edgeName.split(",");
-		var d = cube;
-		for(var f = 0; f < this.query.edges.length - 1; f++){
-			d = d[parseInt(coord[f])];
-		}//for
-		if (this.query.select instanceof Array){
-			for(var s=this.select.length;s--;){
-				d[parseInt(coord[f])][this.select[s].name] = data.facets[edgeName][ESQuery.agg2es[this.select[s].aggregate]];
+	if (self.query.select instanceof Array){
+		forAllKey(data.facets, function(edgeName, facetValue){
+			var coord = edgeName.split(",");
+			var d = cube;
+			var num=self.query.edges.length;
+			for(var f = 0; f < num; f++){
+				var offset=parseInt(coord[f]);
+				d = d[offset];
 			}//for
-		}else{
-			d[parseInt(coord[f])] = data.facets[edgeName][ESQuery.agg2es[this.select[0].aggregate]];
-		}//endif
-	}//for
-
+			for(var s=self.select.length;s--;){
+				if (agg0!="count" && facetValue.count==0){
+					d[self.select[s].name] = null;
+				}else{
+					d[self.select[s].name] = facetValue[agg[s]];
+				}//endif
+			}//for
+		});
+	}else{
+		forAllKey(data.facets, function(edgeName, facetValue){
+			var coord = edgeName.split(",");
+			var d = cube;
+			var num=self.query.edges.length - 1;
+			for(var f = 0; f < num; f++){
+				var offset=parseInt(coord[f]);
+				d = d[offset];
+			}//for
+			if (agg0!="count" && facetValue.count==0){
+				d[parseInt(coord[f])]=nvl(self.query.select["default"], null);
+			}else{
+				d[parseInt(coord[f])] = facetValue[agg0];
+			}//endif
+		});
+	}//endif
 	this.query.cube = cube;
 
 };//method

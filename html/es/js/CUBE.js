@@ -549,7 +549,20 @@ CUBE.toTable=function(query){
 };//method
 
 
-CUBE.Cube2List=function(query){
+CUBE.Cube2List=function(query, options){
+	//WILL end() ALL PARTS UNLESS options.useStruct==true OR options.useLabels==true
+
+	options=nvl(options, {});
+	options.useStruct=nvl(options.useStruct, false);
+	options.useLabels=nvl(options.useLabels, false);
+
+	var endFunction="query.edges[<NUM>].domain.end";
+	if (options.useStruct){
+		endFunction="function(v){return v;}";
+	}else if (options.useLabels){
+		endFunction="query.edges[<NUM>].domain.label";
+	}//endif
+
 	var name=Array.newInstance(query.select)[0].name;
 	if (query.select instanceof Array) name=undefined;
 	if (query.cube===undefined) Log.error("Can only turn a cube into a table at this time");
@@ -558,10 +571,11 @@ CUBE.Cube2List=function(query){
 	var isArray=(sample instanceof Array);
 
 
+
 	var prep=
 		"var parts<NUM>=query.edges[<NUM>].domain.partitions.copy();\n"+
 		"if (query.edges[<NUM>].allowNulls) parts<NUM>.push(query.edges[<NUM>].domain.NULL);\n"+
-		"var end<NUM>=query.edges[<NUM>].domain.end;\n"+
+		"var end<NUM>="+endFunction+";\n"+
 		"var name<NUM>=query.edges[<NUM>].name;\n"+
 		"var partValue<NUM>=[];\n"+
 		"for(var p<NUM>=0; p<NUM><parts<NUM>.length; p<NUM>++) partValue<NUM>.push("+
@@ -624,7 +638,7 @@ CUBE.Cube2List=function(query){
 
 	{//EVAL
 		var t=new aTimer("Convert from cube to list", Duration.SECOND);
-		var output=yield (cube2list(query));
+		yield (cube2list(query));
 		t.end();
 	}
 

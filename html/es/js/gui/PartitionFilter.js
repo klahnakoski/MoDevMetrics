@@ -33,6 +33,7 @@ PartitionFilter.newInstance=function(param){
 	if (self.dimension.partitions===undefined && self.dimension.edges===undefined) Log.error(self.dimension.name+" does not have a partition defined");
 
 //	self.id=self.dimension.parent.name.replaceAll(" ", "_");
+	if (self.treeDepth===undefined) self.treeDepth=100;
 	self.isFilter=true;
 	self.treeDone=false;
 	self.DIV_ID=self.id.replaceAll(" ", "_")+"_id";
@@ -46,7 +47,7 @@ PartitionFilter.newInstance=function(param){
 	self.id2node=[];
 
 	self.parents={};
-	var tree=convertToTree(self, {"id":undefined}, self.dimension);
+	var tree=convertToTree(self, {"id":undefined}, 0, self.dimension);
 	self.hierarchy=tree.children;
 
 	return self;
@@ -62,7 +63,7 @@ function convertToTreeLater(self, treeNode, dimension){
 		while(dimension.partitions instanceof Thread) yield (Thread.join(dimension.partitions));
 		var pleaseUpdate = (treeNode.children==WAITING_FOR_RESULTS);
 		treeNode.children = dimension.partitions.map(function(v, i){
-			if (i<nvl(dimension.limit, DEFAULT_CHILD_LIMIT)) return convertToTree(self, treeNode, v);
+			if (i<nvl(dimension.limit, DEFAULT_CHILD_LIMIT)) return convertToTree(self, treeNode, 1, v);
 		});
 		if (pleaseUpdate){
 			self.hierarchy=treeNode.children;
@@ -74,7 +75,8 @@ function convertToTreeLater(self, treeNode, dimension){
 	});
 }
 
-function convertToTree(self, parent, dimension){
+function convertToTree(self, parent, depth, dimension){
+	//depth IS CURRENT DEPTH  (0==EDGE, 1==DOMAIN PARTITIONS, etc)
 	var node={};
 	node.id=(parent.id===undefined ? "" : parent.id+".")+dimension.name.replaceAll(" ", "_");
 	node.attr={id:node.id};
@@ -89,15 +91,17 @@ function convertToTree(self, parent, dimension){
 			node.children=WAITING_FOR_RESULTS;
 			convertToTreeLater(self, node, dimension);
 		}else{
-			node.children=dimension.partitions.map(function(v,i){
-				if (i<nvl(dimension.limit, DEFAULT_CHILD_LIMIT))
-					return convertToTree(self, node, v);
-			});
+			if (self.treeDepth > depth){
+				node.children=dimension.partitions.map(function(v,i){
+					if (i<nvl(dimension.limit, DEFAULT_CHILD_LIMIT))
+						return convertToTree(self, node, depth+1, v);
+				});
+			}//endif
 		}//endif
 	}//endif
 	if (dimension.edges){
 		node.children=dimension.edges.map(function(v,i){
-			return convertToTree(self, node, v);
+			return convertToTree(self, node, 0, v);
 		});
 	}//endif
 	return node;

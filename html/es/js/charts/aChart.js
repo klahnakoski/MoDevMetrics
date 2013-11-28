@@ -158,9 +158,9 @@ var CHART_TYPES={
 	"stackedbar":"StackedBarChart",
 	"bar":"BarChart",
 	"bullet":"BulletChart",
-	"scatter":"DotChart",
-	"xy":"DotChart",
-	"dot":"DotChart",
+	"scatter":"MetricLineChart",
+	"xy":"MetricDotChart",
+	"dot":"MetricDotChart",
 	"heat":"HeatGridChart",
 	"box":"BoxplotChart"
 };
@@ -372,16 +372,12 @@ aChart.showScatter=function(params){
 
 
 
-	var height;
-	if (chartCube.edges.length>1){
-		height=600+(chartCube.edges[0].domain.partitions.length/17*24);
-	}else{
-		height=600;
-	}
+	var height=$("#"+divName).height();
+	var width=$("#"+divName).width();
 
 	var chartParams={
 		canvas: divName,
-		width: 800,
+		width: width,
 		height: height,
 		animate:false,
 		title: nvl(params.name, chartCube.name),
@@ -393,6 +389,7 @@ aChart.showScatter=function(params){
 		timeSeries: (xaxis.domain.type=="time"),
 		timeSeriesFormat: JavaDateFormat2ProtoVisDateFormat(xaxis.domain.format),
 		showDots:true,
+		dotsVisible: true,
 		showValues: false,
 		originIsZero: this.originZero,
 		yAxisPosition: "right",
@@ -432,7 +429,7 @@ aChart.showScatter=function(params){
 	if (chartCube.edges.length==1){
 		valueName=Array.newInstance(chartCube.select)[0].name;
 		seriesName=xaxis.name;
-		seriesFormatter=xaxis.domain.formatValue;
+		seriesFormatter=xaxis.domain.label;
 		columns=[seriesName, valueName];
 		//GIVE EACH SELECT A ROW
 		data=chartCube.list.map(function(v, i){
@@ -444,26 +441,26 @@ aChart.showScatter=function(params){
 		});
 	}else{
 		categoryName=chartCube.edges[0].name;
-		categoryLabels=aSet.newInstance(data.map(function(v){
-			return v[categoryName]
-		})).getArray();
+		categoryLabels=chartCube.edges[0].domain.partitions.map(function(v){
+			return chartCube.edges[0].domain.label(v)
+		});
 
 		valueName=Array.newInstance(chartCube.select)[0].name;
 		seriesName=xaxis.name;
-		seriesFormatter=xaxis.domain.formatValue;
-		columns=[seriesName, valueName, categoryName];
+		seriesFormatter=xaxis.domain.label;
+		columns=[categoryName, seriesName, valueName];
 		//GIVE EACH SELECT A ROW
 		data=chartCube.list.map(function(v, i){
 			return [
+				chartCube.edges[0].domain.label(v[categoryName]),
 				seriesFormatter(v[seriesName]),
-				v[valueName],
-				v[categoryName]
+				v[valueName]
 			];
 		});
 	}//endif
 
 	//CCC2 - metadata MUST BE IN x, y, category ORDER!
-	var metadata=columns.map(function(v, i){ return {"colIndex":i, "colName":v, "colType":i==2?"String":"Numeric"};});
+	var metadata=columns.map(function(v, i){ return {"colIndex":i, "colName":v, "colType":i==0?"String":"Numeric"};});
 
 	var cccData = {
 		"resultset":data,
@@ -716,7 +713,11 @@ aChart.show=function(params){
 				data.push(row);
 			}//for
 		}else{
-			data=[chartCube.cube];
+			//SWAP DIMENSIONS SO WE CAN USE COLOR
+			var temp=seriesLabels;
+			seriesLabels=categoryLabels;
+			categoryLabels=temp;
+			data=chartCube.cube.map(function(v){return [v];});
 		}//endif
 	}else{
 		data=chartCube.cube.copy();
