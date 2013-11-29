@@ -660,7 +660,7 @@ aChart.show=function(params){
 
 		orientation: 'vertical',
 		timeSeries: (xaxis.domain.type=="time"),
-		timeSeriesFormat: JavaDateFormat2ProtoVisDateFormat(xaxis.domain.format),
+		timeSeriesFormat: JavaDateFormat2ProtoVisDateFormat(CUBE.domain.time.DEFAULT_FORMAT),
 		showDots:true,
 		showValues: false,
 		"stacked":stacked,
@@ -712,8 +712,11 @@ aChart.show=function(params){
 				});
 				data.push(row);
 			}//for
+		}else if (CUBE.domain.ALGEBRAIC.contains(chartCube.edges[0].domain.type)){
+			//ALGEBRAIC DOMAINS ARE PROBABLY NOT MULTICOLORED
+			data=[chartCube.cube]
 		}else{
-			//SWAP DIMENSIONS SO WE CAN USE COLOR
+			//SWAP DIMENSIONS ON CATEGORICAL DOMAIN SO WE CAN USE COLOR
 			var temp=seriesLabels;
 			seriesLabels=categoryLabels;
 			categoryLabels=temp;
@@ -872,47 +875,41 @@ function JavaDateFormat2ProtoVisDateFormat(format){
 
 
 function getAxisLabels(axis){
-	var labels=[];
+	var labels;
 	if (axis.domain.type == "time"){
 		if (axis.domain.allowNulls) Log.error("Charting lib can not handle NULL domain value.");
-//		var bestFormat = Date.getBestFormat(axis.domain.min, axis.domain.max, axis.domain.interval);
-//		var bestFormat=TIME_FORMAT;  //WILL NOT WORK UNTIL ALL NULL PARTS ARE REMOVED
-		axis.domain.partitions.forall(function(v, i){
-			if (v instanceof String){
-				labels.push(v);
-			} else if (v instanceof Date){
-				labels.push(v.format(TIME_FORMAT));
-			} else{
-				 var v2=v.name;
-				labels.push(v2);
+		var format=CUBE.domain.time.DEFAULT_FORMAT;
+		labels=axis.domain.partitions.map(function(v, i){
+			if (v.value!=undefined){
+				return v.value.format(format);
+			}else{
+				return Date.newInstance(v).format(format);
 			}//endif
 		});
 	} else if (axis.domain.type == "duration"){
-		axis.domain.partitions.forall(function(v, i){
+		labels=axis.domain.partitions.map(function(v, i){
 			if (v instanceof String){
-				labels.push(v);
+				return v;
 			} else if (v.milli === undefined){
-				labels.push(v.value.toString());
+				return v.value.toString();
 			} else{
-				labels.push(v.toString());
+				return v.toString();
 			}//endif
 		});
 	} else if (axis.domain.type == "numeric"){
-		axis.domain.partitions.forall(function(v, i){
-			labels.push(v.name);
-		});
+		labels=axis.domain.partitions.select("name");
 	} else{
-		axis.domain.partitions.forall(function(v, i){
+		labels=axis.domain.partitions.map(function(v, i){
 			if (v instanceof String){
-				labels.push(v);
+				return v;
 			}else if (aMath.isNumeric(v)){
-				labels.push(""+v);
+				return ""+v;
 			}else{
 				if (axis.domain.label!==undefined){
 					//ALL DOMAINS EXPECTED TO HAVE LABELS
-					labels.push(""+axis.domain.label(v));
+					return ""+axis.domain.label(v);
 				}else{
-					labels.push(""+axis.domain.end(v));
+					return ""+axis.domain.end(v);
 				}//endif
 			}//endif
 		});

@@ -495,7 +495,13 @@ Date.getTimezone = function(){
 ////////////////////////////////////////////////////////////////////////////////
 // WHAT IS THE MOST COMPACT DATE FORMAT TO DISTINGUISH THE RANGE
 ////////////////////////////////////////////////////////////////////////////////
-Date.getBestFormat=function(minDate, maxDate, interval){
+Date.niceFormat=function(domain){
+	if (domain.type!="time") Log.error("Expecting a time domain");
+
+	var minDate=domain.min;
+	var maxDate=domain.max;
+	var interval=domain.interval;
+
 	var minFormat=0; //SECONDS
 	if (interval.milli>=Duration.MILLI_VALUES.minute) minFormat=1;
 	if (interval.milli>=Duration.MILLI_VALUES.hour) minFormat=2;

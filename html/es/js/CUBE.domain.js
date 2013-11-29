@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+importScript("aDate.js");
 
 if (CUBE===undefined) var CUBE = {};
 CUBE.domain = {};
@@ -206,9 +207,9 @@ CUBE.domain.time = function(column, sourceColumns){
 	};//method
 
 	//PROVIDE FORMATTING FUNCTION
-	if (d.format === undefined) d.format="yyyy-MM-dd HH:mm:ss";
-	d.label = function(value){
-		return value.format(d.format);
+	d.label = function(part){
+		var format=d.format!==undefined ? d.format : Date.niceFormat(d);
+		return Date.newInstance(part.value).format(format);
 	};//method
 
 	if (column.test){
@@ -358,6 +359,7 @@ CUBE.domain.time = function(column, sourceColumns){
 
 };//method;
 
+CUBE.domain.time.DEFAULT_FORMAT="yyyy-MM-dd HH:mm:ss";
 
 
 CUBE.domain.time.addRange = function(min, max, domain){
@@ -366,7 +368,7 @@ CUBE.domain.time.addRange = function(min, max, domain){
 			"value":v,
 			"min":v,
 			"max":v.add(domain.interval),
-			"name":domain.label(v)
+			"name":v.format(nvl(domain.format, CUBE.domain.time.DEFAULT_FORMAT))
 		};
 		domain.map[v] = partition;
 		domain.partitions.push(partition);
