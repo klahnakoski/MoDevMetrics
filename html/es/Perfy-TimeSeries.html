@@ -158,6 +158,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		//SHOW DETAILS
 		benchmark.partitions.forall(function(part, i){
 			var testName=part.name;
+			if (totalsFilter.terms["info.test"].contains(testName)) return;
 
 			rows.append(template.replaceAll("<NUM>", ""+i));
 			showOneTest(
@@ -268,14 +269,14 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 					"name":"Benchmark",
 					"dimension":Mozilla.Perfy.Benchmark,
 					"onlyOne":true,
-					"expandAll":true
+					"expandAll":false
 				})},
 				{"id":"platform", "name":"Platform", "type":PartitionFilter.newInstance({
 					"id":"platform",
 					"name":"Platform",
 					"dimension":Mozilla.Perfy.Platform,
 					"onlyOne":true,
-					"expandAll":true,
+					"expandAll":false,
 					"treeDepth":1
 				})}
 			],
