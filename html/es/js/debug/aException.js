@@ -7,7 +7,7 @@ importScript("../CNV.js");
 
 
 
-var Exception=function(description, cause){
+window.Exception=function(description, cause){
 	this.message=description;
 	this.cause=cause;
 };

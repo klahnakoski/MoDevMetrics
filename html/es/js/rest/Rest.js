@@ -4,6 +4,11 @@
 
 
 importScript("../../lib/jsThreads/js/thread.js");
+importScript("../debug/aLog.js");
+
+
+var DEBUG = false;
+
 
 
 var Rest={};
