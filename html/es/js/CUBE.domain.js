@@ -35,15 +35,15 @@ CUBE.domain.compile = function(column, sourceColumns){
 	if (type===undefined)
 		Log.error("Expecting a domain to have a 'type' attribute");
 
+	if (domain.interval===undefined)
+		domain.interval="none";
+
 	if (type=="value"){
 		domain=CUBE.domain.value;
 	}else if (domain.interval=="none" && CUBE.domain.ALGEBRAIC.contains(type)){
 		//CONTINUOUS ALGEBRAIC EDGE MEANS COMPILATION IS NOT POSSIBLE
 		if (type=="time"){
-			if (domain.format === undefined) domain.format="yyyy-MM-dd HH:mm:ss";
-			domain.formatValue = function(value){
-				return Date.newInstance(value).format(domain.format);
-			};//method
+			CUBE.domain["continuousTime"](column, sourceColumns);
 		}else{
 			Log.error("Continuous algebraic domain of type "+type+", not supported yet.");
 		}//endif
@@ -182,6 +182,10 @@ CUBE.domain["default"] = function(column, sourceColumns){
 		return partition.value;
 	};
 
+	d.label = function(part){
+		return part.value;
+	};
+
 	CUBE.domain.compileEnd(d);
 
 };
@@ -203,7 +207,7 @@ CUBE.domain.time = function(column, sourceColumns){
 
 	//PROVIDE FORMATTING FUNCTION
 	if (d.format === undefined) d.format="yyyy-MM-dd HH:mm:ss";
-	d.formatValue = function(value){
+	d.label = function(value){
 		return value.format(d.format);
 	};//method
 
@@ -362,13 +366,91 @@ CUBE.domain.time.addRange = function(min, max, domain){
 			"value":v,
 			"min":v,
 			"max":v.add(domain.interval),
-			"name":domain.formatValue(v)
+			"name":domain.label(v)
 		};
 		domain.map[v] = partition;
 		domain.partitions.push(partition);
 	}//for
 };//method
 
+
+CUBE.domain.continuousTime = function(column, sourceColumns){
+
+	var d = column.domain;
+	if (d.name === undefined) d.name = d.type;
+	d.NULL = {"value":null, "name":"null"};
+
+	d.min = new Date(d.min);
+	d.max = new Date(d.max);
+
+	d.compare = function(a, b){
+		return CUBE.domain.value.compare(a.value, b.value);
+	};//method
+
+	//PROVIDE FORMATTING FUNCTION
+	if (d.format === undefined) d.format="yyyy-MM-dd HH:mm:ss";
+	d.label = function(part){
+		return Date.newInstance(part.value).format(d.format);
+	};//method
+
+	if (column.test){
+		Log.error("not supported");
+	}else if (column.range){
+		Log.error("not supported");
+	}else{
+		d.getCanonicalPart = function(part){
+			return this.getPartByKey(part.value);
+		};//method
+
+		if (d.partitions === undefined){
+			d.map={};
+			d.partitions = [];
+		}//endif
+	}//endif
+
+
+	d.getPartByKey=function(key){
+		if (key == null  || key=="null") return this.NULL;
+		if (typeof(key)=="string")
+			key=new Date(key);
+		if (typeof(key)=="number")
+			key=new Date(key);
+		if (key < this.min || this.max <= key) return this.NULL;
+
+		var output=this.map[key];
+		if (output===undefined){
+			output={"name":""+key, "value":key};
+			this.map[key]=output;
+			for(var i=0;i<this.partitions.length;i++)
+				if (this.partitions[i].value.getMilli()>key.getMilli()){
+					break;
+				}//endif
+			this.partitions.insert(i, output);
+		}//endif
+		return output;
+	};//method
+
+
+	if (d.partitions === undefined){
+		d.map = {};
+		d.partitions = [];
+	}//endif
+
+	d.columns=[
+		{"name":"value", "type":"time"},
+		{"name":"min", "type":"time"},
+		{"name":"max", "type":"time"}
+	];
+
+
+	//RETURN CANONICAL KEY VALUE FOR INDEXING
+	d.getKey = function(partition){
+		return partition.value;
+	};//method
+
+	d.end=function(p){return p.value;};
+
+};//method;
 
 
 
@@ -403,7 +485,7 @@ CUBE.domain.duration = function(column, sourceColumns){
 
 	//PROVIDE FORMATTING FUNCTION
 //	if (d.format === undefined){
-		d.formatValue = function(value){
+		d.label = function(value){
 			if (value.toString===undefined) return CNV.Object2JSON(value);
 			return value.toString();
 		};//method
@@ -508,7 +590,7 @@ CUBE.domain.duration.addRange = function(min, max, domain){
 			"value":v,
 			"min":v,
 			"max":v.add(domain.interval),
-			"name":domain.formatValue(v)
+			"name":domain.label(v)
 		};
 		domain.map[v] = partition;
 		domain.partitions.push(partition);
@@ -549,7 +631,7 @@ CUBE.domain.numeric = function(column, sourceColumns){
 
 	//PROVIDE FORMATTING FUNCTION
 //	if (d.format === undefined){
-		d.formatValue = function(value){
+		d.label = function(value){
 			if (value.toString===undefined) return CNV.Object2JSON(value);
 			return value.toString();
 		};//method
@@ -653,7 +735,7 @@ CUBE.domain.numeric.addRange = function(min, max, domain){
 			"value":v,
 			"min":v,
 			"max":v+domain.interval,
-			"name":domain.formatValue(v)
+			"name":domain.label(v)
 		};
 		domain.map[v] = partition;
 		domain.partitions.push(partition);
@@ -691,7 +773,7 @@ CUBE.domain.count = function(column, sourceColumns){
 
 	//PROVIDE FORMATTING FUNCTION
 //	if (d.format === undefined){
-		d.formatValue = function(value){
+		d.label = function(value){
 			if (value.toString===undefined) return CNV.Object2JSON(value);
 			return value.toString();
 		};//method
@@ -810,9 +892,8 @@ CUBE.domain.set = function(column, sourceColumns){
 		return CUBE.domain.value.compare(d.getKey(a), d.getKey(b));
 	};//method
 
-	d.formatValue = function(part){
-		if (part.toString===undefined) return CNV.Object2JSON(part);
-		return part.toString();
+	d.label = function(part){
+		return part.name;
 	};//method
 	
 

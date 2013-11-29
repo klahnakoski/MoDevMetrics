@@ -123,6 +123,22 @@ aMath.ceiling=Math.ceil;
 aMath.log=Math.log;
 aMath.random=Math.random;
 
+niceNumbers=[11, 12, 15, 20, 22, 24, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100];
+
+aMath.niceCeiling=function(value){
+	if (value==0) return 0;
+	if (value<0) Log.error("negative numbers not supported yet");
+	var sig=Math.floor(Math.log10(value))-1;
+	var d=Math.pow(10, sig);
+	value/=d;
+	for (var i=0;i<niceNumbers.length;i++)
+		if (niceNumbers[i]>=value)
+			return niceNumbers[i]*d;
+	Log.error("bug");
+};
+
+
+
 (function(){
 	function Cart(x, y){
 		this.x=x;
