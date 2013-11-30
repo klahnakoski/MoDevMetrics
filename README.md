@@ -36,6 +36,11 @@ After cloning, you must ```git submodule init``` and ```git submodule update```.
     Unpacking objects: 100% (43/43), done.
     Submodule path 'html/es/lib/jsThreads': checked out '0feb4d42a0b3e1583e4e2179e068546850c78487'
 
+Git Pull Origin ...
+-------------------
+
+Beyond the regular Git syntax to pull updates, the magic command to pull submodule updates is ```git submodule foreach git pull origin master```
+
 
 Other Notes
 -----------
