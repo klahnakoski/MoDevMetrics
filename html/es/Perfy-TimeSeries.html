@@ -59,8 +59,6 @@
 
 
 importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
-	//POINT TO KNOWN CLUSTER
-	ElasticSearch.baseURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9200";
 	var totalsFilter={"terms":{"info.test":["total", "Kraken", "Octane"]}};
 
 //	ElasticSearch.baseURL = "http://localhost:9200";
@@ -77,15 +75,20 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		var sampleDuration = Duration.newInstance("4month");
 //		var benchmark=GUI.state.benchmark;
 
-		var benchmarkName=GUI.state.benchmark.getSelectedParts()[0].name.toUpperCase();
-		var platformName=GUI.state.platform.getSelectedParts()[0].name;
-
-		$("#title").html("Perfy - "+benchmarkName+" on "+platformName);
-
 		//WAIT FOR MENU TO LOAD
 		while (Mozilla.Perfy.Benchmark.partitions instanceof Thread){
 			yield (Thread.sleep(200));
 		}//while
+
+		if (GUI.state.benchmark.getSelectedParts().length==0 || GUI.state.platform.getSelectedParts().length==0){
+			$("#title").html("Perfy - Please select Benchmark and Platform");
+			yield (null)
+		}//endif
+
+		var benchmarkName=GUI.state.benchmark.getSelectedParts()[0].name.toUpperCase();
+		var platformName=GUI.state.platform.getSelectedParts()[0].name;
+
+		$("#title").html("Perfy - "+benchmarkName+" on "+platformName);
 
 		//WE ARE ASKING FOR AGGREGATES, OR FOR SINGLE TEST RESULTS
 		//{"name":"Test", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":1})}

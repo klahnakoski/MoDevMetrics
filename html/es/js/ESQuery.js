@@ -49,7 +49,7 @@ ESQuery.INDEXES={
 	"raw_telemetry":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/raw_telemetry/data"},
 	"datazilla":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/datazilla/test_results"},
 
-	"perfy":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/perfy/scores"},
+	"perfy":{"path":"/perfy/scores"},
 	"local_perfy":{"host":"http://localhost:9200", "path":"/perfy/scores"}
 
 //	"raw_telemetry":{"host":"http://localhost:9200", "path":"/raw_telemetry/data"}

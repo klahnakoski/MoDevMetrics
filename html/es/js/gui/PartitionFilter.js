@@ -60,7 +60,12 @@ function convertToTreeLater(self, treeNode, dimension){
 	Thread.run(function(){
 		//DO THIS ONE LATER
 //		treeNode.children = [];
-		while(dimension.partitions instanceof Thread) yield (Thread.join(dimension.partitions));
+		if (dimension.partitions instanceof Thread){
+			var threadResult = yield (Thread.join(dimension.partitions));
+			if (threadResult.threadResponse instanceof Exception){
+				Log.error("Can not setup PartitionFilter", threadResult.threadResponse);
+			}//endif
+		}//while
 		var pleaseUpdate = (treeNode.children==WAITING_FOR_RESULTS);
 		treeNode.children = dimension.partitions.map(function(v, i){
 			if (i<nvl(dimension.limit, DEFAULT_CHILD_LIMIT)) return convertToTree(self, treeNode, 1, v);

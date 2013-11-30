@@ -50,12 +50,18 @@ Rest.send=function(ajaxParam){
 	//DOES NOT ALLOW BODY CONTENT ON delete, ES DEMANDS IT  >:|  )
 	var request=new XMLHttpRequest();
 
-	if (ajaxParam.username){
-		request.withCredentials = true;
-		request.open(ajaxParam.type,ajaxParam.url,ajaxParam.async, ajaxParam.username, ajaxParam.password);
-	}else{
-		request.open(ajaxParam.type,ajaxParam.url,ajaxParam.async);
-	}//endif
+	try{
+		if (ajaxParam.username){
+			request.withCredentials = true;
+			request.open(ajaxParam.type,ajaxParam.url,ajaxParam.async, ajaxParam.username, ajaxParam.password);
+		}else{
+			request.open(ajaxParam.type,ajaxParam.url,ajaxParam.async);
+		}//endif
+	}catch(e){
+		var errorMessage="Can not make request to "+ajaxParam.url + "(usually caused by mixed content blocking)";
+		if (e.message=="") e=undefined;
+		Log.error(errorMessage, e);
+	}//try
 
 	//SET HEADERS
 	if (ajaxParam.headers!==undefined){

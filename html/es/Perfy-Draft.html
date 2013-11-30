@@ -51,10 +51,6 @@
 
 
 importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
-	//POINT TO KNOWN CLUSTER
-	ElasticSearch.baseURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9200";
-//	ElasticSearch.baseURL = "http://localhost:9200";
-
 	var thread;
 	var createChart = function(){
 		if (thread !== undefined)
@@ -67,11 +63,22 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 //		var benchmark=GUI.state.benchmark;
 		var totalsFilter={"terms":{"info.test":["total", "Kraken", "Octane"]}};
 
-
 		//WAIT FOR MENU TO LOAD
 		while (Mozilla.Perfy.Benchmark.partitions instanceof Thread){
 			yield (Thread.sleep(200));
 		}//while
+
+		if (GUI.state.benchmark.getSelectedParts().length==0 || GUI.state.platform.getSelectedParts().length==0){
+			$("#title").html("Perfy - Please select Benchmark and Platform");
+			yield (null)
+		}//endif
+
+		var benchmarkName=GUI.state.benchmark.getSelectedParts()[0].name.toUpperCase();
+		var platformName=GUI.state.platform.getSelectedParts()[0].name;
+
+		$("#title").html("Perfy - "+benchmarkName+" on "+platformName);
+
+
 
 		//LOOK FOR LATEST TEST DATA
 		var max_date=yield (ESQuery.run({
@@ -112,7 +119,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 
 		Thread.run(function(){
 			var data = yield(ESQuery.run({
-				"name":"Results for "+GUI.state.benchmark.getSimpleState(),
+				"name":"Specific Test Results",
 				"from":"perfy",
 				"select": {"name":"score", "value":"score", "aggregate":"average"},
 				"edges":[
@@ -145,7 +152,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		
 		Thread.run(function(){
 			var data = yield(ESQuery.run({
-				"name":"Overall "+GUI.state.benchmark.getSimpleState(),
+				"name":"Overall",
 				"from":"perfy",
 				"select": {"name":"score", "value":"score", "aggregate":"average"},
 				"edges":[
@@ -189,6 +196,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 
 
 		Thread.run(function(){
+			var a=Log.action("Get Score Details",true);
 			var data = yield(ESQuery.run({
 				"name":"Results",
 				"from":"perfy",
@@ -248,6 +256,8 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 					line_lineWidth: 2
 				}
 			});
+
+			Log.actionDone(a);
 		});
 
 

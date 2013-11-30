@@ -6,7 +6,6 @@
 
 importScript([
 	"../../lib/jquery.js",
-//	"../../lib/jquery-ui/js/jquery-1.9.1.js",
 	"../../lib/jquery-ui/js/jquery-ui-1.10.2.custom.js",
 	"../../lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css",
 	"../../lib/jquery.ba-bbq/jquery.ba-bbq.js",
@@ -218,7 +217,7 @@ GUI.corruptionCheck=function(){
 
 
 GUI.bigWarning=function(elem, blinkCount){
-	$(elem).addClass("warning").effect("pulsate", { times:blinkCount }, 1000);
+	$(elem).addClass("warning").effect("pulsate", { times:blinkCount }, 500*blinkCount);
 };
 
 
