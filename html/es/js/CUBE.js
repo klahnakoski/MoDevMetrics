@@ -18,7 +18,7 @@ importScript("CUBE.cube.js");
 importScript("CUBE.domain.js");
 importScript("CUBE.analytic.js");
 
-importScript("../lib/jsThreads/js/thread.js");
+importScript("../lib/jsThreads/thread.js");
 
 var Q;   //=Q
 

@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-importScript("../../lib/jsThreads/js/thread.js");
+importScript("../../lib/jsThreads/thread.js");
 importScript("../debug/aLog.js");
 
 

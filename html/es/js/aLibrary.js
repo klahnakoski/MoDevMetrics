@@ -13,6 +13,6 @@ importScript("aColour.js");
 
 importScript([
 	"debug/aLog.js",
-	"../lib/jsThreads/js/thread.js"
+	"../lib/jsThreads/thread.js"
 ]);
 importScript("aFormat.js");
