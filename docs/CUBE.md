@@ -84,7 +84,7 @@ The select clause can be a single attribute definition, or an array of attribute
       - **none** – when expecting only one value 
       - **one** – when expecting all values to be identical
       - **binary** – returns 1 if value found, 0 for no value
-      - **exists** – same as binary
+      - **exists** – same as binary but returns boolean
       - **count** – count number of values
       - **sum** – mathematical summation of values
       - **average** – mathematical average of values

@@ -72,7 +72,6 @@ importScript('js/main.js',function(){
 		var branch=GUI.state.branch
 
 		var esfilter={"and":[
-			{"term":{"testrun.suite": "tp5o"}},
 			{"term":{"test_build.branch": branch}}
 		]};
 
@@ -84,11 +83,11 @@ importScript('js/main.js',function(){
 				{"name":"count", "value":page, "aggregate":"count"},
 				{"name":"mean", "value":page, "aggregate":"mean"},
 				{"name":"std", "value":page, "aggregate":"stddev"},
-				{"name":"date", "value":'test_build.push_date'}
+				{"name":"date", "value":'datazilla.test_date'}
 			],
 			"edges":[
 				{"name":"date",
-					"value":'test_build.push_date',
+					"value":'datazilla.test_date',
 					"allowNulls":false,
 					domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":Duration.SECOND, "value":"value"}
 				},
