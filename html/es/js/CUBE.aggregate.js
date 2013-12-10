@@ -396,6 +396,135 @@ CUBE.aggregate.percentile = function(select){
 	};
 };
 
+CUBE.aggregate.median = function(select){
+	select.defaultValue = function(){
+		return {list:[]};
+	};//method
+
+	select.add = function(total, v){
+		if (v === undefined || v == null) return total;
+
+		total.list.push(v);
+
+		return total;
+	};//method
+
+	select.domain = {
+		//HOPEFULLY WE WILL NEVER NEED TO SORT PERCENTILES!!!
+		compare:function(a, b){
+			Log.error("Please, NO!");
+
+			a = select.end(a);
+			b = select.end(b);
+
+			if (a == null){
+				if (b == null) return 0;
+				return -1;
+			} else if (b == null){
+				return 1;
+			}//endif
+
+			return ((a < b) ? -1 : ((a > b) ? +1 : 0));
+		},
+
+		NULL:null,
+
+		getCanonicalPart:function(value){
+			return value;
+		},
+
+		getKey:function(partition){
+			return partition;
+		},
+
+		end :function(total){
+			var l=total.list;
+			if (l.length == 0){
+				if (select["default"]!==undefined) return select["default"];
+				return null;
+			}//endif
+
+			//THE Stats CAN ONLY HANDLE NUMBERS, SO WE CONVERT TYPES TO NUMBERS AND BACK AGAIN WHEN DONE
+			if (l[0].milli){
+				for(let i=l.length;i--;) l[i]=l[i].milli;
+				let output=Stats.median(l);
+				return Duration.newInstance(output);
+			}else if (total.list[0].getMilli){
+				for(let i=l.length;i--;) l[i]=l[i].getMilli();
+				let output=Stats.median(l);
+				return Date.newInstance(output);
+			}else{
+				return Stats.median(l);
+			}//endif
+		}
+	};
+};
+
+
+
+CUBE.aggregate.middle = function(select){
+	select.defaultValue = function(){
+		return {list:[]};
+	};//method
+
+	select.add = function(total, v){
+		if (v === undefined || v == null) return total;
+
+		total.list.push(v);
+
+		return total;
+	};//method
+
+	select.domain = {
+		//HOPEFULLY WE WILL NEVER NEED TO SORT PERCENTILES!!!
+		compare:function(a, b){
+			Log.error("Please, NO!");
+
+			a = select.end(a);
+			b = select.end(b);
+
+			if (a == null){
+				if (b == null) return 0;
+				return -1;
+			} else if (b == null){
+				return 1;
+			}//endif
+
+			return ((a < b) ? -1 : ((a > b) ? +1 : 0));
+		},
+
+		NULL:null,
+
+		getCanonicalPart:function(value){
+			return value;
+		},
+
+		getKey:function(partition){
+			return partition;
+		},
+
+		end :function(total){
+			var l=total.list;
+			if (l.length == 0){
+				if (select["default"]!==undefined) return select["default"];
+				return null;
+			}//endif
+
+			//THE Stats CAN ONLY HANDLE NUMBERS, SO WE CONVERT TYPES TO NUMBERS AND BACK AGAIN WHEN DONE
+			if (l[0].milli){
+				for(let i=l.length;i--;) l[i]=l[i].milli;
+				let output=Stats.middle(l, select.percentile);
+				return {"min":Duration.newInstance(output.min), "max":Duration.newInstance(output.max)};
+			}else if (total.list[0].getMilli){
+				for(let i=l.length;i--;) l[i]=l[i].getMilli();
+				let output=Stats.middle(l, select.percentile);
+				return {"min":Date.newInstance(output.min), "max":Date.newInstance(output.max)};
+			}else{
+				return Stats.middle(l, select.percentile);
+			}//endif
+		}
+	};
+};
 
 
 CUBE.aggregate.array = function(select){

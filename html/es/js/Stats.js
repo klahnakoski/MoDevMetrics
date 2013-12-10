@@ -151,6 +151,29 @@ Stats.percentile=function(values, percentile){
 	return values[smaller]*(1-r)+(values[larger]*r);
 };
 
+Stats.middle=function(values, percentile){
+	if (values.length==0) return null;
+	if (values.length==1) return {"min":values[0], "max":values[0]};
+
+	values.sort(function(a, b){return a-b;});
+ 	var numIgnored=Math.floor(values.length*(1-percentile)/2);
+	return {"min":values[numIgnored], "max":values[values.length-numIgnored-1]};
+};
+
+
+
+Stats.median=function(values){
+	if (values.length==0) return null;
+	if (values.length==1) return {"min":values[0], "max":values[0]};
+
+	var i=Math.floor(values.length/2);
+	if (values.length %2==0){
+		return (values[i-1]+values[i])/2;
+	}else{
+		return values[i]
+	}//endif
+};
+
 
 //USING ONE
 //Stats.percentile=function(values, percentile){

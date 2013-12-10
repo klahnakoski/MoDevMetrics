@@ -197,7 +197,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			var range=yield (Q({
 				"from":data,
 				"select":
-					{"value":"score", "aggregate":"percentile", "percentile":0.5}
+					{"value":"score", "aggregate":"median"}
 				,
 				"edges":[
 					{"value":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()},

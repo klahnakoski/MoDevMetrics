@@ -7,6 +7,7 @@ var MozillaPrograms = {
 	"columns":
 		["projectName", "attributeName", "attributeValue", "esfilter"],
 	"rows":[
+		["B2G 1.3",       "cf_blocking_b2g", "1.3+"],
 		["B2G 1.2.0 (Koi)", "cf_blocking_b2g", "koi+"],
 		["B2G 1.0.1 (TEF)", "cf_blocking_b2g", "tef+"],
 

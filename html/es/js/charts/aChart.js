@@ -576,21 +576,21 @@ aChart.show=function(params){
 	////////////////////////////////////////////////////////////////////////////
 	// SET MAX WITHOUT "NICE" ROUNDING BUFFER
 	////////////////////////////////////////////////////////////////////////////
-	if (params.orthoAxisFixedMax==true){
-		if (stacked && chartCube.edges.length==1){
-			var max=undefined;
-			chartCube.edges[0].domain.partitions.forall(function(part,i){
-				var total=0;
-				Array.newInstance(chartCube.select).forall(function(s){
-					total+=nvl(chartCube.cube[i][s.name], 0);
-				});
-				max=aMath.max(max, total);
-			});
-			params.orthoAxisFixedMax=max==0 ? 1 : max;  //DO NOT USE ZERO
-		}else{
-			Log.error("Not supported yet");
-		}
-	}//endif
+//	if (params.orthoAxisFixedMax==true){
+//		if (stacked && chartCube.edges.length==1){
+//			var max=undefined;
+//			chartCube.edges[0].domain.partitions.forall(function(part,i){
+//				var total=0;
+//				Array.newInstance(chartCube.select).forall(function(s){
+//					total+=nvl(chartCube.cube[i][s.name], 0);
+//				});
+//				max=aMath.max(max, total);
+//			});
+//			params.orthoAxisFixedMax=max==0 ? 1 : max;  //DO NOT USE ZERO
+//		}else{
+//			Log.error("Not supported yet");
+//		}
+//	}//endif
 
 	////////////////////////////////////////////////////////////////////////////
 	// STYLES

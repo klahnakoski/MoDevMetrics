@@ -172,6 +172,13 @@
 		return this.slice(Math.max(0, this.length-num));
 	};
 
+	Array.prototype.rightBut=function(num){
+		if (num<=0) return this;
+		return this.slice(num , this.length);
+	};
+
+
+
 	Array.prototype.remove=function(obj, start){
 		while(true){
 			var i=this.indexOf(obj, start);

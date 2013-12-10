@@ -715,7 +715,7 @@ CUBE.removeZeroParts=function(query, edgeIndex){
 				output.dataIndex=i;
 				return output;
 			});
-			query.edges[0].domain.NULL.index=query.edges[0].domain.partitions.length;
+			query.edges[0].domain.NULL.dataIndex=query.edges[0].domain.partitions.length;
 			query.cube=query.cube.map(function(v, i){
 				if (zeros[i]) return undefined;
 				return v;
@@ -733,7 +733,7 @@ CUBE.removeZeroParts=function(query, edgeIndex){
 				output.dataIndex=i;
 				return output;
 			});
-			query.edges[1].domain.NULL.index=query.edges[1].domain.partitions.length;
+			query.edges[1].domain.NULL.dataIndex=query.edges[1].domain.partitions.length;
 			query.cube=query.cube.map(function(r, i){
 				return r.map(function(c, j){
 					if (zeros[j]) return undefined;
@@ -807,10 +807,15 @@ function Tree2Cube(query, cube, tree, depth){
 			cube[p]=tuple;
 		}//for
 	} else{
+		
 		let keys=Object.keys(tree);
 		for(var k=keys.length;k--;){
-			var p=domain.getPartByKey(keys[k]).dataIndex;
-			cube[p]=query.select.domain.end(tree[keys[k]][0]);
+			try{
+				var p=domain.getPartByKey(keys[k]).dataIndex;
+				cube[p]=query.select.domain.end(tree[keys[k]][0]);
+			}catch(e){
+				Log.error(domain.getPartByKey(keys[k]).dataIndex, e)
+			}//try
 		}//for
 	}//endif
 
@@ -1176,9 +1181,27 @@ CUBE.drill=function(query, parts){
 	CUBE.query.prototype={};
 	//GET THE SUB-CUBE THE HAD name=value
 	CUBE.query.prototype.get=function(name, value){
+		if (value===undefined && typeof(name)=="object"){
+			//EXPECTING A SET OF TERMS TO FILTER BY
+			var term=this.cube;
+			var complicated=false;
+			this.edges.forall(function(edge, i){
+				var val=name[edge.name];
+				if (val===undefined){
+					complicated=true;
+					return;
+				}else if (complicated){
+					Log.error("can not handle a a subset of dimensions, unless they are in order (for now)")
+				}//endif
+				term=term[edge.domain.getPartByKey(val).dataIndex];
+			});
+			return term;
+		}//endif
+
 		if (this.edges.length>1)
 			//THIS ONLY INDEXES INTO A SINGLE DIMENSION
 			Log.error("can not handle more than one dimension at this time");
+
 		var edge=this.getEdge(name);
 		return this.cube[edge.domain.getPartByKey(value).dataIndex];
 	};

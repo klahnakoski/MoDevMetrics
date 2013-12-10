@@ -89,8 +89,12 @@ The select clause can be a single attribute definition, or an array of attribute
       - **sum** – mathematical summation of values
       - **average** – mathematical average of values
       - **minimum** – return minimum value observed
+      - **median** – return median (percentile = 50%)
       - **maximum** – return maximum value observed
       - **percentile** – return given percentile
+          - **select.percentile** defined from 0.0 to 1.0 (required)
+          - **select.default** to replace null in the event there is no data
+      - **middle** - return middle percentile, a range min, max that ignores total and bottom (1-middle)/2 parts
           - **select.percentile** defined from 0.0 to 1.0 (required)
           - **select.default** to replace null in the event there is no data
       - **join** – concatenate all values to a single string

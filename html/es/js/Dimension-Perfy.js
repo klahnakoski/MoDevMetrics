@@ -53,6 +53,7 @@ Dimension.addEdges(false,  Mozilla, [
 		{
 			"name":"Platform",
 			"value":"name",
+			"field":"browser.platform",
 			"partitions":[
 				{"name":"Linux", "style":{"color":"#de4815"}, "esfilter":{"term":{"browser.platform":"Linux"}}},
 				{"name":"Windows 7", "style":{"color":"#136bab"}, "esfilter":{"term":{"browser.platform":"Windows 7"}}},

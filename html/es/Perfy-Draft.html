@@ -86,7 +86,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			"select":{"value":"info.started", "aggregate":"maximum"},
 			"edges":[
 				{"name":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()},
-				{"name":"Test", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":0})}
+				{"name":"Benchmark", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":0})}
 			],
 			"esfilter":{"and":[
 				totalsFilter,
@@ -208,12 +208,14 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 				"esfilter":esfilter
 			}));
 
-			//SORT THE SCORES
+			//PICK MIDDLE 90% (ROUNDED UP)
 			var range=yield (Q({
 				"from":data,
-				"select":
-					{"value":"score", "aggregate":"array", "sort":1}
-				,
+				"select":[
+					//REPORT 90% OF VALUES
+					{"name":"range", "value":"score", "aggregate":"middle", "percentile":0.90},
+					{"name":"median", "value":"score", "aggregate":"median"}
+				],
 				"edges":[
 					{"name":"Channel", "value":"Channel"},
 					{"name":"Benchmark", "value":"Benchmark"}
@@ -226,35 +228,60 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 				return v.name;
 			});
 
-			//PICK MIDDLE 90% (ROUNDED UP)
 			var range2=yield (Q({
 				"from":range,
 				"select":
-					//REPORT 90% OF VALUES
-					{"name":"range", "value":"(function(){if (score.length<2) return 0; var n=Math.floor(score.length/20); return score[score.length-1-n]-score[n];})()"}
+					{"name":"range", "value":"(range.max-range.min)/median"}
 				,
 				"edges":[
-					{"name":"Channel", "value":"Channel", "domain":Mozilla.Perfy.Channel},
+					{"name":"Channel", "value":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()},
 					{"name":"Benchmark", "value":"Benchmark", "domain":{"type":"set", "partitions":domain.partitions}}
 				]
 			}));
 
+
 			CUBE.removeZeroParts(range2, 0);
 			CUBE.removeZeroParts(range2, 1);
 
+
+
 			aChart.show({
-				"name":"Range of Middle 90%",
+				"name":"Range of Middle 90% (as percent of median)",
 				"id":"confidence",
 				"sheetDiv":"info",
 				"type":"bar",
 				"stacked":false,
 				"cube":range2,
+				orthoAxisFixedMax:1.00,
 				"legendPosition":"right",
 				"legendSize":150,
 				xAxisSize: 100,
+
 				extensionPoints: {
 					line_lineWidth: 2
-				}
+				},
+				"clickAction":function(channel, _benchmark, value){
+					var test=_benchmark.split(".").left(1);
+					var benchmark=_benchmark.split(".").rightBut(1).join(".");
+
+					var param={
+						"Benchmark":benchmark,
+						"Channel":channel
+					};
+
+//					var date=max_date.cube[range2.edges[0].domain.getPartByKey(platform).dataIndex][range2.edges[1].domain.getPartByKey(benchmark).dataIndex];
+					param_date=max_date.get(param);
+
+					Thread.run(function(){
+						//SHOW ALL TESTS FOR THIS GROUP
+						var param={
+							"benchmark":"Benchmark."+benchmark+"."+test,
+							"platform":"Platform."+GUI.state.platform.getSelectedParts()[0].name,
+							"date":Date.newInstance(param_date).format("yyyy-MM-dd")
+						};
+						window.open("Perfy-Detail.html#"+CNV.Object2URL(param));
+					});
+				}//click
 			});
 
 			Log.actionDone(a);

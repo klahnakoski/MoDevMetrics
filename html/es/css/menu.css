@@ -201,6 +201,12 @@ mstyle{
   line-height: 100%;
 }
 
+
+.hoverable:hover {
+	background-color: #fafaba;
+}
+
+
 .items {
     border-bottom: 1px black solid;
     margin-bottom: 10px;

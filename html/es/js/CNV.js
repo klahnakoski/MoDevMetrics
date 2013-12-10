@@ -164,6 +164,10 @@ CNV.Object2JSON = function(json){
 };//method
 
 
+CNV.Object2URL=function(value){
+	return $.param(value);
+};//method
+
 CNV.String2HTML = function(value){
 	value=value.replaceAll("\n", "<br>").replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
 	return value;
