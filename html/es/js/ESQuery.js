@@ -25,7 +25,7 @@ var ESQuery = function(query){
 };
 
 
-ESQuery.TrueFilter = {"script":{"script":"true"}};
+ESQuery.TrueFilter = {"match_all":{}};
 
 ESQuery.DEBUG=false;
 
@@ -34,6 +34,9 @@ ESQuery.DEBUG=false;
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
 	"bugs":{"path":"/bugs/bug_version"},
+	"public_bugs":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9292", "path":"/public_bugs/bug_version"},
+	"public_comments":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9292", "path":"/public_comments/bug_comment"},
+
 	"tor_bugs":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/bugs/bug_version"},
 //	"tor_bugs":{"host":"http://localhost:9200", "path":"/bugs/bug_version"},
 	"bug_hierarchy":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/bug_hierarchy/bug_hierarchy"},
@@ -644,7 +647,13 @@ ESQuery.prototype.buildESQuery = function(){
 	var where;
 	if (this.query.where===undefined) 		where=ESQuery.TrueFilter;
 	if (typeof(this.query.where)!="string")	where=ESQuery.TrueFilter; //NON STRING WHERE IS ASSUMED TO BE PSUDO-esFILTER (FOR CONVERSION TO MVEL)
-	if (typeof(this.query.where)=="string")	where={"script":{"script":this.query.where}};
+	if (typeof(this.query.where)=="string"){
+		if (where.trim()=="true"){
+			where=ESQuery.TrueFilter;
+		}else{
+			where={"script":{"script":this.query.where}};
+		}//endif
+	}//endif
 
 	var output = {
 		"query":{
