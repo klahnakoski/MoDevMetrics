@@ -45,7 +45,7 @@ Each of the clauses are executed in a particular order, irrespective of their or
   - **edges** – definition of the edge names and their domains 
   - **where** – early in the processing to limit rows and aggregation: has access to domain names
   - **select** – additional aggregate columns added
-  - **analytic** – analytic columns added
+  - **window** – window columns added
   - **sort** – run at end, but only if output to a list.
 
 QUERY STRUCTURE
@@ -173,7 +173,7 @@ Each window column defines an additional attribute for the result set.  An windo
       - ```rownum``` – which is integer, starting at zero for the first row
       - ```rows``` – an array of all data in the group.
   - **edges** – an array of column names used to determine the groups 
-  - **where** – code that returns true/false to indicate if a record is a member of any group.  This will not affect the number of rows returned, only how the analytic is calculated.  If where returns false then rownum and rows will both be null:  Be sure to properly handle those values in your code.
+  - **where** – code that returns true/false to indicate if a record is a member of any group.  This will not affect the number of rows returned, only how the window is calculated.  If where returns false then rownum and rows will both be null:  Be sure to properly handle those values in your code.
   - **sort** – a single attribute name, or array of attribute names, used to sort the members of each group 
 
 USING PRE-DEFINED DIMENSIONS

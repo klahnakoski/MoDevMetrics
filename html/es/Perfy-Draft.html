@@ -58,6 +58,8 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		thread = Thread.run(__createChart());
 	};
 
+	$("#description").html("The latest overall score for each channel, and it's breakdown.  This chart is best used to view test result variance (bottom chart).  Click on the variance chart to see the specific test results.");
+
 	var __createChart = function(){
 		var sampleDate = Date.newInstance(GUI.state.date);
 //		var benchmark=GUI.state.benchmark;
@@ -213,7 +215,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 				"from":data,
 				"select":[
 					//REPORT 90% OF VALUES
-					{"name":"range", "value":"score", "aggregate":"middle", "percentile":0.90},
+					{"name":"range", "value":"score", "aggregate":"middle", "percentile":0.70},
 					{"name":"median", "value":"score", "aggregate":"median"}
 				],
 				"edges":[
@@ -246,7 +248,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 
 
 			aChart.show({
-				"name":"Range of Middle 90% (as percent of median)",
+				"name":"Range of Middle 70% (as percent of median)",
 				"id":"confidence",
 				"sheetDiv":"info",
 				"type":"bar",
@@ -276,10 +278,10 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 						//SHOW ALL TESTS FOR THIS GROUP
 						var param={
 							"benchmark":"Benchmark."+benchmark+"."+test,
-							"platform":"Platform."+GUI.state.platform.getSelectedParts()[0].name,
-							"date":Date.newInstance(param_date).format("yyyy-MM-dd")
+							"platform":"Platform."+GUI.state.platform.getSelectedParts()[0].name.replaceAll(" ", "_"),
+							"date":GUI.state.date[0]
 						};
-						window.open("Perfy-Detail.html#"+CNV.Object2URL(param));
+						window.open("Perfy-Details.html#"+CNV.Object2URL(param));
 					});
 				}//click
 			});

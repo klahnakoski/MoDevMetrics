@@ -156,7 +156,7 @@ Stats.middle=function(values, percentile){
 	if (values.length==1) return {"min":values[0], "max":values[0]};
 
 	values.sort(function(a, b){return a-b;});
- 	var numIgnored=Math.floor(values.length*(1-percentile)/2);
+	var numIgnored=Math.floor(values.length*(1-percentile)/2+0.01);
 	return {"min":values[numIgnored], "max":values[values.length-numIgnored-1]};
 };
 

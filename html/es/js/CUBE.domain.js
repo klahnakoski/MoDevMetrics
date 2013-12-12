@@ -36,12 +36,14 @@ CUBE.domain.compile = function(column, sourceColumns){
 	if (type===undefined)
 		Log.error("Expecting a domain to have a 'type' attribute");
 
-	if (domain.interval===undefined)
-		domain.interval="none";
+
 
 	if (type=="value"){
 		domain=CUBE.domain.value;
-	}else if (domain.interval=="none" && CUBE.domain.ALGEBRAIC.contains(type)){
+	}else if (type=="count"){
+		CUBE.domain[type](column, sourceColumns);
+	}else if ((domain.interval===undefined || domain.interval=="none") && CUBE.domain.ALGEBRAIC.contains(type)){
+		domain.interval="none";
 		//CONTINUOUS ALGEBRAIC EDGE MEANS COMPILATION IS NOT POSSIBLE
 		if (type=="time"){
 			CUBE.domain["continuousTime"](column, sourceColumns);
@@ -774,13 +776,10 @@ CUBE.domain.count = function(column, sourceColumns){
 	};//method
 
 	//PROVIDE FORMATTING FUNCTION
-//	if (d.format === undefined){
-		d.label = function(value){
-			if (value.toString===undefined) return CNV.Object2JSON(value);
-			return value.toString();
-		};//method
-//	}//endif
-
+	d.label = function(value){
+		if (value.toString===undefined) return CNV.Object2JSON(value);
+		return ""+value.name;
+	};//method
 
 	if (column.test === undefined){
 		var noMax=d.max===undefined;

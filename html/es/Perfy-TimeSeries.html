@@ -47,7 +47,7 @@
 	<tr><td colspan="2"><h4 id="title<NUM>"></h4></td></tr>
 	<tr>
 		<td>
-			<div id="overall<NUM>" class="chart" style="float:left;width:150px;height:200px;"></div>
+			<div id="overall<NUM>" class="chart, hoverable" style="float:left;width:150px;height:200px;"></div>
 		</td><td>
 			<div id="chart<NUM>" class="chart" style="float:none;width:800px;height:200px;"></div>
 		</td>
@@ -69,6 +69,9 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			thread.kill();
 		thread = Thread.run(__createChart());
 	};
+
+	$("#description").html("Click the bar chart of overall score to see breakdown by sub-test.  The sub-test bar charts bring you directly to the individual tests' results.");
+
 
 	var __createChart = function(){
 		var sampleDate = Date.newInstance(GUI.state.date);
@@ -174,6 +177,30 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 				latestTests
 			);
 		});
+
+		//ADD CLICK HANDLERS
+		$( ".hoverable" ).click(function(self) {
+			var index=this.id.substring("overall".length);
+			if (index==""){
+				//THE OVERALL WILL SWITCH TO THE DRAFT
+				var param={
+					"platform":GUI.state.platform.getSimpleState(),
+					"benchmark":GUI.state.benchmark.getSimpleState(),
+					"date":GUI.state.date[0]
+				};
+				window.open("Perfy-Draft.html#"+CNV.Object2URL(param));
+			}else{
+				var param={
+					"platform":GUI.state.platform.getSimpleState(),
+					"benchmark":"Benchmark."+benchmark.partitions[index].value.replaceAll(" ", "_"),
+					"date":GUI.state.date[0]
+				};
+				window.open("Perfy-Details.html#"+CNV.Object2URL(param));
+			}//endif
+		});
+
+
+
 	}//method
 
 
@@ -225,6 +252,10 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 				orthoAxisFixedMax:maxScore,
 				extensionPoints: {
 					line_lineWidth: 2
+				},
+				"clickAction":function(channel, _benchmark, value){
+					//DO NOTHING
+					return;
 				}
 			});
 		});
@@ -256,8 +287,13 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 				xAxisSize: 40,
 				extensionPoints: {
 					line_lineWidth: 2
+				},
+				"clickAction":function(channel, _benchmark, value){
+					//DO NOTHING
+					return;
 				}
 			});
+
 		});
 
 	}//method

@@ -65,10 +65,13 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		thread = Thread.run(__createChart());
 	};
 
+	$("#title").html("Perfy!");
+	$("#description").html("Click a chart to see the timeseries");
+
 	var __createChart = function(){
 		var sampleDate = Date.eod();
 		var totalsFilter={"terms":{"info.test":["total", "Kraken", "Octane"]}};
-		$("#title").html("Perfy!");
+
 
 		//WAIT FOR MENU TO LOAD
 		while (Mozilla.Perfy.Benchmark.partitions instanceof Thread){

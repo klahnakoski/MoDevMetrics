@@ -1106,6 +1106,7 @@ ESQuery.prototype.termsResults=function(data){
 
 //MAP THE SELECT OPERATION NAME TO ES FACET AGGREGATE NAME
 ESQuery.agg2es = {
+	"one":"count",
 	"sum":"total",
 	"add":"total",
 	"count":"count",
