@@ -58,8 +58,11 @@ importScript([
 	'js/Dimension-Telemetry.js',
 	"js/gui/PickDim.js"
 ], function(){
-	//STYLE AS LINED TEXT AREA
-	$("#cube").linedtextarea();
+	$().ready(function(){
+		//STYLE AS LINED TEXT AREA
+		$("#cube").linedtextarea();
+	});
+
 
 	var PART_QUERY;
 

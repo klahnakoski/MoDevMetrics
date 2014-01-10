@@ -78,7 +78,7 @@ importScript('js/main.js',function(){
 
 		var chart = yield(ESQuery.run({
 			"name":"Page Load Times",
-			"from":"datazilla",
+			"from":"talos",
 			"select": [
 				{"name":"count", "value":page, "aggregate":"count"},
 				{"name":"mean", "value":page, "aggregate":"mean"},
@@ -125,7 +125,7 @@ importScript('js/main.js',function(){
 					//PULL ORIGINAL SOURCE
 					Thread.run("Show specific page series", function(){
 						var ids=yield (ESQuery.run({
-							"from":"datazilla",
+							"from":"talos",
 							"select":{"name":"id", "value":"datazilla.test_run_id"},
 							"esfilter":{"and":[
 								esfilter,
@@ -166,7 +166,7 @@ importScript('js/main.js',function(){
 			[
 				'sampleInterval=Date.getBestInterval(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval), {"min":100, "max":1000})'
 			],
-			"datazilla",
+			"talos",
 			false
 		);
 	});

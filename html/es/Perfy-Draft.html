@@ -58,7 +58,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		thread = Thread.run(__createChart());
 	};
 
-	$("#description").html("The latest overall score for each channel, and it's breakdown.  This chart is best used to view test result variance (bottom chart).  Click on the variance chart to see the specific test results.");
+	$("#description").html("Please <a href='https://wiki.mozilla.org/Platform/Games/GameFocusedBenchmarking'>read the wiki</a> for detailed explaination of testing procedure and analysis.<br><br> The latest overall score for each channel, and it's breakdown.  This chart is best used to view test result variance (bottom chart).  Click on the variance chart to see the specific test results.");
 
 	var __createChart = function(){
 		var sampleDate = Date.newInstance(GUI.state.date);
@@ -277,9 +277,9 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 					Thread.run(function(){
 						//SHOW ALL TESTS FOR THIS GROUP
 						var param={
-							"benchmark":"Benchmark."+benchmark+"."+test,
+							"benchmark":"Benchmark."+benchmark+"."+test.replaceAll(" ", "_"),
 							"platform":"Platform."+GUI.state.platform.getSelectedParts()[0].name.replaceAll(" ", "_"),
-							"date":GUI.state.date[0]
+							"date":Date.newInstance(GUI.state.date).format("yyyy-MM-dd")
 						};
 						window.open("Perfy-Details.html#"+CNV.Object2URL(param));
 					});

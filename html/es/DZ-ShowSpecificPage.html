@@ -79,7 +79,7 @@ importScript('js/main.js',function(){
 
 		var sources = yield(ESQuery.run({
 		//PULL ORIGINAL SOURCE
-			"from":"datazilla",
+			"from":"talos",
 			"select":{"name":"json", "value":"_source"},
 			"esfilter":esfilter
 		}));
@@ -124,7 +124,7 @@ importScript('js/main.js',function(){
 			],
 			[
 			],
-			"datazilla",
+			"talos",
 			false
 		);
 	});

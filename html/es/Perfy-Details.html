@@ -38,8 +38,9 @@
 			<tr><td>Please Wait</td></tr>
 		</tbody>
 	</table>
+	<div id="info" style="float:left;"></div>
 </div>
-<div id="info"></div>
+
 <div style="visibility: hidden">
 	<table id="template">
 		<tr><td><h4>{{channel}}</h4></td></tr>
@@ -56,7 +57,7 @@
 
 importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 
-	$("#description").html("These individual test results are intended to help characterize large variance");
+	$("#description").html("Please <a href='https://wiki.mozilla.org/Platform/Games/GameFocusedBenchmarking'>read the wiki</a> for detailed explaination of testing procedure and analysis.<br><br> These individual test results are intended to help characterize large variance");
 
 	var thread;
 	var createChart = function(){

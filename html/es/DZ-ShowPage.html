@@ -72,7 +72,7 @@ importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 		var esfilter={"and":[
 			{"term":{"testrun.suite": "tp5o"}},
 			{"range":{"testrun.date":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
-			GUI.getFilters("datazilla")
+			GUI.getFilters("talos")
 		]};
 
 		while (Mozilla.Talos.Branch.partitions instanceof Thread){
@@ -82,7 +82,7 @@ importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 		//HOW MANY SAMPLES DO WE HAVE, TOO MANY AND WE USE A HEAT GRID
 		var sample = yield(ESQuery.run({
 			"name":"Page Load Times",
-			"from":"datazilla",
+			"from":"talos",
 			"select": {"name":"count", "value":page, "aggregate":"count"},
 			"edges":[
 				{"name":"branch", "value":Mozilla.Talos.Branch.field, "domain":Mozilla.Talos.Branch.getDomain()}
@@ -95,7 +95,7 @@ importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 		if (total>1000){
 			var chart = yield(ESQuery.run({
 				"name":"Page Load Times",
-				"from":"datazilla",
+				"from":"talos",
 				"select": {"name":"count", "value":"1", "aggregate":"count"},
 				"edges":[
 					{"name":"mean", "value":page, "domain":{"type":"duration", "min":0, "interval":Duration.newInstance("50milli")}},
@@ -123,7 +123,7 @@ importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 						//PULL ORIGINAL SOURCE
 						Thread.run("Show specific page series", function(){
 							var ids=yield (ESQuery.run({
-								"from":"datazilla",
+								"from":"talos",
 								"select":{"name":"id", "value":"test_run_id"},
 								"esfilter":{"and":[
 									esfilter,
@@ -152,7 +152,7 @@ importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 		}else{
 			var chart = yield(ESQuery.run({
 				"name":"Page Load Times",
-				"from":"datazilla",
+				"from":"talos",
 				"select": [
 					{"name":"mean", "value":page}
 				],
@@ -198,7 +198,7 @@ importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 			[
 				'sampleInterval=Date.getBestInterval(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval), {"min":10, "max":100})'
 			],
-			"datazilla",
+			"talos",
 			false
 		);
 	});

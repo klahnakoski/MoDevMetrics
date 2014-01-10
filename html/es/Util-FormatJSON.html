@@ -42,10 +42,11 @@
 
 importScript(["js/main.js"], function(){
 
-	//STYLE AS LINED TEXT AREA
-	$("#json").linedtextarea();
-	$("#description").html("Tight formatting for JSON, the way it was meant to be!");
-
+	$().ready(function(){
+		//STYLE AS LINED TEXT AREA
+		$("#json").linedtextarea();
+		$("#description").html("Tight formatting for JSON, the way it was meant to be!");
+	});
 
 	var format = function(event){ //THIS IS A GENERATOR
 

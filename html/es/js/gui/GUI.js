@@ -11,8 +11,8 @@ importScript([
 	"../../lib/jquery.ba-bbq/jquery.ba-bbq.js",
 	"../../lib/jsonlint/jsl.format.js",
 	"../../lib/jsonlint/jsl.parser.js",
-	"../../lib/jquery-linedtextarea/jquery-linedtextarea.js",
-	"../../lib/jquery-linedtextarea/jquery-linedtextarea.css"
+	"../../lib/jquery-linedtextarea/jquery-linedtextarea.css",
+	"../../lib/jquery-linedtextarea/jquery-linedtextarea.js"
 ]);
 
 importScript("../charts/HelperFunctions.js");
@@ -154,7 +154,7 @@ GUI.showLastUpdated = function(indexName){
 		}else if (indexName=="datazilla"){
 			esHasErrorInIndex=false;
 			time=new Date((yield(ESQuery.run({
-				"from":"datazilla",
+				"from":"talos",
 				"select":{"name":"max_date", "value":"testrun.date", "aggregate":"maximum"}
 			}))).cube.max_date);
 			$("#testMessage").html("Datazilla Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
@@ -401,38 +401,42 @@ GUI.AddParameters=function(parameters, relations){
 		////////////////////////////////////////////////////////////////////////
 		// JSON
 		} else if (param.type=="json"){
-			var codeDiv=$("#" + param.id);
-			codeDiv.linedtextarea();
-			codeDiv.change(function(){
-				if (this.isChanging) return;
-				this.isChanging=true;
-				try{
-					codeDiv=$("#" + param.id);	//JUST TO BE SURE WE GOT THE RIGHT ONE
-					//USE JSONLINT TO FORMAT AND TEST-COMPILE THE code
-					var code=jsl.format.formatJson(codeDiv.val());
-					codeDiv.val(code);
-					jsl.parser.parse(code);
-					//TIGHTER PACKING IF JSON
-					codeDiv.val(aFormat.json(code));
+			$().ready(function(){
+				var codeDiv=$("#" + param.id);
+				codeDiv.linedtextarea();
+				codeDiv.change(function(){
+					if (this.isChanging) return;
+					this.isChanging=true;
+					try{
+						codeDiv=$("#" + param.id);	//JUST TO BE SURE WE GOT THE RIGHT ONE
+						//USE JSONLINT TO FORMAT AND TEST-COMPILE THE code
+						var code=jsl.format.formatJson(codeDiv.val());
+						codeDiv.val(code);
+						jsl.parser.parse(code);
+						//TIGHTER PACKING IF JSON
+						codeDiv.val(aFormat.json(code));
 
+						if (GUI.UpdateState()){
+							GUI.refreshChart();
+						}//endif
+					}catch(e){
+						Log.alert(e.message);
+					}//try
+					this.isChanging=false;
+				});
+				codeDiv.val(aFormat.json(defaultValue));
+			});
+		} else if (param.type=="code"){
+			$().ready(function(){
+				var codeDiv=$("#" + param.id);
+				codeDiv.linedtextarea();
+				codeDiv.change(function(){
 					if (GUI.UpdateState()){
 						GUI.refreshChart();
-					}//endif
-				}catch(e){
-					Log.alert(e.message);
-				}//try
-				this.isChanging=false;
+					}
+				});
+				codeDiv.val(defaultValue);
 			});
-			codeDiv.val(aFormat.json(defaultValue));
-		} else if (param.type=="code"){
-			var codeDiv=$("#" + param.id);
-			codeDiv.linedtextarea();
-			codeDiv.change(function(){
-				if (GUI.UpdateState()){
-					GUI.refreshChart();
-				}
-			});
-			codeDiv.val(defaultValue);
 		}else{
 			if (param.type=="string") param.type="text";
 			$("#" + param.id).change(function(){

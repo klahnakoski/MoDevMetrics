@@ -79,7 +79,7 @@ importScript('js/main.js', function(){
 
 			var s = yield(ESQuery.run({
 				"name":"Timings",
-				"from":"datazilla",
+				"from":"talos",
 				"select":[
 					{"name":"s0", "value":'results.moments.s0', "aggregate":"sum", "default":"0"},
 					{"name":"s1", "value":'results.moments.s1', "aggregate":"sum", "default":"0"},
@@ -150,7 +150,7 @@ importScript('js/main.js', function(){
 			],
 			[
 			],
-			"datazilla",
+			"talos",
 			false
 		);
 	});

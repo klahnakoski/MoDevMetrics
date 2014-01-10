@@ -15,10 +15,6 @@ importScript("rest/Rest.js");
 
 
 
-
-
-
-
 var ESQuery = function(query){
 	this.query = query;
 	this.compile();
@@ -34,11 +30,16 @@ ESQuery.DEBUG=false;
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
 	"bugs":{"path":"/bugs/bug_version"},
-	"public_bugs":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9292", "path":"/public_bugs/bug_version"},
-	"public_comments":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9292", "path":"/public_comments/bug_comment"},
+	"public_bugs":{"host":"http://esfrontline1.bugs.scl3.mozilla.com:9292", "path":"/public_bugs/bug_version"},
+	"public_bugs_backend":{"host":"http://elasticsearch1.bugs.scl3.mozilla.com:9200", "path":"/public_bugs/bug_version"},
+	"public_bugs_proxy":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9201", "path":"/public_bugs/bug_version"},
+	"public_comments":{"host":"http://elasticsearch1.bugs.scl3.mozilla.com:9200", "path":"/public_comments/bug_comment"},
+	"private_bugs":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/private_bugs/bug_version"},
+	"private_comments":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/private_comments/bug_comment"},
 
 	"tor_bugs":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/bugs/bug_version"},
-//	"tor_bugs":{"host":"http://localhost:9200", "path":"/bugs/bug_version"},
+	"tor_public_bugs":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/public_bugs/bug_version"},
+	"tor_private_bugs":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/private_bugs/bug_version"},
 	"bug_hierarchy":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/bug_hierarchy/bug_hierarchy"},
 	"bugs.changes":{},
 	"bugs.attachments":{},
@@ -50,7 +51,7 @@ ESQuery.INDEXES={
 	"temp":{"path":""},
 	"telemetry":{"path":"/telemetry_agg_valid_201305/data"},
 	"raw_telemetry":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/raw_telemetry/data"},
-	"datazilla":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/datazilla/test_results"},
+	"talos":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/datazilla/test_results"},
 
 	"perfy":{"path":"/perfy/scores"},
 	"local_perfy":{"host":"http://localhost:9200", "path":"/perfy/scores"}
@@ -196,7 +197,7 @@ ESQuery.prototype.run = function(){
 	var postResult;
 	if (ESQuery.DEBUG) Log.note(CNV.Object2JSON(this.esQuery));
 
-	if (Object.keys(this.esQuery.facets).length==0 && this.esQuery.size==0)
+	if ((this.query.select instanceof Array || this.query.edges.length>0) && Object.keys(this.esQuery.facets).length==0 && this.esQuery.size==0)
 		Log.error("ESQuery is sending no facets");
 
 	try{
@@ -682,16 +683,15 @@ ESQuery.prototype.buildESQuery = function(){
 
 //RETURN SINGLE COUNT
 ESQuery.prototype.buildESCountQuery=function(value){
-	var output=this.buildESQuery();
+	 //REGISTER THE DECODE FUNCTION
+	this.term2Parts=function(term){
+		return [];
+	};
 
+	var output=this.buildESQuery();
 	if (MVEL.isKeyword(value)){
-		output.facets["0"]={
-			"terms":{
-				"script_field":"1",
-				"size": 200000,
-				"filter":{"exists":{"field":value}}
-			}
-		};
+		//MAKE SURE value EXISTS
+		output.query.filtered.filter.and.push({"exists":{"field":value}});
 	}else{
 		//COMPLICATED value IS PROBABLY A SCRIPT, USE IT
 		output.facets["0"]={
@@ -701,7 +701,6 @@ ESQuery.prototype.buildESCountQuery=function(value){
 			}
 		};
 	}//endif
-
 	return output;
 };
 
@@ -1029,6 +1028,24 @@ ESQuery.compileNullTest=function(edge){
 
 
 ESQuery.prototype.termsResults=function(data){
+
+	if (data.facets === undefined || data.facets.length==0){
+		//SIMPLE ES QUERY
+		if (this.query.select instanceof Array){
+			Log.error("TODO: implement be (pull fields)")
+		}else if (this.select[0].aggregate=="count"){
+			if (this.query.edges.length>0){
+				Log.error("not expected, expecting facets");
+			}//endif
+			this.query.cube=data.hits.total
+			return;
+		}else{
+			Log.error("Do not know how to handle simple, yet (hint pull fields)")
+		}//endif
+	}//endif
+
+
+
 	//THE FACET EDGES MUST BE RE-INTERLACED WITH THE PACKED EDGES
 
 	//GETTING ALL PARTS WILL EXPAND THE EDGES' DOMAINS
@@ -1071,33 +1088,39 @@ ESQuery.prototype.termsResults=function(data){
 			interlaceList.push({"index":f.index, "value": f.domain.partitions[coord[i]]});
 		});
 
-		var terms=data.facets[facetNames[k]].terms;
-		II: for(var i=0;i<terms.length;i++){
-			var d = cube;
-			var parts=this.term2Parts(terms[i].term);
-			for(var j=0;j<interlaceList.length;j++){
+		var terms = data.facets[facetNames[k]].terms;
+		II: for(var i = 0; i < terms.length; i++){
+			var parts = this.term2Parts(terms[i].term);
+			for(var j = 0; j < interlaceList.length; j++){
 				parts.insert(interlaceList[j].index, interlaceList[j].value);
 			}//for
 			//INTERLACE DONE: NOW parts SHOULD CORRESPOND WITH this.query.edges
 
+			var d = cube;
 			var t = 0;
-			var length=(select instanceof Array)?parts.length:parts.length-1;
-			for(; t < length; t++){
-				if (parts[t].dataIndex==d.length) continue II;  //IGNORE NULLS
-				d = d[parts[t].dataIndex];
-				if (d===undefined) continue II;		//WHEN NULLS ARE NOT ALLOWED d===undefined
-			}//for
-
+			var length = parts.length;
 			if (select instanceof Array){
-				for(var s=0;s<select.length;s++){
+				for(; t < length; t++){
+					if (parts[t].dataIndex == d.length) continue II;  //IGNORE NULLS
+					d = d[parts[t].dataIndex];
+					if (d === undefined) continue II;		//WHEN NULLS ARE NOT ALLOWED d===undefined
+				}//for
+				for(var s = 0; s < select.length; s++){
 					d[select[s].name] = terms[i][ESQuery.agg2es[select[s].aggregate]];
 				}//for
-			}else{
-				if (d[parts[t].dataIndex]===undefined)
+			} else if (length == 0){
+				cube = terms[i].count;
+			} else{
+				length--;
+				for(; t < length; t++){
+					if (parts[t].dataIndex == d.length) continue II;  //IGNORE NULLS
+					d = d[parts[t].dataIndex];
+					if (d === undefined) continue II;		//WHEN NULLS ARE NOT ALLOWED d===undefined
+				}//for
+				if (d[parts[t].dataIndex] === undefined)
 					continue;			//WHEN NULLS ARE NOT ALLOWED d===undefined
 				d[parts[t].dataIndex] = terms[i].count;
 			}//endif
-
 		}//for
 	}//for
 

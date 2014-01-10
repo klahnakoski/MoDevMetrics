@@ -91,13 +91,13 @@
 
 			
 			/* Set the width */
-			var sidebarWidth		= linesDiv.outerWidth(true);
-			var paddingHorizontal 		= parseInt( linedWrapDiv.css("border-left-width") ) + parseInt( linedWrapDiv.css("border-right-width") ) + parseInt( linedWrapDiv.css("padding-left") ) + parseInt( linedWrapDiv.css("padding-right") );
+			var sidebarWidth		= parseFloat( linesDiv.outerWidth(true));
+			var paddingHorizontal 		= parseFloat( linedWrapDiv.css("border-left-width") ) + parseFloat( linedWrapDiv.css("border-right-width") ) + parseFloat( linedWrapDiv.css("padding-left") ) + parseFloat( linedWrapDiv.css("padding-right") );
 			var linedWrapDivNewWidth 	= originalTextAreaWidth - paddingHorizontal;
 			var textareaNewWidth		= originalTextAreaWidth - sidebarWidth - paddingHorizontal;
 
 			textarea.width( textareaNewWidth);
-			textarea.css({maxWidth: textareaNewWidth - 6}); //TODO make this calculated
+			textarea.css({maxWidth: textareaNewWidth - 10}); //TODO make this calculated
 			
 
 			

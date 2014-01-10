@@ -15,10 +15,12 @@
 
 	<script type="application/javascript;version=1.7">
 		importScript(["js/main.js", "js/Dimension-Telemetry.js", "js/gui/PickDim.js"], function(){
-		
-			//STYLE AS LINED TEXT AREA
-			$("#cube").linedtextarea();
 
+			$().ready(function(){
+				//STYLE AS LINED TEXT AREA
+				$("#cube").linedtextarea();
+			});
+			
 			var pd=new PickDim("#selectDim", Mozilla, function(query){
 				$("#cube").val(CNV.Object2JSON(query));
 			});

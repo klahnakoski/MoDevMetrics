@@ -29,37 +29,73 @@
 
 //			var temp = MVEL.compile.expression("getDocArray(dependson).length>0", {"from": "bugs"	  });
 
-//var esQuery = {
-//	"query":{"filtered":{ "query":{"match_all":{}}, "filter":{"and":[
-//		{"match_all":{}},
-//		{"and":[
-//			{"term":{"testrun.suite":"tp5o"}},
-//			{"range":{"testrun.date":{"gte":1371588795000}}},
-//			{"term":{"results.cnn_dot_com.last_20":"282"}}
-//		]}
-//	]} }},
-//	"from":0,
-//	"size":20,
-//	"sort":[],
-//	"facets":{
-//		"97":{ "statistical":{"field":"results.cnn_dot_com.last_20"}, "facet_filter":{"and":[
-//			{"range":{"testrun.date":{"gte":1371588795000}}}
-//		]} }
-//	}
-//};
-
-
-			var esQuery = {
-	"query":{"filtered":{
-		"query":{"match_all":{}},
-		"filter":{"match_all":{}}
-	}},
+var esQuery = {
+	"query":{"filtered":{ "query":{"match_all":{}}, "filter":{"and":[
+		{"and":[
+			{"term":{"bug_id":	902953}},
+				 {
+                                "range" : {
+                                    "bug_id" : {
+                                        "lt"  : 1000000,
+                                        "gte" :  900000
+                                    }
+                                }
+                            },
+//				                                "exists" : {
+//                                    "field" : "bug_group"
+//                                },
+			{"missing":{"field":"expires_on", "null_value":true}}
+		]}
+	]} }},
 	"from":0,
-	"size":0,
-	"sort":[],
-	"facets":{"0":{"statistical":{"field":"bug_id"}}}
-}
+	"size":2000,
+	"sort":["bug_version_num"]
+};
 
+
+//			var esQuery =	{
+//    "sort" : [ ],
+//    "from"   : 0,
+//    "fields" : [
+//        "bug_id",
+//        "bug_group",
+//		"expires_on"
+//    ],
+//    "facets" : { },
+//    "query" : {
+//        "filtered" : {
+//            "filter" : {
+//                "and" : [
+//                    {
+//                        "match_all" : { }
+//                    },
+//                    {
+//                        "and" : [
+//                            {
+//                                "range" : {
+//                                    "bug_id" : {
+//                                        "lt"  : 1000000,
+//                                        "gte" :  900000
+//                                    }
+//                                }
+//                            },
+//                            {
+//                                "exists" : {
+//                                    "field" : "bug_group"
+//                                }
+//                            },
+////                           {"missing":{"field":"expires_on", "existence":true, "null_value":true}}
+//                        ]
+//                    }
+//                ]
+//            },
+//            "query" : {
+//                "match_all" : { }
+//            }
+//        }
+//    },
+//    "size"   : 200000
+//};
 //		{
 //			"facets":{"mvel":{"terms":{ "size":200000, "script_field":"doc[\"dependson\"].value"}}},
 //			"sort":[], "size":0, "from":0, "query":{"filtered":{ "filter":{"and":[
@@ -72,13 +108,17 @@
 				var data = yield(Rest.post({
 //			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping?pretty=true",
 //			"url":'http://localhost:9200/bug_hierarchy/bug_hierarchy/_search',
-//      		"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+
+
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+			"url":"http://elasticsearch4.bugs.scl3.mozilla.com:9200/private_bugs/bug_version/_search",
+
+
 //			"url":"http://10.242.30.66:9200/makes/_search",
-
-
 //			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/datazilla20131108_213623/_search",
 //			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/raw_telemetry/_search",
-			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9292/public_bugs/bug_version/_search",
+//			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9201/public_bugs/bug_version/_search",
+
 //			"url":"http://localhost:9200/perfy/_search",
 //			"url":"http://129.97.26.17:9200/bugs/bug_version/_search",
 // 			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",

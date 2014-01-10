@@ -70,7 +70,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		thread = Thread.run(__createChart());
 	};
 
-	$("#description").html("Click the bar chart of overall score to see breakdown by sub-test.  The sub-test bar charts bring you directly to the individual tests' results.");
+	$("#description").html("Please <a href='https://wiki.mozilla.org/Platform/Games/GameFocusedBenchmarking'>read the wiki</a> for detailed explaination of testing procedure and analysis.<br><br> Click the bar chart of overall score to see breakdown by sub-test.  The sub-test bar charts bring you directly to the individual tests' results.");
 
 
 	var __createChart = function(){
@@ -186,14 +186,14 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 				var param={
 					"platform":GUI.state.platform.getSimpleState(),
 					"benchmark":GUI.state.benchmark.getSimpleState(),
-					"date":GUI.state.date[0]
+					"date":Date.newInstance(GUI.state.date).format("yyyy-MM-dd")
 				};
 				window.open("Perfy-Draft.html#"+CNV.Object2URL(param));
 			}else{
 				var param={
 					"platform":GUI.state.platform.getSimpleState(),
 					"benchmark":"Benchmark."+benchmark.partitions[index].value.replaceAll(" ", "_"),
-					"date":GUI.state.date[0]
+					"date":Date.newInstance(GUI.state.date).format("yyyy-MM-dd")
 				};
 				window.open("Perfy-Details.html#"+CNV.Object2URL(param));
 			}//endif

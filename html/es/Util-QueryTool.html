@@ -10,7 +10,7 @@
 <BODY>
 
 
-<h3>BA Query Tool</h3>
+<h3>MoDevMetrics Query Tool</h3>
 
 <div id="sidebar">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
@@ -18,14 +18,19 @@
 	</div>
 
 	<hr>
-	<div id="description"></div>
+	<div id="description">
+		Converts Qbic queries to ElasticSearch queries.  <a href="https://github.com/klahnakoski/MoDevMetrics/blob/master/docs/CUBE.md">Reference Documentation</a>
+	</div>
 	<hr>
 	<div id="testMessage"></div>
 	<hr>
 	<div id="tools" class="parameters">
 		Index: <input id="index" name="Index" value=""><br>
+		Current Time: <div id="currtime"></div>
 		MilliTimeStamp:<input id="long2date" name="long2date" value="">
 		<div id="long2dateResult"></div>
+		Datetime:<input id="date2long" name="date2long" value="">
+		<div id="date2longResult"></div>
 	</div>
 	<div id="parameters" class="parameters">
 	</div>
@@ -53,18 +58,35 @@
 
 	importScript(["js/main.js"], function(){
 
+		$().ready(function(){
+			//STYLE AS LINED TEXT AREA
+			$("#cube").linedtextarea();
+			$("#esquery").linedtextarea();
+		});
 
-		//STYLE AS LINED TEXT AREA
-		$("#cube").linedtextarea();
-		$("#esquery").linedtextarea();
-		$("#description").html("converts Cube query to ES query, and then sends to ES for a result");
+		Thread.run(function(){
+			while(true){
+				$("#currtime").html(""+ aMath.round(Date.now().getMilli(), 3));
+				yield (Thread.sleep(333));
+			}//while
+		});
 
+		$("#currtime").click(function(){
+			var value = $(this).html();
+			window.prompt("Copy to clipboard: Ctrl+C, Enter", value);
+		});
 
 		$("#long2date").change(function(){
 			var value = $(this).val();
 			$("#long2dateResult").html(Date.newInstance(CNV.String2Integer(value)).format("dd-NNN-yyyy HH:mm:ss") + "<br>" +
 					Date.newInstance(CNV.String2Integer(value)).toString());
 		});
+
+		$("#date2long").change(function(){
+			var value = $(this).val();
+			$("#date2longResult").html(CNV.Date2milli(Date.newInstance(value)));
+		});
+
 
 		var executeCube = function(event){ //THIS IS A GENERATOR
 			var index = $("#long2date").val();
