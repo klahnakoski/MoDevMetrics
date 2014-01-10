@@ -3,7 +3,7 @@
 SQL Shortcomings
 ================
 
-Here is a core dump of the anti-patterns I see when dealing with SQL.  One day I will detail the problems, an show the cube query solutions
+Here is a core dump of the anti-patterns I see when dealing with SQL.  One day I will detail the problems, an show the Qb query solutions
 
 
 

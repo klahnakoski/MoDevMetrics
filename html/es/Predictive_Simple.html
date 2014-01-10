@@ -233,7 +233,7 @@ var __createChart = function(){
 						where="max && max.floorDay().getMilli()=="+x.getMilli();
 					}//endif
 
-					var buglist=(yield (CUBE.calc2List({
+					var buglist=(yield (Qb.calc2List({
 						"from":minMaxBugs,
 						"select":{"value":"bug_id"},
 						"where":where
@@ -245,7 +245,7 @@ var __createChart = function(){
 		});
 		Log.actionDone(a);
 
-		var perDay = (yield(CUBE.calc2List({
+		var perDay = (yield(Qb.calc2List({
 			"from":diff,
 			"select":[
 				{"name":"opened", "value":"opened", "aggregate":"average"},

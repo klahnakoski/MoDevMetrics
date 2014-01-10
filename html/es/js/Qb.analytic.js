@@ -1,20 +1,20 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-if (CUBE===undefined) var CUBE = {};
+if (Qb===undefined) var Qb = {};
 
-CUBE.analytic={};
+Qb.analytic={};
 
-CUBE.analytic.ROWNUM="__rownum";
-CUBE.analytic.ROWS="__rows";
+Qb.analytic.ROWNUM="__rownum";
+Qb.analytic.ROWS="__rows";
 
 
-CUBE.analytic.run=function(query){
+Qb.analytic.run=function(query){
 	if (query.analytic){
 		if (!(query.analytic instanceof Array)) query.analytic = [query.analytic];
 		//ANALYTIC COLUMNS ARE ADDED IN ORDER SO EACH CAN REFER TO THE PREVIOUS
 		for(var a = 0; a < query.analytic.length; a++){
-			CUBE.analytic.add(query, query.analytic[a]);
+			Qb.analytic.add(query, query.analytic[a]);
 		}//for
 	}//endif
 };//method
@@ -22,7 +22,7 @@ CUBE.analytic.run=function(query){
 
 //from IS AN ARRAY OF OBJECTS
 //sourceColumns IS AN ARRAY OF COLUMNS DEFINING THE TUPLES IN from
-CUBE.analytic.add=function(query, analytic){
+Qb.analytic.add=function(query, analytic){
 
 	var edges = analytic.edges;		//ARRAY OF COLUMN NAMES
 	if (edges===undefined) Log.error("Analytic expects 'edges' to be defined, even if empty");
@@ -47,11 +47,11 @@ CUBE.analytic.add=function(query, analytic){
 		Log.error("All columns must have different names");});
 	analytic.columnIndex=sourceColumns.length;
 	sourceColumns[analytic.columnIndex] = analytic;
-	analytic.calc=CUBE.analytic.compile(sourceColumns, analytic.value);
-	analytic.domain=CUBE.domain.value;
+	analytic.calc=Qb.analytic.compile(sourceColumns, analytic.value);
+	analytic.domain=Qb.domain.value;
 
 	if (analytic.where===undefined) analytic.where="true";
-	var where=CUBE.analytic.compile(sourceColumns, analytic.where);
+	var where=Qb.analytic.compile(sourceColumns, analytic.where);
 
 //	sourceColumns=sourceColumns.copy();
 
@@ -108,7 +108,7 @@ CUBE.analytic.add=function(query, analytic){
 	var sortFunction;
 	if (analytic.sort){
 		if (!(analytic.sort instanceof Array)) analytic.sort=[analytic.sort];
-		sortFunction=CUBE.sort.compile(analytic.sort, sourceColumns, true);
+		sortFunction=Qb.sort.compile(analytic.sort, sourceColumns, true);
 	}//endif
 
 	for(var g=allGroups.length;g--;){
@@ -116,36 +116,36 @@ CUBE.analytic.add=function(query, analytic){
 		if (sortFunction) group.sort(sortFunction);
 
 		for(let rownum=group.length;rownum--;){
-			group[rownum][CUBE.analytic.ROWNUM]=rownum;		//ASSIGN ROWNUM TO EVERY ROW
-			group[rownum][CUBE.analytic.ROWS]=group;		//EVERY ROW HAS REFERENCE TO IT'S GROUP
+			group[rownum][Qb.analytic.ROWNUM]=rownum;		//ASSIGN ROWNUM TO EVERY ROW
+			group[rownum][Qb.analytic.ROWS]=group;		//EVERY ROW HAS REFERENCE TO IT'S GROUP
 		}//for
 	}//for
 	{//NULL GROUP
 		if (sortFunction) nullGroup.sort(sortFunction);
 
 		for(let rownum=nullGroup.length;rownum--;){
-			nullGroup[rownum][CUBE.analytic.ROWNUM]=null;
-			nullGroup[rownum][CUBE.analytic.ROWS]=null;
+			nullGroup[rownum][Qb.analytic.ROWNUM]=null;
+			nullGroup[rownum][Qb.analytic.ROWS]=null;
 		}//for
 	}
 
 
 	//PERFORM CALC
 	for(var i=from.length;i--;){
-		from[i][analytic.name]=analytic.calc(from[i][CUBE.analytic.ROWS], from[i][CUBE.analytic.ROWNUM], from[i]);
+		from[i][analytic.name]=analytic.calc(from[i][Qb.analytic.ROWS], from[i][Qb.analytic.ROWNUM], from[i]);
 
 		if (isNaN(from[i][analytic.name])){
 			Log.note("");
 		}//enidf
 
-		from[i][CUBE.analytic.ROWNUM]=undefined;	//CLEANUP
-		from[i][CUBE.analytic.ROWS]=undefined;	//CLEANUP
+		from[i][Qb.analytic.ROWNUM]=undefined;	//CLEANUP
+		from[i][Qb.analytic.ROWS]=undefined;	//CLEANUP
 	}//for
 
 };
 
 
-CUBE.analytic.compile = function(sourceColumns, expression){
+Qb.analytic.compile = function(sourceColumns, expression){
 	var func;
 
 

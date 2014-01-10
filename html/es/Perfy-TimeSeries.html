@@ -239,7 +239,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			maxScore=aMath.niceCeiling(max);
 
 			//DUE TO INCOMPLETE Q(), I MUST
-			range.list = yield(CUBE.Cube2List(range, {"useStruct":true}));
+			range.list = yield(Qb.Cube2List(range, {"useStruct":true}));
 
 			aChart.showScatter({
 				"id":"chart"+i,

@@ -123,7 +123,7 @@ var __createChart = function(){
 			]}
 		}));
 
-		interesting_bugs=yield (CUBE.Cube2List(interesting_bugs));
+		interesting_bugs=yield (Qb.Cube2List(interesting_bugs));
 		interesting_bugs=interesting_bugs.select("bug_id");
 
 		var mm=yield (ElasticSearch.getMinMax({"and":[
@@ -201,7 +201,7 @@ var __createChart = function(){
 				Thread.run(function(){
 					var date=Date.newInstance(x);
 
-					var list=yield (CUBE.calc2List({
+					var list=yield (Qb.calc2List({
 						"from":bugList,
 						"select":{"value":"bug_id"},
 						"where":"closeTime!=null && "+

@@ -21,7 +21,7 @@ REVIEWS.ALIASES=[
 
 
 //Thread.run(function(){
-//	ETL.allFlags = yield (CUBE.calc2List({
+//	ETL.allFlags = yield (Qb.calc2List({
 //		"from":CNV.Table2List(MozillaPrograms),
 //		"edges":["attributeName"],
 //		"where":"attributeName.startsWith('cf_')"
@@ -307,7 +307,7 @@ REVIEWS.get=function(minBug, maxBug){
 	doneReview.list.appendArray(switchedReview.list);
 
 
-	var reviewQueues = (yield (CUBE.calc2List({
+	var reviewQueues = (yield (Qb.calc2List({
 		"from":
 			inReview.list,
 		"analytic":[
@@ -424,7 +424,7 @@ REVIEWS.postMarkup=function(){
 		Log.actionDone(a);
 
 		a=Log.action("Calculate request ordering", true);
-		var review_count=yield (CUBE.calc2List({//FIRST REVIEW FOR EACH BUG BY REQUESTER
+		var review_count=yield (Qb.calc2List({//FIRST REVIEW FOR EACH BUG BY REQUESTER
 			"from":firstTime,
 			"analytic":[
 				{"name":"requester_first_review", "value":"rownum==0", "sort":["request_time"], "edges":["requester", "bug_id"]},

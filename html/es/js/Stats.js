@@ -197,18 +197,18 @@ Stats.query2regression=function(query){
 	}//endif
 
 	//CONVERT ALGEBRAIC DOMAINS TO doubles
-	var domainY=CUBE.domain.algebraic2numeric(query.edges[0].domain);
-	var domainX=CUBE.domain.algebraic2numeric(query.edges[1].domain);
+	var domainY=Qb.domain.algebraic2numeric(query.edges[0].domain);
+	var domainX=Qb.domain.algebraic2numeric(query.edges[1].domain);
 
 	//SEND TO REGRESSION CALC
-	var line=Stats.regression(CUBE.cube.transpose(query, [query.edges[1], query.edges[0]], select).cube, domainX, domainY);
+	var line=Stats.regression(Qb.cube.transpose(query, [query.edges[1], query.edges[0]], select).cube, domainX, domainY);
 
 	//CONVERT BACK TO DOMAIN (result REFERS TO
 	if (["time", "duration"].contains(domainX.type)) Log.error("Can not convert back to original domain, not implemented yet");
 	if (["time", "duration"].contains(domainY.type)) Log.error("Can not convert back to original domain, not implemented yet");
 
 
-	//BUILD NEW QUERY WITH NEW CUBE
+	//BUILD NEW QUERY WITH NEW Qb
 	var output=Map.copy(query);
 	output.select={"name":query.edges[0].name};
 	output.edges=[query.edges[1]];
@@ -223,8 +223,8 @@ Stats.query2regression=function(query){
 	return output;
 };
 
-//ASSUMES A CUBE OF WEIGHT VALUES
-//RETURN THE REGRESSION LINE FOR THE GIVEN CUBE
+//ASSUMES A Qb OF WEIGHT VALUES
+//RETURN THE REGRESSION LINE FOR THE GIVEN Qb
 Stats.regression=function(weights, domainX, domainY){
 	if (DEBUG) Log.note(CNV.Object2JSON([weights, {"min":domainX.min, "max":domainX.max, "interval":domainX.interval}, {"min":domainY.min, "max":domainY.max, "interval":domainY.interval}]));
 

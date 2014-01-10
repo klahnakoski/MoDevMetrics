@@ -46,5 +46,5 @@ Other Notes
 -----------
 The interesting stuff start in ./html/es
 
-  - [Reference document covering the query format](docs/CUBE.md)
+  - [Reference document covering the query format](docs/Qb.md)
   - [Dimension Definitions](docs/Dimension Definitions.md)

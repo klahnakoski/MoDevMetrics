@@ -57,12 +57,12 @@
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
 <script type="application/javascript;version=1.7" src="lib/jsThreads/thread.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.analytic.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
+<script type="application/javascript;version=1.7" src="js/Qb.js"></script>
+<script type="application/javascript;version=1.7" src="js/Qb.analytic.js"></script>
+<script type="application/javascript;version=1.7" src="js/Qb.aggregate.js"></script>
+<script type="application/javascript;version=1.7" src="js/Qb.column.js"></script>
+<script type="application/javascript;version=1.7" src="js/Qb.cube.js"></script>
+<script type="application/javascript;version=1.7" src="js/Qb.domain.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script>
 <script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
@@ -248,7 +248,7 @@ var __createChart = function(){
 	]);
 
 
-	var pendingReview=(yield (CUBE.calc2List({
+	var pendingReview=(yield (Qb.calc2List({
 		"from":
 			esResult,
 		"select":[
@@ -267,7 +267,7 @@ var __createChart = function(){
 
 
 
-		var result = (yield (CUBE.calc2List({
+		var result = (yield (Qb.calc2List({
 			"from":
 				//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
 				pendingReview,
@@ -285,7 +285,7 @@ var __createChart = function(){
 		}))).list;
 
 		//ADD LINK TO BUGS
-		result=(yield (CUBE.calc2List({
+		result=(yield (Qb.calc2List({
 			"from":result,
 			"select":[
 				{"name":"requestee", "value":"requestee"},
@@ -310,7 +310,7 @@ var __createChart = function(){
 			{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
 		]);
 
-		var doneReview=(yield (CUBE.calc2List({
+		var doneReview=(yield (Qb.calc2List({
 			"from":
 				esResult3,
 			"select":[
@@ -332,7 +332,7 @@ var __createChart = function(){
 
 
 		//ADD LINK TO BUGS
-		var result3=(yield (CUBE.calc2List({
+		var result3=(yield (Qb.calc2List({
 			"from":doneReview,
 			"select":[
 				{"name":"Wait Time", value:"aMath.round(Duration.newInstance(wait_time).divideBy(Duration.DAY), 1)+'days'"},
@@ -352,7 +352,7 @@ var __createChart = function(){
 		var assigned = MVEL.esFacet2List(data.facets.assigned, [{"name":"bug_id"},{"name":"assigned_to"}]);
 
 
-		var result = (yield (CUBE.calc2List({
+		var result = (yield (Qb.calc2List({
 			"from":
 				assigned,
 			"select":[
@@ -368,7 +368,7 @@ var __createChart = function(){
 		}))).list;
 
 		//ADD LINK TO BUGS
-		result=(yield (CUBE.calc2List({
+		result=(yield (Qb.calc2List({
 			"from":result,
 			"select":[
 				{"name":"assigned_to", value:"assigned_to"},

@@ -21,8 +21,8 @@
 <script type="application/javascript;version=1.7" src="js/aCompiler.js"></script><script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
 
 <script type="application/javascript;version=1.7" src="lib/jsThreads/thread.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.analytic.js"></script>
+<script type="application/javascript;version=1.7" src="js/Qb.js"></script>
+<script type="application/javascript;version=1.7" src="js/Qb.analytic.js"></script>
 
 
 
@@ -76,7 +76,7 @@
 		success: function(data){
 			Log.note(CNV.Object2JSON(data));
 
-//			var bugCount=(yield (CUBE.calc2List({
+//			var bugCount=(yield (Qb.calc2List({
 //				"from":data.facets.owners,
 //				"select":""
 //			});

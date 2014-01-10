@@ -111,7 +111,7 @@ var __createChart = function(){
 			]}
 		}));
 
-		var res=yield(CUBE.Cube2List(resolutions));
+		var res=yield(Qb.Cube2List(resolutions));
 
 		Log.actionDone(a);
 
@@ -195,7 +195,7 @@ var __createChart = function(){
 				Thread.run(function(){
 					var date=Date.newInstance(x);
 
-					var list=yield (CUBE.calc2List({
+					var list=yield (Qb.calc2List({
 						"from":bugList,
 						"select":{"value":"bug_id"},
 						"where":"closeTime!=null && "+
@@ -226,7 +226,7 @@ var __createChart = function(){
 		});
 
 
-		CUBE.normalizeByX(chart, 100);
+		Qb.normalizeByX(chart, 100);
 		aChart.show({
 			"name":"Relative % Bugs Fixed",
 			"id":"percent",

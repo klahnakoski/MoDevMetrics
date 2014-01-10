@@ -112,7 +112,7 @@ var __createChart = function(){
 
 
 		var stats = (yield(Q({
-			"from": (yield (CUBE.Cube2List(durations))),
+			"from": (yield (Qb.Cube2List(durations))),
 			"select":[
 				{"name":"total", "value":"count", "aggregate":"sum"},
 				{"name":"num_open", "value":"bug_status=='Open' ? count : 0", "aggregate":"sum"},

@@ -187,7 +187,7 @@ var __createChart = function(){
 
 	var iterations=bugs[iterationParent].dependson.map(function(v, i){
 		return bugs[v];
-	}).sort(function(a, b){return CUBE.domain.value.compare(a.summary, b.summary);});
+	}).sort(function(a, b){return Qb.domain.value.compare(a.summary, b.summary);});
 	iterations.push(bugs[backlog]);
 
 	//startDate IS ONE DAY AFTER THE ITERATION "START", AND
@@ -313,7 +313,7 @@ var __createChart = function(){
 	});
 
 //	var allAssignedBugs=yield(getIterationRanges(bugs[iterationParent].dependson));
-//	allAssignedBugs=yield(CUBE.Cube2List(allAssignedBugs));
+//	allAssignedBugs=yield(Qb.Cube2List(allAssignedBugs));
 
 	////////////////////////////////////////////////////////////////////////////
 	// TOTAL BY ITERATION
@@ -509,7 +509,7 @@ var __createChart = function(){
 //			pessimisticSample
 //		);
 //
-//		var stats=yield (CUBE.calc2List({
+//		var stats=yield (Qb.calc2List({
 //			"name":"Production Forcast",
 //			"from":teamVelocity,
 //			"analytic":[
@@ -568,7 +568,7 @@ var __createChart = function(){
 
 		//SHOW PERCENT DONE
 		$("#progressSummary").html(
-			//AND THIS IS YOUR STANDARD CHART OF A CUBE!!!!
+			//AND THIS IS YOUR STANDARD CHART OF A Qb!!!!
 			'<table class="table" style="width:100%;"><thead><td></td><td>Pessimistic</td><td>Expected</td><td>Optimistic</td></thead>'+
 					'<tr><td>Iterations to Release</td><td>'+numLeft.worst+' (done '+doneDate.worst.format("dd-NNN-yy")+'</td><td>'+numLeft.average+' (done '+doneDate.average.format("dd-NNN-yy")+'</td><td>'+numLeft.best+' (done '+doneDate.best.format("dd-NNN-yy")+'</td></tr>'+
 					'<tr><td>Team Velocity</td><td>'+aMath.round(teamVelocity.worst,1)+'</td><td>'+aMath.round(teamVelocity.average,1)+'</td><td>'+aMath.round(teamVelocity.best,1)+'</td></tr>'+
@@ -825,7 +825,7 @@ function getDescendants(parent, startDate, endDate){
 			Mozilla.BugStatus.Open.esfilter
 		]}));
 
-		ages=yield (CUBE.Cube2List(ages));
+		ages=yield (Qb.Cube2List(ages));
 
 		ages.forall(function(v,i){
 			bugs[v.bug_id].open_time=v.min;
@@ -961,7 +961,7 @@ function getIterationRanges(iterations){
 		]
 	}));
 
-	var u = CUBE.merge({"cubes":[
+	var u = Qb.merge({"cubes":[
 		{"from":u1, "edges":["iteration", "bug_id"]},
 		{"from":u2, "edges":["iteration", "bug_id"]}
 	]});

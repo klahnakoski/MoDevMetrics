@@ -270,7 +270,7 @@ GUI.URL2State = function(){
 
 		var p=GUI.parameters.map(function(v, i){if (v.id==k) return v;})[0];
 
-		if (p && CUBE.domain.ALGEBRAIC.contains(p.type)){
+		if (p && Qb.domain.ALGEBRAIC.contains(p.type)){
 			v=v.escape(Map.inverse(GUI.urlMap));
 			GUI.state[k] = v;
 		}else if (p && p.type=="json"){

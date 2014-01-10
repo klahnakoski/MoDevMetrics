@@ -8,7 +8,7 @@ importScript("aDate.js");
 importScript("aUtil.js");
 importScript("debug/aLog.js");
 importScript("MVEL.js");
-importScript("CUBE.js");
+importScript("Qb.js");
 
 importScript("rest/ElasticSearch.js");
 importScript("rest/Rest.js");
@@ -173,7 +173,7 @@ ESQuery.run=function(query){
 
 	var output=yield (esq.run());
 
-	Map.copy(CUBE.query.prototype, output);
+	Map.copy(Qb.query.prototype, output);
 
 	if (output===undefined)
 		Log.error("what happened here?");
@@ -309,7 +309,7 @@ ESQuery.prototype.compile = function(){
 	if (this.query.essize===undefined) this.query.essize=200000;
 	if (ESQuery.DEBUG) this.query.essize=100;
 
-	this.columns = CUBE.compile(this.query, ESQuery.INDEXES[this.query.from.split(".")[0]].columns, true);
+	this.columns = Qb.compile(this.query, ESQuery.INDEXES[this.query.from.split(".")[0]].columns, true);
 
 
 	var esFacets;
@@ -321,7 +321,7 @@ ESQuery.prototype.compile = function(){
 	//THESE SMOOTH EDGES REQUIRE ALL DATA (SETOP)
 	var extraSelect=[];
 	this.query.edges.forall(function(e){
-		if (e.domain !== undefined && CUBE.domain.ALGEBRAIC.contains(e.domain.type) &&  e.domain.interval == "none"){
+		if (e.domain !== undefined && Qb.domain.ALGEBRAIC.contains(e.domain.type) &&  e.domain.interval == "none"){
 			extraSelect.append({"name":e.name, "value":e.value});
 		}//endif
 	});
@@ -391,7 +391,7 @@ ESQuery.prototype.compile = function(){
 	//FIND THE specialEdge, IF ONE
 	this.specialEdge = null;
 	for(var f = 0; f < this.termsEdges.length; f++){
-		if ((CUBE.domain.KNOWN.contains(this.termsEdges[f].domain.type))){
+		if ((Qb.domain.KNOWN.contains(this.termsEdges[f].domain.type))){
 			for(var p = this.termsEdges[f].domain.partitions.length; p--;){
 				this.termsEdges[f].domain.partitions[p].dataIndex = p;
 			}//for
@@ -556,7 +556,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 	} else if (edge.range){
 		//THESE REALLY NEED FACETS TO PERFORM THE JOIN-TO-DOMAIN
 		//USE MVEL CODE
-		if (CUBE.domain.ALGEBRAIC.contains(edge.domain.type)){
+		if (Qb.domain.ALGEBRAIC.contains(edge.domain.type)){
 			output={"and":[]};
 
 			if (edge.range.mode!==undefined && edge.range.mode=="inclusive"){
@@ -613,7 +613,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 		return ESFilter.simplify(partition.esfilter);
 	}else if (MVEL.isKeyword(edge.value)){
 		//USE FAST ES SYNTAX
-		if (CUBE.domain.ALGEBRAIC.contains(edge.domain.type)){
+		if (Qb.domain.ALGEBRAIC.contains(edge.domain.type)){
 			output.range = {};
 			output.range[edge.value] = {"gte":MVEL.Value2Query(partition.min), "lt":MVEL.Value2Query(partition.max)};
 		} else if (edge.domain.type == "set"){
@@ -633,7 +633,7 @@ ESQuery.buildCondition = function(edge, partition, query){
 		return output;
 	} else{
 		//USE MVEL CODE
-		if (CUBE.domain.ALGEBRAIC.contains(edge.domain.type)){
+		if (Qb.domain.ALGEBRAIC.contains(edge.domain.type)){
 			output.script = {script:edge.value + ">=" + MVEL.Value2MVEL(partition.min) + " && " + edge.value + "<" + MVEL.Value2MVEL(partition.max)};
 		} else {//if (edge.domain.type == "set"){
 			output.script = {script:"( "+edge.value + " ) ==" + MVEL.Value2MVEL(partition.value)};
@@ -806,7 +806,7 @@ ESQuery.prototype.compileEdges2Term=function(constants){
 			t=ESQuery.compileTime2Term(e);
 		}else if (e.domain.type=="duration"){
 			t=ESQuery.compileDuration2Term(e);
-		}else if (CUBE.domain.ALGEBRAIC.contains(e.domain.type)){
+		}else if (Qb.domain.ALGEBRAIC.contains(e.domain.type)){
 			t=ESQuery.compileNumeric2Term(e);
 		}else if (e.domain.type=="set" && e.domain.field===undefined){
 			t={
@@ -998,7 +998,7 @@ ESQuery.compileES2Term=function(edge){
 
 //RETURN A MVEL EXPRESSION THAT WILL EVALUATE TO true FOR OUT-OF-BOUNDS
 ESQuery.compileNullTest=function(edge){
-	if (!CUBE.domain.ALGEBRAIC.contains(edge.domain.type))
+	if (!Qb.domain.ALGEBRAIC.contains(edge.domain.type))
 		Log.error("can only translate time and duration domains");
 
 	//IS THERE A LIMIT ON THE DOMAIN?
@@ -1059,7 +1059,7 @@ ESQuery.prototype.termsResults=function(data){
 		}//for
 	}//for
 
-	//NUMBER ALL EDGES FOR CUBE INDEXING
+	//NUMBER ALL EDGES FOR Qb INDEXING
 	for(var f=0;f<this.query.edges.length;f++){
 		this.query.edges[f].index=f;
 		var parts=this.query.edges[f].domain.partitions;
@@ -1072,13 +1072,13 @@ ESQuery.prototype.termsResults=function(data){
 
 
 
-	//MAKE CUBE
+	//MAKE Qb
 	var select=this.query.select;
 	if (select===undefined) select=[];
-	var cube= CUBE.cube.newInstance(this.query.edges, 0, select);
+	var cube= Qb.cube.newInstance(this.query.edges, 0, select);
 
 	
-	//FILL CUBE
+	//FILL Qb
 	//PROBLEM HERE IS THE INTERLACED EDGES
 	for(var k = 0; k < facetNames.length; k++){
 		var coord = facetNames[k].split(",");
@@ -1170,10 +1170,10 @@ ESQuery.prototype.statisticalResults = function(data){
 		return;
 	}//endif
 
-	//MAKE CUBE
-	cube = CUBE.cube.newInstance(this.query.edges, 0, this.query.select);
+	//MAKE Qb
+	cube = Qb.cube.newInstance(this.query.edges, 0, this.query.select);
 
-	//FILL CUBE
+	//FILL Qb
 	if (self.query.select instanceof Array){
 		forAllKey(data.facets, function(edgeName, facetValue){
 			var coord = edgeName.split(",");
@@ -1239,10 +1239,10 @@ ESQuery.prototype.terms_statsResults = function(data){
 	this.specialEdge.domain.partitions = partitions;
 
 
-	//MAKE CUBE
-	var cube = CUBE.cube.newInstance(this.query.edges, 0, this.query.select);
+	//MAKE Qb
+	var cube = Qb.cube.newInstance(this.query.edges, 0, this.query.select);
 
-	//FILL CUBE
+	//FILL Qb
 	for(var k = 0; k < keys.length; k++){
 		var edgeName = keys[k];
 		var coord = edgeName.split(",");

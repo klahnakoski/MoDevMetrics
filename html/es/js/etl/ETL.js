@@ -4,7 +4,7 @@
 
 importScript("../aLibrary.js");
 importScript("../ESQuery.js");
-importScript("../CUBE.js");
+importScript("../Qb.js");
 
 
 
@@ -16,7 +16,7 @@ Thread.run("get bug columns", function(){
 
 	if (ESQuery.INDEXES.bugs.columns===undefined) yield (null);
 
-	var temp = yield (CUBE.calc2List({
+	var temp = yield (Qb.calc2List({
 		"from":ESQuery.INDEXES.bugs.columns,
 		"edges":["name"],
 		"where":"name.startsWith('cf_')"

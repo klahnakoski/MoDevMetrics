@@ -524,21 +524,21 @@ aChart.show=function(params){
 		//NUMBER OF EDGES
 		if (chartCube.edges.length==1){
 			//TYPE OF EDGES
-			if (CUBE.domain.ALGEBRAIC.contains(chartCube.edges[0].domain.type)){
+			if (Qb.domain.ALGEBRAIC.contains(chartCube.edges[0].domain.type)){
 				type="line";
 			}else{
 				type="bar";
 			}//endif
 		}else if (chartCube.edges.length==2){
-			if (CUBE.domain.ALGEBRAIC.contains(chartCube.edges[0].domain.type)){
-				if (CUBE.domain.ALGEBRAIC.contains(chartCube.edges[1].domain.type)){
+			if (Qb.domain.ALGEBRAIC.contains(chartCube.edges[0].domain.type)){
+				if (Qb.domain.ALGEBRAIC.contains(chartCube.edges[1].domain.type)){
 					type="heat";
 				}else{
 					type="bar";
 //					params.orientation="horizontal"
 				}//endif
 			}else{
-				if (CUBE.domain.ALGEBRAIC.contains(chartCube.edges[1].domain.type)){
+				if (Qb.domain.ALGEBRAIC.contains(chartCube.edges[1].domain.type)){
 					type="line";
 				}else{
 					type="bar";
@@ -660,7 +660,7 @@ aChart.show=function(params){
 
 		orientation: 'vertical',
 		timeSeries: (xaxis.domain.type=="time"),
-		timeSeriesFormat: JavaDateFormat2ProtoVisDateFormat(CUBE.domain.time.DEFAULT_FORMAT),
+		timeSeriesFormat: JavaDateFormat2ProtoVisDateFormat(Qb.domain.time.DEFAULT_FORMAT),
 		showDots:true,
 		showValues: false,
 		"stacked":stacked,
@@ -712,7 +712,7 @@ aChart.show=function(params){
 				});
 				data.push(row);
 			}//for
-		}else if (CUBE.domain.ALGEBRAIC.contains(chartCube.edges[0].domain.type)){
+		}else if (Qb.domain.ALGEBRAIC.contains(chartCube.edges[0].domain.type)){
 			//ALGEBRAIC DOMAINS ARE PROBABLY NOT MULTICOLORED
 			data=[chartCube.cube]
 		}else{
@@ -829,14 +829,14 @@ function bugClicker(query, series, x){
 		Thread.run(function(){
 			var specific;
 			if (query.edges.length==2){
-				specific=CUBE.specificBugs(query, [series, x]);
+				specific=Qb.specificBugs(query, [series, x]);
 			}else{
-				specific=CUBE.specificBugs(query, [x]);
+				specific=Qb.specificBugs(query, [x]);
 			}//endif
 
 
 
-//			var specific=CUBE.specificBugs(query, [series, x]);
+//			var specific=Qb.specificBugs(query, [series, x]);
 			var buglist=(yield (ESQuery.run(specific)));
 //			buglist=buglist.list.map(function(b){return b.bug_id;});
 			if (buglist.cube===undefined) buglist.cube=buglist.list;
@@ -878,7 +878,7 @@ function getAxisLabels(axis){
 	var labels;
 	if (axis.domain.type == "time"){
 		if (axis.domain.allowNulls) Log.error("Charting lib can not handle NULL domain value.");
-		var format=CUBE.domain.time.DEFAULT_FORMAT;
+		var format=Qb.domain.time.DEFAULT_FORMAT;
 		labels=axis.domain.partitions.map(function(v, i){
 			if (v.value!=undefined){
 				return v.value.format(format);

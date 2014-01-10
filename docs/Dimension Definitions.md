@@ -6,7 +6,7 @@ To simplify query writing, we borrow from the Business Intelligence software fie
 
 A dimension can consists of child edges or child partitions.  Child edges are allowed to overlap each other's domains, and represent orthogonal ways to cut the same data.  Child partitions divide the dimension into mutually exclusive parts.  A well-behaved partition will cover the dimension's domain, ill-behaved partitions are "compiled" to be well-behaved so nothing is missed.
 
-Dimensions are similar to domain clauses in CUBE queries, with additional attributes to help apply that domain over many different queries.
+Dimensions are similar to domain clauses in Qb queries, with additional attributes to help apply that domain over many different queries.
 
   - **name** - humane words to describe the child dimension
   - **field** - full path name of a field in the json record.  This will be used as the value in the query's edge

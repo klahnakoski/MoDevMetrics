@@ -70,7 +70,7 @@ BUG_SUMMARY.makeSchema=function(){
 	};
 
 	//ADD MOZILLA PROGRAMS
-	(yield (CUBE.calc2List({
+	(yield (Qb.calc2List({
 		"from":BUG_SUMMARY.allPrograms,
 		"edges":["projectName"]
 	}))).list.forall(function(v,i){
@@ -159,7 +159,7 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 
 	//WE SOMETIMES GET MORE THAN ONE "CURRENT" RECORD FROM ES, THIS WILL FIND
 	//THE YOUNGEST, AND FILTER OUT THE REST
-	currentData=yield (CUBE.calc2List({
+	currentData=yield (Qb.calc2List({
 		"from":{
 			"from":currentData,
 			"analytic":{"name":"num", "value":"(rows.length-1)-rownum", "edges":["bug_id"], "sort":["modified_time"]}
@@ -197,7 +197,7 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 
 	//ADD FACETS TO COUNT ALL MOZILLA PROGRAMS
 	var programFilter=new ProgramFilter();
-	(yield (CUBE.calc2List({
+	(yield (Qb.calc2List({
 		"from":BUG_SUMMARY.allPrograms,
 		"edges":["projectName"]
 	}))).list.forall(function(v, i){
@@ -264,7 +264,7 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 
 	a=Log.action("Process Data", true);
 
-	var r=(yield (CUBE.calc2List(joinItAll))).list;
+	var r=(yield (Qb.calc2List(joinItAll))).list;
 
 	//REMOVE EDGES
 	for(let e=edgeList.length;e--;){

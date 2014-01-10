@@ -180,7 +180,7 @@ Dimension.prototype={
 
 			if (dim.limit===undefined) dim.limit=DEFAULT_QUERY_LIMIT;
 
-			if (dim.field!==undefined && CUBE.domain.PARTITION.contains(dim.type) && dim.partitions===undefined){
+			if (dim.field!==undefined && Qb.domain.PARTITION.contains(dim.type) && dim.partitions===undefined){
 				dim.field=Array.newInstance(dim.field);
 
 				dim.partitions=Thread.run(function(){

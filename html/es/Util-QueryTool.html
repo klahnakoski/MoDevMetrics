@@ -19,7 +19,7 @@
 
 	<hr>
 	<div id="description">
-		Converts Qbic queries to ElasticSearch queries.  <a href="https://github.com/klahnakoski/MoDevMetrics/blob/master/docs/CUBE.md">Reference Documentation</a>
+		Converts Qbic queries to ElasticSearch queries.  <a href="https://github.com/klahnakoski/MoDevMetrics/blob/master/docs/Qb.md">Reference Documentation</a>
 	</div>
 	<hr>
 	<div id="testMessage"></div>
@@ -91,7 +91,7 @@
 		var executeCube = function(event){ //THIS IS A GENERATOR
 			var index = $("#long2date").val();
 
-			//EVAL THE CUBE
+			//EVAL THE Qb
 			var code = $("#cube").val();
 			if (code.trim().left(1) != "{") code = "{" + code;
 			if (code.trim().right(1) != "}") code = code + "}";
@@ -125,7 +125,7 @@
 				Log.action("Got result");
 
 				if (data.cube !== undefined){
-					data.list = yield(CUBE.Cube2List(data));
+					data.list = yield(Qb.Cube2List(data));
 					$("#result").html("<div>" + data.list.length + " rows (up to 100 shown)</div>" + CNV.List2HTMLTable(data.list, {"limit":3000}));
 				} else if (data.list !== undefined){
 					$("#result").html("<div>" + data.list.length + " rows (up to 100 shown)</div>" + CNV.List2HTMLTable(data.list, {"limit":3000}));

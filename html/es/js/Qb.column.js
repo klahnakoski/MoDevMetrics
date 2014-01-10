@@ -2,12 +2,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-if (CUBE===undefined) var CUBE = {};
+if (Qb===undefined) var Qb = {};
 
 
-CUBE.column = {};
+Qb.column = {};
 
-CUBE.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //useMVEL TO INDICATE THIS IS AN ES COLUMN
+Qb.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //useMVEL TO INDICATE THIS IS AN ES COLUMN
 
 	if (typeof(resultColumn)=='string'){
 		Log.error("expecting a column definition, not a string");
@@ -17,9 +17,9 @@ CUBE.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //
 
 	if (resultColumn.domain){
 		if (resultColumn.domain.compare===undefined)
-			CUBE.domain.compile(resultColumn, sourceColumns);
+			Qb.domain.compile(resultColumn, sourceColumns);
 	}else{
-		resultColumn.domain=CUBE.domain.value;
+		resultColumn.domain=Qb.domain.value;
 	}//endif
 
 	resultColumn.sortOrder = 1;
@@ -107,8 +107,8 @@ CUBE.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //
 
 
 //MAKE THE WHERE TEST METHOD
-CUBE.where = {};
-CUBE.where.compile = function(whereClause, sourceColumns, edges){
+Qb.where = {};
+Qb.where.compile = function(whereClause, sourceColumns, edges){
 	var whereMethod = null;
 
 

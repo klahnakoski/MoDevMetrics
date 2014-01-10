@@ -79,7 +79,7 @@ var __createChart = function(){
 	Log.actionDone(a);
 
 
-	CUBE.normalizeByCohort(chartCube, 100);
+	Qb.normalizeByCohort(chartCube, 100);
 	var last=chartCube.edges[1].domain.partitions.length-1;
 	chartCube.edges[1].domain.NULL.name=chartCube.edges[1].domain.partitions[last].max.toString()+" and over";
 

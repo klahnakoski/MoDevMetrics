@@ -13,7 +13,7 @@ aCompile.method_usingObjects=function(code, contextObjects){
 
 	var contextTypes=[];
 	contextObjects.forall(function(v, i){
-		contextTypes[i]={"columns":CUBE.getColumnsFromList([v])};
+		contextTypes[i]={"columns":Qb.getColumnsFromList([v])};
 	});
 
 	return aCompile.method(code, contextTypes);

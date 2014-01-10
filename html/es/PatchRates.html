@@ -163,7 +163,7 @@ importScript([
 				Thread.run(function(){
 					var s=chart.select.map(function(v){ if (v.name==series) return v;})[0];
 
-					var buglist=(yield (CUBE.calc2List({
+					var buglist=(yield (Qb.calc2List({
 						"from":patches,
 						"select":{"name":"bug_id", "value":"("+s.value+") ? attachment.split('|')[0]-0 : null"},
 						"where":x.getMilli()+"<closed_ts && created_ts<"+x.add(sampleInterval).getMilli()
@@ -204,7 +204,7 @@ importScript([
 				Thread.run(function(){
 					var s=chart.select.map(function(v){ if (v.name==series) return v;})[0];
 
-					var buglist=(yield (CUBE.calc2List({
+					var buglist=(yield (Qb.calc2List({
 						"from":patches,
 						"select":{"name":"bug_id", "value":"("+s.value+") ? attachment.split('|')[0]-0 : null"},
 						"where":x.getMilli()+"<closed_ts && created_ts<"+x.add(sampleInterval).getMilli()
@@ -250,7 +250,7 @@ importScript([
 			"clickAction":function(series, x, d){
 				Thread.run(function(){
 					if (x==ages.edges[0].domain.NULL.name){
-						var buglist=(yield (CUBE.calc2List({
+						var buglist=(yield (Qb.calc2List({
 							"from":patches,
 							"select":{"name":"bug_id", "value":"attachment.split('|')[0]-0"},
 							"where":"created_ts<"+Date.eod().addWeek(-12).getMilli()
@@ -259,7 +259,7 @@ importScript([
 						x=Duration.newInstance(x);
 						var x2=x.add(Duration.WEEK);
 
-						var buglist=(yield (CUBE.calc2List({
+						var buglist=(yield (Qb.calc2List({
 							"from":patches,
 							"select":{"name":"bug_id", "value":"attachment.split('|')[0]-0"},
 							"where":Date.eod().subtract(x2).getMilli()+"<created_ts && created_ts<"+Date.eod().subtract(x).getMilli()

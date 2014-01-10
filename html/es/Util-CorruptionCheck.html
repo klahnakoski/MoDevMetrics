@@ -33,7 +33,7 @@ importScript(["js/main.js"], function(){
 			"esfilter":{"range":{"modified_ts":{"gte":Date.now().addMonth(-3).getMilli()}}}
 		}));
 
-		var numBad=yield (CUBE.calc2List({
+		var numBad=yield (Qb.calc2List({
 			"from":result,
 			"select":[
 				{"name":"bug ID", "value":"bug_id"},
@@ -58,7 +58,7 @@ importScript(["js/main.js"], function(){
 			"esfilter":{"terms":{"bug_id":numBad.list.map(function(v){return v["bug ID"];})}}
 		}));
 
-		var fixed=yield (CUBE.calc2List({
+		var fixed=yield (Qb.calc2List({
 			"from":{
 				"select":[
 					{"value":"_id"},

@@ -169,7 +169,7 @@ var __createChart = function(){
 		details.columns.push({"name":"min"});
 		details.columns.push({"name":"max"});
 
-		details=yield (CUBE.calc2List({
+		details=yield (Qb.calc2List({
 			"from":details,
 			"select":[
 				{"name":"ID", "value":"Bugzilla.linkToBug(bug_id)"},
@@ -258,7 +258,7 @@ var __createChart = function(){
 				var field = {"New":"min", "Closed":"max"}[series];
 
 				Thread.run(function(){
-					var buglist=(yield (CUBE.calc2List({
+					var buglist=(yield (Qb.calc2List({
 						"from":allBugs,
 						"select":{"value":"bug_id"},
 						"where":""+field+"!==undefined && "+field+".between("+CNV.Date2Code(part.min)+", "+CNV.Date2Code(part.max)+")"

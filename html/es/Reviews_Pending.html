@@ -55,12 +55,12 @@
 <script type="application/javascript;version=1.7" src="js/MVEL.js"></script>
 
 <script type="application/javascript;version=1.7" src="lib/jsThreads/thread.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.analytic.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.aggregate.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.column.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.cube.js"></script>
-<script type="application/javascript;version=1.7" src="js/CUBE.domain.js"></script>
+<script type="application/javascript;version=1.7" src="js/Qb.js"></script>
+<script type="application/javascript;version=1.7" src="js/Qb.analytic.js"></script>
+<script type="application/javascript;version=1.7" src="js/Qb.aggregate.js"></script>
+<script type="application/javascript;version=1.7" src="js/Qb.column.js"></script>
+<script type="application/javascript;version=1.7" src="js/Qb.cube.js"></script>
+<script type="application/javascript;version=1.7" src="js/Qb.domain.js"></script>
 <script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script>
 <script type="application/javascript;version=1.7" src="js/ESQuery.js"></script>
 <script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
@@ -161,7 +161,7 @@
 								]);
 
 			var reviews=					//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
-					(yield (CUBE.calc2List({
+					(yield (Qb.calc2List({
 						"from":
 							esResult,
 						"select": {"name":"age", "value":"Date.now().floor('day').getMilli()-modified_ts", aggregate:"minimum"},
@@ -173,7 +173,7 @@
 
 
 
-			var average = (yield (CUBE.calc2List({
+			var average = (yield (Qb.calc2List({
 				"from": reviews,
 				"select": {"name":"avg_age", "value":"age", aggregate:"average"}
 			}))).list[0].avg_age;
@@ -198,7 +198,7 @@
 			);
 
 
-			var result = (yield (CUBE.calc2List({
+			var result = (yield (Qb.calc2List({
 				"from": reviews,
 				"select":[
 					{"name":"avg_age", "value":"age", aggregate:"average"},
@@ -214,7 +214,7 @@
 			}))).list;
 
 			//ADD LINK TO BUGS
-			result=(yield (CUBE.calc2List({
+			result=(yield (Qb.calc2List({
 				"from":result,
 				"select":[
 					{"name":"requestee", "value":"requestee"},

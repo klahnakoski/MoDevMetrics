@@ -24,7 +24,7 @@ indexes.forall(function(index, i){
 			};
 			var result=yield (ESQuery.run(query));
 
-			var result2=yield (CUBE.calc2List({
+			var result2=yield (Qb.calc2List({
 				"from":result,
 				"edges":[
 					col.name

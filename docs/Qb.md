@@ -1,4 +1,4 @@
-Cube Queries
+Qb Queries
 ============
 
 MOTIVATION
@@ -51,7 +51,7 @@ Each of the clauses are executed in a particular order, irrespective of their or
 QUERY STRUCTURE
 ---------------
 
-Queries are in a JSON structure which can be interpreted by ESQuery.js (for ES requests, limited by ES’s functionality) and by CUBE.js (for local processing with Javascript).
+Queries are in a JSON structure which can be interpreted by ESQuery.js (for ES requests, limited by ES’s functionality) and by Qb.js (for local processing with Javascript).
 
 from
 ----
@@ -232,9 +232,9 @@ Pre-defined dimensions simplify queries, and double as type information for the 
 Incomplete Bits
 ---------------
 
-There are some parts of CUBE that have not been fully thought out and refactored to match.
+There are some parts of Qb that have not been fully thought out and refactored to match.
 
-CUBE.merge
+Qb.merge
 ---------
 
 Technically, cubes should be implemented as a single (multidimensional) array of
@@ -250,7 +250,7 @@ projects as a constant over the other dimensions in the cube.  Again, we see edg
 
 Here is some old symantics, It must be expanded to any number of dimensions.
 
-    CUBE.merge({"cubes":[
+    Qb.merge({"cubes":[
         {"from":s0, "edges":["test_name", "date"]},
     	{"from":s1, "edges":["test_name", "date"]}
     ]})

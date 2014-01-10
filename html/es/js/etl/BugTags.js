@@ -146,7 +146,7 @@ BUG_TAGS.get=function(minBug, maxBug, minDate, maxDate){
 //Log.note(CNV.List2Tab(current.list));
 	
 	Log.action("Generate per-day stats");
-	var results=(yield(CUBE.calc2List({
+	var results=(yield(Qb.calc2List({
 		"from":current,
 		"select":[
 			{"name":"bug_status", "value":"bug_status", "aggregate":"one"},
