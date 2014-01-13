@@ -136,6 +136,7 @@ ESQuery.loadColumns=function(query){
 	if (indexInfo.fetcher === undefined) {
 		indexInfo.fetcher=Thread.run(function(){
 			var URL=nvl(query.url, nvl(indexInfo.host, ElasticSearch.baseURL) + indexPath) + "/_mapping";
+			var pathLength=URL.split("/").length-3;  //ASSUME http://host/indexname....
 
 			try{
 				var schema = yield(Rest.get({
@@ -150,9 +151,27 @@ ESQuery.loadColumns=function(query){
 				Log.error("problem with call to load columns", e);
 			}//try
 
-			var properties = schema[indexPath.split("/")[2]].properties;
+			if (pathLength==2){
+				//CHOOSE AN INDEX
+				prefix=URL.split("/")[3];
+				indicies = Object.keys(schema);
+				if (indicies.length==1){
+					schema = schema[indicies[0]]
+				}else{
+					schema = mapAllKey(function(k, v){ if (k.startsWith(prefix)) return v;})[0]
+				}//endif
+			}//endif
 
+			var types=Object.keys(schema);
+			if (types.length==1){
+				properties=schema[types[0]];
+			}else if (schema[indexPath.split("/")[2]]!==undefined){
+				properties = schema[indexPath.split("/")[2]].properties;
+			}else{
+				properties=schema[types[0]];
+			}//endif
 			indexInfo.columns = ESQuery.parseColumns(indexName, undefined, properties);
+
 			yield(null);
 		});
 	}//endif

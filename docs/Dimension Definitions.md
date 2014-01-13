@@ -2,7 +2,7 @@
 Dimension Definitions
 ---------------------
 
-To simplify query writing, we borrow from the Business Intelligence software field and define a complicated type hierarchy over the various fields and measures found in the cube.  Beyond query simplification, we also get minor ETL, a central schema definition, improved formatting, and organization.
+To simplify query writing, we borrow from the Business Intelligence software field and define a type hierarchy over the various fields and measures found in the cube.  Beyond query simplification, we also get minor ETL, a central schema definition, improved formatting, and organization.
 
 A dimension can consists of child edges or child partitions.  Child edges are allowed to overlap each other's domains, and represent orthogonal ways to cut the same data.  Child partitions divide the dimension into mutually exclusive parts.  A well-behaved partition will cover the dimension's domain, ill-behaved partitions are "compiled" to be well-behaved so nothing is missed.
 

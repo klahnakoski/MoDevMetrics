@@ -11,7 +11,6 @@
 
 
 <h3>MoDevMetrics Query Tool</h3>
-
 <div id="sidebar">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Ready</span><span class="loading"><img src="../images/spinner.gif" alt=""></span>
@@ -19,13 +18,18 @@
 
 	<hr>
 	<div id="description">
-		Converts Qbic queries to ElasticSearch queries.  <a href="https://github.com/klahnakoski/MoDevMetrics/blob/master/docs/Qb.md">Reference Documentation</a>
+		Converts Qbic queries to ElasticSearch queries. <ul>
+		<li><a href="https://github.com/klahnakoski/MoDevMetrics/blob/master/docs/Qb-Reference.md">Reference Documentation</a></li>
+		<li><a href="https://github.com/klahnakoski/MoDevMetrics/blob/master/docs/BZ-Tutorial.md">Tutorial</a></li>
+		</ul>
 	</div>
 	<hr>
 	<div id="testMessage"></div>
 	<hr>
 	<div id="tools" class="parameters">
-		Index: <input id="index" name="Index" value=""><br>
+		Override ES URL: <input id="index" name="Index" value=""><br>
+		<hr>
+		<b>Time Tools</b><br>
 		Current Time: <div id="currtime"></div>
 		MilliTimeStamp:<input id="long2date" name="long2date" value="">
 		<div id="long2dateResult"></div>
@@ -66,7 +70,7 @@
 
 		Thread.run(function(){
 			while(true){
-				$("#currtime").html(""+ aMath.round(Date.now().getMilli(), 3));
+				$("#currtime").html(""+ aMath.round(Date.now().getMilli(), -3));
 				yield (Thread.sleep(333));
 			}//while
 		});
@@ -106,6 +110,10 @@
 
 				var query;
 				eval("query=" + code);
+				var url=$("#index").val();
+				if (url.trim()!=""){
+					query.url=url+"/"+query.from;
+				}
 				yield(ESQuery.loadColumns(query));
 				cubeQuery = new ESQuery(query);
 				$("#esquery").val(CNV.Object2JSON(cubeQuery.esQuery));

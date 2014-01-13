@@ -1,5 +1,5 @@
-Qb Queries
-============
+Qb (pronounced kyo͞ob) Queries
+==============================
 
 MOTIVATION
 ----------
@@ -16,13 +16,13 @@ I want to extend SQL with the good parts of MDX to provide a ETL data transforma
 NOMENCLATURE
 ------------
 
-  - **cube** – a data structure with edges 
-  - **edge** – defines how the data will be grouped  
-  - **domain** – every edge has a domain which defines it’s valid values
-  - **partition** – every domain is partitioned into parts, internally this is an ordered array of mutually exclusive parts.
-  - **part** – one part of a partition
-  - **part objects** - Partitions are often an array of objects (with a name, value, and other attributes).  These objects usually represent the values along the axis of a chart.  
-  - **cell** – a unique tuple representing one part from each edge 
+  - **cube** – a set of values in an n-space.  A good example for n=2 is a spreadsheet.
+  - **edge** – each edge defines a dimension of the cube and the topology of that dimension.  Our spreadsheet example has two dimensions: Rows and Columns.
+  - **domain** – every edge has a domain which defines it’s valid values.  The spreadsheet's rows have natual numbers as thier domain (1, 2, 3, ...) and the columns are in the alphabet domain (A, B, C, ....)
+  - **partition** – every domain can be partitioned in multiple ways.  Each partition is an ordered array of mutually exclusive parts that cover the domain.  In the case of the spreadsheet, you may want to group many rows, or many columns together and treat them all the same.  Maybe columns are retail outlets, grouped by region, and rows are customers, group by demographic
+  - **part** – one part of a partition.  Eg "north-east region", or "under 20"
+  - **part objects** - Partitions are often an array of objects (with a name, value, and other attributes).  These objects usually represent the values along the axis of a chart.  Eg {"name": "NorthEast", "director":"Ann"} {"name":"Under 20", "display color":"blue"}
+  - **cell** – a unique tuple representing one part from each edge:  Simply an array of part objects.
   - **value** - 
   - **object** - 
   - **attribute** - 
@@ -185,7 +185,7 @@ Pre-defined dimensions simplify queries, and double as type information for the 
  
         var details=yield(ESQuery.run({
             "from":"bugs",
-			"select":[
+    		"select":[
 				"bug_id",
 				Mozilla.BugStatus.getSelect(),
 				"assigned_to",
