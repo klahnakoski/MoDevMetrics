@@ -4,18 +4,34 @@ MVEL Tutorial
 About MVEL
 ----------
 
-All of the queries in this section require writing scripts in a [scripting language called MVEL](http://mvel.codehaus.org/). MVEL is powerful because it is ES's default scripting langauge, it is run server-side, and can be used to further analyse documents before the query results are returned.
+All of the queries in this section require writing scripts in a [scripting
+language called MVEL](http://mvel.codehaus.org/). MVEL is powerful because it
+is ES's default scripting language, it is run server-side, and can be used to
+further analyse documents before the query results are returned.
 
-MVEL is fine for short scripts, but becomes tricky as the code logic becomes more complex, mainly because of poor documentation.  I chose stick with MVEL, over otherpluggable scripting langauges, becasue I wanted ES installation to remain easy for others.
+MVEL is fine for short scripts, but becomes tricky as the code logic becomes
+more complex, mainly because of poor documentation.  I chose MVEL over other
+pluggable scripting languages, because I wanted ES installation to remain easy
+for others.
 
-**MVEL has been disabled on the public cluster** because it is has access to all the references inside the Java virtual machine.  If you want to perform the queries in this tutorial you must [setup your own cluster](Replication.md) and replicate the public ES cluster.
+**MVEL has been disabled on the public cluster** because it is has access to
+all the references inside the Java virtual machine.  If you want to perform
+the queries in this tutorial you must [setup your own cluster](Replication.md)
+and replicate the public ES cluster.
 
 
 
 Open Bugs, Over Time
 --------------------
 
-ElasticSearch has the [Date Histogram](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-facets-date-histogram-facet.html) which can be used to group documents by thier timestamps.  This does not work for the Bugzilla data in ES; Bug version records are valid for a time range, there can be multiple records for any given time interval, and there can multiple time intervals covered by a single version document.  Because of this many-many relation, we use one facet for each interval we are interested in.  In this case, we are interested in 26 weeks of date from end fo June to end of December.
+ElasticSearch has the [Date Histogram](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-facets-date-histogram-facet.html)
+which can be used to group documents by their timestamps.  This does not work
+for the Bugzilla data in ES; Bug version records are valid for a time range,
+there can be multiple records for any given time interval, and there can
+multiple time intervals covered by a single version document.  Because of this
+many-many relation, we use one facet for each interval we are interested in.
+In this case, we are interested in 26 weeks of date from end fo June to end of
+December.
 
 
 <table>
@@ -82,7 +98,9 @@ ElasticSearch has the [Date Histogram](http://www.elasticsearch.org/guide/en/ela
 		}
 	}]
 }</pre><br>
-<i>The Qb query edges array defines how the data is grouped (aka partitioned) before the aggregate is calculated.  The Qb result will contain data for evey partition in the domain, even if it is empty.</i>
+<i>The edges clause defines how the data is grouped (aka partitioned)
+before the aggregate is calculated.  The Qb result will contain data for evey
+partition in the domain, even if it is empty.</i>
 </td>
 </tr>
 </table>
