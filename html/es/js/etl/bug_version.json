@@ -769,7 +769,8 @@
 				"index": "not_analyzed"
 			},
 			"changes":{
-				"enabled": false,
+				"type": "nested",
+				"dynamic": "strict",
 				"properties":{
 					"attach_id":{
 						"type": "integer"

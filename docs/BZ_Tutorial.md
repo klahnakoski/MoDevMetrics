@@ -1,8 +1,6 @@
 
 
 
-
-
 Running Examples (Query Tool)
 -----------------------------
 
@@ -314,11 +312,79 @@ look at the number of open bugs back in Jan 1st, 2010:
 </tr>
 </table>
 
+Group By
+--------
 
-Open Bugs, Over Time
---------------------
+ElasticSearch's has a limited form of GroupBy called "facets".  Facets are
+strictly one dimensional, so grouping by more than one column will require
+MVEL scripting or many facets.  Furthermore, facets are limited to using the
+unique values of the data.
 
-ElasticSearch has the [Date Histogram](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-facets-date-histogram-facet.html) which can be used to group documents by thier timestamps.  This does not work for the Bugzilla data in ES; Bug version records are valid for a time range, there can be multiple records for any given time interval, and there can multiple time intervals covered by a single version document.
+In this eaxmple, we are simply count the number of bug version records for each
+block of 50K bug_ids:
+
+<table>
+<tr>
+<td>
+<b>ElasticSearch</b><br>
+<pre>{
+  "query":{"filtered":{
+    "query":{"match_all":{}},
+    "filter":{"and":[{"match_all":{}}]}
+  }},
+  "from":0,
+  "size":0,
+  "sort":[],
+  "facets":{
+    "0":{
+      "terms":{"field":"bug_id","size":0},
+      "facet_filter":{"and":[
+        {"range":{"bug_id":{"gte":0,"lt":50000}}}
+      ]}
+    },
+    ...snip 19 others ...
+    "20":{
+      "terms":{"field":"bug_id","size":0},
+      "facet_filter":{"and":[
+        {"range":{"bug_id":{"gte":1000000,"lt":1050000}}}
+      ]}
+    }
+  }
+}</pre>
+</td>
+<td>
+<b>Qb Query</b>
+<pre>{
+  "from":"public_bugs",
+  "select":{
+    "name":"num",
+    "value":"bug_id",
+    "aggregate":"count"
+  },
+  "edges":[{
+    "value":"bug_id",
+    "domain":{
+      "type":"numeric",
+      "min":0,
+      "max":1000000,
+      "interval":50000,
+      "isFacet":true
+    }
+  }]
+}</pre><br>
+Qb queries allow you to specify how to group data by using the <code>domain</code>
+sub-clause.  The number of unique parts in the domain must be known at request
+time.
+</td>
+</tr>
+</table>
+
+
+More
+----
+
+[More sophisticated queries are next](MVEL_Tutorial.md)
+
 
 
 
@@ -328,18 +394,6 @@ ElasticSearch Features
   * [Date Histogram](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-facets-date-histogram-facet.html) - Group a timestamp by year, quarter, month, week, day, hour, minute.
   * [Relations and Joins](http://blog.squirro.com/post/45191175546/elasticsearch-and-joining) - Setup parent/child relations and query both in single request.
   * [General Joins](https://github.com/elasticsearch/elasticsearch/issues/2674) - Cache a query result and then use it in subsequent queries.
-
-
-Closing Bugs
-------------
-
-
-Number of bugs at a certain time
-
-
-Opening Bugs
-
-Closing Bugs
 
 
 

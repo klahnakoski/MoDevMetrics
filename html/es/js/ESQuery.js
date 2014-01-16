@@ -41,9 +41,17 @@ ESQuery.INDEXES={
 	"tor_public_bugs":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/public_bugs/bug_version"},
 	"tor_private_bugs":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/private_bugs/bug_version"},
 	"bug_hierarchy":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/bug_hierarchy/bug_hierarchy"},
+	//TODO: HAVE CODE SCAN SCHEMA FOR NESTED OPTIONS
+	"public_bugs.changes":{},
+	"public_bugs.attachments":{},
+	"public_bugs.attachments.flags":{},
+	"private_bugs.changes":{},
+	"private_bugs.attachments":{},
+	"private_bugs.attachments.flags":{},
 	"bugs.changes":{},
 	"bugs.attachments":{},
 	"bugs.attachments.flags":{},
+	
 	"reviews":{"path":"/reviews/review"},
 	"bug_summary":{"path":"/bug_summary/bug_summary"},
 	"bug_tags":{"path":"/bug_tags/bug_tags"},
@@ -419,6 +427,7 @@ ESQuery.prototype.compile = function(){
 
 			//FACETS ARE ONLY REQUIRED IF SQL JOIN ON DOMAIN IS REQUIRED (RANGE QUERY)
 			//OR IF WE ARE NOT SIMPLY COUNTING
+			//OR IF NO SCRIPTING IS ALLOWED (SOME OTHER CODE IS REPOSIBLE FOR SETTING isFacet)
 			//OR IF WE JUST WANT TO FORCE IT :)
 			if (this.termsEdges[f].range || this.esMode!="terms" || this.termsEdges[f].domain.isFacet){
 				this.facetEdges.push(this.termsEdges[f]);
@@ -474,7 +483,14 @@ ESQuery.prototype.buildFacetQueries = function(){
 		var value=this.compileEdges2Term(constants);
 
 		if (this.esMode=="terms"){
-			if (value.type=="field"){
+			if (value.type=="count"){
+				q.value={
+					"terms":{
+						"field":this.select[0].value, //PICK WHATEVER VALUE WE CAN
+						"size": 0  //DO NOT COUNT, THE SUMMARY WILL DO FINE
+					}
+				};
+			}else if (value.type=="field"){
 				q.value={
 					"terms":{
 						"field":value.value,
@@ -562,8 +578,14 @@ ESQuery.buildCondition = function(edge, partition, query){
 	var output = {};
 
 	if (edge.domain.isFacet){
-		//MUST USE THIS' esFacet, AND NOT(ALL THOSE ABOVE)
-		var condition=partition.esfilter;
+		//MUST USE THIS' esFacet
+		var condition=nvl(partition.esfilter, {"and":[]});
+
+		if (partition.min!==undefined && partition.max!==undefined && MVEL.isKeyword(edge.value)){
+			condition.and.push({
+				"range":Map.newInstance(edge.value, {"gte":partition.min, "lt":partition.max})
+			})
+		}
 
 		//ES WILL FREAK OUT IF WE SEND {"not":{"and":x}} (OR SOMETHING LIKE THAT)
 //		var parts=edge.domain.partitions;
@@ -750,7 +772,8 @@ ESQuery.prototype.buildESStatisticalQuery=function(value){
 
 //GIVE MVEL CODE THAT REDUCES A UNIQUE TUPLE OF PARTITIONS DOWN TO A UNIQUE TERM
 //GIVE JAVASCRIPT THAT WILL CONVERT THE TERM BACK INTO THE TUPLE
-//RETURNS TUPLE OBJECT WITH "type" and "value" ATTRIBUTES.  "type" CAN HAVE A VALUE OF "script" OR "field"
+//RETURNS TUPLE OBJECT WITH "type" and "value" ATTRIBUTES.
+//"type" CAN HAVE A VALUE OF "script", "field" OR "count"
 //CAN USE THE constants (name, value pairs) 
 ESQuery.prototype.compileEdges2Term=function(constants){
 	var self=this;
@@ -785,7 +808,7 @@ ESQuery.prototype.compileEdges2Term=function(constants){
 			this.term2Parts=function(term){
 				return [];
 			};
-			return {"type":"script", "value":"1"};
+			return {"type":"count", "value":"1"};
 		}//endif
 	}//endif
 
@@ -1049,6 +1072,7 @@ ESQuery.compileNullTest=function(edge){
 
 
 ESQuery.prototype.termsResults=function(data){
+	var self=this;
 
 	if (data.facets === undefined || data.facets.length==0){
 		//SIMPLE ES QUERY
@@ -1093,23 +1117,61 @@ ESQuery.prototype.termsResults=function(data){
 
 
 
-	//MAKE Qb
+	//MAKE CUBE
 	var select=this.query.select;
 	if (select===undefined) select=[];
 	var cube= Qb.cube.newInstance(this.query.edges, 0, select);
 
 	
-	//FILL Qb
+	//FILL CUBE
 	//PROBLEM HERE IS THE INTERLACED EDGES
 	for(var k = 0; k < facetNames.length; k++){
 		var coord = facetNames[k].split(",");
+		var facet = data.facets[facetNames[k]];
+
+		if (this.termsEdges.length==0){
+			//EXPECTING ZERO TERMS, JUST facet.total
+			//MAKE THE INSERT LIST
+			parts = this.facetEdges.map(function(f,i){
+				return f.domain.partitions[coord[i]];
+			});
+
+			var d = cube;
+			var t = 0;
+			var length = parts.length;
+			if (select instanceof Array){
+				for(; t < length; t++){
+					if (parts[t].dataIndex == d.length) continue;  //IGNORE NULLS
+					d = d[parts[t].dataIndex];
+					if (d === undefined) continue;		//WHEN NULLS ARE NOT ALLOWED d===undefined
+				}//for
+				for(var s = 0; s < select.length; s++){
+					d[select[s].name] = facet.total
+				}//for
+			} else if (length == 0){
+				cube = terms[i].count;
+			} else{
+				length--;
+				for(; t < length; t++){
+					if (parts[t].dataIndex == d.length) continue;  //IGNORE NULLS
+					d = d[parts[t].dataIndex];
+					if (d === undefined) continue;		//WHEN NULLS ARE NOT ALLOWED d===undefined
+				}//for
+				if (d[parts[t].dataIndex] === undefined)
+					continue;			//WHEN NULLS ARE NOT ALLOWED d===undefined
+				d[parts[t].dataIndex] = facet.total;
+			}//endif
+			continue;
+		}//endif
+
+		//EXPECTING ACTUAL TERMS
 		//MAKE THE INSERT LIST
 		var interlaceList=[];
 		this.facetEdges.forall(function(f,i){
 			interlaceList.push({"index":f.index, "value": f.domain.partitions[coord[i]]});
 		});
 
-		var terms = data.facets[facetNames[k]].terms;
+		var terms = facet.terms;
 		II: for(var i = 0; i < terms.length; i++){
 			var parts = this.term2Parts(terms[i].term);
 			for(var j = 0; j < interlaceList.length; j++){
@@ -1296,12 +1358,14 @@ ESQuery.prototype.terms_statsResults = function(data){
 
 
 ESQuery.prototype.compileSetOp=function(){
-	self=this;
+	var self=this;
 	this.esQuery=this.buildESQuery();
 	var select=Array.newInstance(this.query.select);
 
+	var isDeep=self.query.from.split(".").length>1;
+
 	//WE CAN OPTIMIZE WHEN ALL THE FIELDS ARE SIMPLE ENOUGH
-	this.esMode="fields";
+	this.esMode = isDeep ? "setop": "fields";
 	select.forall(function(s, i){
 		if (!MVEL.isKeyword(s.value) || s.value.indexOf(".")>=0){
 			self.esMode="setop";  //RETURN TO setop
@@ -1314,7 +1378,7 @@ ESQuery.prototype.compileSetOp=function(){
 		if (this.query.select.value!="_source"){
 			this.esQuery.fields=select.map(function(s){return s.value;});
 		}//endif
-	}else if (select.length==1 && MVEL.isKeyword(select[0].value)){
+	}else if (!isDeep && select.length==1 && MVEL.isKeyword(select[0].value)){
 		this.esQuery.facets.mvel={
 			"terms":{
 				"field": select[0].value,
@@ -1385,6 +1449,7 @@ ESQuery.prototype.mvelResults=function(data){
 var ESFilter={};
 
 ESFilter.simplify=function(esfilter){
+
 	return esfilter;
 
 	//THIS DOES NOT WORK BECAUSE "[and] filter does not support [product]"

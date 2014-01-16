@@ -19,7 +19,6 @@ Qb.domain.compile = function(column, sourceColumns){
 
 	var domain=column.domain;
 	var type=domain.type;
-
 	if (type===undefined && domain.partitions!==undefined){
 		type="set";
 		if (domain.name==="undefined") Log.warning("it is always good to name your domain");
@@ -32,11 +31,10 @@ Qb.domain.compile = function(column, sourceColumns){
 		if (domain.name===undefined) domain.name="boolean"; //KEEP THE NAME
 		type="set";
 	}//endif
-	
+	domain.type=type;
+
 	if (type===undefined)
 		Log.error("Expecting a domain to have a 'type' attribute");
-
-
 
 	if (type=="value"){
 		domain=Qb.domain.value;
