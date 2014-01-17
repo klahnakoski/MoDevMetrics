@@ -26,8 +26,10 @@ importScript(["js/main.js"], function(){
 	//ES CAN BE OUT-OF-SYNCH WITH BZ ON PARTICULAR BUGS DURING UNSTABLE PERIODS
 
 	Thread.run(function(){
+		var a = Log.action("Find suspicious bugs", true);
+
 		var result=yield (ESQuery.run({
-			"from":"bugs",
+			"from":"private_bugs",
 			"select":{"name":"num_null", "value":"expires_on>"+Date.eod().getMilli()+" ? 1 : 0", "aggregate":"sum"},
 			"edges":["bug_id"],
 			"esfilter":{"range":{"modified_ts":{"gte":Date.now().addMonth(-3).getMilli()}}}
@@ -42,12 +44,15 @@ importScript(["js/main.js"], function(){
 			"where":"num_null!=1"
 		}));
 
+		numBad.list=numBad.list.left(100);
 		$("#results").html(CNV.List2HTMLTable(numBad));
+		Log.actionDone(a);
 
 
+		a = Log.action("Get suspicious bug details", true);
 		//FIX THEM?
 		var broken=yield (ESQuery.run({
-			"from":"bugs",
+			"from":"private_bugs",
 			"select":[
 				{"value":"_id"},
 				{"value":"bug_id"},
@@ -57,11 +62,12 @@ importScript(["js/main.js"], function(){
 			],
 			"esfilter":{"terms":{"bug_id":numBad.list.map(function(v){return v["bug ID"];})}}
 		}));
+		Log.actionDone(a);
 
 		var fixed=yield (CUBE.calc2List({
 			"from":{
 				"select":[
-					{"value":"_id"},
+					{"name":"_id", "value":"bug_id+'_'+(''+modified_ts).leftBut(3)"},
 					{"value":"bug_id"},
 					{"value":"modified_ts"},
 					{"name":"expires_on", "value":"Date.newInstance(expires_on)==null ? null : expires_on"},
@@ -85,15 +91,18 @@ importScript(["js/main.js"], function(){
 
 
 		//GET ALL THE SOURCES OF THE BAD RECORDS
+		var a = Log.action("Get bug _source json", true);
 		var sources=[];
 		for(var i=fixed.list.length;i--;){
 			var v=fixed.list[i];
 			var output=yield (Rest.get({
-				url: window.ElasticSearch.baseURL+"/bugs/bug_version/"+v._id,
+				url: window.ElasticSearch.baseURL+"/private_bugs/bug_version/"+v._id,
 				dataType: "json"
 			}));
-			sources.append(output._source)
+			output._source._id=v._id;
+			sources.append(output._source);
 		}
+		Log.actionDone(a);
 
 		//ASSIGN NEW expires_on
 		var fixer={};
@@ -105,14 +114,18 @@ importScript(["js/main.js"], function(){
 		sources.forall(function(s){
 			s.expires_on=fixer[s._id];
 //			if (s.bug_id==902525){
-				bulk.append(JSON.stringify({ "index" : { "_id" : s._id } }));
+//			bulk.append(JSON.stringify({ "delete" : { "_id" : s._id } }));
+			bulk.append(JSON.stringify({ "index" : { "_id" : s._id } }));
 				bulk.append(JSON.stringify(s));
 //			}//endif
 		});
 
 		// REMOVE COMMENT TO APPLY FIX
-//		yield (ElasticSearch.bulkInsert("bugs", "bug_version", bulk));
+		a = Log.action("bulk index fixes", true);
+		yield (ElasticSearch.bulkInsert("bugs", "bug_version", bulk));
+		Log.actionDone(a);
 
+		
 		$("#fixes").html(CNV.List2HTMLTable(fixed));
 
 

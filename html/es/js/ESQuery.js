@@ -34,7 +34,8 @@ ESQuery.DEBUG=false;
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
 	"bugs":{"path":"/bugs/bug_version"},
-	"public_bugs":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9292", "path":"/public_bugs/bug_version"},
+	"public_bugs":{"host":"http://elasticsearch2.bugs.scl3.mozilla.com:9200", "path":"/public_bugs/bug_version"},
+	"private_bugs":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/private_bugs/bug_version"},
 	"public_comments":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9292", "path":"/public_comments/bug_comment"},
 
 	"tor_bugs":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/bugs/bug_version"},
