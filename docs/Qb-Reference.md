@@ -1,19 +1,23 @@
 Qb (pronounced kyo͞ob) Queries
 ==============================
 
-MOTIVATION
+Motivation
 ----------
 
-Data cubes facilitate strong typing of data volumes.  Thier cartesian nature make counting and aggregation trival, and make them provably correct operations.
+Data cubes facilitate strong typing of data volumes.  Thier cartesian nature make counting and aggregation trival, and make them provably correct operations. [MultiDimensional query eXpressions (MDX)](http://en.wikipedia.org/wiki/MultiDimensional_eXpressions) takes advantage of this simple data format to provide a simple query language to filter and group by.  Unfortunatly, MDX is too simple for general use, and requires copious up-front work to get the data in the cubic form required.
 
-[Multidimensional Query Expressions (MDX)](http://en.wikipedia.org/wiki/MultiDimensional_eXpressions) takes advantage of this simple data format to provide a simple query language to filter and group by.  Unfortunatly, MDX is too simple for general use, and requires copious up-front work to get the data in the cubic form required.
-
-My experience with ETL has shown existing languages to be lacking:  Javascript, and procedural languages in general, are not suited for general transformations because the logic is hidden in loops and in the edge case of those loops.  SQL has been my preferred ETL language becasue it can state many common data transformations simply, but [SQL has many of it's own shortcomings](SQL Shortcomings.md)
+My experience with ETL has shown existing languages to be lacking:  Javascript, and procedural languages in general, are not suited for general transformations because the logic is hidden in loops and handling edge case of those loops.  SQL has been my preferred ETL language becasue it can state many common data transformations simply, but [SQL has many of it's own shortcomings](SQL Shortcomings.md)
 
 I want to extend SQL with the good parts of MDX to provide a ETL data transformation language which will avoid common ETL bugs.
 
 
-NOMENCLATURE
+Design
+------
+
+Generally, Qb queries are meant to look much like a JSON Abstract Syntax Tree (AST) of SQL.   There are differences when it comes to ```group by``` and joins, but that is the influence of MDX. 
+
+
+Nomenclature
 ------------
 
   - **cube** – a set of values in an n-space.  A good example for n=2 is a spreadsheet.
@@ -28,14 +32,6 @@ NOMENCLATURE
   - **attribute** - 
   - **record/row** – anaglous to a database row.  In the case of a cube, there is one record for every cell: which is an object with having attributes
   - **column** – anagolous to a database column: a common attribute definition found on all objects in a cube
-
-Facets, Edges, GroupBy and Joins
---------------------------------
-ES facets are simple group-by operations; without allowing group-by on multiple attributes, and only aggregating attributes from the root document.  
-The ES facet is distinctly different from an edge
-A facet collapses all but one dimension, it can not handle more than one dimension
-Edges are a convenient mix of join and group-by.  Technically edges are an outer join (http://en.wikipedia.org/wiki/Relational_algebra#Full_outer_join) combined with an aggregate.   The motivation behind outer joins is to ensure both sets are covered in the result.  Furthermore, aggregates are limited to aggregating records once and only once.
-There are cases, when dealing with normalized data, and in ETL situations, where counting a record more than once, or not at all, is preferred.  In this case, use the test property along with allowNulls=false to get the effect of an inner join.
 
 ORDER OF OPERATIONS
 -------------------
@@ -55,12 +51,13 @@ Queries are in a JSON structure which can be interpreted by ESQuery.js (for ES r
 
 from
 ----
-The from clause states the table, index, or relation that is being processed by the query.  In Javascript this can be an array of objects, a cube, or an in-lined query.  In the case of ES, this is the name of the index being scanned.  Nested ES documents can be pulled by using a dots (.) as a path separator to nested property.
+The from clause states the table, index, or relation that is being processed by the query.  In Javascript this can be an array of objects, a cube, or another Qb query.  In the case of ES, this is the name of the index being scanned.  Nested ES documents can be pulled by using a dots (.) as a path separator to nested property.
 
 Example: Patches are pulled from the BZ
 
     {
     "from":"bugs.attachments",
+    "select":"_source",
     "where": {"term":{"bugs.attachments[\"attachments.ispatch\"]":"1"}}
     }
 
@@ -68,6 +65,7 @@ Example: Pull review requests from BZ:
 
     {
     "from":"bugs.attachments.flags",
+    "select":"_source",
     "where": {"term" : {"bugs.attachments.flags.request_status" : "?"}}
     }
 
@@ -78,31 +76,76 @@ select
 
 The select clause can be a single attribute definition, or an array of attribute definitions.  The former will result in nameless value in each data element of the resulting cube.  The latter will result in an object, with given attributes, in each data element
 
+Here is an example counting the current number of bugs (open and closed) in the KOI project:
+
+    {
+    "from":"bugs",
+    "select":{"name":"num bugs", "value":"bug_id", "aggregate":"count"},
+    "where": {"and":[
+        {"range":{"expires_on":{"gte":NOW}}},
+        {"term":{"cf_blocking_b2g":"koi+"}}
+    ]}
+    }
+
+We can pull some details on those bugs 
+
+    {
+    "from":"bugs",
+    "select":[
+        {"name":"bug number", "value":"bug_id"},
+        {"name":"owner", "value":"assigned_to"}
+    ],
+    "where": {"and":[
+        {"range":{"expires_on":{"gte":NOW}}},
+        {"term":{"cf_blocking_b2g":"koi+"}}
+    ]}
+    }
+
+if you find the ```select``` objects are a little verbose, and you have no need to rename the attribute, they can be replaced with simply the value:
+
+    {
+    "from":"bugs",
+    "select":["bug_id", "assigned_to", "modified_ts"],
+    "where": {"and":[
+        {"range":{"expires_on":{"gte":NOW}}},
+        {"term":{"cf_blocking_b2g":"koi+"}}
+    ]}
+    }
+
+
+
   - **name** – The name of the attribute.   Optional if ```value``` is a simple variable name. 
   - **value** – Code to generate the attribute value (MVEL for ES, Javascript otherwise)
   - **aggregate** – one of many aggregate operations
-      - **none** – when expecting only one value 
-      - **one** – when expecting all values to be identical
-      - **binary** – returns 1 if value found, 0 for no value
-      - **exists** – same as binary but returns boolean
-      - **count** – count number of values
-      - **sum** – mathematical summation of values
-      - **average** – mathematical average of values
-      - **minimum** – return minimum value observed
-      - **median** – return median (percentile = 50%)
-      - **maximum** – return maximum value observed
-      - **percentile** – return given percentile
-          - **select.percentile** defined from 0.0 to 1.0 (required)
-          - **select.default** to replace null in the event there is no data
-      - **middle** - return middle percentile, a range min, max that ignores total and bottom (1-middle)/2 parts
-          - **select.percentile** defined from 0.0 to 1.0 (required)
-          - **select.default** to replace null in the event there is no data
-      - **join** – concatenate all values to a single string
-          - **select.separator** to put between each of the joined values
-      - **array** - return an array of values (which can have duplicates)
-          - **select.sort** - optional, to return the array sorted
   - **default** to replace null in the event there is no data
   - **sort** – one of ```increasing```, ```decreasing``` or ```none``` (default).  Only meaningful when the output of the query is a list, not a cube.
+
+select.aggregate
+----------------
+
+The ```aggregate``` sub-clause has many options.  Unfortunalty not all of them are available to queries destined for ES.  ES only supports (count, sum, mean, variance). 
+
+  - **none** – when expecting only one value 
+  - **one** – when expecting all values to be identical
+  - **binary** – returns 1 if value found, 0 for no value
+  - **exists** – same as binary but returns boolean
+  - **count** – count number of values
+  - **sum** – mathematical summation of values
+  - **average** – mathematical average of values
+  - **minimum** – return minimum value observed
+  - **median** – return median (percentile = 50%)
+  - **maximum** – return maximum value observed
+  - **percentile** – return given percentile
+    - **select.percentile** defined from 0.0 to 1.0 (required)
+    - **select.default** to replace null in the event there is no data
+  - **middle** - return middle percentile, a range min, max that ignores total and bottom (1-middle)/2 parts
+    - **select.percentile** defined from 0.0 to 1.0 (required)
+    - **select.default** to replace null in the event there is no data
+  - **join** – concatenate all values to a single string
+    - **select.separator** to put between each of the joined values
+  - **array** - return an array of values (which can have duplicates)
+    - **select.sort** - optional, to return the array sorted
+
 
 where
 -----
@@ -117,7 +160,7 @@ Similar to the where clause, but used by ES to filter the top-level documents on
 edges
 -----
 
-The edges clause is an array of edge definitions.  Each edge is a column which SQL group-by will be applied; with the additional stipulation that all parts of all domains will have values, even if null.
+The edges clause is an array of edge definitions.  Each edge is a column which SQL group-by will be applied; with the additional stipulation that all parts of all domains will have values, even if null (count==0).
 
   - **name** – The name given to the resulting edge (optional, if the value is a simple attribute name)
   - **value** – The code to generate the edge value before grouping
@@ -129,18 +172,18 @@ The edges clause is an array of edge definitions.  Each edge is a column which S
   - **domain** – The range of values to be part of the aggregation
   - **allowNulls** – Set to true if you want to aggregate all values outside the domain 
 
-edges[].domain
+edges.domain
 --------------
 
 The domain is defined as an attribute of every edge.  Each domain defines a covering partition.
 
-  - **name** – Name given to this domain definition, for use in other code in the query (default to type name).
+  - **name** – Name given to this domain definition, for use in other code in the query (default to ```type``` value).
   - **type** – One of a few predefined types  (Default ```{"type":"default"}```)  
-  - **value** – Domain partitions are technically Javascript objects with descriptive attributes (name, value, max, min, etc).  The value attribute is code that will extract the value of the domain after aggregation is complete. 
+  - **value** – Domain partitions are technically JSON objects with descriptive attributes (name, value, max, min, etc).  The value attribute is code that will extract the value of the domain after aggregation is complete. 
   - **key** – Code to extract the unique key value from any part object in a partition.  This is important so a 1-1 relationship can be established – mapping fast string hashes to slow object comparisons.
   - **isFacet** – for ES queries:  Will force each part of the domain to have it’s own facet.  Each part of the domain must be explicit, and define ```edges[].domain.partition.esfilter``` as the facet filter.  Avoid using ```{"script"...}``` filters in facets because they are WAY slow.
 
-edges[].domain.type
+edges.domain.type
 -------------------
 
 Every edge must be limited to one of a few basic domain types.  Which further defines the other domain attributes which can be assigned.
@@ -165,7 +208,7 @@ Every edge must be limited to one of a few basic domain types.  Which further de
 window
 ------
 
-Each window column defines an additional attribute for the result set.  An window column does not change the number of rows returned.  For each window, the data is grouped, sorted and assigned a ```rownum``` attribute that can be used to calculate the attribute value.
+Each window column defines an additional attribute for the result set.  A window column does not change the number of rows returned.  For each window, the data is grouped, sorted and assigned a ```rownum``` attribute that can be used to calculate the attribute value.
 
   - **name** – name given to resulting attribute
   - **value** – can be a function (or a string containing javascript code) to determine the attribute value.  The functions is passed three special variables: 
@@ -176,81 +219,55 @@ Each window column defines an additional attribute for the result set.  An windo
   - **where** – code that returns true/false to indicate if a record is a member of any group.  This will not affect the number of rows returned, only how the window is calculated.  If where returns false then rownum and rows will both be null:  Be sure to properly handle those values in your code.
   - **sort** – a single attribute name, or array of attribute names, used to sort the members of each group 
 
-USING PRE-DEFINED DIMENSIONS
-----------------------------
+Pre-Defined Dimensions
+----------------------
 
-Pre-defined dimensions simplify queries, and double as type information for the dataset.     In this project [```Mozilla.*``` have been pre-defined](https://github.com/klahnakoski/MoDevMetrics/blob/master/html/es/js/Dimension-Bugzilla.js).  [More documentation here](Dimension Definitions.md)
+Pre-defined dimensions simplify queries, and double as type information for the dataset.     In this project [```Mozilla.*``` have been pre-defined](https://github.com/klahnakoski/MoDevMetrics/blob/master/html/es/js/Dimension-Bugzilla.js).  [More documentation on dimension definitions here](Dimension Definitions.md)
 
-  - **select** - Any pre-defined dimension with a partition defined can be used in a select query (see ```Mozilla.BugStatus.getSelect()```): Each record will be assigned it's part.
+  - **select** - Any pre-defined dimension with a partition defined can be used in a select clause. Each record will be assigned it's part.
  
-        var details=yield(ESQuery.run({
-            "from":"bugs",
-    		"select":[
-				"bug_id",
-				Mozilla.BugStatus.getSelect(),
-				"assigned_to",
-				{"name":"dependson", "value":"get(_source, \"dependson\")"},
-				"status_whiteboard",
-				"component"
-			],
-			"esfilter":{"and":[
-				Mozilla.CurrentRecords.esfilter,
-				{"terms":{"bug_id":Object.keys(allBugs)}}
-			]}
-		}));
+    <pre>var details=yield(ESQuery.run({
+        "from":"bugs",
+    	"select":[
+    		"bug_id",
+    		<b>Mozilla.BugStatus.getSelect()</b>,
+    		"assigned_to",
+    		{"name":"dependson", "value":"get(_source, \"dependson\")"},
+    		"status_whiteboard",
+    		"component"
+    	],
+    	"esfilter":{"and":[
+    		Mozilla.CurrentRecords.esfilter,
+    		{"terms":{"bug_id":Object.keys(allBugs)}}
+    	]}
+    }));</pre>
 
-  - **edge[].domain** - Pre-defined dimensions can be used as domain values (see ```Mozilla.Projects["B2G 1.0.1 (TEF)"].getDomain()```)
+  - **edge.domain** - Pre-defined dimensions can be used as domain values
   
-        var chart=yield (ESQuery.run({
-        	"from":"bugs",
-    		"select": {"name":"num_bug", "value":"bug_id", "aggregate":"count"},
-    		"edges":[
-    			{"name":"type", allowNulls:true, "domain":Mozilla.Projects["B2G 1.0.1 (TEF)"].getDomain()},
-    			{"name":"date",
-    				"range":{"min":"modified_ts", "max":"expires_on"},
-    				"allowNulls":false,
-    				"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
-    			}
-    		]
-    	}));
+    <pre>var chart=yield (ESQuery.run({
+    	"from":"bugs",
+    	"select": {"name":"num_bug", "value":"bug_id", "aggregate":"count"},
+    	"edges":[
+    		{"name":"type", allowNulls:true, "domain":<b>Mozilla.Projects["B2G 1.0.1 (TEF)"].getDomain()</b>},
+    		{"name":"date",
+    			"range":{"min":"modified_ts", "max":"expires_on"},
+    			"allowNulls":false,
+    			"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+    		}
+    	]
+    }));</pre>
 
 
   - **esfilter** - most commonly used in esfilters so that simple names replace complex filtering logic
 
-        var q = yield(ESQuery.run({
-        	"name":"Product Breakdown",
-    		"from":"bugs",
-    		"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
-    		"edges":[
-    			{"name":"product", "value":"product"}
-    		],
-    		"esfilter":Mozilla.BugStatus.Open.esfilter
-    	});
+    <pre>var q = yield(ESQuery.run({
+    	"name":"Product Breakdown",
+		"from":"bugs",
+		"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
+		"edges":[
+			{"name":"product", "value":"product"}
+		],
+		"esfilter":<b>Mozilla.BugStatus.Open.esfilter</b>
+	});</pre>
 
 
-
-Incomplete Bits
----------------
-
-There are some parts of Qb that have not been fully thought out and refactored to match.
-
-Qb.merge
----------
-
-Technically, cubes should be implemented as a single (multidimensional) array of
-uniform type values.  This would facilitate conversion to asm.js (or numpy in Python).
-Currently, cubes can also be whole records, and this causes complexity in the code
-that should be removed.  Records should be represented as a set of coordinates
-in a set of value cubes; where each column in the record refers to a value cube.
-
-What does it mean to "join" cubes?  In the case where all edges of the two cubes
-match, then the join is simply a union.  In the case where one cube has a single
-dimension, then the join is on the edges; and just like an edge, the edge value
-projects as a constant over the other dimensions in the cube.  Again, we see edges as simply another attribute of the cells that are projected as constants over the whole cube.  With this we can conclude joins with zero-dimension cubes act as a constant attribute on all records in the cube, and joins on an incomplete set of edges is simply projected as constant over the remainder dimensions.
-
-Here is some old symantics, It must be expanded to any number of dimensions.
-
-    Qb.merge({"cubes":[
-        {"from":s0, "edges":["test_name", "date"]},
-    	{"from":s1, "edges":["test_name", "date"]}
-    ]})
