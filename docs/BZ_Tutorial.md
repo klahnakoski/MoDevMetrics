@@ -4,8 +4,9 @@
 Running Examples (Query Tool)
 -----------------------------
 
-ElasticSearch Head is a simple tool for sending general queries.
-Query Tool can be used to prototype Qb queries, and see their equivalent ES query.
+[ElasticSearch Head](https://github.com/mobz/elasticsearch-head) is a simple
+tool for sending general queries.  [Query Tool]( can be used to prototype Qb
+queries, and see their equivalent ES query.
 
 
 Schema
@@ -320,7 +321,7 @@ strictly one dimensional, so grouping by more than one column will require
 MVEL scripting or many facets.  Furthermore, facets are limited to using the
 unique values of the data.
 
-In this eaxmple, we are simply count the number of bug version records for each
+In this example, we are simply count the number of bug version records for each
 block of 50K bug_ids:
 
 <table>
@@ -380,6 +381,74 @@ time.
 </table>
 
 
+Private Bugs
+------------
+
+The public cluster does not contain Mozilla's confidential bugs.  Most of
+these are internal network and infrastructure bugs, product security bugs, and
+administrative "bugs".  Mozilla has an LDAP-accessible private cluster with
+those additional private bugs, but is handicapped by having no comments or 
+descriptions.  When querying aggregates you must be cognisant of this 
+difference.
+
+If you have access to the private cluster you can call up the private bugs with 
+```{"not":{"missing":{"field":"bug_group"}}}``` - which means any bug that 
+belongs to a bug_group is a private bug.
+
+This example pulls the current number of open private bugs by product.  If you 
+run this on the public cluster, you will get zeros.
+
+<table>
+<tr>
+<td>
+<b>ElasticSearch</b><br>
+<pre>{
+  "query":{"filtered":{
+    "query":{"match_all":{}},
+    "filter":{"and":[
+      {"match_all":{}},
+      {"and":[
+        {"range":{"expires_on":{"gte":1389389493271}}},
+        {"not":{"terms":{"bug_status":[
+            "resolved","verified","closed"
+        ]}}},
+        {"not":{"missing":{"field":"bug_group"}}}
+      ]}
+    ]}
+  }},
+  "from":0,
+  "size":0,
+  "sort":[],
+  "facets":{"default":{"terms":{
+    "field":"product",
+    "size":200000
+  }}}
+}</pre>
+</td>
+<td>
+<b>Qb Query</b>
+<pre>{
+  "from":"private_bugs",
+  "select":{
+    "name":"num_bugs",
+    "value":"bug_id",
+    "aggregate":"count"
+  },
+  "esfilter":{"and":[
+    {"range":{"expires_on":{"gte":1389389493271}}},
+    {"not":{"terms":{"bug_status":[
+      "resolved","verified","closed"
+    ]}}},
+    <b>{"not":{"missing":{"field":"bug_group"}}}</b>
+  ]},
+  "edges":["product"]
+}</pre>
+</td>
+</tr>
+</table>
+
+
+
 More
 ----
 
@@ -391,6 +460,8 @@ More
 ElasticSearch Features
 -----------------------
 
+  * [ElasticSearch Head](https://github.com/mobz/elasticsearch-head) - for general ES access
+  * [
   * [Date Histogram](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-facets-date-histogram-facet.html) - Group a timestamp by year, quarter, month, week, day, hour, minute.
   * [Relations and Joins](http://blog.squirro.com/post/45191175546/elasticsearch-and-joining) - Setup parent/child relations and query both in single request.
   * [General Joins](https://github.com/elasticsearch/elasticsearch/issues/2674) - Cache a query result and then use it in subsequent queries.

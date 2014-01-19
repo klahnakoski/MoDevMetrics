@@ -120,11 +120,13 @@ partition in the domain, even if it is empty.</i>
 Closing Bugs
 ------------
 
-The bug version records have extra redundancy to support queries on change.  There are two main substructures you can use:
+The bug version records have extra redundancy to support queries on change.
+There are two main substructures you can use:
 
 ### changes ###
 
-```changes``` is a nested property that contains the difference from the previous version document.  Each is
+```changes``` is a nested property that contains the difference from the
+previous version document.  Each is
 
 Here is an example:
 
@@ -145,14 +147,16 @@ Here is an example:
 
 ### previous_values ###
 
+This structure holds any 
+
     previous_values: {
         bug_status_change_to_ts: 956161485000
         bug_status_value: unconfirmed
         bug_status_change_away_ts: 956186704000
         bug_status_duration_days: 0
-        everconfirmed_duration_days: 0
         everconfirmed_change_to_ts: 956161485000
         everconfirmed_change_away_ts: 956186704000
+        everconfirmed_duration_days: 0
         target_milestone_change_to_ts: 956161485000
         target_milestone_value: ---
         target_milestone_change_away_ts: 956186704000
