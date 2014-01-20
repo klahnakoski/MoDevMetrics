@@ -41,7 +41,12 @@
 
 
 <div id="content_area">
-	<h2>Bugzilla Anthropology Metrics Prototypes</h2>
+	<h2>Bugzilla Anthropology Metrics Prototypes</h2><br>
+
+	These charts serve two purposes.  The first is to satisfy one of the specific needs of the <a href="https://wiki.mozilla.org/Bugzilla_Anthropology">Bugzilla
+		Anthropology Project</a> which was to provide a view into patch review times.  The second is to prove
+		ElasticSearch can be used a performant <a href="http://en.wikipedia.org/wiki/Data_warehouse">data warehouse</a>.
+		More on the project and conclusions can be found at the <a href="https://wiki.mozilla.org/index.php?title=Bugzilla_Anthropology/2013-01-29">Jan 2013 project summary</a><br>
 	<br>
 	<table>
 		<tr>
@@ -50,10 +55,8 @@
 
 				<div class="items">
 					<a href="https://metrics.mozilla.com/bugzilla-analysis/Bug-Counts.html">Bug Counts</a>
-					<span class="info">Fixes to the bug counts chart</span>
-
-					<a href="https://metrics.mozilla.com/bugzilla-analysis/OpenBugCount.html">OpenBugCount.html</a>
-					<span class="info">Many of the charts have table (<img src="es/images/Spreadsheet.png" style="vertical-align: middle;width:16px;height:16px;">) button at bottom right to provide a grid of numbers at the bottom of the page (popup to come shortly).  It can be used to cut-and-paste to a spreadsheet.</span>
+					<span class="info">Simple count of open bugs over time, with open and close rates, and median age
+						chart.</span>
 
 					<a href="https://metrics.mozilla.com/bugzilla-analysis/Bug-CloseRate.html">Bug Close Rate</a>
 					<span class="info">Much better array of filters available</span>
@@ -64,18 +67,21 @@
 
 		<tr>
 			<td>
-				<h3>Project Dashboards and Burndown</h3>
+				<h3>Project Dashboards and Burndown</h3><br>
 
+				These dashboards are specifically showing current state of the .
 				<div class="items">
 
 					<a href="https://metrics.mozilla.com/bugzilla-analysis/Dashboard_byProject.html">Project Dashboard</a>
-					<span class="info"> Copies the B2G logic, and extended to all programs. (Added a Team filter)</span>
+					<span class="info">Lists assigned bugs, patches in review, and patches awaiting landing</span>
 
-					<a href="https://metrics.mozilla.com/bugzilla-analysis/Predictive_Simple.html">Burndown Prediction</a>
-					<span class="info">Added new and closed bugs by day, and can now click on charts to get specific bug lists.</span>
+					<a href="https://metrics.mozilla.com/bugzilla-analysis/Predictive_Simple.html#programFilter=B2G+1.3">Burndown Prediction</a>
+					<span class="info">Uses average new bug rate, and average close rate to estimate the time it takes
+					to close all bugs in the given category.  Compares to close rates necessary to meet due date</span>
 
-					<a href="https://metrics.mozilla.com/bugzilla-analysis/Dashboard - Final_Burndown.html">Final Burndown Dashboard</a>
-					<span class="info">Basic burndown for small number of bugs.</span>
+					<a href="hhttps://metrics.mozilla.com/bugzilla-analysis/Dashboard-FinalBurndown.html">Final Burndown Dashboard</a>
+					<span class="info">Basic burndown chart.  Showing current bugs over time compared to ideal (linear)
+						burndown</span>
 
 				</div>
 			</td>
@@ -83,7 +89,9 @@
 
 		<tr>
 			<td>
-				<h3>Specific Projects</h3>
+				<h3>Specific Projects</h3><br>
+
+				Over the past year there have been some for specific historical charts, and simple trend analysis.<br>
 
 				<div class="items">
 					<a href="https://metrics.mozilla.com/bugzilla-analysis/KOI-TriageRate.html">KOI Triage</a>
@@ -124,7 +132,7 @@
 		</tr>
 		<tr>
 			<td>
-				<h3>Reviews</h3>
+				<h3>Patch Reviews</h3><br>
 
 				<div class="items">
 					<a href="https://metrics.mozilla.com/bugzilla-analysis/ReviewIntensity_First.html">ReviewIntensity_First</a>
@@ -140,8 +148,8 @@
 					<span class="info">The same chart as above, but from the requester's perspective.  Use this to see
 					how long your team's waiting for on review request</span>
 
-					<a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_Pending_18.html">Reviews_Pending_18.html</a>
-					<span class="info">Overview of Reviews in the past 18weeks</span>
+					<a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_Pending_18.html">Reviews_Pending_18</a>
+					<span class="info">Overview of patch review times, plus list of reviews over 18 weeks</span>
 
 					<a href="https://metrics.mozilla.com/bugzilla-analysis/Reviews_NoReviewer.html">R? and missing Requestee</a>
 					<span class="info">List of all bugs with no reviewer</span>
@@ -163,7 +171,7 @@
 					<span class="info">An attempt to show community retention rates by looking at outgoing review requests</span>
 
 					<a href="https://metrics.mozilla.com/bugzilla-analysis/Community_Retention.html">Community_Retention</a>
-					<span class="info">Same as above, but looking at change over time</span>
+					<span class="info">Same as above, but looking at change over time.</span>
 
 
 				</div>
@@ -175,23 +183,18 @@
 
 				<div class="items">
 					<a href="https://metrics.mozilla.com/bugzilla-analysis/ResolutionsOverTime.html">ResolutionsOverTime.html</a>
-					<span class="info">FAST! - Show number of each Resolution by the age of the bug.  This query packs mutiple data partitions into a single &quot;term&quot; facet</span>
+					<span class="info">A colourful chart showing how the proportion of bug resolutions changes according
+						to how old the bugs are.</span>
 
 					<a href="https://metrics.mozilla.com/bugzilla-analysis/Age_overTime.html">Time to Resolution over Time</a>
-					<span class="info">This is my first attempt at showing percentile ages of open and closed bugs.  Even though charting
-						the ages of closed bugs makes sense, charting the age history of closed bugs has little value.  It is much better
-						to chart the age of open bugs.  After all, all closed bugs were open at sometime.</span>
-
-					<a href="https://metrics.mozilla.com/bugzilla-analysis/Age_OpenBugs.html">Open Bug Count</a>
-					<span class="info">This is an improved version, which adds a second chart that traces the percentile ages of all
-						the open bugs.  One interesting thing: By looking at the percentiles you can almost see bugs being closed,
-						and how old they were.</span>
+					<span class="info">An </span>
 
 					<a href="https://metrics.mozilla.com/bugzilla-analysis/Bug-Ages.html">Bug Ages</a>
-					<span class="info">Track the ages of bugs that match some given criterion</span>
+					<span class="info">Much like open bug count, but with an emphasis on median bug age, plus a textbox
+					for a general esfilter</span>
 
-					<a href="https://metrics.mozilla.com/bugzilla-analysis/BugAge.html">BugAge.html</a>
-					<span class="info">FAST! - Age of closed bugs - Uses ES term packing</span>
+					<a href="https://metrics.mozilla.com/bugzilla-analysis/BugAge.html">Overall Bug Age by Cohorts</a>
+					<span class="info">An experiment to compare bug close rates over time</span>
 
 				</div>
 			</td>
@@ -206,26 +209,20 @@
 						to ElasticSearch queries for the same.</span>
 
 					<a href="https://metrics.mozilla.com/bugzilla-analysis/Util-CorruptionCheck.html">Corruption Check</a>
-					<span class="info">Metrics' ES cluster is on old unstable
-						hardware.  Sometimes the hardware fails, breaking the
-						assumptions of the original ETL, and causing
-						inconsistencies in the data.  This program is
-						responsible for fixing the <code>modified_ts</code>,
-						<code>expires_on</code> bug version values to be
-						consistent.
+					<span class="info">Metrics' ES cluster is on old unstable hardware.  Sometimes the hardware fails,
+						breaking the assumptions of the original ETL, and causing inconsistencies in the data.  This
+						program is responsible for fixing the <code>modified_ts</code>,	<code>expires_on</code> bug
+						version values to be consistent.
 					</span>
 
 					<a href="https://metrics.mozilla.com/bugzilla-analysis/Test-Hierarchy.html">Test Bug Dependency Tracking</a>
-					<span class="info">There are many opportunities for tracking
-						projects by their dependency tree.  This is a test of
-						the logic required to pull the dependency tree of a bug
-						(or set of bugs) and return the aggregate dependency
-						tree over time </span>
+					<span class="info">There are many opportunities for tracking projects by their dependency tree.
+						This is a test of the logic required to pull the dependency tree of a bug (or set of bugs) and
+						return the aggregate dependency tree over time </span>
 					<a href="https://metrics.mozilla.com/bugzilla-analysis/PatchRates.html">Patch Rates</a><a href="es/PatchRates.png">(image)</a>
-					<span class="info">How quickly are patches being opened and
-						closed?  How many are left open indefinitely?  This is
-						slow, hence the image.  ETL to generate patches would
-						help a lot here.</span>
+					<span class="info">How quickly are patches being opened and	closed?  How many are left open
+						indefinitely?  This is slow, hence the image.  ETL to generate patches would help a lot here.
+					</span>
 				</div>
 			</td>
 		</tr>
