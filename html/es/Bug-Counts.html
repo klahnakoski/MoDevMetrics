@@ -8,7 +8,6 @@
 </HEAD>
 <BODY>
 
-
 <div id="sidebar">
 	<br>
 	<br>
@@ -191,24 +190,32 @@ var __createChart = function(){
 
 
 	Thread.run(function(){
-		var a=Log.action("Request Bugs", true);
 		var chart=yield (ESQuery.run({
 			"name":"Open Bug Count",
 			"from":"bugs",
-			"select":{"name":"num_bug", "value":"bug_id", "aggregate":"count"},
+			"select":{
+				"name":"num_bug",
+				"value":"bug_id",
+				"aggregate":"count"
+			},
 			"edges":[
 				{"name":"date",
-					"range":{"min":"modified_ts", "max":"expires_on"},
+					"range":{
+						"min":"modified_ts",
+						"max":"expires_on"
+					},
 					"allowNulls":false,
-					"domain":{"type":"time", "min":sampleMin, "max":sampleMax.add(sampleInterval), "interval":sampleInterval}
+					"domain":{
+						"type":"time",
+						"min":sampleMin,
+						"max":sampleMax.add(sampleInterval),
+						"interval":sampleInterval
+					}
 				}
 			],
 			"esfilter":mainFilter
 		}));
-		Log.actionDone(a);
 
-
-		var a=Log.action("Make chart", true);
 		aChart.show({
 			"id":"chartCount",
 			"sheetDiv":"info",
@@ -219,9 +226,6 @@ var __createChart = function(){
 			xAxisSize: 50,
 			"width":800
 		});
-		Log.actionDone(a);
-
-
 	});
 
 
