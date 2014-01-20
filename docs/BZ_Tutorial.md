@@ -1,13 +1,10 @@
 
-
-
 Running Examples (Query Tool)
 -----------------------------
 
 [ElasticSearch Head](https://github.com/mobz/elasticsearch-head) is a simple
-tool for sending general queries.  [Query Tool]( can be used to prototype Qb
-queries, and see their equivalent ES query.
-
+tool for sending general queries.  [Query Tool](../html/QueryTool.html) can be used to prototype Qb
+queries, and see their equivalent ES query.  Please ```git clone``` both of these projects and open in your browser.
 
 Schema
 ------
@@ -16,9 +13,7 @@ The history of each bug is stored as a set of documents.  Each document is a
 snapshot of the bug between ```modified_ts``` and ```expires_on```.  All times
 are in milliseconds since epoch (GMT).
 
-TODO: add reference to bz schema
-
-
+The current schema can be pulled using ElasticSearch Head.  You can view the simpler [schema used by the ETL](https://github.com/klahnakoski/Bugzilla-ETL/blob/df89c80428ae78fd53b4a05bd94c5949130e6898/resources/json/bug_version.json#L105)
 
 Query Current State of All Bugs
 -------------------------------

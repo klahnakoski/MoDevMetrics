@@ -6,17 +6,22 @@ Requirements
 
 Access to one of the bugs clusters is required
 
-  * Proxy to public cluster (need VPN to **TOR**)<br>
+  - Proxy to public cluster (need VPN to **TOR**)<br>
     ```http://klahnakoski-es.corp.tor1.mozilla.com:9201/public_bugs/bug_version```
-  * Proxy to public cluster<br>
+
+  - Proxy to public cluster<br>
     ```http://esfrontline1.bugs.scl3.mozilla.com:9292/public_bugs/bug_version```
-  * Direct to the public cluster<br>
+
+  - Direct to the public cluster<br>
     ```http://elasticsearch1.bugs.scl3.mozilla.com:9200/public_bugs/bug_version```
-  * Proxy to private cluster (need VPN to **TOR**)<br>
+
+  - Proxy to private cluster (need VPN to **TOR**)<br>
     ```http://klahnakoski-es.corp.tor1.mozilla.com:9204/private_bugs/bug_version```
-  * Metrics' private cluster (need VPN to **MPT**)<br>
+
+  - Metrics' private cluster (need VPN to **MPT**)<br>
     ```http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version```
-  * Direct to private cluster (need **LDAP**)<br>
+    
+  - Direct to private cluster (need **LDAP**)<br>
     ```http://elasticsearch4.bugs.scl3.mozilla.com:9200/private_bugs/bug_version```
 
 Setup
@@ -59,12 +64,15 @@ After cloning, you must ```git submodule init``` and ```git submodule update```.
 Git Pull Origin ...
 -------------------
 
-Beyond the regular Git syntax to pull updates, the magic command to pull submodule updates is ```git submodule foreach git pull origin master```
+Beyond the regular Git syntax to pull updates, the magic command to pull submodule updates is ```git submodule foreach
+git pull origin master```
 
 
 Other Notes
 -----------
-The interesting stuff start in ./html/es
+The interesting code starts in [./html/es](./html/es)
 
-  - [Reference document covering the query format](docs/Qb.md)
+  - [Tutorial on querying ElasticSearch](docs/BZ_Tutorial.md)
+  - [Tutorial on MVEL and advanced querying](docs/MVEL_Tutorial.md)
+  - [Reference document covering the query format](docs/Qb_Reference.md)
   - [Dimension Definitions](docs/Dimension Definitions.md)
