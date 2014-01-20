@@ -4,17 +4,25 @@ Qb (pronounced kyo͞ob) Queries
 Motivation
 ----------
 
-Data cubes facilitate strong typing of data volumes.  Thier cartesian nature make counting and aggregation trival, and make them provably correct operations. [MultiDimensional query eXpressions (MDX)](http://en.wikipedia.org/wiki/MultiDimensional_eXpressions) takes advantage of this simple data format to provide a simple query language to filter and group by.  Unfortunatly, MDX is too simple for general use, and requires copious up-front work to get the data in the cubic form required.
+[Data cubes](http://en.wikipedia.org/wiki/OLAP_cube) facilitate strong typing of data volumes.  Thier cartesian nature
+makes counting and aggregation trivial, provably correct, operations. [MultiDimensional query eXpressions (MDX)](http://en.wikipedia.org/wiki/MultiDimensional_eXpressions)
+takes advantage of the data cube uniformity to provide a simple query language to filter and group by.  Unfortunately,
+MDX is too simple for general use, and requires copious up-front work to get the data in the cubic form required.
 
-My experience with ETL has shown existing languages to be lacking:  Javascript, and procedural languages in general, are not suited for general transformations because the logic is hidden in loops and handling edge case of those loops.  SQL has been my preferred ETL language becasue it can state many common data transformations simply, but [SQL has many of it's own shortcomings](SQL Shortcomings.md)
+My experience with ETL has shown existing languages to be lacking:  Javascript, and procedural languages in general,
+are not suited for general transformations because the logic is hidden in loops and handling edge case of those loops.
+SQL has been my preferred ETL language because it can state many common data transformations simply, but [SQL has many
+of it's own shortcomings](SQL Shortcomings.md)
 
-I want to extend SQL with the good parts of MDX to provide a ETL data transformation language which will avoid common ETL bugs.
+I want to extend SQL with the good parts of MDX to provide a ETL data transformation language which will avoid common
+ETL bugs.
 
 
 Design
 ------
 
-Generally, Qb queries are meant to look much like a JSON Abstract Syntax Tree (AST) of SQL.   There are differences when it comes to ```group by``` and joins, but that is the influence of MDX. 
+Generally, Qb queries are meant to look much like a JSON Abstract Syntax Tree (AST) of SQL.  There are differences when
+it comes to ```group by``` and joins, but that is the influence of MDX.
 
 
 Nomenclature
@@ -47,11 +55,14 @@ Each of the clauses are executed in a particular order, irrespective of their or
 QUERY STRUCTURE
 ---------------
 
-Queries are in a JSON structure which can be interpreted by ESQuery.js (for ES requests, limited by ES’s functionality) and by Qb.js (for local processing with Javascript).
+Queries are in a JSON structure which can be interpreted by ESQuery.js (for ES requests, limited by ES’s functionality)
+and by Qb.js (for local processing with Javascript).
 
 from
 ----
-The from clause states the table, index, or relation that is being processed by the query.  In Javascript this can be an array of objects, a cube, or another Qb query.  In the case of ES, this is the name of the index being scanned.  Nested ES documents can be pulled by using a dots (.) as a path separator to nested property.
+The from clause states the table, index, or relation that is being processed by the query.  In Javascript this can be
+an array of objects, a cube, or another Qb query.  In the case of ES, this is the name of the index being scanned.
+Nested ES documents can be pulled by using a dots (.) as a path separator to nested property.
 
 Example: Patches are pulled from the BZ
 
@@ -69,12 +80,15 @@ Example: Pull review requests from BZ:
     "where": {"term" : {"bugs.attachments.flags.request_status" : "?"}}
     }
 
-ESQuery.js can pull individual nested documents from ES.  ES on it’s own can only return a document once.  Aggregation over nested documents is not supported.
+ESQuery.js can pull individual nested documents from ES.  ES on it’s own can only return a document once.  Aggregation
+over nested documents is not supported.
 
 select 
 ------
 
-The select clause can be a single attribute definition, or an array of attribute definitions.  The former will result in nameless value in each data element of the resulting cube.  The latter will result in an object, with given attributes, in each data element
+The select clause can be a single attribute definition, or an array of attribute definitions.  The former will result
+in nameless value in each data element of the resulting cube.  The latter will result in an object, with given
+attributes, in each data element
 
 Here is an example counting the current number of bugs (open and closed) in the KOI project:
 
@@ -101,7 +115,8 @@ We can pull some details on those bugs
     ]}
     }
 
-if you find the ```select``` objects are a little verbose, and you have no need to rename the attribute, they can be replaced with simply the value:
+if you find the ```select``` objects are a little verbose, and you have no need to rename the attribute, they can be
+replaced with simply the value:
 
     {
     "from":"bugs",
@@ -123,7 +138,8 @@ if you find the ```select``` objects are a little verbose, and you have no need 
 select.aggregate
 ----------------
 
-The ```aggregate``` sub-clause has many options.  Unfortunalty not all of them are available to queries destined for ES.  ES only supports (count, sum, mean, variance). 
+The ```aggregate``` sub-clause has many options.  Unfortunately not all of them are available to queries destined for
+ES.  ES only supports (count, sum, mean, variance).
 
   - **none** – when expecting only one value 
   - **one** – when expecting all values to be identical
@@ -150,17 +166,37 @@ The ```aggregate``` sub-clause has many options.  Unfortunalty not all of them a
 where
 -----
 
-Where clause is code to return true/false or whether the data will be included in the aggregate.  This does not impact the edges; every edge is restricted to it’s own domain.
+Where clause is code to return true/false or whether the data will be included in the aggregate.  This does not impact
+the edges; every edge is restricted to it’s own domain.
+
+The elasticsearch.org's [documentation on filters](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-filters.html)
+covers the types of filters and the format expected.
+
+  - [and](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-and-filter.html)
+  - [exists](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-exists-filter.html)
+  - [match_all](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-match-all-filter.html)
+  - [not](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-not-filter.html)
+  - [or](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-or-filter.html)
+  - [prefix](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-prefix-filter.html)
+  - [range](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-range-filter.html)
+  - [script](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-script-filter.html)
+  - [term](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-term-filter.html)
+  - [terms](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-terms-filter.html)
+
+
 
 esfilter
 --------
 
-Similar to the where clause, but used by ES to filter the top-level documents only. The where clause can filter out nested documents, esfilter can not.  esfilter is very fast and should be used whenever possible to restrict the data being processed by scripts and facets.
+Similar to the where clause, but used by ES to filter the top-level documents only. The where clause can filter out
+nested documents, esfilter can not.  esfilter is very fast and should be used whenever possible to restrict the data
+being processed by scripts and facets.
 
 edges
 -----
 
-The edges clause is an array of edge definitions.  Each edge is a column which SQL group-by will be applied; with the additional stipulation that all parts of all domains will have values, even if null (count==0).
+The edges clause is an array of edge definitions.  Each edge is a column which SQL group-by will be applied; with the
+additional stipulation that all parts of all domains will have values, even if null (count==0).
 
   - **name** – The name given to the resulting edge (optional, if the value is a simple attribute name)
   - **value** – The code to generate the edge value before grouping
@@ -222,9 +258,12 @@ Each window column defines an additional attribute for the result set.  A window
 Pre-Defined Dimensions
 ----------------------
 
-Pre-defined dimensions simplify queries, and double as type information for the dataset.     In this project [```Mozilla.*``` have been pre-defined](https://github.com/klahnakoski/MoDevMetrics/blob/master/html/es/js/Dimension-Bugzilla.js).  [More documentation on dimension definitions here](Dimension Definitions.md)
+Pre-defined dimensions simplify queries, and double as type information for the dataset.  In this project [```Mozilla.*```
+have been pre-defined](https://github.com/klahnakoski/MoDevMetrics/blob/master/html/es/js/Dimension-Bugzilla.js).
+[More documentation on dimension definitions here](Dimension Definitions.md).
 
-  - **select** - Any pre-defined dimension with a partition defined can be used in a select clause. Each record will be assigned it's part.
+  - **select** - Any pre-defined dimension with a partition defined can be used in a select clause. Each record will be
+  assigned it's part.
  
     <pre>var details=yield(ESQuery.run({
         "from":"bugs",

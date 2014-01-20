@@ -16,7 +16,7 @@ for others.
 
 **MVEL has been disabled on the public cluster** because it is has access to
 all the references inside the Java virtual machine.  If you want to perform
-the queries in this tutorial you must [setup your own cluster](Replication.md)
+the queries in this tutorial you must [setup your own cluster](https://github.com/klahnakoski/Bugzilla-ETL/blob/master/docs/Replication.md)
 and replicate the public ES cluster.
 
 
@@ -30,7 +30,7 @@ for the Bugzilla data in ES; Bug version records are valid for a time range,
 there can be multiple records for any given time interval, and there can
 multiple time intervals covered by a single version document.  Because of this
 many-many relation, we use one facet for each interval we are interested in.
-In this case, we are interested in 26 weeks of date from end fo June to end of
+In this case, we are interested in 26 weeks starting end of June and ending end of
 December.
 
 

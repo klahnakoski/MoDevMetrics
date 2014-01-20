@@ -1,13 +1,16 @@
 
+Search Bugs with ElasticSearch
+------------------------------
+
 Running Examples (Query Tool)
------------------------------
+=============================
 
 [ElasticSearch Head](https://github.com/mobz/elasticsearch-head) is a simple
 tool for sending general queries.  [Query Tool](../html/QueryTool.html) can be used to prototype Qb
 queries, and see their equivalent ES query.  Please ```git clone``` both of these projects and open in your browser.
 
 Schema
-------
+======
 
 The history of each bug is stored as a set of documents.  Each document is a
 snapshot of the bug between ```modified_ts``` and ```expires_on```.  All times
@@ -16,7 +19,7 @@ are in milliseconds since epoch (GMT).
 The current schema can be pulled using ElasticSearch Head.  You can view the simpler [schema used by the ETL](https://github.com/klahnakoski/Bugzilla-ETL/blob/df89c80428ae78fd53b4a05bd94c5949130e6898/resources/json/bug_version.json#L105)
 
 Query Current State of All Bugs
--------------------------------
+===============================
 
 It is common to query the current bug state.  To do this you take advantage of
 the fact that current documents have ```expires_on``` set to the deep future.
@@ -28,8 +31,8 @@ where ```NOW``` is in milliseconds since epoch (GMT).  For example,
 1389453465000 == 11-Jan-2014 15:17:45 (GMT) (notice the extra three zeros
 indicating milliseconds)
 
-Current Bugs
-------------
+Search for Current Bugs
+------------------------
 
 Lets look at all the bugs in a project called **KOI**.  This project is tracked
 using the Blocking B2G flag in Bugzilla.  Both Bugzilla and the ElasticSearch
@@ -456,7 +459,7 @@ ElasticSearch Features
 -----------------------
 
   * [ElasticSearch Head](https://github.com/mobz/elasticsearch-head) - for general ES access
-  * [
+  * [QueryTool](people.mozilla.org/~klahnakoski/QueryTool.html) - better if you ```git clone``` to get the latest version
   * [Date Histogram](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-facets-date-histogram-facet.html) - Group a timestamp by year, quarter, month, week, day, hour, minute.
   * [Relations and Joins](http://blog.squirro.com/post/45191175546/elasticsearch-and-joining) - Setup parent/child relations and query both in single request.
   * [General Joins](https://github.com/elasticsearch/elasticsearch/issues/2674) - Cache a query result and then use it in subsequent queries.
