@@ -1,4 +1,10 @@
 
+Note
+====
+
+Better docs are on the ```try_new_cluster``` branch
+---------------------------------------------------
+
 Setup
 =====
 
