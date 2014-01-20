@@ -72,15 +72,15 @@ ProgramFilter.makeQuery = function(filters){
 
 
 	var output = {
-		"query" : {
-			"filtered" : {
-				"query": {
+		"query":{
+			"filtered":{
+				"query":{
 					"match_all":{}
 				},
-				"filter" : {
+				"filter":{
 					"and":[
-						{ "range" : { "expires_on" : { "gt" : Date.now().getMilli() } } },
-						{"not" : {"terms" : { "bug_status" : ["resolved", "verified", "closed"] }}}
+						{ "range":{ "expires_on":{ "gt" : Date.now().getMilli() } } },
+						{"not":{"terms":{ "bug_status":["resolved", "verified", "closed"] }}}
 					]
 				}
 			}
@@ -89,8 +89,8 @@ ProgramFilter.makeQuery = function(filters){
 		"size": 0,
 		"sort": [],
 		"facets":{
-//			"Programs": {
-//				"terms": {
+//			"Programs":{
+//				"terms":{
 //					"script_field": allCompares+"return 'None'\n",
 //					"size": 100000
 //				}

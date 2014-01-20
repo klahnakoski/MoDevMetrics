@@ -61,14 +61,14 @@ Example: Patches are pulled from the BZ
 
     {
     "from":"bugs.attachments",
-    "where": {"term":{"bugs.attachments[\"attachments.ispatch\"]":"1"}}
+    "where":{"term":{"bugs.attachments[\"attachments.ispatch\"]":"1"}}
     }
 
 Example: Pull review requests from BZ:
 
     {
     "from":"bugs.attachments.flags",
-    "where": {"term" : {"bugs.attachments.flags.request_status" : "?"}}
+    "where":{"term":{"bugs.attachments.flags.request_status" : "?"}}
     }
 
 ESQuery.js can pull individual nested documents from ES.  ES on it’s own can only return a document once.  Aggregation over nested documents is not supported.
@@ -203,7 +203,7 @@ Pre-defined dimensions simplify queries, and double as type information for the 
   
         var chart=yield (ESQuery.run({
         	"from":"bugs",
-    		"select": {"name":"num_bug", "value":"bug_id", "aggregate":"count"},
+    		"select":{"name":"num_bug", "value":"bug_id", "aggregate":"count"},
     		"edges":[
     			{"name":"type", allowNulls:true, "domain":Mozilla.Projects["B2G 1.0.1 (TEF)"].getDomain()},
     			{"name":"date",

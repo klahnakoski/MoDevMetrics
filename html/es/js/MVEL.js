@@ -340,7 +340,7 @@ MVEL.prototype.where = function(esFilter){
 		var variableName = pair.field;
 		return "(" + this.translate(variableName) + "!=null)";
 	}else if (op=="missing"){
-//		"missing" : {
+//		"missing":{
 //			"field" : "requestee",
 //			"existence" : true,
 //			"null_value" : true
@@ -403,6 +403,8 @@ MVEL.prototype.where = function(esFilter){
 		var variableName = Object.keys(pair)[0];
 		var value = pair[variableName];
 		return this.translate(variableName)+".startsWith(" + CNV.String2Quote(value)+")";
+	}else if (op=="match_all"){
+		return "true";
 	} else{
 		Log.error("'" + op + "' is an unknown aggregate");
 	}//endif

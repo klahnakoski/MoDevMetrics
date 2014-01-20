@@ -34,14 +34,14 @@ var esQuery = {
 		{"and":[
 			{"term":{"bug_id":	902953}},
 				 {
-                                "range" : {
-                                    "bug_id" : {
+                                "range":{
+                                    "bug_id":{
                                         "lt"  : 1000000,
                                         "gte" :  900000
                                     }
                                 }
                             },
-//				                                "exists" : {
+//				                                "exists":{
 //                                    "field" : "bug_group"
 //                                },
 			{"missing":{"field":"expires_on", "null_value":true}}
@@ -54,33 +54,33 @@ var esQuery = {
 
 
 //			var esQuery =	{
-//    "sort" : [ ],
+//    "sort":[ ],
 //    "from"   : 0,
-//    "fields" : [
+//    "fields":[
 //        "bug_id",
 //        "bug_group",
 //		"expires_on"
 //    ],
-//    "facets" : { },
-//    "query" : {
-//        "filtered" : {
-//            "filter" : {
-//                "and" : [
+//    "facets":{ },
+//    "query":{
+//        "filtered":{
+//            "filter":{
+//                "and":[
 //                    {
-//                        "match_all" : { }
+//                        "match_all":{ }
 //                    },
 //                    {
-//                        "and" : [
+//                        "and":[
 //                            {
-//                                "range" : {
-//                                    "bug_id" : {
+//                                "range":{
+//                                    "bug_id":{
 //                                        "lt"  : 1000000,
 //                                        "gte" :  900000
 //                                    }
 //                                }
 //                            },
 //                            {
-//                                "exists" : {
+//                                "exists":{
 //                                    "field" : "bug_group"
 //                                }
 //                            },
@@ -89,8 +89,8 @@ var esQuery = {
 //                    }
 //                ]
 //            },
-//            "query" : {
-//                "match_all" : { }
+//            "query":{
+//                "match_all":{ }
 //            }
 //        }
 //    },

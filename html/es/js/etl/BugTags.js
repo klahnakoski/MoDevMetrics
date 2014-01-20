@@ -38,7 +38,7 @@ BUG_TAGS.makeSchema=function(){
 
 	var config={
 		"_source":{"enabled": true},
-		"_all" : {"enabled" : false},
+		"_all":{"enabled" : false},
 		"properties":{
 			"date":{"type":"long", "store":"yes", "index":"not_analyzed"},
 			"bug_id":{"type":"integer", "store":"yes", "index":"not_analyzed"},
@@ -51,7 +51,7 @@ BUG_TAGS.makeSchema=function(){
 	};
 
 	var setup={
-		"index" : {
+		"index":{
 	 	   "refresh_interval" : "-1"
    		},
 		"mappings":{
@@ -115,7 +115,7 @@ BUG_TAGS.get=function(minBug, maxBug, minDate, maxDate){
 		{"range":{"modified_ts":{"lt":maxDate.getMilli()}}},
 		bugFilter
 	]};
-//{"terms" : { "bug_status" : ["resolved", "verified", "closed"] }}
+//{"terms":{ "bug_status":["resolved", "verified", "closed"] }}
 
 	var a=Log.action("Get Current Bug Info", true);
 	var current=yield (ESQuery.run({
@@ -172,7 +172,7 @@ BUG_TAGS.get=function(minBug, maxBug, minDate, maxDate){
 BUG_TAGS.insert=function(tags){
 	var insert=[];
 	tags.forall(function(r, i){
-		insert.push(JSON.stringify({ "index" : { "_id" : r.bug_id+"-"+Date.newInstance(r.date).format("yyMMdd") } }));
+		insert.push(JSON.stringify({ "index":{ "_id" : r.bug_id+"-"+Date.newInstance(r.date).format("yyMMdd") } }));
 		insert.push(JSON.stringify(r));
 	});
 

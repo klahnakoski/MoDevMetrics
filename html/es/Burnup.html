@@ -132,35 +132,35 @@
 		}
 
 		var chartRequest = {
-			"requests" :[
+			"requests":[
 				{
-					"esQuery" : {
-						"query": {
-							"match_all" : {}
+					"esQuery":{
+						"query":{
+							"match_all":{}
 						},
-						"filter" : {
+						"filter":{
 							"and":[
 								Mozilla.BugStatus.Closed.esfilter
 							]
 						},
 						"from" : 0,
 						"size" : 0,
-						"sort" : []
+						"sort":[]
 					},
 					"seriesName" : "Closed"
 				},
 				{
-					"esQuery" : {
-						"query": {
-							"match_all" : {}
+					"esQuery":{
+						"query":{
+							"match_all":{}
 						},
-						"filter" : {
+						"filter":{
 							"and":[
 							]
 						},
 						"from" : 0,
 						"size" : 0,
-						"sort" : []
+						"sort":[]
 					},
 					"seriesName" : "Total"
 				}
@@ -169,13 +169,13 @@
 //				{"seriesName":"NewAndOpen", "code":"Total"
 //
 ////			]
-			"baseline" : [{
+			"baseline":[{
 				"name" : "New + Closed",
 				"data" : "Total",
 				"start" : "Closed"
 			}],
 //					"track" : true,
-			"showSeries" : ["New + Closed", "Closed"],
+			"showSeries":["New + Closed", "Closed"],
 			"chartTitle" : "Burnup",
 			"canvas" : "chart",
 //			"originZero" : true,

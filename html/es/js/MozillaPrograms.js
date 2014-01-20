@@ -44,7 +44,6 @@ var MozillaPrograms = {
 		["testcase", "keywords", "testcase-wanted"],
 		["Crash", "keywords", "topcrash"],			//Robert Kaiser PULLS HIS METRICS USING THIS
 		["Crash", "keywords", "crash"],
-		["Crash", "keywords", "regression"],
 		["Top Crash", "keywords", "topcrash"],		//THE KEYWORD IS ADDED AND REMOVED TO KEEP ABOUT 100 MARKED
 		["QA Wanted", "keywords", "qawanted"],
 		["Regression", "status_whiteboard.tokenized", "regression-window-wanted"],

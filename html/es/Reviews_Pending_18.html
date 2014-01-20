@@ -133,7 +133,7 @@ var __createChart = function(){
 	var chart=yield (Q({
 		"name":"Review Wait Times",
 		"from":reviews.list,
-		"select": {"name":"count", "value":"bug_id", "aggregate":"count"},
+		"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
 		"edges":[
 			{"name":"dummy", "value":"\"Number of reviews\""},
 			{"name":"wait time", allowNulls:true,

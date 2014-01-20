@@ -659,10 +659,10 @@ ESQuery.prototype.buildESQuery = function(){
 	var output = {
 		"query":{
 			"filtered":{
-				"query": {
-					"match_all" : {}
+				"query":{
+					"match_all":{}
 				},
-				"filter" : {
+				"filter":{
 					"and":[
 						where
 					]
@@ -671,7 +671,7 @@ ESQuery.prototype.buildESQuery = function(){
 		},
 		"from" : 0,
 		"size" : ESQuery.DEBUG ? 100 : 0,
-		"sort" : [],
+		"sort":[],
 		"facets":{
 		}
 	};

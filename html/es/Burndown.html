@@ -132,35 +132,35 @@
 		}
 
 		var chartRequest = {
-			"requests" :[
+			"requests":[
 				{
-					"esQuery" : {
-						"query": {
-							"match_all" : {}
+					"esQuery":{
+						"query":{
+							"match_all":{}
 						},
-						"filter" : {
+						"filter":{
 							"and":[
 								Mozilla.BugStatus.Open.esfilter
 							]
 						},
 						"from" : 0,
 						"size" : 0,
-						"sort" : []
+						"sort":[]
 					},
 					"seriesName" : "Open"
 				},
 				{
-					"esQuery" : {
-						"query": {
-							"match_all" : {}
+					"esQuery":{
+						"query":{
+							"match_all":{}
 						},
-						"filter" : {
+						"filter":{
 							"and":[
 							]
 						},
 						"from" : 0,
 						"size" : 0,
-						"sort" : []
+						"sort":[]
 					},
 					"seriesName" : "Total"
 				}
@@ -169,13 +169,13 @@
 //				{"seriesName":"NewAndOpen", "code":"Total"
 //
 ////			]
-			"baseline" : [{
+			"baseline":[{
 				"name" : "New and Open",
 				"data" : "Total",
 				"start" : "Open"
 			}],
 ////					"track" : true,
-			"showSeries" : ["Open", "New and Open"],
+			"showSeries":["Open", "New and Open"],
 			"chartTitle" : "Burndown",
 			"canvas" : "chart",
 //			"originZero" : true,

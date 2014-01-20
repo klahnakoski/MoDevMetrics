@@ -123,10 +123,10 @@
 	var createChart=function(){
 		var esQuery = {
 				"query":{"filtered":{
-					"query": {
-						"match_all" : {}
+					"query":{
+						"match_all":{}
 					},
-					"filter" : {
+					"filter":{
 						"and":[
 							{"range":{"modified_ts":{"gte":Date.newInstance(GUI.state.sampleMin).getMilli()}}},
 							{"range":{"modified_ts":{"lt":Date.newInstance(GUI.state.sampleMax).getMilli()}}}
@@ -135,13 +135,13 @@
 				}},
 				"from" : 0,
 				"size" : 10,
-				"sort" : [],
+				"sort":[],
 				"facets":{
-					"inReview": {
+					"inReview":{
 						"terms":{
 							"script_field":
 								new MVEL().code({
-									"select" : [
+									"select":[
 										{"name":"bug_id", "value":"bugs.bug_id"},
 										{"name":"modified_ts", "value":"bugs.modified_ts"},
 										{"name":"requestee", "value":"bugs.attachments.flags.requestee"},
@@ -150,10 +150,10 @@
 									"from":
 											"bugs.attachments.flags",
 									"where":
-									{"and" : [
-										{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
-										{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
-//										{"term" : {"bugs.attachments.flags.requestee" : "roc@ocallahan.org"}},
+									{"and":[
+										{"terms":{"bugs.attachments.flags.request_status":["?"]}},
+										{"terms":{"bugs.attachments.flags.request_type":["review", "superreview"]}},
+//										{"term":{"bugs.attachments.flags.requestee" : "roc@ocallahan.org"}},
 										{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}},
 										{"script":{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}}
 									]}
@@ -161,11 +161,11 @@
 							"size": GUI.state.esSize
 						}
 					},
-					"doneReview" : {
+					"doneReview":{
 						"terms":{
 							"script_field":
 									new MVEL().code({
-										"select" : [
+										"select":[
 											{"name":"bug_id", "value":"bugs.bug_id"},
 											{"name":"modified_ts", "value":"bugs.modified_ts"},
 											{"name":"requestee", "value":"bugs.attachments.flags.requestee"},
@@ -174,11 +174,11 @@
 										"from":
 												"bugs.attachments.flags",
 										"where":
-										{"and" : [
-											{"or" : [
-												{ "and" : [
-													{"not": {"terms" : {"bugs.attachments.flags.request_status" : ["?"]}}},
-													{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}}
+										{"and":[
+											{"or":[
+												{ "and":[
+													{"not":{"terms":{"bugs.attachments.flags.request_status":["?"]}}},
+													{"terms":{"bugs.attachments.flags.request_type":["review", "superreview"]}}
 												]}
 											]},
 											{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
@@ -220,7 +220,7 @@
 					var time2res = Q({
 						"name": "Review Times",
 						"from": durations,
-						"select": {"name":"Count", "value":"1", "aggregate":"count"},
+						"select":{"name":"Count", "value":"1", "aggregate":"count"},
 						"edges":[
 							{"name":"Cohort", "value":"Date.newInstance(finished_time)",
 								"domain":{"type":"time", "min":Date.now().add("-2year"), "max":Date.now(), "interval":"6month", format:"NNN yyyy"}},

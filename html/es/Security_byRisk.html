@@ -81,7 +81,7 @@ var __createChart = function(){
 
 	var data=yield (ESQuery.run({
 		"from":"bugs",
-		"select": {"name":"total", "value":"bug_id", "aggregate":"count"},
+		"select":{"name":"total", "value":"bug_id", "aggregate":"count"},
 		"edges":[
 			{"name":"Team", "domain":Mozilla.Security.Teams.getDomain()},
 			{"name":"Priority", "domain":Mozilla.Security.Priority.getDomain()},

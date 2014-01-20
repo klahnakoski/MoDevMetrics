@@ -17,13 +17,13 @@
 
 <script type="application/javascript;version=1.7">
 	var query = {
-		"query" : {
-			"filtered" : {
-				"query": {
-					"match_all" : {}
+		"query":{
+			"filtered":{
+				"query":{
+					"match_all":{}
 				},
-				"filter" : {
-					"and" : [
+				"filter":{
+					"and":[
 						Mozilla.BugStatus.Open.esfilter
 					]
 				}
@@ -33,8 +33,8 @@
 		"size": 20,
 		"sort": [],
 		"facets":{
-			"Bugs per Bug": {
-				"terms": {
+			"Bugs per Bug":{
+				"terms":{
 					"field": "assigned_to",
 					"size": 10,
 					"sort":"count"

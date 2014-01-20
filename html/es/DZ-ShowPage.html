@@ -83,7 +83,7 @@ importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 		var sample = yield(ESQuery.run({
 			"name":"Page Load Times",
 			"from":"talos",
-			"select": {"name":"count", "value":page, "aggregate":"count"},
+			"select":{"name":"count", "value":page, "aggregate":"count"},
 			"edges":[
 				{"name":"branch", "value":Mozilla.Talos.Branch.field, "domain":Mozilla.Talos.Branch.getDomain()}
 			],
@@ -96,7 +96,7 @@ importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 			var chart = yield(ESQuery.run({
 				"name":"Page Load Times",
 				"from":"talos",
-				"select": {"name":"count", "value":"1", "aggregate":"count"},
+				"select":{"name":"count", "value":"1", "aggregate":"count"},
 				"edges":[
 					{"name":"mean", "value":page, "domain":{"type":"duration", "min":0, "interval":Duration.newInstance("50milli")}},
 					{"name":"date", "value":'testrun.date', "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}}

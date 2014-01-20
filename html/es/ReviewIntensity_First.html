@@ -197,7 +197,7 @@ importScript([
 
 		var q2= new ESQuery({
 			"from":"reviews",
-			"select": {"name":"review_count", "value":"bug_id", "aggregate":"count"},
+			"select":{"name":"review_count", "value":"bug_id", "aggregate":"count"},
 			"edges":[
 				{"name":"time", "value":"review_time", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}}
 			],

@@ -123,7 +123,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			var data = yield(ESQuery.run({
 				"name":"Specific Test Results",
 				"from":"perfy",
-				"select": {"name":"score", "value":"score", "aggregate":"average"},
+				"select":{"name":"score", "value":"score", "aggregate":"average"},
 				"edges":[
 					{"name":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()},
 					{"name":"Test", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":1})}
@@ -156,7 +156,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			var data = yield(ESQuery.run({
 				"name":"Overall",
 				"from":"perfy",
-				"select": {"name":"score", "value":"score", "aggregate":"average"},
+				"select":{"name":"score", "value":"score", "aggregate":"average"},
 				"edges":[
 					{"name":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()},
 					{"name":"Test", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":0})}

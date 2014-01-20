@@ -1,6 +1,6 @@
 {
     "from": "telemetry",
-    "select": {
+    "select":{
         "name": "num",
         "value": "info",
         "aggregate": "count"

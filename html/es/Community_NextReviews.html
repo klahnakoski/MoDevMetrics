@@ -109,7 +109,7 @@ var __createChart = function(){
 
 	var chart=yield(Q({
 		"from":totals, 
-		"select": {"name":"percent", "value":"aMath.round(100*num_next/aMath.max(1, num_total))", "aggregate":"one"},
+		"select":{"name":"percent", "value":"aMath.round(100*num_next/aMath.max(1, num_total))", "aggregate":"one"},
 		"edges":[
 			{"value":"requester_review_num", "domain":{"type":"numeric", "min":0, "max":20, "interval":1, "value":"value"}}
 		]

@@ -21,12 +21,12 @@ ProductFilter.prototype.makeFilter = function(){
 
 ProductFilter.prototype.makeQuery = function(filters){
 	var output = {
-		"query" : {
-			"filtered" : {
-				"query": {
+		"query":{
+			"filtered":{
+				"query":{
 					"match_all":{}
 				},
-				"filter" : {
+				"filter":{
 					"and":[
 						Mozilla.CurrentRecords.esfilter,
 						Mozilla.BugStatus.Open.esfilter
@@ -38,8 +38,8 @@ ProductFilter.prototype.makeQuery = function(filters){
 		"size": 0,
 		"sort": [],
 		"facets":{
-			"Products": {
-				"terms": {
+			"Products":{
+				"terms":{
 					"field": "product",
 					"size": 100000
 				}

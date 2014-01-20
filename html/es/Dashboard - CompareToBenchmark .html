@@ -139,7 +139,7 @@ var createChart = function(){
 	query = new ESQuery({
 		"name":"When Bugs are marked",
 		"from":"bugs",
-		"select": {"name":"marked_time", "value":"modified_ts", "aggregate":"minimum"},
+		"select":{"name":"marked_time", "value":"modified_ts", "aggregate":"minimum"},
 		"edges":[
 			{"name":"bug_id", "value":"bug_id"}
 		],
@@ -152,7 +152,7 @@ var createChart = function(){
 	var queryClosed = new ESQuery({
 		"name":"Closed Bugs",
 		"from":"bugs",
-		"select": {"name":"closed_time", "value":"modified_ts", "aggregate":"minimum"},
+		"select":{"name":"closed_time", "value":"modified_ts", "aggregate":"minimum"},
 		"edges":[
 			{"name":"bug_id", "value":"bug_id"}
 		],

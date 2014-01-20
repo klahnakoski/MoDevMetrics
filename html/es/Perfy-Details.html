@@ -79,11 +79,11 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		//PICK JUST ONE SAMPLE FROM EACH COMBINATION
 		var lastTestDate = yield(ESQuery.run({
 			"from":"perfy",
-			"select": {"name":"maxDate", "value":"info.started", "aggregate":"maximum"},
+			"select":{"name":"maxDate", "value":"info.started", "aggregate":"maximum"},
 			"edges":[
 				{"name":"channel", "domain":channelDomain}
 			],
-			"esfilter": {"and":[
+			"esfilter":{"and":[
 				GUI.getFilters("perfy"),
 				{"range":{"info.started":{"lte":sampleDate.getMilli()+1000}}}
 			]}
@@ -129,7 +129,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		Thread.run(function(){
 			var data = yield(ESQuery.run({
 				"from":"perfy",
-				"select": {"name":"score", "value":"score", "aggregate":"average"},
+				"select":{"name":"score", "value":"score", "aggregate":"average"},
 				"edges":[
 					{"name":"iteration", "value":"info.iteration", "domain":{"type":"count"}}
 				],

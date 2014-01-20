@@ -227,7 +227,7 @@ TeamFilter.prototype.injectHTML = function(hier){
 	var self=this;
 
 	$("#teamList").jstree({
-		"json_data" : {
+		"json_data":{
 			"data":hier
 		},
 		"themes":{
@@ -237,7 +237,7 @@ TeamFilter.prototype.injectHTML = function(hier){
 //		"checkbox":{
 //			"two_state":true
 //		},
-		"plugins" : [ "themes", "json_data", "ui", "checkbox" ]
+		"plugins":[ "themes", "json_data", "ui", "checkbox" ]
 	}).bind("change_state.jstree", function (e, data){
 		if (self.disableUI) return;
 	

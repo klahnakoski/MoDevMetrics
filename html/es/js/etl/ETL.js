@@ -110,9 +110,9 @@ ETL.updateAlias=function(etl){
 
 ETL.getMaxBugID=function(){
 	var maxResults=yield(ESQuery.run({
-		"select": {"name":"bug_id", "value":"bug_id", "aggregate":"maximum"},
+		"select":{"name":"bug_id", "value":"bug_id", "aggregate":"maximum"},
 		"from" : "bugs",
-		"edges" :[]
+		"edges":[]
 	}));
 	yield maxResults.cube.bug_id;
 };//method
@@ -216,7 +216,7 @@ ETL.incrementalInsert=function(etl){
 	var a=Log.action("Get changed bugs", true);
 	var data=yield (ESQuery.run({
 		"from":"bugs",
-		"select": {"name":"bug_id", "value":"bug_id", "aggregate":"count"},
+		"select":{"name":"bug_id", "value":"bug_id", "aggregate":"count"},
 		"edges":[
 			{"name":"bug_ids", "value":"bug_id"}
 		],

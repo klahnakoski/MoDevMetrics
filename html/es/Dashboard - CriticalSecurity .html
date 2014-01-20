@@ -144,7 +144,7 @@ var createChart = function(){
 		"esfilter":{
 			"and":[
 				Mozilla.BugStatus.Open.esfilter,
-				{ "range" : { "expires_on" : { "gte" : Date.now().getMilli()} } }
+				{ "range":{ "expires_on":{ "gte" : Date.now().getMilli()} } }
 			]
 		}
 	});

@@ -97,16 +97,16 @@ var createChart=function(){
 					//DO NOTHING
 				}else if (col.type=="string"){
 					var result=yield (ElasticSearch.search({
-						"query": {
-							"filtered": {
-								"query": {"match_all": {}},
+						"query":{
+							"filtered":{
+								"query":{"match_all":{}},
 								"filter": esfilter
 							}
 						},
 						"from": 0,
 						"size": 0,
 						"sort": [],
-						"facets": {
+						"facets":{
 							"all":{
 								"terms":{
 									"script_field":MVEL.compile.addFunctions('Value2Pipe(getDocValue("'+col.name+'"))'),
@@ -132,16 +132,16 @@ var createChart=function(){
 
 				}else if (["boolean", "integer", "date", "long"].contains(col.type)){
 					var result=yield (ElasticSearch.search({
-						"query": {
-							"filtered": {
-								"query": {"match_all": {}},
+						"query":{
+							"filtered":{
+								"query":{"match_all":{}},
 								"filter": esfilter
 							}
 						},
 						"from": 0,
 						"size": 0,
 						"sort": [],
-						"facets": {
+						"facets":{
 							"all":{
 								"statistical":{
 									"script":MVEL.compile.addFunctions('Value2Pipe(getDocValue("'+col.name+'"))')

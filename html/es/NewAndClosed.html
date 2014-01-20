@@ -128,75 +128,75 @@
 		if (rangeChart != undefined) rangeChart.kill();
 		
 		var chartRequest = {
-			"requests" :[
+			"requests":[
 				{
-					"esQuery" : {
-						"query": {
-							"match_all" : {}
+					"esQuery":{
+						"query":{
+							"match_all":{}
 						},
-						"filter" : {
+						"filter":{
 							"and":[
-//								{"not" : {"terms" : { "bug_status" : ["resolved", "verified", "closed"] }}},
+//								{"not":{"terms":{ "bug_status":["resolved", "verified", "closed"] }}},
 								{"script":{"script":'doc["modified_ts"].value==doc["created_ts"].value'}}
 							]
 						},
 						"from" : 0,
 						"size" : 0,
-						"sort" : []
+						"sort":[]
 					},
 					"seriesName" : "New"
 				},
 				{
-					"esQuery" : {
-						"query": {
-							"match_all" : {}
+					"esQuery":{
+						"query":{
+							"match_all":{}
 						},
-						"filter" : {
+						"filter":{
 							"and":[
-								{"terms" : {"bug_status" : ["resolved"]}},//, "verified", "closed"]}},
-								{"not": {"terms":{"previous_values.bug_status_value": ["resolved"]}}},
-								{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}}
+								{"terms":{"bug_status":["resolved"]}},//, "verified", "closed"]}},
+								{"not":{"terms":{"previous_values.bug_status_value": ["resolved"]}}},
+								{"not":{"range":{"expires_on":{"gt": Date.now().addDay(1)}}}}
 							]
 						},
 						"from" : 0,
 						"size" : 0,
-						"sort" : []
+						"sort":[]
 					},
 					"seriesName" : "Resolved"
 				},
 				{
-					"esQuery" : {
-						"query": {
-							"match_all" : {}
+					"esQuery":{
+						"query":{
+							"match_all":{}
 						},
-						"filter" : {
+						"filter":{
 							"and":[
-								{"terms" : {"bug_status" : ["verified"]}},//, "verified", "closed"]}},
-								{"not": {"terms":{"previous_values.bug_status_value": ["verified"]}}},
-								{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}}
+								{"terms":{"bug_status":["verified"]}},//, "verified", "closed"]}},
+								{"not":{"terms":{"previous_values.bug_status_value": ["verified"]}}},
+								{"not":{"range":{"expires_on":{"gt": Date.now().addDay(1)}}}}
 							]
 						},
 						"from" : 0,
 						"size" : 0,
-						"sort" : []
+						"sort":[]
 					},
 					"seriesName" : "Verified"
 				},
 				{
-					"esQuery" : {
-						"query": {
-							"match_all" : {}
+					"esQuery":{
+						"query":{
+							"match_all":{}
 						},
-						"filter" : {
+						"filter":{
 							"and":[
-								{"terms" : {"bug_status" : ["closed"]}},//, "verified", "closed"]}},
-								{"not": {"terms":{"previous_values.bug_status_value": ["closed"]}}},
-								{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}}
+								{"terms":{"bug_status":["closed"]}},//, "verified", "closed"]}},
+								{"not":{"terms":{"previous_values.bug_status_value": ["closed"]}}},
+								{"not":{"range":{"expires_on":{"gt": Date.now().addDay(1)}}}}
 							]
 						},
 						"from" : 0,
 						"size" : 0,
-						"sort" : []
+						"sort":[]
 					},
 					"seriesName" : "Closed"
 				}
@@ -205,13 +205,13 @@
 //				{"seriesName":"NewAndOpen", "code":"Total"
 //
 ////			]
-//			"baseline" : [{
+//			"baseline":[{
 //				"name" : "New and Open",
 //				"data" : "Total",
 //				"start" : "Open"
 //			}],
 //////					"track" : true,
-//			"showSeries" : ["Open", "New and Open"],
+//			"showSeries":["Open", "New and Open"],
 			"chartTitle" : "New Bugs and Closed Bugs",
 			"canvas" : "chart",
 			"originZero" : true,

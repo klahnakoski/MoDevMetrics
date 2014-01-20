@@ -105,15 +105,15 @@
 <script type="application/javascript;version=1.7">
 
 	var query = {
-		"query": {
-			"filtered" : {
-				"query": {
-					"match_all" : {}
+		"query":{
+			"filtered":{
+				"query":{
+					"match_all":{}
 				},
-				"filter": {
+				"filter":{
 					"and":[
-						{ "range" : { "expires_on" : { "gt" : Date.now().addDay(1) } } },
-						{ "term" : {"cf_blocking_basecamp": "+"}},
+						{ "range":{ "expires_on":{ "gt" : Date.now().addDay(1) } } },
+						{ "term":{"cf_blocking_basecamp": "+"}},
 						Mozilla.BugStatus.Open.esfilter
 					]
 				}
@@ -122,15 +122,15 @@
 		"from":0,
 		"size":0,
 		"sort":[
-			{ "bug_version_num" : {"sort" : "asc"} }
+			{ "bug_version_num":{"sort" : "asc"} }
 		],
 
-		"facets" : {
-			"pending": {
-				"terms": {
+		"facets":{
+			"pending":{
+				"terms":{
 					"script_field":
 							new MVEL().code({
-								"select" : [
+								"select":[
 									{"name":"bug_id", "value":"bugs.bug_id"},
 									{"name":"modified_ts", "value":"bugs.modified_ts"},
 									{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
@@ -138,20 +138,20 @@
 								"from":
 										"bugs.attachments.flags",
 								"where":
-								{"and" : [
-									{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
-									{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+								{"and":[
+									{"terms":{"bugs.attachments.flags.request_status":["?"]}},
+									{"terms":{"bugs.attachments.flags.request_type":["review", "superreview"]}},
 									{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
 								]}
 							}),
 					"size": 100000
 				}
 			},
-			"assigned": {
-				"terms": {
+			"assigned":{
+				"terms":{
 					"script_field":
 							new MVEL().code({
-								"select" : [
+								"select":[
 									{"name":"bug_id", "value":"bugs.bug_id"},
 									{"name":"assigned_to", "value":"bugs.assigned_to"}
 								],
@@ -161,11 +161,11 @@
 					"size": 100000
 				}
 			},
-			"reviewed": {
-				"terms": {
+			"reviewed":{
+				"terms":{
 					"script_field":
 							new MVEL().code({
-								"select" : [
+								"select":[
 									{"name":"bug_id", "value":"bugs.bug_id"},
 									{"name":"modified_ts", "value":"bugs.modified_ts"},
 									{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
@@ -173,9 +173,9 @@
 								"from":
 										"bugs.attachments.flags",
 								"where":
-								{"and" : [
-									{"terms" : {"bugs.attachments.flags.request_status" : ["+"]}},
-									{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+								{"and":[
+									{"terms":{"bugs.attachments.flags.request_status":["+"]}},
+									{"terms":{"bugs.attachments.flags.request_type":["review", "superreview"]}},
 									{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
 								]}
 							}),
