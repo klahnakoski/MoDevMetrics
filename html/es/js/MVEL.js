@@ -197,11 +197,23 @@ MVEL.prototype.from = function(fromPath, loopVariablePrefix){
 	this.prefixMap = [];
 	var code = "<CODE>";
 
-	var path = fromPath.split(".");
+	if (fromPath.indexOf("\t")>=0) Log.error("Can not handle variables names with tab char");
+	var path = fromPath.replaceAll("\\.", "\t").split(".").map(function(v){return v.replaceAll("\t", "\\.")});
 
+	//ADD LOCAL VARIABLES
+	var columns = ESQuery.getColumns(path[0]);
+	for(var i = columns.length;i--;){
+		if (columns[i].name.indexOf("\\.")>=0){
+			this.prefixMap.unshift({"path":columns[i].name, "variable":"get("+path[0]+", \""+columns[i].name.replaceAll("\\.", ".")+"\")"});   //USED TO MAKE THE TRANSLATE CONVERT bug.attachments TO bugs.?attachments
+		}else{
+			this.prefixMap.unshift({"path":columns[i].name, "variable":path[0]+"."+columns[i].name});   //USED TO MAKE THE TRANSLATE CONVERT bug.attachments TO bugs.?attachments
+		}//endif
+	}//for
+
+	//ADD LOOP VARIABLES
 	var currPath = [];
 	currPath.push(path[0]);
-	this.prefixMap.unshift({"path":path[0], "variable":path[0]});   //USED TO MAKE THE TRANSLATE CONVERT bug.attachments TO bugs.?attachments
+	this.prefixMap.unshift({"path":path[0], "variable":path[0].replaceAll("\\.", ".")});   //USED TO MAKE THE TRANSLATE CONVERT bug.attachments TO bugs.?attachments
 	for(var i = 1; i < path.length; i++){
 		var loopVariable = loopVariablePrefix + i;
 		currPath.push(path[i]);
@@ -225,6 +237,7 @@ MVEL.prototype.from = function(fromPath, loopVariablePrefix){
 		code = code.replaceAll("<CODE>", loop);
 	}//for
 
+
 	return code;
 };//method
 
@@ -233,8 +246,12 @@ MVEL.prototype.translate = function(variableName){
 	var shortForm = variableName;
 	for(var p = 0; p < (this.prefixMap).length; p++){
 		var prefix = this.prefixMap[p].path;
-		shortForm=shortForm.replaceAll(prefix+".", this.prefixMap[p].variable+".?"); //ADD NULL CHECK
-		shortForm=shortForm.replaceAll(prefix+"[", this.prefixMap[p].variable+"[");
+		if (shortForm==prefix){
+			shortForm=this.prefixMap[p].variable;
+		}else{
+			shortForm=shortForm.replacePrefix(prefix+".", this.prefixMap[p].variable+".?"); //ADD NULL CHECK
+			shortForm=shortForm.replacePrefix(prefix+"[", this.prefixMap[p].variable+"[");
+		}//endif
 	}//for
 	return shortForm;
 };//method
@@ -459,6 +476,7 @@ MVEL.Parts2Term = function(
 	domain
 ){
 	var mvel = new MVEL();
+
 	mvel.from(indexName, "_loop_");
 	
 	var term="";

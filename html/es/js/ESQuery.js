@@ -34,7 +34,7 @@ ESQuery.INDEXES={
 	"public_bugs_backend":{"host":"http://elasticsearch1.bugs.scl3.mozilla.com:9200", "path":"/public_bugs/bug_version"},
 	"public_bugs_proxy":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9201", "path":"/public_bugs/bug_version"},
 	"public_comments":{"host":"http://elasticsearch1.bugs.scl3.mozilla.com:9200", "path":"/public_comments/bug_comment"},
-	"private_bugs":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/private_bugs/bug_version"},
+	"private_bugs":{"host":"http://elasticsearch6.bugs.scl3.mozilla.com:9200", "path":"/private_bugs/bug_version"},
 	"private_comments":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/private_comments/bug_comment"},
 
 	"tor_bugs":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/bugs/bug_version"},
@@ -107,7 +107,7 @@ ESQuery.parseColumns=function(indexName, parentName, esProperties){
 					//DEFAULT
 					columns.push({"name":fullName, "type":p.type, "useSource":p.index=="no"});
 				}else{
-					columns.push({"name":fullName+"."+n, "type":p.type, "useSource":p.index=="no"});
+					columns.push({"name":fullName+"\\."+n, "type":p.type, "useSource":p.index=="no"});
 				}//endif
 			});
 			return;
@@ -174,11 +174,11 @@ ESQuery.loadColumns=function(query){
 
 			var types=Object.keys(schema);
 			if (types.length==1){
-				properties=schema[types[0]];
+				properties=schema[types[0]].properties;
 			}else if (schema[indexPath.split("/")[2]]!==undefined){
 				properties = schema[indexPath.split("/")[2]].properties;
 			}else{
-				properties=schema[types[0]];
+				properties=schema[types[0]].properties;
 			}//endif
 			indexInfo.columns = ESQuery.parseColumns(indexName, undefined, properties);
 

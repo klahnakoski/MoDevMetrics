@@ -73,8 +73,9 @@ importScript(['js/main.js', "js/Dimension-Bugzilla.js"], function(){
 			GUI.getFilters("bugs"),
 			Mozilla.BugStatus.Open.esfilter,
 			{"term":{"product":"firefox for metro"}},
-			{"exists":{"field": "status_whiteboard"}},
-			Mozilla.ScrumBugs.Effort.esfilter
+			Mozilla.ScrumBugs.Points.esfilter,
+			{"range":{"expires_on":{"gt":CNV.Date2milli(sampleMin)}}},
+			{"range":{"modified_ts":{"lte":CNV.Date2milli(sampleMax)}}}
 		]};
 
 
@@ -82,42 +83,33 @@ importScript(['js/main.js', "js/Dimension-Bugzilla.js"], function(){
 		var allBugsThread = Thread.run(function(){
 			Log.action("Request Bugs");
 
-			var result = yield(ESQuery.run({
-				"from":"private_bugs",
-				"select":[{"value":"modified_ts", "aggregate":"minimum"}],
-				"edges":["bug_id"],
+			var chart = yield(ESQuery.run({
+				"from":"bugs",
+				"select":{"value":"bug_id", "aggregate":"count"},
+				"edges":[
+					{"name":"effort", "domain":Mozilla.ScrumBugs.Points.getDomain()},
+					{"name":"day", "range":{"min":"modified_ts", "max":"expires_on"},
+						"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+					}
+				],
 				"esfilter":{"and":[
 					mainFilter
 				]}
 			}));
 
 
-			var openBugs=result.edges[0].domain.partitions.map(function(v){return v.name;});
-			
-			var bug_details = yield(ESQuery.run({
-				"from":"private_bugs",
-				"select":[
-					"private_bugs.bug_id",
-					"private_bugs.assigned_to",
-					Mozilla.ScrumBugs.Effort.getSelect({"index":"private_bugs"})
-				],
-				"esfilter":{"terms":{"bug_id":openBugs}}
-			}));
 
-			$("#details").html(CNV.Cube2HTMLTable(bug_details));
-
-
-//			var a = Log.action("Make chart", true);
-//			aChart.show({
-//				"id":"chart",
-//				"sheetDiv":"info",
-//				"type":"line",
-//				"stacked":false,
-//				"cube":chart,
-//				"height":"300",
-//				xAxisSize: 50
-//			});
-//			Log.actionDone(a);
+			var a = Log.action("Make chart", true);
+			aChart.show({
+				"id":"chart",
+				"sheetDiv":"info",
+				"type":"line",
+				"stacked":false,
+				"cube":chart,
+				"height":"300",
+				xAxisSize: 50
+			});
+			Log.actionDone(a);
 		});
 
 
@@ -127,15 +119,12 @@ importScript(['js/main.js', "js/Dimension-Bugzilla.js"], function(){
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [
-			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
+			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-month")},
 			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today().ceilingWeek()}
 		],
-				[
-					"sampleMin=Date.newInstance(sampleMin).floorWeek().format('yyyy-MM-dd')",
-					"sampleMax=Date.newInstance(sampleMax).addDay(1).floorWeek().addDay(-1).format('yyyy-MM-dd')"
-				],
-				"bugs",
-				true		//DO NOT SHOW DEFAULT FILTERS
+		[],
+		"bugs",
+		true		//DO NOT SHOW DEFAULT FILTERS
 		);
 	});
 

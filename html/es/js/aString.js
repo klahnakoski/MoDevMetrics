@@ -33,6 +33,15 @@ String.prototype.indent=function(numTabs){
 	return indent+this.toString().replaceAll("\n", "\n"+indent);
 };
 
+
+String.prototype.replacePrefix=function(oldPrefix, newPrefix){
+	if (this.startsWith(oldPrefix)){
+		return newPrefix+this.rightBut(oldPrefix.length);
+	}//endif
+	return this;
+};
+
+
 String.prototype.rtrim=function(value){
 	if (value===undefined) value=" ";
 
