@@ -121,22 +121,22 @@ var __createChart = function(){
 			{"name":"request_time", "value":"bugs.modified_ts"}
 		],
 		"where":{"and":[
-			{"missing" : {
+			{"missing":{
 				"field" : "bugs.attachments.flags.review_time",
 				"existence" : true,
 				"null_value" : true
 			}},
 			{"or":[
-				{"missing" : {
+				{"missing":{
 					"field" : "bugs.attachments.flags.requestee",
 					"existence" : true,
 					"null_value" : true
 				}},
 				{"term":{"bugs.attachments.flags.requestee":"nobody@mozilla.org"}}
 			]},
-			{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
-			{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
-			{"script" :{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}},
+			{"terms":{"bugs.attachments.flags.request_status" : ["?"]}},
+			{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+			{"script":{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}},
 			{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
 		]},
 		"esfilter":{"and":[
@@ -145,15 +145,15 @@ var __createChart = function(){
 			{ "nested": {
 				"path" : "attachments.flags",
 				"query": {
-					"filtered" : {
-						"query" : {
-							"match_all" : {}
+					"filtered":{
+						"query":{
+							"match_all":{}
 						},
-						"filter" : {
+						"filter":{
 							"and":[
-								{"terms" : {"attachments.flags.request_type" : ["review", "superreview"]}},
-								{"terms" : {"attachments.flags.request_status" : ["?"]}},
-								{"missing" : {"field" : "attachments.flags.review_time"}}
+								{"terms":{"attachments.flags.request_type" : ["review", "superreview"]}},
+								{"terms":{"attachments.flags.request_status" : ["?"]}},
+								{"missing":{"field" : "attachments.flags.review_time"}}
 							]
 						}
 					}

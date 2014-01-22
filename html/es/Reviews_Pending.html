@@ -97,14 +97,14 @@
 
 	var query = {
 		"query": {
-			"filtered" : {
+			"filtered":{
 				"query": {
-					"match_all" : {}
+					"match_all":{}
 				},
 				"filter": {
 					"and":[
 //													{"terms":{"bug_id":[505741]}},
-						{ "range" : { "expires_on" : { "gt" : Date.now().getMilli() } } },
+						{ "range":{ "expires_on":{ "gt" : Date.now().getMilli() } } },
 						Mozilla.BugStatus.Open.esfilter
 					]
 				}
@@ -113,7 +113,7 @@
 		"from":0,
 		"size":0,
 		"sort":[
-			{ "bug_version_num" : {"sort" : "asc"} }
+			{ "bug_version_num":{"sort" : "asc"} }
 		],
 
 		"facets":{
@@ -132,8 +132,8 @@
 								{"and" : [
 									{"or" : [
 										{ "and" : [
-											{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
-											{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}}
+											{"terms":{"bugs.attachments.flags.request_status" : ["?"]}},
+											{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}}
 										]}
 									]},
 									{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}

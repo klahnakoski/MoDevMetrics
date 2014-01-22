@@ -136,14 +136,14 @@ var __createChart = function(){
 
 	var query = {
 		"query": {
-			"filtered" : {
+			"filtered":{
 				"query": {
-					"match_all" : {}
+					"match_all":{}
 				},
 				"filter": {
 					"and":[
-						{ "range" : { "expires_on" : { "gt" : Date.now().addDay(1) } } },
-//						{ "term" : {"status_whiteboard.tokenized": "metro-mvp"}},
+						{ "range":{ "expires_on":{ "gt" : Date.now().addDay(1) } } },
+//						{ "term":{"status_whiteboard.tokenized": "metro-mvp"}},
 						Mozilla.BugStatus.Open.esfilter,
 						GUI.getFilters("bugs")
 					]
@@ -153,10 +153,10 @@ var __createChart = function(){
 		"from":0,
 		"size":0,
 		"sort":[
-			{ "bug_version_num" : {"sort" : "asc"} }
+			{ "bug_version_num":{"sort" : "asc"} }
 		],
 
-		"facets" : {
+		"facets":{
 			"pending": {
 				"terms": {
 					"script_field":
@@ -170,8 +170,8 @@ var __createChart = function(){
 										"bugs.attachments.flags",
 								"where":
 								{"and" : [
-									{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
-									{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+									{"terms":{"bugs.attachments.flags.request_status" : ["?"]}},
+									{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
 									{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}},
 									GUI.state.teamFilter.makeFilter("bugs.attachments.flags.requestee")
 								]}
@@ -210,8 +210,8 @@ var __createChart = function(){
 										"bugs.attachments.flags",
 								"where":
 								{"and" : [
-									{"terms" : {"bugs.attachments.flags.request_status" : ["+"]}},
-									{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+									{"terms":{"bugs.attachments.flags.request_status" : ["+"]}},
+									{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
 									{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}},
 									GUI.state.teamFilter.makeFilter("assigned_to")
 								]}

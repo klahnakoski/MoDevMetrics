@@ -106,14 +106,14 @@
 
 	var query = {
 		"query": {
-			"filtered" : {
+			"filtered":{
 				"query": {
-					"match_all" : {}
+					"match_all":{}
 				},
 				"filter": {
 					"and":[
-						{ "range" : { "expires_on" : { "gt" : Date.now().addDay(1) } } },
-						{ "term" : {"cf_blocking_basecamp": "+"}},
+						{ "range":{ "expires_on":{ "gt" : Date.now().addDay(1) } } },
+						{ "term":{"cf_blocking_basecamp": "+"}},
 						Mozilla.BugStatus.Open.esfilter
 					]
 				}
@@ -122,10 +122,10 @@
 		"from":0,
 		"size":0,
 		"sort":[
-			{ "bug_version_num" : {"sort" : "asc"} }
+			{ "bug_version_num":{"sort" : "asc"} }
 		],
 
-		"facets" : {
+		"facets":{
 			"pending": {
 				"terms": {
 					"script_field":
@@ -139,8 +139,8 @@
 										"bugs.attachments.flags",
 								"where":
 								{"and" : [
-									{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
-									{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+									{"terms":{"bugs.attachments.flags.request_status" : ["?"]}},
+									{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
 									{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
 								]}
 							}),
@@ -174,8 +174,8 @@
 										"bugs.attachments.flags",
 								"where":
 								{"and" : [
-									{"terms" : {"bugs.attachments.flags.request_status" : ["+"]}},
-									{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+									{"terms":{"bugs.attachments.flags.request_status" : ["+"]}},
+									{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
 									{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
 								]}
 							}),

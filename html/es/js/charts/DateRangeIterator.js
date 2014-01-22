@@ -48,13 +48,13 @@ DateRangeIterator.prototype.InjectDate = function(){
 
 
 DateRangeIterator.prototype.insertTimePointIntoQuery = function(esQuery, date){
-	esQuery.query.filtered.filter.and.push({ "range" : { "modified_ts" : { "lt" : date.getMilli() } } });
-	esQuery.query.filtered.filter.and.push({ "range" : { "expires_on" : { "gte" : date.getMilli()} } });
+	esQuery.query.filtered.filter.and.push({ "range":{ "modified_ts":{ "lt" : date.getMilli() } } });
+	esQuery.query.filtered.filter.and.push({ "range":{ "expires_on":{ "gte" : date.getMilli()} } });
 };
 
 DateRangeIterator.prototype.insertTimeIntervalIntoQuery = function(esQuery, date){
-	esQuery.query.filtered.filter.and.push({ "range" : { "modified_ts" : { "gte" : date.getMilli() } } });
-	esQuery.query.filtered.filter.and.push({ "range" : { "modified_ts" : { "lt" : date.add(this.interval).getMilli()} } });
+	esQuery.query.filtered.filter.and.push({ "range":{ "modified_ts":{ "gte" : date.getMilli() } } });
+	esQuery.query.filtered.filter.and.push({ "range":{ "modified_ts":{ "lt" : date.add(this.interval).getMilli()} } });
 };
 
 

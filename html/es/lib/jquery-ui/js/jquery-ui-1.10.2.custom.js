@@ -2833,7 +2833,7 @@ $.widget("ui.resizable", $.ui.mouse, {
 
 		}
 
-		this.handles = o.handles || (!$(".ui-resizable-handle", this.element).length ? "e,s,se" : { n: ".ui-resizable-n", e: ".ui-resizable-e", s: ".ui-resizable-s", w: ".ui-resizable-w", se: ".ui-resizable-se", sw: ".ui-resizable-sw", ne: ".ui-resizable-ne", nw: ".ui-resizable-nw" });
+		this.handles = o.handles || (!$(".ui-resizable-handle", this.element).length ? "e,s,se":{ n: ".ui-resizable-n", e: ".ui-resizable-e", s: ".ui-resizable-s", w: ".ui-resizable-w", se: ".ui-resizable-se", sw: ".ui-resizable-sw", ne: ".ui-resizable-ne", nw: ".ui-resizable-nw" });
 		if(this.handles.constructor === String) {
 
 			if ( this.handles === "all") {

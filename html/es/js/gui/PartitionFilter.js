@@ -187,7 +187,7 @@ PartitionFilter.prototype.makeTree=function(){
 	this.treeDone=true;
 
 	$(this.FIND_TREE).jstree({
-		"json_data" : {
+		"json_data":{
 			"data":self.hierarchy		 //EXPECTING id, name, children FOR ALL NODES IN TREE
 		},
 		"themes":{

@@ -77,7 +77,7 @@ Example: Pull review requests from BZ:
     {
     "from":"bugs.attachments.flags",
     "select":"_source",
-    "where": {"term" : {"bugs.attachments.flags.request_status" : "?"}}
+    "where": {"term":{"bugs.attachments.flags.request_status" : "?"}}
     }
 
 ESQuery.js can pull individual nested documents from ES.  ES on it’s own can only return a document once.  Aggregation

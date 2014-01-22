@@ -662,7 +662,7 @@ CNV.esFilter2Expression=function(esFilter){
 		var variableName = pair.field;
 		return "(" + variableName + ")";
 	}else if (op=="missing"){
-//		"missing" : {
+//		"missing":{
 //			"field" : "requestee",
 //			"existence" : true,
 //			"null_value" : true

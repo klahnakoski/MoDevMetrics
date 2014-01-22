@@ -128,22 +128,22 @@
 		var esQuery = {
 				"query":{"filtered":{
 					"query": {
-						"match_all" : {}
+						"match_all":{}
 					},
-					"filter" : {
+					"filter":{
 						"and":[
 
 							{"terms":{"bug_id":[486918, 507902]}},//, 19963, 505741]}},
 							{ "nested": {
 								"path" : "attachments.flags",
 								"query": {
-									"filtered" : {
-										"query" : {
-											"match_all" : {}
+									"filtered":{
+										"query":{
+											"match_all":{}
 										},
-										"filter" : {
+										"filter":{
 											"and":[
-												{"terms" : {"attachments.flags.request_type" : ["review", "superreview"]}}
+												{"terms":{"attachments.flags.request_type" : ["review", "superreview"]}}
 											]
 										}
 									}
@@ -173,9 +173,9 @@
 										{"term":{"bugs.attachments.attach_id":"393341"}},
 										{"or" : [
 											{ "and" : [
-												{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
-												{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
-												{"term" : {"bugs.attachments.flags.requestee" : GUI.state.requestee}},
+												{"terms":{"bugs.attachments.flags.request_status" : ["?"]}},
+												{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+												{"term":{"bugs.attachments.flags.requestee" : GUI.state.requestee}},
 												{"script":{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}}
 											]}
 										]},
@@ -190,7 +190,7 @@
 							]
 						}
 					},
-					"doneReview" : {
+					"doneReview":{
 						"terms":{
 							"script_field":
 								new MVEL().code({
@@ -205,12 +205,12 @@
 									"where":
 									{"and" : [
 										{"term":{"bugs.attachments.attach_id":"393341"}},
-										{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+										{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
 										{"or" : [
 											{ "and" : [//IF THE REQUESTEE SWITCHED THE ? FLAG, THEN IT IS DONE
-												{"not": {"terms" : {"bugs.attachments.flags.request_status" : ["?"]}}},
+												{"not": {"terms":{"bugs.attachments.flags.request_status" : ["?"]}}},
 												{"or":[
-													{"term" : {"bugs.attachments.flags.requestee" : GUI.state.requestee}},
+													{"term":{"bugs.attachments.flags.requestee" : GUI.state.requestee}},
 													{"and":[
 														{"missing":{"field":"bugs.attachments.flags.requestee", "existence":true, "null_value":true}},
 														{"term":{"bugs.attachments.modified_by": GUI.state.requestee}}
@@ -222,8 +222,8 @@
 												{"term":{"bugs.attachments.modified_by": GUI.state.requestee}}
 											]},
 											{ "and" : [//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
-												{"terms" : {"bugs.bug_status" : ["resolved", "verified", "closed"]}},
-												{"term" : {"bugs.attachments.flags.requestee" : GUI.state.requestee}}
+												{"terms":{"bugs.bug_status" : ["resolved", "verified", "closed"]}},
+												{"term":{"bugs.attachments.flags.requestee" : GUI.state.requestee}}
 											]}
 										]}
 									]}

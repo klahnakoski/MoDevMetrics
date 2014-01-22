@@ -93,7 +93,7 @@ ElasticSearch.setRefreshInterval=function(indexName, rate){
 };//method
 
 
-//EXPECTING THE DATA ARRAY TO ALREADY HAVE ODD ENTRIES STARTING WITH { "create" : { "_id" : ID } }
+//EXPECTING THE DATA ARRAY TO ALREADY HAVE ODD ENTRIES STARTING WITH { "create":{ "_id" : ID } }
 ElasticSearch.bulkInsert=function(indexName, typeName, dataArray){
 //	try{
 		yield (Rest.post({

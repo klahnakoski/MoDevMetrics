@@ -703,9 +703,9 @@ ESQuery.prototype.buildESQuery = function(){
 		"query":{
 			"filtered":{
 				"query": {
-					"match_all" : {}
+					"match_all":{}
 				},
-				"filter" : {
+				"filter":{
 					"and":[
 						where
 					]

@@ -47,7 +47,7 @@ BUG_SUMMARY.makeSchema=function(){
 
 	var config={
 		"_source":{"enabled": true},
-		"_all" : {"enabled" : false},
+		"_all":{"enabled" : false},
 		"properties":{
 			"bug_id":{"type":"integer", "store":"yes", "index":"not_analyzed"},
 			"product":{"type":"string", "store":"yes", "index":"not_analyzed"},
@@ -290,7 +290,7 @@ BUG_SUMMARY.insert=function(reviews){
 	var uid=Util.GUID();
 	var insert=[];
 	reviews.forall(function(r, i){
-		insert.push(JSON.stringify({ "create" : { "_id" : r.bug_id } }));
+		insert.push(JSON.stringify({ "create":{ "_id" : r.bug_id } }));
 		insert.push(JSON.stringify(r));
 	});
 	var a=Log.action("Push bug summary to ES", true);

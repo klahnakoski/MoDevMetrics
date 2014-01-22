@@ -33,8 +33,21 @@ Dimension.addEdges(true,  Mozilla, [
 			{"name":"Verified", "esfilter":{"term":{"bug_status":"verified"}}},
 			{"name":"Closed", "esfilter":{"term":{"bug_status":"closed"}}}
 		]}
-	]
-	},
+	]},
+
+	{"name":"ScrumBugs", "index":"bugs", "edges":[
+		{"name": "Effort", "partitions":[
+			{"name":"P1", "esfilter":{"term":{"status_whiteboard.tokenized":"p=1"}}},
+			{"name":"P2", "esfilter":{"term":{"status_whiteboard.tokenized":"p=2"}}},
+			{"name":"P3", "esfilter":{"term":{"status_whiteboard.tokenized":"p=3"}}},
+			{"name":"P4", "esfilter":{"term":{"status_whiteboard.tokenized":"p=4"}}},
+			{"name":"P5", "esfilter":{"term":{"status_whiteboard.tokenized":"p=5"}}},
+			{"name":"P6", "esfilter":{"term":{"status_whiteboard.tokenized":"p=6"}}},
+			{"name":"P7", "esfilter":{"term":{"status_whiteboard.tokenized":"p=7"}}},
+			{"name":"P8", "esfilter":{"term":{"status_whiteboard.tokenized":"p=8"}}},
+			{"name":"P9", "esfilter":{"term":{"status_whiteboard.tokenized":"p=9"}}}
+		]}
+	]},
 
 	{"name":"People", "partitions":[
 		{"name":"MoCo", "esfilter":{}},

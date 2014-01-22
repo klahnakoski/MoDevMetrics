@@ -227,7 +227,7 @@ TeamFilter.prototype.injectHTML = function(hier){
 	var self=this;
 
 	$("#teamList").jstree({
-		"json_data" : {
+		"json_data":{
 			"data":hier
 		},
 		"themes":{

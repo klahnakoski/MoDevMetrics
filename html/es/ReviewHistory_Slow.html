@@ -142,22 +142,22 @@
 		var esQuery = {
 				"query":{"filtered":{
 					"query": {
-						"match_all" : {}
+						"match_all":{}
 					},
-					"filter" : {
+					"filter":{
 						"and":[
 
 //							{"terms":{"bug_id":[730079]}},//[600556]}},//, 19963, 505741]}},
 							{ "nested": {
 								"path" : "attachments.flags",
 								"query": {
-									"filtered" : {
-										"query" : {
-											"match_all" : {}
+									"filtered":{
+										"query":{
+											"match_all":{}
 										},
-										"filter" : {
+										"filter":{
 											"and":[
-												{"terms" : {"attachments.flags.request_type" : ["review", "superreview"]}}
+												{"terms":{"attachments.flags.request_type" : ["review", "superreview"]}}
 											]
 										}
 									}
@@ -185,10 +185,10 @@
 									"where":
 									{"and" : [
 //										{"term":{"bugs.attachments.attach_id":"614487"}},
-										{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
-										{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
-										{"term" : {"bugs.attachments.flags.requestee" : GUI.state.requestee}},
-										{"script" :{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}},
+										{"terms":{"bugs.attachments.flags.request_status" : ["?"]}},
+										{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+										{"term":{"bugs.attachments.flags.requestee" : GUI.state.requestee}},
+										{"script":{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}},
 										{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
 									]}
 								}),
@@ -238,22 +238,22 @@ Log.note(CNV.Object2JSON(data));
 				var esQuery2 = {
 						"query":{"filtered":{
 							"query": {
-								"match_all" : {}
+								"match_all":{}
 							},
-							"filter" : {
+							"filter":{
 								"and":[
 //										{"terms":{"bug_id":[730079]}},
 									{"terms":{"bug_id":bugList}},//, 19963, 505741]}},
 									{ "nested": {
 										"path" : "attachments.flags",
 										"query": {
-											"filtered" : {
-												"query" : {
-													"match_all" : {}
+											"filtered":{
+												"query":{
+													"match_all":{}
 												},
-												"filter" : {
+												"filter":{
 													"and":[
-														{"terms" : {"attachments.flags.request_type" : ["review", "superreview"]}}
+														{"terms":{"attachments.flags.request_type" : ["review", "superreview"]}}
 													]
 												}
 											}
@@ -266,7 +266,7 @@ Log.note(CNV.Object2JSON(data));
 						"size" : 10,
 						"sort" : [],
 						"facets":{
-							"doneReview" : {
+							"doneReview":{
 								"terms":{
 									"script_field":
 										new MVEL().code({
@@ -282,12 +282,12 @@ Log.note(CNV.Object2JSON(data));
 											{"and" : [
 //													{"term":{"bugs.attachments.attach_id":"556069"}},
 												{"not":{"missing":{"field":"bugs.attachments.flags.request_type", "existence":true, "null_value":true}}},
-												{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+												{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
 												{"or" : [
 													{ "and" : [//IF THE REQUESTEE SWITCHED THE ? FLAG, THEN IT IS DONE
-														{"not": {"terms" : {"bugs.attachments.flags.request_status" : ["?"]}}},
+														{"not": {"terms":{"bugs.attachments.flags.request_status" : ["?"]}}},
 														{"or":[
-															{"term" : {"bugs.attachments.flags.requestee" : GUI.state.requestee}},
+															{"term":{"bugs.attachments.flags.requestee" : GUI.state.requestee}},
 															{"and":[
 																{"missing":{"field":"bugs.attachments.flags.requestee", "existence":true, "null_value":true}},
 																{"term":{"bugs.attachments.modified_by": GUI.state.requestee}}
@@ -295,8 +295,8 @@ Log.note(CNV.Object2JSON(data));
 														]}
 													]},
 													{ "and" : [//IF THE ? WAS SWITCHED TO ANOTHER REQUESTEE, THEN IT IS DONE
-														{"term" : {"bugs.attachments.flags.request_status" : "?"}},
-														{"not":{"term" : {"bugs.attachments.flags.requestee" : GUI.state.requestee}}}
+														{"term":{"bugs.attachments.flags.request_status" : "?"}},
+														{"not":{"term":{"bugs.attachments.flags.requestee" : GUI.state.requestee}}}
 //												{"term":{"bugs.attachments.modified_by": GUI.state.requestee}} //ANYONE CAN SWITCH
 													]},
 													{"and":[//IF THE REQUESTEE OBSOLEETED THE ATTACHMENT, IT IS DONE
@@ -306,8 +306,8 @@ Log.note(CNV.Object2JSON(data));
 //												{"term":{"bugs.attachments.modified_by": GUI.state.requestee}}  //ANYONE CAN OBSOLETE
 													]},
 													{ "and" : [//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
-														{"terms" : {"bugs.bug_status" : ["resolved", "verified", "closed"]}},
-														{"term" : {"bugs.attachments.flags.requestee" : GUI.state.requestee}}
+														{"terms":{"bugs.bug_status" : ["resolved", "verified", "closed"]}},
+														{"term":{"bugs.attachments.flags.requestee" : GUI.state.requestee}}
 													]}
 												]}
 											]}

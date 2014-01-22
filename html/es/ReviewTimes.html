@@ -124,9 +124,9 @@
 		var esQuery = {
 				"query":{"filtered":{
 					"query": {
-						"match_all" : {}
+						"match_all":{}
 					},
-					"filter" : {
+					"filter":{
 						"and":[
 							{"range":{"modified_ts":{"gte":Date.newInstance(GUI.state.sampleMin).getMilli()}}},
 							{"range":{"modified_ts":{"lt":Date.newInstance(GUI.state.sampleMax).getMilli()}}}
@@ -151,9 +151,9 @@
 											"bugs.attachments.flags",
 									"where":
 									{"and" : [
-										{"terms" : {"bugs.attachments.flags.request_status" : ["?"]}},
-										{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
-//										{"term" : {"bugs.attachments.flags.requestee" : "roc@ocallahan.org"}},
+										{"terms":{"bugs.attachments.flags.request_status" : ["?"]}},
+										{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+//										{"term":{"bugs.attachments.flags.requestee" : "roc@ocallahan.org"}},
 										{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}},
 										{"script":{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}}
 									]}
@@ -161,7 +161,7 @@
 							"size": GUI.state.esSize
 						}
 					},
-					"doneReview" : {
+					"doneReview":{
 						"terms":{
 							"script_field":
 									new MVEL().code({
@@ -177,8 +177,8 @@
 										{"and" : [
 											{"or" : [
 												{ "and" : [
-													{"not": {"terms" : {"bugs.attachments.flags.request_status" : ["?"]}}},
-													{"terms" : {"bugs.attachments.flags.request_type" : ["review", "superreview"]}}
+													{"not": {"terms":{"bugs.attachments.flags.request_status" : ["?"]}}},
+													{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}}
 												]}
 											]},
 											{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}

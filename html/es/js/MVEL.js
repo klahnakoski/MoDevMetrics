@@ -340,7 +340,7 @@ MVEL.prototype.where = function(esFilter){
 		var variableName = pair.field;
 		return "(" + this.translate(variableName) + "!=null)";
 	}else if (op=="missing"){
-//		"missing" : {
+//		"missing":{
 //			"field" : "requestee",
 //			"existence" : true,
 //			"null_value" : true
@@ -569,9 +569,11 @@ MVEL.FUNCTIONS={
 		"var isNumeric = function(value){\n"+
 			"value = value + \"\";\n"+
 //			"try{ value-0; }catch(e){ 0; }"+
-			"var isNum = value.length()>0;"+
-			"for (v : value.toCharArray()){ if (\"0123456789\".indexOf(v)==-1) isNum = false; };\n"+
-			"isNum;"+
+			"var isNum = value.length()>0;\n"+
+			"for (v : value.toCharArray()){\n" +
+			"if (\"0123456789\".indexOf(v)==-1) isNum = false;\n" +
+			"};\n"+
+			"isNum;\n"+
 		"};\n",
 
 	"alpha2zero":

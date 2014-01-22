@@ -102,7 +102,7 @@ Dimension.prototype={
 
 		var output={
 			"name":this.name,
-			"value":MVEL.Parts2TermScript(this.index, domain)
+			"value":MVEL.Parts2TermScript(nvl(param.index, this.index), domain)
 		};
 		return output;
 	}

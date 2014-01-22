@@ -105,7 +105,7 @@ importScript(["js/main.js"], function(){
 		sources.forall(function(s){
 			s.expires_on=fixer[s._id];
 //			if (s.bug_id==902525){
-				bulk.append(JSON.stringify({ "index" : { "_id" : s._id } }));
+				bulk.append(JSON.stringify({ "index":{ "_id" : s._id } }));
 				bulk.append(JSON.stringify(s));
 //			}//endif
 		});

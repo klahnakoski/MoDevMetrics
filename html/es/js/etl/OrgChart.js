@@ -97,7 +97,7 @@ OrgChart.makeSchema=function(){
 		"mappings":
 			Map.newInstance(OrgChart.typeName, {
 				"_source":{"enabled": true},
-				"_all" : {"enabled" : false},
+				"_all":{"enabled" : false},
 				"properties":{
 					"id":{"type":"string", "store":"yes", "index":"not_analyzed"},
 					"name":{"type":"string", "store":"yes", "index":"not_analyzed"},
@@ -123,7 +123,7 @@ OrgChart.insert=function(people){
 	var uid=Util.GUID();
 	var insert=[];
 	people.forall(function(r, i){
-		insert.push(JSON.stringify({ "create" : { "_id" : uid+"-"+i } }));
+		insert.push(JSON.stringify({ "create":{ "_id" : uid+"-"+i } }));
 		insert.push(JSON.stringify(r));
 	});
 

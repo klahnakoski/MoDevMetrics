@@ -1,0 +1,149 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="application/javascript;version=1.7" src="lib/jsImport/import.js"></script>
+</HEAD>
+<BODY>
+
+
+<div id="sidebar">
+	<br>
+	<br>
+
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description">
+	</div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3 id="title">Metro</h3>
+
+	<div id="chart" class="chart" style="float:none;width:800px;height:300px;"></div>
+	<br><br>
+
+	<div id="info"></div>
+	<div id="details"></div>
+</div>
+
+
+<script type="application/javascript;version=1.7">
+
+
+importScript(['js/main.js', "js/Dimension-Bugzilla.js"], function(){
+
+
+	var thread;
+	var createChart = function(){
+		if (thread !== undefined)
+			thread.kill();
+		thread = Thread.run(__createChart());
+	};
+
+	var __createChart = function(){
+
+		var sampleMin = Date.newInstance(GUI.state.sampleMin);
+		var sampleMax = Date.newInstance(GUI.state.sampleMax).addDay(1);
+		var sampleInterval = Duration.DAY;
+
+		var getP = 'alpha2zero(between(coalesce(getDocValue("<FIELD>")," ")+" ","p="," "))'
+
+		var wasZero = MVEL.compile.addFunctions(getP.replace("<FIELD>", "previous_values.status_whiteboard_value") + "==0");
+		var isNotZero = MVEL.compile.addFunctions(getP.replace("<FIELD>", "status_whiteboard") + "!=0");
+
+
+		var mainFilter = {"and":[
+			GUI.getFilters("bugs"),
+			Mozilla.BugStatus.Open.esfilter,
+			{"term":{"product":"firefox for metro"}},
+			{"exists":{"field": "status_whiteboard"}},
+			Mozilla.ScrumBugs.Effort.esfilter
+		]};
+
+
+		var allBugs;
+		var allBugsThread = Thread.run(function(){
+			Log.action("Request Bugs");
+
+			var result = yield(ESQuery.run({
+				"from":"private_bugs",
+				"select":[{"value":"modified_ts", "aggregate":"minimum"}],
+				"edges":["bug_id"],
+				"esfilter":{"and":[
+					mainFilter
+				]}
+			}));
+
+
+			var openBugs=result.edges[0].domain.partitions.map(function(v){return v.name;});
+			
+			var bug_details = yield(ESQuery.run({
+				"from":"private_bugs",
+				"select":[
+					"private_bugs.bug_id",
+					"private_bugs.assigned_to",
+					Mozilla.ScrumBugs.Effort.getSelect({"index":"private_bugs"})
+				],
+				"esfilter":{"terms":{"bug_id":openBugs}}
+			}));
+
+			$("#details").html(CNV.Cube2HTMLTable(bug_details));
+
+
+//			var a = Log.action("Make chart", true);
+//			aChart.show({
+//				"id":"chart",
+//				"sheetDiv":"info",
+//				"type":"line",
+//				"stacked":false,
+//				"cube":chart,
+//				"height":"300",
+//				xAxisSize: 50
+//			});
+//			Log.actionDone(a);
+		});
+
+
+		yield(null);
+	};
+
+
+	$(document).ready(function(){
+		GUI.setup(createChart, [
+			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
+			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today().ceilingWeek()}
+		],
+				[
+					"sampleMin=Date.newInstance(sampleMin).floorWeek().format('yyyy-MM-dd')",
+					"sampleMax=Date.newInstance(sampleMax).addDay(1).floorWeek().addDay(-1).format('yyyy-MM-dd')"
+				],
+				"bugs",
+				true		//DO NOT SHOW DEFAULT FILTERS
+		);
+	});
+
+});
+
+</script>
+
+
+</BODY>
+</HTML>
+

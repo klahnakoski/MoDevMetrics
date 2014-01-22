@@ -1278,7 +1278,7 @@
 						"value" : t,
 						"class" : "jstree-rename-input",
 						// "size" : t.length,
-						"css" : {
+						"css":{
 							"padding" : "0",
 							"border" : "1px solid silver",
 							"position" : "absolute",
@@ -3714,46 +3714,46 @@
 			select_node : false, // requires UI plugin
 			show_at_node : true,
 			items : { // Could be a function that should return an object like this one
-				"create" : {
+				"create":{
 					"separator_before"	: false,
 					"separator_after"	: true,
 					"label"				: "Create",
 					"action"			: function (obj) { this.create(obj); }
 				},
-				"rename" : {
+				"rename":{
 					"separator_before"	: false,
 					"separator_after"	: false,
 					"label"				: "Rename",
 					"action"			: function (obj) { this.rename(obj); }
 				},
-				"remove" : {
+				"remove":{
 					"separator_before"	: false,
 					"icon"				: false,
 					"separator_after"	: false,
 					"label"				: "Delete",
 					"action"			: function (obj) { if(this.is_selected(obj)) { this.remove(); } else { this.remove(obj); } }
 				},
-				"ccp" : {
+				"ccp":{
 					"separator_before"	: true,
 					"icon"				: false,
 					"separator_after"	: false,
 					"label"				: "Edit",
 					"action"			: false,
-					"submenu" : { 
-						"cut" : {
+					"submenu":{
+						"cut":{
 							"separator_before"	: false,
 							"separator_after"	: false,
 							"label"				: "Cut",
 							"action"			: function (obj) { this.cut(obj); }
 						},
-						"copy" : {
+						"copy":{
 							"separator_before"	: false,
 							"icon"				: false,
 							"separator_after"	: false,
 							"label"				: "Copy",
 							"action"			: function (obj) { this.copy(obj); }
 						},
-						"paste" : {
+						"paste":{
 							"separator_before"	: false,
 							"icon"				: false,
 							"separator_after"	: false,
@@ -3876,7 +3876,7 @@
 			// a list of types
 			types : {
 				// the default type
-				"default" : {
+				"default":{
 					"max_children"	: -1,
 					"max_depth"		: -1,
 					"valid_children": "all"

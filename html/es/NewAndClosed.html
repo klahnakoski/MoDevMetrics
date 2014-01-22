@@ -130,13 +130,13 @@
 		var chartRequest = {
 			"requests" :[
 				{
-					"esQuery" : {
+					"esQuery":{
 						"query": {
-							"match_all" : {}
+							"match_all":{}
 						},
-						"filter" : {
+						"filter":{
 							"and":[
-//								{"not" : {"terms" : { "bug_status" : ["resolved", "verified", "closed"] }}},
+//								{"not":{"terms":{ "bug_status" : ["resolved", "verified", "closed"] }}},
 								{"script":{"script":'doc["modified_ts"].value==doc["created_ts"].value'}}
 							]
 						},
@@ -147,13 +147,13 @@
 					"seriesName" : "New"
 				},
 				{
-					"esQuery" : {
+					"esQuery":{
 						"query": {
-							"match_all" : {}
+							"match_all":{}
 						},
-						"filter" : {
+						"filter":{
 							"and":[
-								{"terms" : {"bug_status" : ["resolved"]}},//, "verified", "closed"]}},
+								{"terms":{"bug_status" : ["resolved"]}},//, "verified", "closed"]}},
 								{"not": {"terms":{"previous_values.bug_status_value": ["resolved"]}}},
 								{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}}
 							]
@@ -165,13 +165,13 @@
 					"seriesName" : "Resolved"
 				},
 				{
-					"esQuery" : {
+					"esQuery":{
 						"query": {
-							"match_all" : {}
+							"match_all":{}
 						},
-						"filter" : {
+						"filter":{
 							"and":[
-								{"terms" : {"bug_status" : ["verified"]}},//, "verified", "closed"]}},
+								{"terms":{"bug_status" : ["verified"]}},//, "verified", "closed"]}},
 								{"not": {"terms":{"previous_values.bug_status_value": ["verified"]}}},
 								{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}}
 							]
@@ -183,13 +183,13 @@
 					"seriesName" : "Verified"
 				},
 				{
-					"esQuery" : {
+					"esQuery":{
 						"query": {
-							"match_all" : {}
+							"match_all":{}
 						},
-						"filter" : {
+						"filter":{
 							"and":[
-								{"terms" : {"bug_status" : ["closed"]}},//, "verified", "closed"]}},
+								{"terms":{"bug_status" : ["closed"]}},//, "verified", "closed"]}},
 								{"not": {"terms":{"previous_values.bug_status_value": ["closed"]}}},
 								{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}}
 							]

@@ -49,8 +49,8 @@ var HIERARCHY = {};
 			"mappings":
 				Map.newInstance(HIERARCHY.typeName, {
 					"_source":{"enabled": true},
-					"_all" : {"enabled" : false},
-					"_id" : {"path" : "bug_id"},
+					"_all":{"enabled" : false},
+					"_id":{"path" : "bug_id"},
 					"properties":{
 						"bug_id":{"type":"integer", "store":"yes"},
 						"children.count":{"type":"integer", "store":"yes", "index":"not_analyzed"},
@@ -343,7 +343,7 @@ var HIERARCHY = {};
 				minBug=aMath.min(minBug, bug_id-0);
 				maxBug=aMath.max(maxBug, bug_id-0);
 
-				insert.push(JSON.stringify({ "create" : { "_id" : bug_id } }));
+				insert.push(JSON.stringify({ "create":{ "_id" : bug_id } }));
 				insert.push(JSON.stringify({
 					"bug_id":bug_id,
 					"modified_ts":time.getMilli(),
