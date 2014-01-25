@@ -188,20 +188,29 @@ Dimension.addEdges(true,  Mozilla, [
 	]},
 
 
-	{"name":"Release Engineering", "edges":[
-		{"name":"Tracking Firefox", "edges":[
-			{"name": "22", "esfilter":{"term":{"cf_status_firefox22": "+"}}},
-			{"name": "21", "esfilter":{"term":{"cf_status_firefox21": "+"}}},
-			{"name": "20", "esfilter":{"term":{"cf_status_firefox20": "+"}}},
-			{"name": "19", "esfilter":{"term":{"cf_status_firefox19": "+"}}},
-			{"name": "18", "esfilter":{"term":{"cf_status_firefox18": "+"}}},
-			{"name": "17", "esfilter":{"term":{"cf_status_firefox17": "+"}}},
-			{"name": "16", "esfilter":{"term":{"cf_status_firefox16": "+"}}},
-			{"name": "15", "esfilter":{"term":{"cf_status_firefox15": "+"}}},
-			{"name": "14", "esfilter":{"term":{"cf_status_firefox14": "+"}}},
-			{"name": "13", "esfilter":{"term":{"cf_status_firefox13": "+"}}},
-			{"name": "12", "esfilter":{"term":{"cf_status_firefox12": "+"}}},
-			{"name": "11", "esfilter":{"term":{"cf_status_firefox11": "+"}}}
+	{"name":"ReleaseEngineering", "edges":[{
+		"name":"TrackingFirefox",
+		"esfilter":ESQuery.TrueFilter,
+		"edges":[
+			{"name": "29", "esfilter":{"term":{"cf_status_firefox29": "+"}}},
+			{"name": "28", "esfilter":{"term":{"cf_status_firefox28": "+"}}},
+			{"name": "27", "esfilter":{"term":{"cf_status_firefox27": "+"}}},
+			{"name": "26", "esfilter":{"term":{"cf_status_firefox26": "+"}}}
+//			{"name": "25", "esfilter":{"term":{"cf_status_firefox25": "+"}}},
+//			{"name": "24", "esfilter":{"term":{"cf_status_firefox24": "+"}}},
+//			{"name": "23", "esfilter":{"term":{"cf_status_firefox23": "+"}}},
+//			{"name": "22", "esfilter":{"term":{"cf_status_firefox22": "+"}}},
+//			{"name": "21", "esfilter":{"term":{"cf_status_firefox21": "+"}}},
+//			{"name": "20", "esfilter":{"term":{"cf_status_firefox20": "+"}}},
+//			{"name": "19", "esfilter":{"term":{"cf_status_firefox19": "+"}}},
+//			{"name": "18", "esfilter":{"term":{"cf_status_firefox18": "+"}}},
+//			{"name": "17", "esfilter":{"term":{"cf_status_firefox17": "+"}}},
+//			{"name": "16", "esfilter":{"term":{"cf_status_firefox16": "+"}}},
+//			{"name": "15", "esfilter":{"term":{"cf_status_firefox15": "+"}}},
+//			{"name": "14", "esfilter":{"term":{"cf_status_firefox14": "+"}}},
+//			{"name": "13", "esfilter":{"term":{"cf_status_firefox13": "+"}}},
+//			{"name": "12", "esfilter":{"term":{"cf_status_firefox12": "+"}}},
+//			{"name": "11", "esfilter":{"term":{"cf_status_firefox11": "+"}}}
 		]}
 	]},
 

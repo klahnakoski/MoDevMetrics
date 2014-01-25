@@ -26,8 +26,20 @@ Dimension.prototype={
 		var self=this;
 		var partitions=null;
 
-		if (!this.partitions){
-			partitions=undefined;
+		if (!this.partitions && this.edges){
+			//USE EACH EDGE AS A PARTITION, BUT isFacet==true SO IT ALLOWS THE OVERLAP
+			partitions=this.edges.map(function(v, i){
+				if (i>=nvl(self.limit, DEFAULT_QUERY_LIMIT)) return undefined;
+				if (v.esfilter===undefined) return;
+				return {
+					"name":v.name,
+					"value":v.name,
+					"esfilter":v.esfilter,
+					"style":v.style,
+					"weight":v.weight //YO! WHAT DO WE *NOT* COPY?
+				};
+			});
+			self.isFacet=true;
 		}else if (param.depth==0){
 			partitions=this.partitions.map(function(v, i){
 				if (i>=nvl(self.limit, DEFAULT_QUERY_LIMIT)) return undefined;

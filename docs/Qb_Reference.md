@@ -172,17 +172,24 @@ the edges; every edge is restricted to it’s own domain.
 The elasticsearch.org's [documentation on filters](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-filters.html)
 covers the types of filters and the format expected.
 
-  - [and](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-and-filter.html)
-  - [exists](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-exists-filter.html)
-  - [match_all](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-match-all-filter.html)
-  - [not](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-not-filter.html)
-  - [or](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-or-filter.html)
-  - [prefix](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-prefix-filter.html)
-  - [range](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-range-filter.html)
-  - [script](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-script-filter.html)
-  - [term](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-term-filter.html)
-  - [terms](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-terms-filter.html)
-
+<table>
+<tr>
+<td>
+<a href="http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-and-filter.html">{"and": list}</a><br>
+<a href="http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-exists-filter.html">{"exists": {"field": fieldName}}</a><br>
+<a href="http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-match-all-filter.html">{"match_all": {}}</a><br>
+<a href="http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-not-filter.html">{"not": filter}</a><br>
+<a href="http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-or-filter.html">{"or": list}</a><br>
+</td>
+<td>
+<a href="http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-prefix-filter.html">{"prefix":{fieldName: prefix}}</a><br>
+<a href="http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-range-filter.html">{"range":{fieldName: limits}}</a><br>
+<a href="http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-script-filter.html">{"script":{"script": mvelCode}}</a><br>
+<a href="http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-term-filter.html">{"term": {fieldName: value}}</a><br>
+<a href="http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-terms-filter.html">{"terms": {fieldName: values}}</a><br>
+</td>
+</tr>
+</table>
 
 
 esfilter
