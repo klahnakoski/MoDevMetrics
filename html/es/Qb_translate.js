@@ -8,7 +8,7 @@
 
 importScript("js/main.js");
 
-function esTranslate ( qbQuery ) {
+function esTranslate ( qbQuery ) { //GENERATOR
     //EVAL THE qbQuery
     if (qbQuery.trim().left(1) != "{") {
         qbQuery = "{" + qbQuery;
@@ -25,15 +25,15 @@ function esTranslate ( qbQuery ) {
         //USE JSONLINT TO FORMAT AND TEST-COMPILE THE code
         qbQuery = jsl.format.formatJson(qbQuery);
         qbQuery = jsl.parser.parse(qbQuery);
+	    yield(ESQuery.loadColumns(qbQuery));
         cubeQuery = new ESQuery(qbQuery);
-        return CNV.Object2JSON(cubeQuery.esQuery) ;
+        yield CNV.Object2JSON(cubeQuery.esQuery) ;
     
     } catch(e) {
         Log.error("Qb query is wrong", e);
-        return "";
     } //try
 
-    return "";
+    yield ("");
 }
     
 
