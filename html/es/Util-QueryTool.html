@@ -60,7 +60,7 @@
 <script type="application/javascript;version=1.7">
 
 
-	importScript(["js/main.js"], function(){
+	importScript(["js/main.js", "Qb_translate.js"], function(){
 
 		$().ready(function(){
 			//STYLE AS LINED TEXT AREA
@@ -108,15 +108,15 @@
 				$("#cube").val(code);
 				jsl.parser.parse(code);
 
-				var query;
-				eval("query=" + code);
+				var QbQuery;
+				eval("QbQuery=" + code);
 				var url=$("#index").val();
 				if (url.trim()!=""){
-					query.url=url+"/"+query.from;
+					QbQuery.url=url+"/"+QbQuery.from;
 				}
-				yield(ESQuery.loadColumns(query));
-				cubeQuery = new ESQuery(query);
-				$("#esquery").val(CNV.Object2JSON(cubeQuery.esQuery));
+				yield(ESQuery.loadColumns(QbQuery));
+				esQuery = esTranslate(code);
+				$("#esquery").val(esQuery);
 
 				//TIGHTER PACKING IF JSON
 				$("#cube").val(CNV.Object2JSON(CNV.JSON2Object(backupCode)));

@@ -24,12 +24,12 @@ function esTranslate ( qbQuery ) {
     try{
         //USE JSONLINT TO FORMAT AND TEST-COMPILE THE code
         qbQuery = jsl.format.formatJson(qbQuery);
-        jsl.parser.parse(qbQuery);             
+        qbQuery = jsl.parser.parse(qbQuery);
         cubeQuery = new ESQuery(qbQuery);
         return CNV.Object2JSON(cubeQuery.esQuery) ;
     
     } catch(e) {
-        alert ('Qb query is incorrect.');
+        Log.error("Qb query is wrong", e);
         return "";
     } //try
 
