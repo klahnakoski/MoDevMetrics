@@ -4,11 +4,6 @@
 
 
 
-importScript([
-	"../../lib/jquery.js",
-	"../../lib/jquery-ui/js/jquery-ui-1.10.2.custom.js",
-	"../../lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css"
-]);
 importScript("aException.js");
 
 

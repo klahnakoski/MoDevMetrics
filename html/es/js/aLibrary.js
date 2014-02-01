@@ -1,18 +1,16 @@
-importScript("aUtil.js");
-importScript("aArray.js");
-importScript("aQueue.js");
-importScript("aSet.js");
-importScript("aRelation.js");
-importScript("aMath.js");
-importScript("aString.js");
-importScript("CNV.js");
-importScript("aDate.js");
-importScript("aDuration.js");
-importScript("aTimer.js");
-importScript("aColour.js");
+importScript("util/aUtil.js");
+importScript("collections/aArray.js");
+importScript("collections/aQueue.js");
+importScript("collections/aSet.js");
+importScript("collections/aRelation.js");
+importScript("math/aMath.js");
+importScript("util/aString.js");
+importScript("util/CNV.js");
+importScript("util/aDate.js");
+importScript("util/aDuration.js");
+importScript("util/aTimer.js");
 
 importScript([
 	"debug/aLog.js",
-	"../lib/jsThreads/thread.js"
+	"threads/thread.js"
 ]);
-importScript("aFormat.js");

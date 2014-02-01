@@ -1,6 +1,6 @@
 importScript("aDate.js");
 importScript("aDuration.js");
-importScript("debug/aLog.js");
+importScript("../debug/aLog.js");
 
 
 var aTimer=function(){};

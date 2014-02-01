@@ -3,15 +3,15 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-importScript("CNV.js");
-importScript("aDate.js");
-importScript("aUtil.js");
-importScript("debug/aLog.js");
+importScript("../util/CNV.js");
+importScript("../util/aDate.js");
+importScript("../util/aUtil.js");
+importScript("../debug/aLog.js");
 importScript("MVEL.js");
 importScript("Qb.js");
 
-importScript("rest/ElasticSearch.js");
-importScript("rest/Rest.js");
+importScript("../rest/ElasticSearch.js");
+importScript("../rest/Rest.js");
 
 
 

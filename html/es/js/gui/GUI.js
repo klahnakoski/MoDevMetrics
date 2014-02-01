@@ -28,7 +28,7 @@ importScript("ProgramFilter.js");
 importScript("PartitionFilter.js");
 importScript("TeamFilter.js");
 
-importScript("../../lib/jsThreads/thread.js");
+importScript("../../js/threads/thread.js");
 importScript("../aCompiler.js");
 
 GUI = {};

@@ -4,7 +4,7 @@
 
 
 importScript("aUtil.js");
-importScript("aArray.js");
+importScript("../collections/aArray.js");
 
 
 Date.now = function(){

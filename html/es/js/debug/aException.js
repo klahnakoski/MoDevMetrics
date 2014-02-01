@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-importScript("../CNV.js");
+importScript("../util/CNV.js");
 
 
 

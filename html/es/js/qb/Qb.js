@@ -7,10 +7,10 @@ if (Qb===undefined) var Qb = {};
 
 
 
-importScript("CNV.js");
-importScript("aDate.js");
-importScript("aUtil.js");
-importScript("debug/aLog.js");
+importScript("../util/CNV.js");
+importScript("../util/aDate.js");
+importScript("../util/aUtil.js");
+importScript("../debug/aLog.js");
 importScript("MVEL.js");
 importScript("Qb.aggregate.js");
 importScript("Qb.column.js");
@@ -18,7 +18,7 @@ importScript("Qb.cube.js");
 importScript("Qb.domain.js");
 importScript("Qb.analytic.js");
 
-importScript("../lib/jsThreads/thread.js");
+importScript("../threads/thread.js");
 
 var Q;   //=Q
 
