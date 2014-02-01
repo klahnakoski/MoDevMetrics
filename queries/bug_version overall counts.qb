@@ -1,0 +1,9 @@
+{
+	"from":"private_bugs",
+	"select":[{"name":"num","value":"bug_id","aggregate":"count"}],
+	"edges":[{
+		"name":"bug_id_range",
+		"value":"bug_id",
+		"domain":{"type":"numeric","min":0,"max":1000000,"interval":50000}
+	}]
+}

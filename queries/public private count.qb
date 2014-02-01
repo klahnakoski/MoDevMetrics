@@ -1,0 +1,24 @@
+{
+	"from":"bugs",
+	"select":[{"name":"num","value":"bug_id","aggregate":"count"}],
+	"esfilter":{"range":{"expires_on":{"gte":"now"}}},
+	"edges":[{
+		"name":"type",
+		"domain":{
+			"type":"set",
+			"key":"name",
+			"value":"name",
+			"partitions":[
+				{
+					"name":"private",
+					"esfilter":{"exists":{"field":"bug_group"}}
+				},
+				{
+					"name":"public",
+					"esfilter":{"not":{"exists":{"field":"bug_group"}}}
+				}
+			],
+			"isFacet":true
+		}
+	}]
+}
