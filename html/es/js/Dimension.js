@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 importScript("aLibrary.js");
-importScript("ESQuery.js");
+importScript("qb/ESQuery.js");
 
 
 var Dimension={};

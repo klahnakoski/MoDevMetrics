@@ -5,7 +5,7 @@
 
 //http://en.wikipedia.org/wiki/Luminance_%28relative%29  Y = 0.2126 R + 0.7152 G + 0.0722 B
 
-importScript("CNV.js");
+importScript("util/CNV.js");
 
 
 var colors={

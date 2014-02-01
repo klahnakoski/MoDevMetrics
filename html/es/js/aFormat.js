@@ -3,7 +3,7 @@
 
 
 importScript([
-	"aString.js",
+	"util/aString.js",
 	"../lib/jquery.js",
 	"../lib/jquery.numberformatter.js"
 ]);

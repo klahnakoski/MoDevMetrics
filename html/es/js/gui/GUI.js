@@ -28,8 +28,8 @@ importScript("ProgramFilter.js");
 importScript("PartitionFilter.js");
 importScript("TeamFilter.js");
 
-importScript("../../js/threads/thread.js");
-importScript("../aCompiler.js");
+importScript("../threads/thread.js");
+importScript("../qb/aCompiler.js");
 
 GUI = {};
 

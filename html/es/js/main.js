@@ -1,12 +1,11 @@
 
-//importScript("../lib/jquery.js");
 importScript("aLibrary.js");
 importScript("Settings.js");
 
 importScript("MozillaPrograms.js");
 importScript("rest/BugzillaClient.js");
 importScript("rest/ElasticSearch.js");
-importScript("ESQuery.js");
+importScript("qb/ESQuery.js");
 importScript("Bugzilla.js");
 importScript([
 	"gui/GUI.js",
@@ -15,7 +14,7 @@ importScript([
 ]);
 importScript("Hierarchy.js");
 
-importScript("Stats.js");
-importScript("Qb.js");
+importScript("math/Stats.js");
+importScript("qb/Qb.js");
 importScript("ScrumBugs.js");
 
