@@ -12815,14 +12815,14 @@ $.effects = {
 		}
 	},
 	propTypes = {
-		"byte": {
+		"byte":{
 			floor: true,
 			max: 255
 		},
-		"percent": {
+		"percent":{
 			max: 1
 		},
-		"degrees": {
+		"degrees":{
 			mod: 360,
 			floor: true
 		}

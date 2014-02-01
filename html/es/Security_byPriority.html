@@ -83,7 +83,7 @@ var __createChart = function(){
 	var chart=yield (ESQuery.run({
 		"name":"Open Bug Count",
 		"from":"bugs",
-		"select": {"name":"total", "value":"bug_id", "aggregate":"count"},
+		"select":{"name":"total", "value":"bug_id", "aggregate":"count"},
 		"edges":[
 			{"name":"Priority", "domain":priorityDomain},
 			{"name":"date",

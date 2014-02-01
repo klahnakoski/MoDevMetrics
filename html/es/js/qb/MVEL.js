@@ -420,6 +420,8 @@ MVEL.prototype.where = function(esFilter){
 		var variableName = Object.keys(pair)[0];
 		var value = pair[variableName];
 		return this.translate(variableName)+".startsWith(" + CNV.String2Quote(value)+")";
+	}else if (op=="match_all"){
+		return "true";
 	} else{
 		Log.error("'" + op + "' is an unknown aggregate");
 	}//endif

@@ -89,7 +89,7 @@ TeamFilter.newInstance=function(field_name){
 			//PULL OUT THE TOP LEVEL 'PEOPLE' WITH CHILDREN
 			if (v.children && v.manager=="other@mozilla.com"){
 				v.manager=null;
-//				others.children.remove(v);
+				others.children.remove(v);
 				hier.prepend(v);
 			}//endif
 			return v;
@@ -237,7 +237,7 @@ TeamFilter.prototype.injectHTML = function(hier){
 //		"checkbox":{
 //			"two_state":true
 //		},
-		"plugins" : [ "themes", "json_data", "ui", "checkbox" ]
+		"plugins":[ "themes", "json_data", "ui", "checkbox" ]
 	}).bind("change_state.jstree", function (e, data){
 		if (self.disableUI) return;
 	

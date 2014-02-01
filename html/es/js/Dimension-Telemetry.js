@@ -89,8 +89,8 @@ Dimension.addEdges(false, Mozilla, [
 			]},
 
 			{"name":"Warm or Cold", "esfilter":ESQuery.TrueFilter, "partitions":[
-				{"name":"Warm", "esfilter": {"script":{"script":"doc[\"simpleMeasurements.main\"].value - doc[\"simpleMeasurements.start\"].value <= 100"}}},
-				{"name":"Cold", "esfilter": {"script":{"script":"doc[\"simpleMeasurements.main\"].value - doc[\"simpleMeasurements.start\"].value > 100"}}}
+				{"name":"Warm", "esfilter":{"script":{"script":"doc[\"simpleMeasurements.main\"].value - doc[\"simpleMeasurements.start\"].value <= 100"}}},
+				{"name":"Cold", "esfilter":{"script":{"script":"doc[\"simpleMeasurements.main\"].value - doc[\"simpleMeasurements.start\"].value > 100"}}}
 			]},
 
 			{"name":"Start to FirstPaint", "field":"simpleMeasurements.firstPaint-simpleMeasurements.start", "type":"numeric"}

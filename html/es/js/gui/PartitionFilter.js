@@ -197,7 +197,7 @@ PartitionFilter.prototype.makeTree=function(){
 //		"checkbox":{
 //			"two_state":true
 //		},
-		"plugins" : [ "themes", "json_data", "ui", "checkbox" ]
+		"plugins":[ "themes", "json_data", "ui", "checkbox" ]
 	}).bind("change_state.jstree", function (e, data){
 		if (self.disableUI) return;
 

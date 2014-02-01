@@ -174,12 +174,12 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 	//GET THE FIRST TIME FOR EACH BUGS STATUS
 	BUG_SUMMARY.BUG_STATUS.forall(function(v,i){
 		times.facets[v+"_time"]={
-			"terms_stats": {
+			"terms_stats":{
 				"key_field": "bug_id",
 				"value_field": "modified_ts",
 				"size": 100000
 			},
-			"facet_filter": {
+			"facet_filter":{
 				"term":{"bug_status":v}
 			}
 		}
@@ -187,7 +187,7 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 
 	//GET THE FIRST TIME FOR CLOSE EVENT
 	times.facets["close_time"]={
-		"terms_stats": {
+		"terms_stats":{
 			"key_field": "bug_id",
 			"value_field": "modified_ts",
 			"size": 100000
@@ -202,7 +202,7 @@ BUG_SUMMARY.get=function(minBug, maxBug){
 		"edges":["projectName"]
 	}))).list.forall(function(v, i){
 		times.facets[v.projectName+"_time"]={
-			"terms_stats": {
+			"terms_stats":{
 				"key_field": "bug_id",
 				"value_field": "modified_ts",
 				"size": 100000

@@ -12,7 +12,7 @@ function DataSet(){
 function IntegrityTest(){
 	this.dataSet = new DataSet();
 	this.dataSet.bugzilla = { "found" : 0 };
-	this.dataSet.elastic = { "found" : 0, "missing" : [] };
+	this.dataSet.elastic = { "found" : 0, "missing":[] };
 
 	this.testConfig = null;
 	this.first = true;

@@ -120,7 +120,7 @@ var __createChart = function(){
 	var a=Log.action("Request Bugs", true);
 	var chart=yield (ESQuery.run({
 		"from":"bugs",
-		"select": {"name":"num_bug", "value":"bug_id", "aggregate":"count"},
+		"select":{"name":"num_bug", "value":"bug_id", "aggregate":"count"},
 		"edges":[
 			{"name":"type", allowNulls:true, "domain":Mozilla.Projects["B2G 1.0.1 (TEF)"].getDomain()},
 			{"name":"date",

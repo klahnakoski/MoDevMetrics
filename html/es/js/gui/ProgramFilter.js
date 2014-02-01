@@ -81,7 +81,7 @@ ProgramFilter.makeQuery = function(filters){
 					"and":[
 						{"exists":{"field":"expires_on"}},
 						{ "range":{ "expires_on":{ "gt" : Date.now().getMilli() } } },
-						{"not":{"terms":{ "bug_status" : ["resolved", "verified", "closed"] }}}
+						{"not":{"terms":{ "bug_status":["resolved", "verified", "closed"] }}}
 					]
 				}
 			}

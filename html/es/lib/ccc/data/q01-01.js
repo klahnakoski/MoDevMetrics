@@ -1218,7 +1218,7 @@ var steelWheels02 = {
     
     options: {
         "isMultiValued": true,
-        "dataOptions": {
+        "dataOptions":{
             //"categoriesCount":   3, // auto
             "measuresInColumns": true
         }

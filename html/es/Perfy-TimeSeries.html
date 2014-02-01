@@ -234,7 +234,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 
 			var max=(yield (Q({
 				"from":range,
-				"select": {"value":"score", "aggregate":"maximum"}
+				"select":{"value":"score", "aggregate":"maximum"}
 			}))).cube.score;
 			maxScore=aMath.niceCeiling(max);
 
@@ -263,7 +263,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		Thread.run(function(){
 			var data = yield(ESQuery.run({
 				"from":"perfy",
-				"select": {"name":"score", "value":"score", "aggregate":"average", "default":0},
+				"select":{"name":"score", "value":"score", "aggregate":"average", "default":0},
 				"edges":[
 					{"name":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()}
 				],

@@ -168,7 +168,7 @@ var vml = {
   
   elm_defaults: {
 
-    "g": {
+    "g":{
       rewrite: 'span',
       attr: function ( attr, style, elm, scenes, i ) {
         var d = vml.get_dim( attr );
@@ -178,7 +178,7 @@ var vml = {
       }
     },
 
-    "line": {
+    "line":{
       rewrite: 'shape',
       attr: function ( attr, style, elm, scenes, i ) {
         var x1 = parseFloat( attr.x1 || 0 ),
@@ -194,7 +194,7 @@ var vml = {
       css: "top:0px;left:0px;width:1000px;height:1000px"
     },
 
-    "rect": {
+    "rect":{
       rewrite: 'shape',
       attr: function ( attr, style, elm, scenes, i ) {
         var d = vml.get_dim( attr ),
@@ -217,7 +217,7 @@ var vml = {
       css: "top:0px;left:0px;width:1000px;height:1000px"
     },
 
-    "path": {
+    "path":{
       rewrite: 'shape',
       attr: function ( attr, style, elm, scenes, i ) {
         var d = vml.get_dim( attr ),
@@ -234,7 +234,7 @@ var vml = {
       css: "top:0px;left:0px;width:1000px;height:1000px"
     },
 
-    "circle": {
+    "circle":{
       /* This version of circles is crisper but seems slower
       rewrite: 'shape',
       attr: function ( attr, style, elm ) {
@@ -269,7 +269,7 @@ var vml = {
       }
     },
 
-    "text": {
+    "text":{
       rewrite: 'shape',
       attr: function ( attr, style, elm, scenes, i ) {
         var d  = vml.get_dim( attr );
@@ -331,7 +331,7 @@ var vml = {
       css: "position:absolute;top:0px;left:0px;width:1px;height:1px;"
     },
 
-    "svg": {
+    "svg":{
       rewrite: 'span',
       css: 'position:relative;overflow:hidden;display:inline-block;~display:block;'
     },
@@ -340,7 +340,7 @@ var vml = {
     "vml:path":     { rewrite: 'path'     },
     "vml:stroke":   { rewrite: 'stroke'   },
     "vml:fill":     { rewrite: 'fill'     },
-    "vml:textpath": { rewrite: 'textpath' },
+    "vml:textpath":{ rewrite: 'textpath' },
     "vml:skew":     { rewrite: 'skew'     }
 
   },

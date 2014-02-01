@@ -115,7 +115,7 @@ BUG_TAGS.get=function(minBug, maxBug, minDate, maxDate){
 		{"range":{"modified_ts":{"lt":maxDate.getMilli()}}},
 		bugFilter
 	]};
-//{"terms":{ "bug_status" : ["resolved", "verified", "closed"] }}
+//{"terms":{ "bug_status":["resolved", "verified", "closed"] }}
 
 	var a=Log.action("Get Current Bug Info", true);
 	var current=yield (ESQuery.run({

@@ -160,8 +160,8 @@ REVIEWS.get=function(minBug, maxBug){
 			"bugs.attachments.flags",
 		"where":
 			{"and" : [
-				{"terms":{"bugs.attachments.flags.request_status" : ["?"]}},
-				{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+				{"terms":{"bugs.attachments.flags.request_status":["?"]}},
+				{"terms":{"bugs.attachments.flags.request_type":["review", "superreview"]}},
 				{"script":{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}},
 				{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
 			]},
@@ -184,8 +184,8 @@ REVIEWS.get=function(minBug, maxBug){
 //			"bugs.attachments.flags",
 //		"where":
 //			{"and" : [
-//				{"terms":{"bugs.attachments.flags.request_status" : ["?"]}},
-//				{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+//				{"terms":{"bugs.attachments.flags.request_status":["?"]}},
+//				{"terms":{"bugs.attachments.flags.request_type":["review", "superreview"]}},
 //				{"script":{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}},
 //				{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
 //			]},
@@ -217,18 +217,18 @@ REVIEWS.get=function(minBug, maxBug){
 			{"and" : [
 				{"not":{"missing":{"field":"bugs.attachments.flags.request_type", "existence":true, "null_value":true}}},
 //				{"term":{"bugs.attachments.attach_id":"420463"}},
-				{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+				{"terms":{"bugs.attachments.flags.request_type":["review", "superreview"]}},
 				{"or" : [
 					{ "and" : [//IF THE REQUESTEE SWITCHED THE ? FLAG, THEN IT IS DONE
-						{"not": {"terms":{"bugs.attachments.flags.request_status" : ["?"]}}}
+						{"not":{"terms":{"bugs.attachments.flags.request_status":["?"]}}}
 					]},
 					{"and":[//IF OBSOLEETED THE ATTACHMENT, IT IS DONE
 						{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 1}},
 						{"not":{"missing":{"field":"bugs.previous_values", "existence":true, "null_value":true}}},
 						{"term":{"bugs.previous_values[\"attachments.isobsolete_values\"]" : 0}}
 					]},
-					{ "and" : [//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
-						{"terms":{"bugs.bug_status" : ["resolved", "verified", "closed"]}},
+					{ "and":[//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
+						{"terms":{"bugs.bug_status":["resolved", "verified", "closed"]}},
 						{"not":{"missing":{"field":"bugs.previous_values", "existence":true, "null_value":true}}},
 						{"not":{"missing":{"field":"bugs.previous_values.bug_status_value", "existence":true, "null_value":true}}},
 						{"not": {"terms":{"bugs.previous_values.bug_status_value": ["resolved", "verified", "closed"]}}}

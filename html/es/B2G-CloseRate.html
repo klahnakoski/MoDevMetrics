@@ -172,7 +172,7 @@ var __createChart = function(){
 
 		var chart=yield (Q({
 			"from":bugList,
-			"select": {"name":"num", "value":"bug_id", "aggregate":"count"},
+			"select":{"name":"num", "value":"bug_id", "aggregate":"count"},
 			"edges": [
 				{"name":"Project", "value":"Project", "domain":{"type":"set", "partitions":focal_dim.Project.partitions.select("name")}},
 				{"name":"date",

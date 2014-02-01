@@ -160,7 +160,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			var data = yield(ESQuery.run({
 				"name":benchmark.name,
 				"from":"perfy",
-				"select": {"name":"score", "value":"score", "aggregate":"average", "default":0},
+				"select":{"name":"score", "value":"score", "aggregate":"average", "default":0},
 				"edges":[
 					{"name":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()}
 				],

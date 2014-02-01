@@ -44,17 +44,17 @@
 	// WARNING, DOUBLE COUNTS REOPENED BUGS
 	////////////////////////////////////////////////////////////////////////////
 	var  esQuery = {
-  "query": {
-    "filtered": {
-      "query": {
-        "match_all": {}
+  "query":{
+    "filtered":{
+      "query":{
+        "match_all":{}
       },
-      "filter": {
+      "filter":{
 		"and":[
 			Mozilla.BugStatus.Closed.esfilter,
-			{"not": {"terms":{"previous_values.bug_status_value": ["resolved", "verified", "closed"]}}},  //JUST SWITCHED TO CLOSED
+			{"not":{"terms":{"previous_values.bug_status_value": ["resolved", "verified", "closed"]}}},  //JUST SWITCHED TO CLOSED
 			{"script":{"script":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value'}},
-//			{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}},
+//			{"not":{"range":{"expires_on":{"gt": Date.now().addDay(1)}}}},
 			{"range":{"modified_ts":{"gt":Date.now().add("-6month")}}},
 			{"term":{"keywords":"sec-critical"}}
 //			{"term":{"assigned_to":"ehsan@mozilla.com"}}
@@ -65,9 +65,9 @@
   "from": 0,
   "size": 1000,
   "sort": [],
-  "facets": {
-     "owners": {
-      "terms": {
+  "facets":{
+     "owners":{
+      "terms":{
         "script_field": "doc['assigned_to'].value+'|'+doc['bug_id'].value",
 		 "size": "100000"
       }

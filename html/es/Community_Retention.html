@@ -9,7 +9,6 @@
 <BODY>
 
 
-<h3 id="title">Community First Outgoing Reviews</h3>
 
 <div id="sidebar">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
@@ -31,11 +30,13 @@
 <div style="float:right;display: inline;">
 	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
 </div>
-<div id="chart" style="position:relative;"></div>
+<div>
+	<h3 id="title">Community First Outgoing Reviews</h3>
+	<div id="chart"></div>
 
-<div id="info"></div>
-<div id="report"></div>
-
+	<div id="info"></div>
+	<div id="report"></div>
+</div>
 
 <script type="application/javascript;version=1.7">
 
@@ -66,7 +67,7 @@ var __createChart = function(){
 	var maxRequest=3;
 
 	var sampleSize=sampleMax.subtract(sampleMin, Duration.newInstance(GUI.state.intervalX));
-	$("#title").html("% Retention Rates ("+aMath.round(sampleMax.subtract(sampleMin, sampleInterval).divideBy(sampleInterval))+""+sampleInterval.toString().rightBut(1)+" sample)");
+	$("#title").html("% Retention Rates ("+aMath.round(sampleMax.subtract(sampleMin, sampleInterval).divideBy(sampleInterval))+""+sampleInterval.toString()+" sample)");
 
 	var mainFilter={"and":[
 		{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.add(windowSize).getMilli()}}},
@@ -115,7 +116,7 @@ var __createChart = function(){
 
 	var chart=yield(Q({
 		"from":totals, 
-		"select": {"name":"percent", "value":"aMath.round(100*num_next/aMath.max(1, num_total))", "aggregate":"one"},
+		"select":{"name":"percent", "value":"aMath.round(100*num_next/aMath.max(1, num_total))", "aggregate":"one"},
 		"edges":[
 			{"value":"requester_review_num", "domain":{"type":"numeric", "min":1, "max":3, "interval":1, "value":"value"}},
 			{"value":"request_time", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value"}}

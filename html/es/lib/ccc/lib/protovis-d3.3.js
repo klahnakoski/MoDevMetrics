@@ -907,7 +907,7 @@ pv.Format.time = function(type) {
   function format(t) {
     t = Number(t); // force conversion from Date
     switch (type) {
-      case "short": {
+      case "short":{
         if (t >= 31536e6) {
           return (t / 31536e6).toFixed(1) + " years";
         } else if (t >= 6048e5) {
@@ -921,7 +921,7 @@ pv.Format.time = function(type) {
         }
         return (t / 1e3).toFixed(1) + " seconds";
       }
-      case "long": {
+      case "long":{
         var a = [],
             s = ((t % 6e4) / 1e3) >> 0,
             m = ((t % 36e5) / 6e4) >> 0;
@@ -963,7 +963,7 @@ pv.Format.time = function(type) {
    */
   format.parse = function(s) {
     switch (type) {
-      case "short": {
+      case "short":{
         var re = /([0-9,.]+)\s*([a-z]+)/g, a, t = 0;
         while (a = re.exec(s)) {
           var f = parseFloat(a[0].replace(",", "")), u = 0;
@@ -979,7 +979,7 @@ pv.Format.time = function(type) {
         }
         return t;
       }
-      case "long": {
+      case "long":{
         var a = s.replace(",", "").split(":").reverse(), t = 0;
         if (a.length) t += parseFloat(a[0]) * 1e3;
         if (a.length > 1) t += parseFloat(a[1]) * 6e4;
@@ -6152,7 +6152,7 @@ pv.color = function(format) {
     var m2 = m1[2].split(","), a = 1;
     switch (m1[1]) {
       case "hsla":
-      case "rgba": {
+      case "rgba":{
         a = parseFloat(m2[3]);
         if (!a) return pv.Color.transparent;
         break;
@@ -6160,14 +6160,14 @@ pv.color = function(format) {
     }
     switch (m1[1]) {
       case "hsla":
-      case "hsl": {
+      case "hsl":{
         var h = parseFloat(m2[0]), // degrees
             s = parseFloat(m2[1]) / 100, // percentage
             l = parseFloat(m2[2]) / 100; // percentage
         return (new pv.Color.Hsl(h, s, l, a)).rgb();
       }
       case "rgba":
-      case "rgb": {
+      case "rgb":{
         function parse(c) { // either integer or percentage
           var f = parseFloat(c);
           return (c[c.length - 1] == '%') ? Math.round(f * 2.55) : f;
@@ -8909,14 +8909,14 @@ pv.SvgScene.dot = function(scenes) {
     /* points */
     var radius = s.shapeRadius, path = null;
     switch (s.shape) {
-      case "cross": {
+      case "cross":{
         path = "M" + -radius + "," + -radius
             + "L" + radius + "," + radius
             + "M" + radius + "," + -radius
             + "L" + -radius + "," + radius;
         break;
       }
-      case "triangle": {
+      case "triangle":{
         var h = radius, w = radius * 1.1547; // 2 / Math.sqrt(3)
         path = "M0," + h
             + "L" + w +"," + -h
@@ -8924,7 +8924,7 @@ pv.SvgScene.dot = function(scenes) {
             + "Z";
         break;
       }
-      case "diamond": {
+      case "diamond":{
         radius *= Math.SQRT2;
         path = "M0," + -radius
             + "L" + radius + ",0"
@@ -8933,7 +8933,7 @@ pv.SvgScene.dot = function(scenes) {
             + "Z";
         break;
       }
-      case "square": {
+      case "square":{
         path = "M" + -radius + "," + -radius
             + "L" + radius + "," + -radius
             + " " + radius + "," + radius
@@ -8941,11 +8941,11 @@ pv.SvgScene.dot = function(scenes) {
             + "Z";
         break;
       }
-      case "tick": {
+      case "tick":{
         path = "M0,0L0," + -s.shapeSize;
         break;
       }
-      case "bar": {
+      case "bar":{
         path = "M0," + (s.shapeSize / 2) + "L0," + -(s.shapeSize / 2);
         break;
       }
@@ -9362,7 +9362,7 @@ pv.SvgScene.lineSegmentPath = function(s1, s2) {
   switch (s1.interpolate) {
     case "polar-reverse":
       l = 0;
-    case "polar": {
+    case "polar":{
       var dx = s2.left - s1.left,
           dy = s2.top - s1.top,
           e = 1 - s1.eccentricity,
@@ -16655,7 +16655,7 @@ pv.Layout.Stack = function() {
     /* order */
     var index;
     switch (s.order) {
-      case "inside-out": {
+      case "inside-out":{
         var max = dy.map(function(v) { return pv.max.index(v); }),
             map = pv.range(n).sort(function(a, b) { return max[a] - max[b]; }),
             sums = dy.map(function(v) { return pv.sum(v); }),
@@ -16682,7 +16682,7 @@ pv.Layout.Stack = function() {
 
     /* offset */
     switch (s.offset) {
-      case "silohouette": {
+      case "silohouette":{
         for (var j = 0; j < m; j++) {
           var o = 0;
           for (var i = 0; i < n; i++) o += dy[i][j];
@@ -16690,7 +16690,7 @@ pv.Layout.Stack = function() {
         }
         break;
       }
-      case "wiggle": {
+      case "wiggle":{
         var o = 0;
         for (var i = 0; i < n; i++) o += dy[i][0];
         y[index[0]][0] = o = (h - o) / 2;
@@ -16708,7 +16708,7 @@ pv.Layout.Stack = function() {
         }
         break;
       }
-      case "expand": {
+      case "expand":{
         for (var j = 0; j < m; j++) {
           y[index[0]][j] = 0;
           var k = 0;
@@ -17812,11 +17812,11 @@ pv.Layout.Treemap.prototype.buildImplied = function(s) {
 
   /* Sort. */
   switch (s.order) {
-    case "ascending": {
+    case "ascending":{
       root.sort(function(a, b) { return a.size - b.size; });
       break;
     }
-    case "descending": {
+    case "descending":{
       root.sort(function(a, b) { return b.size - a.size; });
       break;
     }
@@ -18346,11 +18346,11 @@ pv.Layout.Pack.prototype.buildImplied = function(s) {
 
     /* Sort. */
     switch (s.order) {
-      case "ascending": {
+      case "ascending":{
         nodes.sort(function(a, b) { return a.radius - b.radius; });
         break;
       }
-      case "descending": {
+      case "descending":{
         nodes.sort(function(a, b) { return b.radius - a.radius; });
         break;
       }
@@ -21425,7 +21425,7 @@ pv.Geo.projections = {
   },
 
   /** @see http://en.wikipedia.org/wiki/Gall-Peters_projection */
-  "gall-peters": {
+  "gall-peters":{
     project: function(latlng) {
       return {
           x: latlng.lng / 180,
