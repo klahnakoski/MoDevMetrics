@@ -258,6 +258,8 @@ REVIEWS.get=function(minBug, maxBug){
 		"where":
 			{"and":[//ONLY LOOK FOR NAME CHANGES IN THE "review?" FIELD
 				{"term":{"bugs.changes.field_name":"flags"}},
+				{"exists":{"field":"bugs.changes.field_value"}},
+				{"exists":{"field":"bugs.changes.field_value_removed"}},
 				{"or":[
 					{"prefix":{"bugs.changes.field_value":"review?"}},
 					{"prefix":{"bugs.changes.field_value":"superreview?"}}
