@@ -6,6 +6,7 @@
 importScript("../util/CNV.js");
 importScript("../util/aDate.js");
 importScript("../util/aUtil.js");
+importScript("../util/aParse.js");
 importScript("../debug/aLog.js");
 importScript("MVEL.js");
 importScript("Qb.js");
@@ -146,14 +147,15 @@ ESQuery.loadColumns=function(query){
 	if (indexInfo.fetcher === undefined) {
 		indexInfo.fetcher=Thread.run(function(){
 			var URL=nvl(query.url, nvl(indexInfo.host, ElasticSearch.baseURL) + indexPath) + "/_mapping";
-			var pathLength=URL.split("/").length-3;  //ASSUME http://host/indexname....
+			var path = parse.URL(URL).pathname.split("/").rightBut(1);
+			var pathLength = path.length - 1;  //ASSUME /indexname.../_mapping
 
 			try{
 				var schema = yield(Rest.get({
 					"url":URL,
 					"doNotKill":true        //WILL NEED THE SCHEMA EVENTUALLY
 				}));
-			}catch(e){
+			} catch(e){
 				if (e.contains(Thread.Interrupted)){
 					Log.warning("Tried to kill, but ignoring");
 					yield (Thread.suspend());
@@ -161,25 +163,31 @@ ESQuery.loadColumns=function(query){
 				Log.error("problem with call to load columns", e);
 			}//try
 
-			if (pathLength==2){
+			if (pathLength == 1){  //EG http://host/_mapping
 				//CHOOSE AN INDEX
-				prefix=URL.split("/")[3];
+				prefix = URL.split("/")[3];
 				indicies = Object.keys(schema);
-				if (indicies.length==1){
+				if (indicies.length == 1){
 					schema = schema[indicies[0]]
-				}else{
-					schema = mapAllKey(function(k, v){ if (k.startsWith(prefix)) return v;})[0]
+				} else{
+					schema = mapAllKey(function(k, v){
+						if (k.startsWith(prefix)) return v;
+					})[0]
 				}//endif
 			}//endif
 
-			var types=Object.keys(schema);
-			if (types.length==1){
-				properties=schema[types[0]].properties;
-			}else if (schema[indexPath.split("/")[2]]!==undefined){
-				properties = schema[indexPath.split("/")[2]].properties;
-			}else{
-				properties=schema[types[0]].properties;
+			if (pathLength <= 2){//EG http://host/indexname/typename/_mapping
+				var types = Object.keys(schema);
+				if (types.length == 1){
+					schema = schema[types[0]];
+				} else if (schema[indexPath.split("/")[2]] !== undefined){
+					schema = schema[indexPath.split("/")[2]];
+				} else{
+					schema = schema[types[0]];
+				}//endif
 			}//endif
+
+			var properties = schema.properties
 			indexInfo.columns = ESQuery.parseColumns(indexName, undefined, properties);
 
 			yield(null);
