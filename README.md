@@ -33,7 +33,7 @@ Other Notes
 -----------
 The interesting code starts in [./html/es](./html/es)
 
-  - [Tutorial on querying ElasticSearch](docs/BZ_Tutorial.md)
-  - [Tutorial on MVEL and advanced querying](docs/MVEL_Tutorial.md)
-  - [Reference document covering the query format](docs/Qb_Reference.md)
-  - [Dimension Definitions](docs/Dimension Definitions.md)
+  - [Tutorial on querying ElasticSearch](https://github.com/klahnakoski/Qb/tree/master/docs/BZ_Tutorial.md)
+  - [Tutorial on MVEL and advanced querying](https://github.com/klahnakoski/Qb/tree/master/docs/MVEL_Tutorial.md)
+  - [Reference document covering the query format](https://github.com/klahnakoski/Qb/tree/master/docs/Qb_Reference.md)
+  - [Dimension Definitions](https://github.com/klahnakoski/Qb/tree/master/docs/Dimension Definitions.md)
