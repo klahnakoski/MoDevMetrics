@@ -2,19 +2,14 @@
 Mozilla Developer Metrics
 =========================
 
-
-
 Requirements
 ------------
 
-Access to one of the bugs clusters is required
+Access to one of the bug clusters is required
 
-  - Proxy to public cluster (need VPN to **TOR**)<br>'``http://klahnakoski-es.corp.tor1.mozilla.com:9201/public_bugs/bug_version```
-  - Proxy to public cluster<br>```http://esfrontline1.bugs.scl3.mozilla.com:9292/public_bugs/bug_version```
-  - Direct to the public cluster<br>```http://elasticsearch1.bugs.scl3.mozilla.com:9200/public_bugs/bug_version```
-  - Proxy to private cluster (need VPN to **TOR**)<br>```http://klahnakoski-es.corp.tor1.mozilla.com:9204/private_bugs/bug_version```
-  - Metrics' private cluster (need VPN to **MPT**)<br>```http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version```
-  - Direct to private cluster (need **LDAP**)<br>```http://elasticsearch4.bugs.scl3.mozilla.com:9200/private_bugs/bug_version```
+  - Proxy to public cluster<br>```http://elasticsearch.bugs.mozilla.com:80/public_bugs/bug_version```
+  - Direct to public cluster (need VPN access)<br>```http://elasticsearch-zlb.bugs.scl3.mozilla.com:9200/public_bugs/bug_version```
+  - Direct to private cluster (need VPN access)<br>```elasticsearch-private.bugs.scl3.mozilla.com:9200/private_bugs/bug_version```
 
 Setup
 -----
@@ -22,7 +17,7 @@ Setup
     git clone https://github.com/klahnakoski/MoDevMetrics.git
     
     Cloning into 'MoDevMetrics'...
-	remote: Counting objects: 6563, done.
+    remote: Counting objects: 6563, done.
 	remote: Compressing objects: 100% (3142/3142), done.
 	remote: Total 6563 (delta 4485), reused 5226 (delta 3148)
 	Receiving objects: 100% (6563/6563), 17.89 MiB | 234 KiB/s, done.
