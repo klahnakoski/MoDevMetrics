@@ -54,23 +54,23 @@ ProgramFilter.prototype.makeFilter = function(indexName, selectedPrograms){
 ProgramFilter.makeQuery = function(filters){
 	var programCompares={};
 
-	for(var j=0;j<ProgramFilter.allPrograms.length;j++){
-		var name = ProgramFilter.allPrograms[j].attributeName;
-		var value = ProgramFilter.allPrograms[j].attributeValue;
+	ProgramFilter.allPrograms.forall(function(program){
+		var name = program.attributeName;
+		var value = program.attributeValue;
 
 		var esfilter;
-		if (ProgramFilter.allPrograms[j].esfilter){
-			esfilter=ProgramFilter.allPrograms[j].esfilter;
+		if (program.esfilter){
+			esfilter=program.esfilter;
 		}else{
 			esfilter={"term":Map.newInstance(name, value)};
 		}//endif
 
-		var project=ProgramFilter.allPrograms[j].projectName;
+		var project=program.projectName;
 		programCompares[project]=nvl(programCompares[project], []);
 		programCompares[project].push(esfilter);
-	}//for
+	});
 
-
+	
 	var output = {
 		"query":{
 			"filtered":{
@@ -90,12 +90,6 @@ ProgramFilter.makeQuery = function(filters){
 		"size": 0,
 		"sort": [],
 		"facets":{
-//			"Programs":{
-//				"terms":{
-//					"script_field": allCompares+"return 'None'\n",
-//					"size": 100000
-//				}
-//			}
 		}
 	};
 
@@ -187,63 +181,52 @@ ProgramFilter.prototype.injectHTML = function(programs){
 
 
 ProgramFilter.prototype.refresh = function(){
-	this.query = ProgramFilter.makeQuery([
-//		GUI.state.productFilter.makeFilter()
-	]);
-
-//	Log.note(CNV.Object2JSON(this.query));
-	this.ElasticSearchQuery = OldElasticSearchQuery(this, 0, this.query);
-	this.results = null;
-	this.ElasticSearchQuery.Run();
-};
+	var self = this;
+	Thread.run(function(){
+		self.query = ProgramFilter.makeQuery([]);
 
 
-ProgramFilter.prototype.success = function(data){
-	if (data==null) return;
+		var data = yield (ElasticSearch.search("bugs", self.query));
 
-	//CONVERT MULTIPLE EDGES INTO SINGLE LIST OF PROGRAMS
-	var programs=[];
-	for(var p in data.facets){
-		if (p=="Programs") continue;  //ALL PROGRAMS (NOT ACCURATE COUNTS)
-		if (data.facets[p].terms.length==0){
-			programs.push({"term":p, "count":0});
-		}else{
-			for(var t=0;t<data.facets[p].terms.length;t++){
-				if (data.facets[p].terms[t].term=="None") continue;
-				programs.push(data.facets[p].terms[t]);
-			}//for
-		}//endif
-	}//for
-	
-	//OLD PROGRAMS HAS BAD COUNTS
-	//var programs = data.edges.Programs.terms;
-
-
-	this.injectHTML(programs);
-	var self=this;
-
-	$("#programsList").selectable({
-		selected: function(event, ui){
-			var didChange = false;
-			if (ui.selected.id == "program_ALL"){
-				if (self.selected.length > 0) didChange = true;
-				self.selected = [];
-			} else{
-				if (!include(self.selected, ui.selected.id.rightBut("program_".length))){
-					self.selected.push(ui.selected.id.rightBut("program_".length));
-					didChange = true;
-				}//endif
+		//CONVERT MULTIPLE EDGES INTO SINGLE LIST OF PROGRAMS
+		var programs=[];
+		for(var p in data.facets){
+			if (p=="Programs") continue;  //ALL PROGRAMS (NOT ACCURATE COUNTS)
+			if (data.facets[p].terms.length==0){
+				programs.push({"term":p, "count":0});
+			}else{
+				for(var t=0;t<data.facets[p].terms.length;t++){
+					if (data.facets[p].terms[t].term=="None") continue;
+					programs.push(data.facets[p].terms[t]);
+				}//for
 			}//endif
+		}//for
 
-			if (didChange)GUI.refresh();
-		},
-		unselected: function(event, ui){
-			var i = self.selected.indexOf(ui.unselected.id.rightBut("program_".length));
-			if (i != -1){
-				self.selected.splice(i, 1);
-				GUI.refresh();
+		self.injectHTML(programs);
+
+		$("#programsList").selectable({
+			selected: function(event, ui){
+				var didChange = false;
+				if (ui.selected.id == "program_ALL"){
+					if (self.selected.length > 0) didChange = true;
+					self.selected = [];
+				} else{
+					if (!include(self.selected, ui.selected.id.rightBut("program_".length))){
+						self.selected.push(ui.selected.id.rightBut("program_".length));
+						didChange = true;
+					}//endif
+				}//endif
+
+				if (didChange)GUI.refresh();
+			},
+			unselected: function(event, ui){
+				var i = self.selected.indexOf(ui.unselected.id.rightBut("program_".length));
+				if (i != -1){
+					self.selected.splice(i, 1);
+					GUI.refresh();
+				}
 			}
-		}
+		});
 	});
 };
 

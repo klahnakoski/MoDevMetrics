@@ -96,7 +96,7 @@ var createChart=function(){
 				}else if (col.name.startsWith("keyword")){
 					//DO NOTHING
 				}else if (col.type=="string"){
-					var result=yield (ElasticSearch.search({
+					var result=yield (ElasticSearch.search("bugs", {
 						"query":{
 							"filtered":{
 								"query":{"match_all":{}},
@@ -131,7 +131,7 @@ var createChart=function(){
 					addToTable(col.name, JSON.stringify(result2.list.map(function(v){return v[col.name];})).left(3000));
 
 				}else if (["boolean", "integer", "date", "long"].contains(col.type)){
-					var result=yield (ElasticSearch.search({
+					var result=yield (ElasticSearch.search("bugs", {
 						"query":{
 							"filtered":{
 								"query":{"match_all":{}},

@@ -720,7 +720,7 @@ function getDescendants(parent, startDate, endDate){
 
 
 	var bugs = {};
-//	var metroMVP = (yield(ElasticSearch.search({
+//	var metroMVP = (yield(ElasticSearch.search("bugs", {
 //		"query":{
 //			"filtered":{
 //				"query":{"match_all":{}},
@@ -751,7 +751,7 @@ function getDescendants(parent, startDate, endDate){
 
 
 
-		var moreBugs = (yield(ElasticSearch.search({
+		var moreBugs = (yield(ElasticSearch.search("bugs", {
 			"query":{
 				"filtered":{
 					"query":{"match_all":{}},

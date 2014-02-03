@@ -17,9 +17,6 @@ importScript([
 
 importScript("../charts/HelperFunctions.js");
 importScript("../charts/DataSet.js");
-importScript("../charts/RangeCharts.js");
-importScript("../charts/RangeIterator.js");
-importScript("../charts/DateRangeIterator.js");
 
 importScript("Filter.js");
 importScript("ComponentFilter.js");

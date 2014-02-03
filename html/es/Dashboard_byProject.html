@@ -160,7 +160,7 @@ importScript("js/main.js", function(){
 
 		var a = Log.action("Get ES Data", true);
 		try{
-			var data = yield(ElasticSearch.search(query));
+			var data = yield(ElasticSearch.search("bugs", query));
 		} catch(e){
 			Log.warning("Problem with ES request");
 		}//try

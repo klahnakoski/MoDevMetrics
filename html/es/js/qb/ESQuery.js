@@ -134,9 +134,15 @@ ESQuery.parseColumns=function(indexName, parentName, esProperties){
 };//method
 
 
-//ENSURE COLUMNS FOR GIVEN INDEX ARE LOADED, AND MVEL COMPILAITON WORKS BETTER
+//ENSURE COLUMNS FOR GIVEN INDEX/QUERY ARE LOADED, AND MVEL COMPILATION WORKS BETTER
 ESQuery.loadColumns=function(query){
-	var indexName = query.from.split(".")[0];
+	var indexName = null;
+	if (typeof(query) == 'string'){
+		indexName = query;
+	}else{
+		indexName = query.from.split(".")[0];
+	}//endif
+
 	var indexInfo = ESQuery.INDEXES[indexName];
 	if (indexInfo.host===undefined) Log.error("must have host defined");
 	var indexPath=indexInfo.path;
@@ -232,7 +238,6 @@ ESQuery.prototype.run = function(){
 
 
 	if (!this.query.url.endsWith("/_search")) this.query.url+="/_search";  //WHEN QUERIES GET RECYCLED, THEIR url IS SOMETIMES STILL AROUND
-	//var URL=window.ElasticSearch.baseURL+ESQuery.INDEXES[this.query.from.split(".")[0]].path+"/_search";
 	var postResult;
 	if (ESQuery.DEBUG) Log.note(CNV.Object2JSON(this.esQuery));
 

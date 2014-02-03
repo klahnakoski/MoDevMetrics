@@ -78,14 +78,6 @@ ProductFilter.prototype.setSimpleState=function(value){
 };
 
 
-ProductFilter.prototype.refresh = function(){
-	this.query = this.makeQuery();
-
-	this.ElasticSearchQuery = OldElasticSearchQuery(this, 0, this.query);
-	this.results = null;
-	this.ElasticSearchQuery.Run();
-};
-
 ProductFilter.prototype.makeHTML=function(){
 	return '<div id="products"></div>';
 };//method
@@ -119,19 +111,21 @@ ProductFilter.prototype.injectHTML = function(products){
 	$("#products").html(html);
 };
 
-
-ProductFilter.prototype.success = function(data){
-	if (data==null) return;
-	var products = data.facets.Products.terms;
-
-	//REMOVE ANY FILTERS THAT DO NOT APPLY ANYMORE (WILL START ACCUMULATING RESULTING IN NO MATCHES)
-	var terms = [];
-	for(var i = 0; i < products.length; i++) terms.push(products[i].term);
-	this.selected = this.selected.intersect(terms);
-
+ProductFilter.prototype.refresh = function(){
 	var self=this;
+	Thread.run(function(){
 
-	Thread.run("get products", function(){
+		self.query = self.makeQuery();
+		var data = yield(ElasticSearch.search("bugs", self.query));
+
+		var products = data.facets.Products.terms;
+
+		//REMOVE ANY FILTERS THAT DO NOT APPLY ANYMORE (WILL START ACCUMULATING RESULTING IN NO MATCHES)
+		var terms = [];
+		for(var i = 0; i < products.length; i++) terms.push(products[i].term);
+		self.selected = self.selected.intersect(terms);
+
+
 		self.injectHTML(products);
 
 		$("#productsList").selectable({
@@ -158,8 +152,7 @@ ProductFilter.prototype.success = function(data){
 			}
 		});
 
-		yield (null);
 	});
-	
+
 };
 
