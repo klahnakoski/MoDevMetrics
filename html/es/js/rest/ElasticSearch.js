@@ -70,18 +70,6 @@ ElasticSearch.search=function(esquery){
 };
 
 
-//RETURN MAPPINGS FOR GIVEN INDEX AND TYPE
-ElasticSearch.getSchema=function(indexName, typeName){
-	var URL = ElasticSearch.baseURL + "/" + indexName +"/" + "/_mapping";
-
-	var schema = yield(Rest.get({
-		"url":URL
-	}));
-
-	yield (schema[indexName][typeName]);
-};
-
-
 
 ElasticSearch.setRefreshInterval=function(indexName, rate){
 	var data=yield (Rest.put({

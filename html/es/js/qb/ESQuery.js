@@ -30,7 +30,7 @@ ESQuery.DEBUG=false;
 // THESE ARE THE AVAILABLE ES INDEXES/TYPES
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
-	"bugs":{"path":"/bugs/bug_version"},
+	"bugs":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":"/private_bugs/bug_version"},
 	"public_bugs":{"host":"http://esfrontline1.bugs.scl3.mozilla.com:9292", "path":"/public_bugs/bug_version"},
 	"public_bugs_backend":{"host":"http://elasticsearch1.bugs.scl3.mozilla.com:9200", "path":"/public_bugs/bug_version"},
 	"public_bugs_proxy":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9201", "path":"/public_bugs/bug_version"},
@@ -53,18 +53,18 @@ ESQuery.INDEXES={
 	"bugs.attachments":{},
 	"bugs.attachments.flags":{},
 	
-	"reviews":{"path":"/reviews/review"},
-	"bug_summary":{"path":"/bug_summary/bug_summary"},
-	"bug_tags":{"path":"/bug_tags/bug_tags"},
-	"org_chart":{"path":"/org_chart/person"},
-	"temp":{"path":""},
-	"telemetry":{"path":"/telemetry_agg_valid_201305/data"},
+	"reviews":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":"/reviews/review"},
+	"bug_summary":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":"/bug_summary/bug_summary"},
+	"bug_tags":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":"/bug_tags/bug_tags"},
+	"org_chart":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":"/org_chart/person"},
+	"temp":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":""},
+	"telemetry":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":"/telemetry_agg_valid_201305/data"},
 	"raw_telemetry":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/raw_telemetry/data"},
 	
 	"talos":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/datazilla/results"},
 	"b2g_tests":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/b2g_tests/results"},
 
-	"perfy":{"path":"/perfy/scores"},
+	"perfy":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":"/perfy/scores"},
 	"local_perfy":{"host":"http://localhost:9200", "path":"/perfy/scores"}
 
 //	"raw_telemetry":{"host":"http://localhost:9200", "path":"/raw_telemetry/data"}
@@ -138,6 +138,7 @@ ESQuery.parseColumns=function(indexName, parentName, esProperties){
 ESQuery.loadColumns=function(query){
 	var indexName = query.from.split(".")[0];
 	var indexInfo = ESQuery.INDEXES[indexName];
+	if (indexInfo.host===undefined) Log.error("must have host defined");
 	var indexPath=indexInfo.path;
 	if (indexName=="bugs" && !indexPath.endsWith("/bug_version")) indexPath+="/bug_version";
 	if (indexInfo.columns!==undefined)
@@ -146,7 +147,7 @@ ESQuery.loadColumns=function(query){
 	//WE MANAGE ALL THE REQUESTS FOR THE SAME SCHEMA, DELAYING THEM IF THEY COME IN TOO FAST
 	if (indexInfo.fetcher === undefined) {
 		indexInfo.fetcher=Thread.run(function(){
-			var URL=nvl(query.url, nvl(indexInfo.host, ElasticSearch.baseURL) + indexPath) + "/_mapping";
+			var URL=nvl(query.url, indexInfo.host + indexPath) + "/_mapping";
 			var path = parse.URL(URL).pathname.split("/").rightBut(1);
 			var pathLength = path.length - 1;  //ASSUME /indexname.../_mapping
 
@@ -225,7 +226,8 @@ ESQuery.prototype.run = function(){
 
 	if (!this.query.url){
 		var indexInfo=ESQuery.INDEXES[this.query.from.split(".")[0]];
-		this.query.url=nvl(indexInfo.host, window.ElasticSearch.baseURL)+indexInfo.path;
+		if (indexInfo.host===undefined) Log.error("must have host defined");
+		this.query.url=indexInfo.host+indexInfo.path;
 	}//endif
 
 
