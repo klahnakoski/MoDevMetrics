@@ -209,7 +209,7 @@ MVEL.prototype.from = function(fromPath, loopVariablePrefix){
 		if (columns[i].name.indexOf("\\.")>=0){
 			this.prefixMap.unshift({"path":columns[i].name, "variable":"get("+path[0]+", \""+columns[i].name.replaceAll("\\.", ".")+"\")"});   //USED TO MAKE THE TRANSLATE CONVERT bug.attachments TO bugs.?attachments
 		}else{
-			this.prefixMap.unshift({"path":columns[i].name, "variable":path[0]+"."+columns[i].name});   //USED TO MAKE THE TRANSLATE CONVERT bug.attachments TO bugs.?attachments
+			this.prefixMap.unshift({"path":columns[i].name, "variable":path[0]+".?"+columns[i].name});   //USED TO MAKE THE TRANSLATE CONVERT bug.attachments TO bugs.?attachments
 		}//endif
 	}//for
 

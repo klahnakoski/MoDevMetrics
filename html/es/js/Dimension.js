@@ -114,7 +114,7 @@ Dimension.prototype={
 
 		var output={
 			"name":this.name,
-			"value":MVEL.Parts2TermScript(nvl(param.index, this.index), domain)
+			"value":MVEL.Parts2TermScript(nvl(param!==undefined ? param.index : null, this.index), domain)
 		};
 		return output;
 	}
@@ -206,6 +206,7 @@ Dimension.prototype={
 						"from":dim.index,
 						"select":{"name":"count", "value":"1", "aggregate":"count"},
 						"edges":edges,
+						"esfilter":dim.esfilter,
 						"limit":dim.limit
 					}));
 					Log.actionDone(a);

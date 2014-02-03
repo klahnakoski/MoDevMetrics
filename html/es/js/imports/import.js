@@ -188,14 +188,18 @@ var importScript;
 
 		var scripts = head.getElementsByTagName('script');
 		for(var s = 0; s < scripts.length; s++){
-			existingScripts.push(scripts[s].getAttribute("src"));
+			var p = scripts[s].getAttribute("src");
+			var fp = getFullPath(window.location.pathname, p);
+			existingScripts.push(fp);
 		}//for
 
 
 		//<link type="text/css" rel="stylesheet" href="tests.lib/webdetails/tests.lib/tipsy.css"/>
 		var css = head.getElementsByTagName('link');
-		for(var s = 0; s < css.length; s++){
-			existingScripts.push(css[s].getAttribute("href"));
+		for(s = 0; s < css.length; s++){
+			p = css[s].getAttribute("href");
+			fp = getFullPath(window.location.pathname, p);
+			existingScripts.push(fp);
 		}//for
 
 

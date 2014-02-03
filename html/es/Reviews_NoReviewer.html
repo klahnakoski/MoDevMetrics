@@ -4,98 +4,9 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-	<script type="application/javascript;version=1.7" src="js/Settings.js">
-	</script>
+	<script type="application/javascript;version=1.7" src="js/imports/import.js"></script>
 </HEAD>
 <BODY>
-
-
-<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/Base.js"></script>
-<script type="application/javascript;version=1.7" src="lib/jquery.js"></script>
-<script type="application/javascript;version=1.7" src="lib/jstree/jquery.jstree.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/data/q01-01.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/lib/protovis-d3.3.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/lib/jquery.tipsy.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/lib/tipsy.js"></script>
-<link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
-
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvc.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcPanel.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcLegend.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcWaterfall.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcPie.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcBar.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcLine.js"></script>
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvc/pvcData.js"></script>
-
-<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
-<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
-
-<script type="application/javascript;version=1.7" src="lib/webdetails/pvcDocUtils.js"></script>
-
-<link type="text/css" rel="stylesheet" href="lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css"/>
-<script type="application/javascript;version=1.7" src="lib/jquery-ui/js/jquery-ui-1.10.2.custom.js"></script>
-<script type="application/javascript;version=1.7" src="lib/jquery.ba-bbq/jquery.ba-bbq.js"></script>
-
-<link type="text/css" rel="stylesheet" href="css/menu.css"/>
-
-
-<script type="application/javascript;version=1.7" src="js/util/aUtil.js"></script>
-<script type="application/javascript;version=1.7" src="js/collections/aArray.js"></script>
-<script type="application/javascript;version=1.7" src="js/util/aString.js"></script>
-<script type="application/javascript;version=1.7" src="js/math/aMath.js"></script>
-<script type="application/javascript;version=1.7" src="js/util/CNV.js"></script>
-<script type="application/javascript;version=1.7" src="js/util/aUtil.js"></script>
-<script type="application/javascript;version=1.7" src="js/collections/aArray.js"></script>
-<script type="application/javascript;version=1.7" src="js/util/aString.js"></script>
-<script type="application/javascript;version=1.7" src="js/math/aMath.js"></script>
-<script type="application/javascript;version=1.7" src="js/util/aDate.js"></script>
-<script type="application/javascript;version=1.7" src="js/util/aDuration.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/MozillaPrograms.js"></script>
-<script type="application/javascript;version=1.7" src="js/Dimension.js"></script>
-<script type="application/javascript;version=1.7" src="js/Dimension-Bugzilla.js"></script>
-<script type="application/javascript;version=1.7" src="js/rest/BugzillaClient.js"></script>
-<script type="application/javascript;version=1.7" src="js/Bugzilla.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/math/Stats.js"></script>
-<script type="application/javascript;version=1.7" src="js/debug/aLog.js"></script>
-<script type="application/javascript;version=1.7" src="js/qb/MVEL.js"></script>
-<script type="application/javascript;version=1.7" src="js/qb/aCompiler.js"></script>
-<script type="application/javascript;version=1.7" src="js/Hierarchy.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/threads/thread.js"></script>
-<script type="application/javascript;version=1.7" src="js/qb/Qb.js"></script>
-<script type="application/javascript;version=1.7" src="js/qb/Qb.analytic.js"></script>
-<script type="application/javascript;version=1.7" src="js/qb/Qb.aggregate.js"></script>
-<script type="application/javascript;version=1.7" src="js/qb/Qb.column.js"></script>
-<script type="application/javascript;version=1.7" src="js/qb/Qb.cube.js"></script>
-<script type="application/javascript;version=1.7" src="js/qb/Qb.domain.js"></script>
-<script type="application/javascript;version=1.7" src="js/rest/Rest.js"></script>
-<script type="application/javascript;version=1.7" src="js/qb/ESQuery.js"></script>
-<script type="application/javascript;version=1.7" src="js/charts/aChart.js"></script>
-
-
-<script type="application/javascript;version=1.7" src="js/charts/HelperFunctions.js"></script>
-<script type="application/javascript;version=1.7" src="js/rest/ElasticSearch.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/charts/DataSet.js"></script>
-<script type="application/javascript;version=1.7" src="js/charts/RangeCharts.js"></script>
-<script type="application/javascript;version=1.7" src="js/charts/RangeIterator.js"></script>
-<script type="application/javascript;version=1.7" src="js/charts/DateRangeIterator.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/gui/Filter.js"></script>
-<script type="application/javascript;version=1.7" src="js/gui/ComponentFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/gui/TeamFilter.js"></script>
-<script type="application/javascript;version=1.7" src="js/gui/ProductFilter.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/gui/ProgramFilter.js"></script>
-
-<script type="application/javascript;version=1.7" src="js/gui/GUI.js"></script>
-<script type="application/javascript;version=1.7" src="js/util/aTimer.js"></script>
 
 
 <div style="height: 30px; text-align: center;vertical-align:middle;">
@@ -105,98 +16,99 @@
 
 <script type="application/javascript;version=1.7">
 
+importScript(["js/main.js"], function(){
 
-var thread;
-var createChart = function(){
-	if (thread !== undefined)
-		thread.kill();
-	thread = Thread.run(__createChart());
-};
+	var thread;
+	var createChart = function(){
+		if (thread !== undefined)
+			thread.kill();
+		thread = Thread.run(__createChart());
+	};
 
-var __createChart = function(){
+	var __createChart = function(){
 
 
-	var reviews = (yield(ESQuery.run({
-		"from":"bugs.attachments.flags",
-		"select":[
-			{"name":"bug_id", "value":"bug_id"},
-			{"name":"request_time", "value":"bugs.modified_ts"}
-		],
-		"where":{"and":[
-			{"missing":{
-				"field" : "bugs.attachments.flags.review_time",
-				"existence" : true,
-				"null_value" : true
-			}},
-			{"or":[
+		var reviews = (yield(ESQuery.run({
+			"from":"bugs.attachments.flags",
+			"select":[
+				{"name":"bug_id", "value":"bug_id"},
+				{"name":"request_time", "value":"bugs.modified_ts"}
+			],
+			"where":{"and":[
 				{"missing":{
-					"field" : "bugs.attachments.flags.requestee",
+					"field" : "bugs.attachments.flags.review_time",
 					"existence" : true,
 					"null_value" : true
 				}},
-				{"term":{"bugs.attachments.flags.requestee":"nobody@mozilla.org"}}
+				{"or":[
+					{"missing":{
+						"field" : "bugs.attachments.flags.requestee",
+						"existence" : true,
+						"null_value" : true
+					}},
+					{"term":{"bugs.attachments.flags.requestee":"nobody@mozilla.org"}}
+				]},
+				{"terms":{"bugs.attachments.flags.request_status" : ["?"]}},
+				{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+				{"script":{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}},
+				{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
 			]},
-			{"terms":{"bugs.attachments.flags.request_status" : ["?"]}},
-			{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
-			{"script":{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}},
-			{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
-		]},
-		"esfilter":{"and":[
-			Mozilla.BugStatus.Open.esfilter,
-			{"range":{"expires_on":{"gt":Date.now().getMilli()}}},
-			{ "nested": {
-				"path" : "attachments.flags",
-				"query": {
-					"filtered":{
-						"query":{
-							"match_all":{}
-						},
-						"filter":{
-							"and":[
-								{"terms":{"attachments.flags.request_type" : ["review", "superreview"]}},
-								{"terms":{"attachments.flags.request_status" : ["?"]}},
-								{"missing":{"field" : "attachments.flags.review_time"}}
-							]
+			"esfilter":{"and":[
+				Mozilla.BugStatus.Open.esfilter,
+				{"range":{"expires_on":{"gt":Date.now().getMilli()}}},
+				{ "nested": {
+					"path" : "attachments.flags",
+					"query": {
+						"filtered":{
+							"query":{
+								"match_all":{}
+							},
+							"filter":{
+								"and":[
+									{"terms":{"attachments.flags.request_type" : ["review", "superreview"]}},
+									{"terms":{"attachments.flags.request_status" : ["?"]}},
+									{"missing":{"field" : "attachments.flags.review_time"}}
+								]
+							}
 						}
 					}
-				}
-			}}
-		]}
-	})));
+				}}
+			]}
+		})));
 
-	var result = (yield(Qb.calc2List({
-		"from":	reviews.list,
-		"select":[
-			{"name":"wait_time", "value":"Date.eod().getMilli()-request_time", aggregate:"maximum", "sort":"descending"}
-		],
-		"edges":[
-			"bug_id"
-		],
-		"sort":[
-			"wait_time"
-		]
-	}))).list;
+		var result = (yield(Qb.calc2List({
+			"from":	reviews.list,
+			"select":[
+				{"name":"wait_time", "value":"Date.eod().getMilli()-request_time", aggregate:"maximum", "sort":"descending"}
+			],
+			"edges":[
+				"bug_id"
+			],
+			"sort":[
+				"wait_time"
+			]
+		}))).list;
 
-	//ALTER bugs LIST TO INCLUDE LINK
-	result = (yield(Qb.calc2List({
-		"from":result,
-		"select":[
-			{"name":"Bug ID", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bug_id).replaceAll(', ', '%2C')+\"'>\"+bug_id+\"</a>\""},
-			{"name":"Wait Time", "value":"aMath.round(wait_time/" + Duration.MILLI_VALUES.day + ", 1)+\"days\""}
-		]
-	}))).list;
-
-
-	var htmlSummary = "<h2>Reviews Requested, but no Requestee</h2>" + CNV.List2HTMLTable(result);
-	//	Log.note(CNV.Object2JSON(data));
-
-	document.getElementById("info").innerHTML = htmlSummary;
+		//ALTER bugs LIST TO INCLUDE LINK
+		result = (yield(Qb.calc2List({
+			"from":result,
+			"select":[
+				{"name":"Bug ID", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bug_id).replaceAll(', ', '%2C')+\"'>\"+bug_id+\"</a>\""},
+				{"name":"Wait Time", "value":"aMath.round(wait_time/" + Duration.MILLI_VALUES.day + ", 1)+\"days\""}
+			]
+		}))).list;
 
 
-};
+		var htmlSummary = "<h2>Reviews Requested, but no Requestee</h2>" + CNV.List2HTMLTable(result);
+		//	Log.note(CNV.Object2JSON(data));
 
-$(document).ready(createChart());
+		document.getElementById("info").innerHTML = htmlSummary;
 
+
+	};
+
+	$(document).ready(createChart());
+});
 </script>
 
 </BODY>

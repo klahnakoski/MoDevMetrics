@@ -97,6 +97,31 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			]}
 		}));
 
+
+		function drillToReplicates(channel, _benchmark, value){
+			var test=_benchmark.split(".").left(1).join(".");
+			var benchmark=_benchmark.split(".").rightBut(1).join(".");
+
+			var param={
+				"Benchmark":benchmark,
+				"Channel":channel
+			};
+
+			//					var date=max_date.cube[range2.edges[0].domain.getPartByKey(platform).dataIndex][range2.edges[1].domain.getPartByKey(benchmark).dataIndex];
+			param_date=max_date.get(param);
+
+			Thread.run(function(){
+				//SHOW ALL TESTS FOR THIS GROUP
+				var param={
+					"benchmark":"Benchmark."+benchmark+"."+test.replaceAll(" ", "_"),
+					"platform":"Platform."+GUI.state.platform.getSelectedParts()[0].name.replaceAll(" ", "_"),
+					"date":Date.newInstance(GUI.state.date).format("yyyy-MM-dd")
+				};
+				window.open("Perfy-Details.html#"+CNV.Object2URL(param));
+			});
+		}//function
+
+
 		//FILTER SPECIFICALLY FOR THE LATEST TESTS
 		var testFilter=[];
 		Mozilla.Perfy.Channel.partitions.forall(function(channel, c){
@@ -147,7 +172,8 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 				xAxisSize: 100,
 				extensionPoints: {
 					line_lineWidth: 2
-				}
+				},
+				"clickAction":drillToReplicates
 			});
 		});
 
@@ -262,28 +288,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 				extensionPoints: {
 					line_lineWidth: 2
 				},
-				"clickAction":function(channel, _benchmark, value){
-					var test=_benchmark.split(".").left(1);
-					var benchmark=_benchmark.split(".").rightBut(1).join(".");
-
-					var param={
-						"Benchmark":benchmark,
-						"Channel":channel
-					};
-
-//					var date=max_date.cube[range2.edges[0].domain.getPartByKey(platform).dataIndex][range2.edges[1].domain.getPartByKey(benchmark).dataIndex];
-					param_date=max_date.get(param);
-
-					Thread.run(function(){
-						//SHOW ALL TESTS FOR THIS GROUP
-						var param={
-							"benchmark":"Benchmark."+benchmark+"."+test.replaceAll(" ", "_"),
-							"platform":"Platform."+GUI.state.platform.getSelectedParts()[0].name.replaceAll(" ", "_"),
-							"date":Date.newInstance(GUI.state.date).format("yyyy-MM-dd")
-						};
-						window.open("Perfy-Details.html#"+CNV.Object2URL(param));
-					});
-				}//click
+				"clickAction":drillToReplicates
 			});
 
 			Log.actionDone(a);
@@ -318,7 +323,8 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		);
 	});
 
-});
+
+	});
 
 </script>
 

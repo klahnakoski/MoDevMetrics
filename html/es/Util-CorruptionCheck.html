@@ -121,9 +121,9 @@ importScript(["js/main.js"], function(){
 		});
 
 		// REMOVE COMMENT TO APPLY FIX
-		a = Log.action("bulk index fixes", true);
-		yield (ElasticSearch.bulkInsert("bugs", "bug_version", bulk));
-		Log.actionDone(a);
+//		a = Log.action("bulk index fixes", true);
+//		yield (ElasticSearch.bulkInsert("bugs", "bug_version", bulk));
+//		Log.actionDone(a);
 
 		
 		$("#fixes").html(CNV.List2HTMLTable(fixed));

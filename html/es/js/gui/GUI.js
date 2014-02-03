@@ -30,6 +30,7 @@ importScript("TeamFilter.js");
 
 importScript("../threads/thread.js");
 importScript("../qb/aCompiler.js");
+importScript("../aFormat.js");
 
 GUI = {};
 
@@ -401,42 +402,38 @@ GUI.AddParameters=function(parameters, relations){
 		////////////////////////////////////////////////////////////////////////
 		// JSON
 		} else if (param.type=="json"){
-			$().ready(function(){
-				var codeDiv=$("#" + param.id);
-				codeDiv.linedtextarea();
-				codeDiv.change(function(){
-					if (this.isChanging) return;
-					this.isChanging=true;
-					try{
-						codeDiv=$("#" + param.id);	//JUST TO BE SURE WE GOT THE RIGHT ONE
-						//USE JSONLINT TO FORMAT AND TEST-COMPILE THE code
-						var code=jsl.format.formatJson(codeDiv.val());
-						codeDiv.val(code);
-						jsl.parser.parse(code);
-						//TIGHTER PACKING IF JSON
-						codeDiv.val(aFormat.json(code));
+			var codeDiv=$("#" + param.id);
+			codeDiv.linedtextarea();
+			codeDiv.change(function(){
+				if (this.isChanging) return;
+				this.isChanging=true;
+				try{
+					codeDiv=$("#" + param.id);	//JUST TO BE SURE WE GOT THE RIGHT ONE
+					//USE JSONLINT TO FORMAT AND TEST-COMPILE THE code
+					var code=jsl.format.formatJson(codeDiv.val());
+					codeDiv.val(code);
+					jsl.parser.parse(code);
+					//TIGHTER PACKING IF JSON
+					codeDiv.val(aFormat.json(code));
 
-						if (GUI.UpdateState()){
-							GUI.refreshChart();
-						}//endif
-					}catch(e){
-						Log.alert(e.message);
-					}//try
-					this.isChanging=false;
-				});
-				codeDiv.val(aFormat.json(defaultValue));
-			});
-		} else if (param.type=="code"){
-			$().ready(function(){
-				var codeDiv=$("#" + param.id);
-				codeDiv.linedtextarea();
-				codeDiv.change(function(){
 					if (GUI.UpdateState()){
 						GUI.refreshChart();
-					}
-				});
-				codeDiv.val(defaultValue);
+					}//endif
+				}catch(e){
+					Log.alert(e.message);
+				}//try
+				this.isChanging=false;
 			});
+			codeDiv.val(aFormat.json(defaultValue));
+		} else if (param.type=="code"){
+			var codeDiv=$("#" + param.id);
+			codeDiv.linedtextarea();
+			codeDiv.change(function(){
+				if (GUI.UpdateState()){
+					GUI.refreshChart();
+				}
+			});
+			codeDiv.val(defaultValue);
 		}else{
 			if (param.type=="string") param.type="text";
 			$("#" + param.id).change(function(){

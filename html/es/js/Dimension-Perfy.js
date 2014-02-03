@@ -18,7 +18,8 @@ Dimension.addEdges(false,  Mozilla, [
 		{
 			"name":"Benchmark",
 			"type":"set",
-			"field":["info.benchmark", "info.test"]
+			"field":["info.benchmark", "info.test"],
+			"esfilter":{"range":{"started":{"gte":Date.eod().add(Duration.newInstance("-2month")).getMilli()}}}
 		},
 		{
 			"name":"Browser",
