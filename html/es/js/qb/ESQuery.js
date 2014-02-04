@@ -1417,7 +1417,14 @@ ESQuery.prototype.fieldsResults=function(data){
 	var T = data.hits.hits;
 
 	if (this.query.select instanceof Array){
-		for(var i = T.length; i--;) o.push(T[i].fields);
+		for(var i = T.length; i--;){
+		    var record=T[i].fields
+			var new_rec={};
+			this.query.select.forall(function(s, i){
+				new_rec[s.name]=nvl(record[s.value], null);
+			});
+			o.push(new_rec)
+		}//for
 	}else{
 		//NOT ARRAY MEANS OUTPUT IS LIST OF VALUES, NOT OBJECTS
 		var n=this.query.select.name;

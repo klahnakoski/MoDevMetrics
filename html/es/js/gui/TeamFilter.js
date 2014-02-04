@@ -27,10 +27,10 @@ TeamFilter.newInstance=function(field_name){
 		var people=(yield (ESQuery.run({
 			"from":"org_chart",
 			"select":[
-				{"name":"id", "value":"org_chart.id"},
-				{"name":"name", "value":"org_chart.name"},
-				{"name":"email", "value":"get(org_chart, \"email\")"},
-				{"name":"manager", "value":"get(org_chart, \"manager\")"}
+				{"name":"id", "value":"id"},
+				{"name":"name", "value":"name"},
+				{"name":"email", "value":"email"},
+				{"name":"manager", "value":"manager"}
 			]
 		}))).list;
 
@@ -85,17 +85,20 @@ TeamFilter.newInstance=function(field_name){
 			"child_field":"children",
 			"parent_field":"manager"
 		});
-		others.children.map(function(v, i){
-			//PULL OUT THE TOP LEVEL 'PEOPLE' WITH CHILDREN
-			if (v.children && v.manager=="other@mozilla.com"){
-				v.manager=null;
-				others.children.remove(v);
-				hier.prepend(v);
-			}//endif
-			return v;
-		});
-		others.children.subtract(hier);
 
+		if (others.children){
+			others.children.map(function(v, i){
+				//PULL OUT THE TOP LEVEL 'PEOPLE' WITH CHILDREN
+				if (v.children && v.manager=="other@mozilla.com"){
+					v.manager=null;
+					others.children.remove(v);
+					hier.prepend(v);
+				}//endif
+				return v;
+			});
+			others.children.subtract(hier);
+		}//endif
+		
 		self.injectHTML(hier);
 
 		//JSTREE WILL NOT BE LOADED YET

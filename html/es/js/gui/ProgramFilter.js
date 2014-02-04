@@ -98,8 +98,7 @@ ProgramFilter.makeQuery = function(filters){
 	for(var c in programCompares){
 		output.facets[c]={
 			"terms":{
-				"script_field":MVEL.Value2MVEL(c),//programCompares[c]+"return 'None'\n",
-				"size":10000
+				"field":"exists"
 			},
 			"facet_filter":{
 				"or":programCompares[c]
@@ -190,18 +189,11 @@ ProgramFilter.prototype.refresh = function(){
 
 		//CONVERT MULTIPLE EDGES INTO SINGLE LIST OF PROGRAMS
 		var programs=[];
-		for(var p in data.facets){
-			if (p=="Programs") continue;  //ALL PROGRAMS (NOT ACCURATE COUNTS)
-			if (data.facets[p].terms.length==0){
-				programs.push({"term":p, "count":0});
-			}else{
-				for(var t=0;t<data.facets[p].terms.length;t++){
-					if (data.facets[p].terms[t].term=="None") continue;
-					programs.push(data.facets[p].terms[t]);
-				}//for
-			}//endif
-		}//for
-
+		forAllKey(data.facets, function(name, edge){
+			if (name=="Programs") return;  //ALL PROGRAMS (NOT ACCURATE COUNTS)
+			programs.push({"term":name, "count":edge.total});
+		});
+		programs.reverse();
 		self.injectHTML(programs);
 
 		$("#programsList").selectable({
