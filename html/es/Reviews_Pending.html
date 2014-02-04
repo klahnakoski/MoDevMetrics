@@ -157,94 +157,81 @@ var query = {
 	}
 };
 
-//	Log.note(query.edges.assigned.terms.script_field);
+Thread.run(function(){
+	var data = ElasticSearch.search("bugs", query);
 
+	var esResult = MVEL.esFacet2List(data.facets.pending, [
+		{"name":"bug_id", "value":"bugs.bug_id"},
+		{"name":"requestee", "value":"bugs.attachments.flags.requestee"},
+		{"name":"modified_ts", "value":"bugs.attachments.flags.modified_ts"}
+	]);
 
-ElasticSearchQuery.Run({
-	"query":query,
-
-	success: function(data){
-		Thread.run(function(){
-			var esResult = MVEL.esFacet2List(data.facets.pending, [
-				{"name":"bug_id", "value":"bugs.bug_id"},
-				{"name":"requestee", "value":"bugs.attachments.flags.requestee"},
-				{"name":"modified_ts", "value":"bugs.attachments.flags.modified_ts"}
-			]);
-
-			var reviews = //REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
-					(yield(Qb.calc2List({
-						"from":
-								esResult,
-						"select": {"name":"age", "value":"Date.now().floor('day').getMilli()-modified_ts", aggregate:"minimum"},
-						"edges":[
-							{"name":"requestee", "value":"requestee"},
-							{"name":"bug_id", "value":"bug_id"}
-						]
-					}))).list;
-
-
-			var average = (yield(Qb.calc2List({
-				"from": reviews,
-				"select": {"name":"avg_age", "value":"age", aggregate:"average"}
-			}))).list[0].avg_age;
-
-			average = Duration.newInstance(average).format("day", 0);
-			$("#summary").html("<h2>Average Review Queue Length: " + average + "s</h2>");
-
-			var over = 0;
-			var under = 0;
-			var interval = Duration.WEEK.milli;
-			for(var i = reviews.length; i--;){
-				if (reviews[i].age > interval){
-					over++;
-				} else{
-					under++;
-				}//endif
-			}//for
-
-			$("#summary").html(
-					"<h2>Average Review Queue Length: " + average + "s</h2><br>" +
-							"<h3>(" + (over + under) + " pending reviews, " + aMath.round(over / (over + under) * 100, 1) + "% over one week)</h3>"
-			);
-
-
-			var result = (yield(Qb.calc2List({
-				"from": reviews,
-				"select":[
-					{"name":"avg_age", "value":"age", aggregate:"average"},
-					{"name":"numPending", "value":"1", aggregate:"count", "sort":"descending"},
-					{"name":"bugs", "value":"bug_id", aggregate:"join", "separator":","}
-				],
+	var reviews = //REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
+			(yield(Qb.calc2List({
+				"from":
+						esResult,
+				"select": {"name":"age", "value":"Date.now().floor('day').getMilli()-modified_ts", aggregate:"minimum"},
 				"edges":[
-					{"name":"requestee", "value":"requestee"}
-				],
-				"sort":[
-					"numPending"
-				]
-			}))).list;
-
-			//ADD LINK TO BUGS
-			result = (yield(Qb.calc2List({
-				"from":result,
-				"select":[
 					{"name":"requestee", "value":"requestee"},
-					{"name":"Average Age", "value":"Duration.newInstance(avg_age).format('day', 1)"},
-					{"name":"numPending", value:"numPending"},
-					{"name":"bugs", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
+					{"name":"bug_id", "value":"bug_id"}
 				]
 			}))).list;
 
-			var htmlSummary = "<h2>Pending Review</h2>" + CNV.List2HTMLTable(result);
 
-			document.getElementById("info").innerHTML = htmlSummary;
-		});
-	},
+	var average = (yield(Qb.calc2List({
+		"from": reviews,
+		"select": {"name":"avg_age", "value":"age", aggregate:"average"}
+	}))).list[0].avg_age;
 
-	error: function (errorData, errorMsg, errorThrown){
-		document.getElementById("info").innerHTML = "Response Error." +
-				"<ul><li>Ensure you are connected to the MPT network.</li>" +
-				"<li style=\"vertical-align:top; \">Ensure your browser is not blocking http content <image src=\"images/http_from_https.png\"  style=\"height:96px;width:128px;vertical-align:top; \"/></li></ul>";
-	}
+	average = Duration.newInstance(average).format("day", 0);
+	$("#summary").html("<h2>Average Review Queue Length: " + average + "s</h2>");
+
+	var over = 0;
+	var under = 0;
+	var interval = Duration.WEEK.milli;
+	for(var i = reviews.length; i--;){
+		if (reviews[i].age > interval){
+			over++;
+		} else{
+			under++;
+		}//endif
+	}//for
+
+	$("#summary").html(
+			"<h2>Average Review Queue Length: " + average + "s</h2><br>" +
+					"<h3>(" + (over + under) + " pending reviews, " + aMath.round(over / (over + under) * 100, 1) + "% over one week)</h3>"
+	);
+
+
+	var result = (yield(Qb.calc2List({
+		"from": reviews,
+		"select":[
+			{"name":"avg_age", "value":"age", aggregate:"average"},
+			{"name":"numPending", "value":"1", aggregate:"count", "sort":"descending"},
+			{"name":"bugs", "value":"bug_id", aggregate:"join", "separator":","}
+		],
+		"edges":[
+			{"name":"requestee", "value":"requestee"}
+		],
+		"sort":[
+			"numPending"
+		]
+	}))).list;
+
+	//ADD LINK TO BUGS
+	result = (yield(Qb.calc2List({
+		"from":result,
+		"select":[
+			{"name":"requestee", "value":"requestee"},
+			{"name":"Average Age", "value":"Duration.newInstance(avg_age).format('day', 1)"},
+			{"name":"numPending", value:"numPending"},
+			{"name":"bugs", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
+		]
+	}))).list;
+
+	var htmlSummary = "<h2>Pending Review</h2>" + CNV.List2HTMLTable(result);
+
+	document.getElementById("info").innerHTML = htmlSummary;
 });
 
 </script>

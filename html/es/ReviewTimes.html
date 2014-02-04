@@ -200,56 +200,51 @@ var createChart = function(){
 
 
 	Log.action("Call ES");
-	ElasticSearchQuery.OldRun(
-			{
-				"success" : function(data){
-					Log.action("processing Data");
-					var inReview = MVEL.esFacet2List(data.facets.inReview);
-					var doneReview = MVEL.esFacet2List(data.facets.doneReview);
+	Thread.run(function(){
+		var data = ElasticSearch.search("bugs", esQuery);
+		Log.action("processing Data");
+		var inReview = MVEL.esFacet2List(data.facets.inReview);
+		var doneReview = MVEL.esFacet2List(data.facets.doneReview);
 
-					var durations = (yield(Qb.calc2List({
-						"from":
-								inReview,
-						"select":[
-							{"name":"reviewTime", "value":"c.modified_ts-modified_ts", "aggregate":"minimum"}
-						],
-						"edges":[
-							{"name":"bug_id",
-								"test":"bug_id==c.bug_id && requestee==c.requestee && attach_id==c.attach_id && modified_ts<c.modified_ts",
-								"domain":{"type":"set", "name":"c", "key":[], "partitions":doneReview}},
-							{"name":"finished_time", "value":"modified_ts"},
-							{"name":"requestee", "value":"requestee"}
-						]
-					}))).list;
+		var durations = (yield(Qb.calc2List({
+			"from":
+					inReview,
+			"select":[
+				{"name":"reviewTime", "value":"c.modified_ts-modified_ts", "aggregate":"minimum"}
+			],
+			"edges":[
+				{"name":"bug_id",
+					"test":"bug_id==c.bug_id && requestee==c.requestee && attach_id==c.attach_id && modified_ts<c.modified_ts",
+					"domain":{"type":"set", "name":"c", "key":[], "partitions":doneReview}},
+				{"name":"finished_time", "value":"modified_ts"},
+				{"name":"requestee", "value":"requestee"}
+			]
+		}))).list;
 
-					var time2res = Q({
-						"name": "Review Times",
-						"from": durations,
-						"select": {"name":"Count", "value":"1", "aggregate":"count"},
-						"edges":[
-							{"name":"Cohort", "value":"Date.newInstance(finished_time)",
-								"domain":{"type":"time", "min":Date.now().add("-2year"), "max":Date.now(), "interval":"6month", format:"NNN yyyy"}},
-							{"name":"Review Time",
-								"value":"Duration.newInstance(reviewTime)",
-								"allowNulls":true,
-								"domain":{"type":"duration", "min":GUI.state.minX, "max":GUI.state.maxX, "interval":GUI.state.intervalX}}
-						]
-					});
+		var time2res = Q({
+			"name": "Review Times",
+			"from": durations,
+			"select": {"name":"Count", "value":"1", "aggregate":"count"},
+			"edges":[
+				{"name":"Cohort", "value":"Date.newInstance(finished_time)",
+					"domain":{"type":"time", "min":Date.now().add("-2year"), "max":Date.now(), "interval":"6month", format:"NNN yyyy"}},
+				{"name":"Review Time",
+					"value":"Duration.newInstance(reviewTime)",
+					"allowNulls":true,
+					"domain":{"type":"duration", "min":GUI.state.minX, "max":GUI.state.maxX, "interval":GUI.state.intervalX}}
+			]
+		});
 
-					Qb.normalizeByCohort(time2res);
+		Qb.normalizeByCohort(time2res);
 
-					aChart.show({
-						"id":"chart",
-						"sheetDiv":"info",
-						"type":"bar",
-						"cube":time2res
-					});
+		aChart.show({
+			"id":"chart",
+			"sheetDiv":"info",
+			"type":"bar",
+			"cube":time2res
+		});
 
-				}
-			},
-			0,
-			esQuery
-	);
+	});
 };//createChart
 
 

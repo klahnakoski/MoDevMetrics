@@ -203,138 +203,127 @@ var query = {
 Log.note(query.facets.assigned.terms.script_field);
 
 
-ElasticSearchQuery.Run({
-	"query":query,
+Thread.run(function(){
+	var data = ElasticSearch.search("bugs", query);
+
+	var esResult = MVEL.esFacet2List(data.facets.pending, [
+		{"name":"bug_id", "value":"bugs.bug_id"},
+		{"name":"modified_ts", "value":"bugs.modified_ts"},
+		{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
+	]);
+
+	var pendingReview = (yield(Qb.calc2List({
+		"from":
+				esResult,
+		"select":[
+			{"name":"request_time", "value":"modified_ts", "aggregate":"minimum"}
+		],
+		"edges":[
+			{"name":"requestee", "value":"requestee"},
+			{"name":"bug_id", "value":"bug_id"}
+		]
+	})));
 
 
-	success: function(data){
-		Thread.run(function(){
-			var esResult = MVEL.esFacet2List(data.facets.pending, [
-				{"name":"bug_id", "value":"bugs.bug_id"},
-				{"name":"modified_ts", "value":"bugs.modified_ts"},
-				{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
-			]);
+	var result = (yield(Qb.calc2List({
+		"from":
+			//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
+				pendingReview,
+		"select":[
+			{"name":"numPending", "value":"1", aggregate:"count", "sort":"descending"},
+			{"name":"maxWaitTime", "value":"aMath.round(Date.now().subtract(Date.newInstance(request_time)).divideBy(Duration.DAY), 1)+\"days\"", "aggregate":"maximum"},
+			{"name":"bugs", "value":"bug_id", aggregate:"join", "separator":","}
+		],
+		"edges":[
+			{"name":"requestee", "value":"requestee"}
+		],
+		"sort":[
+			"numPending"
+		]
+	}))).list;
 
-			var pendingReview = (yield(Qb.calc2List({
-				"from":
-						esResult,
-				"select":[
-					{"name":"request_time", "value":"modified_ts", "aggregate":"minimum"}
-				],
-				"edges":[
-					{"name":"requestee", "value":"requestee"},
-					{"name":"bug_id", "value":"bug_id"}
-				]
-			})));
-
-
-			var result = (yield(Qb.calc2List({
-				"from":
-					//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
-						pendingReview,
-				"select":[
-					{"name":"numPending", "value":"1", aggregate:"count", "sort":"descending"},
-					{"name":"maxWaitTime", "value":"aMath.round(Date.now().subtract(Date.newInstance(request_time)).divideBy(Duration.DAY), 1)+\"days\"", "aggregate":"maximum"},
-					{"name":"bugs", "value":"bug_id", aggregate:"join", "separator":","}
-				],
-				"edges":[
-					{"name":"requestee", "value":"requestee"}
-				],
-				"sort":[
-					"numPending"
-				]
-			}))).list;
-
-			//ADD LINK TO BUGS
-			result = (yield(Qb.calc2List({
-				"from":result,
-				"select":[
-					{"name":"requestee", "value":"requestee"},
-					{"name":"Number Pending", value:"numPending"},
-					{"name":"Max Wait Time", "value":"maxWaitTime"},
-					{"name":"Bug List", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
-				]
-			}))).list;
+	//ADD LINK TO BUGS
+	result = (yield(Qb.calc2List({
+		"from":result,
+		"select":[
+			{"name":"requestee", "value":"requestee"},
+			{"name":"Number Pending", value:"numPending"},
+			{"name":"Max Wait Time", "value":"maxWaitTime"},
+			{"name":"Bug List", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
+		]
+	}))).list;
 
 
-			var esResult3 = MVEL.esFacet2List(data.facets.reviewed, [
-				{"name":"bug_id", "value":"bugs.bug_id"},
-				{"name":"modified_ts", "value":"bugs.modified_ts"},
-				{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
-			]);
+	var esResult3 = MVEL.esFacet2List(data.facets.reviewed, [
+		{"name":"bug_id", "value":"bugs.bug_id"},
+		{"name":"modified_ts", "value":"bugs.modified_ts"},
+		{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
+	]);
 
-			var doneReview = (yield(Qb.calc2List({
-				"from":
-						esResult3,
-				"select":[
-					{"name":"wait_time", "value":"aMath.round(Date.now().subtract(Date.newInstance(modified_ts)).divideBy(Duration.DAY), 1)+\"days\"", "aggregate":"minimum"}
-				],
-				"edges":[
-					{"name":"bug_id", "value":"bug_id"}
-				]
-			})));
+	var doneReview = (yield(Qb.calc2List({
+		"from":
+				esResult3,
+		"select":[
+			{"name":"wait_time", "value":"aMath.round(Date.now().subtract(Date.newInstance(modified_ts)).divideBy(Duration.DAY), 1)+\"days\"", "aggregate":"minimum"}
+		],
+		"edges":[
+			{"name":"bug_id", "value":"bug_id"}
+		]
+	})));
 
-			//FILTER OUT review?
-			doneReview = doneReview.list.map(function(v, i){
-				for(var p = 0; p < pendingReview.list.length; p++){
-					if (pendingReview.list[p].bug_id == v.bug_id) return undefined;
-				}//for
-				return v;
-			});
-
-
-			//ADD LINK TO BUGS
-			var result3 = (yield(Qb.calc2List({
-				"from":doneReview,
-				"select":[
-					{"name":"Wait Time", value:"wait_time"},
-					{"name":"Bug", "value":"\"<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=\"+bug_id+\"'>\"+bug_id+\"</a>\""}
-				]
-			}))).list;
+	//FILTER OUT review?
+	doneReview = doneReview.list.map(function(v, i){
+		for(var p = 0; p < pendingReview.list.length; p++){
+			if (pendingReview.list[p].bug_id == v.bug_id) return undefined;
+		}//for
+		return v;
+	});
 
 
-			var assigned = MVEL.esFacet2List(data.facets.assigned, [
-				{"name":"bug_id"},
-				{"name":"assigned_to"}
-			]);
+	//ADD LINK TO BUGS
+	var result3 = (yield(Qb.calc2List({
+		"from":doneReview,
+		"select":[
+			{"name":"Wait Time", value:"wait_time"},
+			{"name":"Bug", "value":"\"<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=\"+bug_id+\"'>\"+bug_id+\"</a>\""}
+		]
+	}))).list;
 
-			var result2 = (yield(Qb.calc2List({
-				"from":
-						assigned,
-				"select":[
-					{"name":"numPending", "value":"1", aggregate:"count", "sort":"descending"},
-					{"name":"bugs", "value":"bug_id", aggregate:"join", "separator":","}
-				],
-				"edges":[
-					{"name":"assigned_to", "value":"assigned_to"}
-				],
-				"sort":[
-					"numPending"
-				]
-			}))).list;
 
-			//ADD LINK TO BUGS
-			result2 = (yield(Qb.calc2List({
-				"from":result2,
-				"select":[
-					{"name":"assigned_to", value:"assigned_to"},
-					{"name":"numPending", value:"numPending"},
-					{"name":"bugs", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
-				]
-			}))).list;
+	var assigned = MVEL.esFacet2List(data.facets.assigned, [
+		{"name":"bug_id"},
+		{"name":"assigned_to"}
+	]);
 
-			$("#pending").html("<h2>Pending Review (R?)</h2>" + CNV.List2HTMLTable(result));
-			$("#complete").html("<h2>Review Completed (R+)</h2>" + CNV.List2HTMLTable(result3));
-			$("#open").html("<h2>Assigned To</h2>" + CNV.List2HTMLTable(result2));
+	var result2 = (yield(Qb.calc2List({
+		"from":
+				assigned,
+		"select":[
+			{"name":"numPending", "value":"1", aggregate:"count", "sort":"descending"},
+			{"name":"bugs", "value":"bug_id", aggregate:"join", "separator":","}
+		],
+		"edges":[
+			{"name":"assigned_to", "value":"assigned_to"}
+		],
+		"sort":[
+			"numPending"
+		]
+	}))).list;
 
-		});
-	},
+	//ADD LINK TO BUGS
+	result2 = (yield(Qb.calc2List({
+		"from":result2,
+		"select":[
+			{"name":"assigned_to", value:"assigned_to"},
+			{"name":"numPending", value:"numPending"},
+			{"name":"bugs", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
+		]
+	}))).list;
 
-	error: function (errorData, errorMsg, errorThrown){
-		document.getElementById("info").innerHTML = "Response Error." +
-				"<ul><li>Ensure you are connected to the MPT network.</li>" +
-				"<li style=\"vertical-align:top; \">Ensure your browser is not blocking http content <image src=\"images/http_from_https.png\"  style=\"height:96px;width:128px;vertical-align:top; \"/></li></ul>";
-	}
+	$("#pending").html("<h2>Pending Review (R?)</h2>" + CNV.List2HTMLTable(result));
+	$("#complete").html("<h2>Review Completed (R+)</h2>" + CNV.List2HTMLTable(result3));
+	$("#open").html("<h2>Assigned To</h2>" + CNV.List2HTMLTable(result2));
+
 });
 
 </script>

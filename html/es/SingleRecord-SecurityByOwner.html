@@ -4,8 +4,9 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-<script type="application/javascript;version=1.7" src="js/Settings.js">
-</script></HEAD>
+	<script type="application/javascript;version=1.7" src="js/Settings.js">
+	</script>
+</HEAD>
 <BODY>
 
 
@@ -37,72 +38,54 @@
 <div id="info"></div>
 
 <script type="application/javascript;version=1.7">
-	Log.note(Date.newInstance(1347753600000).format("dd-NNN-yyyy HHmmss"));
-	Log.note(Date.newInstance(1348358400000).format("dd-NNN-yyyy HHmmss"));
+Log.note(Date.newInstance(1347753600000).format("dd-NNN-yyyy HHmmss"));
+Log.note(Date.newInstance(1348358400000).format("dd-NNN-yyyy HHmmss"));
 
-	////////////////////////////////////////////////////////////////////////////
-	// WARNING, DOUBLE COUNTS REOPENED BUGS
-	////////////////////////////////////////////////////////////////////////////
-	var  esQuery = {
-  "query":{
-    "filtered":{
-      "query":{
-        "match_all":{}
-      },
-      "filter":{
-		"and":[
-			Mozilla.BugStatus.Closed.esfilter,
-			{"not":{"terms":{"previous_values.bug_status_value": ["resolved", "verified", "closed"]}}},  //JUST SWITCHED TO CLOSED
-			{"script":{"script":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value'}},
+////////////////////////////////////////////////////////////////////////////
+// WARNING, DOUBLE COUNTS REOPENED BUGS
+////////////////////////////////////////////////////////////////////////////
+var esQuery = {
+	"query":{
+		"filtered":{
+			"query":{
+				"match_all":{}
+			},
+			"filter":{
+				"and":[
+					Mozilla.BugStatus.Closed.esfilter,
+					{"not":{"terms":{"previous_values.bug_status_value": ["resolved", "verified", "closed"]}}},  //JUST SWITCHED TO CLOSED
+					{"script":{"script":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value'}},
 //			{"not":{"range":{"expires_on":{"gt": Date.now().addDay(1)}}}},
-			{"range":{"modified_ts":{"gt":Date.now().add("-6month")}}},
-			{"term":{"keywords":"sec-critical"}}
+					{"range":{"modified_ts":{"gt":Date.now().add("-6month")}}},
+					{"term":{"keywords":"sec-critical"}}
 //			{"term":{"assigned_to":"ehsan@mozilla.com"}}
-		]
-      }
-    }
-  },
-  "from": 0,
-  "size": 1000,
-  "sort": [],
-  "facets":{
-     "owners":{
-      "terms":{
-        "script_field": "doc['assigned_to'].value+'|'+doc['bug_id'].value",
-		 "size": "100000"
-      }
+				]
+			}
+		}
+	},
+	"from": 0,
+	"size": 1000,
+	"sort": [],
+	"facets":{
+		"owners":{
+			"terms":{
+				"script_field": "doc['assigned_to'].value+'|'+doc['bug_id'].value",
+				"size": "100000"
+			}
 
-    }
-  }
+		}
+	}
 };
 
+Thread.run(function(){
+	var data = ElasticSearch.search("bugs", esQuery);
+	Log.note(CNV.Object2JSON(data));
 
-	ElasticSearchQuery.Run({
-		"query":esQuery,
+	var htmlSummary = CNV.ESResult2HTMLSummaries(data);
+	var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));
 
-
-		success: function(data){
-			Log.note(CNV.Object2JSON(data));
-
-//			var bugCount=(yield (Qb.calc2List({
-//				"from":data.facets.owners,
-//				"select":""
-//			});
-
-
-
-			var htmlSummary = CNV.ESResult2HTMLSummaries(data);
-			var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));
-
-			document.getElementById("info").innerHTML = htmlSummary + "<br><br>" + htmlResults;
-		},
-
-		error: function (errorData, errorMsg, errorThrown){
-			document.getElementById("info").innerHTML = "Response Error."+
-					"<ul><li>Ensure you are connected to the MPT network.</li>"+
-				"<li style=\"vertical-align:top; \">Ensure your browser is not blocking http content <image src=\"images/http_from_https.png\"  style=\"height:96px;width:128px;vertical-align:top; \"/></li></ul>";
-		}
-	});
+	document.getElementById("info").innerHTML = htmlSummary + "<br><br>" + htmlResults;
+});
 
 </script>
 
