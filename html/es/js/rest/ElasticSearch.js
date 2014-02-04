@@ -5,51 +5,15 @@
 
 importScript("Rest.js");
 
-ElasticSearch=function(esquery){
-	this.esquery=esquery;
-};
+ElasticSearch={};
 
-
-//THE CONTENT FOUND AT https://metrics.mozilla.com/bugzilla-analysis IS ACTUALLY
-//A PROXY OF WHAT CAN BE FOUND AT http://people.mozilla.com/~klahnakoski/es
-//THIS ALLOWS THE BROWSER TO ACCESS METRIC'S ES DOCUMENT STORE.
-
-//OTHERWISE, YOU WILL REQUIRE VPN ACCESS TO MOZILLA-MPT TO MAKE THESE PAGES WORK
-if (window.location.hostname=="metrics.mozilla.com"){
-	//FROM Daniel Einspanjer  Oct 20, 2012 (for use on website)
-	//FOR ANYONE, BUT ONLY THROUGH METRIC'S SERVERS
-	ElasticSearch.queryURL = "/bugzilla-analysis-es/bugs/_search";
-}else{
-	//FROM Mark Reid Sept 25, 2012 (for use during coding)
-	//ONLY WITH MOZILLA_MPT
-//	ElasticSearch.queryURL = "http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search";
-
-	ElasticSearch.pushURL="http://localhost:9200";
-//	ElasticSearch.pushURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
-//	ElasticSearch.pushURL="http://elasticsearch4.bugs.scl3.mozilla.com:9200";
-
-	//THESE ARE NOW ALL GOOD NODES!!
-	//(2:13:01 PM) mreid: ekyle, if you've still got things set to only hit elasticsearch7, you should probably change it to know about all 4 nodes
-	//(2:13:34 PM) ekyle: what are the numbers?
-	//(2:13:34 PM) pires [Paulo@moz-13DD0BFB.static.cpe.netcabo.pt] entered the room.
-	//(2:17:56 PM) mreid: ekyle, 4,5,7,8
-	//(2:18:16 PM) ekyle: thanks, I will see what I can do to distribute load!
-
-//	ElasticSearch.queryURL = "http://localhost:9292/bugs/_search";
-//	ElasticSearch.queryURL = "http://elasticsearch4.bugs.scl3.mozilla.com:9200";
-//	ElasticSearch.queryURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9204/private_bugs/_search";
-//	ElasticSearch.queryURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9200/bugs/_search";
-	ElasticSearch.queryURL = "http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search";
-
-
-}//endif
-
+ElasticSearch.pushURL="http://localhost:9090";
 
 
 ElasticSearch.search=function(index, esquery){
 	yield (ESQuery.loadColumns(index));
 	var meta = ESQuery.INDEXES[index];
-	if (meta.host===undefined) Log.error("most have host defined");
+	if (meta.host===undefined) Log.error("must have host defined");
 	var url = meta.host+meta.path+"/_search";
 
 	var output=yield (Rest.post({
@@ -60,8 +24,6 @@ ElasticSearch.search=function(index, esquery){
 
 	yield (output);
 };
-
-
 
 ElasticSearch.setRefreshInterval=function(indexName, rate){
 	var data=yield (Rest.put({
@@ -74,10 +36,10 @@ ElasticSearch.setRefreshInterval=function(indexName, rate){
 
 
 //EXPECTING THE DATA ARRAY TO ALREADY HAVE ODD ENTRIES STARTING WITH { "create":{ "_id" : ID } }
-ElasticSearch.bulkInsert=function(indexName, typeName, dataArray){
+ElasticSearch.bulkInsert=function(host, indexName, typeName, dataArray){
 //	try{
 		yield (Rest.post({
-			"url":ElasticSearch.pushURL+"/"+indexName+"/"+typeName+"/_bulk",
+			"url":host+"/"+indexName+"/"+typeName+"/_bulk",
 			"data":dataArray.join("\n")+"\n",
 			dataType: "text"
 		}));

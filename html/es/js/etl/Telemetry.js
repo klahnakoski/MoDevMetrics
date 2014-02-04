@@ -7,7 +7,7 @@ var Telemetry={};
 
 importScript("ETL.js");
 
-if (!../schema/TelemetrySchema) ../schema/TelemetrySchema={};
+if (!Telemetry) Telemetry={};
 
 //Telemetry.URL="https://phonebook-dev.allizom.org/search.php";
 Telemetry.BATCH_SIZE=1000;		//ETL IS BUG BASED, BIG ENOUGH TO DO IN ONE BATCH
@@ -77,7 +77,7 @@ Telemetry.makeSchema=function(){
 
 	var data=yield (Rest.post({
 		"url":ElasticSearch.pushURL+"/"+Telemetry.newIndexName,
-		"data":{"mappings":{"data":../schema/TelemetrySchema}}
+		"data":{"mappings":{"data": TelemetrySchema}}
 	}));
 	Log.note(data);
 

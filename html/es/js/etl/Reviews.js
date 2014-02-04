@@ -7,6 +7,7 @@ importScript("ETL.js");
 
 var REVIEWS={};
 REVIEWS.BATCH_SIZE=1000;
+REVIEWS.pushHost=
 REVIEWS.aliasName="reviews";
 REVIEWS.newIndexName=undefined;  //CURRENT INDEX FOR INSERT
 REVIEWS.oldIndexName=undefined;  //WHERE THE CURENT ALIAS POINTS

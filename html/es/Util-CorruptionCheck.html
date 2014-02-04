@@ -93,10 +93,13 @@ importScript(["js/main.js"], function(){
 		//GET ALL THE SOURCES OF THE BAD RECORDS
 		var a = Log.action("Get bug _source json", true);
 		var sources=[];
+
+		var host = ESQuery.INDEXES["private_bugs"].host;
+
 		for(var i=fixed.list.length;i--;){
 			var v=fixed.list[i];
 			var output=yield (Rest.get({
-				url: window.ElasticSearch.baseURL+"/private_bugs/bug_version/"+v._id,
+				url: host+"/private_bugs/bug_version/"+v._id,
 				dataType: "json"
 			}));
 			output._source._id=v._id;
