@@ -7,7 +7,8 @@ importScript("Rest.js");
 
 ElasticSearch={};
 
-ElasticSearch.pushURL="http://localhost:9090";
+//ElasticSearch.pushURL="http://elasticsearch-private.bugs.scl3.mozilla.com:9200";
+ElasticSearch.pushURL="http://localhost:9200";
 
 
 ElasticSearch.search=function(index, esquery){
@@ -36,10 +37,10 @@ ElasticSearch.setRefreshInterval=function(indexName, rate){
 
 
 //EXPECTING THE DATA ARRAY TO ALREADY HAVE ODD ENTRIES STARTING WITH { "create":{ "_id" : ID } }
-ElasticSearch.bulkInsert=function(host, indexName, typeName, dataArray){
+ElasticSearch.bulkInsert=function(indexName, typeName, dataArray){
 //	try{
 		yield (Rest.post({
-			"url":host+"/"+indexName+"/"+typeName+"/_bulk",
+			"url":ElasticSearch.pushURL+"/"+indexName+"/"+typeName+"/_bulk",
 			"data":dataArray.join("\n")+"\n",
 			dataType: "text"
 		}));
