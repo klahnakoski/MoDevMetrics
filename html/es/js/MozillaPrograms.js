@@ -9,6 +9,8 @@ var MozillaPrograms = {
 	"rows":[
 		["B2G 1.3",       "cf_blocking_b2g", "1.3+"],
 		["B2G 1.2.0 (Koi)", "cf_blocking_b2g", "koi+"],
+		["B2G 1.1.0 (Koi)", "cf_blocking_b2g", "leo+"],
+		["B2G 1.1.0 (Leo)", "cf_blocking_b2g", "leo+"],  //WAS CALLED Leo, BUT MERGED WITH Koi
 		["B2G 1.0.1 (TEF)", "cf_blocking_b2g", "tef+"],
 
 		["B2G 1.0.1 (TEF -NPOTB -POVB)",  null, null, {"and":[
@@ -21,7 +23,6 @@ var MozillaPrograms = {
 
 		["TEF Triage (tef?)", "cf_blocking_b2g", "tef?"],
 		["1.3 Triage (1.3?)", "cf_blocking_b2g", "1.3?"],
-		["B2G 1.1.0 (Leo)", "cf_blocking_b2g", "leo+"],
 		["Build Duty", "status_whiteboard.tokenized", "buildduty"],
 		["Boot2Gecko (B2G)", "cf_blocking_basecamp", "+"],
 		["Metro MVP", "status_whiteboard.tokenized", "metro-mvp"],
