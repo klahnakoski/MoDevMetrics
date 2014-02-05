@@ -105,7 +105,7 @@ importScript("js/main.js", function(){
 									{"and" : [
 										{"terms":{"bugs.attachments.flags.request_status" : ["?"]}},
 										{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
-										{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}},
+										{"term":{"bugs.attachments.isobsolete" : 0}},
 										GUI.state.teamFilter.makeFilter("bugs.attachments.flags.requestee")
 									]}
 								}),
