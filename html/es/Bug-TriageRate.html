@@ -110,7 +110,7 @@ var __createChart = function(){
 			],
 			"esfilter":{"and":[
 				//NO MORE THAN ONE RECORD PER DAY
-				{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-" + sampleMin.getMilli() + ", " + sampleInterval.milli + ")!=floorInterval(expires_on-" + sampleMin.getMilli() + ", " + sampleInterval.milli + ")", {"from":"bugs"})}},
+//				{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-" + sampleMin.getMilli() + ", " + sampleInterval.milli + ")!=floorInterval(expires_on-" + sampleMin.getMilli() + ", " + sampleInterval.milli + ")", {"from":"bugs"})}},
 				mainFilter,
 				queuedFilter
 			]}

@@ -8,7 +8,7 @@ var Settings={};
 window.Settings=Settings;
 
 if (window.location.hostname=="metrics.mozilla.com"){
-	Settings.basePath="https://metrics.mozilla.com/bugzilla-analysis";
+	Settings.basePath="es";
 }else if (window.location.hostname=="people.mozilla.com"){
 	Settings.basePath="http://people.mozilla.com/~klahnakoski/test/es/";
 }else{

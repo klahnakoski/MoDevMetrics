@@ -87,6 +87,7 @@ var __createChart = function(){
 			{"name":"Priority", "domain":Mozilla.Security.Priority.getDomain()},
 			{"name":"date",
 				"range":{"min":"modified_ts", "max":"expires_on"},
+				"mode":"snapshot",
 				"allowNulls":false,
 				"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
 			}
@@ -95,7 +96,7 @@ var __createChart = function(){
 			{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},
 			{"range":{"expires_on":{"gte":sampleMin.getMilli()}}},
 			//NO MORE THAN ONE RECORD PER DAY
-			{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-"+sampleMin.getMilli()+", "+sampleInterval.milli+")!=floorInterval(expires_on-"+sampleMin.getMilli()+", "+sampleInterval.milli+")", {"from":"bugs"})}},
+//			{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-"+sampleMin.getMilli()+", "+sampleInterval.milli+")!=floorInterval(expires_on-"+sampleMin.getMilli()+", "+sampleInterval.milli+")", {"from":"bugs"})}},
 			Mozilla.BugStatus.Open.esfilter,
 			GUI.getFilters("bugs")
 		]}
