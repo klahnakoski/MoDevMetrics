@@ -80,10 +80,10 @@
 
 
 
-<script type="application/javascript;version=1.7" src="js/charts/HelperFunctions.js"></script>
+
 <script type="application/javascript;version=1.7" src="js/rest/ElasticSearch.js"></script>
 
-<script type="application/javascript;version=1.7" src="js/charts/DataSet.js"></script>
+
 
 <script type="application/javascript;version=1.7" src="js/gui/Filter.js"></script>
 <script type="application/javascript;version=1.7" src="js/gui/ComponentFilter.js"></script>
@@ -122,7 +122,7 @@
 
 <div style="align:left;position:relative;float:left;width:800px;">
 <h3 id="title"></h3>
-	
+
 <div id="chart" class="chart" style="height:400px;width:800px;"></div>
 <br><br>
 <div id="timechart" class="chart" style="height:400px;width:800px;"></div>
@@ -164,7 +164,7 @@ var __createChart = function*(){
 	var idTime=GUI.state.programFilter.bugStatusMinimum_fromDoc();
 	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(doc[\"close_time\"].value), "+sampleMax.getMilli()+"))";
 
-	
+
 	var a=Log.action("Download Times", true);
 	var durations=yield(ESQuery.run({
 		"from":"bug_summary",

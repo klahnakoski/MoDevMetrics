@@ -15,9 +15,6 @@ importScript([
 	"../../lib/jquery-linedtextarea/jquery-linedtextarea.js"
 ]);
 
-importScript("../charts/HelperFunctions.js");
-importScript("../charts/DataSet.js");
-
 importScript("Filter.js");
 importScript("ComponentFilter.js");
 importScript("ProductFilter.js");
@@ -79,7 +76,7 @@ GUI.setup = function(refreshChart, parameters, relations, indexName, showDefault
 	parameters.forall(function(f, i){
 		if (f.type.isFilter){
 			isCustom=true;
-			
+
 			f.type.setSimpleState(f["default"]);
 			f.type.name=f.name;
 		}

@@ -51,7 +51,7 @@ ComponentFilter.prototype.refresh = function(){
 						if (self.selected.length > 0) didChange = true;
 						self.selected = [];
 					} else{
-						if (!include(self.selected, ui.selected.id.rightBut("component_".length))){
+						if (!self.selected.contains(ui.selected.id.rightBut("component_".length))){
 							self.selected.push(ui.selected.id.rightBut("component_".length));
 							didChange = true;
 						}//endif

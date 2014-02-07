@@ -70,7 +70,7 @@ ProgramFilter.makeQuery = function(filters){
 		programCompares[project].push(esfilter);
 	});
 
-	
+
 	var output = {
 		"query":{
 			"filtered":{
@@ -166,7 +166,7 @@ ProgramFilter.prototype.injectHTML = function(programs){
 
 	for(var i = 0; i < programs.length; i++){
 		html += item.replaceVars({
-			"class" : (include(this.selected, programs[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
+			"class" : this.selected.contains(programs[i].term) ? "ui-selectee ui-selected" : "ui-selectee",
 			"name" : programs[i].term,
 			"count" : programs[i].count
 		});
@@ -203,7 +203,7 @@ ProgramFilter.prototype.refresh = function(){
 					if (self.selected.length > 0) didChange = true;
 					self.selected = [];
 				} else{
-					if (!include(self.selected, ui.selected.id.rightBut("program_".length))){
+					if (!self.selected.contains(ui.selected.id.rightBut("program_".length))){
 						self.selected.push(ui.selected.id.rightBut("program_".length));
 						didChange = true;
 					}//endif

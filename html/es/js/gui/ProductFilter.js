@@ -100,7 +100,7 @@ ProductFilter.prototype.injectHTML = function(products){
 	//LIST SPECIFIC PRODUCTS
 	for(var i = 0; i < products.length; i++){
 		html += item.replaceVars({
-			"class" : (include(this.selected, products[i].term) ? "ui-selectee ui-selected" : "ui-selectee"),
+			"class" : this.selected.contains(products[i].term) ? "ui-selectee ui-selected" : "ui-selectee",
 			"name" : products[i].term,
 			"count" : products[i].count
 		});
@@ -135,7 +135,7 @@ ProductFilter.prototype.refresh = function(){
 					if (self.selected.length > 0) didChange = true;
 					self.selected = [];
 				} else{
-					if (!include(self.selected, ui.selected.id.rightBut("product_".length))){
+					if (!self.selected.contains(ui.selected.id.rightBut("product_".length))){
 						self.selected.push(ui.selected.id.rightBut("product_".length));
 						didChange = true;
 					}//endif
