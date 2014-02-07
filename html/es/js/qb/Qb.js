@@ -224,13 +224,13 @@ function* calc2Tree(query){
 
 Qb.listAlert=false;
 
-Qb.calc2List = function(query){
+Qb.calc2List = function*(query){
 	if (!Qb.listAlert){
 //		Log.alert("Please do not use Qb.calc2List()");
 		Qb.listAlert=true;
 	}//endif
 
-	
+
 	if (query.edges===undefined) query.edges=[];
 	var select = Array.newInstance(query.select);
 
@@ -291,7 +291,7 @@ Qb.calc2List = function(query){
 
 
 
-function calc2Cube(query){
+function* calc2Cube(query){
 	if (query.edges===undefined) query.edges=[];
 
 	if (query.edges.length==0){
@@ -365,7 +365,7 @@ Qb.List2Cube=function(query){
 ////////////////////////////////////////////////////////////////////////////////
 //  REDUCE ALL DATA TO ZERO DIMENSIONS
 ////////////////////////////////////////////////////////////////////////////////
-function aggOP(query){
+function* aggOP(query){
 	var select = Array.newInstance(query.select);
 
 	var sourceColumns = yield(Qb.getColumnsFromQuery(query));
@@ -412,7 +412,7 @@ function aggOP(query){
 ////////////////////////////////////////////////////////////////////////////////
 //  DO NOTHING TO TRANSFORM LIST OF OBJECTS
 ////////////////////////////////////////////////////////////////////////////////
-function noOP(query){
+function* noOP(query){
 	var sourceColumns = yield(Qb.getColumnsFromQuery(query));
 	var from = query.from.list;
 
@@ -451,7 +451,7 @@ function noOP(query){
 ////////////////////////////////////////////////////////////////////////////////
 //  SIMPLE TRANSFORMATION ON A LIST OF OBJECTS
 ////////////////////////////////////////////////////////////////////////////////
-function setOP(query){
+function* setOP(query){
 	var sourceColumns = yield (Qb.getColumnsFromQuery(query));
 	var from=query.from.list;
 
@@ -625,7 +625,7 @@ Qb.Cube2List=function*(query, options){
 	//COMPILE
 	var cube2list;
 	eval(code);
-	
+
 
 	{//EVAL
 		var t=new aTimer("Convert from cube to list", Duration.SECOND);
@@ -798,7 +798,7 @@ function Tree2Cube(query, cube, tree, depth){
 			cube[p]=tuple;
 		}//for
 	} else{
-		
+
 		var keys=Object.keys(tree);
 		for(var k=keys.length;k--;){
 			try{
@@ -824,7 +824,7 @@ function Tree2Cube(query, cube, tree, depth){
 
 //RETURN THE COLUMNS FROM THE GIVEN QUERY
 //ALSO NORMALIZE THE ARRAY OF OBJECTS TO BE AT query.from.list
-Qb.getColumnsFromQuery=function(query){
+Qb.getColumnsFromQuery=function*(query){
 	//FROM CLAUSE MAY BE A SUB QUERY
 
 	var sourceColumns;

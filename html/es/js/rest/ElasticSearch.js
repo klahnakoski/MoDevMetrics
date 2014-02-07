@@ -12,7 +12,7 @@ ElasticSearch.pushURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
 //ElasticSearch.pushURL="http://localhost:9200";
 
 
-ElasticSearch.search=function(index, esquery){
+ElasticSearch.search=function*(index, esquery){
 	yield (ESQuery.loadColumns(index));
 	var meta = ESQuery.INDEXES[index];
 	if (meta.host===undefined) Log.error("must have host defined");

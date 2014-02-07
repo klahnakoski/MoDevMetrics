@@ -128,9 +128,7 @@
 
 
 var CUTOFF=Duration.newInstance("3week");
-$("#description").html("This chart includes all bugs <i>identified</i> in the given sample size, ending on Stats End Date. For closed bugs, the duration is defined from the time the bug is identified,
-to the time the bug is closed. For open bugs, the duration is defined from the time the bug is identified, to the end of today (GMT). These durations are partitioned into weeks, counted, and charted
-here.<br><br>Percentile ages includes <i>both</i> ages of open and closed bugs that have been identified in the given sample size, ending on the date shown");
+$("#description").html("This chart includes all bugs <i>identified</i> in the given sample size, ending on Stats End Date. For closed bugs, the duration is defined from the time the bug is identified, to the time the bug is closed. For open bugs, the duration is defined from the time the bug is identified, to the end of today (GMT). These durations are partitioned into weeks, counted, and charted here.<br><br>Percentile ages includes <i>both</i> ages of open and closed bugs that have been identified in the given sample size, ending on the date shown");
 
 var allBugs;
 
@@ -281,9 +279,7 @@ if (v.birth
 <v.death
 ) return v
 });
-// for(var b=0;b
-<allBugs.list.length
-;b++){
+// for(var b=0;b<allBugs.list.length;b++){
 // if (allBugs.list[b].birth>allBugs.list[b].death)
 // allBugs.list[b].death=allBugs.list[b].birth+Duration.DAY.milli;
 //// Log.error();
