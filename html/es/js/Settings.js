@@ -10,7 +10,7 @@ window.Settings=Settings;
 if (window.location.hostname=="metrics.mozilla.com"){
 	Settings.basePath="es";
 }else if (window.location.hostname=="people.mozilla.com"){
-	Settings.basePath="http://people.mozilla.com/~klahnakoski/test/es/";
+	Settings.basePath="http://people.mozilla.com/~klahnakoski/es/";
 }else{
 	var find="html/es";
 	Settings.basePath=window.location.pathname.substring(0, window.location.pathname.indexOf(find)+find.length);
