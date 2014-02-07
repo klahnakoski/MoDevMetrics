@@ -5,7 +5,7 @@
 <HTML>
 
 <HEAD>
-<script type="application/javascript;version=1.7" src="js/imports/import.js"></script>
+<script type="application/javascript" src="js/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -40,7 +40,7 @@
 	<div id="report"></div>
 </div>
 
-<script type="application/javascript;version=1.7">
+<script type="application/javascript">
 
 importScript([
 	"js/main.js",
@@ -107,7 +107,7 @@ importScript([
 //							"range":{"requst_time":{"gt":"{date.min-}"+18*Duration.WEEK.milli}},
 //						]},
 						"range":{"min":"request_time", "max":"review_time", "mode":"inclusive"},
-						
+
 //						"range":{"min":"request_time", "max":"minimum(request_time+"+MVEL.Value2MVEL(Duration.newInstance("18week"))+", coalesce(zero2null(review_time), "+MVEL.Value2MVEL(Date.eod())+"))"},
 						"domain":{"type":"date", "min":sampleMin, "max":sampleMax, "interval":sampleInterval, "value":"value", "key":"min"}
 					}

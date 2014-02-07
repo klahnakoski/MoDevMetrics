@@ -4,7 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-	<script type="application/javascript;version=1.7" src="js/imports/import.js"></script>
+	<script type="application/javascript" src="js/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -47,7 +47,7 @@
 </div>
 
 
-<script type="application/javascript;version=1.7">
+<script type="application/javascript">
 
 
 importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
@@ -177,7 +177,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			});
 		});
 
-		
+
 		Thread.run(function*(){
 			var data = yield(ESQuery.run({
 				"name":"Overall",
@@ -296,7 +296,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 
 
 	};
-	
+
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [

@@ -4,7 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-<script type="application/javascript;version=1.7" src="js/imports/import.js"></script>
+<script type="application/javascript" src="js/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -37,7 +37,7 @@
 <div id="report"></div>
 </div>
 
-<script type="application/javascript;version=1.7">
+<script type="application/javascript">
 importScript(["js/main.js", "js/etl/Reviews.js"], function(){
 
 var CUTOFF=Duration.newInstance("3week");
@@ -109,7 +109,7 @@ var __createChart = function*(){
 
 
 	var chart=yield(Q({
-		"from":totals, 
+		"from":totals,
 		"select":{"name":"percent", "value":"aMath.round(100*num_next/aMath.max(1, num_total))", "aggregate":"one"},
 		"edges":[
 			{"value":"requester_review_num", "domain":{"type":"numeric", "min":0, "max":20, "interval":1, "value":"value"}}

@@ -5,7 +5,7 @@
 <HTML>
 <HEAD>
 <HEAD>
-	<script type="application/javascript;version=1.7" src="js/imports/import.js"></script>
+	<script type="application/javascript" src="js/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -48,7 +48,7 @@
 	<div id="report"></div>
 </div>
 
-<script type="application/javascript;version=1.7">
+<script type="application/javascript">
 
 importScript(["js/main.js", 'js/Dimension-Bugzilla.js'], function(){
 
@@ -68,7 +68,7 @@ var __createChart = function*(){
 	var sampleMin = Date.newInstance(GUI.state.sampleMin);
 	var sampleMax =Date.eod().addDay(1);
 	var customFilter=GUI.state.esfilter;
-	
+
 	var sampleInterval = Duration.DAY;
 
 	var DUE_DATE = Date.newInstance(GUI.state.dueDate); //.addDay(1)
@@ -95,7 +95,7 @@ var __createChart = function*(){
 
 
 
-	
+
 	Thread.run(function*(){
 		var a=Log.action("Get Bug Details", true);
 		//FIND ALL BUGS

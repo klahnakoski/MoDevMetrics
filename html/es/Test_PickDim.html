@@ -3,7 +3,7 @@
 <html>
 <head>
 	<title></title>
-	<script type="application/javascript;version=1.7" src="js/imports/import.js"></script>
+	<script type="application/javascript" src="js/imports/import.js"></script>
 </head>
 <body>
 	<div>
@@ -13,14 +13,14 @@
 	<div id="selectDim" style="width:600px;"></div>
 	</div>
 
-	<script type="application/javascript;version=1.7">
+	<script type="application/javascript">
 		importScript(["js/main.js", "js/Dimension-Telemetry.js", "js/gui/PickDim.js"], function(){
 
 			$().ready(function(){
 				//STYLE AS LINED TEXT AREA
 				$("#cube").linedtextarea();
 			});
-			
+
 			var pd=new PickDim("#selectDim", Mozilla, function(query){
 				$("#cube").val(CNV.Object2JSON(query));
 			});

@@ -4,7 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-	<script type="application/javascript;version=1.7" src="js/imports/import.js"></script>
+	<script type="application/javascript" src="js/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -44,7 +44,7 @@
 	<div id="report"></div>
 </div>
 
-<script type="application/javascript;version=1.7">
+<script type="application/javascript">
 
 importScript(["js/main.js"], function(){
 
@@ -72,8 +72,8 @@ var __createChart = function*(){
 	var createTime="doc[\"create_time\"].value";
 	var idTime=GUI.state.programFilter.bugStatusMinimum_fromSource();
 	var testValue=GUI.state.programFilter.bugStatusMinimum_fromDoc();
-	
-	
+
+
 	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
 
 

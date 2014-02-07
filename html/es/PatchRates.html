@@ -6,7 +6,7 @@
 <HTML>
 
 <HEAD>
-<script type="application/javascript;version=1.7" src="js/imports/import.js"></script>
+<script type="application/javascript" src="js/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -44,7 +44,7 @@
 <div id="report"></div>
 </div>
 
-<script type="application/javascript;version=1.7">
+<script type="application/javascript">
 
 
 importScript([
@@ -265,7 +265,7 @@ importScript([
 							"where":Date.eod().subtract(x2).getMilli()+"<created_ts && created_ts<"+Date.eod().subtract(x).getMilli()
 						})));
 					}//endif
-					
+
 					buglist.list=buglist.list.sample(500);
 					Bugzilla.showBugs(buglist.list);
 				});
@@ -305,7 +305,7 @@ importScript([
 
 	};//createChart
 
-	
+
 
 
 	$(document).ready(function(){

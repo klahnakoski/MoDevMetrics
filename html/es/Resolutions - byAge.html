@@ -4,7 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-	<script type="application/javascript;version=1.7" src="js/imports/import.js"></script>
+	<script type="application/javascript" src="js/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -39,7 +39,7 @@
 </div>
 
 
-<script type="application/javascript;version=1.7">
+<script type="application/javascript">
 importScript('js/main.js', function(){
 	$("#description").html("This chart counts all closed bugs in the given sample, and the resolution categories each falls into.");
 
@@ -72,7 +72,7 @@ importScript('js/main.js', function(){
 			"essize":GUI.state.esSize
 		}));
 		Log.actionDone(a);
-		
+
 		aChart.show({
 			"id":"chart_abs",
 			"sheetDiv":"info",
@@ -117,4 +117,3 @@ importScript('js/main.js', function(){
 
 </BODY>
 </HTML>
-		

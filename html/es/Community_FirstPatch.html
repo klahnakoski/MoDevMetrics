@@ -4,7 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-<script type="application/javascript;version=1.7" src="js/imports/import.js"></script>
+<script type="application/javascript" src="js/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -39,7 +39,7 @@
 <div id="report"></div>
 
 
-<script type="application/javascript;version=1.7">
+<script type="application/javascript">
 
 importScript(["js/main.js", "js/etl/Reviews.js"], function(){
 $("#description").html("A simple list of fist-time outgoing reviews.  Give them love.");
@@ -57,7 +57,7 @@ var __createChart = function*(){
 	var sampleMax=Date.newInstance(GUI.state.sampleMax).ceilingDay();
 	var sampleInterval=Duration.WEEK;
 
-	
+
 	var mainFilter={"and":[
 		{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
 		{"range":{"requester_review_num":{"gte":0, "lte":2}}}	//ONLY CARE FOR FIRST REVIEW, AND IF ONE FOLLOWS

@@ -4,7 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-	<script type="application/javascript;version=1.7" src="js/imports/import.js"></script>
+	<script type="application/javascript" src="js/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -47,7 +47,7 @@
 </div>
 
 
-<script type="application/javascript;version=1.7">
+<script type="application/javascript">
 
 
 
@@ -119,7 +119,7 @@ var __createChart = function*(){
 
 		a=Log.action("Calc Close Times", true);
 		yield (Thread.yield());
-		
+
 		var bugList=yield (Q({
 			"from":mm,
 			"select":[
@@ -148,7 +148,7 @@ var __createChart = function*(){
 				}
 			]
 		}));
-		
+
 		Log.actionDone(a);
 
 		var numWeeks=sampleMax.subtract(sampleMin).round(sampleInterval);
@@ -212,7 +212,7 @@ var __createChart = function*(){
 	});
 
 
-	
+
 
 
 };
@@ -242,7 +242,7 @@ $(document).ready(function(){
 
 });
 
-	
+
 });
 </script>
 

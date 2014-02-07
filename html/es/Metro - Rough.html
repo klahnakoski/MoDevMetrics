@@ -7,7 +7,7 @@
 	<link type="text/css" rel="stylesheet" href="lib/ccc/lib/tipsy.css"/>
 	<link type="text/css" rel="stylesheet" href="lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css" />
 	<link type="text/css" rel="stylesheet" href="css/menu.css"/></HEAD>
-	<script type="application/javascript;version=1.7" src="js/imports/import.js"></script>
+	<script type="application/javascript" src="js/imports/import.js"></script>
 <BODY>
 
 
@@ -93,7 +93,7 @@
 </div>
 
 
-<script type="application/javascript;version=1.7">
+<script type="application/javascript">
 
 importScript([
 	"js/main.js",
@@ -172,7 +172,7 @@ var __createChart = function*(){
 		"sheetDiv":"info",
 		"type":"line",
 		"cube":metroSummary,
-		
+
 		xAxisSize: 50,
 		"legendPosition":"right",
 		"height":400
@@ -236,7 +236,7 @@ var __createChart = function*(){
 		//THE CURRENT SPRINT IS NOT COMPLETED, SO BACKLOG SHOULD INCLUDE THOSE BUGS
 		var begin=endDate.addWeekday(-12);
 
-		
+
 		pointCount = yield (ESQuery.run({
 			"from":"bugs",
 			"select":{"name":"points", "value":mvelToCountPoints, "aggregate":"maximum"},
@@ -355,7 +355,7 @@ var __createChart = function*(){
 
 						]}
 					}));
-					
+
 					Bugzilla.showBugs(bugList.list);
 				});
 				return true;
@@ -367,7 +367,7 @@ var __createChart = function*(){
 	});
 
 
-	
+
 	////////////////////////////////////////////////////////////////////////////
 	// OPEN
 	////////////////////////////////////////////////////////////////////////////
@@ -444,7 +444,7 @@ var __createChart = function*(){
 //
 
 
-		//SHOW NUMBER 
+		//SHOW NUMBER
 		var progressBar=(yield (Q({
 			"from":iterations,
 			"select":[
@@ -558,7 +558,7 @@ var __createChart = function*(){
 			'<span class="parameter_name">Completed:</span><b>'+progressBar.cube[0].Completed+' points</b><br>'+
 			'<span class="parameter_name">Backlog:</span><b>'+progressBar.cube[0].Backlog+' points</b><br>'+
 			'<span class="parameter_name">Backlog Growth:</span><b>'+aFormat.number(newPointsPerIteration, "+0")+' points/iteration</b><br>'+
-									
+
 			'<span class="parameter_name">Team Velocity:</span><b>'+aMath.round(teamVelocity.average, 1)+' points</b><br>'
 		);
 
@@ -581,7 +581,7 @@ var __createChart = function*(){
 			allIterations.push({"name":"Iteration #"+i, "number":i});
 		}//for
 
-		
+
 		//WE KNOW THE NUMBER OF ITERATIONS NEEDED, LETS SHOW ALL SPRINTS
 		var chart=yield (Q({
 			"from":iterations,
@@ -596,7 +596,7 @@ var __createChart = function*(){
 				}
 			]
 		}));
-		
+
 		aChart.show({
 			"id":"iterations",
 			"sheetDiv":"info",
@@ -703,7 +703,7 @@ function showStories(stories){
 	$("#stories").html(CNV.List2HTMLTable(data));
 }//method
 
-		
+
 
 
 function getDescendants(parent, startDate, endDate){

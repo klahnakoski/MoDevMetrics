@@ -4,7 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-	<script type="application/javascript;version=1.7" src="js/imports/import.js"></script>
+	<script type="application/javascript" src="js/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -43,13 +43,13 @@
 </div>
 
 
-<script type="application/javascript;version=1.7">
+<script type="application/javascript">
 
 
 importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 
 
-	
+
 	$("#description").html(
 			"Simple look at time series"
 	);
@@ -165,7 +165,7 @@ importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 			chart.list.forall(function(v){
 				v.mean=aMath.mean.apply(null, v.mean);
 			});
-	
+
 			aChart.showScatter({
 				"id":"chart",
 				"sheetDiv":"info",
@@ -178,7 +178,7 @@ importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 		yield (null);
 
 	};
-	
+
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [

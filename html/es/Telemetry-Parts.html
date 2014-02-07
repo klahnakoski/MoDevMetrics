@@ -4,7 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-	<script type="application/javascript;version=1.7" src="js/imports/import.js"></script>
+	<script type="application/javascript" src="js/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -50,7 +50,7 @@
 </div>
 
 
-<script type="application/javascript;version=1.7">
+<script type="application/javascript">
 
 
 importScript([
@@ -137,7 +137,7 @@ var __createChart = function*(){
 			edgeZ.domain.partitions=edgeZ.domain.partitions.filter(function(p){return partNames.contains(p.name);});
 		}//endif
 //		query.where=CNV.Object2JSON(Z.map(function(p){return p.name;}))+".contains(Z.name)";
-		
+
 	}else if (PART_QUERY===undefined){
 		yield (null);	//NOT ENOUGH DIMENSIONS TO CHART YET
 	}//endif

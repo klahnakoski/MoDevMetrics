@@ -4,7 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-	<script type="application/javascript;version=1.7" src="js/imports/import.js"></script>
+	<script type="application/javascript" src="js/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -51,7 +51,7 @@
 </div>
 
 
-<script type="application/javascript;version=1.7">
+<script type="application/javascript">
 
 
 importScript(['js/main.js', 'js/Dimension-Telemetry.js'], function(){
@@ -120,8 +120,8 @@ var __createChart = function*(){
 
 //	var idTime=GUI.state.programFilter.bugStatusMinimum_fromSource();
 //	var testValue=GUI.state.programFilter.bugStatusMinimum_fromDoc();
-	
-	
+
+
 //	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
 
 //	var mainFilter={"and":[
@@ -174,7 +174,7 @@ var __createChart = function*(){
 		});
 
 
-		
+
 
 		var regressionLine=Stats.query2regression(heatGrid);
 

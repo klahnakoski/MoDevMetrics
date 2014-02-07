@@ -4,8 +4,8 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-	<script type="application/javascript;version=1.7" src="js/imports/import.js"></script>
-		
+	<script type="application/javascript" src="js/imports/import.js"></script>
+
 	<link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
 	<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
 	<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
@@ -35,7 +35,7 @@
 <div id="results"></div>
 <table id="theTable"><thead><tr><td>Field Name</td><td>Value(s)</td></tr></thead><tbody></tbody></table>
 
-<script type="application/javascript;version=1.7">
+<script type="application/javascript">
 
 
 importScript(["js/main.js"], function(){
@@ -48,7 +48,7 @@ var createChart=function(){
 
 
 
-		
+
 		Log.addLogToElement("results");
 
 //EXTRACT ALL DOMAIN VALUES TO CHARACTERIZE THE ES STORE
@@ -65,7 +65,7 @@ var createChart=function(){
 			{"term":{"status_whiteboard.tokenized": "sg:low"}},
 			{"term":{"keywords": "sec-low"}}
 		]};
-		
+
 //ALL ATTACHMENTS
 //ALL FLAGS
 		for(var i=0;i<indexes.length;i++){
@@ -87,7 +87,7 @@ var createChart=function(){
 //				if (j>=3) continue;
 
 //				if (col.name=="votes") col.type="long";
-				
+
 				if (col.name=="status_whiteboard"){
 					//DO NOTHING
 				}else if (col.name.startsWith("keyword")){
