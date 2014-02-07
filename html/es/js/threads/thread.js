@@ -183,7 +183,6 @@ build=function(){
 			}//try
 		}//while
 		//CAN GET HERE WHEN THREAD IS KILLED AND Thread.Resume CALLS BACK
-//	Thread.numRunning++;	//TO CANCEL THE Thread.numRunning-- IN kill();
 		this.kill(retval);
 	}
 

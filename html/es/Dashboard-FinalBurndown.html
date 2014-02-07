@@ -207,7 +207,7 @@ var __createChart = function*(){
 
 	$("#stats").html("");
 
-	Thread.run("Calc Past Stats", function(){
+	Thread.run("Calc Past Stats", function*(){
 
 		var stats = yield(Q({
 			"from":flat,

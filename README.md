@@ -5,14 +5,14 @@ Mozilla Developer Metrics
 Objective
 ---------
 
-This project is designed to optimize the creation of dashboards using ElasticSearch data.  Many tools like this exists,
-for example: Cognos, MicroStrategy, Pentaho and Tableau.  Unlike these tools, MoDevMetrics is suited for programmers:
-Code, testability, and version control are important.
+This project is designed to optimize the creation of dashboards using ElasticSearch data.  Many tools already exist to
+make dashboards, for example: Cognos, MicroStrategy, Pentaho and Tableau.  Unlike these tools, MoDevMetrics is suited
+for programmers: Code, testability, and version control are important.
 
 Benefits
 --------
 
-  * **No Server** - Dashboards are simply Javascript (AJAX) and HTML.  There is no server to setup.
+  * **No Web Server** - Dashboards are simply Javascript (AJAX) and HTML.  There is no server to setup.
   * **No Schema** - ElasticSearch stores JSON documents with little fixed schema.  This is good for rapid prototyping,
   and makes it easy to annotate data without adding the complications of data migration.
   * **Code is versionable** - Data topology and data queries are described in JSON, dashboard layout is HTML and CSS.
@@ -27,7 +27,7 @@ Drawbacks
   * **No GUI tools** - There is no drag-and-drop query builder, You must be proficient in SQL and other high level list
   comprehensions.
   * **NO GUI Layout** - Layout of dashboard is done in HTML and CSS.
-  * **Limited Charting** (for now) - There are better charting libraries out there.  
+  * **Limited Charting** (for now) - There are better charting libraries out there.
 
 Requirements
 ------------
@@ -43,7 +43,7 @@ Install
 -------
 
     git clone https://github.com/klahnakoski/MoDevMetrics.git
-    
+
     Cloning into 'MoDevMetrics'...
     remote: Counting objects: 6563, done.
     remote: Compressing objects: 100% (3142/3142), done.

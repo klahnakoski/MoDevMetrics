@@ -27,7 +27,7 @@ ElasticSearch.search=function*(index, esquery){
 	yield (output);
 };
 
-ElasticSearch.setRefreshInterval=function(indexName, rate){
+ElasticSearch.setRefreshInterval=function*(indexName, rate){
 	var data=yield (Rest.put({
 		"url": ElasticSearch.pushURL+"/"+indexName+"/_settings",
 		"data":{"index":{"refresh_interval":"1s"}}
@@ -38,7 +38,7 @@ ElasticSearch.setRefreshInterval=function(indexName, rate){
 
 
 //EXPECTING THE DATA ARRAY TO ALREADY HAVE ODD ENTRIES STARTING WITH { "create":{ "_id" : ID } }
-ElasticSearch.bulkInsert=function(indexName, typeName, dataArray){
+ElasticSearch.bulkInsert=function*(indexName, typeName, dataArray){
 //	try{
 		yield (Rest.post({
 			"url":ElasticSearch.pushURL+"/"+indexName+"/"+typeName+"/_bulk",
