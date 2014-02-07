@@ -21,7 +21,7 @@ REVIEWS.ALIASES=[
 
 
 
-//Thread.run(function(){
+//Thread.run(function*(){
 //	ETL.allFlags = yield (Qb.calc2List({
 //		"from":CNV.Table2List(MozillaPrograms),
 //		"edges":["attributeName"],
@@ -276,21 +276,21 @@ REVIEWS.get=function(minBug, maxBug){
 
 
 	var inReview;
-	var A=Thread.run("Get Review Requests", function(){
+	var A=Thread.run("Get Review Requests", function*(){
 		var a=Log.action("Get Review Requests", true);
 		inReview=yield(reviewQuery.run());
 		Log.actionDone(a);
 	});
 
 	var doneReview;
-	var B=Thread.run("Get Review Ends", function(){
+	var B=Thread.run("Get Review Ends", function*(){
 		var a=Log.action("Get Review Ends", true);
 		doneReview=yield(doneQuery.run());
 		Log.actionDone(a);
 	});
 
 	var switchedReview;
-	var C=Thread.run("Get Review Re-assignments", function(){
+	var C=Thread.run("Get Review Re-assignments", function*(){
 		var a=Log.action("Get Review Re-assignments", true);
 		switchedReview=yield(switchedQuery.run());
 		Log.actionDone(a);
@@ -451,7 +451,7 @@ REVIEWS.postMarkup=function(){
 			while(maxPush<=0) yield(Thread.sleep(100));
 			maxPush--;
 
-			Thread.run("Send update to es", function(){
+			Thread.run("Send update to es", function*(){
 				try{
 					yield (Rest.post({
 						"url":ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName+"/"+v._id+"/_update",

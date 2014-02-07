@@ -45,7 +45,7 @@ importScript([
 		thread = Thread.run(__createChart());
 	};
 
-	var __createChart = function(){
+	var __createChart = function*(){
 
 		var query = new ESQuery({
 			"name":"Resolution by Bug Age",

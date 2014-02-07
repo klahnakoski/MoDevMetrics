@@ -91,7 +91,7 @@ var createChart=function(){
 };
 
 
-var __createChart = function(){
+var __createChart = function*(){
 	//REEMPTIVE LOAD SO THE EXPRESSION COMPILE WORKS
 	yield (ESQuery.loadColumns({"from": "raw_telemetry"}));
 	if (Mozilla.Telemetry.Instance.Addons.partitions instanceof Thread) yield (Thread.join(Mozilla.Telemetry.Instance.Addons.partitions));

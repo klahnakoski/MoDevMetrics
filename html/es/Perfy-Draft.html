@@ -60,7 +60,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 
 	$("#description").html("Please <a href='https://wiki.mozilla.org/Platform/Games/GameFocusedBenchmarking'>read the wiki</a> for detailed explaination of testing procedure and analysis.<br><br> The latest overall score for each channel, and it's breakdown.  This chart is best used to view test result variance (bottom chart).  Click on the variance chart to see the specific test results.");
 
-	var __createChart = function(){
+	var __createChart = function*(){
 		var sampleDate = Date.newInstance(GUI.state.date);
 //		var benchmark=GUI.state.benchmark;
 		var totalsFilter={"terms":{"info.test":["total", "Kraken", "Octane"]}};
@@ -110,7 +110,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			//					var date=max_date.cube[range2.edges[0].domain.getPartByKey(platform).dataIndex][range2.edges[1].domain.getPartByKey(benchmark).dataIndex];
 			param_date=max_date.get(param);
 
-			Thread.run(function(){
+			Thread.run(function*(){
 				//SHOW ALL TESTS FOR THIS GROUP
 				var param={
 					"benchmark":"Benchmark."+benchmark+"."+test.replaceAll(" ", "_"),
@@ -144,7 +144,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			GUI.getFilters("perfy")
 		]};
 
-		Thread.run(function(){
+		Thread.run(function*(){
 			var data = yield(ESQuery.run({
 				"name":"Specific Test Results",
 				"from":"perfy",
@@ -178,7 +178,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		});
 
 		
-		Thread.run(function(){
+		Thread.run(function*(){
 			var data = yield(ESQuery.run({
 				"name":"Overall",
 				"from":"perfy",
@@ -223,7 +223,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 
 
 
-		Thread.run(function(){
+		Thread.run(function*(){
 			var a=Log.action("Get Score Details",true);
 			var data = yield(ESQuery.run({
 				"name":"Results",

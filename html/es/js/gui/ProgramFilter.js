@@ -181,7 +181,7 @@ ProgramFilter.prototype.injectHTML = function(programs){
 
 ProgramFilter.prototype.refresh = function(){
 	var self = this;
-	Thread.run(function(){
+	Thread.run(function*(){
 		self.query = ProgramFilter.makeQuery([]);
 
 

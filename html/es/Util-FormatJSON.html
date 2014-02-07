@@ -48,7 +48,7 @@ importScript(["js/main.js"], function(){
 		$("#description").html("Tight formatting for JSON, the way it was meant to be!");
 	});
 
-	var format = function(event){ //THIS IS A GENERATOR
+	var format = function*(event){ //THIS IS A GENERATOR
 
 		//EVAL THE Qb
 		var code = $("#json").val();

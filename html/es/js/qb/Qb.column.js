@@ -58,7 +58,7 @@ Qb.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //us
 	//COMPILE THE CALCULATION OF THE DESTINATION COLUMN USING THE SOURCE COLUMNS
 	var f = "resultColumn.calc=function(__source, __result){\n";
 	for(var s = 0; s < sourceColumns.length; s++){
-		let columnName = sourceColumns[s].name;
+		var columnName = sourceColumns[s].name;
 		//ONLY DEFINE VARS THAT ARE USED
 		if (resultColumn.value.indexOf(columnName) != -1){
 			f += "var " + columnName + "=__source." + columnName + ";\n";
@@ -66,7 +66,7 @@ Qb.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //us
 		}//endif
 	}//for
 	if (edges !== undefined) for(var i = 0; i < edges.length; i++){
-//		let columnName = edges[i].name;
+//		var columnName = edges[i].name;
 		var domainName = edges[i].domain.name;
 		//ONLY DEFINE VARS THAT ARE USED
 		if (domainName!==undefined){

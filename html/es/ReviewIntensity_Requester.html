@@ -61,7 +61,7 @@ importScript([
 		thread=Thread.run( __createChart());
 	};
 
-	var __createChart = function(){
+	var __createChart = function*(){
 
 		var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
 		var sampleMin=Date.newInstance(GUI.state.sampleMin);//.floor(sampleInterval);
@@ -74,7 +74,7 @@ importScript([
 		GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
 
 		//CHART OF AGGREGATE RESPONSE TIMES
-		Thread.run(function(){
+		Thread.run(function*(){
 			var response=yield (ESQuery.run({
 				"name":"Response Time Breakdown",
 				"from":"reviews",
@@ -103,7 +103,7 @@ importScript([
 
 
 		//CHART OF AGGREGATE RESPONSE TIMES
-		Thread.run(function(){
+		Thread.run(function*(){
 			var a=Log.action("Grab Stats", true);
 
 			var df=(yield (ESQuery.run({
@@ -148,7 +148,7 @@ importScript([
 		});
 
 		//CHART PRODUCT BREAKDOWN
-		Thread.run(function(){
+		Thread.run(function*(){
 			var q=new ESQuery({
 				"name":"Product Breakdown",
 				"from":"reviews",

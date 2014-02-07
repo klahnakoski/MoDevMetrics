@@ -68,7 +68,7 @@
 			$("#esquery").linedtextarea();
 		});
 
-		Thread.run(function(){
+		Thread.run(function*(){
 			while(true){
 				$("#currtime").html(""+ aMath.round(Date.now().getMilli(), -3));
 				yield (Thread.sleep(333));
@@ -92,7 +92,7 @@
 		});
 
 
-		var executeCube = function(event){ //THIS IS A GENERATOR
+		var executeCube = function*(event){ //THIS IS A GENERATOR
 			var index = $("#long2date").val();
 
 			//EVAL THE Qb

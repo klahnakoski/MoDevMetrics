@@ -66,7 +66,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		thread = Thread.run(__createChart());
 	};
 
-	var __createChart = function(){
+	var __createChart = function*(){
 		var sampleDate = Date.newInstance(GUI.state.date);
 		var totalsFilter={"terms":{"info.test":["total", "Kraken", "Octane"]}};
 		var channelDomain=Mozilla.Perfy.Channel.getDomain();
@@ -126,7 +126,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 
 
 	function showOneTest(rownum, channel, esfilter){
-		Thread.run(function(){
+		Thread.run(function*(){
 			var data = yield(ESQuery.run({
 				"from":"perfy",
 				"select":{"name":"score", "value":"score", "aggregate":"average"},

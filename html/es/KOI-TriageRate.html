@@ -62,7 +62,7 @@ var createChart = function(){
 	thread = Thread.run(__createChart());
 };
 
-var __createChart = function(){
+var __createChart = function*(){
 
 	var sampleMin = Date.newInstance(GUI.state.sampleMin);
 	var sampleMax =Date.newInstance(GUI.state.sampleMax).addDay(1);
@@ -106,7 +106,7 @@ var __createChart = function(){
 	// SHOW COUNT OF TIME
 	////////////////////////////////////////////////////////////////////////////
 
-	Thread.run(function(){
+	Thread.run(function*(){
 
 		var a = Log.action("Request Bugs", true);
 		var queue = yield(ESQuery.run({
@@ -142,7 +142,7 @@ var __createChart = function(){
 				line_lineWidth: 3
 			},
 			"clickAction":function(series, x, d){
-				Thread.run(function(){
+				Thread.run(function*(){
 					var buglist=(yield (ESQuery.run({
 						"from":"bugs",
 						"select":{"value":"bug_id", "aggregate":"minimum"},
@@ -168,7 +168,7 @@ var __createChart = function(){
 	////////////////////////////////////////////////////////////////////////////
 	// DAILY CHANGE
 	////////////////////////////////////////////////////////////////////////////
-	Thread.run(function(){
+	Thread.run(function*(){
 		a = Log.action("Get "+MARK.toUpperCase()+"+/- Counts ", true);
 
 		//LOOK FOR FIRST-TIME MARKUP
@@ -261,7 +261,7 @@ var __createChart = function(){
 			"xAxisSize":50,
 			"timeSeries": true,
 			"clickAction":function(series, x, d){
-				Thread.run(function(){
+				Thread.run(function*(){
 					var buglist=(yield (Qb.calc2List({
 						"from":bugs,
 						"select":{"value":"bug_id"},
@@ -308,7 +308,7 @@ var __createChart = function(){
 	////////////////////////////////////////////////////////////////////////////
 	// CURRENT BUG LIST
 	////////////////////////////////////////////////////////////////////////////
-	Thread.run(function(){
+	Thread.run(function*(){
 		var a=Log.action("Get Bug Details", true);
 
 		var findBugs = yield(ESQuery.run({

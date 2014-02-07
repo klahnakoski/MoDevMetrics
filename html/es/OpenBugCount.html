@@ -56,7 +56,7 @@ var createChart=function(){
 	thread=Thread.run( __createChart());
 };
 
-var __createChart = function(){
+var __createChart = function*(){
 
 	var sampleMin=Date.newInstance(GUI.state.sampleMin);
 	var sampleMax=Date.newInstance(GUI.state.sampleMax).ceilingDay();
@@ -84,7 +84,7 @@ var __createChart = function(){
 
 
 	//CHART PRODUCT BREAKDOWN
-	Thread.run(function(){
+	Thread.run(function*(){
 		var q=new ESQuery({
 			"name":"Product Breakdown",
 			"from":"bugs",

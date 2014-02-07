@@ -51,7 +51,7 @@ Map.inverse=function(map){
 
 //THROW AN ERROR IF WE DO NOT SEE THE GIVEN ATTRIBUTE IN THE LIST
 Map.expecting=function(obj, keyList){
-	for(let i=0;i<keyList.length;i++){
+	for(i=0;i<keyList.length;i++){
 		if (obj[keyList[i]]===undefined) Log.error("expecting object to have '"+keyList[i]+"' attribute");
 	}//for
 };

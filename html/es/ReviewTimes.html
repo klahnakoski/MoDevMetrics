@@ -200,7 +200,7 @@ var createChart = function(){
 
 
 	Log.action("Call ES");
-	Thread.run(function(){
+	Thread.run(function*(){
 		var data = ElasticSearch.search("bugs", esQuery);
 		Log.action("processing Data");
 		var inReview = MVEL.esFacet2List(data.facets.inReview);

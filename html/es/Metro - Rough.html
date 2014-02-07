@@ -117,7 +117,7 @@ var createChart = function(){
 
 
 
-var __createChart = function(){
+var __createChart = function*(){
 
 	var metro=831997;
 //	var bugs = getDescendants(metro);
@@ -232,7 +232,7 @@ var __createChart = function(){
 	////////////////////////////////////////////////////////////////////////////
 	var pointCount;
 	var newPointsPerIteration;
-	var totalPointThread=Thread.run(function(){
+	var totalPointThread=Thread.run(function*(){
 		//THE CURRENT SPRINT IS NOT COMPLETED, SO BACKLOG SHOULD INCLUDE THOSE BUGS
 		var begin=endDate.addWeekday(-12);
 
@@ -281,7 +281,7 @@ var __createChart = function(){
 	// BACKLOG COUNT
 	////////////////////////////////////////////////////////////////////////////
 	var backlogCount;
-	var totalThread=Thread.run(function(){
+	var totalThread=Thread.run(function*(){
 
 
 		var a=Log.action("Count Backlog", true);
@@ -315,7 +315,7 @@ var __createChart = function(){
 	// TOTAL BY ITERATION
 	////////////////////////////////////////////////////////////////////////////
 	var iterTotal;
-	var iterTotalThread=Thread.run(function(){
+	var iterTotalThread=Thread.run(function*(){
 
 		var a=Log.action("Get Points over Time", true);
 
@@ -341,7 +341,7 @@ var __createChart = function(){
 			"height":400,
 			"legendPosition":"right",
 			"clickAction":function(series, x, d, elem){
-				Thread.run(function(){
+				Thread.run(function*(){
 					var iteration=iterations.map(function (v, i){if (v.summary==series) return v;})[0];
 					var date=Date.newInstance(x);
 
@@ -371,7 +371,7 @@ var __createChart = function(){
 	////////////////////////////////////////////////////////////////////////////
 	// OPEN
 	////////////////////////////////////////////////////////////////////////////
-	Thread.run(function(){
+	Thread.run(function*(){
 
 		var a=Log.action("Get Open points over time", true);
 
@@ -408,7 +408,7 @@ var __createChart = function(){
 	////////////////////////////////////////////////////////////////////////////
 	// SHOW ITERATION STATS
 	////////////////////////////////////////////////////////////////////////////
-	Thread.run(function(){
+	Thread.run(function*(){
 		yield (Thread.join(totalThread));
 		yield (Thread.join(iterTotalThread));
 
@@ -803,7 +803,7 @@ function getDescendants(parent, startDate, endDate){
 
 
 	//GO TO BZ TO GET DESCRIPTIONS
-	var getBZ=Thread.run(function(){
+	var getBZ=Thread.run(function*(){
 		var a=Log.action("Ask BZ for Summaries", true);
 		var temp=yield (Bugzilla.search(Object.keys(bugs), ["id", "summary"]));
 		temp.forall(function(v, i){
@@ -814,7 +814,7 @@ function getDescendants(parent, startDate, endDate){
 	});
 
 	//AGE OF ALL BUGS FROM ES
-	var getAges=Thread.run(function(){
+	var getAges=Thread.run(function*(){
 		var a=Log.action("Get Bug Ages", true);
 		var ages = yield (ElasticSearch.getMinMax({"and":[
 			{"terms":{"bug_id":Object.keys(bugs)}},

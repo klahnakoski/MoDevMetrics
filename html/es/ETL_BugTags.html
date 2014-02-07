@@ -44,7 +44,7 @@ importScript([
 
 	$("#inc").click(function(){
 		if (mainThread!==undefined) mainThread.kill();
-		mainThread=Thread.run(function(){
+		mainThread=Thread.run(function*(){
 			var startTime=yield (BUG_TAGS.getLastUpdated());
 			ETL.incrementalInsert(BUG_TAGS, startTime);
 		});
@@ -55,7 +55,7 @@ importScript([
 
 //		Parallel_test();
 
-		mainThread=Thread.run(function(){
+		mainThread=Thread.run(function*(){
 //			var reviews=yield (BUG_TAGS.get([563491], undefined));
 			var reviews=yield (BUG_TAGS.get([812896], undefined));
 //			var reviews=yield (BUG_TAGS.get([812896, 790640, 563491, 634724, 782603], undefined));

@@ -45,7 +45,7 @@ importScript([
 
 	$("#both").click(function(){
 		if (mainThread!==undefined) mainThread.kill();
-		mainThread=Thread.run(function(){
+		mainThread=Thread.run(function*(){
 			yield (OrgChart.start());
 			yield (OrgChart.get());
 			yield (OrgChart.push());

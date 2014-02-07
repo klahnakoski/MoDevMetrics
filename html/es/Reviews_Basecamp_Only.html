@@ -203,7 +203,7 @@ var query = {
 Log.note(query.facets.assigned.terms.script_field);
 
 
-Thread.run(function(){
+Thread.run(function*(){
 	var data = ElasticSearch.search("bugs", query);
 
 	var esResult = MVEL.esFacet2List(data.facets.pending, [

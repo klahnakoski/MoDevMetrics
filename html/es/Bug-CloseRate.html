@@ -61,7 +61,7 @@ var createChart = function(){
 	thread = Thread.run(__createChart());
 };
 
-var __createChart = function(){
+var __createChart = function*(){
 	$("#title").html("Bug Close Rate");
 	$("#description").html("Shows the number of bugs closed over the given interval, and calculates the average close rate."
 	+"You must provide JSON that will be used as the ES Filter."
@@ -82,7 +82,7 @@ var __createChart = function(){
 	yield (ESQuery.loadColumns({"from":"bugs"}));
 
 
-	Thread.run(function(){
+	Thread.run(function*(){
 		var a=Log.action("Get Bug Details", true);
 
 
@@ -189,7 +189,7 @@ var __createChart = function(){
 				line_lineWidth: 2
 			},
 			"clickAction":function(resolution, x, d){
-				Thread.run(function(){
+				Thread.run(function*(){
 					var date=Date.newInstance(x);
 
 					var list=yield (Qb.calc2List({

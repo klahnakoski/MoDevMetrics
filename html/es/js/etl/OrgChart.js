@@ -22,7 +22,7 @@ OrgChart.typeName="person";
 
 
 
-OrgChart.push=function(){
+OrgChart.push=function*(){
 	yield (ETL.newInsert(OrgChart));
 };
 
@@ -34,7 +34,7 @@ OrgChart.start=function(){
 };
 	
 
-OrgChart.get=function(minBug, maxBug){
+OrgChart.get=function*(minBug, maxBug){
 
 	//AFTER MUCH PAIN, I DECIDED TO TRY SUBMITTING A BUG TO THE WEB PEOPLE TO
 	//SOLVE ACCESS PROBLEMS ON THE SERVER SIDE:

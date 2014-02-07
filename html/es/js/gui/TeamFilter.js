@@ -22,7 +22,7 @@ TeamFilter.newInstance=function(field_name){
 	self.field_name=field_name;
 	self.selectedEmails=[];
 
-	Thread.run("get people", function(){
+	Thread.run("get people", function*(){
 		//GET ALL PEOPLE
 		var people=(yield (ESQuery.run({
 			"from":"org_chart",
@@ -132,7 +132,7 @@ TeamFilter.prototype.getSummary=function(){
 };//method
 
 
-TeamFilter.prototype.getSelectedPeople=function(){
+TeamFilter.prototype.getSelectedPeople=function*(){
 	var self=this;
 
 	while(!self.people){
@@ -205,22 +205,22 @@ TeamFilter.prototype.makeFilter = function(field_name){
 };//method
 
 
-
-TeamFilter.prototype.refresh = function(){
+TeamFilter.prototype.refresh = function*()
+{
 	//FIND WHAT IS IN STATE, AND UPDATE STATE
-	this.disableUI=true;
-	var selected=yield(this.getSelectedPeople());
+	this.disableUI = true;
+	var selected = yield(this.getSelectedPeople());
 
-	var f=$('#teamList');
+	var f = $('#teamList');
 	f.jstree("deselect_all");
 	selected.forall(function(p){
-		f.jstree("select_node", "#"+CNV.String2JQuery(p.id));
-		f.jstree("check_node", "#"+CNV.String2JQuery(p.id));
+		f.jstree("select_node", "#" + CNV.String2JQuery(p.id));
+		f.jstree("check_node", "#" + CNV.String2JQuery(p.id));
 	});
 
-	this.disableUI=false;
-	yield null;
-};
+	this.disableUI = false;
+}
+;
 
 
 TeamFilter.prototype.injectHTML = function(hier){

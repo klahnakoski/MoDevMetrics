@@ -62,7 +62,7 @@ importScript('js/main.js',function(){
 		thread = Thread.run(__createChart());
 	};
 
-	var __createChart = function(){
+	var __createChart = function*(){
 
 
 		var sampleMin = Date.newInstance(GUI.state.sampleMin);
@@ -123,7 +123,7 @@ importScript('js/main.js',function(){
 
 				if (edge.domain.interval.milli<15000 || chart.get("date", x).count<=25){
 					//PULL ORIGINAL SOURCE
-					Thread.run("Show specific page series", function(){
+					Thread.run("Show specific page series", function*(){
 						var ids=yield (ESQuery.run({
 							"from":"talos",
 							"select":{"name":"id", "value":"datazilla.test_run_id"},

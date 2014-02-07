@@ -40,7 +40,7 @@
 
 		};
 
-		Thread.run(function(){
+		Thread.run(function*(){
 			var data = ElasticSearch.search("bugs", query);
 			Log.note(CNV.Object2JSON(data));
 

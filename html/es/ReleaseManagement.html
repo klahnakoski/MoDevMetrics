@@ -57,7 +57,7 @@ importScript(['js/main.js', "js/Dimension-Bugzilla.js"], function(){
 		thread = Thread.run(__createChart());
 	};
 
-	var __createChart = function(){
+	var __createChart = function*(){
 
 		var sampleMin = Date.newInstance(GUI.state.sampleMin);
 		var sampleMax = Date.newInstance(GUI.state.sampleMax).addDay(1);
@@ -78,7 +78,7 @@ importScript(['js/main.js', "js/Dimension-Bugzilla.js"], function(){
 
 
 		var allBugs;
-		var allBugsThread = Thread.run(function(){
+		var allBugsThread = Thread.run(function*(){
 			Log.action("Request Bugs");
 
 			var chart = yield(ESQuery.run({

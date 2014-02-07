@@ -228,7 +228,7 @@ var importScript;
 				numLoaded--;
 			} else{
 				var script = document.createElement('script');
-				script.type = 'text/javascript;version=1.7';
+				script.type = 'text/javascript';
 				script.onload = onLoadCallback;
 				script.async = false;
 				script.src = netPaths[i];

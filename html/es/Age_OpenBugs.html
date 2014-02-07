@@ -65,7 +65,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js'], function(){
 		thread = Thread.run(__createChart());
 	};
 
-	var __createChart = function(){
+	var __createChart = function*(){
 
 		var sampleMin = Date.newInstance(GUI.state.sampleMin);
 		var sampleMax = Date.newInstance(GUI.state.sampleMax).ceilingDay();
@@ -92,7 +92,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js'], function(){
 
 
 		//CHART PRODUCT BREAKDOWN
-		Thread.run(function(){
+		Thread.run(function*(){
 			var q = new ESQuery({
 				"name":"Product Breakdown",
 				"from":"bugs",
@@ -119,7 +119,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js'], function(){
 
 
 		//CHART AGE BREAKDOWN
-		Thread.run(function(){
+		Thread.run(function*(){
 			var a = Log.action("Get Age Distribution", true);
 			var durations = yield(ESQuery.run({
 				"name":"Age Distribution",
@@ -159,7 +159,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js'], function(){
 
 
 		//CHART AGE PERCENTILES
-		threadPercentiles = Thread.run(function(){
+		threadPercentiles = Thread.run(function*(){
 
 			//IT SEEMS THE MVEL.compile.expression NEEDS COLUMNS, BUT THEY ARE NOT
 			//REQUESTED UNTIL AFTER THE QUERY OBJECT IS CONSTRUCTED IN run()

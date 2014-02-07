@@ -50,7 +50,7 @@ importScript([
 	$("#inc").click(function(){
 		ElasticSearch.pushURL="http://localhost:9200";
 		if (mainThread!==undefined) mainThread.kill();
-		mainThread=Thread.run(function(){
+		mainThread=Thread.run(function*(){
 			yield (ETL.incrementalInsert(HIERARCHY));
 			closeWindow();  //TO CLEANUP THE PAGE'S MEMORY LEAK
 		});
@@ -58,7 +58,7 @@ importScript([
 
 	$("#test").click(function(){
 		if (mainThread!==undefined) mainThread.kill();
-		mainThread=Thread.run(function(){
+		mainThread=Thread.run(function*(){
 //
 //			var temp=yield(ESQuery.run({
 //				"from":"bugs",

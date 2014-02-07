@@ -67,7 +67,7 @@ importScript([
 		thread=Thread.run( __createChart());
 	};
 
-	var __createChart = function(){
+	var __createChart = function*(){
 
 		var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
 		var sampleMin=Date.newInstance(GUI.state.sampleMin);//.floor(sampleInterval);
@@ -160,7 +160,7 @@ importScript([
 			"type":"area",
 			"stacked":true,
 			"clickAction":function(series, x, d){
-				Thread.run(function(){
+				Thread.run(function*(){
 					var s=chart.select.map(function(v){ if (v.name==series) return v;})[0];
 
 					var buglist=(yield (Qb.calc2List({
@@ -201,7 +201,7 @@ importScript([
 			"cube":diff,
 			"type":"bar",
 			"clickAction":function(series, x, d){
-				Thread.run(function(){
+				Thread.run(function*(){
 					var s=chart.select.map(function(v){ if (v.name==series) return v;})[0];
 
 					var buglist=(yield (Qb.calc2List({
@@ -248,7 +248,7 @@ importScript([
 			"cube":ages,
 			"type":"bar",
 			"clickAction":function(series, x, d){
-				Thread.run(function(){
+				Thread.run(function*(){
 					if (x==ages.edges[0].domain.NULL.name){
 						var buglist=(yield (Qb.calc2List({
 							"from":patches,

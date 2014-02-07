@@ -50,7 +50,7 @@ importScript('js/main.js', function(){
 		thread=Thread.run( __createChart());
 	};
 
-	var __createChart = function(){
+	var __createChart = function*(){
 		var a=Log.action("Calling ES", true);
 
 		var chartCube = yield (ESQuery.run({

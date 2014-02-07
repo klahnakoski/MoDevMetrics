@@ -64,7 +64,7 @@ importScript("js/main.js", function(){
 		thread = Thread.run(__createChart());
 	};
 
-	var __createChart = function(){
+	var __createChart = function*(){
 
 
 		var query = {
@@ -193,7 +193,7 @@ importScript("js/main.js", function(){
 		})));
 
 
-		Thread.run(function(){
+		Thread.run(function*(){
 			var a = Log.action("Process Pending", true);
 
 
@@ -231,7 +231,7 @@ importScript("js/main.js", function(){
 			Log.actionDone(a);
 		});
 
-		Thread.run(function(){
+		Thread.run(function*(){
 			var a = Log.action("Process Completed Review", true);
 
 			var esResult3 = MVEL.esFacet2List(data.facets.reviewed, [
@@ -276,7 +276,7 @@ importScript("js/main.js", function(){
 		});
 
 
-		Thread.run(function(){
+		Thread.run(function*(){
 			var a = Log.action("Process Assigned", true);
 
 			var assigned = MVEL.esFacet2List(data.facets.assigned, [

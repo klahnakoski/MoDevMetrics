@@ -122,7 +122,7 @@ var esHasErrorInIndex;
 
 //SHOW THE LAST TIME ES WAS UPDATED
 GUI.showLastUpdated = function(indexName){
-	Thread.run("show last updated timestamp", function(){
+	Thread.run("show last updated timestamp", function*(){
 		var time;
 
 		var a=Log.action("Get Status of ES Index", true);
@@ -572,7 +572,7 @@ GUI.refresh=function(){
 	if (GUI.refreshRequested) return;
 	GUI.refreshRequested=true;
 
-	Thread.run("refresh gui", function(){
+	Thread.run("refresh gui", function*(){
 		yield (Thread.sleep(200));
 		GUI.refreshRequested=false;
 
@@ -580,7 +580,7 @@ GUI.refresh=function(){
 
 		var threads=[];
 		GUI.customFilters.forall(function(f, i){
-			var t=Thread.run(function(){
+			var t=Thread.run(function*(){
 				yield (f.refresh());
 			});
 			t.name=GUI.customFilters[i].name;

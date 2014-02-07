@@ -195,7 +195,7 @@ Dimension.prototype={
 			if (dim.field!==undefined && Qb.domain.PARTITION.contains(dim.type) && dim.partitions===undefined){
 				dim.field=Array.newInstance(dim.field);
 
-				dim.partitions=Thread.run(function(){
+				dim.partitions=Thread.run(function*(){
 					//IF dim.field IS A NUMBER, THEN SET-WISE EDGES DO NOT WORK (CLASS CAST EXCEPTION)
 					var edges=dim.field.map(function(f){
 						return {"name":f, "value":f}

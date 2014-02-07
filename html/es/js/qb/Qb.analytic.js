@@ -64,8 +64,8 @@ Qb.analytic.add=function(query, analytic){
 	var allGroups=[];
 	if (edges.length==0){
 		allGroups.push([]);
-		for(let i = from.length; i --;){
-			let row = from[i];
+		for(i = from.length; i --;){
+			var row = from[i];
 			if (copyEdge) row[query.edges[0].name]=query.edges[0].domain.end(parts[i]);
 			if (!where(null, -1, row)){
 				nullGroup.push(row);
@@ -75,8 +75,8 @@ Qb.analytic.add=function(query, analytic){
 		}//for
 	}else{
 		var tree = {};  analytic.tree=tree;
-		for(let i = from.length; i --;){
-			let row = from[i];
+		for(i = from.length; i --;){
+			var row = from[i];
 			if (copyEdge) row[query.edges[0].name]=query.edges[0].domain.end(parts[i]);
 			if (!where(null, -1, row)){
 				nullGroup.push(row);
@@ -115,7 +115,7 @@ Qb.analytic.add=function(query, analytic){
 		var group=allGroups[g];
 		if (sortFunction) group.sort(sortFunction);
 
-		for(let rownum=group.length;rownum--;){
+		for(rownum=group.length;rownum--;){
 			group[rownum][Qb.analytic.ROWNUM]=rownum;		//ASSIGN ROWNUM TO EVERY ROW
 			group[rownum][Qb.analytic.ROWS]=group;		//EVERY ROW HAS REFERENCE TO IT'S GROUP
 		}//for
@@ -123,7 +123,7 @@ Qb.analytic.add=function(query, analytic){
 	{//NULL GROUP
 		if (sortFunction) nullGroup.sort(sortFunction);
 
-		for(let rownum=nullGroup.length;rownum--;){
+		for(rownum=nullGroup.length;rownum--;){
 			nullGroup[rownum][Qb.analytic.ROWNUM]=null;
 			nullGroup[rownum][Qb.analytic.ROWS]=null;
 		}//for

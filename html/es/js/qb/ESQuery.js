@@ -86,7 +86,7 @@ ESQuery.parseColumns=function(indexName, parentName, esProperties){
 
 		if (property.type == "nested"){
 			//NESTED TYPE IS A NEW TYPE DEFINITION
-			let nestedName=indexName+"."+name;
+			var nestedName=indexName+"."+name;
 			if (ESQuery.INDEXES[nestedName]===undefined) ESQuery.INDEXES[nestedName]={};
 			ESQuery.INDEXES[nestedName].columns=ESQuery.parseColumns(nestedName, parentName, property.properties);
 			return;
@@ -135,7 +135,7 @@ ESQuery.parseColumns=function(indexName, parentName, esProperties){
 
 
 //ENSURE COLUMNS FOR GIVEN INDEX/QUERY ARE LOADED, AND MVEL COMPILATION WORKS BETTER
-ESQuery.loadColumns=function(query){
+ESQuery.loadColumns=function*(query){
 	var indexName = null;
 	if (typeof(query) == 'string'){
 		indexName = query;
@@ -152,7 +152,7 @@ ESQuery.loadColumns=function(query){
 
 	//WE MANAGE ALL THE REQUESTS FOR THE SAME SCHEMA, DELAYING THEM IF THEY COME IN TOO FAST
 	if (indexInfo.fetcher === undefined) {
-		indexInfo.fetcher=Thread.run(function(){
+		indexInfo.fetcher=Thread.run(function*(){
 			var URL=nvl(query.url, indexInfo.host + indexPath) + "/_mapping";
 			var path = parse.URL(URL).pathname.split("/").rightBut(1);
 			var pathLength = path.length - 1;  //ASSUME /indexname.../_mapping
@@ -207,7 +207,7 @@ ESQuery.loadColumns=function(query){
 
 
 
-ESQuery.run=function(query){
+ESQuery.run=function*(query){
 	yield (ESQuery.loadColumns(query));
 	var esq=new ESQuery(query);
 
@@ -225,7 +225,7 @@ ESQuery.run=function(query){
 };
 
 
-ESQuery.prototype.run = function(){
+ESQuery.prototype.run = function*(){
 
 	if (this.query.from=="bugs")
 		Log.note("");

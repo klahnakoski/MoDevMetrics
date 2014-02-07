@@ -59,7 +59,7 @@ var createChart = function(){
 	thread = Thread.run(__createChart());
 };
 
-var __createChart = function(){
+var __createChart = function*(){
 	$("#title").html("Book2Gecko Fix Rates");
 	$("#description").html("Shows the number of bugs marked resolved=fixed "+
 	"over the given interval.  Includes only the Boot2Gecko product "+
@@ -82,7 +82,7 @@ var __createChart = function(){
 
 	yield (ESQuery.loadColumns({"from":"bugs"}));
 
-	Thread.run(function(){
+	Thread.run(function*(){
 		var a=Log.action("Get Bug Details", true);
 
 		var mm=yield (ElasticSearch.getMinMax({"and":[
@@ -192,7 +192,7 @@ var __createChart = function(){
 
 
 		var clicker=function(type, x, d){
-				Thread.run(function(){
+				Thread.run(function*(){
 					var date=Date.newInstance(x);
 
 					var list=yield (Qb.calc2List({

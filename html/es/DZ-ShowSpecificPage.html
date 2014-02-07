@@ -62,7 +62,7 @@ importScript('js/main.js',function(){
 		thread = Thread.run(__createChart());
 	};
 
-	var __createChart = function(){
+	var __createChart = function*(){
 
 		var ids=GUI.state.id.split(",").map(function(x){return CNV.String2Integer(x);});
 		var page=GUI.state.page.replaceAll(".", "_dot_");

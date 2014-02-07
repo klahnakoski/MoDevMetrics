@@ -71,7 +71,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 	$("#description").html("Please <a href='https://wiki.mozilla.org/Platform/Games/GameFocusedBenchmarking'>read the wiki</a> for detailed explaination of testing procedure and analysis.<br><br> Click the bar chart of overall score to see breakdown by sub-test.  The sub-test bar charts bring you directly to the individual tests' results.");
 
 
-	var __createChart = function(){
+	var __createChart = function*(){
 		var sampleDate = Date.newInstance(GUI.state.date);
 		var sampleDuration = Duration.newInstance("4month");
 //		var benchmark=GUI.state.benchmark;
@@ -207,7 +207,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 
 		//OVERALL TIME SERIES
 		var maxScore;
-		var timeseriesThread=Thread.run(function(){
+		var timeseriesThread=Thread.run(function*(){
 			var data = yield(ESQuery.run({
 				"from":"perfy",
 				"select": [
@@ -258,7 +258,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			});
 		});
 
-		Thread.run(function(){
+		Thread.run(function*(){
 			var data = yield(ESQuery.run({
 				"from":"perfy",
 				"select":{"name":"score", "value":"score", "aggregate":"average", "default":0},

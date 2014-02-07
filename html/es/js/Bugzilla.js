@@ -35,7 +35,7 @@ Bugzilla.linkToBug=function(bugList){
 
 
 
-Bugzilla.search=function(bugList, fields){
+Bugzilla.search=function*(bugList, fields){
 	var BLOCK_SIZE=100;
 
 	var resume=yield (Thread.Resume);
@@ -43,7 +43,7 @@ Bugzilla.search=function(bugList, fields){
 	var numCalls=aMath.floor((bugList.length+BLOCK_SIZE-1)/BLOCK_SIZE);
 	if (!fields.contains("id")) fields.prepend("id");
 
-	for(let i=0;i<numCalls;i++){
+	for(i=0;i<numCalls;i++){
 		var subList=bugList.substring(i*BLOCK_SIZE, aMath.min(bugList.length, i*BLOCK_SIZE+BLOCK_SIZE));
 
 		new BugzillaClient({}).searchBugs({

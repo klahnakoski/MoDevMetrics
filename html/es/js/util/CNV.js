@@ -96,7 +96,7 @@ CNV.Object2JSON = function(json){
 //	return JSON.stringify(json);
 	if (json instanceof Array){
 		try{
-			let singleLine=JSON.stringify(json);
+			var singleLine=JSON.stringify(json);
 			if (singleLine.length<60) return singleLine;
 		}catch(e){
 			Log.warning("Problem turning array to json:", e);
@@ -123,7 +123,7 @@ CNV.Object2JSON = function(json){
 //		return s;
 	}else if (json instanceof Object){
 		try{
-			let singleLine=JSON.stringify(json);
+			var singleLine=JSON.stringify(json);
 			if (singleLine.length<60) return singleLine;
 		}catch(e){
 			Log.warning("Problem turning object to json:", e);

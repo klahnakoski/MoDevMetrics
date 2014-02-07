@@ -382,12 +382,12 @@ Qb.aggregate.percentile = function(select){
 
 			//THE Stats CAN ONLY HANDLE NUMBERS, SO WE CONVERT TYPES TO NUMBERS AND BACK AGAIN WHEN DONE
 			if (l[0].milli){
-				for(let i=l.length;i--;) l[i]=l[i].milli;
-				let output=Stats.percentile(l, select.percentile);
+				for(i=l.length;i--;) l[i]=l[i].milli;
+				var output=Stats.percentile(l, select.percentile);
 				return Duration.newInstance(output);
 			}else if (total.list[0].getMilli){
-				for(let i=l.length;i--;) l[i]=l[i].getMilli();
-				let output=Stats.percentile(l, select.percentile);
+				for(i=l.length;i--;) l[i]=l[i].getMilli();
+				var output=Stats.percentile(l, select.percentile);
 				return Date.newInstance(output);
 			}else{
 				return Stats.percentile(l, select.percentile);
@@ -446,12 +446,12 @@ Qb.aggregate.median = function(select){
 
 			//THE Stats CAN ONLY HANDLE NUMBERS, SO WE CONVERT TYPES TO NUMBERS AND BACK AGAIN WHEN DONE
 			if (l[0].milli){
-				for(let i=l.length;i--;) l[i]=l[i].milli;
-				let output=Stats.median(l);
+				for(i=l.length;i--;) l[i]=l[i].milli;
+				var output=Stats.median(l);
 				return Duration.newInstance(output);
 			}else if (total.list[0].getMilli){
-				for(let i=l.length;i--;) l[i]=l[i].getMilli();
-				let output=Stats.median(l);
+				for(i=l.length;i--;) l[i]=l[i].getMilli();
+				var output=Stats.median(l);
 				return Date.newInstance(output);
 			}else{
 				return Stats.median(l);
@@ -512,12 +512,12 @@ Qb.aggregate.middle = function(select){
 
 			//THE Stats CAN ONLY HANDLE NUMBERS, SO WE CONVERT TYPES TO NUMBERS AND BACK AGAIN WHEN DONE
 			if (l[0].milli){
-				for(let i=l.length;i--;) l[i]=l[i].milli;
-				let output=Stats.middle(l, select.percentile);
+				for(i=l.length;i--;) l[i]=l[i].milli;
+				var output=Stats.middle(l, select.percentile);
 				return {"min":Duration.newInstance(output.min), "max":Duration.newInstance(output.max)};
 			}else if (total.list[0].getMilli){
-				for(let i=l.length;i--;) l[i]=l[i].getMilli();
-				let output=Stats.middle(l, select.percentile);
+				for(i=l.length;i--;) l[i]=l[i].getMilli();
+				var output=Stats.middle(l, select.percentile);
 				return {"min":Date.newInstance(output.min), "max":Date.newInstance(output.max)};
 			}else{
 				return Stats.middle(l, select.percentile);

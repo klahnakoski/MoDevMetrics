@@ -68,7 +68,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 	$("#title").html("Perfy!");
 	$("#description").html("Please <a href='https://wiki.mozilla.org/Platform/Games/GameFocusedBenchmarking'>read the wiki</a> for detailed explaination of testing procedure and analysis.<br><br> Click a chart to see the timeseries");
 
-	var __createChart = function(){
+	var __createChart = function*(){
 		var sampleDate = Date.eod();
 		var totalsFilter={"terms":{"info.test":["total", "Kraken", "Octane"]}};
 
@@ -155,7 +155,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 	};
 
 	function showOneTest(b, benchmark, p, platform, totalsFilter, testFilter){
-		Thread.run(function(){
+		Thread.run(function*(){
 
 			var data = yield(ESQuery.run({
 				"name":benchmark.name,

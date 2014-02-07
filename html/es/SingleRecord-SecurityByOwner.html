@@ -77,7 +77,7 @@ var esQuery = {
 	}
 };
 
-Thread.run(function(){
+Thread.run(function*(){
 	var data = ElasticSearch.search("bugs", esQuery);
 	Log.note(CNV.Object2JSON(data));
 

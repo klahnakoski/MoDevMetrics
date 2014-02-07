@@ -61,13 +61,13 @@ Qb.domain.compile = function(column, sourceColumns){
 Qb.domain.equals=function(a, b){
 	if ((a.type=="default" || a.type=="set") && (b.type=="default" || b.type=="set")){
 		if (a.partitions.length!=b.partitions.length) return false;
-		for(let i=0;i<a.partitions.length;i++){
+		for(i=0;i<a.partitions.length;i++){
 			if (b.getPartByKey(a.getKey(a.partitions[i]))==b.NULL) return false;
 		}//for
 		return true;
 	}else if (a.type=="value" && b.type=="value"){
 		if (a.partitions.length!=b.partitions.length) return false;
-		for(let i=0;i<a.partitions.length;i++){
+		for(i=0;i<a.partitions.length;i++){
 			if (a[i]!=b[i]) return false;
 		}//for
 		return true;
@@ -337,7 +337,7 @@ Qb.domain.time = function(column, sourceColumns){
 		}//endif
 	} else{
 		d.map = {};
-		for(let v = 0; v < d.partitions.length; v++){
+		for(v = 0; v < d.partitions.length; v++){
 			d.map[d.partitions[v].value] = d.partitions[v];  //ASSMUE THE DOMAIN HAS THE value ATTRBUTE
 		}//for
 	}//endif

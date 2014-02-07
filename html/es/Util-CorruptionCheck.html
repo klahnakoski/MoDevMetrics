@@ -21,15 +21,17 @@
 <script type="application/javascript;version=1.7">
 
 
+USE_DOT=true;
+
 importScript(["js/main.js"], function(){
 
 	//ES CAN BE OUT-OF-SYNCH WITH BZ ON PARTICULAR BUGS DURING UNSTABLE PERIODS
 
-	Thread.run(function(){
+	Thread.run(function*(){
 		var a = Log.action("Find suspicious bugs", true);
 
 		var result=yield (ESQuery.run({
-			"from":"private_bugs",
+			"from":"bugs",
 			"select":{"name":"num_null", "value":"expires_on>"+Date.eod().getMilli()+" ? 1 : 0", "aggregate":"sum"},
 			"edges":["bug_id"],
 			"esfilter":{"range":{"modified_ts":{"gte":Date.now().addMonth(-3).getMilli()}}}
@@ -52,7 +54,7 @@ importScript(["js/main.js"], function(){
 		a = Log.action("Get suspicious bug details", true);
 		//FIX THEM?
 		var broken=yield (ESQuery.run({
-			"from":"private_bugs",
+			"from":"bugs",
 			"select":[
 				{"value":"_id"},
 				{"value":"bug_id"},
@@ -67,7 +69,7 @@ importScript(["js/main.js"], function(){
 		var fixed=yield (Qb.calc2List({
 			"from":{
 				"select":[
-					{"name":"_id", "value":"bug_id+'_'+(''+modified_ts).leftBut(3)"},
+					{"value":"_id"},
 					{"value":"bug_id"},
 					{"value":"modified_ts"},
 					{"name":"expires_on", "value":"Date.newInstance(expires_on)==null ? null : expires_on"},
@@ -94,16 +96,21 @@ importScript(["js/main.js"], function(){
 		var a = Log.action("Get bug _source json", true);
 		var sources=[];
 
-		var host = ESQuery.INDEXES["private_bugs"].host;
+		var host = ESQuery.INDEXES["bugs"].host;
+		var path = ESQuery.INDEXES["bugs"].path;
 
 		for(var i=fixed.list.length;i--;){
-			var v=fixed.list[i];
-			var output=yield (Rest.get({
-				url: host+"/private_bugs/bug_version/"+v._id,
-				dataType: "json"
-			}));
-			output._source._id=v._id;
-			sources.append(output._source);
+			try{
+				var v=fixed.list[i];
+				var output=yield (Rest.get({
+					url: host+path+"/"+v._id,
+					dataType: "json"
+				}));
+				output._source._id=v._id;
+				sources.append(output._source);
+			}catch(e){
+
+			}//try
 		}
 		Log.actionDone(a);
 
@@ -124,9 +131,9 @@ importScript(["js/main.js"], function(){
 		});
 
 		// REMOVE COMMENT TO APPLY FIX
-//		a = Log.action("bulk index fixes", true);
-//		yield (ElasticSearch.bulkInsert("bugs", "bug_version", bulk));
-//		Log.actionDone(a);
+		a = Log.action("bulk index fixes", true);
+		yield (ElasticSearch.bulkInsert("bugs", "bug_version", bulk));
+		Log.actionDone(a);
 
 		
 		$("#fixes").html(CNV.List2HTMLTable(fixed));

@@ -42,7 +42,7 @@ importScript(["js/main.js"], function(){
 
 
 var createChart=function(){
-	Thread.run(function(){
+	Thread.run(function*(){
 
 		yield (ESQuery.loadColumns({"from":"bugs"}));
 

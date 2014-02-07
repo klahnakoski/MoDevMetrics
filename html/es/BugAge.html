@@ -52,7 +52,7 @@ var createChart=function(){
 	thread=Thread.run( __createChart());
 };
 
-var __createChart = function(){
+var __createChart = function*(){
 	var interval = Date.today().subtract(Date.newInstance(GUI.state.cohortMin)).multiply(1 / GUI.state.cohortNum);
 
 	var query = new ESQuery({
@@ -95,7 +95,7 @@ var __createChart = function(){
 
 
 	$(document).ready(function(){
-//		Thread.run(function(){
+//		Thread.run(function*(){
 
 			GUI.setup(createChart, [
 				{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},

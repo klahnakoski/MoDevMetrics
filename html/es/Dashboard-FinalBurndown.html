@@ -61,7 +61,7 @@ var createChart = function(){
 	thread = Thread.run(__createChart());
 };
 
-var __createChart = function(){
+var __createChart = function*(){
 	$("#title").html("<b>"+GUI.state.forTitle+"</b>");
 
 
@@ -96,7 +96,7 @@ var __createChart = function(){
 
 
 	
-	Thread.run(function(){
+	Thread.run(function*(){
 		var a=Log.action("Get Bug Details", true);
 		//FIND ALL BUGS
 		var historyBugs=yield (ElasticSearch.getMinMax({"and":[mainFilter, Mozilla.BugStatus.Open.esfilter]}));
@@ -266,7 +266,7 @@ var __createChart = function(){
 	var stillOpen = flat.get("date", sampleMin).open;
 	var requiredNetCloseRatePerDay;
 	{
-		let daysLeft=Date.diffWeekday(DUE_DATE, sampleMin);
+		var daysLeft=Date.diffWeekday(DUE_DATE, sampleMin);
 		//let	daysLeft = DUE_DATE.subtract(sampleMin).divideBy(Duration.DAY);
 		daysLeft = aMath.max(1, daysLeft);
 		requiredNetCloseRatePerDay = stillOpen / daysLeft;

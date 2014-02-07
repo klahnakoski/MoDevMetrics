@@ -37,14 +37,14 @@ importScript([
 	});
 
 	$("#inc").click(function(){
-		Thread.run(function(){
+		Thread.run(function*(){
 			var startTime=yield (BUG_SUMMARY.getLastUpdated());
 			yield (ETL.incrementalInsert(BUG_SUMMARY, startTime));
 		});
 	});
 
 	$("#test").click(function(){
-		Thread.run(function(){
+		Thread.run(function*(){
 			var reviews=yield (BUG_SUMMARY.get([635852 , 718121, 790640, 563491], undefined));
 			$("#results").html(CNV.List2HTMLTable(reviews));
 		});

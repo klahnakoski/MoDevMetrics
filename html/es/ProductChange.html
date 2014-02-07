@@ -63,7 +63,7 @@ var createChart=function(){
 	thread=Thread.run( __createChart());
 };
 
-var __createChart = function(){
+var __createChart = function*(){
 
 	var sampleSize=Duration.newInstance(GUI.state.sampleSize);
 	var sampleMax=Date.newInstance(GUI.state.endX).ceilingDay();
@@ -96,7 +96,7 @@ var __createChart = function(){
 	}));
 	Log.actionDone(a);
 
-	Thread.run(function(){
+	Thread.run(function*(){
 		var average=yield(ESQuery.run({
 			"from":"bugs",
 			"select":[

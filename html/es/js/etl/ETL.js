@@ -11,7 +11,7 @@ importScript("../qb/Qb.js");
 ETL={};
 
 
-Thread.run("get bug columns", function(){
+Thread.run("get bug columns", function*(){
 	yield (ESQuery.loadColumns({"from":"bugs"}));
 
 	if (ESQuery.INDEXES.bugs.columns===undefined) yield (null);
@@ -120,7 +120,7 @@ ETL.getMaxBugID=function(){
 
 
 
-ETL.newInsert=function(etl){
+ETL.newInsert=function*(etl){
 
 	yield (etl.makeSchema());
 	yield (ETL.removeOldIndexes(etl));
@@ -143,7 +143,7 @@ ETL.newInsert=function(etl){
 
 
 
-ETL.resumeInsert=function(etl){
+ETL.resumeInsert=function*(etl){
 	//MAKE SCHEMA
 	yield (ETL.removeOldIndexes(etl));
 

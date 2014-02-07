@@ -54,7 +54,7 @@ var thread;
 var createChart = function(){
 	if (thread !== undefined)
 		thread.kill();
-	thread = Thread.run(function(){
+	thread = Thread.run(function*(){
 		try{
 			yield (__createChart());
 		}catch(e){
@@ -64,7 +64,7 @@ var createChart = function(){
 	});
 };
 
-var __createChart = function(){
+var __createChart = function*(){
 
 	var sampleMin = Date.newInstance(GUI.state.sampleMin);
 	var sampleMax =Date.eod().addDay(1);
@@ -225,7 +225,7 @@ var __createChart = function(){
 			"height":400,
 			"xAxisSize":50,
 			"clickAction":function(series, x, d){
-				Thread.run(function(){
+				Thread.run(function*(){
 					var where;
 					if (series=="opened"){
 						where="min.floorDay().getMilli()=="+x.getMilli();
@@ -274,7 +274,7 @@ var __createChart = function(){
 	var stillOpen = flat.cube[flat.edges[0].domain.getPartByKey(Date.now().floorDay()).dataIndex].open;
 	var requiredNetCloseRatePerDay;
 	{
-		let daysLeft=Date.diffWeekday(DUE_DATE, Date.now().floorDay());
+		var daysLeft=Date.diffWeekday(DUE_DATE, Date.now().floorDay());
 		//let	daysLeft = DUE_DATE.subtract(sampleMax).divideBy(Duration.DAY);
 		daysLeft = aMath.max(1, daysLeft);
 		requiredNetCloseRatePerDay = stillOpen / daysLeft;
@@ -288,7 +288,7 @@ var __createChart = function(){
 	{
 		var openAtStartOfEstimate = flat.cube[flat.edges[0].domain.getPartByKey(statsMax).dataIndex-1].open;
 		var netCloseRatePerDay = (perDay.closed-perDay["opened"]);
-		let daysLeft = openAtStartOfEstimate / netCloseRatePerDay;
+		var daysLeft = openAtStartOfEstimate / netCloseRatePerDay;
 		expectedEndDate = statsMax.addWeekday(daysLeft);
 		netCloseRatePerDay = aMath.max(0, netCloseRatePerDay);
 	}
@@ -383,7 +383,7 @@ var __createChart = function(){
 			line_lineWidth: 3
 		},
 		"clickAction":function(series, x, d){
-			Thread.run(function(){
+			Thread.run(function*(){
 				var buglist=(yield (ESQuery.run({
 					"from":"bugs",
 					"select":{"value":"bug_id", "aggregate":"minimum"},

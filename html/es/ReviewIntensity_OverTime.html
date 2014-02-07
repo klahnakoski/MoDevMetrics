@@ -62,7 +62,7 @@ importScript([
 		thread=Thread.run("createChart", __createChart());
 	};
 
-	var __createChart = function(){
+	var __createChart = function*(){
 
 		var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
 		var sampleMin=Date.newInstance(GUI.state.sampleMin);//.floor(sampleInterval);
@@ -92,7 +92,7 @@ importScript([
 
 
 		//CHART OF AGGREGATE RESPONSE TIMES
-		Thread.run("Agg response times", function(){
+		Thread.run("Agg response times", function*(){
 			var a=Log.action("Grab Stats", true);
 			var ages=(yield (ESQuery.run({
 				"name":"DF",

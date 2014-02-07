@@ -177,7 +177,7 @@ BUG_TAGS.insert=function(tags){
 	});
 
 	Log.action("Push bug tags to ES");
-	yield ETL.chunk(insert, function(data){
+	yield ETL.chunk(insert, function*(data){
 		try{
 			yield (Rest.post({
 				"url":ElasticSearch.pushURL + "/" + BUG_TAGS.newIndexName + "/" + BUG_TAGS.typeName + "/_bulk",
@@ -193,7 +193,7 @@ BUG_TAGS.insert=function(tags){
 
 
 
-BUG_TAGS.addMissing=function(){
+BUG_TAGS.addMissing=function*(){
 
 	yield (ETL.getCurrentIndex(BUG_TAGS));
 	var maxBug=yield (ETL.getMaxBugID());

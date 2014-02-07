@@ -57,7 +57,7 @@ PartitionFilter.newInstance=function(param){
 function convertToTreeLater(self, treeNode, dimension){
 	self.numLater++;
 	GUI.pleaseRefreshLater=true;
-	Thread.run(function(){
+	Thread.run(function*(){
 		//DO THIS ONE LATER
 //		treeNode.children = [];
 		if (dimension.partitions instanceof Thread){
@@ -176,7 +176,7 @@ PartitionFilter.prototype.makeTree=function(){
 	if (self.numLater>0){
 		if (self.refreshLater===undefined){
 			//WAIT FOR LOADING TO COMPLETE
-			self.refreshLater=Thread.run(function(){
+			self.refreshLater=Thread.run(function*(){
 				while(self.numLater>0) yield(Thread.sleep(200));
 				self.makeTree();
 				self.refreshLater=undefined;

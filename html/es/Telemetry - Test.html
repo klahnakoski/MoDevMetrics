@@ -57,7 +57,7 @@
 importScript(['js/main.js', 'js/Dimension-Telemetry.js'], function(){
 
 //SOMETHING IS CHANGING THE position=relative
-var fixer=Thread.run("Monitor regression div", function(){
+var fixer=Thread.run("Monitor regression div", function*(){
 
 	while(true){
 		$("#chartLine").css("position","absolute");
@@ -84,7 +84,7 @@ var createChart=function(){
 	thread=Thread.run( __createChart());
 };
 
-var __createChart = function(){
+var __createChart = function*(){
 
 //	var sampleMin=Date.newInstance(GUI.state.sampleMin);
 //	var sampleMax=Date.newInstance(GUI.state.sampleMax).ceilingDay();
@@ -137,7 +137,7 @@ var __createChart = function(){
 
 	//CHART PRODUCT BREAKDOWN
 	var heatGrid;
-	var heatThread=Thread.run("pull raw telemetry data", function(){
+	var heatThread=Thread.run("pull raw telemetry data", function*(){
 		heatGrid=yield (ESQuery.run({
 			"name":"X vs Y",
 			"from":"raw_telemetry",
@@ -217,7 +217,7 @@ var __createChart = function(){
 //	var XY;
 
 //
-//	var threadXY=Thread.run("pull XY stats", function(){
+//	var threadXY=Thread.run("pull XY stats", function*(){
 //		XY=yield (ESQuery.run({
 //			"from":"raw_telemetry",
 //			"select":[
@@ -230,7 +230,7 @@ var __createChart = function(){
 //		}));
 //	});
 //
-//	var threadX=Thread.run("pull X stats", function(){
+//	var threadX=Thread.run("pull X stats", function*(){
 //		X=yield (ESQuery.run({
 //			"from":"raw_telemetry",
 //			"select":[
@@ -243,7 +243,7 @@ var __createChart = function(){
 //		}));
 //	});
 //
-//	var threadY=Thread.run("pull Y stats", function(){
+//	var threadY=Thread.run("pull Y stats", function*(){
 //		Y=yield (ESQuery.run({
 //			"from":"raw_telemetry",
 //			"select":[

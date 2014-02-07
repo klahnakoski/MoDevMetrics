@@ -1,6 +1,6 @@
 
 function ESQueryRunner(query, callback){
-	Thread.run(function(){
+	Thread.run(function*(){
 		yield(ESQuery.loadColumns(query));
 		var cubeQuery = new ESQuery(query);
 		var data = yield(cubeQuery.run());
@@ -10,12 +10,12 @@ function ESQueryRunner(query, callback){
 
 function ESQueryRunMany(queries, callback){
 	//ASSUME queries IS AN ARRAY
-	Thread.run(function(){
+	Thread.run(function*(){
 		//LAUNCH ALL QUERIES
 		var threads=[];
 		for(var i=0;i<queries.length;i++){
 			var j=i;
-			threads[i]=Thread.run(function(){
+			threads[i]=Thread.run(function*(){
 				yield(ESQuery.loadColumns(query));
 				var cubeQuery = new ESQuery(queries[j]);
 				var data = yield(cubeQuery.run());

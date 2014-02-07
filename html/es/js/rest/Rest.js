@@ -26,7 +26,7 @@ Rest.addProgressListener=function(callback){
 };
 
 
-Rest.send=function(ajaxParam){
+Rest.send=function*(ajaxParam){
 	if (ajaxParam.query!==undefined) Log.error("Do not set the query parameter, use 'data'");
 	if (ajaxParam.success!==undefined) Log.error("This function will return data, it does not accept the success function");
 

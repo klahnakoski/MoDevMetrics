@@ -22,7 +22,7 @@
 	importScript([
 		"js/main.js"
 	], function(){
-		Thread.run(function(){
+		Thread.run(function*(){
 
 			Log.note(Date.newInstance(1352207434236).format("yyyy-NNN-dd HHmmss"));
 //		yield (ESQuery.loadColumns({"from":"bugs"}));

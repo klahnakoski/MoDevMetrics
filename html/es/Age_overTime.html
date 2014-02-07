@@ -150,7 +150,7 @@ var createChart=function(){
 	thread=Thread.run( __createChart());
 };
 
-var __createChart = function(){
+var __createChart = function*(){
 
 	var sampleSize=Duration.newInstance(GUI.state.sampleSize);
 	var sampleMax=Date.newInstance(GUI.state.endX).ceilingDay();
@@ -183,7 +183,7 @@ var __createChart = function(){
 	}));
 	Log.actionDone(a);
 
-	Thread.run(function(){
+	Thread.run(function*(){
 		var average=yield(ESQuery.run({
 			"from":"bug_summary",
 			"select":[
@@ -220,7 +220,7 @@ var __createChart = function(){
 	});
 
 
-	threadPercentiles=Thread.run(function(){
+	threadPercentiles=Thread.run(function*(){
 
 		var a=Log.action("Get Time Stats", true);
 		allBugs=yield(ESQuery.run({
@@ -286,7 +286,7 @@ var chartStat=function(description, timeDomain, sampleSize){
 
 	if (allBugs==null) Log.error("Please wait for data collection");
 
-	Thread.run(function(){
+	Thread.run(function*(){
 
 		//SOME BUGS HAVE NEGATIVE AGE!!
 		allBugs.list=allBugs.list.map(function(v, i){

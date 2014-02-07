@@ -58,7 +58,7 @@ var createChart = function(){
 	thread = Thread.run(__createChart());
 };
 
-var __createChart = function(){
+var __createChart = function*(){
 	$("#title").html("B2G Bug Fix Rate");
 	$("#description").html(
 		"Show number of Resolution==FIXED bugs for four major B2G projects:<ul>"+
@@ -95,7 +95,7 @@ var __createChart = function(){
 	yield (ESQuery.loadColumns({"from":"bugs"}));
 
 
-	Thread.run(function(){
+	Thread.run(function*(){
 		var a=Log.action("Get Bug Details", true);
 
 
@@ -198,7 +198,7 @@ var __createChart = function(){
 				line_lineWidth: 2
 			},
 			"clickAction":function(project, x, d){
-				Thread.run(function(){
+				Thread.run(function*(){
 					var date=Date.newInstance(x);
 
 					var list=yield (Qb.calc2List({

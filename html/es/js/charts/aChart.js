@@ -183,7 +183,7 @@ function copyParam(fromParam, toParam){
 
 
 	{//ENSURE CONTAINER DIV IS CORRECT SIZE
-		let div = $("#" + fromParam.id);
+		var div = $("#" + fromParam.id);
 		div.width(toParam.width);
 		div.height(toParam.height);
 	}
@@ -353,7 +353,7 @@ aChart.showScatter=function(params){
 
 	if (chartCube.edges.length==1){
 		if (chartCube.select instanceof Array){
-			for(let i=0;i<chartCube.select.length;i++){
+			for(i=0;i<chartCube.select.length;i++){
 				if (chartCube.select[i].color!==undefined) Log.error("expecting color in style attribute (style.color)");
 				if (chartCube.select[i].style!==undefined) styles[i]=chartCube.select[i].style;
 			}//for
@@ -362,8 +362,8 @@ aChart.showScatter=function(params){
 			if (chartCube.select.style!==undefined) styles[0]=chartCube.select.style;
 		}//endif
 	}else{
-		let parts=chartCube.edges[0].domain.partitions;
-		for(let i=0;i<parts.length;i++){
+		var parts=chartCube.edges[0].domain.partitions;
+		for(i=0;i<parts.length;i++){
 			if (parts[i].color!==undefined) Log.error("expecting color in style attribute (style.color)");
 			if (parts[i].style!==undefined) styles[i]=parts[i].style;
 		}//for
@@ -619,7 +619,7 @@ aChart.show=function(params){
 
 	if (chartCube.edges.length==1){
 		if (chartCube.select instanceof Array){
-			for(let i=0;i<chartCube.select.length;i++){
+			for(i=0;i<chartCube.select.length;i++){
 				if (chartCube.select[i].color!==undefined) Log.error("expecting color in style attribute (style.color)");
 				if (chartCube.select[i].style!==undefined) styles[i]=chartCube.select[i].style;
 			}//for
@@ -627,16 +627,16 @@ aChart.show=function(params){
 			if (chartCube.select.style!==undefined){
 				styles[0]=chartCube.select.style;
 			}else{
-				let parts=chartCube.edges[0].domain.partitions;
-				for(let i=0;i<parts.length;i++){
+				var parts=chartCube.edges[0].domain.partitions;
+				for(i=0;i<parts.length;i++){
 					if (parts[i].color!==undefined) Log.error("expecting color in style attribute (style.color)");
 					if (parts[i].style!==undefined) styles[i]=parts[i].style;
 				}//for
 			}//endif
 		}//endif
 	}else{
-		let parts=chartCube.edges[0].domain.partitions;
-		for(let i=0;i<parts.length;i++){
+		var parts=chartCube.edges[0].domain.partitions;
+		for(i=0;i<parts.length;i++){
 			if (parts[i].color!==undefined) Log.error("expecting color in style attribute (style.color)");
 			if (parts[i].style!==undefined) styles[i]=parts[i].style;
 		}//for
@@ -826,7 +826,7 @@ function bugClicker(query, series, x){
 		//We can decide to drilldown, or show a bug list.
 		//Sometimes drill down is not available, and bug list is too big, so nothing happens
 		//When there is a drilldown, the decision to show bugs is made at a lower count (prefering drilldown)
-		Thread.run(function(){
+		Thread.run(function*(){
 			var specific;
 			if (query.edges.length==2){
 				specific=Qb.specificBugs(query, [series, x]);

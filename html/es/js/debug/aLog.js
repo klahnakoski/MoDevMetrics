@@ -127,9 +127,9 @@ Log.actionDone=function(action){
 
 ASSERT={};
 ASSERT.hasAttributes=function(obj, keyList){
-	A: for(let i=0;i<keyList.length;i++){
+	A: for(i=0;i<keyList.length;i++){
 		if (keyList[i] instanceof Array){
-			for(let j=0;j<keyList[i].length;j++){
+			for(j=0;j<keyList[i].length;j++){
 				if (obj[keyList[i][j]]!==undefined) continue A;
 			}//for
 			Log.error("expecting object to have one of "+CNV.Object2JSON(keyList[i])+" attribute");

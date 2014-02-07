@@ -277,7 +277,7 @@ var HIERARCHY = {};
 
 	if (DEBUG){
 
-		Thread.run(function(){
+		Thread.run(function*(){
 			yield (HIERARCHY.start());
 			yield (toFixPoint(new aRelation().addArray("12", [45, 46, 47]).addArray(45, [1,2,3]), DATA));
 			if (DATA.allDescendants.get(12).length!=6) Log.error();

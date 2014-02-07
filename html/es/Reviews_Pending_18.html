@@ -51,7 +51,7 @@ var createChart=function(){
 	thread=Thread.run( __createChart());
 };
 
-var __createChart = function(){
+var __createChart = function*(){
 
 	$("#newReviewsTitle").html("Reviews Requested in Past "+NUM_WEEKS+" Weeks");
 	$("#oldReviewsTitle").html("Reviews Over "+NUM_WEEKS+" Weeks Old");
@@ -74,7 +74,7 @@ var __createChart = function(){
 
 	GUI.injectFilters(q);
 
-	Thread.run(function(){
+	Thread.run(function*(){
 		var old=yield (q.run());
 
 		var a=Log.action("Get Old Reviews", true);

@@ -25,7 +25,7 @@ importScript(["js/main.js"], function(){
 		thread = Thread.run(__createChart());
 	};
 
-	var __createChart = function(){
+	var __createChart = function*(){
 
 
 		var reviews = (yield(ESQuery.run({

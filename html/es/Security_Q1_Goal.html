@@ -71,7 +71,7 @@ importScript('js/main.js', function(){
 		thread = Thread.run(__createChart());
 	};
 
-	var __createChart = function(){
+	var __createChart = function*(){
 
 		{
 			let
@@ -110,7 +110,7 @@ importScript('js/main.js', function(){
 
 
 		var allBugs;
-		var allBugsThread = Thread.run(function(){
+		var allBugsThread = Thread.run(function*(){
 			Log.action("Request Bugs");
 
 			allBugs = yield(ElasticSearch.getMinMax(mainFilter));
@@ -148,7 +148,7 @@ importScript('js/main.js', function(){
 		});
 
 
-		Thread.run(function(){
+		Thread.run(function*(){
 			var details = yield(ESQuery.run({
 				"from":"bugs",
 				"select":[
@@ -196,7 +196,7 @@ importScript('js/main.js', function(){
 		});
 
 
-		Thread.run(function(){
+		Thread.run(function*(){
 			var a = Log.action("Request Bugs", true);
 			var chart = yield(ESQuery.run({
 				"name":"Open Bug Count",
@@ -231,7 +231,7 @@ importScript('js/main.js', function(){
 		});
 
 
-		Thread.run(function(){
+		Thread.run(function*(){
 
 			yield(Thread.join(allBugsThread));
 
@@ -271,7 +271,7 @@ importScript('js/main.js', function(){
 					var part = churn.edges[0].domain.getPartByKey(x);
 					var field = {"New":"min", "Closed":"max"}[series];
 
-					Thread.run(function(){
+					Thread.run(function*(){
 						var buglist = (yield(Qb.calc2List({
 							"from":allBugs,
 							"select":{"value":"bug_id"},

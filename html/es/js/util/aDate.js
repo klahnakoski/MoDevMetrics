@@ -121,11 +121,11 @@ Date.diffWeekday=function(endTime, startTime){
 
 	{//TEST
 		if (startTime<=endTime){
-			for(let d=startTime;d.getMilli()<endTime.getMilli();d=d.addDay(1)){
+			for(d=startTime;d.getMilli()<endTime.getMilli();d=d.addDay(1)){
 				if (![6,0].contains(d.dow())) out++;
 			}//for
 		}else{
-			for(let d=endTime;d.getMilli()<startTime.getMilli();d=d.addDay(1)){
+			for(d=endTime;d.getMilli()<startTime.getMilli();d=d.addDay(1)){
 				if (![6,0].contains(d.dow())) out--;
 			}//for
 		}//endif
@@ -539,25 +539,25 @@ Date.getBestInterval=function(minDate, maxDate, requestedInterval, numIntervals)
 	if (dur.milli>Duration.MONTH.milli*numIntervals.min){
 		dur=maxDate.subtract(minDate, Duration.MONTH);
 
-		let biggest=dur.divideBy(numIntervals.min).month;
-		let best=Duration.COMMON_INTERVALS[0];
-		for(let i=0;i<Duration.COMMON_INTERVALS.length;i++){
+		var biggest=dur.divideBy(numIntervals.min).month;
+		var best=Duration.COMMON_INTERVALS[0];
+		for(i=0;i<Duration.COMMON_INTERVALS.length;i++){
 			if (biggest>Duration.COMMON_INTERVALS[i].month) best=Duration.COMMON_INTERVALS[i];
 		}//for
 		return best;
 	}else{
-		let requested=requestedInterval.milli;
-		let smallest=dur.divideBy(numIntervals.max).milli;
-		let biggest=dur.divideBy(numIntervals.min).milli;
+		var requested=requestedInterval.milli;
+		var smallest=dur.divideBy(numIntervals.max).milli;
+		var biggest=dur.divideBy(numIntervals.min).milli;
 
 		if (smallest<=requested && requested<biggest) return requestedInterval;
 		if (requested>biggest){
-			for(let i=Duration.COMMON_INTERVALS.length;i--;){
+			for(i=Duration.COMMON_INTERVALS.length;i--;){
 				if (biggest>Duration.COMMON_INTERVALS[i].milli) return Duration.COMMON_INTERVALS[i];
 			}//for
 			return Duration.COMMON_INTERVALS[0];
 		}else if (requested<smallest){
-			for(let i=0;i<Duration.COMMON_INTERVALS.length;i++){
+			for(i=0;i<Duration.COMMON_INTERVALS.length;i++){
 				if (smallest<=Duration.COMMON_INTERVALS[i].milli) return Duration.COMMON_INTERVALS[i];
 			}//for
 			return Duration.COMMON_INTERVALS.last();
