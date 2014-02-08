@@ -74,8 +74,7 @@ importScript('js/main.js', function(){
 	var __createChart = function*(){
 
 		{
-			let
-			parts = GUI.state.teamFilter.getSelectedParts();
+			var parts = GUI.state.teamFilter.getSelectedParts();
 			if (parts.length == 0){
 				$("#title").html("Security - All");
 			} else{
