@@ -75,7 +75,7 @@ importScript("js/main.js", function(){
 					},
 					"filter": {
 						"and":[
-							{ "range":{ "expires_on":{ "gt" : Date.now().addDay(1) } } },
+							{ "range":{ "expires_on":{ "gt" : Date.now().addDay(1).getMilli() } } },
 //						{ "term":{"status_whiteboard.tokenized": "metro-mvp"}},
 							Mozilla.BugStatus.Open.esfilter,
 							GUI.getFilters("bugs")
@@ -85,10 +85,6 @@ importScript("js/main.js", function(){
 			},
 			"from":0,
 			"size":0,
-			"sort":[
-				{ "bug_version_num":{"sort" : "asc"} }
-			],
-
 			"facets":{
 				"pending": {
 					"terms": {
