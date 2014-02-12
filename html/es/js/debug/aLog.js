@@ -3,7 +3,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-importScript("../../lib/jquery.js");
+importScript([
+    "../../lib/jquery.js",
+    "../../lib/jquery-ui/js/jquery-ui-1.10.2.custom.js",
+    "../../lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css"
+]);
 importScript("aException.js");
 
 
@@ -60,7 +64,7 @@ Log.warning = function(description, cause){
 
 Log.alert=function(message, ok_callback, cancel_callback){
 	Log.note(message);
-	
+
 	var d=$('<div>'+message+"</div>").dialog({
 		title:"Alert",
 		draggable: false,
@@ -68,8 +72,14 @@ Log.alert=function(message, ok_callback, cancel_callback){
 		resizable: false,
 
 		buttons: {
-			"OK": function () { $(this).dialog("close"); if (ok_callback) ok_callback(); },
-			"Cancel":cancel_callback ? function () { $(this).dialog("close"); cancel_callback(); } : undefined
+			"OK": function () {
+                $(this).dialog("close");
+                if (ok_callback) ok_callback();
+            },
+			"Cancel":cancel_callback ? function () {
+                $(this).dialog("close");
+                cancel_callback();
+            } : undefined
 		}
 	});
 

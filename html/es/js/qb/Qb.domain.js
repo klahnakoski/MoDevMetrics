@@ -200,7 +200,10 @@ Qb.domain.time = function(column, sourceColumns){
 
 	d.interval = Duration.newInstance(d.interval);
 	d.min = new Date(d.min);//.floor(d.interval);
-	d.max = d.min.add(new Date(d.max).subtract(d.min, d.interval).floor(d.interval, d.min));
+    if (d.max!==undefined){
+        d.max = d.min.add(new Date(d.max).subtract(d.min, d.interval).floor(d.interval, d.min));
+    }//endif
+
 
 	d.compare = function(a, b){
 		return Qb.domain.value.compare(a.value, b.value);
@@ -879,7 +882,7 @@ Qb.domain.set = function(column, sourceColumns){
 	}else if (d.partitions instanceof Array){
 		d.columns=Qb.getColumnsFromList(d.partitions);
 	}//endif
-		
+
 	d.NULL = {};
 	d.columns.forall(function(v, i){
 		d.NULL[v.name]=null;
@@ -894,7 +897,7 @@ Qb.domain.set = function(column, sourceColumns){
 	d.label = function(part){
 		return part.name;
 	};//method
-	
+
 
 	d.getCanonicalPart = function(obj){
 		return this.getPartByKey(this.getKey(obj));

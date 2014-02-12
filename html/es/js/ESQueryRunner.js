@@ -14,13 +14,12 @@ function ESQueryRunMany(queries, callback){
 		//LAUNCH ALL QUERIES
 		var threads=[];
 		for(var i=0;i<queries.length;i++){
-			var j=i;
-			threads[i]=Thread.run(function*(){
+			threads[i]=Thread.run((function*(j){
 				yield(ESQuery.loadColumns(query));
 				var cubeQuery = new ESQuery(queries[j]);
 				var data = yield(cubeQuery.run());
 				yield (data);
-			});
+			})(i));
 		}//for
 
 		//COLLECT ALL RESULTS

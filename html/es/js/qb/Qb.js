@@ -33,6 +33,10 @@ Qb.compile = function(query, sourceColumns, useMVEL){
 	var columns = [];
 	var uniqueColumns={};
 
+    if (sourceColumns===undefined){
+        Log.error("It seems we can't get schema from cluster?")
+    }//endif
+
 	if (query.edges === undefined) query.edges=[];
 
 	var edges = query.edges;

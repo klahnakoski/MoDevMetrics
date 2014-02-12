@@ -393,12 +393,26 @@ var importScript;
 	}//method
 
 
+    var pending = [];
+
 	//AN ARRAY WILL DEMAND LOAD ORDER
-	importScript = function(importFile, code){
+    function __importScript__(importFile, code){
+        if (code!==undefined) pending.push(code);
 		addDependency(window.location.pathname, importFile);
-		importScript = function(){}; //ONLY RUN ONCE
-		_importScript_(code);
-	};//method
+		importScript = function(i, code){
+            if (code!==undefined) pending.push(code);
+        };
+		_importScript_(function(){
+            //WHEN ALL DONE AUTOMATICALLY
+            for(var i = 0; i < pending.length; i++){
+                pending[i]();
+            }//for
+            window.importScript=__importScript__
+        });
+	}//method
+
+
+	importScript = __importScript__;
 
 
 })();

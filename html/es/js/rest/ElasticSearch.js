@@ -8,7 +8,8 @@ importScript("Rest.js");
 ElasticSearch={};
 
 //ElasticSearch.pushURL="http://elasticsearch-private.bugs.scl3.mozilla.com:9200";
-ElasticSearch.pushURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
+//ElasticSearch.pushURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
+ElasticSearch.pushURL="http://elasticsearch5.bugs.scl3.mozilla.com:9200";
 //ElasticSearch.pushURL="http://localhost:9200";
 
 

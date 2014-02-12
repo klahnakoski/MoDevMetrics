@@ -66,18 +66,20 @@ importScript(["js/main.js"], function(){
 		}));
 		Log.actionDone(a);
 
+        var times = yield(Qb.calc2List({
+            "select":[
+                {"value":"_id"},
+                {"value":"bug_id"},
+                {"value":"modified_ts"},
+                {"name":"expires_on", "value":"Date.newInstance(expires_on)==null ? null : expires_on"},
+                {"value":"bug_version_num"}
+            ],
+            "from":broken,
+            "analytic":{"name":"new_expires_on", "value":"(rownum>=rows.length-1 ? null : rows[rownum+1].modified_ts)", "edges":["bug_id"], "sort":["modified_ts"]}
+        }));
+
 		var fixed=yield (Qb.calc2List({
-			"from":{
-				"select":[
-					{"value":"_id"},
-					{"value":"bug_id"},
-					{"value":"modified_ts"},
-					{"name":"expires_on", "value":"Date.newInstance(expires_on)==null ? null : expires_on"},
-					{"value":"bug_version_num"}
-				],
-				"from":broken,
-				"analytic":{"name":"new_expires_on", "value":"(rownum>=rows.length-1 ? null : rows[rownum+1].modified_ts)", "edges":["bug_id"], "sort":["modified_ts"]}
-			},
+			"from": times,
 			"select":[
 				{"value":"_id"},
 				{"value":"bug_id"},
@@ -132,7 +134,8 @@ importScript(["js/main.js"], function(){
 
 		// REMOVE COMMENT TO APPLY FIX
 		a = Log.action("bulk index fixes", true);
-		yield (ElasticSearch.bulkInsert("bugs", "bug_version", bulk));
+        var paths=ESQuery.INDEXES["bugs"].path.split("/").substring(1);
+		yield (ElasticSearch.bulkInsert(paths[0], paths[1], bulk));
 		Log.actionDone(a);
 
 

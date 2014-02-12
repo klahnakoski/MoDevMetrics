@@ -30,12 +30,12 @@ ESQuery.DEBUG=false;
 // THESE ARE THE AVAILABLE ES INDEXES/TYPES
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
-	"bugs":{"host":"http://elasticsearch7.metrics.scl3.mozilla.com:9200", "path":"/bugs/bug_version"},
+//    "bugs":{"host":"http://elasticsearch7.metrics.scl3.mozilla.com:9200", "path":"/bugs/bug_version"},
+    "bugs":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/private_bugs/bug_version"},
 	"public_bugs":{"host":"http://esfrontline.bugzilla.mozilla.org:80", "path":"/public_bugs/bug_version"},
 	"public_bugs_backend":{"host":"http://elasticsearch1.bugs.scl3.mozilla.com:9200", "path":"/public_bugs/bug_version"},
 	"public_bugs_proxy":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9201", "path":"/public_bugs/bug_version"},
-	"public_comments":{"host":"http://elasticsearch1.bugs.scl3.mozilla.com:9200", "path":"/public_comments/bug_comment"},
-	"private_bugs":{"host":"http://elasticsearch6.bugs.scl3.mozilla.com:9200", "path":"/private_bugs/bug_version"},
+	"private_bugs":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/private_bugs/bug_version"},
 	"private_comments":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/private_comments/bug_comment"},
 
 	"tor_bugs":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/bugs/bug_version"},
@@ -52,7 +52,7 @@ ESQuery.INDEXES={
 	"bugs.changes":{},
 	"bugs.attachments":{},
 	"bugs.attachments.flags":{},
-	
+
 	"reviews":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":"/reviews/review"},
 	"bug_summary":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":"/bug_summary/bug_summary"},
 	"bug_tags":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":"/bug_tags/bug_tags"},
@@ -60,7 +60,7 @@ ESQuery.INDEXES={
 	"temp":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":""},
 	"telemetry":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":"/telemetry_agg_valid_201305/data"},
 	"raw_telemetry":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/raw_telemetry/data"},
-	
+
 	"talos":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/datazilla/results"},
 	"b2g_tests":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/b2g_tests/results"},
 
@@ -98,7 +98,7 @@ ESQuery.parseColumns=function(indexName, parentName, esProperties){
 			return;
 		}//endif
 
-		
+
 		if (property.dynamic !== undefined) return;
 		if (property.type === undefined) return;
 		if (property.type == "multi_field"){
@@ -226,10 +226,6 @@ ESQuery.run=function*(query){
 
 
 ESQuery.prototype.run = function*(){
-
-	if (this.query.from=="bugs")
-		Log.note("");
-
 	if (!this.query.url){
 		var indexInfo=ESQuery.INDEXES[this.query.from.split(".")[0]];
 		if (indexInfo.host===undefined) Log.error("must have host defined");
@@ -258,7 +254,7 @@ ESQuery.prototype.run = function*(){
 			}));
 
 			if (postResult){
-				
+
 			}//endif
 		}catch(e){
 			if (!e.contains(Exception.TIMEOUT)){
@@ -278,7 +274,7 @@ ESQuery.prototype.run = function*(){
 		if (postResult.facets) forAllKey(postResult.facets, function(facetName, f){
 			if (f._type=="statistical") return;
 			if (!f.terms) return;
-			
+
 			if (!ESQuery.DEBUG && f.terms.length==self.query.essize){
 				Log.error("Not all data delivered ("+f.terms.length+"/"+f.total+") try smaller range");
 			}//endif
@@ -789,7 +785,7 @@ ESQuery.prototype.buildESStatisticalQuery=function(value){
 //GIVE JAVASCRIPT THAT WILL CONVERT THE TERM BACK INTO THE TUPLE
 //RETURNS TUPLE OBJECT WITH "type" and "value" ATTRIBUTES.
 //"type" CAN HAVE A VALUE OF "script", "field" OR "count"
-//CAN USE THE constants (name, value pairs) 
+//CAN USE THE constants (name, value pairs)
 ESQuery.prototype.compileEdges2Term=function(constants){
 	var self=this;
 	var edges=this.termsEdges;
@@ -1137,7 +1133,7 @@ ESQuery.prototype.termsResults=function(data){
 	if (select===undefined) select=[];
 	var cube= Qb.cube.newInstance(this.query.edges, 0, select);
 
-	
+
 	//FILL CUBE
 	//PROBLEM HERE IS THE INTERLACED EDGES
 	for(var k = 0; k < facetNames.length; k++){
@@ -1421,7 +1417,7 @@ ESQuery.prototype.fieldsResults=function(data){
 		    var record=T[i].fields
 			var new_rec={};
 			this.query.select.forall(function(s, i){
-				new_rec[s.name]=nvl(record[s.value], null);
+				new_rec[s.name]=nvl(record[s.value], T[i][s.value]);
 			});
 			o.push(new_rec)
 		}//for
@@ -1456,7 +1452,7 @@ ESQuery.prototype.mvelResults=function(data){
 	 	this.query.list =  MVEL.esFacet2List(data.facets.mvel, this.select);
 	}//endif
 
-	
+
 	select=this.query.select;
 	if (select instanceof Array) return;
 	//SELECT AS NO ARRAY (AND NO EDGES) MEANS A SIMPLE ARRAY OF VALUES, NOT AN ARRAY OF OBJECTS
