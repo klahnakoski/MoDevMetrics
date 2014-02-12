@@ -30,7 +30,7 @@ Thread.run("get bug columns", function*(){
 // RUN THIS NEAR BEGINNING TO REMOVE ALL BUT THE oldIndex (ONE WITH THE ALIAS)
 // AND THE newIndex (THE NEWEST WITHOUT AN ALIAS)
 ///////////////////////////////////////////////////////////////////////////////
-ETL.removeOldIndexes=function(etl){
+ETL.removeOldIndexes=function*(etl){
 	//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
 	var data=yield (Rest.get({url: ElasticSearch.pushURL+"/_aliases"}));
 	Log.note(data);
@@ -72,7 +72,7 @@ ETL.removeOldIndexes=function(etl){
 ////////////////////////////////////////////////////////////////////////////////
 // REDIRECT alias TO POINT FROM oldIndexName TO newIndexName
 ////////////////////////////////////////////////////////////////////////////////
-ETL.updateAlias=function(etl){
+ETL.updateAlias=function*(etl){
 
 
 	//UPDATE THE AUTO-INDEXING TO EVERY SECOND
@@ -108,7 +108,7 @@ ETL.updateAlias=function(etl){
 };
 
 
-ETL.getMaxBugID=function(){
+ETL.getMaxBugID=function*(){
 	var maxResults=yield(ESQuery.run({
 		"select":{"name":"bug_id", "value":"bug_id", "aggregate":"maximum"},
 		"from" : "bugs",
@@ -186,7 +186,7 @@ ETL.resumeInsert=function*(etl){
 
 
 //SET THE etl.newIndexName TO THE INDEX BEING USED BY etl.aliasName
-ETL.getCurrentIndex=function(etl){
+ETL.getCurrentIndex=function*(etl){
 
 	var data = yield(Rest.get({url: ElasticSearch.pushURL + "/_aliases"}));
 	Log.note(data);
@@ -203,7 +203,7 @@ ETL.getCurrentIndex=function(etl){
 
 
 //UPDATE BUG_TAGS THAT MAY HAVE HAPPENED AFTER startTime
-ETL.incrementalInsert=function(etl){
+ETL.incrementalInsert=function*(etl){
 
 	yield (ETL.getCurrentIndex(etl));
 	if (etl.newIndexName===undefined) Log.error("No index found! (Initial ETL not completed?)");
@@ -227,7 +227,7 @@ ETL.incrementalInsert=function(etl){
 	Log.actionDone(a);
 
 
-	var buglist=[]=data.edges[0].domain.partitions.map(function(v,i){
+	var buglist=data.edges[0].domain.partitions.map(function(v,i){
 		return v.value;
 	});
 	Log.note(buglist.length+" bugs found: "+JSON.stringify(buglist));
@@ -252,7 +252,7 @@ ETL.incrementalInsert=function(etl){
 };
 
 
-ETL.insertBatches=function(etl, fromBatch, toBatch, maxBatch){
+ETL.insertBatches=function*(etl, fromBatch, toBatch, maxBatch){
 	if (aMath.isNaN(toBatch)) toBatch=1000000;
 	if (aMath.isNaN(maxBatch)) maxBatch=1000000;
 
@@ -267,7 +267,7 @@ ETL.insertBatches=function(etl, fromBatch, toBatch, maxBatch){
 
 //insert MUST BE AN ARRAY OF STRINGS WHICH WILL BE CONCATENATED WITH \n AND
 //LIMITED TO 10MEG CHUNKS AND SENT TO insertFunction FOR PROCESSING
-ETL.chunk=function(insert, insertFunction){
+ETL.chunk=function*(insert, insertFunction){
 //ES HAS 100MB LIMIT, BREAK INTO SMALLER CHUNKS
 	var threads=[];
 

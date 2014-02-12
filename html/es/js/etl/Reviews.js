@@ -35,7 +35,7 @@ REVIEWS.ALIASES=[
 //});
 
 
-REVIEWS.getLastUpdated=function(){
+REVIEWS.getLastUpdated=function*(){
 	var url;
 	if (REVIEWS.newIndexName){
 		url=ElasticSearch.pushURL+"/"+REVIEWS.newIndexName+"/"+REVIEWS.typeName;
@@ -53,7 +53,7 @@ REVIEWS.getLastUpdated=function(){
 };
 
 
-REVIEWS.makeSchema=function(successFunction){
+REVIEWS.makeSchema=function*(successFunction){
 	//MAKE SCHEMA
 	REVIEWS.newIndexName=REVIEWS.aliasName+Date.now().format("yyMMdd_HHmmss");
 
@@ -130,7 +130,7 @@ REVIEWS.makeSchema=function(successFunction){
 };
 
 
-REVIEWS.get=function(minBug, maxBug){
+REVIEWS.get=function*(minBug, maxBug){
 
 	//DETERMINE IF WE ARE LOOKING AT A RANGE, OR A SPECIFIC SET, OF BUGS
 	var esfilter;
@@ -145,26 +145,26 @@ REVIEWS.get=function(minBug, maxBug){
 		"timeout":60000,
 		"isLean":true,
 		"select" : [
-			{"name":"bug_id", "value":"bugs.bug_id"},
-			{"name":"attach_id", "value":"bugs.attachments.attach_id"},
-			{"name":"modified_ts", "value":"bugs.modified_ts"},
-			{"name":"requestee", "value":"bugs.attachments.flags.requestee"},
-			{"name":"created_by", "value":"bugs.attachments.created_by"},
-			{"name":"product", "value":"bugs.product"},
-			{"name":"component", "value":"bugs.component"},
-			{"name":"bug_status", "value":"(bugs.bug_status=='resolved'||bugs.bug_status=='verified'||bugs.bug_status=='closed') ? 'closed':'open'"},
+			"bug_id",
+			{"name":"attach_id", "value":"attachments.attach_id"},
+			"modified_ts",
+			{"name":"requestee", "value":"attachments.flags.requestee"},
+			{"name":"created_by", "value":"attachments.created_by"},
+			"product",
+			"component",
+			{"name":"bug_status", "value":"(bug_status=='resolved'||bug_status=='verified'||bug_status=='closed') ? 'closed':'open'"},
 			{"name":"keywords", "value":"doc[\"keywords\"].value"},
-			{"name":"whiteboard", "value":"bugs.status_whiteboard"},
+			"whiteboard",
 			{"name":"flags", "value":ETL.getFlags()}
 		],
 		"from":
 			"bugs.attachments.flags",
 		"where":
 			{"and" : [
-				{"terms":{"bugs.attachments.flags.request_status":["?"]}},
-				{"terms":{"bugs.attachments.flags.request_type":["review", "superreview"]}},
-				{"script":{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}},
-				{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
+				{"terms":{"attachments.flags.request_status":["?"]}},
+				{"terms":{"attachments.flags.request_type":["review", "superreview"]}},
+				{"script":{"script":"attachments.flags.modified_ts==modified_ts"}},
+				{"term":{"attachments[\"attachments.isobsolete\"]" : 0}}
 			]},
 		"esfilter":
 			esfilter
@@ -172,23 +172,23 @@ REVIEWS.get=function(minBug, maxBug){
 
 //	var esQueryAttachments=new ESQuery({
 //		"select" : [
-//			{"name":"bug_id", "value":"bugs.bug_id"},
-//			{"name":"attach_id", "value":"bugs.attachments.attach_id"},
-//			{"name":"modified_ts", "value":"bugs.modified_ts"},
-//			{"name":"requestee", "value":"bugs.attachments.flags.requestee"},
-//			{"name":"modified_by", "value":"bugs.attachments.flags.modified_by"},
-//			{"name":"product", "value":"bugs.product"},
-//			{"name":"component", "value":"bugs.component"},
-//			{"name":"bug_status", "value":"(bugs.bug_status=='resolved'||bugs.bug_status=='verified'||bugs.bug_status=='closed') ? 'closed':'open'"}
+//			{"name":"bug_id", "value":"bug_id"},
+//			{"name":"attach_id", "value":"attachments.attach_id"},
+//			{"name":"modified_ts", "value":"modified_ts"},
+//			{"name":"requestee", "value":"attachments.flags.requestee"},
+//			{"name":"modified_by", "value":"attachments.flags.modified_by"},
+//			{"name":"product", "value":"product"},
+//			{"name":"component", "value":"component"},
+//			{"name":"bug_status", "value":"(bug_status=='resolved'||bug_status=='verified'||bug_status=='closed') ? 'closed':'open'"}
 //		],
 //		"from":
 //			"bugs.attachments.flags",
 //		"where":
 //			{"and" : [
-//				{"terms":{"bugs.attachments.flags.request_status":["?"]}},
-//				{"terms":{"bugs.attachments.flags.request_type":["review", "superreview"]}},
-//				{"script":{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}},
-//				{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
+//				{"terms":{"attachments.flags.request_status":["?"]}},
+//				{"terms":{"attachments.flags.request_type":["review", "superreview"]}},
+//				{"script":{"script":"attachments.flags.modified_ts==modified_ts"}},
+//				{"term":{"attachments[\"attachments.isobsolete\"]" : 0}}
 //			]},
 //		"esfilter":
 //			esfilter
@@ -202,37 +202,38 @@ REVIEWS.get=function(minBug, maxBug){
 		"timeout":60000,
 		"isLean":true,
 		"select" : [
-			{"name":"bug_id", "value":"bugs.bug_id"},
-			{"name":"attach_id", "value":"bugs.attachments.attach_id"},
-			{"name":"modified_ts", "value":"maximum(bugs.modified_ts, maximum(bugs.attachments.modified_ts, bugs.attachments.flags.modified_ts))"},
-			{"name":"requestee", "value":"bugs.attachments.flags.requestee"},
-			{"name":"modified_by", "value":"bugs.attachments.flags.modified_by"},
-			{"name":"product", "value":"bugs.product"},
-			{"name":"component", "value":"bugs.component"},
-			{"name":"review_end_reason", "value":"bugs.attachments.flags.request_status!='?' ? 'done' : (bugs.attachments[\"attachments.isobsolete\"]==1 ? 'obsolete' : 'closed')"},
-			{"name":"review_result", "value":"bugs.attachments.flags.request_status=='+' ? '+' : (bugs.attachments.flags.request_status=='-' ? '-' : '?')"}
+			{"name":"bug_id", "value":"bug_id"},
+			{"name":"attach_id", "value":"attachments.attach_id"},
+			{"name":"modified_ts", "value":"maximum(modified_ts, maximum(attachments.modified_ts, attachments.flags.modified_ts))"},
+			{"name":"requestee", "value":"attachments.flags.requestee"},
+			{"name":"modified_by", "value":"attachments.flags.modified_by"},
+			{"name":"product", "value":"product"},
+			{"name":"component", "value":"component"},
+			{"name":"review_end_reason", "value":"attachments.flags.request_status!='?' ? 'done' : (attachments[\"attachments.isobsolete\"]==1 ? 'obsolete' : 'closed')"},
+			{"name":"review_result", "value":"attachments.flags.request_status=='+' ? '+' : (attachments.flags.request_status=='-' ? '-' : '?')"}
 		],
 		"from":
 			"bugs.attachments.flags",
 		"where":
 			{"and" : [
-				{"not":{"missing":{"field":"bugs.attachments.flags.request_type", "existence":true, "null_value":true}}},
-//				{"term":{"bugs.attachments.attach_id":"420463"}},
-				{"terms":{"bugs.attachments.flags.request_type":["review", "superreview"]}},
+                {"exists":{"field":"attachments"}},
+				{"not":{"missing":{"field":"attachments.flags.request_type", "existence":true, "null_value":true}}},
+//				{"term":{"attachments.attach_id":"420463"}},
+				{"terms":{"attachments.flags.request_type":["review", "superreview"]}},
 				{"or" : [
 					{ "and" : [//IF THE REQUESTEE SWITCHED THE ? FLAG, THEN IT IS DONE
-						{"not":{"terms":{"bugs.attachments.flags.request_status":["?"]}}}
+						{"not":{"terms":{"attachments.flags.request_status":["?"]}}}
 					]},
 					{"and":[//IF OBSOLEETED THE ATTACHMENT, IT IS DONE
-						{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 1}},
-						{"not":{"missing":{"field":"bugs.previous_values", "existence":true, "null_value":true}}},
-						{"term":{"bugs.previous_values[\"attachments.isobsolete_values\"]" : 0}}
+						{"term":{"attachments[\"attachments.isobsolete\"]" : 1}},
+						{"not":{"missing":{"field":"previous_values", "existence":true, "null_value":true}}},
+						{"term":{"previous_values[\"attachments.isobsolete_values\"]" : 0}}
 					]},
 					{ "and":[//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
-						{"terms":{"bugs.bug_status":["resolved", "verified", "closed"]}},
-						{"not":{"missing":{"field":"bugs.previous_values", "existence":true, "null_value":true}}},
-						{"not":{"missing":{"field":"bugs.previous_values.bug_status_value", "existence":true, "null_value":true}}},
-						{"not": {"terms":{"bugs.previous_values.bug_status_value": ["resolved", "verified", "closed"]}}}
+						{"terms":{"bug_status":["resolved", "verified", "closed"]}},
+						{"not":{"missing":{"field":"previous_values", "existence":true, "null_value":true}}},
+						{"not":{"missing":{"field":"previous_values.bug_status_value", "existence":true, "null_value":true}}},
+						{"not": {"terms":{"previous_values.bug_status_value": ["resolved", "verified", "closed"]}}}
 					]}
 				]}
 			]},
@@ -245,29 +246,29 @@ REVIEWS.get=function(minBug, maxBug){
 		"timeout":60000,
 		"isLean":true,
 		"select" : [
-			{"name":"bug_id", "value":"bugs.bug_id"},
-			{"name":"attach_id", "value":"bugs.changes.attach_id"},
-			{"name":"modified_ts", "value":"bugs.modified_ts"},
-			{"name":"requestee", "value":"bugs.changes.field_value_removed"},
+			"bug_id",
+			{"name":"attach_id", "value":"changes.attach_id"},
+			"modified_ts",
+			{"name":"requestee", "value":"changes.field_value_removed"},
 			{"name":"modified_by", "value":"null"},
-			{"name":"product", "value":"bugs.product"},
-			{"name":"component", "value":"bugs.component"},
+			"product",
+			"component",
 			{"name":"review_end_reason", "value":"'reassigned'"}
 		],
 		"from":
 			"bugs.changes",
 		"where":
 			{"and":[//ONLY LOOK FOR NAME CHANGES IN THE "review?" FIELD
-				{"term":{"bugs.changes.field_name":"flags"}},
-				{"exists":{"field":"bugs.changes.field_value"}},
-				{"exists":{"field":"bugs.changes.field_value_removed"}},
+				{"term":{"changes.field_name":"flags"}},
+				{"exists":{"field":"changes.field_value"}},
+				{"exists":{"field":"changes.field_value_removed"}},
 				{"or":[
-					{"prefix":{"bugs.changes.field_value":"review?"}},
-					{"prefix":{"bugs.changes.field_value":"superreview?"}}
+					{"prefix":{"changes.field_value":"review?"}},
+					{"prefix":{"changes.field_value":"superreview?"}}
 				]},
 				{"or":[
-					{"prefix":{"bugs.changes.field_value_removed":"review?"}},
-					{"prefix":{"bugs.changes.field_value_removed":"superreview?"}}
+					{"prefix":{"changes.field_value_removed":"review?"}},
+					{"prefix":{"changes.field_value_removed":"superreview?"}}
 				]}
 			]},
 		"esfilter":
@@ -353,7 +354,7 @@ REVIEWS.get=function(minBug, maxBug){
 };//method
 
 
-REVIEWS.insert=function(reviews){
+REVIEWS.insert=function*(reviews){
 	var uid=Date.now().getMilli()+"";
 	var insert=[];
 	reviews.forall(function(r, i){
