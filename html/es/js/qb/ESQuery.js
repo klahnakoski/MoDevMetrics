@@ -64,23 +64,25 @@ ESQuery.INDEXES={
 	"talos":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/datazilla/results"},
 	"b2g_tests":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/b2g_tests/results"},
 
-	"perfy":{"host":"http://elasticsearch8.metrics.scl3.mozilla.com:9200", "path":"/perfy/scores"},
+    "perfy":{"host":"http://elasticsearch8.metrics.scl3.mozilla.com:9200", "path":"/perfy/scores"},
+    "metrics_perfy":{"host":"https://metrics.mozilla.com:9200", "path":"/bugzilla-analysis/perfy/scores"},
 	"local_perfy":{"host":"http://localhost:9200", "path":"/perfy/scores"}
 
 //	"raw_telemetry":{"host":"http://localhost:9200", "path":"/raw_telemetry/data"}
 };
 
-if (window.location.hostname=="metrics.mozilla.com"){
-	//FROM Daniel Einspanjer  Oct 20, 2012 (for use on website)
-	//FOR ANYONE, BUT ONLY THROUGH METRIC'S SERVERS
-
-    forAllKey(ESQuery.INDEXES, function(k, v){
-        if (v.host.endsWith("metrics.scl3.mozilla.com:9200")){
-            v.host = "https://metrics.mozilla.com:9200";
-            v.path = "/bugzilla-analysis"+ v.path;
-        }//endif
-    });
-}//endif
+//if (window.location.hostname=="metrics.mozilla.com"){
+//	//FROM Daniel Einspanjer  Oct 20, 2012 (for use on website)
+//	//FOR ANYONE, BUT ONLY THROUGH METRIC'S SERVERS
+//
+//    forAllKey(ESQuery.INDEXES, function(k, v){
+//        if (v.host === undefined) return;
+//        if (v.host.endsWith("metrics.scl3.mozilla.com:9200")){
+//            v.host = "https://metrics.mozilla.com";
+//            v.path = "/bugzilla-analysis"+ v.path;
+//        }//endif
+//    });
+//}//endif
 
 
 
