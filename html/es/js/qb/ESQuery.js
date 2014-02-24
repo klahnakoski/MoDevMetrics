@@ -71,18 +71,20 @@ ESQuery.INDEXES={
 //	"raw_telemetry":{"host":"http://localhost:9200", "path":"/raw_telemetry/data"}
 };
 
-//if (window.location.hostname=="metrics.mozilla.com"){
-//	//FROM Daniel Einspanjer  Oct 20, 2012 (for use on website)
-//	//FOR ANYONE, BUT ONLY THROUGH METRIC'S SERVERS
-//
-//    forAllKey(ESQuery.INDEXES, function(k, v){
-//        if (v.host === undefined) return;
-//        if (v.host.endsWith("metrics.scl3.mozilla.com:9200")){
-//            v.host = "https://metrics.mozilla.com";
-//            v.path = "/bugzilla-analysis"+ v.path;
-//        }//endif
-//    });
-//}//endif
+if (window.location.hostname=="metrics.mozilla.com"){
+	//FROM Daniel Einspanjer  Oct 20, 2012 (for use on website)
+	//FOR ANYONE, BUT ONLY THROUGH METRIC'S SERVERS
+	//ElasticSearch.baseURL="/bugzilla-analysis-es";
+	//ElasticSearch.queryURL = "/bugzilla-analysis-es/bugs/_search";
+
+    forAllKey(ESQuery.INDEXES, function(k, v){
+        if (v.host === undefined) return;
+        if (v.host.endsWith("metrics.scl3.mozilla.com:9200")){
+            v.host = "https://metrics.mozilla.com";
+            v.path = "/bugzilla-analysis-es"+ v.path;
+        }//endif
+    });
+}//endif
 
 
 
@@ -154,7 +156,7 @@ ESQuery.loadColumns=function(query){
 	var indexName = null;
 	if (typeof(query) == 'string'){
 		indexName = query;
-	}else{
+	}else{//https://metrics.mozilla.com/bugzilla-analysis/es/images/Spreadsheet.png
 		indexName = query.from.split(".")[0];
 	}//endif
 
@@ -170,6 +172,9 @@ ESQuery.loadColumns=function(query){
 		indexInfo.fetcher=Thread.run(function(){
 			var URL=nvl(query.url, indexInfo.host + indexPath) + "/_mapping";
 			var path = parse.URL(URL).pathname.split("/").rightBut(1);
+            if (path[0]=="bugzilla-analysis-es"){
+                path = path.rightBut(1)
+            }
 			var pathLength = path.length - 1;  //ASSUME /indexname.../_mapping
 
 			try{
