@@ -70,6 +70,19 @@ ESQuery.INDEXES={
 //	"raw_telemetry":{"host":"http://localhost:9200", "path":"/raw_telemetry/data"}
 };
 
+if (window.location.hostname=="metrics.mozilla.com"){
+	//FROM Daniel Einspanjer  Oct 20, 2012 (for use on website)
+	//FOR ANYONE, BUT ONLY THROUGH METRIC'S SERVERS
+
+    forAllKey(ESQuery.INDEXES, function(k, v){
+        if (v.host.endsWith("metrics.scl3.mozilla.com:9200")){
+            v.host = "https://metrics.mozilla.com:9200";
+            v.path = "/bugzilla-analysis"+ v.path;
+        }//endif
+    });
+}//endif
+
+
 
 ESQuery.getColumns=function(indexName){
 	var index=ESQuery.INDEXES[indexName];
