@@ -7,7 +7,8 @@ var MozillaPrograms = {
 	"columns":
 		["projectName", "attributeName", "attributeValue", "esfilter"],
 	"rows":[
-		["B2G 1.3",       "cf_blocking_b2g", "1.3+"],
+        ["B2G 1.4",       "cf_blocking_b2g", "1.4+"],
+        ["B2G 1.3",       "cf_blocking_b2g", "1.3+"],
 		["B2G 1.2.0 (Koi)", "cf_blocking_b2g", "koi+"],
 		["B2G 1.1.0 (Koi)", "cf_blocking_b2g", "leo+"],
 		["B2G 1.1.0 (Leo)", "cf_blocking_b2g", "leo+"],  //WAS CALLED Leo, BUT MERGED WITH Koi
