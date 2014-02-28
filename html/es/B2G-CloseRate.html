@@ -81,15 +81,30 @@ var __createChart = function(){
 	Dimension.addEdges(true, focal_dim, [
 		{"name":"Project", "index":"bugs", "partitions":[
             {"name":"1.4", "esfilter":{"or":[
-                {"and":[{"exists":{"field":"target_milestone"}}, {"prefix":{"target_milestone":"1.4"}}]},
+                {"and":[
+                    {"exists":{"field":"target_milestone"}},
+                    {"prefix":{"target_milestone":"1.4"}},
+                    {"not":{"term":{"product": "instantbird"}}},
+                    {"not":{"term":{"product": "chat core"}}}
+                ]},
                 {"terms":{"cf_blocking_b2g":["1.4+"]}}
             ]}},
             {"name":"1.3", "esfilter":{"or":[
-                {"and":[{"exists":{"field":"target_milestone"}}, {"prefix":{"target_milestone":"1.3"}}]},
+                {"and":[
+                    {"exists":{"field":"target_milestone"}},
+                    {"prefix":{"target_milestone":"1.3"}},
+                    {"not":{"term":{"product": "instantbird"}}},
+                    {"not":{"term":{"product": "chat core"}}}
+                ]},
                 {"terms":{"cf_blocking_b2g":["1.3+"]}}
             ]}},
             {"name":"KOI", "esfilter":{"or":[
-                {"and":[{"exists":{"field":"target_milestone"}}, {"prefix":{"target_milestone":"1.2"}}]},
+                {"and":[
+                    {"exists":{"field":"target_milestone"}},
+                    {"prefix":{"target_milestone":"1.2"}},
+                    {"not":{"term":{"product": "instantbird"}}},
+                    {"not":{"term":{"product": "chat core"}}}
+                ]},
                 {"terms":{"cf_blocking_b2g":["koi+"]}}
             ]}},
 			{"name":"LEO", "esfilter":{"terms":{"cf_blocking_b2g":["leo+"]}}},

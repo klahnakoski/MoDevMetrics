@@ -2,6 +2,9 @@
 Mozilla Developer Metrics
 =========================
 
+The current branch is [ES6](https://github.com/klahnakoski/MoDevMetrics/tree/es6)
+---------------------------------------------------------------------------------
+
 Objective
 ---------
 
@@ -27,7 +30,7 @@ Drawbacks
   * **No GUI tools** - There is no drag-and-drop query builder, You must be proficient in SQL and other high level list
   comprehensions.
   * **NO GUI Layout** - Layout of dashboard is done in HTML and CSS.
-  * **Limited Charting** (for now) - There are better charting libraries out there.  
+  * **Limited Charting** (for now) - There are better charting libraries out there.
 
 Requirements
 ------------
@@ -43,7 +46,7 @@ Install
 -------
 
     git clone https://github.com/klahnakoski/MoDevMetrics.git
-    
+
     Cloning into 'MoDevMetrics'...
     remote: Counting objects: 6563, done.
     remote: Compressing objects: 100% (3142/3142), done.
