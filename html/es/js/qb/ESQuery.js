@@ -30,8 +30,7 @@ ESQuery.DEBUG=false;
 // THESE ARE THE AVAILABLE ES INDEXES/TYPES
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
-//    "bugs":{"host":"http://elasticsearch7.metrics.scl3.mozilla.com:9200", "path":"/bugs/bug_version"},
-    "bugs":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/private_bugs/bug_version"},
+	"bugs":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":"/private_bugs/bug_version"},
 	"public_bugs":{"host":"http://esfrontline.bugzilla.mozilla.org:80", "path":"/public_bugs/bug_version"},
 	"public_bugs_backend":{"host":"http://elasticsearch1.bugs.scl3.mozilla.com:9200", "path":"/public_bugs/bug_version"},
 	"public_bugs_proxy":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9201", "path":"/public_bugs/bug_version"},
@@ -64,11 +63,28 @@ ESQuery.INDEXES={
 	"talos":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/datazilla/results"},
 	"b2g_tests":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/b2g_tests/results"},
 
-	"perfy":{"host":"http://elasticsearch8.metrics.scl3.mozilla.com:9200", "path":"/perfy/scores"},
+    "perfy":{"host":"http://elasticsearch8.metrics.scl3.mozilla.com:9200", "path":"/perfy/scores"},
+    "metrics_perfy":{"host":"https://metrics.mozilla.com:9200", "path":"/bugzilla-analysis/perfy/scores"},
 	"local_perfy":{"host":"http://localhost:9200", "path":"/perfy/scores"}
 
 //	"raw_telemetry":{"host":"http://localhost:9200", "path":"/raw_telemetry/data"}
 };
+
+if (window.location.hostname=="metrics.mozilla.com"){
+	//FROM Daniel Einspanjer  Oct 20, 2012 (for use on website)
+	//FOR ANYONE, BUT ONLY THROUGH METRIC'S SERVERS
+	//ElasticSearch.baseURL="/bugzilla-analysis-es";
+	//ElasticSearch.queryURL = "/bugzilla-analysis-es/bugs/_search";
+
+    forAllKey(ESQuery.INDEXES, function(k, v){
+        if (v.host === undefined) return;
+        if (v.host.endsWith("metrics.scl3.mozilla.com:9200")){
+            v.host = "https://metrics.mozilla.com";
+            v.path = "/bugzilla-analysis-es"+ v.path;
+        }//endif
+    });
+}//endif
+
 
 
 ESQuery.getColumns=function(indexName){
@@ -139,7 +155,7 @@ ESQuery.loadColumns=function*(query){
 	var indexName = null;
 	if (typeof(query) == 'string'){
 		indexName = query;
-	}else{
+	}else{//https://metrics.mozilla.com/bugzilla-analysis/es/images/Spreadsheet.png
 		indexName = query.from.split(".")[0];
 	}//endif
 
@@ -155,6 +171,9 @@ ESQuery.loadColumns=function*(query){
 		indexInfo.fetcher=Thread.run(function*(){
 			var URL=nvl(query.url, indexInfo.host + indexPath) + "/_mapping";
 			var path = parse.URL(URL).pathname.split("/").rightBut(1);
+            if (path[0]=="bugzilla-analysis-es"){
+                path = path.rightBut(1)
+            }
 			var pathLength = path.length - 1;  //ASSUME /indexname.../_mapping
 
 			try{

@@ -62,8 +62,9 @@ var __createChart = function*(){
 	$("#title").html("B2G Bug Fix Rate");
 	$("#description").html(
 		"Show number of Resolution==FIXED bugs for four major B2G projects:<ul>"+
-		"<li><b>KOI</b> - blocking-b2g==&quot;koi+&quot; OR target_milestone.startsWith(&quot;1.2&quot;)</li>"+
-		"<li><b>1.3</b> - blocking-b2g==&quot;1.3+&quot; OR target_milestone.startsWith(&quot;1.3&quot;)</li>"+
+        "<li><b>1.4</b> - blocking-b2g==&quot;1.4+&quot; OR target_milestone.startsWith(&quot;1.4&quot;)</li>"+
+        "<li><b>1.3</b> - blocking-b2g==&quot;1.3+&quot; OR target_milestone.startsWith(&quot;1.3&quot;)</li>"+
+        "<li><b>KOI</b> - blocking-b2g==&quot;koi+&quot; OR target_milestone.startsWith(&quot;1.2&quot;)</li>"+
 		"<li><b>LEO</b> - blocking-b2g==&quot;leo+&quot;</li>"+
 		"<li><b>HD</b> - blocking-b2g==&quot;hd+&quot;</li>"+
 		"</ul><p>In the event a bug belongs to more than one project, bugs are only counted once, and preference given to the top most project in this list.</p>"+
@@ -79,14 +80,33 @@ var __createChart = function*(){
 	var focal_dim={"name":"Project", "edges":[]};
 	Dimension.addEdges(true, focal_dim, [
 		{"name":"Project", "index":"bugs", "partitions":[
-			{"name":"KOI", "esfilter":{"or":[
-				{"and":[{"exists":{"field":"target_milestone"}}, {"prefix":{"target_milestone":"1.2"}}]},
-				{"terms":{"cf_blocking_b2g":["koi+"]}}
-			]}},
-			{"name":"1.3", "esfilter":{"or":[
-				{"and":[{"exists":{"field":"target_milestone"}}, {"prefix":{"target_milestone":"1.3"}}]},
-				{"terms":{"cf_blocking_b2g":["1.3+"]}}
-			]}},
+            {"name":"1.4", "esfilter":{"or":[
+                {"and":[
+                    {"exists":{"field":"target_milestone"}},
+                    {"prefix":{"target_milestone":"1.4"}},
+                    {"not":{"term":{"product": "instantbird"}}},
+                    {"not":{"term":{"product": "chat core"}}}
+                ]},
+                {"terms":{"cf_blocking_b2g":["1.4+"]}}
+            ]}},
+            {"name":"1.3", "esfilter":{"or":[
+                {"and":[
+                    {"exists":{"field":"target_milestone"}},
+                    {"prefix":{"target_milestone":"1.3"}},
+                    {"not":{"term":{"product": "instantbird"}}},
+                    {"not":{"term":{"product": "chat core"}}}
+                ]},
+                {"terms":{"cf_blocking_b2g":["1.3+"]}}
+            ]}},
+            {"name":"KOI", "esfilter":{"or":[
+                {"and":[
+                    {"exists":{"field":"target_milestone"}},
+                    {"prefix":{"target_milestone":"1.2"}},
+                    {"not":{"term":{"product": "instantbird"}}},
+                    {"not":{"term":{"product": "chat core"}}}
+                ]},
+                {"terms":{"cf_blocking_b2g":["koi+"]}}
+            ]}},
 			{"name":"LEO", "esfilter":{"terms":{"cf_blocking_b2g":["leo+"]}}},
 			{"name":"HD", "esfilter":{"terms":{"cf_blocking_b2g":["hd+"]}}}
 		]}
