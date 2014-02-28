@@ -9,6 +9,13 @@ This project is designed to optimize the creation of dashboards using ElasticSea
 make dashboards, for example: Cognos, MicroStrategy, Pentaho and Tableau.  Unlike these tools, MoDevMetrics is suited
 for programmers: Code, testability, and version control are important.
 
+Examples
+--------
+
+[My page of charts](http://people.mozilla.org/~klahnakoski/charts.html) hosts the master branch of this repo.  Please
+feel free to view and run them through your debugger.
+
+
 Benefits
 --------
 
