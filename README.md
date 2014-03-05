@@ -54,10 +54,10 @@ Install
     Cloning into 'MoDevMetrics'...
     remote: Counting objects: 6563, done.
     remote: Compressing objects: 100% (3142/3142), done.
-	remote: Total 6563 (delta 4485), reused 5226 (delta 3148)
-	Receiving objects: 100% (6563/6563), 17.89 MiB | 234 KiB/s, done.
-	Resolving deltas: 100% (4485/4485), done.
-	Checking out files: 100% (437/437), done.
+    remote: Total 6563 (delta 4485), reused 5226 (delta 3148)
+    Receiving objects: 100% (6563/6563), 17.89 MiB | 234 KiB/s, done.
+    Resolving deltas: 100% (4485/4485), done.
+    Checking out files: 100% (437/437), done.
 
 Other Notes
 -----------
