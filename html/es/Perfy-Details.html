@@ -5,6 +5,7 @@
 <HTML>
 <HEAD>
 	<script type="application/javascript;version=1.7" src="js/imports/import.js"></script>
+    <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 </HEAD>
 <BODY>
 
@@ -17,7 +18,12 @@
 	</div>
 
 	<hr>
-	<div id="description"></div>
+	<div id="description">
+        Please <a href='https://wiki.mozilla.org/Platform/Games/GameFocusedBenchmarking'>read the wiki</a>
+        for detailed explanation of testing procedure and analysis.<br><br>
+        These individual test results are intended to help characterize large variance<br><br>
+        <span class="warning">You will require <a href="https://mana.mozilla.org/wiki/pages/viewpage.action?pageId=30769829">Mozilla Datacenter VPN</a> to access the server</span>
+	</div>
 	<hr>
 	<div id="testMessage"></div>
 	<hr>
@@ -56,9 +62,6 @@
 
 
 importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
-
-	$("#description").html("Please <a href='https://wiki.mozilla.org/Platform/Games/GameFocusedBenchmarking'>read the wiki</a> for detailed explaination of testing procedure and analysis.<br><br> These individual test results are intended to help characterize large variance");
-
 	var thread;
 	var createChart = function(){
 		if (thread !== undefined)
@@ -151,7 +154,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			});
 		});
 	}
-	
+
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [

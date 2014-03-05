@@ -5,6 +5,7 @@
 <HTML>
 <HEAD>
 	<script type="application/javascript;version=1.7" src="js/imports/import.js"></script>
+    <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 </HEAD>
 <BODY>
 
@@ -17,7 +18,14 @@
 	</div>
 
 	<hr>
-	<div id="description"></div>
+	<div id="description">
+        Please <a href='https://wiki.mozilla.org/Platform/Games/GameFocusedBenchmarking'>read the wiki</a>
+        for detailed explanation of testing procedure and analysis.<br><br>
+        The latest overall score for each channel, and it's breakdown.  This
+        chart is best used to view test result variance (bottom chart).
+        Click on the variance chart to see the specific test results.<br><br>
+        <span class="warning">You will require <a href="https://mana.mozilla.org/wiki/pages/viewpage.action?pageId=30769829">Mozilla Datacenter VPN</a> to access the server</span>
+	</div>
 	<hr>
 	<div id="testMessage"></div>
 	<hr>
@@ -57,8 +65,6 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			thread.kill();
 		thread = Thread.run(__createChart());
 	};
-
-	$("#description").html("Please <a href='https://wiki.mozilla.org/Platform/Games/GameFocusedBenchmarking'>read the wiki</a> for detailed explaination of testing procedure and analysis.<br><br> The latest overall score for each channel, and it's breakdown.  This chart is best used to view test result variance (bottom chart).  Click on the variance chart to see the specific test results.");
 
 	var __createChart = function(){
 		var sampleDate = Date.newInstance(GUI.state.date);
@@ -177,7 +183,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			});
 		});
 
-		
+
 		Thread.run(function(){
 			var data = yield(ESQuery.run({
 				"name":"Overall",
@@ -296,7 +302,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 
 
 	};
-	
+
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [
