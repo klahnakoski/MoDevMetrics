@@ -104,6 +104,61 @@ importScript([
 	if (urlState.pressButton){
 		$("#"+urlState.pressButton).click();
 	}//endif
+
+
+
+    a ={
+        "from": "private_bugs",
+        "esfilter": {
+            "and": [
+                {
+                    "range": {
+                        "expires_on": {
+                            "gte": 1393804800000
+                        }
+                    }
+                },
+                {
+                    "range": {
+                        "modified_ts": {
+                            "lte": 1394074529000
+                        }
+                    }
+                },
+                {
+                    "nested": {
+                        "path": "changes",
+                        "query": {
+                            "filtered": {
+                                "query": {
+                                    "match_all": {
+
+                                    }
+                                },
+                                "filter": {
+                                        "and": [
+                                            {
+                                                "term": {
+                                                    "changes.field_name": "assigned_to"
+                                                }
+                                            },
+                                            {
+                                                "terms": {
+                                                    "changes.new_value": [
+                                                        "klahnakoski@mozilla.com"
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                }
+                            }
+                        }
+                    }
+                }
+
+        ]
+    }
+    }
 });
 </script>
 

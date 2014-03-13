@@ -370,12 +370,7 @@ ESQuery.prototype.compile = function(){
 
 	this.columns = Qb.compile(this.query, ESQuery.INDEXES[this.query.from.split(".")[0]].columns, true);
 
-
 	var esFacets;
-	if (this.columns[0].name=="Team"){
-		Log.note("");
-	}
-
 
 	//THESE SMOOTH EDGES REQUIRE ALL DATA (SETOP)
 	var extraSelect=[];
@@ -1404,7 +1399,8 @@ ESQuery.prototype.compileSetOp=function(){
 
 
 	if (this.esMode=="fields"){
-		this.esQuery.size=200000;
+		this.esQuery.size=nvl(this.query.limit, 200000);
+        this.esQuery.sort = nvl(this.query.sort, []);
 		if (this.query.select.value!="_source"){
 			this.esQuery.fields=select.map(function(s){return s.value;});
 		}//endif
