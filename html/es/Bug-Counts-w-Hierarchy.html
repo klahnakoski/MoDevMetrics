@@ -72,10 +72,7 @@ var __createChart = function*(){
 
 //	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
 
-	var mainFilter={"and":[
-		GUI.getFilters("bugs"),
-		Mozilla.BugStatus.Open.esfilter
-	]};
+	var mainFilter=GUI.getFilters("bugs");
 
 	//COMPLICATED TITLE LOGIC
 	if (GUI.state.programFilter.selected.length==0){
@@ -104,112 +101,30 @@ var __createChart = function*(){
 	}//endif
 
 
-	var allBugs;
-	var allBugsThread=Thread.run(function*(){
-        ///////////////////////////////////////////////////////////////////////
-        // THREAD TO GET BUG AGE, OVER TIME
-        ///////////////////////////////////////////////////////////////////////
-		Log.action("Request Bugs");
-
-		allBugs=yield (ElasticSearch.getMinMax(mainFilter));
-
-		var chart=yield(Q({
-			"name":"Age (Days)",
-			"from":allBugs,
-			"select":[
-				{"name":"50th Percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "aggregate":"percentile", "percentile":0.50, "default":0, "style":{"color":"blue"}},
-				{"name":"Maximum",         "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "aggregate":"maximum", "default":0, "style":{"color":"#00d6ff", "visibility":"hidden"}}
-			],
-			"edges":[
-				{"name":"date",
-					"range":{"min":"min", "max":"max"},
-					"allowNulls":false,
-					domain:{"type":"time", "min":sampleMin, "max":sampleMax.add(sampleInterval), "interval":sampleInterval}
-				}
-			]
-		}));
-
-
-		var a=Log.action("Make chart", true);
-		aChart.show({
-			"id":"chart",
-			"sheetDiv":"info",
-			"type":"line",
-			"stacked":false,
-			"cube":chart,
-			"height":"300",
-			xAxisSize: 50
-		});
-		Log.actionDone(a);
-	});
-
-
-	Thread.run(function*(){
-        ///////////////////////////////////////////////////////////////////////
-        // THREAD TO GET LIST OF OPEN BUGS, AND THEIR DETAILS
-        ///////////////////////////////////////////////////////////////////////
-
-		var details=yield (ESQuery.run({
-			"from":"bugs",
-			"select":[
-				"bug_id",
-				"product",
-				"component",
-				"created_ts",
-				"assigned_to"
-			],
-			"esfilter":{"and":[
-				mainFilter,
-				{"range":{"expires_on":{"gt":Date.eod().getMilli()}}}
-			]}
-
-		}));
-
-		yield (Thread.join(allBugsThread));
-		//INSERT allBugs MIN/MAX VALUES INTO details
-		details.list.forall(function(v, i){
-			var mm=allBugs.get("bug_id", v.bug_id);
-			v.max=mm.max;
-			v.min=mm.min;
-		});
-		details.columns.push({"name":"min"});
-		details.columns.push({"name":"max"});
-
-		details=yield (Qb.calc2List({
-			"from":details,
-			"select":[
-				{"name":"ID", "value":"Bugzilla.linkToBug(bug_id)"},
-				{"name":"Product", "value":"product"},
-				{"name":"Component", "value":"component"},
-				{"name":"Created Date", "value":"Date.newInstance(created_ts).floorDay()"},
-				{"name":"Match Date", "value":"Date.newInstance(min).floorDay()"},
-				{"name":"Age (Days)", "value":"Date.eod().subtract(Date.newInstance(min)).round(Duration.DAY, 1)", "sort":"descending"},
-				{"name":"Assigned To", "value":"assigned_to"}
-			],
-			"sort":["Age (Days)"]
-		}));
-
-
-		$("#details").html(CNV.List2HTMLTable(details));
-
-
-	});
-
-
 	Thread.run(function*(){
         ///////////////////////////////////////////////////////////////////////
         // SIMPLE OPEN BUG COUNT, OVER TIME
         ///////////////////////////////////////////////////////////////////////
 
-		var chart=yield (ESQuery.run({
+        //GET ALL DEPENDENCIES FOR ALL TIME
+        var descendants = yield(ESQuery.run({
+            "from":" bug_hierarchy",
+            "select":[
+                "bug_id",
+                "descendants"
+            ]
+        })).list[0].descendants;
+
+        //PULL BUG STATE, AND ALL CHILDREN
+        var data=yield (ESQuery.run({
 			"name":"Open Bug Count",
 			"from":"bugs",
-			"select":{
-				"name":"num_bug",
-				"value":"bug_id",
-				"aggregate":"count"
-			},
+			"select":[
+                "dependson",
+                Mozilla.BugStatus.Open.getSelect()
+            ],
 			"edges":[
+                "bug_id",
 				{"name":"date",
 					"range":{
 						"min":"modified_ts",
@@ -224,8 +139,17 @@ var __createChart = function*(){
 					}
 				}
 			],
-			"esfilter":mainFilter
+			"esfilter":{"and":[
+                mainFilter,
+                {"terms":{"bug_id": descendants}}
+            ]}
 		}));
+
+        //FOR EACH DAY, FIND ALL DEPENDANT OPEN DEPENDANT BUGS
+
+
+
+
 
 		aChart.show({
 			"id":"chartCount",
@@ -238,57 +162,6 @@ var __createChart = function*(){
 			"width":800
 		});
 	});
-
-
-	Thread.run(function*(){
-        ///////////////////////////////////////////////////////////////////////
-        // THREAD TO GET OPEN AND CLOSE RATES
-        ///////////////////////////////////////////////////////////////////////
-
-		yield (Thread.join(allBugsThread));
-
-		var churn=yield(Q({
-			"from":allBugs,
-			"name":"New and Closed Bugs",
-			"select":[
-				{"name":"New", "value":"min.between(time.min, time.max) ? 1 : 0", "aggregate":"sum", "default":"0", "style":{"color":"seagreen"}},
-				{"name":"Closed", "value":"(max!==undefined && max.between(time.min, time.max)) ? -1 : 0", "aggregate":"sum", "default":"0", "style":{"color":"goldenrod"}}
-			],
-			"edges":[
-				{"name":"date",
-					"test":"min.between(time.min, time.max) || (max!==undefined && max.between(time.min, time.max))",
-					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
-				}
-			]
-		}));
-
-		var chart=aChart.show({
-			"id":"chartChurn",
-			"sheetDiv":"info",
-			"type":"bar",
-			"stacked":false,
-			"cube":churn,
-			"height":"300",
-			xAxisSize: 50,
-			"width":800,
-			"clickAction":function(series, x, d){
-				var part=churn.edges[0].domain.getPartByKey(x);
-				var field = {"New":"min", "Closed":"max"}[series];
-
-				Thread.run(function*(){
-					var buglist=(yield (Qb.calc2List({
-						"from":allBugs,
-						"select":{"value":"bug_id"},
-						"where":""+field+"!==undefined && "+field+".between("+CNV.Date2Code(part.min)+", "+CNV.Date2Code(part.max)+")"
-					})));
-
-					Bugzilla.showBugs(buglist.list);
-				});
-			}//click
-		});
-	});
-
-
 
 	yield (null);
 };

@@ -48,7 +48,7 @@ Hierarchy.fromList=function(args){
 
 
 //EXPECTING CERTAIN PARAMETERS, WILL UPDATE ALL BUGS IN from WITH A descendants_field
-Hierarchy.addDescendants=function(args){
+Hierarchy.addDescendants=function*(args){
 	ASSERT.hasAttributes(args, ["from","id_field","fk_field","descendants_field"]);
 
 	var from=args.from;
@@ -114,7 +114,7 @@ Hierarchy.addDescendants=function(args){
 	from.forall(function(p){
 		p[descendants_field]=allDescendants.get(p[id]);
 	});
-	
+
 	Log.actionDone(a);
 	yield (null);
 };
@@ -122,7 +122,7 @@ Hierarchy.addDescendants=function(args){
 
 
 // HEAVILY ALTERED FROM BELOW
-// STILL NO GOOD BECASUE CAN NOT HANDLE CYCLES
+// STILL NO GOOD BECAUSE CAN NOT HANDLE CYCLES
 
 // Copyright 2012 Rob Righter (@robrighter)
 //

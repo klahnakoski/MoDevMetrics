@@ -31,7 +31,7 @@ ESQuery.DEBUG=false;
 ////////////////////////////////////////////////////////////////////////////////
 ESQuery.INDEXES={
 	"bugs":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":"/private_bugs/bug_version"},
-	"public_bugs":{"host":"http://esfrontline.bugzilla.mozilla.org:80", "path":"/public_bugs/bug_version"},
+	"public_bugs":{"host":"https://esfrontline.bugzilla.mozilla.org:443", "path":"/public_bugs/bug_version"},
 	"public_bugs_backend":{"host":"http://elasticsearch1.bugs.scl3.mozilla.com:9200", "path":"/public_bugs/bug_version"},
 	"public_bugs_proxy":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9201", "path":"/public_bugs/bug_version"},
 	"private_bugs":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/private_bugs/bug_version"},
@@ -40,7 +40,8 @@ ESQuery.INDEXES={
 	"tor_bugs":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/bugs/bug_version"},
 	"tor_public_bugs":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/public_bugs/bug_version"},
 	"tor_private_bugs":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/private_bugs/bug_version"},
-	"bug_hierarchy":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/bug_hierarchy/bug_hierarchy"},
+
+	"bug_hierarchy":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":"/bug_hierarchy/bug_hierarchy"},
 	//TODO: HAVE CODE SCAN SCHEMA FOR NESTED OPTIONS
 	"public_bugs.changes":{},
 	"public_bugs.attachments":{},
@@ -1431,7 +1432,7 @@ ESQuery.prototype.fieldsResults=function(data){
 		for(var i = T.length; i--;){
 		    var record=T[i].fields
 			var new_rec={};
-			this.query.select.forall(function(s, i){
+			this.query.select.forall(function(s, j){
 				new_rec[s.name]=nvl(record[s.value], T[i][s.value]);
 			});
 			o.push(new_rec)
