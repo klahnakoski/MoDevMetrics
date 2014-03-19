@@ -20,10 +20,9 @@ var MozillaPrograms = {
 			]}
 		],
 
-
-
+        ["1.4 Triage (1.4?)", "cf_blocking_b2g", "1.4?"],
+        ["1.3 Triage (1.3?)", "cf_blocking_b2g", "1.3?"],
 		["TEF Triage (tef?)", "cf_blocking_b2g", "tef?"],
-		["1.3 Triage (1.3?)", "cf_blocking_b2g", "1.3?"],
 		["Build Duty", "status_whiteboard.tokenized", "buildduty"],
 		["Boot2Gecko (B2G)", "cf_blocking_basecamp", "+"],
 		["Metro MVP", "status_whiteboard.tokenized", "metro-mvp"],

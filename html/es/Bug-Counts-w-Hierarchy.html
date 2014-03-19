@@ -60,46 +60,14 @@ var createChart=function(){
 
 var __createChart = function*(){
 
+    var TOP_BUG_ID=879822;
+
+
 	var sampleMin=Date.newInstance(GUI.state.sampleMin);
 	var sampleMax=Date.newInstance(GUI.state.sampleMax).addDay(1);
 	var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
 
-	var createTime="doc[\"create_time\"].value";
-//	var idTime=GUI.state.programFilter.bugStatusMinimum_fromSource();
-//	var testValue=GUI.state.programFilter.bugStatusMinimum_fromDoc();
-
-
-
-//	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
-
 	var mainFilter=GUI.getFilters("bugs");
-
-	//COMPLICATED TITLE LOGIC
-	if (GUI.state.programFilter.selected.length==0){
-		if (GUI.state.componentFilter.selected.length==0){
-			if (GUI.state.productFilter.selected.length==0){
-				$("#title").html("No Program, Product or Component Selected.");
-				yield (null)
-			}else{
-				$("#title").html("Programs: "+GUI.state.productFilter.selected.join(" & "));
-			}//endif
-		}else{
-			$("#title").html("Components: "+GUI.state.productFilter.selected.join(" & "));
-		}//endif
-	}else{
-		if (GUI.state.componentFilter.selected.length==0){
-			if (GUI.state.productFilter.selected.length==0){
-				$("#title").html(GUI.state.programFilter.selected.join(" and "));
-			}else{
-				$("#title").html(GUI.state.programFilter.selected.join(" and ")+" - "+GUI.state.productFilter.selected.join(" & "));
-			}//endif
-		}else{
-			$("#title").html(GUI.state.programFilter.selected.join(" and ")+" - "+GUI.state.componentFilter.selected.join(" & "));
-		}//endif
-
-
-	}//endif
-
 
 	Thread.run(function*(){
         ///////////////////////////////////////////////////////////////////////
@@ -108,47 +76,96 @@ var __createChart = function*(){
 
         //GET ALL DEPENDENCIES FOR ALL TIME
         var descendants = yield(ESQuery.run({
-            "from":" bug_hierarchy",
+            "from":"bug_hierarchy",
             "select":[
                 "bug_id",
                 "descendants"
-            ]
-        })).list[0].descendants;
+            ],
+            "esfilter":{"term":{"bug_id":TOP_BUG_ID}}
+        }));
+        descendants=descendants.list[0].descendants;
+        descendants.append(TOP_BUG_ID);
 
-        //PULL BUG STATE, AND ALL CHILDREN
-        var data=yield (ESQuery.run({
+        //PULL DEPENDENCY DATA FROM ES
+        var raw_data=yield (ESQuery.run({
 			"name":"Open Bug Count",
 			"from":"bugs",
-			"select":[
-                "dependson",
-                Mozilla.BugStatus.Open.getSelect()
-            ],
-			"edges":[
+			"select": [
                 "bug_id",
-				{"name":"date",
-					"range":{
-						"min":"modified_ts",
-						"max":"expires_on"
-					},
-					"allowNulls":false,
-					"domain":{
-						"type":"time",
-						"min":sampleMin,
-						"max":sampleMax.add(sampleInterval),
-						"interval":sampleInterval
-					}
-				}
-			],
-			"esfilter":{"and":[
-                mainFilter,
-                {"terms":{"bug_id": descendants}}
+                "dependson",
+                "modified_ts",
+              	"expires_on"
+            ],
+            "esfilter": {"and": [
+                {"terms": {"bug_id": descendants}},
+                {"range": {"modified_ts": {"lt": sampleMax.add(sampleInterval).getMilli()}}},
+                {"range": {"expires_on": {"gte": sampleMin.getMilli()}}}
             ]}
-		}));
+        }));
 
-        //FOR EACH DAY, FIND ALL DEPENDANT OPEN DEPENDANT BUGS
+        //ORGANIZE INTO DATACUBE: (DAY x BUG_ID)
+        var data = yield (Q({
+            "from":raw_data,
+            "select": {"value":"dependson", "aggregate":"one"},
+            "edges":[
+                {"name":"date", "range":{"min":"modified_ts", "max":"expires_on"}, "domain":{
+                    "type":"time",
+                    "min":sampleMin,
+                    "max":sampleMax.add(sampleInterval),
+                    "interval":sampleInterval
+                }},
+                "bug_id"
+            ]
+        }));
 
+        //FOR EACH DAY, FIND ALL DEPENDANT BUGS
+        parts = [];
+        for (var day=0;day<data.cube.length;day++){
+            bug = data.cube[day];
+            day_part = data.edges[0].domain.partitions[day];
+            var top_bug = null;
+            var bug_map = {};
+            var bugs = bug.map(function(dependson, b){
+                var output = {
+                    "bug_id":data.edges[1].domain.partitions[b].value,
+                    "dependson": dependson
+                };
+                if (output.bug_id == TOP_BUG_ID) top_bug = output;
+                bug_map[output.bug_id]=output;
+                return output;
+            });
 
+            yield (Hierarchy.addDescendants({
+                "from":bugs,
+                "id_field":"bug_id",
+                "fk_field":"dependson",
+                "descendants_field": "dependencies"
+            }));
 
+            parts.append({
+                "name":day_part.name,
+                "value":day_part.value,
+                "esfilter":{"and":[
+                    {"range":{"modified_ts":{"lte":day_part.min.getMilli()}}},
+                    {"range":{"expires_on":{"gt":day_part.min.getMilli()}}},
+                    {"terms":{"bug_id":top_bug.dependencies}}
+                ]}
+            });
+        }//for
+
+        //NOW WE CAN ASK MORE ABOUT THIS BUG LIST BY DAY
+        chart = yield (ESQuery.run({
+            "from":"bugs",
+            "select":{"name":"Num Bugs", "value":"bug_id", "aggregate":"sum"},
+            "edges":[{
+                "name":"status",
+                "domain":Mozilla.BugStatus.getDomain()
+            },{
+                "name":"date",
+                "domain":{"type":"set", "partitions":parts, "isFacet":true}
+            }],
+            "esfilter":mainFilter
+        }));
 
 
 		aChart.show({

@@ -47,7 +47,11 @@ Hierarchy.fromList=function(args){
 };
 
 
-//EXPECTING CERTAIN PARAMETERS, WILL UPDATE ALL BUGS IN from WITH A descendants_field
+//EXPECTING CERTAIN PARAMETERS:
+// from - LIST OF NODES
+// id_field - USED TO ID NODE
+// fk_field - NAME OF THE CHILDREN ARRAY, CONTAINING IDs
+//WILL UPDATE ALL BUGS IN from WITH A descendants_field
 Hierarchy.addDescendants=function*(args){
 	ASSERT.hasAttributes(args, ["from","id_field","fk_field","descendants_field"]);
 
