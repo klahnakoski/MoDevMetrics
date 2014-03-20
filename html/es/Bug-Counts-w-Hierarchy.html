@@ -16,9 +16,7 @@
 	</div>
 
 	<hr>
-	<div id="description">Summarize number of of bugs over the sample given<br><br>
-		This is best used on a small number of bugs because details must be
-		brought to the client for further processing<br><br>
+	<div id="description">Bug counts over time based on dependency tree<br><br>
 	</div>
 	<hr>
 	<div id="testMessage"></div>
@@ -68,6 +66,9 @@ var __createChart = function*(){
 	var mainFilter=GUI.getFilters("bugs");
 
     Thread.run(function*(){
+        ///////////////////////////////////////////////////////////////////////
+        // SET TITLE TO THE TOP BUG DESCRIPTION
+        ///////////////////////////////////////////////////////////////////////
         var r = yield(ESQuery.run({
             "from":"public_bugs",
             "select":"short_desc",
@@ -99,6 +100,7 @@ var __createChart = function*(){
         descendants.append(TOP_BUG_ID);
 
         //PULL DEPENDENCY DATA FROM ES
+        //THIS IS TO GET DAILY DEPENDENCY LISTS
         var raw_data=yield (ESQuery.run({
 			"name":"Open Bug Count",
 			"from":"bugs",
