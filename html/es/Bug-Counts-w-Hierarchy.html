@@ -36,8 +36,6 @@
 <div style="align:left;position:relative;float:left;width:800px;">
 	<h3 id="title"></h3>
 	<div id="chartCount"  class="chart" style="float:none;width:800px;height:300px;"></div>
-	<div id="chartChurn"  class="chart" style="float:none;width:800px;height:300px;"></div>
-	<div id="chart"       class="chart" style="float:none;width:800px;height:300px;"></div>
 	<br><br>
 	<div id="info"></div>
 	<div id="details"></div>
@@ -68,6 +66,20 @@ var __createChart = function*(){
 	var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
 
 	var mainFilter=GUI.getFilters("bugs");
+
+    Thread.run(function*(){
+        var r = yield(ESQuery.run({
+            "from":"public_bugs",
+            "select":"short_desc",
+            "esfilter":{"and":[
+                {"term":{"bug_id":TOP_BUG_ID}},
+                Mozilla.CurrentRecords.esfilter
+            ]}
+        }));
+
+        $("#title").html(r.list[0]);
+    });
+
 
 	Thread.run(function*(){
         ///////////////////////////////////////////////////////////////////////
@@ -142,8 +154,10 @@ var __createChart = function*(){
                 "descendants_field": "dependencies"
             }));
 
+            //ADD TO THE LIST OF PARTITIONS, ONE FOR EACH DAY,
+            //FILTERING BY THE DEPENDENT BUGS OF THAT DAY
             parts.append({
-                "name":day_part.name,
+                "name":day_part.value.format("NNN dd"),
                 "value":day_part.value,
                 "esfilter":{"and":[
                     {"range":{"modified_ts":{"lte":day_part.min.getMilli()}}},
@@ -156,7 +170,7 @@ var __createChart = function*(){
         //NOW WE CAN ASK MORE ABOUT THIS BUG LIST BY DAY
         chart = yield (ESQuery.run({
             "from":"bugs",
-            "select":{"name":"Num Bugs", "value":"bug_id", "aggregate":"sum"},
+            "select":{"name":"Num Bugs", "value":"bug_id", "aggregate":"count"},
             "edges":[{
                 "name":"status",
                 "domain":Mozilla.BugStatus.getDomain()
