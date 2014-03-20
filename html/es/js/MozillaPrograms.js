@@ -6,12 +6,12 @@
 var MozillaPrograms = {
     "columns": ["projectName", "attributeName", "attributeValue", "esfilter"],
     "rows": [
-        ["B2G 1.4",       "cf_blocking_b2g", "1.4+"],
-   		["B2G 1.3",       "cf_blocking_b2g", "1.3+"],
-   		["B2G 1.3t",      "cf_blocking_b2g", "1.3t+"],
-   		["B2G 1.4 Noms",  "cf_blocking_b2g", "1.4?"],
-   		["B2G 1.3 Noms",  "cf_blocking_b2g", "1.3?"],
-   		["B2G 1.3t Noms", "cf_blocking_b2g", "1.3t?"],
+        ["B2G 1.4", "cf_blocking_b2g", "1.4+"],
+        ["B2G 1.3", "cf_blocking_b2g", "1.3+"],
+        ["B2G 1.3t", "cf_blocking_b2g", "1.3t+"],
+        ["B2G 1.4 Noms", "cf_blocking_b2g", "1.4?"],
+        ["B2G 1.3 Noms", "cf_blocking_b2g", "1.3?"],
+        ["B2G 1.3t Noms", "cf_blocking_b2g", "1.3t?"],
 
         ["B2G 1.2.0 (Koi)", "cf_blocking_b2g", "koi+"],
         ["B2G 1.1.0 (Koi)", "cf_blocking_b2g", "leo+"],
@@ -46,9 +46,9 @@ var MozillaPrograms = {
         ["in-testsuite", "status_whiteboard.tokenized", "in-testsuite"],
         ["testcase", "keywords", "testcase"],
         ["testcase", "keywords", "testcase-wanted"],
-        ["Crash", "keywords", "topcrash"],			//Robert Kaiser PULLS HIS METRICS USING THIS
+        ["Crash", "keywords", "topcrash"],            //Robert Kaiser PULLS HIS METRICS USING THIS
         ["Crash", "keywords", "crash"],
-        ["Top Crash", "keywords", "topcrash"],		//THE KEYWORD IS ADDED AND REMOVED TO KEEP ABOUT 100 MARKED
+        ["Top Crash", "keywords", "topcrash"],        //THE KEYWORD IS ADDED AND REMOVED TO KEEP ABOUT 100 MARKED
         ["QA Wanted", "keywords", "qawanted"],
         ["Regression", "status_whiteboard.tokenized", "regression-window-wanted"],
         ["Regression", "status_whiteboard.tokenized", "regressionwindow-wanted"],
@@ -56,23 +56,23 @@ var MozillaPrograms = {
         ["Regression", "keywords", "regression"],
 
 
-//		["Snappy", "status_whiteboard.tokenized", "snappy:p1"],
-//		["Snappy", "status_whiteboard.tokenized", "snappy:p2"],
-//		["Snappy", "status_whiteboard.tokenized", "snappy:p3"],
-        ["Snappy", "status_whiteboard.tokenized", "snappy"],		//Lawrence Mandel: JUST CATCH ALL SNAPPY
-//		["MemShrink", "status_whiteboard.tokenized", "memshrink:p1"],
-//		["MemShrink", "status_whiteboard.tokenized", "memshrink:p2"],
-//		["MemShrink", "status_whiteboard.tokenized", "memshrink:p3"],
-        ["MemShrink", "status_whiteboard.tokenized", "memshrink"],		//Nicholas Nethercote: CATCH memshrink (unconfirmed) AND ALL THE pX TOO
+//        ["Snappy", "status_whiteboard.tokenized", "snappy:p1"],
+//        ["Snappy", "status_whiteboard.tokenized", "snappy:p2"],
+//        ["Snappy", "status_whiteboard.tokenized", "snappy:p3"],
+        ["Snappy", "status_whiteboard.tokenized", "snappy"],        //Lawrence Mandel: JUST CATCH ALL SNAPPY
+//        ["MemShrink", "status_whiteboard.tokenized", "memshrink:p1"],
+//        ["MemShrink", "status_whiteboard.tokenized", "memshrink:p2"],
+//        ["MemShrink", "status_whiteboard.tokenized", "memshrink:p3"],
+        ["MemShrink", "status_whiteboard.tokenized", "memshrink"],        //Nicholas Nethercote: CATCH memshrink (unconfirmed) AND ALL THE pX TOO
         ["Fennec", "cf_blocking_fennec10", "+"],
         ["Fennec", "cf_blocking_fennec10", "?"],
         ["Fennec", "cf_blocking_fennec", "+"],
         ["Fennec", "cf_blocking_fennec", "?"]
 
-//		["K9O", "status_whiteboard.tokenized", "k9o:p1"],
-//		["K9O", "status_whiteboard.tokenized", "k9o:p2"],
-//		["K9O", "status_whiteboard.tokenized", "k9o:p3"],
-//		["K9O", "status_whiteboard.tokenized", "k9o:p?"]
+//        ["K9O", "status_whiteboard.tokenized", "k9o:p1"],
+//        ["K9O", "status_whiteboard.tokenized", "k9o:p2"],
+//        ["K9O", "status_whiteboard.tokenized", "k9o:p3"],
+//        ["K9O", "status_whiteboard.tokenized", "k9o:p?"]
 
 
     ]
