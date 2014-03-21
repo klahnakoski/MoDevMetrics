@@ -63,7 +63,7 @@ var __createChart = function*(){
 	$("#description").html(
 		"Show number of Resolution==FIXED bugs for four major B2G projects:<ul>"+
         "<li><b>1.4</b> - blocking-b2g==&quot;1.4+&quot; OR target_milestone.startsWith(&quot;1.4&quot;)</li>"+
-        "<li><b>1.3</b> - blocking-b2g==&quot;1.3+&quot; OR target_milestone.startsWith(&quot;1.3&quot;)</li>"+
+        "<li><b>1.3</b> - blocking-b2g in (&quot;1.3+&quot;, &quot;1.3t+&quot;) OR target_milestone.startsWith(&quot;1.3&quot;)</li>"+
         "<li><b>KOI</b> - blocking-b2g==&quot;koi+&quot; OR target_milestone.startsWith(&quot;1.2&quot;)</li>"+
 		"<li><b>LEO</b> - blocking-b2g==&quot;leo+&quot;</li>"+
 		"<li><b>HD</b> - blocking-b2g==&quot;hd+&quot;</li>"+
@@ -96,7 +96,7 @@ var __createChart = function*(){
                     {"not":{"term":{"product": "instantbird"}}},
                     {"not":{"term":{"product": "chat core"}}}
                 ]},
-                {"terms":{"cf_blocking_b2g":["1.3+"]}}
+                {"terms":{"cf_blocking_b2g":["1.3+", "1.3t+"]}}
             ]}},
             {"name":"KOI", "esfilter":{"or":[
                 {"and":[

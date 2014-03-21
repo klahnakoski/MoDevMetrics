@@ -34,7 +34,8 @@ ESQuery.INDEXES={
 	"public_bugs":{"host":"https://esfrontline.bugzilla.mozilla.org:443", "path":"/public_bugs/bug_version"},
 	"public_bugs_backend":{"host":"http://elasticsearch1.bugs.scl3.mozilla.com:9200", "path":"/public_bugs/bug_version"},
 	"public_bugs_proxy":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9201", "path":"/public_bugs/bug_version"},
-	"private_bugs":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/private_bugs/bug_version"},
+    "public_comments": {"host": "http://elasticsearch1.bugs.scl3.mozilla.com:9200", "path": "/public_comments/bug_comment"},
+    "private_bugs": {"host": "http://elasticsearch6.bugs.scl3.mozilla.com:9200", "path": "/private_bugs/bug_version"},
 	"private_comments":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/private_comments/bug_comment"},
 
 	"tor_bugs":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/bugs/bug_version"},
@@ -64,8 +65,7 @@ ESQuery.INDEXES={
 	"talos":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/datazilla/results"},
 	"b2g_tests":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/b2g_tests/results"},
 
-    "perfy":{"host":"http://elasticsearch8.metrics.scl3.mozilla.com:9200", "path":"/perfy/scores"},
-    "metrics_perfy":{"host":"https://metrics.mozilla.com:9200", "path":"/bugzilla-analysis/perfy/scores"},
+    "perfy": {"host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/perfy/scores"},
 	"local_perfy":{"host":"http://localhost:9200", "path":"/perfy/scores"}
 
 //	"raw_telemetry":{"host":"http://localhost:9200", "path":"/raw_telemetry/data"}
@@ -1262,7 +1262,9 @@ ESQuery.agg2es = {
 //PROCESS RESULTS FROM THE ES STATISTICAL FACETS
 ESQuery.prototype.statisticalResults = function(data){
 	var cube;
-	var agg=this.select.map(function(s){ return ESQuery.agg2es[s.aggregate];});
+    var agg = this.select.map(function (s) {
+        return ESQuery.agg2es[s.aggregate];
+    });
 	var agg0=agg[0];
 	var self=this;
 
@@ -1403,7 +1405,9 @@ ESQuery.prototype.compileSetOp=function(){
 		this.esQuery.size=nvl(this.query.limit, 200000);
         this.esQuery.sort = nvl(this.query.sort, []);
 		if (this.query.select.value!="_source"){
-			this.esQuery.fields=select.map(function(s){return s.value;});
+            this.esQuery.fields = select.map(function (s) {
+                return s.value;
+            });
 		}//endif
 	}else if (!isDeep && select.length==1 && MVEL.isKeyword(select[0].value)){
 		this.esQuery.facets.mvel={
@@ -1472,7 +1476,9 @@ ESQuery.prototype.mvelResults=function(data){
 	select=this.query.select;
 	if (select instanceof Array) return;
 	//SELECT AS NO ARRAY (AND NO EDGES) MEANS A SIMPLE ARRAY OF VALUES, NOT AN ARRAY OF OBJECTS
-	this.query.list=this.query.list.map(function(v, i){return v[select.name];});
+    this.query.list = this.query.list.map(function (v, i) {
+        return v[select.name];
+    });
 };//method
 
 
