@@ -215,7 +215,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 
 		//OVERALL TIME SERIES
 		var maxScore;
-		var timeseriesThread=Thread.run(function*(){
+		var timeseriesThread=Thread.run(function(){
 			var data = yield(ESQuery.run({
 				"from":"perfy",
 				"select": [
@@ -266,7 +266,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			});
 		});
 
-		Thread.run(function*(){
+		Thread.run(function(){
 			var data = yield(ESQuery.run({
 				"from":"perfy",
 				"select":{"name":"score", "value":"score", "aggregate":"average", "default":0},
