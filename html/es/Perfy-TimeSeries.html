@@ -129,6 +129,10 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 				]});
 			}//endif
 		});
+        if (latestTests.length==0){
+            $(".chart").html('<div class="warning" style="height=100%;width=100%;display:table-cell;margin-left:auto;margin-right:auto;text-align:center;vertical-align:middle;">No data before '+sampleDate.ceilingDay().format("NNN dd, yyyy")+'.</div>');
+            yield (null);
+        }//endif
 		latestTests = {"or":latestTests};
 
 

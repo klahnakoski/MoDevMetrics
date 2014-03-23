@@ -25,8 +25,16 @@ importScript("../threads/thread.js");
 importScript("../qb/aCompiler.js");
 importScript("../aFormat.js");
 
-GUI = {};
 
+////////////////////////////////////////////////////////////////////////////////
+// SYNCHRONIZES THREE VARIABLES SO THEY ARE ALL THE SAME.  CHANGING ONE IMMEDIATELY
+// CHANGES THE OTHER TWO, AND A GUI.refresh() IS THEN PERFORMED.
+//
+// * URL PARAMETER - AS SEEN IN THE ANCHOR (#) PARAMETER LIST
+// * FORM VALUE - CURRENT VALUE SHOWN IN THE HTML FORM ELEMENTS
+// * GUI.state - VARIABLE VALUES IN THE GUI.state OBJECT
+
+GUI = {};
 (function () {
 
     GUI.state = {};
@@ -44,10 +52,10 @@ GUI = {};
     };//function
 
 
-////////////////////////////////////////////////////////////////////////////////
-// GIVEN THE THREE, RETURN AN END DATE THAT WILL MAKE THE LAST PARTITION
-// INCLUDE A WHOLE INTERVAL, AND IS *INSIDE* THAT INTERVAL
-////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    // GIVEN THE THREE, RETURN AN END DATE THAT WILL MAKE THE LAST PARTITION
+    // INCLUDE A WHOLE INTERVAL, AND IS *INSIDE* THAT INTERVAL
+    ////////////////////////////////////////////////////////////////////////////////
     GUI.fixEndDate = function (startDate, endDate, interval) {
         startDate = Date.newInstance(startDate);
         endDate = Date.newInstance(endDate);
@@ -60,7 +68,16 @@ GUI = {};
     };
 
 
-    GUI.setup = function (refreshChart, parameters, relations, indexName, showDefaultFilters) {
+    ////////////////////////////////////////////////////////////////////////////////
+    // SETUP THE VARIOUS GUI PARAMETER INPUTS
+    ////////////////////////////////////////////////////////////////////////////////
+    GUI.setup = function (
+        refreshChart,  //FUNCTION THAT WILL BE CALLED WHEN ANY PARAMETER CHANGES
+        parameters,    //LIST OF PARAMETERS (see GUI.AddParameters FOR DETAILS)
+        relations,     //SOME RULES TO APPLY TO PARAMETERS, IN CASE THE HUMAN MAKES SMALL MISTAKES
+        indexName,     //DEFAULT INDEX NAME, NEED FOR CONTEXT
+        showDefaultFilters  //SHOW THE Product/Compoentn/Team FILTERS
+    ) {
 
         if (typeof(refreshChart) != "function") {
             Log.error("Expecting first parameter to be a refresh (creatChart) function");
@@ -114,7 +131,7 @@ GUI = {};
 
     var esHasErrorInIndex;
 
-//SHOW THE LAST TIME ES WAS UPDATED
+    //SHOW THE LAST TIME ES WAS UPDATED
     GUI.showLastUpdated = function(indexName) {
         Thread.run("show last updated timestamp", function*() {
             var time;
@@ -292,6 +309,14 @@ GUI = {};
     };
 
 
+
+    ///////////////////////////////////////////////////////////////////////////
+    // ADD INTERACTIVE PARAMETERS TO THE PAGE
+    // id - id of the html form element (can exist, or not), also used as GUI.state variable
+    // name - humane name of the parameter
+    // type - some basic data types to drive the type of form element used (time, date, datetime, duration, text, boolean, json, code)
+    // default - default value if not specified in URL
+    ///////////////////////////////////////////////////////////////////////////
     GUI.AddParameters = function (parameters, relations) {
         //KEEP SIMPLE PARAMETERS GUI.parameters AND REST IN customFilters
         GUI.parameters = parameters.map(function (param) {
@@ -446,7 +471,7 @@ GUI = {};
     };//method
 
 
-//RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
+    //RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
     GUI.State2Parameter = function () {
         GUI.parameters.forEach(function (param) {
 
@@ -457,14 +482,14 @@ GUI = {};
             } else if (param.type == "datetime") {
                 $("#" + param.id).val(Date.newInstance(GUI.state[param.id]).format("yyyy-MM-dd HH:mm:ss"))
             } else {
-//		if (param.type.getSimpleState) return;  //param.type===GUI.state[param.id] NO ACTION REQUIRED
+            //if (param.type.getSimpleState) return;  //param.type===GUI.state[param.id] NO ACTION REQUIRED
                 $("#" + param.id).val(GUI.state[param.id]);
             }//endif
         });
     };
 
 
-//RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
+    //RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
     GUI.Parameter2State = function () {
         GUI.parameters.forEach(function (param) {
             if (param.type == "json") {
@@ -478,7 +503,7 @@ GUI = {};
     };
 
 
-//RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
+    //RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
     GUI.UpdateState = function () {
         var backup = Map.copy(GUI.state);
 
@@ -499,7 +524,7 @@ GUI = {};
         return changeDetected;
     };
 
-// APPLY THE RELATIONS TO STATE
+    //APPLY THE RELATIONS TO STATE
     GUI.FixState = function () {
         if (GUI.relations.length > 0) {
             //COMPILE RELATIONS
@@ -529,18 +554,11 @@ GUI = {};
             html += '<h4><a href="#">' + f.name + '</a></h4>';
             html += f.makeHTML();
         });
-//	html += '<h4><a href="#">Programs</a></h4>';
-//	html += '<div id="programs"></div>';
-//	html += '<h4><a href="#">Products</a></h4>';
-//	html += '<div id="products"></div>';
-//	html += '<h4><a href="#">Components</a></h4>';
-//	html += '<div id="components"></div>';
 
         $("#filters").html(html);
 
         $("#filters").accordion({
             heightStyle: "content",
-//		autoHeight: false,
             navigation: true,
             collapsible: true
         });
