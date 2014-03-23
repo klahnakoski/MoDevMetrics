@@ -39,12 +39,13 @@ Drawbacks
 Requirements
 ------------
 
-Access to one of the bug clusters is required.  Use [ElasticSearch Head](https://github.com/mobz/elasticsearch-head) to
-test connectivity.
+Access to one of the bug clusters is required:
 
-  - Proxy to public cluster<br>```http://esfrontline.bugs.mozilla.org:80/public_bugs/bug_version```
+  - Proxy to public cluster<br>```https://esfrontline.bugs.mozilla.org:443/public_bugs/bug_version```
   - Direct to public cluster (need VPN access)<br>```http://elasticsearch-zlb.bugs.scl3.mozilla.com:9200/public_bugs/bug_version```
   - Direct to private cluster (need VPN access)<br>```http://elasticsearch-private.bugs.scl3.mozilla.com:9200/private_bugs/bug_version```
+
+Due to restrictions on the public cluster, it is best to test it with the [the minimum viable example page](html/es/Tutorial01-Minimum.html).  The clusters behind VPN can be tested normally with [ElasticSearch Head](https://github.com/mobz/elasticsearch-head).
 
 Install
 -------
@@ -59,9 +60,17 @@ Install
     Resolving deltas: 100% (4485/4485), done.
     Checking out files: 100% (437/437), done.
 
-Other Notes
------------
-The interesting code starts in [./html/es](./html/es)
+Examples
+--------
+
+Code examples to demonstrate minimum functionality:
+
+  * [Test public connectivity](html/es/Tutorial01-Minimum.html)
+  * [Simple Bug Count](html/es/Tutorial02-Bug-Count.html)
+
+
+Tutorials
+----------
 
   - [Tutorial on querying ElasticSearch](https://github.com/klahnakoski/Qb/tree/master/docs/BZ_Tutorial.md)
   - [Tutorial on MVEL and advanced querying](https://github.com/klahnakoski/Qb/tree/master/docs/MVEL_Tutorial.md)

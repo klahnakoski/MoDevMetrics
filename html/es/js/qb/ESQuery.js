@@ -63,7 +63,8 @@ ESQuery.INDEXES={
 	"raw_telemetry":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/raw_telemetry/data"},
 
 	"talos":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/datazilla/results"},
-	"b2g_tests":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/b2g_tests/results"},
+    "b2g_tests_kyle":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/b2g_tests/results"},
+    "b2g_tests":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/b2g_tests/results"},
 
     "perfy": {"host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/perfy/scores"},
 	"local_perfy":{"host":"http://localhost:9200", "path":"/perfy/scores"}
