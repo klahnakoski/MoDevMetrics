@@ -46,14 +46,14 @@
             var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
 
             var mainFilter = {"and": [
-                GUI.getFilters("public_bugs"),
+                GUI.getFilters("bugs"),
                 Mozilla.BugStatus.Open.esfilter   //SEE Dimension-Bugzilla TO SEE MORE COMPLICATED DEFINITIONS
             ]};
 
             Thread.run(function*(){  //jsThreads ARE GREAT BECAUSE WE DO NOT NEED CALLBACKS
                 var chart = yield (ESQuery.run({
                     "name": "Open Bug Count",  //HUMANE NAME FOR THIS DATASET
-                    "from": "public_bugs",  //ESQuery.INDEXES MAPS NAMES TO ES CONNECTION INFO
+                    "from": "bugs",  //ESQuery.INDEXES MAPS NAMES TO ES CONNECTION INFO
                     "select": {  // JUST LIKE SQL: SELECT COUNT(bug_id) AS num_bug
                         "name": "num_bug",
                         "value": "bug_id",

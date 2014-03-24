@@ -75,7 +75,7 @@ GUI = {};
         refreshChart,  //FUNCTION THAT WILL BE CALLED WHEN ANY PARAMETER CHANGES
         parameters,    //LIST OF PARAMETERS (see GUI.AddParameters FOR DETAILS)
         relations,     //SOME RULES TO APPLY TO PARAMETERS, IN CASE THE HUMAN MAKES SMALL MISTAKES
-        indexName,     //DEFAULT INDEX NAME, NEED FOR CONTEXT
+        indexName,     //PERFORM CHECKS ON THIS INDEX
         showDefaultFilters  //SHOW THE Product/Compoentn/Team FILTERS
     ) {
 
