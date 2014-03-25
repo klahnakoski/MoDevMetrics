@@ -155,11 +155,14 @@ Dimension.prototype = {
 
 
 		Dimension.addEdges = function (lowerCaseOnly, parentDim, edges) {
-		    function convertPart(part) {
+		    function convertPart(part, siblingFilters) {
 		        if (part.partitions) {
+			        var otherFilters=[];
 		            part.partitions.forall(function (p, i) {
+			            var siblingFilter = p.esfilter;
 		                p.parent = part;
-		                convertPart(p);
+		                convertPart(p, otherFilters);
+			            if (siblingFilter!=undefined) otherFilters.append(siblingFilter);
 		                p.value = nvl(p.value, p.name);
 		                if (part.index) p.index = part.index;   //COPY INDEX DOWN
 		                part[p.name] = nvl(part[p.name], p);
@@ -170,6 +173,13 @@ Dimension.prototype = {
 		            if (part.parent && part.parent.esfilter!==undefined && part.parent.esfilter.match_all===undefined){
 		                part.esfilter = {"and":[part.parent.esfilter, part.esfilter]}
 		            }//endif
+			        //TOO EXPENSIVE FOR ES TO CALCULATE, NEED AN EQUATION SIMPLIFIER
+//			        if (part.parent!==undefined && part.parent.isFacet && siblingFilters!==undefined && siblingFilters.length>0){
+//				        if (part.esfilter["and"]===undefined){
+//					        part.esfilter={"and":[part.esfilter]}
+//				        }//endif
+//				        part.esfilter["and"].appendArray(siblingFilters.map(function(f){return {"not":f}}))
+//			        }//endif
 		            if (lowerCaseOnly) part.esfilter = CNV.JSON2Object(CNV.Object2JSON(part.esfilter).toLowerCase());
 		        } else if (part.partitions) {
 		            //DEFAULT esfilter IS THE UNION OF ALL CHILD FILTERS

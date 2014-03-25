@@ -940,30 +940,32 @@ Qb.merge=function(query){
 
 	    var depth=output.edges.length;
 	    for(var d=0;d<depth;d++){
-	        parts[d]=output.edges[d].domain.partitions;
+		    domain = item.edges[d].domain;
+		    parts[d] = output.edges[d].domain.partitions.map(function(newpart, i){
+			    var oldpart = domain.getPartByKey(domain.getKey(newpart));  //OLD PARTS IN NEW ORDER
+			    if (oldpart.dataIndex!=newpart.dataIndex){
+				    Log.error("partitions have different orders, check this code works");
+			    }//endif
+			    return oldpart;
+		    });
 	        num[d]=parts[d].length;
-	        if (output.edges[d].allowNulls){
-	            if (parts[d][parts[d].length-1]!=output.edges[d].domain.NULL) Log.error("Expecting NULL in the partitions");
-	        }else{
-	            if (parts[d][parts[d].length-1]==output.edges[d].domain.NULL){
-	                Log.error("When !allowNulls, then there should be no NULL in the partitions");
-	                num[d]--;
-	            }//endif
-	        }//endif
 	    }//for
 
 	    var copy=function(from, to , d){
 	        for(var i=num[d];i--;){
 	            if (d<depth-1){
-	                copy(from[i], to[i], d+1);
+	                copy(from[parts[d][i].dataIndex], to[i], d+1);
 	            }else{
 	                if (item.from.select instanceof Array){
-	                    Map.copy(from[i], to[i])
+	                    Map.copy(from[parts[d][i].dataIndex], to[i])
 	                }else{
-	                    to[i][item.from.select.name]=from[i]
+	                    to[i][item.from.select.name]=from[parts[d][i].dataIndex]
 	                }//endif
 	            }//endif
 	        }//for
+		    if (output.edges[d].allowNulls){
+			    copy(from[num[d]], to[num[d]], d+1);
+		    }//endif
 	    };
 	    copy(item.from.cube, output.cube, 0);
 	});

@@ -8,38 +8,23 @@
 </HEAD>
 <BODY>
 
-<div id="sidebar">
+<div id="sidebar" style="width:200px;">
 	<br>
 	<br>
-
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 	</div>
-
 	<hr>
 	<div id="description"></div>
-	<hr>
-	<div id="testMessage"></div>
-	<hr>
-	<div id="stats"></div>
-	<hr>
 
-	<div id="parameters" class="parameters">
-	</div>
-	<div id="filters" class="menu"></div>
 </div>
 
 
-<div style="align:left;position:relative;float:left;width:800px;">
+<div style="align:left;position:relative;float:left;width:800px;padding-top: 10px;">
 	<h3 id="title">B2G Prototype Operations Dashboard</h3>
-
-	<div id="chart" class="chart" style="position: relative;"></div>
-	<br><br>
-
 	<div id="info" style="width:800px;float:left;"></div>
-	<div id="report"></div>
+    <div class="footer">Source at <a href="https://github.com/klahnakoski/MoDevMetrics/blob/es6/html/es/B2G-Overall.html">https://github.com/klahnakoski/MoDevMetrics/blob/es6/html/es/B2G-Overall.html</a></div>
 </div>
-
 
 <script type="application/javascript">
     var NOW;
@@ -88,7 +73,7 @@
 					"from": "bugs",
 					"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
 					"edges": [
-						{"name": "Component", "value": "component", "domain": {"type": "default"}, "sort": 1},
+						{"name": "Team", "domain": Mozilla.B2G.Team.getDomain()},
 						{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
 						{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
 					],
@@ -106,7 +91,7 @@
 					"from": "bugs",
 					"select": {"name": "oldest", "value": "modified_ts", "aggregate": "minimum"},
 					"edges": [
-						{"name": "Component", "value": "component", "domain": {"type": "default"}, "sort": 1},
+                        {"name": "Team", "domain": Mozilla.B2G.Team.getDomain()},
 						{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
 						{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
 					],
@@ -117,9 +102,17 @@
 				yield (Thread.join(countingThread));
 
 				var both = Qb.merge([
-					{"from": outstanding, "edges": ["Component", "Project", "State"]},
-					{"from": ages, "edges": ["Component", "Project", "State"]}
+					{"from": outstanding, "edges": ["Team", "Project", "State"]},
+					{"from": ages, "edges": ["Team", "Project", "State"]}
 				]);
+
+                //EXPOSE NULLS AS LEGITIMATE PARTS
+                both.edges.forall(function(edge, e){
+                    if (edge.allowNulls){
+                        edge.domain.partitions.append(edge.domain.NULL);
+                        edge.allowNulls=false;
+                    }//endif
+                });
 
 
 				{//SORT THE PRIMARY EDGE BY oldest
@@ -129,7 +122,7 @@
 							{"value": "oldest", "aggregate": "maximum"}
 						],
 						"edges": [
-							{"name": "Component", "value": "Component", "domain": {"type": "set", "partitions": both.edges[0].domain.partitions}}
+							{"name": "Team", "value": "Team", "domain": {"type": "set", "partitions": both.edges[0].domain.partitions}}
 						],
 						"where": '["Regression", "Blocker", "Nominated"].contains(State.name)',
 						"analytic": [
@@ -204,23 +197,23 @@
 		var num_state = outstanding.edges[2].domain.partitions.length;
 
 		var header = "<thead>" +
-				"<tr><td rowspan='2' style='width:400px;'>Component</td>{{PROJECT_HEADERS1}}</tr>" +
+				"<tr><td rowspan='2' style='vertical-align:bottom;width:400px;'><h3>Team</h3></td>{{PROJECT_HEADERS1}}</tr>" +
 				"<tr>{{PROJECT_HEADERS2}}</tr>" +
 				"</thead>";
-		var data = "<tr><td>{{COMPONENT}}</td>{{PROJECT_DATA}}</tr>";
+		var data = "<tr style='height:30px;'><td>{{COMPONENT}}</td>{{PROJECT_DATA}}</tr>";
 		var projectHeader1 = "<td>|</td><td colspan='" + num_state + "''>{{PROJECT}}</td>";
 		var projectHeader2 = "<td></td>{{STATE_HEADERS}}";
 		var projectData = "<td>|</td>{{STATE_DATA}}";
 
-		var stateHeader = "<td style='height:100px;width:30px;vertical-align:bottom;'><div style='height:30px;width:30px;vertical-align:bottom;overflow: visible;-moz-transform:rotate(270deg);'>{{STATE}}</div></td>\n";
-		var stateData = "<td id='{{ID}}' class='hoverable' style='text-align:right;{{STYLE}}'>{{VALUE}}</td>\n";
+		var stateHeader = "<td style='height:150px;width:40px;vertical-align:bottom;'><div style='height:30px;width:30px;vertical-align:bottom;overflow: visible;-moz-transform:rotate(270deg);'>{{STATE}}</div></td>\n";
+		var stateData = "<td id='{{ID}}' class='hoverable' style='text-align:center;{{STYLE}}'>{{VALUE}}</td>\n";
 
 		var head = header.replaceAll("{{PROJECT_HEADERS1}}", outstanding.edges[1].domain.partitions.map(function (project) {
 			return projectHeader1.replaceAll("{{PROJECT}}", project.name.replaceAll(" ", "&nbsp;"))
 		}).join(""));
 		head = head.replaceAll("{{PROJECT_HEADERS2}}", outstanding.edges[1].domain.partitions.map(function (project) {
 			var stateHeaders = outstanding.edges[2].domain.partitions.map(function (state) {
-				return stateHeader.replaceAll("{{STATE}}", state.name);
+				return stateHeader.replaceAll("{{STATE}}", state.name.replaceAll(" ", "&nbsp;"));
 			}).join("");
 			return projectHeader2.replaceAll("{{STATE_HEADERS}}", stateHeaders);
 		}).join(""));
@@ -228,7 +221,7 @@
 		var body = outstanding.cube.map(function (projects, c) {
 			var component = outstanding.edges[0].domain.partitions[c];
 
-			return data.replaceAll("{{COMPONENT}}", component.name).replaceAll("{{PROJECT_DATA}}", projects.map(function (states, p) {
+			return data.replaceAll("{{COMPONENT}}", component.name.replaceAll(" ", "&nbsp;")).replaceAll("{{PROJECT_DATA}}", projects.map(function (states, p) {
 				var project = outstanding.edges[1].domain.partitions[p];
 				return projectData.replaceAll("{{STATE_DATA}}", states.map(function (value, s) {
 					var state = outstanding.edges[2].domain.partitions[s];

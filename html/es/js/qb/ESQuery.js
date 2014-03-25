@@ -635,6 +635,14 @@ ESQuery.prototype.getAllEdges = function(edgeDepth){
 			output.push(deeper[o]);
 		}//for
 	}//for
+	if (edge.allowNulls){
+		edge.domain.NULL.dataIndex=partitions.length;
+		deeper = this.getAllEdges(edgeDepth + 1);
+		for(o = 0; o < deeper.length; o++){
+			deeper[o].unshift(edge.domain.NULL);
+			output.push(deeper[o]);
+		}//for
+	}//endif
 	return output;
 };//method
 
