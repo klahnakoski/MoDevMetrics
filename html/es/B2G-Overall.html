@@ -1,0 +1,260 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="application/javascript" src="js/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+<div id="sidebar">
+	<br>
+	<br>
+
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3 id="title">B2G Prototype Operations Dashboard</h3>
+
+	<div id="chart" class="chart" style="position: relative;"></div>
+	<br><br>
+
+	<div id="info" style="width:800px;float:left;"></div>
+	<div id="report"></div>
+</div>
+
+
+<script type="application/javascript">
+    var NOW;
+    var TOO_LATE;
+    var REALLY_TOO_LATE;
+
+    var WARNING_STYLE = {
+        "color": "white",
+        "font-weight": "bold",
+        "background-color": "#ff7f0e"
+    };
+    var ERROR_STYLE = {
+        "color": "white",
+        "font-weight": "bold",
+        "background-color": "#d62728"
+    };
+
+
+	importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], function () {
+		var thread;
+		var createChart = function () {
+			if (thread !== undefined)
+				thread.kill();
+			thread = Thread.run(__createChart());
+		};
+
+		var __createChart = function*() {
+			NOW = Date.today();
+			TOO_LATE = NOW.subtract(Duration.newInstance("2day"));
+			REALLY_TOO_LATE = NOW.subtract(Duration.newInstance("1week"));
+
+            mainFilter={"and": [
+                Mozilla.BugStatus.Open.esfilter,
+                Mozilla.B2G.esfilter,
+                Mozilla.CurrentRecords.esfilter
+            ]};
+
+			yield (ESQuery.loadColumns({"from": "bugs"}));
+
+			var outstanding = null;
+
+			var countingThread = Thread.run(function*() {
+				var a = Log.action("Get Counts", true);
+
+				outstanding = yield(ESQuery.run({
+					"from": "bugs",
+					"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
+					"edges": [
+						{"name": "Component", "value": "component", "domain": {"type": "default"}, "sort": 1},
+						{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
+						{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
+					],
+					"esfilter": mainFilter
+				}));
+				Log.actionDone(a);
+				yield (null);
+			});
+
+
+			Thread.run(function*() {
+				var a = Log.action("Get Ages", true);
+
+				var ages = yield(ESQuery.run({
+					"from": "bugs",
+					"select": {"name": "oldest", "value": "modified_ts", "aggregate": "minimum"},
+					"edges": [
+						{"name": "Component", "value": "component", "domain": {"type": "default"}, "sort": 1},
+						{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
+						{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
+					],
+					"esfilter": mainFilter
+				}));
+				Log.actionDone(a);
+
+				yield (Thread.join(countingThread));
+
+				var both = Qb.merge([
+					{"from": outstanding, "edges": ["Component", "Project", "State"]},
+					{"from": ages, "edges": ["Component", "Project", "State"]}
+				]);
+
+
+				{//SORT THE PRIMARY EDGE BY oldest
+					var ordering = yield(Q({
+						"from": both,
+						"select": [
+							{"value": "oldest", "aggregate": "maximum"}
+						],
+						"edges": [
+							{"name": "Component", "value": "Component", "domain": {"type": "set", "partitions": both.edges[0].domain.partitions}}
+						],
+						"where": '["Regression", "Blocker", "Nominated"].contains(State.name)',
+						"analytic": [
+							{"name": "ordering", "value": "oldest==null ? 9999999999000: oldest", "edges": []},
+							{"value": "rownum", "edges": [], "sort": "ordering"}
+						]
+					}));
+
+					var newparts = [];
+					var oldparts = both.edges[0].domain.partitions;
+					var newcube = [];
+					ordering.cube.forall(function (v, i) {
+						newparts[v.rownum] = oldparts[i];
+						newparts[v.rownum].dataIndex = i;
+						newcube[v.rownum] = both.cube[i];
+					});
+					both.cube = newcube;
+					both.edges[0].domain.partitions = newparts;
+				}
+
+				html = cube2grid(both);
+				$("#info").html(html);
+                addClickHandlers(both)
+			});
+
+
+		};
+
+		$(document).ready(function () {
+			GUI.setup(
+					createChart,
+					[],
+					[],
+					null,
+					false		//DO NOT SHOW DEFAULT FILTERS
+			);
+		});
+	});
+
+
+    function addClickHandlers(cube){
+        $("td").click(function(e){
+            var id = $(this).attr("id");
+            var coord = id.split("x").map(function(v){return CNV.String2Integer(v);});
+            var filter={"and":cube.edges.map(function(edge, i){
+                var part = edge.domain.partitions[coord[i]];
+                if (part.esfilter){
+                    return part.esfilter;
+                }else{
+                    return {"term":Map.newInstance(edge.value, part.value)}
+                }//endif
+            })};
+            filter["and"].append(mainFilter);
+
+            Thread.run(function*(){
+                var bugs = yield(ESQuery.run({
+                    "from":"bugs",
+                    "select":"bug_id",
+                    "esfilter":filter
+                }));
+                Bugzilla.showBugs(bugs.list);
+
+            });
+        });
+    }//function
+
+
+
+
+	// FORMAT THE THREE DIMENSIONAL CUBE TO A HIERARCHICAL GRID
+	function cube2grid(outstanding) {
+		var num_state = outstanding.edges[2].domain.partitions.length;
+
+		var header = "<thead>" +
+				"<tr><td rowspan='2' style='width:400px;'>Component</td>{{PROJECT_HEADERS1}}</tr>" +
+				"<tr>{{PROJECT_HEADERS2}}</tr>" +
+				"</thead>";
+		var data = "<tr><td>{{COMPONENT}}</td>{{PROJECT_DATA}}</tr>";
+		var projectHeader1 = "<td>|</td><td colspan='" + num_state + "''>{{PROJECT}}</td>";
+		var projectHeader2 = "<td></td>{{STATE_HEADERS}}";
+		var projectData = "<td>|</td>{{STATE_DATA}}";
+
+		var stateHeader = "<td style='height:100px;width:30px;vertical-align:bottom;'><div style='height:30px;width:30px;vertical-align:bottom;overflow: visible;-moz-transform:rotate(270deg);'>{{STATE}}</div></td>\n";
+		var stateData = "<td id='{{ID}}' class='hoverable' style='text-align:right;{{STYLE}}'>{{VALUE}}</td>\n";
+
+		var head = header.replaceAll("{{PROJECT_HEADERS1}}", outstanding.edges[1].domain.partitions.map(function (project) {
+			return projectHeader1.replaceAll("{{PROJECT}}", project.name.replaceAll(" ", "&nbsp;"))
+		}).join(""));
+		head = head.replaceAll("{{PROJECT_HEADERS2}}", outstanding.edges[1].domain.partitions.map(function (project) {
+			var stateHeaders = outstanding.edges[2].domain.partitions.map(function (state) {
+				return stateHeader.replaceAll("{{STATE}}", state.name);
+			}).join("");
+			return projectHeader2.replaceAll("{{STATE_HEADERS}}", stateHeaders);
+		}).join(""));
+
+		var body = outstanding.cube.map(function (projects, c) {
+			var component = outstanding.edges[0].domain.partitions[c];
+
+			return data.replaceAll("{{COMPONENT}}", component.name).replaceAll("{{PROJECT_DATA}}", projects.map(function (states, p) {
+				var project = outstanding.edges[1].domain.partitions[p];
+				return projectData.replaceAll("{{STATE_DATA}}", states.map(function (value, s) {
+					var state = outstanding.edges[2].domain.partitions[s];
+					var html;
+					if (value.count == 0) {
+						html = stateData.replaceAll("{{VALUE}}", " ");
+					} else if (project.name != "1.5" && ["Regression", "Blocker", "Nominated"].contains(state.name) && value.oldest < REALLY_TOO_LATE.getMilli()) {
+						html = stateData.replaceAll("{{VALUE}}", value.count).replaceAll("{{STYLE}}", CNV.Map2Style(ERROR_STYLE));
+					} else if (project.name != "1.5" && ["Regression", "Blocker", "Nominated"].contains(state.name) && value.oldest < TOO_LATE.getMilli()) {
+						html = stateData.replaceAll("{{VALUE}}", value.count).replaceAll("{{STYLE}}", CNV.Map2Style(WARNING_STYLE));
+					} else {
+						html = stateData.replaceAll("{{VALUE}}", value.count);
+					}//endif
+					html = html.replaceAll("{{ID}}", c + "x" + p + "x" + s);
+					return html;
+				}).join(""));
+			}).join(""));
+		}).join("");
+
+		return "<table>" + head + "<tbody>" + body + "</tbody></table>";
+	}//function
+
+
+</script>
+
+
+</BODY>
+</HTML>
+

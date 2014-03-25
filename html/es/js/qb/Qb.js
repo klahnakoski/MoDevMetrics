@@ -33,9 +33,9 @@ Qb.compile = function(query, sourceColumns, useMVEL){
 	var columns = [];
 	var uniqueColumns={};
 
-    if (sourceColumns===undefined){
-        Log.error("It seems we can't get schema from cluster?")
-    }//endif
+	if (sourceColumns===undefined){
+	    Log.error("It seems we can't get schema from cluster?")
+	}//endif
 
 	if (query.edges === undefined) query.edges=[];
 
@@ -883,7 +883,7 @@ Qb.getColumnsFromList = function(data){
 //	]);
 Qb.merge=function(query){
 	//MAP THE EDGE NAMES TO ACTUAL EDGES IN THE from QUERY
-	query.cubes.forall(function(item){
+	query.forall(function(item){
 		if (item.edges.length!=item.from.edges.length) Log.error("do not know how to join just some of the edges");
 
 		item.edges.forall(function(pe, i, edges){
@@ -896,7 +896,7 @@ Qb.merge=function(query){
 		});
 	});
 
-	var commonEdges=query.cubes[0].edges;
+	var commonEdges=query[0].edges;
 
 	var output={};
 	output.name=query.name;
@@ -910,7 +910,7 @@ Qb.merge=function(query){
 	output.cube=Qb.cube.newInstance(output.edges, 0, []);
 	Map.copy(Qb.query.prototype, output);
 
-	query.cubes.forall(function(item, index){
+	query.forall(function(item, index){
 		//COPY SELECT DEFINITIONS
 		output.select.appendArray(Array.newInstance(item.from.select));
 		output.columns.appendArray(Array.newInstance(item.from.select));
@@ -920,7 +920,7 @@ Qb.merge=function(query){
 		if (item.edges.length!=commonEdges.length) Log.error("Expecting all partitions to have same number of (common) edges declared");
 		item.edges.forall(function(edge, i){
 			if (typeof(edge)=="string") Log.error("can not find edge named '"+edge+"'");
-			if (!Qb.domain.equals(commonEdges[i].domain, edge.domain)) Log.error("Edges domains ("+item.from.name+", edge="+edge.name+") and ("+query.cubes[0].from.name+", edge="+commonEdges[i].name+") are different");
+			if (!Qb.domain.equals(commonEdges[i].domain, edge.domain)) Log.error("Edges domains ("+item.from.name+", edge="+edge.name+") and ("+query[0].from.name+", edge="+commonEdges[i].name+") are different");
 		});
 
 
@@ -935,82 +935,37 @@ Qb.merge=function(query){
 
 
 		//COPY ATTRIBUTES TO NEW JOINED
-		if (output.edges.length==1){
+	    var parts=[];
+	    var num=[];
 
-			var parts=output.edges[0].domain.partitions;
-			var num=parts.length;
-			if (output.edges[0].allowNulls){
-				if (parts[parts.length-1]!=output.edges[0].domain.NULL) Log.error("Expecting NULL in the partitions");
-			}else{
-				if (parts[parts.length-1]==output.edges[0].domain.NULL){
-					Log.error("When !allowNulls, then there should be no NULL in the partitions");
-					num--;
-				}//endif
-			}//endif
+	    var depth=output.edges.length;
+	    for(var d=0;d<depth;d++){
+	        parts[d]=output.edges[d].domain.partitions;
+	        num[d]=parts[d].length;
+	        if (output.edges[d].allowNulls){
+	            if (parts[d][parts[d].length-1]!=output.edges[d].domain.NULL) Log.error("Expecting NULL in the partitions");
+	        }else{
+	            if (parts[d][parts[d].length-1]==output.edges[d].domain.NULL){
+	                Log.error("When !allowNulls, then there should be no NULL in the partitions");
+	                num[d]--;
+	            }//endif
+	        }//endif
+	    }//for
 
-			if (item.from.select instanceof Array){
-				for(i=num;i--;){
-					if (item.edges[0].domain.partitions[i].dataIndex!=i)
-						Log.error("do not know how to handle");
-					var row=output.cube[i];
-					Map.copy(item.from.cube[i], row);
-				}//for
-			}else{
-				//Qb HAS VALUES, NOT OBJECTS
-				for(i=num;i--;){
-					if (item.edges[0].domain.partitions[i].dataIndex!=i)
-						Log.error("do not know how to handle");
-					output.cube[i][item.from.select.name]=item.from.cube[i];
-				}//for
-			}//endif
-
-
-		}else if (output.edges.length==2){
-
-			var parts0=output.edges[0].domain.partitions;
-			var num0=parts0.length;
-			var parts1=output.edges[1].domain.partitions;
-			var num1=parts1.length;
-
-			if (output.edges[0].allowNulls){
-				if (parts0[parts0.length-1]!=output.edges[0].domain.NULL) Log.error("Expecting NULL in the partitions");
-			}else{
-				if (parts0[parts0.length-1]==output.edges[0].domain.NULL){
-					Log.error("When !allowNulls, then there should be no NULL in the partitions");
-					num0--;
-				}//endif
-			}//endif
-
-			if (output.edges[1].allowNulls){
-				if (parts1[parts1.length-1]!=output.edges[1].domain.NULL) Log.error("Expecting NULL in the partitions");
-			}else{
-				if (parts1[parts1.length-1]==output.edges[1].domain.NULL){
-					Log.error("When !allowNulls, then there should be no NULL in the partitions");
-					num1--;
-				}//endif
-			}//endif
-
-
-
-			if (item.from.select instanceof Array){
-				for(i=num0;i--;){
-					for(j=num1;j--;){
-						Map.copy(item.from.cube[i][j], output.cube[i][j]);
-					}//for
-				}//for
-			}else{
-				//Qb HAS VALUES, NOT OBJECTS
-				for(i=num0;i--;){
-					for(j=num1;j--;){
-						output.cube[i][j][item.from.select.name]=item.from.cube[i][j];
-					}//for
-				}//for
-			}//endif
-
-		}else{
-			Log.error("Can not copy more than two dimensional cube");
-		}//endif
-
+	    var copy=function(from, to , d){
+	        for(var i=num[d];i--;){
+	            if (d<depth-1){
+	                copy(from[i], to[i], d+1);
+	            }else{
+	                if (item.from.select instanceof Array){
+	                    Map.copy(from[i], to[i])
+	                }else{
+	                    to[i][item.from.select.name]=from[i]
+	                }//endif
+	            }//endif
+	        }//for
+	    };
+	    copy(item.from.cube, output.cube, 0);
 	});
 
 //	output.select=query.partitions[0].from.select;	//I AM TIRED, JUST MAKE A BUNCH OF ASSUMPTIONS

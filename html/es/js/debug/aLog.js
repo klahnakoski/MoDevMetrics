@@ -4,9 +4,9 @@
 
 
 importScript([
-    "../../lib/jquery.js",
-    "../../lib/jquery-ui/js/jquery-ui-1.10.2.custom.js",
-    "../../lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css"
+		"../../lib/jquery.js",
+		"../../lib/jquery-ui/js/jquery-ui-1.10.2.custom.js",
+		"../../lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css"
 ]);
 importScript("aException.js");
 
@@ -73,13 +73,13 @@ Log.alert=function(message, ok_callback, cancel_callback){
 
 		buttons: {
 			"OK": function () {
-                $(this).dialog("close");
-                if (ok_callback) ok_callback();
-            },
+		            $(this).dialog("close");
+		            if (ok_callback) ok_callback();
+		        },
 			"Cancel":cancel_callback ? function () {
-                $(this).dialog("close");
-                cancel_callback();
-            } : undefined
+		            $(this).dialog("close");
+		            cancel_callback();
+		        } : undefined
 		}
 	});
 

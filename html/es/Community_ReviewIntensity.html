@@ -263,13 +263,11 @@ importScript([
 		//THE THREE ARE PARTS OF THE CATEGORY DIMENSION
 
 		//MERGE ALL RESULTS
-		var chart = Qb.merge({
-			"cubes":[
-				{"from":requested, "edges":["time"]},
-				{"from":reviewed, "edges":["time"]},
-				{"from":open, "edges":["time"]}
-			]
-		});
+		var chart = Qb.merge([
+            {"from":requested, "edges":["time"]},
+            {"from":reviewed, "edges":["time"]},
+            {"from":open, "edges":["time"]}
+        ]);
 
 		aChart.show({
 			"id":"chart",

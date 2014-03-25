@@ -393,22 +393,22 @@ var importScript;
 	}//method
 
 
-    var pending = [];
+		var pending = [];
 
 	//AN ARRAY WILL DEMAND LOAD ORDER
-    function __importScript__(importFile, code){
-        if (code!==undefined) pending.push(code);
+		function __importScript__(importFile, code){
+		    if (code!==undefined) pending.push(code);
 		addDependency(window.location.pathname, importFile);
 		importScript = function(i, code){
-            if (code!==undefined) pending.push(code);
-        };
+		        if (code!==undefined) pending.push(code);
+		    };
 		_importScript_(function(){
-            //WHEN ALL DONE AUTOMATICALLY
-            for(var i = 0; i < pending.length; i++){
-                pending[i]();
-            }//for
-            window.importScript=__importScript__
-        });
+		        //WHEN ALL DONE AUTOMATICALLY
+		        for(var i = 0; i < pending.length; i++){
+		            pending[i]();
+		        }//for
+		        window.importScript=__importScript__
+		    });
 	}//method
 
 

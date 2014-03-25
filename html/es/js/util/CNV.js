@@ -91,6 +91,10 @@ CNV.JSON2Object = function(json){
 };//method
 
 
+CNV.Map2Style = function(map){
+	return mapAllKey(map, function(k, v){return k+":"+v;}).join(";")+";";
+};//method
+
 
 CNV.Object2JSON = function(json){
 //	return JSON.stringify(json);

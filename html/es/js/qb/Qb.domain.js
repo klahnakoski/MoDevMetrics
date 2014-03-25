@@ -200,9 +200,9 @@ Qb.domain.time = function(column, sourceColumns){
 
 	d.interval = Duration.newInstance(d.interval);
 	d.min = new Date(d.min);//.floor(d.interval);
-    if (d.max!==undefined){
-        d.max = d.min.add(new Date(d.max).subtract(d.min, d.interval).floor(d.interval, d.min));
-    }//endif
+		if (d.max!==undefined){
+		    d.max = d.min.add(new Date(d.max).subtract(d.min, d.interval).floor(d.interval, d.min));
+	}//endif
 
 
 	d.compare = function(a, b){
