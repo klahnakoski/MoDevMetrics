@@ -26,6 +26,7 @@ Dimension.addEdges(true, Mozilla, [
 				},
 				{"name":"System Front-End", "esfilter":{"and":[
 					{"not":{"term":{"keyword":"perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"term": {"product": "firefox os"}},
 					{"terms":{"component":[
 						"gaia::browser",
 						"gaia::everything.me",
@@ -38,6 +39,7 @@ Dimension.addEdges(true, Mozilla, [
 				]}},
 				{"name": "Productivity", "esfilter": {"and": [
 					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"term": {"product": "firefox os"}},
 					{"terms": {"component": [
 						"gaia::e-mail",
 						"gaia::clock",
@@ -48,6 +50,7 @@ Dimension.addEdges(true, Mozilla, [
 				]}},
 				{"name": "Media", "esfilter": {"and": [
 					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"term": {"product": "firefox os"}},
 					{"terms": {"component": [
 						"gaia::camera",
 						"gaia::fmradio",
@@ -67,6 +70,7 @@ Dimension.addEdges(true, Mozilla, [
 				]}},
 				{"name": "System Platform", "esfilter": {"and": [
 					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"term": {"product": "firefox os"}},
 					{"terms": {"component": [
 						"gaia::settings",
 						"gaia::system::window mgmt",
@@ -86,6 +90,7 @@ Dimension.addEdges(true, Mozilla, [
 				]}},
 				{"name": "Comms", "esfilter": {"and": [
 					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"term": {"product": "firefox os"}},
 					{"terms": {"component": [
 						"dom: contacts",
 						"gaia::contacts",
@@ -96,6 +101,7 @@ Dimension.addEdges(true, Mozilla, [
 				]}},
 				{"name": "Devices", "esfilter": {"and": [
 					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"term": {"product": "firefox os"}},
 					{"terms": {"component": [
 						"audiochannel",
 						"bluetooth",
@@ -171,7 +177,19 @@ Dimension.addEdges(true, Mozilla, [
 						{"not": {"term": {"keywords": "regression"}}}
 					]}},
 					{"name": "Regression", "esfilter": {"term": {"keywords": "regression"}}}
-				]},
+				]
+			},
+
+			{"name": "Owner", "isFacet":true,
+				"partitions":[
+					{"name": "Unassigned", "esfilter": {"and": [
+						{"term": {"assigned_to": "nobody@mozilla.org"}}
+					]}},
+					{"name": "Assigned", "esfilter": {"and": [
+						{"not": {"term": {"assigned_to": "nobody@mozilla.org"}}}
+					]}}
+				]
+			},
 
 			{"name": "Project", "index": "bugs", "isFacet": true, "partitions": [
 				{"name": "1.3", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.3?"]}}},
@@ -179,7 +197,6 @@ Dimension.addEdges(true, Mozilla, [
 				{"name": "1.4", "esfilter": {"terms": {"cf_blocking_b2g": ["1.4+", "1.4?"]}}},
 				{"name": "1.5", "esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "1.5?"]}}},
 				{"name": "Untargeted", "esfilter": {"and": [
-					{"term": {"product": "firefox os"}},
 					{"not": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?"]}}}
 				]}}
 

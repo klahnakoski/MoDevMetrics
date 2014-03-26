@@ -237,7 +237,7 @@ function cube2grid(param) {
 			"<tr><td rowspan='"+param.columns.length+"' style='vertical-align:middle;width:400px;'><h3>{{NAME}}</h3></td>{{PROJECT_HEADERS1}}</tr>" +
 			"<tr>{{PROJECT_HEADERS2}}</tr>" +
 			"</thead>";
-	var teamTemplate = "<tr style='height:30px;'><td id='{{ID}}' class='hoverable' >{{TEAM}}</td>{{PROJECT_DATA}}</tr>";
+	var teamTemplate = "<tr style='height:30px'><td id='{{ID}}' class='hoverable' style='line-height:90%;width:175px' >{{TEAM}}</td>{{PROJECT_DATA}}</tr>";
 	var projectHeader1 = "<td class='vSeperatorA'></td><td colspan='" + num_state + "''>{{PROJECT}}</td>";
 	var projectHeader2 = "<td class='vSeperatorA'></td>{{STATE_HEADERS}}";
 	var projectData = "<td class='vSeperatorA'></td>{{STATE_DATA}}";
@@ -263,7 +263,7 @@ function cube2grid(param) {
 		var team = teamEdge.domain.partitions[t];
 
 		return teamTemplate
-				.replaceAll("{{TEAM}}", team.name.replaceAll(" ", "&nbsp;"))
+				.replaceAll("{{TEAM}}", team.name)
 				.replaceAll("{{ID}}", "_team" + t)
 				.replaceAll("{{PROJECT_DATA}}", projects.map(function (states, p) {
 					var project = projectEdge.domain.partitions[p];
@@ -331,6 +331,7 @@ function teamSummary(team){
 			"esfilter":{"and":[
 				Mozilla.B2G.esfilter,
 				Mozilla.CurrentRecords.esfilter,
+				team.name=="Performance" ? Mozilla.BugStatus.Open.esfilter : ESQuery.TrueFilter, //PERFORMANCE TEAM NEED NOT SHOW ALL COMPONENTS EVER TOUCHED
 				team.esfilter
 			]}
 		}));
