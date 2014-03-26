@@ -1,0 +1,198 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="application/javascript" src="js/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+<div id="sidebar">
+	<br>
+	<br>
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description">Incomplete<br><br>
+	</div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3 id="title">Incomplete</h3>
+
+	<div id="headerTriage" class="header">Bug Triage (show close rates? (per month?)</div>
+	<div id="expandTriage" class="expando">
+		<div id="chartTriage"  class="chart" style="float:none;width:800px;height:300px;"></div>
+		<div id="detailTriage"></div>
+	</div>
+
+	<div class="header">Bug Counts (show current blocker/regression totals)</div>
+	<div id="count" class="expando">
+		<div id="chartCount"  class="chart" style="float:none;width:800px;height:300px;"></div>
+	   	<div id="chartPercent"  class="chart" style="float:none;width:800px;height:300px;"></div>
+
+		<div id="detailBlocker"></div>
+		<div id="detailRegression"></div>
+	</div>
+
+	<div id="headerChurn" class="header">Bug Churn (show close rates? (per month?)</div>
+   	<div id="expandChurn" class="expando">
+   		<div id="chartChurn"  class="chart" style="float:none;width:800px;height:300px;"></div>
+   	</div>
+
+	<div id="headerReview" class="header">Reviews (show count)</div>
+   	<div id="detailReview" class="expando"></div>
+
+
+
+	<br><br>
+	<div id="info"></div>
+	<div id="details"></div>
+</div>
+
+
+<script type="application/javascript">
+
+
+importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], function(){
+
+
+
+var thread;
+var createChart=function(){
+	if (thread!==undefined)
+		thread.kill();
+	thread=Thread.run( __createChart());
+};
+
+var __createChart = function*(){
+	var BLOCKERS = ["1.3+", "1.4+", "1.5+"];
+
+	var sampleMin=Date.newInstance(GUI.state.sampleMin);
+	var sampleMax=Date.newInstance(GUI.state.sampleMax).addDay(1);
+	var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
+
+	var mainFilter={"and":[
+		GUI.getFilters("bugs"),
+		Mozilla.BugStatus.Open.esfilter,
+		{"or":[
+			{"term":{"product":"firefox os"}},
+			{"exists":{"field":"cf_blocking_b2g"}}
+		]}
+	]};
+
+	Thread.run(function*(){
+		///////////////////////////////////////////////////////////////////////
+		// SIMPLE OPEN BUG COUNT, OVER TIME
+		///////////////////////////////////////////////////////////////////////
+
+		var chart=yield (ESQuery.run({
+			"name":"Open Bug Count",
+			"from":"bugs",
+			"select":{
+				"name":"num_bug",
+				"value":"bug_id",
+				"aggregate":"count"
+			},
+			"edges":[
+				{"name":"blocker", "esfilter":ESQuery.TrueFilter, "domain":{"isFacet":true, "partitions":[
+					{"name":"open", "value":"open", "esfilter":{"and":[
+						{"not":{"term":{"keywords":"regression"}}},
+						{"not":{"terms":{"cf_blocking_b2g":BLOCKERS}}}
+					]}},
+					{"name":"blocker", "value":"blocker", "esfilter":{"and":[
+						{"not": {"term": {"keywords": "regression"}}},
+						{"terms": {"cf_blocking_b2g": BLOCKERS}}
+					]}},
+					{"name":"regression", "value":"regression", "esfilter":{"term":{"keywords":"regression"}}}
+				]}},
+				{"name":"date",
+					"range":{
+						"min":"modified_ts",
+						"max":"expires_on"
+					},
+					"allowNulls":false,
+					"domain":{
+						"type":"time",
+						"min":sampleMin,
+						"max":sampleMax.add(sampleInterval),
+						"interval":sampleInterval
+					}
+				}
+			],
+			"esfilter":mainFilter
+		}));
+
+		aChart.show({
+			"id":"chartCount",
+			"sheetDiv":"info",
+			"type":"area",
+			"stacked":true,
+			"cube":chart,
+			"height":"300",
+			xAxisSize: 50,
+			"width":800
+		});
+
+		Qb.normalizeByX(chart, 100);
+
+		aChart.show({
+			"name":"Regressions as Percentage",
+			"id":"chartPercent",
+			"sheetDiv":"info",
+			"type":"bar",
+			"stacked":true,
+			"cube":chart,
+			"height":"300",
+			xAxisSize: 50,
+			"width":800
+		});
+	});
+
+	yield (null);
+};
+
+
+
+
+
+	$(document).ready(function(){
+		GUI.setup(createChart, [
+			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-6week")},
+			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today().ceilingWeek()},
+			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"day"},
+			{"id":"team", "name":"Team", "type":PartitionFilter.newInstance({
+				"id":"teams",
+				"name":"All Teams",
+				"dimension":Mozilla.B2G.Team,
+				"onlyOne":true,
+				"expandAll":true
+			})}
+		],
+		[
+			"sampleMin=Date.newInstance(sampleMin).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
+			"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')"
+		],
+		"bugs",
+		false		//DO NOT SHOW DEFAULT FILTERS
+		);
+	});
+
+});
+
+</script>
+
+
+</BODY>
+</HTML>
+

@@ -74,7 +74,7 @@ Dimension.addEdges(true, Mozilla, [
 						"gaia::system::lockscreen"
 					]}}
 				]}},
-				{"name": "Multi-media platform", "esfilter": {"and": [
+				{"name": "Multi-media Platform", "esfilter": {"and": [
 					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"terms": {"component": [
 						"video/audio: recording",

@@ -8,242 +8,279 @@
 </HEAD>
 <BODY>
 
-<div id="sidebar" style="width:200px;">
+<div id="sidebar" style="width:250px;">
 	<br>
 	<br>
+
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 	</div>
 	<hr>
-	<div id="description"></div>
+	<div id="description">
+		<div style="display:inline-block;height:10px;width:10px;background-color:#ff7f0e;"> </div> Over 2 days since last change<br>
+		<div style="display:inline-block;height:10px;width:10px;background-color:#d62728;"> </div> Over 1 week since last change<br>
+	</div>
 
 </div>
 
 
 <div style="align:left;position:relative;float:left;width:800px;padding-top: 10px;">
 	<h3 id="title">B2G Prototype Operations Dashboard</h3>
+
 	<div id="info" style="width:800px;float:left;"></div>
-    <div class="footer">Source at <a href="https://github.com/klahnakoski/MoDevMetrics/blob/es6/html/es/B2G-Overall.html">https://github.com/klahnakoski/MoDevMetrics/blob/es6/html/es/B2G-Overall.html</a></div>
+	<div class="footer">Source at <a
+			href="https://github.com/klahnakoski/MoDevMetrics/blob/es6/html/es/B2G-Overall.html">https://github.com/klahnakoski/MoDevMetrics/blob/es6/html/es/B2G-Overall.html</a></div>
 </div>
 
 <script type="application/javascript">
-    var NOW;
-    var TOO_LATE;
-    var REALLY_TOO_LATE;
+var NOW;
+var TOO_LATE;
+var REALLY_TOO_LATE;
 
-    var WARNING_STYLE = {
-        "color": "white",
-        "font-weight": "bold",
-        "background-color": "#ff7f0e"
-    };
-    var ERROR_STYLE = {
-        "color": "white",
-        "font-weight": "bold",
-        "background-color": "#d62728"
-    };
+var WARNING_STYLE = {
+	"color": "white",
+	"font-weight": "bold",
+	"background-color": "#ff7f0e"
+};
+var ERROR_STYLE = {
+	"color": "white",
+	"font-weight": "bold",
+	"background-color": "#d62728"
+};
 
 
-	importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], function () {
-		var thread;
-		var createChart = function () {
-			if (thread !== undefined)
-				thread.kill();
-			thread = Thread.run(__createChart());
-		};
+importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], function () {
+	var thread;
+	var createChart = function () {
+		if (thread !== undefined)
+			thread.kill();
+		thread = Thread.run(__createChart());
+	};
 
-		var __createChart = function*() {
-			NOW = Date.today();
-			TOO_LATE = NOW.subtract(Duration.newInstance("2day"));
-			REALLY_TOO_LATE = NOW.subtract(Duration.newInstance("1week"));
+	var __createChart = function*() {
+		NOW = Date.today();
+		TOO_LATE = NOW.subtract(Duration.newInstance("2day"));
+		REALLY_TOO_LATE = NOW.subtract(Duration.newInstance("1week"));
 
-            mainFilter={"and": [
-                Mozilla.BugStatus.Open.esfilter,
-                Mozilla.B2G.esfilter,
-                Mozilla.CurrentRecords.esfilter
-            ]};
+		mainFilter = {"and": [
+			Mozilla.BugStatus.Open.esfilter,
+			Mozilla.B2G.esfilter,
+			Mozilla.CurrentRecords.esfilter
+		]};
 
-			yield (ESQuery.loadColumns({"from": "bugs"}));
+		yield (ESQuery.loadColumns({"from": "bugs"}));
 
-			var outstanding = null;
+		var outstanding = null;
 
-			var countingThread = Thread.run(function*() {
-				var a = Log.action("Get Counts", true);
+		var countingThread = Thread.run(function*() {
+			var a = Log.action("Get Counts", true);
 
-				outstanding = yield(ESQuery.run({
-					"from": "bugs",
-					"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
-					"edges": [
-						{"name": "Team", "domain": Mozilla.B2G.Team.getDomain()},
-						{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
-						{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
-					],
-					"esfilter": mainFilter
-				}));
-				Log.actionDone(a);
-				yield (null);
+			outstanding = yield(ESQuery.run({
+				"from": "bugs",
+				"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
+				"edges": [
+					{"name": "Team", "domain": Mozilla.B2G.Team.getDomain()},
+					{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
+					{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
+				],
+				"esfilter": mainFilter
+			}));
+			Log.actionDone(a);
+			yield (null);
+		});
+
+
+		Thread.run(function*() {
+			var a = Log.action("Get Ages", true);
+
+			var ages = yield(ESQuery.run({
+				"from": "bugs",
+				"select": {"name": "oldest", "value": "modified_ts", "aggregate": "minimum"},
+				"edges": [
+					{"name": "Team", "domain": Mozilla.B2G.Team.getDomain()},
+					{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
+					{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
+				],
+				"esfilter": mainFilter
+			}));
+			Log.actionDone(a);
+
+			yield (Thread.join(countingThread));
+
+			var both = Qb.merge([
+				{"from": outstanding, "edges": ["Team", "Project", "State"]},
+				{"from": ages, "edges": ["Team", "Project", "State"]}
+			]);
+
+			//EXPOSE NULLS AS LEGITIMATE PARTS
+			both.edges.forall(function (edge, e) {
+				if (edge.allowNulls) {
+					edge.domain.partitions.append(edge.domain.NULL);
+					edge.allowNulls = false;
+				}//endif
 			});
 
 
-			Thread.run(function*() {
-				var a = Log.action("Get Ages", true);
-
-				var ages = yield(ESQuery.run({
-					"from": "bugs",
-					"select": {"name": "oldest", "value": "modified_ts", "aggregate": "minimum"},
-					"edges": [
-                        {"name": "Team", "domain": Mozilla.B2G.Team.getDomain()},
-						{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
-						{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
+			{//SORT THE PRIMARY EDGE BY oldest
+				var ordering = yield(Q({
+					"from": both,
+					"select": [
+						{"value": "oldest", "aggregate": "maximum"}
 					],
-					"esfilter": mainFilter
+					"edges": [
+						{"name": "Team", "value": "Team", "domain": {"type": "set", "partitions": both.edges[0].domain.partitions}}
+					],
+					"where": '["Regression", "Blocker", "Nominated"].contains(State.name)',
+					"analytic": [
+						{"name": "ordering", "value": "oldest==null ? 9999999999000: oldest", "edges": []},
+						{"value": "rownum", "edges": [], "sort": "ordering"}
+					]
 				}));
-				Log.actionDone(a);
 
-				yield (Thread.join(countingThread));
+				var newparts = [];
+				var oldparts = both.edges[0].domain.partitions;
+				var newcube = [];
+				ordering.cube.forall(function (v, i) {
+					newparts[v.rownum] = oldparts[i];
+					newparts[v.rownum].dataIndex = i;
+					newcube[v.rownum] = both.cube[i];
+				});
+				both.cube = newcube;
+				both.edges[0].domain.partitions = newparts;
+			}
 
-				var both = Qb.merge([
-					{"from": outstanding, "edges": ["Team", "Project", "State"]},
-					{"from": ages, "edges": ["Team", "Project", "State"]}
-				]);
-
-                //EXPOSE NULLS AS LEGITIMATE PARTS
-                both.edges.forall(function(edge, e){
-                    if (edge.allowNulls){
-                        edge.domain.partitions.append(edge.domain.NULL);
-                        edge.allowNulls=false;
-                    }//endif
-                });
-
-
-				{//SORT THE PRIMARY EDGE BY oldest
-					var ordering = yield(Q({
-						"from": both,
-						"select": [
-							{"value": "oldest", "aggregate": "maximum"}
-						],
-						"edges": [
-							{"name": "Team", "value": "Team", "domain": {"type": "set", "partitions": both.edges[0].domain.partitions}}
-						],
-						"where": '["Regression", "Blocker", "Nominated"].contains(State.name)',
-						"analytic": [
-							{"name": "ordering", "value": "oldest==null ? 9999999999000: oldest", "edges": []},
-							{"value": "rownum", "edges": [], "sort": "ordering"}
-						]
-					}));
-
-					var newparts = [];
-					var oldparts = both.edges[0].domain.partitions;
-					var newcube = [];
-					ordering.cube.forall(function (v, i) {
-						newparts[v.rownum] = oldparts[i];
-						newparts[v.rownum].dataIndex = i;
-						newcube[v.rownum] = both.cube[i];
-					});
-					both.cube = newcube;
-					both.edges[0].domain.partitions = newparts;
-				}
-
-				html = cube2grid(both);
-				$("#info").html(html);
-                addClickHandlers(both)
-			});
+			html = cube2grid(both);
+			$("#info").html(html);
+			addNumberClickers(both);
+			addTeamClickers(both);
+		});
 
 
-		};
+	};
 
-		$(document).ready(function () {
-			GUI.setup(
-					createChart,
-					[],
-					[],
-					null,
-					false		//DO NOT SHOW DEFAULT FILTERS
-			);
+	$(document).ready(function () {
+		GUI.setup(
+				createChart,
+				[],
+				[],
+				null,
+				false		//DO NOT SHOW DEFAULT FILTERS
+		);
+	});
+});
+
+
+function addNumberClickers(cube) {
+	$("td").filter(function () {
+		return nvl($(this).attr("id"), "").startsWith("value");
+	}).click(function (e) {
+		var id = $(this).attr("id");
+		var coord = id.rightBut("value".length).split("x").map(function (v) {
+			return CNV.String2Integer(v);
+		});
+		var filter = {"and": cube.edges.map(function (edge, i) {
+			var part = edge.domain.partitions[coord[i]];
+			if (part.esfilter) {
+				return part.esfilter;
+			} else {
+				return {"term": Map.newInstance(edge.value, part.value)}
+			}//endif
+		})};
+		filter["and"].append(mainFilter);
+
+		Thread.run(function*() {
+			var bugs = yield(ESQuery.run({
+				"from": "bugs",
+				"select": "bug_id",
+				"esfilter": filter
+			}));
+			Bugzilla.showBugs(bugs.list);
+
 		});
 	});
+}//function
+
+function addTeamClickers(cube) {
+	$("td").filter(function () {
+		return nvl($(this).attr("id"), "").startsWith("team");
+	}).click(function (e) {
+		var id = $(this).attr("id");
+		var team = cube.edges[0].domain.partitions[CNV.String2Integer(id.rightBut("team".length))];
+
+		window.open("B2G-Team.html#" + CNV.Object2URL({"team": team.name}));
+	});
+
+}//function
 
 
-    function addClickHandlers(cube){
-        $("td").click(function(e){
-            var id = $(this).attr("id");
-            var coord = id.split("x").map(function(v){return CNV.String2Integer(v);});
-            var filter={"and":cube.edges.map(function(edge, i){
-                var part = edge.domain.partitions[coord[i]];
-                if (part.esfilter){
-                    return part.esfilter;
-                }else{
-                    return {"term":Map.newInstance(edge.value, part.value)}
-                }//endif
-            })};
-            filter["and"].append(mainFilter);
+// FORMAT THE THREE DIMENSIONAL CUBE TO A HIERARCHICAL GRID
+function cube2grid(outstanding) {
+	var num_state = outstanding.edges[2].domain.partitions.length - 2; // -2 IS A DIRTY TRICK TO ONLY SHOW THE COLUMNS USED
 
-            Thread.run(function*(){
-                var bugs = yield(ESQuery.run({
-                    "from":"bugs",
-                    "select":"bug_id",
-                    "esfilter":filter
-                }));
-                Bugzilla.showBugs(bugs.list);
+	var header = "<thead>" +
+			"<tr><td rowspan='2' style='vertical-align:bottom;width:400px;'><h3>Team</h3></td>{{PROJECT_HEADERS1}}</tr>" +
+			"<tr>{{PROJECT_HEADERS2}}</tr>" +
+			"</thead>";
+	var data = "<tr style='height:30px;'><td id='{{ID}}' class='hoverable' >{{TEAM}}</td>{{PROJECT_DATA}}</tr>";
+	var projectHeader1 = "<td>|</td><td colspan='" + num_state + "''>{{PROJECT}}</td>";
+	var projectHeader2 = "<td></td>{{STATE_HEADERS}}";
+	var projectData = "<td>|</td>{{STATE_DATA}}";
 
-            });
-        });
-    }//function
+	var stateHeader = "<td style='height:150px;width:40px;vertical-align:bottom;'><div style='height:30px;width:30px;vertical-align:bottom;overflow: visible;-moz-transform:rotate(270deg);'>{{STATE}}</div></td>\n";
+	var stateData = "<td id='{{ID}}' class='hoverable' style='text-align:center;{{STYLE}}'>{{VALUE}}</td>\n";
 
-
-
-
-	// FORMAT THE THREE DIMENSIONAL CUBE TO A HIERARCHICAL GRID
-	function cube2grid(outstanding) {
-		var num_state = outstanding.edges[2].domain.partitions.length;
-
-		var header = "<thead>" +
-				"<tr><td rowspan='2' style='vertical-align:bottom;width:400px;'><h3>Team</h3></td>{{PROJECT_HEADERS1}}</tr>" +
-				"<tr>{{PROJECT_HEADERS2}}</tr>" +
-				"</thead>";
-		var data = "<tr style='height:30px;'><td>{{COMPONENT}}</td>{{PROJECT_DATA}}</tr>";
-		var projectHeader1 = "<td>|</td><td colspan='" + num_state + "''>{{PROJECT}}</td>";
-		var projectHeader2 = "<td></td>{{STATE_HEADERS}}";
-		var projectData = "<td>|</td>{{STATE_DATA}}";
-
-		var stateHeader = "<td style='height:150px;width:40px;vertical-align:bottom;'><div style='height:30px;width:30px;vertical-align:bottom;overflow: visible;-moz-transform:rotate(270deg);'>{{STATE}}</div></td>\n";
-		var stateData = "<td id='{{ID}}' class='hoverable' style='text-align:center;{{STYLE}}'>{{VALUE}}</td>\n";
-
-		var head = header.replaceAll("{{PROJECT_HEADERS1}}", outstanding.edges[1].domain.partitions.map(function (project) {
-			return projectHeader1.replaceAll("{{PROJECT}}", project.name.replaceAll(" ", "&nbsp;"))
-		}).join(""));
-		head = head.replaceAll("{{PROJECT_HEADERS2}}", outstanding.edges[1].domain.partitions.map(function (project) {
-			var stateHeaders = outstanding.edges[2].domain.partitions.map(function (state) {
+	var head = header.replaceAll("{{PROJECT_HEADERS1}}", outstanding.edges[1].domain.partitions.map(function (project) {
+		return projectHeader1.replaceAll("{{PROJECT}}", project.name.replaceAll(" ", "&nbsp;"))
+	}).join(""));
+	head = head.replaceAll("{{PROJECT_HEADERS2}}", outstanding.edges[1].domain.partitions.map(function (project) {
+		var stateHeaders = outstanding.edges[2].domain.partitions.map(function (state) {
+			if (isVisible(project.name, state.name)) {
 				return stateHeader.replaceAll("{{STATE}}", state.name.replaceAll(" ", "&nbsp;"));
-			}).join("");
-			return projectHeader2.replaceAll("{{STATE_HEADERS}}", stateHeaders);
-		}).join(""));
-
-		var body = outstanding.cube.map(function (projects, c) {
-			var component = outstanding.edges[0].domain.partitions[c];
-
-			return data.replaceAll("{{COMPONENT}}", component.name.replaceAll(" ", "&nbsp;")).replaceAll("{{PROJECT_DATA}}", projects.map(function (states, p) {
-				var project = outstanding.edges[1].domain.partitions[p];
-				return projectData.replaceAll("{{STATE_DATA}}", states.map(function (value, s) {
-					var state = outstanding.edges[2].domain.partitions[s];
-					var html;
-					if (value.count == 0) {
-						html = stateData.replaceAll("{{VALUE}}", " ");
-					} else if (project.name != "1.5" && ["Regression", "Blocker", "Nominated"].contains(state.name) && value.oldest < REALLY_TOO_LATE.getMilli()) {
-						html = stateData.replaceAll("{{VALUE}}", value.count).replaceAll("{{STYLE}}", CNV.Map2Style(ERROR_STYLE));
-					} else if (project.name != "1.5" && ["Regression", "Blocker", "Nominated"].contains(state.name) && value.oldest < TOO_LATE.getMilli()) {
-						html = stateData.replaceAll("{{VALUE}}", value.count).replaceAll("{{STYLE}}", CNV.Map2Style(WARNING_STYLE));
-					} else {
-						html = stateData.replaceAll("{{VALUE}}", value.count);
-					}//endif
-					html = html.replaceAll("{{ID}}", c + "x" + p + "x" + s);
-					return html;
-				}).join(""));
-			}).join(""));
+			}//endif
 		}).join("");
+		return projectHeader2.replaceAll("{{STATE_HEADERS}}", stateHeaders);
+	}).join(""));
 
-		return "<table>" + head + "<tbody>" + body + "</tbody></table>";
-	}//function
+	var body = outstanding.cube.map(function (projects, t) {
+		var team = outstanding.edges[0].domain.partitions[t];
 
+		return data
+				.replaceAll("{{TEAM}}", team.name.replaceAll(" ", "&nbsp;"))
+				.replaceAll("{{ID}}", "team" + t)
+				.replaceAll("{{PROJECT_DATA}}", projects.map(function (states, p) {
+					var project = outstanding.edges[1].domain.partitions[p];
+					return projectData.replaceAll("{{STATE_DATA}}", states.map(function (value, s) {
+						var state = outstanding.edges[2].domain.partitions[s];
+						if (isVisible(project.name, state.name)) {
+							var html;
+							if (value.count == 0) {
+								html = stateData.replaceAll("{{VALUE}}", " ");
+							} else if (project.name != "1.5" && ["Regression", "Blocker", "Nominated"].contains(state.name) && value.oldest < REALLY_TOO_LATE.getMilli()) {
+								html = stateData.replaceAll("{{VALUE}}", value.count).replaceAll("{{STYLE}}", CNV.Map2Style(ERROR_STYLE));
+							} else if (project.name != "1.5" && ["Regression", "Blocker", "Nominated"].contains(state.name) && value.oldest < TOO_LATE.getMilli()) {
+								html = stateData.replaceAll("{{VALUE}}", value.count).replaceAll("{{STYLE}}", CNV.Map2Style(WARNING_STYLE));
+							} else {
+								html = stateData.replaceAll("{{VALUE}}", value.count);
+							}//endif
+							html = html.replaceAll("{{ID}}", "value"+t + "x" + p + "x" + s);
+							return html;
+						}//endif
+					}).join(""));
+				}).join(""));
+	}).join("");
+
+	return "<table>" + head + "<tbody>" + body + "</tbody></table>";
+}//function
+
+
+function isVisible(projectName, stateName) {
+	if (projectName == "Untargeted" && ["Open - Unassigned", "Open - Assigned", "Regression"].contains(stateName)) {
+		return true;
+	} else if (projectName != "Untargeted" && ["Nominated", "Blocker", "Regression"].contains(stateName)) {
+		return true;
+	}//endif
+	return false;
+}
 
 </script>
 

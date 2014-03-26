@@ -136,7 +136,6 @@ GUI = {};
 		    Thread.run("show last updated timestamp", function*() {
 		        var time;
 
-		        var a = Log.action("Get Status of ES Index", true);
 		        if (indexName === undefined || indexName == "bugs") {
 		            var result = yield (ESQuery.run({
 		                "from": "bugs",
@@ -175,7 +174,6 @@ GUI = {};
 		            }))).cube.max_date);
 		            $("#testMessage").html("Perfy Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 		        } else {
-		            Log.actionDone(a);
 		            return;
 		        }//endif
 
@@ -183,16 +181,12 @@ GUI = {};
 		        if (age > 1 || esHasErrorInIndex) {
 		            GUI.bigWarning("#testMessage", aMath.max(3, aMath.floor(age)));
 		        }//endif
-		        Log.actionDone(a);
-
 
 		        if (esHasErrorInIndex === undefined) {
-		            a = Log.action("Verify ES Consistency", true);
 		            esHasErrorInIndex = yield(GUI.corruptionCheck());
 		            if (esHasErrorInIndex) {
 		                $("#testMessage").append("<br>ES IS CORRUPTED!!!");
 		            }//endif
-		            Log.actionDone(a);
 		        }//endif
 
 		    });
