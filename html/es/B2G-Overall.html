@@ -65,7 +65,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 		TOO_LATE = NOW.subtract(Duration.newInstance("2day"));
 		REALLY_TOO_LATE = NOW.subtract(Duration.newInstance("1week"));
 
-		mainFilter = {"and": [
+		var mainFilter = {"and": [
 			Mozilla.BugStatus.Open.esfilter,
 			Mozilla.B2G.esfilter,
 			Mozilla.CurrentRecords.esfilter
@@ -158,7 +158,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 			"columns":["Project", "State"]
 		});
 		$("#info").html(html);
-		addNumberClickers(both);
+		addNumberClickers(both, mainFilter);
 		addTeamClickers(both);
 
 		both.edges[0].domain.partitions.forall(teamSummary);
@@ -179,12 +179,13 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 });
 
 
-function addNumberClickers(cube) {
+function addNumberClickers(cube, mainFilter) {
+	var prefix=cube.name.deformat()+"_value";
 	$("td").filter(function () {
-		return nvl($(this).attr("id"), "").startsWith("value");
+		return nvl($(this).attr("id"), "").startsWith(prefix);
 	}).click(function (e) {
 		var id = $(this).attr("id");
-		var coord = id.rightBut("value".length).split("x").map(function (v) {
+		var coord = id.rightBut(prefix.length).split("x").map(function (v) {
 			return CNV.String2Integer(v);
 		});
 		var filter = {"and": cube.edges.map(function (edge, i) {
@@ -211,10 +212,10 @@ function addNumberClickers(cube) {
 
 function addTeamClickers(cube) {
 	$("td").filter(function () {
-		return nvl($(this).attr("id"), "").startsWith("team");
+		return nvl($(this).attr("id"), "").startsWith("_team");
 	}).click(function (e) {
 		var id = $(this).attr("id");
-		var team = cube.edges[0].domain.partitions[CNV.String2Integer(id.rightBut("team".length))];
+		var team = cube.edges[0].domain.partitions[CNV.String2Integer(id.rightBut("_team".length))];
 
 		window.open("B2G-Team.html#" + CNV.Object2URL({"team": team.name}));
 	});
@@ -229,6 +230,7 @@ function cube2grid(param) {
 	var projectEdge = cube.getEdge(param.columns[0]);
 	var stateEdge = cube.getEdge(param.columns[1]);
 
+	var id_prefix=cube.name.deformat()+"_value";
 	var num_state = stateEdge.domain.partitions.length - 2; // -2 IS A DIRTY TRICK TO ONLY SHOW THE COLUMNS USED
 
 	var header = "<thead>" +
@@ -262,7 +264,7 @@ function cube2grid(param) {
 
 		return teamTemplate
 				.replaceAll("{{TEAM}}", team.name.replaceAll(" ", "&nbsp;"))
-				.replaceAll("{{ID}}", "team" + t)
+				.replaceAll("{{ID}}", "_team" + t)
 				.replaceAll("{{PROJECT_DATA}}", projects.map(function (states, p) {
 					var project = projectEdge.domain.partitions[p];
 					return projectData.replaceAll("{{STATE_DATA}}", states.map(function (value, s) {
@@ -286,7 +288,7 @@ function cube2grid(param) {
 										.replaceAll("{{VALUE}}", value.count)
 										.replaceAll("{{STYLE}}", "");
 							}//endif
-							html = html.replaceAll("{{ID}}", "value"+t + "x" + p + "x" + s);
+							html = html.replaceAll("{{ID}}", id_prefix + t + "x" + p + "x" + s);
 							return html;
 						}//endif
 					}).join(""));
@@ -309,7 +311,7 @@ function isVisible(projectName, stateName) {
 
 function teamSummary(team){
 	//MAKE CONTAINER DIV
-	$("#info").parent().append("<div id='"+team.name+"'></div>");
+	$("#info").parent().append("<div id='"+team.name.deformat()+"'></div>");
 
 	var teamFilter={"and":[
 		Mozilla.B2G.esfilter,
@@ -383,8 +385,8 @@ function teamSummary(team){
 			"rows":["Component"],
 			"columns":["Project", "State"]
 		});
-		$("#"+team.name).html("<br><br><hr><br><br>"+html)
-
+		$("#"+team.name.deformat()).html("<br><br><hr><br><br>"+html)
+		addNumberClickers(both, teamFilter);
 	});
 
 }//function
