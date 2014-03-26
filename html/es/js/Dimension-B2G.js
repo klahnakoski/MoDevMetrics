@@ -21,8 +21,9 @@ Dimension.addEdges(true, Mozilla, [
 			]},
 
 			{"name":"Team", "isFacet": true, "partitions":[
-				{"name":"Performance", "esfilter":{"term":{"keyword":"perf"}}},
-
+				{"name":"Performance",
+					"esfilter":{"term":{"keyword":"perf"}}
+				},
 				{"name":"Systemsfe", "esfilter":{"and":[
 					{"not":{"term":{"keyword":"perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"terms":{"component":[

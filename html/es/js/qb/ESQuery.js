@@ -891,26 +891,27 @@ ESQuery.prototype.compileEdges2Term=function(constants){
 	}//endif
 
 	//IF THE QUERY IS SIMPLE ENOUGH, THEN DO NOT USE TERM PACKING
-	if (edges.length==1 && ["set", "default"].contains(edges[0].domain.type)){
+	var onlyEdge=this.termsEdges[0];
+	if (this.termsEdges.length==1 && ["set", "default"].contains(onlyEdge.domain.type)){
 		//THE TERM RETURNED WILL BE A MEMBER OF THE GIVEN SET
 		this.term2Parts=function(term){
-			return [edges[0].domain.getPartByKey(term)];
+			return [onlyEdge.domain.getPartByKey(term)];
 		};
 
-		if (edges[0].value===undefined && edges[0].domain.partitions!==undefined){
+		if (onlyEdge.value===undefined && onlyEdge.domain.partitions!==undefined){
 			var script=MVEL.Parts2TermScript(
 				self.query.from,
-				edges[0].domain
+				onlyEdge.domain
 			);
 			return {"type":"script", "value":MVEL.compile.expression(script, this.query, constants)};
 		}//endif
 
-		if (edges[0].esscript){
-			return {"type":"script", "value":MVEL.compile.addFunctions(edges[0].esscript)};
-		}else if (MVEL.isKeyword(edges[0].value)){
-			return {"type":"field", "value":edges[0].value};
+		if (onlyEdge.esscript){
+			return {"type":"script", "value":MVEL.compile.addFunctions(onlyEdge.esscript)};
+		}else if (MVEL.isKeyword(onlyEdge.value)){
+			return {"type":"field", "value":onlyEdge.value};
 		}else{
-			return {"type":"script", "value":MVEL.compile.expression(edges[0].value, this.query, constants)};
+			return {"type":"script", "value":MVEL.compile.expression(onlyEdge.value, this.query, constants)};
 		}//endif
 	}//endif
 

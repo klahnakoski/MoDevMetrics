@@ -27,7 +27,10 @@
 <div style="align:left;position:relative;float:left;width:800px;padding-top: 10px;">
 	<h3 id="title">FFOS Projects Dashboard</h3>
 
-	<div id="info" style="width:800px;"></div>
+	<div>
+		<div id="info" style="width:800px;"></div>
+
+	</div>
 	<div class="footer">Source at <a href="https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Overall.html">https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Overall.html</a></div>
 </div>
 
@@ -148,10 +151,19 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 			both.edges[0].domain.partitions = newparts;
 		}
 
-		html = cube2grid(both);
+		both.name="Teams";
+		var html = cube2grid({
+			"cube": both,
+			"rows":["Team"],
+			"columns":["Project", "State"]
+		});
 		$("#info").html(html);
 		addNumberClickers(both);
 		addTeamClickers(both);
+
+		both.edges[0].domain.partitions.forall(teamSummary);
+
+
 
 	};
 
@@ -211,14 +223,19 @@ function addTeamClickers(cube) {
 
 
 // FORMAT THE THREE DIMENSIONAL CUBE TO A HIERARCHICAL GRID
-function cube2grid(cube) {
-	var num_state = cube.edges[2].domain.partitions.length - 2; // -2 IS A DIRTY TRICK TO ONLY SHOW THE COLUMNS USED
+function cube2grid(param) {
+	var cube = param.cube;
+	var teamEdge = cube.getEdge(param.rows[0]);
+	var projectEdge = cube.getEdge(param.columns[0]);
+	var stateEdge = cube.getEdge(param.columns[1]);
+
+	var num_state = stateEdge.domain.partitions.length - 2; // -2 IS A DIRTY TRICK TO ONLY SHOW THE COLUMNS USED
 
 	var header = "<thead>" +
-			"<tr><td rowspan='2' style='vertical-align:bottom;width:400px;'><h3>Team</h3></td>{{PROJECT_HEADERS1}}</tr>" +
+			"<tr><td rowspan='"+param.columns.length+"' style='vertical-align:middle;width:400px;'><h3>{{NAME}}</h3></td>{{PROJECT_HEADERS1}}</tr>" +
 			"<tr>{{PROJECT_HEADERS2}}</tr>" +
 			"</thead>";
-	var data = "<tr style='height:30px;'><td id='{{ID}}' class='hoverable' >{{TEAM}}</td>{{PROJECT_DATA}}</tr>";
+	var teamTemplate = "<tr style='height:30px;'><td id='{{ID}}' class='hoverable' >{{TEAM}}</td>{{PROJECT_DATA}}</tr>";
 	var projectHeader1 = "<td class='vSeperatorA'></td><td colspan='" + num_state + "''>{{PROJECT}}</td>";
 	var projectHeader2 = "<td class='vSeperatorA'></td>{{STATE_HEADERS}}";
 	var projectData = "<td class='vSeperatorA'></td>{{STATE_DATA}}";
@@ -227,12 +244,12 @@ function cube2grid(cube) {
 	var stateData = "<td id='{{ID}}' class='hoverable'><div style='{{STYLE}}'>{{VALUE}}</div></td>\n";
 
 	var head = header
-			.replaceAll("{{NAME}", cube.name)
-			.replaceAll("{{PROJECT_HEADERS1}}", cube.edges[1].domain.partitions.map(function (project) {
+			.replaceAll("{{NAME}}", cube.name)
+			.replaceAll("{{PROJECT_HEADERS1}}", projectEdge.domain.partitions.map(function (project) {
 		return projectHeader1.replaceAll("{{PROJECT}}", project.name.replaceAll(" ", "&nbsp;"))
 	}).join(""));
-	head = head.replaceAll("{{PROJECT_HEADERS2}}", cube.edges[1].domain.partitions.map(function (project) {
-		var stateHeaders = cube.edges[2].domain.partitions.map(function (state) {
+	head = head.replaceAll("{{PROJECT_HEADERS2}}", projectEdge.domain.partitions.map(function (project) {
+		var stateHeaders = stateEdge.domain.partitions.map(function (state) {
 			if (isVisible(project.name, state.name)) {
 				return stateHeader.replaceAll("{{STATE}}", state.name.replaceAll(" ", "&nbsp;"));
 			}//endif
@@ -241,15 +258,15 @@ function cube2grid(cube) {
 	}).join(""));
 
 	var body = cube.cube.map(function (projects, t) {
-		var team = cube.edges[0].domain.partitions[t];
+		var team = teamEdge.domain.partitions[t];
 
-		return data
+		return teamTemplate
 				.replaceAll("{{TEAM}}", team.name.replaceAll(" ", "&nbsp;"))
 				.replaceAll("{{ID}}", "team" + t)
 				.replaceAll("{{PROJECT_DATA}}", projects.map(function (states, p) {
-					var project = cube.edges[1].domain.partitions[p];
+					var project = projectEdge.domain.partitions[p];
 					return projectData.replaceAll("{{STATE_DATA}}", states.map(function (value, s) {
-						var state = cube.edges[2].domain.partitions[s];
+						var state = stateEdge.domain.partitions[s];
 						if (isVisible(project.name, state.name)) {
 							var html;
 							if (value.count == 0) {
@@ -288,6 +305,90 @@ function isVisible(projectName, stateName) {
 	}//endif
 	return false;
 }
+
+
+function teamSummary(team){
+	//MAKE CONTAINER DIV
+	$("#info").parent().append("<div id='"+team.name+"'></div>");
+
+	var teamFilter={"and":[
+		Mozilla.B2G.esfilter,
+		Mozilla.CurrentRecords.esfilter,
+		Mozilla.BugStatus.Open.esfilter,
+		team.esfilter
+	]};
+
+
+	Thread.run(function*(){
+
+		//FIND COMPONENTS
+		var components = yield(ESQuery.run({
+			"from":"bugs",
+			"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
+			"edges":["component"],
+			"esfilter":{"and":[
+				Mozilla.B2G.esfilter,
+				Mozilla.CurrentRecords.esfilter,
+				team.esfilter
+			]}
+		}));
+//				components = components.edges[0].domain.partitions.select("name");
+		var componentDomain = {"type":"set", "partitions":components.edges[0].domain.partitions.select("value")};
+
+		var counting = null;
+		var countingThread = Thread.run(function*() {
+			var a = Log.action("Get "+team.name+" Counts", true);
+			counting = yield(ESQuery.run({
+				"from": "bugs",
+				"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
+				"edges": [
+					{"name": "Component", "value":"component", "domain": componentDomain},
+					{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
+					{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
+				],
+				"esfilter": teamFilter
+			}));
+			Log.actionDone(a);
+			yield (null);
+		});
+
+		var ages = null;
+		var ageThread = Thread.run(function*() {
+			var a = Log.action("Get "+team.name+" Ages", true);
+			ages = yield(ESQuery.run({
+				"from": "bugs",
+				"select": {"name": "oldest", "value": "modified_ts", "aggregate": "minimum"},
+				"edges": [
+					{"name": "Component", "value":"component", "domain": componentDomain},
+					{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
+					{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
+				],
+				"esfilter": teamFilter
+			}));
+			Log.actionDone(a);
+		});
+
+		yield (Thread.join(countingThread));
+		yield (Thread.join(ageThread));
+
+		var both = Qb.merge([
+			{"from": counting, "edges": ["Component", "Project", "State"]},
+			{"from": ages, "edges": ["Component", "Project", "State"]}
+		]);
+
+		//SHOW GRID
+		both.name=team.name;
+		var html = cube2grid({
+			"cube": both,
+			"rows":["Component"],
+			"columns":["Project", "State"]
+		});
+		$("#"+team.name).html("<br><br><hr><br><br>"+html)
+
+	});
+
+}//function
+
 
 </script>
 
