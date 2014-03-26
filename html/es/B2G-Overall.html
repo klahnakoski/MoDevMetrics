@@ -219,12 +219,12 @@ function cube2grid(cube) {
 			"<tr>{{PROJECT_HEADERS2}}</tr>" +
 			"</thead>";
 	var data = "<tr style='height:30px;'><td id='{{ID}}' class='hoverable' >{{TEAM}}</td>{{PROJECT_DATA}}</tr>";
-	var projectHeader1 = "<td>|</td><td colspan='" + num_state + "''>{{PROJECT}}</td>";
-	var projectHeader2 = "<td></td>{{STATE_HEADERS}}";
-	var projectData = "<td>|</td>{{STATE_DATA}}";
+	var projectHeader1 = "<td class='vSeperatorA'></td><td colspan='" + num_state + "''>{{PROJECT}}</td>";
+	var projectHeader2 = "<td class='vSeperatorA'></td>{{STATE_HEADERS}}";
+	var projectData = "<td class='vSeperatorA'></td>{{STATE_DATA}}";
 
 	var stateHeader = "<td style='height:150px;width:40px;vertical-align:bottom;'><div style='height:30px;width:30px;vertical-align:bottom;overflow: visible;-moz-transform:rotate(270deg);'>{{STATE}}</div></td>\n";
-	var stateData = "<td id='{{ID}}' class='hoverable' style='text-align:center;{{STYLE}}'>{{VALUE}}</td>\n";
+	var stateData = "<td id='{{ID}}' class='hoverable'><div style='{{STYLE}}'>{{VALUE}}</div></td>\n";
 
 	var head = header
 			.replaceAll("{{NAME}", cube.name)
@@ -276,7 +276,7 @@ function cube2grid(cube) {
 				}).join(""));
 	}).join("");
 
-	return "<table>" + head + "<tbody>" + body + "</tbody></table>";
+	return "<table class='grid'>" + head + "<tbody>" + body + "</tbody></table>";
 }//function
 
 

@@ -186,9 +186,7 @@ h4 {
    margin-bottom: 6px;
 }
 
-
-
-mstyle{
+.mstyle{
 	font-size: 1em;
 	color: black;
 	font-family: 'Open Sans', sans-serif;
@@ -288,6 +286,36 @@ table.layout, tr, td, tbody, thead {
     border: none;
     margin: 0;
     padding: 0;
+}
+
+table.grid {
+    empty-cells:show;
+    border-collapse:collapse;
+    border: 0;
+    border-spacing: 0;
+}
+
+table.grid td {
+    padding: 0;
+    border: none;
+    margin: 0;
+
+}
+
+table.grid td div{
+    width: 38px;
+    height: 30px;
+    text-align:center;
+    vertical-align: middle;
+    padding: 7px 0 0 0;
+    border: none;
+    margin: 1px;
+}
+
+table.grid td.vSeperatorA {
+    border-left: 1px #444444 solid;
+    margin: 2px;
+    padding:2px;
 }
 
 
