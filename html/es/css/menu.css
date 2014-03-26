@@ -110,10 +110,11 @@ body {
 .footer {
     float: none;
     text-align: center;
+    vertical-align: bottom;
     bottom: 0;
     width: 100%;
-    height: 60px;
-    position: relative;
+    height: 15px;
+    padding-top: 30px;
     display: block;
 
 }
