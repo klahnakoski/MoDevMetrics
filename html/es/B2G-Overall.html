@@ -17,8 +17,14 @@
 	</div>
 	<hr>
 	<div id="description">
-		<div style="display:inline-block;height:10px;width:10px;background-color:#ff7f0e;"> </div> Over 2 days since last change<br>
-		<div style="display:inline-block;height:10px;width:10px;background-color:#d62728;"> </div> Over 1 week since last change<br>
+		<div style="display:inline-block;height:10px;width:10px;background-color:#ff7f0e;"></div>
+		Over 2 days since last change<br>
+
+		<div style="display:inline-block;height:10px;width:10px;background-color:#d62728;"></div>
+		Over 1 week since last change<br>
+
+		<div style="display:inline-block;height:10px;width:10px;background-color:#9467bd;"></div>
+		Unassigned Blocker<br>
 	</div>
 
 </div>
@@ -31,7 +37,8 @@
 		<div id="info" style="width:800px;"></div>
 
 	</div>
-	<div class="footer">Source at <a href="https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Overall.html">https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Overall.html</a></div>
+	<div class="footer">Source at
+		<a href="https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Overall.html">https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Overall.html</a></div>
 </div>
 
 <script type="application/javascript">
@@ -49,6 +56,11 @@ var ERROR_STYLE = {
 	"color": "white",
 	"font-weight": "bold",
 	"background-color": "#d62728"
+};
+var UNASSIGNED_STYLE = {
+	"color": "white",
+	"font-weight": "bold",
+	"background-color": "#9467bd"
 };
 
 
@@ -76,6 +88,33 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 		var counting = null;
 		var countingThread = Thread.run(function*() {
 			var a = Log.action("Get Counts", true);
+
+//          PULL THE RAW DATA, AND THEN OPERATE ON IT 112K, 2.17sec time
+//  		THE AGGREGATES ARE SPENDING ABOUT 2/3 THE TIME TRANSMITTING THE QUERY
+//			var allDetails = yield(ESQuery.run({
+//				"from":"bugs",
+//				"select":[
+//					"bug_id",
+//					"modified_ts",
+//					"keywords",
+//					"assigned_to",
+//					"component",
+//					"product",
+//					"cf_blocking_b2g"
+//				],
+//				"esfilter":{"and":[
+//					{"or":[
+//						{"terms":{"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?"]}},
+//						{"and":[
+//							{"terms":{"keywords":["regression"]}},
+//							{"term": {"product": "firefox os"}}
+//						]}
+//					]},
+//					Mozilla.BugStatus.Open.esfilter,
+//					Mozilla.CurrentRecords.esfilter
+//				]}
+//			}));
+
 			counting = yield(ESQuery.run({
 				"from": "bugs",
 				"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
@@ -106,12 +145,34 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 			Log.actionDone(a);
 		});
 
+		var uBlocker = null;
+		var uBlockerThread = Thread.run(function*() {
+			var a = Log.action("Get Unassigned Blocker", true);
+			uBlocker = yield(ESQuery.run({
+				"from": "bugs",
+				"select": {"name": "unassigned", "value": "bug_id", "aggregate": "count"},
+				"edges": [
+					{"name": "Team", "domain": Mozilla.B2G.Team.getDomain()},
+					{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
+					{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
+				],
+				"esfilter": {"and": [
+					mainFilter,
+					{"term": {"assigned_to": "nobody@mozilla.org"}},
+					{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}}
+				]}
+			}));
+			Log.actionDone(a);
+		});
+
 		yield (Thread.join(countingThread));
 		yield (Thread.join(ageThread));
+		yield (Thread.join(uBlockerThread));
 
 		var both = Qb.merge([
 			{"from": counting, "edges": ["Team", "Project", "State"]},
-			{"from": ages, "edges": ["Team", "Project", "State"]}
+			{"from": ages, "edges": ["Team", "Project", "State"]},
+			{"from": uBlocker, "edges": ["Team", "Project", "State"]}
 		]);
 
 		//EXPOSE NULLS AS LEGITIMATE PARTS
@@ -151,18 +212,17 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 			both.edges[0].domain.partitions = newparts;
 		}
 
-		both.name="Teams";
+		both.name = "Teams";
 		var html = cube2grid({
 			"cube": both,
-			"rows":["Team"],
-			"columns":["Project", "State"]
+			"rows": ["Team"],
+			"columns": ["Project", "State"]
 		});
 		$("#info").html(html);
 		addNumberClickers(both, mainFilter);
 		addTeamClickers(both);
 
 		both.edges[0].domain.partitions.forall(teamSummary);
-
 
 
 	};
@@ -180,45 +240,45 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 
 
 function addNumberClickers(cube, mainFilter) {
-	var prefix=cube.name.deformat()+"_value";
+	var prefix = cube.name.deformat() + "_value";
 	$("td").filter(function () {
 		return nvl($(this).attr("id"), "").startsWith(prefix);
 	}).click(function (e) {
-		var id = $(this).attr("id");
-		var coord = id.rightBut(prefix.length).split("x").map(function (v) {
-			return CNV.String2Integer(v);
-		});
-		var filter = {"and": cube.edges.map(function (edge, i) {
-			var part = edge.domain.partitions[coord[i]];
-			if (part.esfilter) {
-				return part.esfilter;
-			} else {
-				return {"term": Map.newInstance(edge.value, part.value)}
-			}//endif
-		})};
-		filter["and"].append(mainFilter);
+				var id = $(this).attr("id");
+				var coord = id.rightBut(prefix.length).split("x").map(function (v) {
+					return CNV.String2Integer(v);
+				});
+				var filter = {"and": cube.edges.map(function (edge, i) {
+					var part = edge.domain.partitions[coord[i]];
+					if (part.esfilter) {
+						return part.esfilter;
+					} else {
+						return {"term": Map.newInstance(edge.value, part.value)}
+					}//endif
+				})};
+				filter["and"].append(mainFilter);
 
-		Thread.run(function*() {
-			var bugs = yield(ESQuery.run({
-				"from": "bugs",
-				"select": "bug_id",
-				"esfilter": filter
-			}));
-			Bugzilla.showBugs(bugs.list);
+				Thread.run(function*() {
+					var bugs = yield(ESQuery.run({
+						"from": "bugs",
+						"select": "bug_id",
+						"esfilter": filter
+					}));
+					Bugzilla.showBugs(bugs.list);
 
-		});
-	});
+				});
+			});
 }//function
 
 function addTeamClickers(cube) {
 	$("td").filter(function () {
 		return nvl($(this).attr("id"), "").startsWith("_team");
 	}).click(function (e) {
-		var id = $(this).attr("id");
-		var team = cube.edges[0].domain.partitions[CNV.String2Integer(id.rightBut("_team".length))];
+				var id = $(this).attr("id");
+				var team = cube.edges[0].domain.partitions[CNV.String2Integer(id.rightBut("_team".length))];
 
-		window.open("B2G-Team.html#" + CNV.Object2URL({"team": team.name}));
-	});
+				window.open("B2G-Team.html#" + CNV.Object2URL({"team": team.name}));
+			});
 
 }//function
 
@@ -230,11 +290,11 @@ function cube2grid(param) {
 	var projectEdge = cube.getEdge(param.columns[0]);
 	var stateEdge = cube.getEdge(param.columns[1]);
 
-	var id_prefix=cube.name.deformat()+"_value";
+	var id_prefix = cube.name.deformat() + "_value";
 	var num_state = stateEdge.domain.partitions.length - 2; // -2 IS A DIRTY TRICK TO ONLY SHOW THE COLUMNS USED
 
 	var header = "<thead>" +
-			"<tr><td rowspan='"+param.columns.length+"' style='vertical-align:middle;width:400px;'><h3>{{NAME}}</h3></td>{{PROJECT_HEADERS1}}</tr>" +
+			"<tr><td rowspan='" + param.columns.length + "' style='vertical-align:middle;width:400px;'><h3>{{NAME}}</h3></td>{{PROJECT_HEADERS1}}</tr>" +
 			"<tr>{{PROJECT_HEADERS2}}</tr>" +
 			"</thead>";
 	var teamTemplate = "<tr style='height:30px'><td id='{{ID}}' class='hoverable' style='line-height:90%;width:175px' >{{TEAM}}</td>{{PROJECT_DATA}}</tr>";
@@ -248,8 +308,8 @@ function cube2grid(param) {
 	var head = header
 			.replaceAll("{{NAME}}", cube.name)
 			.replaceAll("{{PROJECT_HEADERS1}}", projectEdge.domain.partitions.map(function (project) {
-		return projectHeader1.replaceAll("{{PROJECT}}", project.name.replaceAll(" ", "&nbsp;"))
-	}).join(""));
+				return projectHeader1.replaceAll("{{PROJECT}}", project.name.replaceAll(" ", "&nbsp;"))
+			}).join(""));
 	head = head.replaceAll("{{PROJECT_HEADERS2}}", projectEdge.domain.partitions.map(function (project) {
 		var stateHeaders = stateEdge.domain.partitions.map(function (state) {
 			if (isVisible(project.name, state.name)) {
@@ -275,6 +335,10 @@ function cube2grid(param) {
 								html = stateData
 										.replaceAll("{{VALUE}}", " ")
 										.replaceAll("{{STYLE}}", "");
+							} else if (value.unassigned > 0) {
+								html = stateData
+										.replaceAll("{{VALUE}}", value.count)
+										.replaceAll("{{STYLE}}", CNV.Map2Style(UNASSIGNED_STYLE));
 							} else if (project.name != "1.5" && ["Regression", "Blocker", "Nominated"].contains(state.name) && value.oldest < REALLY_TOO_LATE.getMilli()) {
 								html = stateData
 										.replaceAll("{{VALUE}}", value.count)
@@ -309,11 +373,11 @@ function isVisible(projectName, stateName) {
 }
 
 
-function teamSummary(team){
+function teamSummary(team) {
 	//MAKE CONTAINER DIV
-	$("#info").parent().append("<div id='"+team.name.deformat()+"'></div>");
+	$("#info").parent().append("<div id='" + team.name.deformat() + "'></div>");
 
-	var teamFilter={"and":[
+	var teamFilter = {"and": [
 		Mozilla.B2G.esfilter,
 		Mozilla.CurrentRecords.esfilter,
 		Mozilla.BugStatus.Open.esfilter,
@@ -321,31 +385,31 @@ function teamSummary(team){
 	]};
 
 
-	Thread.run(function*(){
+	Thread.run(function*() {
 
 		//FIND COMPONENTS
 		var components = yield(ESQuery.run({
-			"from":"bugs",
-			"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
-			"edges":["component"],
-			"esfilter":{"and":[
+			"from": "bugs",
+			"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
+			"edges": ["component"],
+			"esfilter": {"and": [
 				Mozilla.B2G.esfilter,
 				Mozilla.CurrentRecords.esfilter,
-				team.name=="Performance" ? Mozilla.BugStatus.Open.esfilter : ESQuery.TrueFilter, //PERFORMANCE TEAM NEED NOT SHOW ALL COMPONENTS EVER TOUCHED
+				team.name == "Performance" ? Mozilla.BugStatus.Open.esfilter : ESQuery.TrueFilter, //PERFORMANCE TEAM NEED NOT SHOW ALL COMPONENTS EVER TOUCHED
 				team.esfilter
 			]}
 		}));
 //				components = components.edges[0].domain.partitions.select("name");
-		var componentDomain = {"type":"set", "partitions":components.edges[0].domain.partitions.select("value")};
+		var componentDomain = {"type": "set", "partitions": components.edges[0].domain.partitions.select("value")};
 
 		var counting = null;
 		var countingThread = Thread.run(function*() {
-			var a = Log.action("Get "+team.name+" Counts", true);
+			var a = Log.action("Get " + team.name + " Counts", true);
 			counting = yield(ESQuery.run({
 				"from": "bugs",
 				"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
 				"edges": [
-					{"name": "Component", "value":"component", "domain": componentDomain},
+					{"name": "Component", "value": "component", "domain": componentDomain},
 					{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
 					{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
 				],
@@ -357,12 +421,12 @@ function teamSummary(team){
 
 		var ages = null;
 		var ageThread = Thread.run(function*() {
-			var a = Log.action("Get "+team.name+" Ages", true);
+			var a = Log.action("Get " + team.name + " Ages", true);
 			ages = yield(ESQuery.run({
 				"from": "bugs",
 				"select": {"name": "oldest", "value": "modified_ts", "aggregate": "minimum"},
 				"edges": [
-					{"name": "Component", "value":"component", "domain": componentDomain},
+					{"name": "Component", "value": "component", "domain": componentDomain},
 					{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
 					{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
 				],
@@ -371,22 +435,44 @@ function teamSummary(team){
 			Log.actionDone(a);
 		});
 
+		var uBlocker = null;
+		var uBlockerThread = Thread.run(function*() {
+			var a = Log.action("Get " + team.name + " uBlocker", true);
+			uBlocker = yield(ESQuery.run({
+				"from": "bugs",
+				"select": {"name": "unassigned", "value": "bug_id", "aggregate": "count"},
+				"edges": [
+					{"name": "Component", "value": "component", "domain": componentDomain},
+					{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
+					{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
+				],
+				"esfilter": {"and": [
+					teamFilter,
+					{"term": {"assigned_to": "nobody@mozilla.org"}},
+					{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}}
+				]}
+			}));
+			Log.actionDone(a);
+		});
+
 		yield (Thread.join(countingThread));
 		yield (Thread.join(ageThread));
+		yield (Thread.join(uBlockerThread));
 
 		var both = Qb.merge([
 			{"from": counting, "edges": ["Component", "Project", "State"]},
-			{"from": ages, "edges": ["Component", "Project", "State"]}
+			{"from": ages, "edges": ["Component", "Project", "State"]},
+			{"from": uBlocker, "edges": ["Component", "Project", "State"]}
 		]);
 
 		//SHOW GRID
-		both.name=team.name;
+		both.name = team.name;
 		var html = cube2grid({
 			"cube": both,
-			"rows":["Component"],
-			"columns":["Project", "State"]
+			"rows": ["Component"],
+			"columns": ["Project", "State"]
 		});
-		$("#"+team.name.deformat()).html("<br><br><hr><br><br>"+html)
+		$("#" + team.name.deformat()).html("<br><br><hr><br><br>" + html)
 		addNumberClickers(both, teamFilter);
 	});
 

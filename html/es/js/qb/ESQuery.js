@@ -525,7 +525,7 @@ ESQuery.prototype.buildFacetQueries = function(){
 
 	var esFacets = this.getAllEdges(0);
 	for(var i = 0; i < esFacets.length; i++){
-		var condition = [this.query.esfilter];
+		var condition = [];
 		var name = "";
 		var constants=[];
 		if (this.facetEdges.length==0){
