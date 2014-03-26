@@ -46,7 +46,7 @@ Rest.send=function*(ajaxParam){
 	ajaxParam.success=callback;
 
 	if (DEBUG){
-	    Log.note(ajaxParam.data)
+		Log.note(ajaxParam.data)
 	}//endif
 
 	//MAKE THE CALL (WHY NOT jQuery?  jQuery WILL SOMETIMES CONVERT post TO A
@@ -88,8 +88,8 @@ Rest.send=function*(ajaxParam){
 				ajaxParam.success(response);
 			} else if (request.isTimeout){
 				callback(new Exception("Error while calling " + ajaxParam.url, Exception.TIMEOUT));
-	        } else {
-	            ajaxParam.error("Bad response: " + CNV.String2Quote(request.responseText));
+			} else {
+				ajaxParam.error("Bad response: " + CNV.String2Quote(request.responseText));
 			}//endif
 		} else if (request.readyState == 3){
 			//RESPONSE IS ARRIVING, DISABLE TIMEOUT

@@ -34,7 +34,7 @@ Qb.compile = function(query, sourceColumns, useMVEL){
 	var uniqueColumns={};
 
 	if (sourceColumns===undefined){
-	    Log.error("It seems we can't get schema from cluster?")
+		Log.error("It seems we can't get schema from cluster?")
 	}//endif
 
 	if (query.edges === undefined) query.edges=[];
@@ -935,39 +935,39 @@ Qb.merge=function(query){
 
 
 		//COPY ATTRIBUTES TO NEW JOINED
-	    var parts=[];
-	    var num=[];
+		var parts=[];
+		var num=[];
 
-	    var depth=output.edges.length;
-	    for(var d=0;d<depth;d++){
-		    domain = item.edges[d].domain;
-		    parts[d] = output.edges[d].domain.partitions.map(function(newpart, i){
-			    var oldpart = domain.getPartByKey(domain.getKey(newpart));  //OLD PARTS IN NEW ORDER
-			    if (oldpart.dataIndex!=newpart.dataIndex){
-				    Log.error("partitions have different orders, check this code works");
-			    }//endif
-			    return oldpart;
-		    });
-	        num[d]=parts[d].length;
-	    }//for
+		var depth=output.edges.length;
+		for(var d=0;d<depth;d++){
+			domain = item.edges[d].domain;
+			parts[d] = output.edges[d].domain.partitions.map(function(newpart, i){
+				var oldpart = domain.getPartByKey(domain.getKey(newpart));  //OLD PARTS IN NEW ORDER
+				if (oldpart.dataIndex!=newpart.dataIndex){
+					Log.error("partitions have different orders, check this code works");
+				}//endif
+				return oldpart;
+			});
+			num[d]=parts[d].length;
+		}//for
 
-	    var copy=function(from, to , d){
-	        for(var i=num[d];i--;){
-	            if (d<depth-1){
-	                copy(from[parts[d][i].dataIndex], to[i], d+1);
-	            }else{
-	                if (item.from.select instanceof Array){
-	                    Map.copy(from[parts[d][i].dataIndex], to[i])
-	                }else{
-	                    to[i][item.from.select.name]=from[parts[d][i].dataIndex]
-	                }//endif
-	            }//endif
-	        }//for
-		    if (output.edges[d].allowNulls){
-			    copy(from[num[d]], to[num[d]], d+1);
-		    }//endif
-	    };
-	    copy(item.from.cube, output.cube, 0);
+		var copy=function(from, to , d){
+			for(var i=num[d];i--;){
+				if (d<depth-1){
+					copy(from[parts[d][i].dataIndex], to[i], d+1);
+				}else{
+					if (item.from.select instanceof Array){
+						Map.copy(from[parts[d][i].dataIndex], to[i])
+					}else{
+						to[i][item.from.select.name]=from[parts[d][i].dataIndex]
+					}//endif
+				}//endif
+			}//for
+			if (output.edges[d].allowNulls){
+				copy(from[num[d]], to[num[d]], d+1);
+			}//endif
+		};
+		copy(item.from.cube, output.cube, 0);
 	});
 
 //	output.select=query.partitions[0].from.select;	//I AM TIRED, JUST MAKE A BUNCH OF ASSUMPTIONS

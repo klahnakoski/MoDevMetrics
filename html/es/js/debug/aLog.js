@@ -73,13 +73,13 @@ Log.alert=function(message, ok_callback, cancel_callback){
 
 		buttons: {
 			"OK": function () {
-		            $(this).dialog("close");
-		            if (ok_callback) ok_callback();
-		        },
+					$(this).dialog("close");
+					if (ok_callback) ok_callback();
+				},
 			"Cancel":cancel_callback ? function () {
-		            $(this).dialog("close");
-		            cancel_callback();
-		        } : undefined
+					$(this).dialog("close");
+					cancel_callback();
+				} : undefined
 		}
 	});
 

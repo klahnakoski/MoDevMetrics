@@ -150,9 +150,9 @@ Qb.analytic.compile = function(sourceColumns, expression){
 	var f = "func=function(rows, rownum, __source){\n";
 	for(var s = 0; s < sourceColumns.length; s++){
 		var columnName = sourceColumns[s].name;
-		    if (["rows", "rownum"].contains(columnName)){
-		        continue;
-		    }//endif
+			if (["rows", "rownum"].contains(columnName)){
+				continue;
+			}//endif
 //ONLY DEFINE VARS THAT ARE USED
 		if (expression.indexOf(columnName) != -1){
 			f += "var ";

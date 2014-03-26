@@ -1139,7 +1139,7 @@ function Xyz2Rgb(xyz){
 // *
 // * Wikipedia: http://en.wikipedia.org/wiki/CIELUV_color_space
 // */
- function Xyz2Luv(xyz){
+function Xyz2Luv(xyz){
 	var u1, v1;
 
 	var Denom = xyz.X + 15*xyz.Y + 3*xyz.Z;

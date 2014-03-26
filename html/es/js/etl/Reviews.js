@@ -216,7 +216,7 @@ REVIEWS.get=function*(minBug, maxBug){
 			"bugs.attachments.flags",
 		"where":
 			{"and" : [
-		            {"exists":{"field":"attachments"}},
+					{"exists":{"field":"attachments"}},
 				{"not":{"missing":{"field":"attachments.flags.request_type", "existence":true, "null_value":true}}},
 //				{"term":{"attachments.attach_id":"420463"}},
 				{"terms":{"attachments.flags.request_type":["review", "superreview"]}},
