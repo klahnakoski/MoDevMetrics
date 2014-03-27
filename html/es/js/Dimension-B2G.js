@@ -14,10 +14,26 @@ Dimension.addEdges(true, Mozilla, [
 			{"term": {"product": "firefox os"}}
 		]},
 		"edges": [
-			{"name": "Age", "index": "bugs", "isFacet": true, "partitions": [
-				{"name": "Old", "style": {"color": "red"}, "esfilter": {"range": {"modified_ts": {"lt": Date.eod().add("-4day").getMilli()}}}},
-				{"name": "Close", "style": {"color": "orange"}, "esfilter": {"range": {"modified_ts": {"lt": Date.eod().add("-3day").getMilli()}}}},
-				{"name": "Young", "style": {"color": "green"}, "esfilter": {"range": {"modified_ts": {"lt": Date.eod().getMilli()}}}}
+			{"name": "Markup", "index": "bugs", "isFacet": true, "partitions": [
+				{"name": "Unassigned", "style": {"color": "purple"}, "esfilter": {"and":[
+					{"term": {"assigned_to": "nobody@mozilla.org"}},
+					{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}}
+				]}},
+				{"name": "Too Old", "style": {"color": "red"}, "esfilter":  {"and":[
+					{"range": {"modified_ts": {"lt": Date.today().add("-week").getMilli()}}},
+					{"or":[
+						{"terms": {"cf_blocking_b2g": ["1.3+", "1.3t+", "1.4+", "1.3?", "1.3t?", "1.4?"]}}, //DO NOT INCLUDE 1.5
+						{"term": {"keywords": "regression"}}
+					]}
+				]}},
+				{"name": "Old", "style": {"color": "orange"}, "esfilter": {"and":[
+					{"range": {"modified_ts": {"lt": Date.today().add("-2day").getMilli()}}},
+					{"or":[
+						{"terms": {"cf_blocking_b2g": ["1.3+", "1.3t+", "1.4+", "1.3?", "1.3t?", "1.4?"]}}, //DO NOT INCLUDE 1.5
+						{"term": {"keywords": "regression"}}
+					]}
+				]}},
+				{"name": "Unremarkable", "style": {}, "esfilter": {"matches_all": {}}}
 			]},
 
 			{"name":"Team", "isFacet": true, "partitions":[
@@ -180,17 +196,6 @@ Dimension.addEdges(true, Mozilla, [
 				]
 			},
 
-			{"name": "Owner", "isFacet":true,
-				"partitions":[
-					{"name": "Unassigned", "esfilter": {"and": [
-						{"term": {"assigned_to": "nobody@mozilla.org"}}
-					]}},
-					{"name": "Assigned", "esfilter": {"and": [
-						{"not": {"term": {"assigned_to": "nobody@mozilla.org"}}}
-					]}}
-				]
-			},
-
 			{"name": "Project", "index": "bugs", "isFacet": true, "partitions": [
 				{"name": "1.3", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.3?"]}}},
 				{"name": "1.3t", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3t+", "1.3t?"]}}},
@@ -199,19 +204,27 @@ Dimension.addEdges(true, Mozilla, [
 				{"name": "Untargeted", "esfilter": {"and": [
 					{"not": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?"]}}}
 				]}}
+			]},
 
-//                {"name":"KOI", "esfilter":{"or":[
-////                    {"and":[
-////                        {"exists":{"field":"target_milestone"}},
-////                        {"prefix":{"target_milestone":"1.2"}},
-////                        {"not":{"term":{"product": "instantbird"}}},
-////                        {"not":{"term":{"product": "chat core"}}}
-////                    ]},
-//                    {"terms":{"cf_blocking_b2g":["koi+", "koi?"]}}
-//                ]}},
-//                {"name":"LEO", "esfilter":{"terms":{"cf_blocking_b2g":["leo+", "leo?"]}}},
-//                {"name":"HD", "esfilter":{"terms":{"cf_blocking_b2g":["hd+", "hd?"]}}}
-			]}
+			{"name": "FinalState", "index": "bugs", "isFacet": true,
+				"partitions": [
+					{"name": "Blocker", "esfilter": {"and": [
+						{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}},
+						{"not": {"term": {"keywords": "regression"}}}
+					]}},
+					{"name": "Regression", "esfilter": {"term": {"keywords": "regression"}}},
+					{"name": "Targeted", "esfilter":{"and":[
+						{"exists":{"field":"target_milestone"}},
+						{"or":[
+							{"prefix":{"target_milestone":"1.3"}},
+							{"prefix":{"target_milestone":"1.4"}},
+							{"prefix":{"target_milestone":"1.5"}}
+						]}
+
+					]}},
+					{"name": "Others", "esfilter":{"match_all":{}}}
+				]
+			}
 		]
 	}
 ]);

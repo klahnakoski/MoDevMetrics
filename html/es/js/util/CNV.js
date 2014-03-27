@@ -719,6 +719,8 @@ CNV.esFilter2Expression=function(esFilter){
 		var variableName = Object.keys(pair)[0];
 		var value = pair[variableName];
 		return (variableName)+".startsWith(" + CNV.Value2Quote(value)+")";
+	}else if (op=="match_all"){
+		return "true"
 	} else{
 		Log.error("'" + op + "' is an unknown operation");
 	}//endif

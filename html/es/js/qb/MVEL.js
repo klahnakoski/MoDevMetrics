@@ -438,7 +438,7 @@ MVEL.prototype.where = function(esFilter){
 MVEL.isKeyword = function(value){
 	if (value===undefined || value.charAt===undefined)
 		Log.error("Expecting a string");
-
+	value = value.trim();
 
 	for(var c = 0; c < value.length; c++){
 		var cc = value.charAt(c);
@@ -483,7 +483,7 @@ MVEL.Parts2Term = function(
 	var mvel = new MVEL();
 
 	mvel.from(indexName, "_loop_");
-	
+
 	var term="";
 	domain.partitions.forall(function(v){
 		term +=	"if (" + mvel.where(v.esfilter) + ") "+ CNV.Value2Quote(domain.getKey(v)) + ";\n else ";
@@ -493,7 +493,7 @@ MVEL.Parts2Term = function(
 		"head":"var _temp"+id+" = function(){"+term+CNV.Value2Quote(domain.getKey(domain.NULL)) + ";};\n",
 		"body":"_temp"+id+"()"
 	};
-	
+
 	//DOES NOT WORK BECAUSE THE CONTEXT VARS ARE NOT POPULATED
 //	var name="__temp"+Util.UID();
 //	MVEL.FUNCTIONS[name]="var "+name+" = function(){"+term+CNV.Value2Quote(domain.getKey(domain.NULL)) + ";};\n"; //ADD TO GENERAL SET OF FUNCTIONS
@@ -512,7 +512,7 @@ MVEL.Parts2TermScript=function(indexName, domain){
 
 //PREPEND THE REQUIRED MVEL FUNCTIONS TO THE CODE
 MVEL.compile.addFunctions=function(mvel){
-	var isAdded={};			//SOME FUNCTIONS DEPEND ON OTHERS 
+	var isAdded={};			//SOME FUNCTIONS DEPEND ON OTHERS
 
 	var keepAdding=true;
 	while(keepAdding){
@@ -608,7 +608,7 @@ MVEL.FUNCTIONS={
 
 	//KANBAN SOFTWARE
 	//CAN SEE QUEUE BLOCKAGES AND SEE SINGLE BLOCKERS
-	
+
 
 	"concat":
 		"var concat = function(array){\n"+
@@ -634,7 +634,7 @@ MVEL.FUNCTIONS={
 				"\"\";\n"+
 		"};\n",
 
-	"getDocValue":  
+	"getDocValue":
 		"var getDocValue = function(name){\n"+
 			"var out = [];\n"+
 			"var v = doc[name];\n"+

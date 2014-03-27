@@ -76,8 +76,11 @@ GUI = {};
 			parameters,    //LIST OF PARAMETERS (see GUI.AddParameters FOR DETAILS)
 			relations,     //SOME RULES TO APPLY TO PARAMETERS, IN CASE THE HUMAN MAKES SMALL MISTAKES
 			indexName,     //PERFORM CHECKS ON THIS INDEX
-			showDefaultFilters  //SHOW THE Product/Compoentn/Team FILTERS
+			showDefaultFilters,  //SHOW THE Product/Compoentn/Team FILTERS
+			performChecks           //PERFORM SOME CONSISTENCY CHECKS TOO
 		) {
+
+			GUI.performChecks=nvl(performChecks, true);
 
 			if (typeof(refreshChart) != "function") {
 				Log.error("Expecting first parameter to be a refresh (creatChart) function");
@@ -182,15 +185,15 @@ GUI = {};
 					GUI.bigWarning("#testMessage", aMath.max(3, aMath.floor(age)));
 				}//endif
 
-				if (esHasErrorInIndex === undefined) {
+				if (GUI.performChecks && esHasErrorInIndex === undefined) {
 					esHasErrorInIndex = yield(GUI.corruptionCheck());
 					if (esHasErrorInIndex) {
 						$("#testMessage").append("<br>ES IS CORRUPTED!!!");
 					}//endif
 				}//endif
-
 			});
 		};//method
+
 
 		GUI.corruptionCheck = function*() {
 

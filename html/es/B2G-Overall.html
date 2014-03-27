@@ -375,7 +375,9 @@ function isVisible(projectName, stateName) {
 
 function teamSummary(team) {
 	//MAKE CONTAINER DIV
-	$("#info").parent().append("<div id='" + team.name.deformat() + "'></div>");
+	if ($("#"+team.name.deformat()).length==0){
+		$("#info").parent().append("<div id='" + team.name.deformat() + "'></div>");
+	}//endif
 
 	var teamFilter = {"and": [
 		Mozilla.B2G.esfilter,
