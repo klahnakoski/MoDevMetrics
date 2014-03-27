@@ -74,7 +74,7 @@ Qb.column.compile = function(resultColumn, sourceColumns, edges, useMVEL){  //us
 				f += "var " + domainName + "=__result["+i+"];\n";
 //				"if (" + domainName + "===undefined) Log.error(\"" + domainName + " is undefined\");\n";
 			}//endif
-			
+
 			var reg=new RegExp(domainName+"\\s*==", "g");
 			if (reg.test(resultColumn.value)){
 				Log.error("Using domain '"+domainName+"' on it's own is a good idea, it is just not implemented yet");
@@ -115,6 +115,10 @@ Qb.where.compile = function(whereClause, sourceColumns, edges){
 	if (whereClause === undefined){
 		eval("whereMethod=function(a, b){return true;}");
 		return whereMethod;
+	}//endif
+
+	if (!isString(whereClause)){
+		whereClause = CNV.esFilter2Expression(whereClause);
 	}//endif
 
 	var f = "whereMethod=function(__source, __result){\n";

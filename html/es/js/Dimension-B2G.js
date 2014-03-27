@@ -208,21 +208,11 @@ Dimension.addEdges(true, Mozilla, [
 
 			{"name": "FinalState", "index": "bugs", "isFacet": true,
 				"partitions": [
-					{"name": "Blocker", "esfilter": {"and": [
-						{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}},
-						{"not": {"term": {"keywords": "regression"}}}
+					{"name": "Blocker", "style":{"color":"#d62728"}, "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}}},
+					{"name": "Targeted", "style":{"color":"#ff7f0e"}, "esfilter": {"and":[
+						{"exists":{"field":"target_milestone"}}
 					]}},
-					{"name": "Regression", "esfilter": {"term": {"keywords": "regression"}}},
-					{"name": "Targeted", "esfilter":{"and":[
-						{"exists":{"field":"target_milestone"}},
-						{"or":[
-							{"prefix":{"target_milestone":"1.3"}},
-							{"prefix":{"target_milestone":"1.4"}},
-							{"prefix":{"target_milestone":"1.5"}}
-						]}
-
-					]}},
-					{"name": "Others", "esfilter":{"match_all":{}}}
+					{"name": "Others", "style":{"color":"#dddddd"}, "esfilter":{"match_all":{}}}
 				]
 			}
 		]

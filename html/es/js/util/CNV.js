@@ -632,7 +632,7 @@ CNV.esFilter2Expression=function(esFilter){
 		if (list.length == 0) Log.error("Expecting something in 'and' array");
 		if (list.length == 1) return CNV.esFilter2Expression(list[0]);
 		for(var i = 0; i < list.length; i++){
-			if (output != "") output += " && ";
+			if (output != "") output += " &&\n";
 			output += "(" + CNV.esFilter2Expression(list[i]) + ")";
 		}//for
 		return output;
@@ -641,7 +641,7 @@ CNV.esFilter2Expression=function(esFilter){
 		if (list.length == 0) Log.error("Expecting something in 'or' array");
 		if (list.length == 1) return CNV.esFilter2Expression(list[0]);
 		for(var i = 0; i < list.length; i++){
-			if (output != "") output += " || ";
+			if (output != "") output += " ||\n";
 			output += "(" + CNV.esFilter2Expression(list[i]) + ")";
 		}//for
 		return output;
@@ -709,7 +709,7 @@ CNV.esFilter2Expression=function(esFilter){
 		if (upper == "" || lower == ""){
 			return "(" + upper + lower + ")";
 		} else{
-			return "(" + upper + ") && (" + lower + ")";
+			return "(" + upper + ") &&\n(" + lower + ")";
 		}//endif
 	} else if (op=="script"){
 		var script = esFilter[op].script;

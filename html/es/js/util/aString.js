@@ -155,4 +155,8 @@ String.prototype.ltrim=function(c){
 };//method
 
 
+function isString(value){
+	return (typeof value)=="string";
+}//method
+
 

@@ -29,7 +29,7 @@
 	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
 </div>
 <div style="align:left;position:relative;float:left;width:800px;">
-	<h3 id="title">Incomplete</h3>
+	<h3 id="title">Incomplete!  These numbers have not been verified!</h3>
 
 	<!--<div id="headerTriage" class="header">Bug Triage (show close rates? (per month?)</div>-->
 	<!--<div id="expandTriage" class="expando">-->
@@ -167,13 +167,15 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 			// THREAD TO GET CLOSE RATES
 			///////////////////////////////////////////////////////////////////////
 
-			//CATEGORIZE BUGS
+			//GET BUG FINAL STATES
 			var allBugs=null;
 			var allBugsThread = Thread.run(function*() {
 				allBugs = yield(ESQuery.run({
 					"from": "bugs",
 					"select": [
 						"bug_id",
+						"product",
+						"component",
 						"cf_blocking_b2g",
 						"keywords",
 						"target_milestone"
@@ -182,7 +184,9 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 						mainFilter,
 						Mozilla.CurrentRecords.esfilter,
 						Mozilla.BugStatus.Closed.esfilter,
-						{"range": {"modified_ts": {"gte": sampleMin.getMilli()}}}
+						{"range": {"modified_ts": {"gte": sampleMin.getMilli()}}},
+						{"term":{"bug_status":"resolved"}},
+						{"term":{"resolution":"fixed"}}
 					]}
 				}));
 			});
@@ -214,7 +218,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 
 			var churn = yield(Q({
 				"from": allBugs,
-				"name": "Bug Closures",
+				"name": "Resolved Fixed Bug Closures",
 				"select": {"name":"count", "value":"bug_id", "aggregate":"count"},
 				"edges": [
 					{"name":"Category", "domain":Mozilla.B2G.FinalState.getDomain()},
@@ -222,7 +226,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 				]
 			}));
 
-			//DIRTY REVERSE OF THE 
+			//DIRTY REVERSE OF THE
 			churn.edges[0].domain.partitions.reverse();
 			churn.cube.reverse();
 
@@ -236,14 +240,19 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 				xAxisSize: 50,
 				"width": 800,
 				"clickAction": function (series, x, d) {
-					var part = churn.edges[0].domain.getPartByKey(x);
-					var field = {"New": "min", "Closed": "max"}[series];
+					var category = churn.edges[0].domain.getPartByKey(series);
+					var date = churn.edges[1].domain.getPartByKey(x);
 
 					Thread.run(function*() {
 						var buglist = (yield (Qb.calc2List({
 							"from": allBugs,
 							"select": {"value": "bug_id"},
-							"where": "" + field + "!==undefined && " + field + ".between(" + CNV.Date2Code(part.min) + ", " + CNV.Date2Code(part.max) + ")"
+							"where": {"and":[
+								{"range":{"closeDate":{"gte":date.min, "lt":date.max}}},
+								category.fullFilter,
+								mainFilter
+							]}
+
 						})));
 
 						Bugzilla.showBugs(buglist.list);

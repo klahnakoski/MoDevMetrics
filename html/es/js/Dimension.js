@@ -35,6 +35,7 @@ Dimension.prototype = {
 					"name": v.name,
 					"value": v.name,
 					"esfilter": v.esfilter,
+					"fullFilter": v.fullFilter,
 					"style": v.style,
 					"weight": v.weight //YO! WHAT DO WE *NOT* COPY?
 				};
@@ -47,6 +48,7 @@ Dimension.prototype = {
 					"name": v.name,
 					"value": v.value,
 					"esfilter": v.esfilter,
+					"fullFilter": v.fullFilter,
 					"style": v.style,
 					"weight": v.weight   //YO!  WHAT DO WE *NOT* COPY?
 				};
@@ -62,6 +64,7 @@ Dimension.prototype = {
 						"name": [subpart.name, subpart.parent.name].join(param.separator),
 						"value": subpart.value,
 						"esfilter": subpart.esfilter,
+						"fullFilter": subpart.fullFilter,
 						"style": nvl(subpart.style, subpart.parent.style),
 						"weight": subpart.weight   //YO!  WHAT DO WE *NOT* COPY?
 					});
@@ -173,13 +176,13 @@ Dimension.prototype = {
 				if (part.parent && part.parent.esfilter !== undefined && part.parent.esfilter.match_all === undefined) {
 					part.esfilter = {"and": [part.parent.esfilter, part.esfilter]}
 				}//endif
-				//TOO EXPENSIVE FOR ES TO CALCULATE, NEED AN EQUATION SIMPLIFIER
-//			        if (part.parent!==undefined && part.parent.isFacet && siblingFilters!==undefined && siblingFilters.length>0){
-//				        if (part.esfilter["and"]===undefined){
-//					        part.esfilter={"and":[part.esfilter]}
-//				        }//endif
-//				        part.esfilter["and"].appendArray(siblingFilters.map(function(f){return {"not":f}}))
-//			        }//endif
+//				TOO EXPENSIVE FOR ES TO CALCULATE, NEED AN EQUATION SIMPLIFIER
+				part.fullFilter = {"and": [part.esfilter]};
+				if (siblingFilters !== undefined) {
+					part.fullFilter["and"].appendArray(siblingFilters.map(function (f) {
+						return {"not": f}
+					}))
+				}//endif
 				if (lowerCaseOnly) part.esfilter = CNV.JSON2Object(CNV.Object2JSON(part.esfilter).toLowerCase());
 			} else if (part.partitions) {
 				//DEFAULT esfilter IS THE UNION OF ALL CHILD FILTERS
