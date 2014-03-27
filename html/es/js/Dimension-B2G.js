@@ -38,7 +38,13 @@ Dimension.addEdges(true, Mozilla, [
 
 			{"name":"Team", "isFacet": true, "partitions":[
 				{"name":"Performance",
-					"esfilter":{"term":{"keyword":"perf"}}
+					"esfilter":{"or":[
+						{"term":{"keyword":"perf"}},
+						{"and":[
+							{"term":{"product":"firefox os"}},
+							{"term":{"component":"performance"}}
+						]}
+					]}
 				},
 				{"name":"System Front-End", "esfilter":{"and":[
 					{"not":{"term":{"keyword":"perf"}}}, //AN UNFORTUNATE REDUNDANCY
@@ -125,10 +131,56 @@ Dimension.addEdges(true, Mozilla, [
 						"vendcom"
 					]}}
 				]}},
+				{"name": "Platform", "esfilter": {"and": [
+					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"terms": {"component": [
+						"Canvas: 2D".toLowerCase(),
+						"Canvas: WebGL".toLowerCase(),
+						"CSS Parsing and Computation".toLowerCase(),
+						"dom".toLowerCase(),
+						"dom: apps".toLowerCase(),
+						"dom: events".toLowerCase(),
+						"dom: devices interfaces".toLowerCase(),
+						"dom: push notifications".toLowerCase(),
+						"Graphics".toLowerCase(),
+						"Graphics: Layers".toLowerCase(),
+						"Graphics: text".toLowerCase(),
+						"Hardware Abstraction Layer (HAL)".toLowerCase(),
+						"ImageLib".toLowerCase(),
+						"IPC".toLowerCase(),
+						"JavaScript Engine".toLowerCase(),
+						"JavaScript: GC".toLowerCase(),
+						"Layout".toLowerCase(),
+						"MFBT".toLowerCase(),
+						"Networking".toLowerCase(),
+						"Panning and Zooming".toLowerCase()
+					]}}
+				]}},
 				{"name": "All Others", "esfilter": {"and": [
 					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"not": {"terms": {"component": [
-						//AN UNFORTUNATE LIST OF EVERYTHING, SHOULD BE AUTO-GENERATED, BUT I NEED A EQUATION SIMPLIFIER
+						//AN UNFORTUNATE LIST OF EVERYTHING, SHOULD BE AUTO-GENERATED, BUT I NEED A EQUATION SIMPLIFIER, OR ELSE I BREAK ES
+						"Canvas: 2D".toLowerCase(),
+						"Canvas: WebGL".toLowerCase(),
+						"CSS Parsing and Computation".toLowerCase(),
+						"dom".toLowerCase(),
+						"dom: apps".toLowerCase(),
+						"dom: events".toLowerCase(),
+						"dom: devices interfaces".toLowerCase(),
+						"dom: push notifications".toLowerCase(),
+						"Graphics".toLowerCase(),
+						"Graphics: Layers".toLowerCase(),
+						"Graphics: text".toLowerCase(),
+						"Hardware Abstraction Layer (HAL)".toLowerCase(),
+						"ImageLib".toLowerCase(),
+						"IPC".toLowerCase(),
+						"JavaScript Engine".toLowerCase(),
+						"JavaScript: GC".toLowerCase(),
+						"Layout".toLowerCase(),
+						"MFBT".toLowerCase(),
+						"Networking".toLowerCase(),
+						"Panning and Zooming".toLowerCase(),
+						"performance",
 						"gaia::browser",
 						"gaia::everything.me",
 						"gaia::first time experience",
@@ -208,11 +260,12 @@ Dimension.addEdges(true, Mozilla, [
 
 			{"name": "FinalState", "index": "bugs", "isFacet": true,
 				"partitions": [
-					{"name": "Blocker", "style":{"color":"#d62728"}, "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}}},
-					{"name": "Targeted", "style":{"color":"#ff7f0e"}, "esfilter": {"and":[
-						{"exists":{"field":"target_milestone"}}
+					{"name": "Blocker", "style": {"color": "#d62728"}, "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}}},
+					{"name": "Targeted", "style": {"color": "#ff7f0e"}, "esfilter": {"and": [
+						{"exists": {"field": "target_milestone"}},
+						{"not": {"term":{"target_milestone": ["---"]}}}
 					]}},
-					{"name": "Others", "style":{"color":"#dddddd"}, "esfilter":{"match_all":{}}}
+					{"name": "Others", "style": {"color": "#dddddd"}, "esfilter": {"match_all": {}}}
 				]
 			}
 		]

@@ -14,20 +14,20 @@
 //AN ARRAY WILL DEMAND LOAD ORDER
 //THIS FUNCTION CAN ONLY BE RUN ONCE, AFTER WHICH IT WILL REPLACE ITSELF WITH A NULL FUNCTION
 var importScript;
+var reloadScripts;
 
-
-(function(){
+(function () {
 
 	var METHOD_NAME = "importScript";
 	var DEBUG = false;
 
 
-	if (typeof(window.Log) == "undefined"){
+	if (typeof(window.Log) == "undefined") {
 		window.Log = {
-			"note":function(message){
+			"note": function (message) {
 				console.log(message);
 			},
-			"error":function(message){
+			"error": function (message) {
 				console.error(message);
 				throw message;
 			}
@@ -35,21 +35,20 @@ var importScript;
 	}//endif
 
 
-
 	var code = {};
 	var dependencies = [];
 	var todo = [];
 	var numRemaining = 0;
 
-	function quote(value){
+	function quote(value) {
 		return "\"" + (value + '').replace(/([\n\\"'])/g, "\\$1").replace(/\0/g, "\\0") + "\"";
 	}
 
-	function unquote(value){
+	function unquote(value) {
 		var o = "";
 		var s = 0;
 		var e = value.indexOf("\\");
-		while(e >= 0){
+		while (e >= 0) {
 			var r = "\\\"\t\r\n".charAt("\\\"trn".indexOf(value.charAt(e + 1)));
 			o = o + value.substring(s, e) + r;
 			s = e + 2;
@@ -58,19 +57,19 @@ var importScript;
 		return o + value.substring(s);
 	}//method
 
-	function subtract(a, b){
+	function subtract(a, b) {
 		var c = [];
-		A:	for(var x = 0; x < a.length; x++){
-			if (a[x] !== undefined){
-				for(var y = 0; y < b.length; y++) if (a[x] == b[y]) continue A;
+		A:    for (var x = 0; x < a.length; x++) {
+			if (a[x] !== undefined) {
+				for (var y = 0; y < b.length; y++) if (a[x] == b[y]) continue A;
 				c.push(a[x]);
 			}//endif
 		}//for
 		return c;
 	}//method
 
-	function contains(array, element){
-		for(var i = array.length; i--;){
+	function contains(array, element) {
+		for (var i = array.length; i--;) {
 			if (array[i] == element) return true;
 		}//for
 		return false;
@@ -80,12 +79,12 @@ var importScript;
 	// SCRIPTS WITH THE MAGIC METHOD WILL RECORD THEIR DEPENDENCIES
 	// AND THEIR CODE FOR LATER EXECUTION
 	////////////////////////////////////////////////////////////////////////////
-	function preprocess(parentPath, src){
+	function preprocess(parentPath, src) {
 		//FIND IMPORT STATEMENTS
 		var found = src.indexOf(METHOD_NAME);
-		while(found >= 0){
+		while (found >= 0) {
 			found += METHOD_NAME.length;
-			if (src.substring(found, src.indexOf("(", found)).trim() != ""){
+			if (src.substring(found, src.indexOf("(", found)).trim() != "") {
 				//NOT A METHOD CALL
 				found = src.indexOf(METHOD_NAME, found);
 				continue;
@@ -104,65 +103,65 @@ var importScript;
 	}//method
 
 
-	function readfile(fullPath, callback){
+	function readfile(fullPath, callback) {
 		var request = new XMLHttpRequest();
-		try{
+		try {
 			var url = window.location.protocol + "//" + window.location.hostname + fullPath;
 			request.open('GET', url);
 			request.isDone = false;
-			request.onreadystatechange = function(){
-				if (request.readyState == 4){
-					if (request.status == 200 || request.status == 0){
+			request.onreadystatechange = function () {
+				if (request.readyState == 4) {
+					if (request.status == 200 || request.status == 0) {
 						if (request.isDone) return;
 						request.isDone = true;
 						if (DEBUG) Log.note("GOT " + url);
 						callback(request.responseText);
-					} else{
+					} else {
 						Log.error("What!?!");
 						callback(null);
 					}//endif
 				}//endif
 			};
-			request.onload = function(){
-				if (request.status == 200 || request.status == 0){
+			request.onload = function () {
+				if (request.status == 200 || request.status == 0) {
 					if (request.isDone) return;
 					request.isDone = true;
 					if (DEBUG) Log.note("GOT " + url);
 					callback(request.responseText);
-				} else{
+				} else {
 					Log.error("What!?!");
 					callback(null);
 				}//endif
 			};
 			if (DEBUG) Log.note("GET " + url);
 			request.send(null);
-		} catch(e){
+		} catch (e) {
 			Log.error("Can not read " + fullPath + " (" + e.message + ")");
 			callback(null);
 		}//try
 	}
 
-	function shortPath(fullPath){
+	function shortPath(fullPath) {
 		return fullPath.substring(fullPath.lastIndexOf("/") + 1);
 	}//function
 
 
-	function getFullPath(parentScriptPath, relativePath){
+	function getFullPath(parentScriptPath, relativePath) {
 
 		var e = parentScriptPath.lastIndexOf("/");
-		if (e == -1){
+		if (e == -1) {
 			parentScriptPath = ".";
-		} else{
+		} else {
 			parentScriptPath = parentScriptPath.substring(0, e);
 		}//endif
 
 		var absPath;
 		if (
-			relativePath.indexOf("://")>0 ||
-			relativePath.charAt(0) == '/'
-		){
+			relativePath.indexOf("://") > 0 ||
+				relativePath.charAt(0) == '/'
+			) {
 			absPath = relativePath;	//NOT RELATIVE
-		} else{
+		} else {
 			absPath = parentScriptPath + "/" + relativePath;
 		}//endif
 
@@ -170,9 +169,9 @@ var importScript;
 		if (absPath.substring(0, 2) == "./") absPath = absPath.substring(2);
 
 		var e = absPath.indexOf("/..");
-		while(e >= 0){
+		while (e >= 0) {
 			var s = absPath.lastIndexOf("/", e - 1);
-			if (s >= 0){
+			if (s >= 0) {
 				absPath = absPath.substring(0, s) + absPath.substring(e + 3);
 			}//endif
 			e = absPath.indexOf("/..");
@@ -182,12 +181,12 @@ var importScript;
 	}//function
 
 
-	function addScripts(paths, doneCallback){
+	function addScripts(paths, doneCallback) {
 		var head = document.getElementsByTagName('head')[0];
 		var existingScripts = [window.location.pathname];
 
 		var scripts = head.getElementsByTagName('script');
-		for(var s = 0; s < scripts.length; s++){
+		for (var s = 0; s < scripts.length; s++) {
 			var p = scripts[s].getAttribute("src");
 			var fp = getFullPath(window.location.pathname, p);
 			existingScripts.push(fp);
@@ -196,7 +195,7 @@ var importScript;
 
 		//<link type="text/css" rel="stylesheet" href="tests.lib/webdetails/tests.lib/tipsy.css"/>
 		var css = head.getElementsByTagName('link');
-		for(s = 0; s < css.length; s++){
+		for (s = 0; s < css.length; s++) {
 			p = css[s].getAttribute("href");
 			fp = getFullPath(window.location.pathname, p);
 			existingScripts.push(fp);
@@ -208,17 +207,17 @@ var importScript;
 		var numLoaded = netPaths.length;
 		if (DEBUG) Log.note("Waiting for " + numLoaded + " scripts to load");
 
-		function onLoadCallback(){
+		function onLoadCallback() {
 			numLoaded--;
-			if (numLoaded == 0){
+			if (numLoaded == 0) {
 				doneCallback();
 			}//endif
 		}
 
-		var frag=document.createDocumentFragment();   //http://ejohn.org/blog/dom-documentfragments/
-		for(var i = 0; i < netPaths.length; i++){
+		var frag = document.createDocumentFragment();   //http://ejohn.org/blog/dom-documentfragments/
+		for (var i = 0; i < netPaths.length; i++) {
 			if (DEBUG) Log.note("Add script: " + shortPath(netPaths[i]));
-			if (netPaths[i].substring(netPaths[i].length - 4) == ".css"){
+			if (netPaths[i].substring(netPaths[i].length - 4) == ".css") {
 				//<link type="text/css" rel="stylesheet" href="tests.lib/webdetails/tests.lib/tipsy.css"/>
 				var newCSS = document.createElement('link');
 				newCSS.type = 'text/css';
@@ -226,7 +225,7 @@ var importScript;
 				newCSS.href = netPaths[i];
 				frag.appendChild(newCSS);
 				numLoaded--;
-			} else{
+			} else {
 				var script = document.createElement('script');
 				script.type = 'text/javascript';
 				script.onload = onLoadCallback;
@@ -240,17 +239,55 @@ var importScript;
 		if (DEBUG) Log.note("Added " + numLoaded + " scripts");
 	}//function
 
+	// RELOAD SCRIPTS FOUND IN HEAD
+	reloadScripts = function reloadScripts() {
+		var head = document.getElementsByTagName('head')[0];
+		var existingScripts = [window.location.pathname];
 
-	function sort(edges){
+		var scripts = head.getElementsByTagName('script');
+		for (var s = 0; s < scripts.length; s++) {
+			var p = scripts[s].getAttribute("src");
+			var fp = getFullPath(window.location.pathname, p);
+			existingScripts.push(fp);
+		}//for
+
+
+		var numLoaded = existingScripts.length;
+		if (DEBUG) Log.note("Waiting for " + numLoaded + " scripts to reload");
+
+		function onLoadCallback() {
+			numLoaded--;
+			if (numLoaded == 0) {
+				window.location.reload(true);
+			}//endif
+		}
+
+		var frag = document.createDocumentFragment();   //http://ejohn.org/blog/dom-documentfragments/
+		for (var i = 0; i < existingScripts.length; i++) {
+			if (DEBUG) Log.note("Add script: " + shortPath(existingScripts[i]));
+			var script = document.createElement('script');
+			script.type = 'text/javascript';
+			script.onload = onLoadCallback;
+			script.async = false;
+			script.src = existingScripts[i] + "?" + new Date().getTime();  //RENDOM ENDING FORCES A REAL RELOAD
+			frag.appendChild(script);
+		}//for
+		head.appendChild(frag);
+		if (numLoaded == 0) window.location.reload(true);
+		if (DEBUG) Log.note("Added " + numLoaded + " scripts for reloading");
+	}//function
+
+
+	function sort(edges) {
 		var processed = [];
 		var unprocessed = [];
 		var queue = [];
 
-		function processList(){
-			while(processed.length < numberOfNodes){
-				for(var i = 0; i < unprocessed.length; i++){
+		function processList() {
+			while (processed.length < numberOfNodes) {
+				for (var i = 0; i < unprocessed.length; i++) {
 					var nodeid = unprocessed[i];
-					if (graph[nodeid].indegrees === 0){
+					if (graph[nodeid].indegrees === 0) {
 						queue.push(nodeid);
 						unprocessed.splice(i, 1); //Remove this node, its all done.
 						i--;//decrement i since we just removed that index from the iterated list;
@@ -262,14 +299,14 @@ var importScript;
 					//IF A PARENT OF unprocessed NODE HAS BEEN VISITED, THEN THE NODE WILL
 					//HAVE __parent DEFINED, AND IN THEORY WE SHOULD BE ABLE CONTINUE
 					//WORKING ON THOSE
-					if (queue.length == 0 && unprocessed.length > 0){
-						var hasParent = unprocessed.map(function(v, i){
+					if (queue.length == 0 && unprocessed.length > 0) {
+						var hasParent = unprocessed.map(function (v, i) {
 							if (graph[v].__parent !== undefined) return v;
 						});
 						if (hasParent.length == 0) Log.error("Isolated cycle found");
 						hasParent = subtract(hasParent, processed);
 						unprocessed = subtract(unprocessed, hasParent);
-						for(var k = 0; k < hasParent.length; k++){
+						for (var k = 0; k < hasParent.length; k++) {
 							if (DEBUG && contains(processed, hasParent[k]))
 								Log.error("Duplicate pushed!!");
 							queue.push(hasParent[k]);
@@ -284,11 +321,11 @@ var importScript;
 		}//method
 
 
-		function processStartingPoint(nodeId){
-			if (nodeId == undefined){
+		function processStartingPoint(nodeId) {
+			if (nodeId == undefined) {
 				throw "You have a cycle!!";
 			}
-			for(var i = 0; i < graph[nodeId].children.length; i++){
+			for (var i = 0; i < graph[nodeId].children.length; i++) {
 				var child = graph[nodeId].children[i];
 				graph[child].indegrees--;
 				graph[child].__parent = graph[nodeId];		//MARKUP FOR HACK
@@ -301,8 +338,8 @@ var importScript;
 		}//method
 
 
-		function addVertex(name){
-			if (graph[name] === undefined){
+		function addVertex(name) {
+			if (graph[name] === undefined) {
 				var n = {};
 				n.id = name;
 				n.indegrees = 0;
@@ -317,7 +354,7 @@ var importScript;
 
 		//POPULATE STRUCTURES TO DO THE SORTING
 		var graph = {};
-		for(var i = 0; i < edges.length; i++){
+		for (var i = 0; i < edges.length; i++) {
 //			if (DEBUG) Log.note(JSON.stringify(e));
 			var e = edges[i];
 			addVertex(e.file);
@@ -338,23 +375,23 @@ var importScript;
 	// IMPORT ALL SCRIPTS
 	// done IS THE FUNCTION TO RUN WHEN EVERYTHING HAS BEEN LOADED
 	////////////////////////////////////////////////////////////////////////////////
-	function _importScript_(done){
-		while(todo.length > 0){
+	function _importScript_(done) {
+		while (todo.length > 0) {
 			var nextFile = todo.pop();
 			if (code[nextFile]) continue;
 			if (//DO NOT TRY TO LOAD THESE
 				nextFile.substring(nextFile.length - 4) == ".css" ||
-				nextFile.substring(0, 7)=="http://" ||
-				nextFile.substring(0, 8)=="https://"
-			){
+					nextFile.substring(0, 7) == "http://" ||
+					nextFile.substring(0, 8) == "https://"
+				) {
 				code[nextFile] = nextFile;
 				continue;
 			}//endif
 			code[nextFile] = "//";  //DUMMY DO NOTHING
 
 			numRemaining++;
-			(function(fullPath){
-				readfile(fullPath, function(code){
+			(function (fullPath) {
+				readfile(fullPath, function (code) {
 					var scriptBegin = preprocess(fullPath, code);
 					code[fullPath] = code.substring(scriptBegin);
 
@@ -372,19 +409,19 @@ var importScript;
 
 
 	//COLLECT ALL THE SCRIPT DEPENDENCIES
-	function addDependency(parentPath, importPath){
+	function addDependency(parentPath, importPath) {
 		var file;
 
-		if (typeof(importPath) == "string"){
+		if (typeof(importPath) == "string") {
 			file = getFullPath(parentPath, importPath);
-			dependencies.push({"file":parentPath, "import":file});
+			dependencies.push({"file": parentPath, "import": file});
 			todo.push(file);
-		} else if (importPath instanceof Array){
+		} else if (importPath instanceof Array) {
 			var previous;
-			for(var i = 0; i < importPath.length; i++){
+			for (var i = 0; i < importPath.length; i++) {
 				file = getFullPath(parentPath, importPath[i]);
-				if (previous) dependencies.push({"file":file, "import":previous});
-				dependencies.push({"file":parentPath, "import":file});
+				if (previous) dependencies.push({"file": file, "import": previous});
+				dependencies.push({"file": parentPath, "import": file});
 
 				todo.push(file);
 				previous = file;
@@ -393,22 +430,22 @@ var importScript;
 	}//method
 
 
-		var pending = [];
+	var pending = [];
 
 	//AN ARRAY WILL DEMAND LOAD ORDER
-		function __importScript__(importFile, code){
-			if (code!==undefined) pending.push(code);
+	function __importScript__(importFile, code) {
+		if (code !== undefined) pending.push(code);
 		addDependency(window.location.pathname, importFile);
-		importScript = function(i, code){
-				if (code!==undefined) pending.push(code);
-			};
-		_importScript_(function(){
-				//WHEN ALL DONE AUTOMATICALLY
-				for(var i = 0; i < pending.length; i++){
-					pending[i]();
-				}//for
-				window.importScript=__importScript__
-			});
+		importScript = function (i, code) {
+			if (code !== undefined) pending.push(code);
+		};
+		_importScript_(function () {
+			//WHEN ALL DONE AUTOMATICALLY
+			for (var i = 0; i < pending.length; i++) {
+				pending[i]();
+			}//for
+			window.importScript = __importScript__
+		});
 	}//method
 
 

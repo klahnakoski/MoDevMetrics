@@ -184,33 +184,33 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 		});
 
 
-		{//SORT THE PRIMARY EDGE BY oldest
-			var ordering = yield(Q({
-				"from": both,
-				"select": [
-					{"value": "oldest", "aggregate": "maximum"}
-				],
-				"edges": [
-					{"name": "Team", "value": "Team", "domain": {"type": "set", "partitions": both.edges[0].domain.partitions}}
-				],
-				"where": '["Regression", "Blocker", "Nominated"].contains(State.name)',
-				"analytic": [
-					{"name": "ordering", "value": "oldest==null ? 9999999999000: oldest", "edges": []},
-					{"value": "rownum", "edges": [], "sort": "ordering"}
-				]
-			}));
-
-			var newparts = [];
-			var oldparts = both.edges[0].domain.partitions;
-			var newcube = [];
-			ordering.cube.forall(function (v, i) {
-				newparts[v.rownum] = oldparts[i];
-				newparts[v.rownum].dataIndex = i;
-				newcube[v.rownum] = both.cube[i];
-			});
-			both.cube = newcube;
-			both.edges[0].domain.partitions = newparts;
-		}
+//		{//SORT THE PRIMARY EDGE BY oldest
+//			var ordering = yield(Q({
+//				"from": both,
+//				"select": [
+//					{"value": "oldest", "aggregate": "maximum"}
+//				],
+//				"edges": [
+//					{"name": "Team", "value": "Team", "domain": {"type": "set", "partitions": both.edges[0].domain.partitions}}
+//				],
+//				"where": '["Regression", "Blocker", "Nominated"].contains(State.name)',
+//				"analytic": [
+//					{"name": "ordering", "value": "oldest==null ? 9999999999000: oldest", "edges": []},
+//					{"value": "rownum", "edges": [], "sort": "ordering"}
+//				]
+//			}));
+//
+//			var newparts = [];
+//			var oldparts = both.edges[0].domain.partitions;
+//			var newcube = [];
+//			ordering.cube.forall(function (v, i) {
+//				newparts[v.rownum] = oldparts[i];
+//				newparts[v.rownum].dataIndex = i;
+//				newcube[v.rownum] = both.cube[i];
+//			});
+//			both.cube = newcube;
+//			both.edges[0].domain.partitions = newparts;
+//		}
 
 		both.name = "Teams";
 		var html = cube2grid({
@@ -277,7 +277,7 @@ function addTeamClickers(cube) {
 				var id = $(this).attr("id");
 				var team = cube.edges[0].domain.partitions[CNV.String2Integer(id.rightBut("_team".length))];
 
-				window.open("B2G-Team.html#" + CNV.Object2URL({"team": team.name}));
+				window.open("B2G-Team.html#" + CNV.Object2URL({"team": "Team."+team.name}));
 			});
 
 }//function
