@@ -147,7 +147,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 
 		var uBlocker = null;
 		var uBlockerThread = Thread.run(function*() {
-			var a = Log.action("Get Unassigned Blocker", true);
+			var a = Log.action("Get Unassigned Blockers", true);
 			uBlocker = yield(ESQuery.run({
 				"from": "bugs",
 				"select": {"name": "unassigned", "value": "bug_id", "aggregate": "count"},
@@ -437,7 +437,7 @@ function teamSummary(team) {
 
 		var uBlocker = null;
 		var uBlockerThread = Thread.run(function*() {
-			var a = Log.action("Get " + team.name + " uBlocker", true);
+			var a = Log.action("Get " + team.name + " uBlockers", true);
 			uBlocker = yield(ESQuery.run({
 				"from": "bugs",
 				"select": {"name": "unassigned", "value": "bug_id", "aggregate": "count"},
