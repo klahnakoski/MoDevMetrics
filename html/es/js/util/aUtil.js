@@ -36,9 +36,11 @@ Map.copy = function(from, to){
 };
 
 Map.jsonCopy=function(value){
+	if (value===undefined) return undefined;
 	return JSON.parse(JSON.stringify(value));
 };
 
+Map.clone = Map.jsonCopy;
 
 
 //IF map IS NOT 1-1 THAT'S YOUR PROBLEM

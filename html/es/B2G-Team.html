@@ -29,45 +29,13 @@
 <div style="align:left;position:relative;float:left;width:800px;padding-top: 10px;">
 	<h3>Incomplete! These numbers have not been verified!</h3>
 	<h3 id="title"></h3>
-
-	<!--<div id="headerTriage" class="header">Bug Triage (show close rates? (per month?)</div>-->
-	<!--<div id="expandTriage" class="expando">-->
-	<!--<div id="chartTriage" class="chart" style="float:none;width:800px;height:300px;"></div>-->
-	<!--<div id="detailTriage"></div>-->
-	<!--</div>-->
-
-	<!--<div class="header">Bug Counts (show current blocker/regression totals)</div>-->
-	<!--<div id="count" class="expando">-->
-	<!--<div id="chartCount" class="chart" style="float:none;width:800px;height:300px;"></div>-->
-	<!--<div id="chartPercent" class="chart" style="float:none;width:800px;height:300px;"></div>-->
-
-	<!--<div id="detailBlocker"></div>-->
-	<!--<div id="detailRegression"></div>-->
-	<!--</div>-->
-
-	<div id="headerChurn" class="header">Bug Close Rate (show close rates? (per month?)</div>
-	<div id="expandChurn" class="expando">
-		<div id="chartChurn" class="chart" style="float:none;width:800px;height:300px;"></div>
-	</div>
-
-	<div id="headerAge" class="header">Blocker Ages (show close rates? (per month?)</div>
-	<div id="expandAge" class="expando">
-		<div id="chartBlockerAge" class="chart" style="float:none;width:800px;height:300px;"></div>
-	</div>
-
-	<!--<div id="headerReview" class="header">Reviews (show count)</div>-->
-	<!--<div id="detailReview" class="expando"></div>-->
-
-
+	<div id="chartChurn" class="chart" style="float:none;width:800px;height:300px;"></div>
+	<div id="chartCount" class="chart" style="float:none;width:800px;height:300px;"></div>
+	<div id="chartBlockerAge" class="chart" style="float:none;width:800px;height:300px;"></div>
 	<br><br>
-
 	<div id="info"></div>
 	<div id="details"></div>
 	<div class="footer"></div>
-
-	<div style="width:100%;text-align:right;">
-		<div id="reload" name="reload" style="background-color: black; color:white; display:inline-block;height:20px;">reload</div>
-	</div>
 </div>
 
 
@@ -77,6 +45,7 @@
 importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], function () {
 
 	$("#reload").click(function (e) {
+		$("#reload").html("reloading...");
 		reloadScripts();
 	});
 
@@ -98,7 +67,6 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 		var sampleMax = Date.newInstance(GUI.state.sampleMax).addDay(1);
 		var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
 
-		var projectName = GUI.state.project.getSelectedParts().select("name").join(" and ");
 		var teamName = GUI.state.team.getSelectedParts().select("name").join(" and ");
 
 		var mainFilter = {"and": [
@@ -106,78 +74,63 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 			SCOPE
 		]};
 
-		$("#title").html(teamName);
+		if (teamName==""){
+			$("#title").html("All Teams");
+		}else{
+			$("#title").html(teamName);
+		}//endif
 
-//		Thread.run(function*() {
-//			///////////////////////////////////////////////////////////////////////
-//			// SIMPLE OPEN BUG COUNT, OVER TIME
-//			///////////////////////////////////////////////////////////////////////
-//
-//			var chart = yield (ESQuery.run({
-//				"name": "Open Bug Count",
-//				"from": "bugs",
-//				"select": {
-//					"name": "num_bug",
-//					"value": "bug_id",
-//					"aggregate": "count"
-//				},
-//				"edges": [
-//					{"name": "blocker", "esfilter": ESQuery.TrueFilter, "domain": {"isFacet": true, "partitions": [
-//						{"name": "open", "value": "open", "esfilter": {"and": [
-//							{"not": {"term": {"keywords": "regression"}}},
-//							{"not": {"terms": {"cf_blocking_b2g": BLOCKERS}}}
-//						]}},
-//						{"name": "blocker", "value": "blocker", "esfilter": {"and": [
-//							{"not": {"term": {"keywords": "regression"}}},
-//							{"terms": {"cf_blocking_b2g": BLOCKERS}}
-//						]}},
-//						{"name": "regression", "value": "regression", "esfilter": {"term": {"keywords": "regression"}}}
-//					]}},
-//					{"name": "date",
-//						"range": {
-//							"min": "modified_ts",
-//							"max": "expires_on"
-//						},
-//						"allowNulls": false,
-//						"domain": {
-//							"type": "time",
-//							"min": sampleMin,
-//							"max": sampleMax.add(sampleInterval),
-//							"interval": sampleInterval
-//						}
-//					}
-//				],
-//				"esfilter": {"and":[
-//					mainFilter,
-//					Mozilla.BugStatus.Open.esfilter
-//				]}
-//			}));
-//
-//			aChart.show({
-//				"id": "chartCount",
+
+		Thread.run(function*() {
+			///////////////////////////////////////////////////////////////////////
+			// SIMPLE OPEN BUG COUNT, OVER TIME
+			///////////////////////////////////////////////////////////////////////
+
+			var chart = yield (ESQuery.run({
+				"name": "Open Bug Count",
+				"from": "bugs",
+				"select": {
+					"name": "num_bug",
+					"value": "bug_id",
+					"aggregate": "count"
+				},
+				"edges": [
+					{"name": "type", "domain":Mozilla.B2G.FinalState.getDomain()},
+					{"name": "date",
+						"range": {
+							"min": "modified_ts",
+							"max": "expires_on"
+						},
+						"allowNulls": false,
+						"domain": {
+							"type": "time",
+							"min": sampleMin,
+							"max": sampleMax.add(sampleInterval),
+							"interval": sampleInterval
+						}
+					}
+				],
+				"esfilter": {"and":[
+					mainFilter,
+					Mozilla.BugStatus.Open.esfilter
+				]}
+			}));
+
+			//DIRTY REVERSE OF THE TYPES
+			chart.edges[0].domain.partitions.reverse();
+			chart.cube.reverse();
+
+			aChart.show({
+				"id": "chartCount",
 //				"sheetDiv": "info",
-//				"type": "area",
-//				"stacked": true,
-//				"cube": chart,
-//				"height": "300",
-//				xAxisSize: 50,
-//				"width": 800
-//			});
-//
-//			Qb.normalizeByX(chart, 100);
-//
-//			aChart.show({
-//				"name": "Regressions as Percentage",
-//				"id": "chartPercent",
-//				"sheetDiv": "info",
-//				"type": "bar",
-//				"stacked": true,
-//				"cube": chart,
-//				"height": "300",
-//				xAxisSize: 50,
-//				"width": 800
-//			});
-//		});
+				"type": "area",
+				"stacked": true,
+				"cube": chart,
+				"height": "300",
+				xAxisSize: 50,
+				"width": 800
+			});
+		});
 
 
 		Thread.run(function*() {
@@ -185,7 +138,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 			// THREAD TO GET CLOSE RATES
 			///////////////////////////////////////////////////////////////////////
 
-			var a = Log.action("Load Closures", true);
+			var a = Log.action("Load Bug Closures", true);
 			//GET BUG FINAL STATES
 			var allBugs = null;
 			var allBugsThread = Thread.run(function*() {
@@ -238,7 +191,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 
 			var churn = yield(Q({
 				"from": allBugs,
-				"name": "Resolved Fixed Bug Closures",
+				"name": "Resolved Fixed Bugs",
 				"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
 				"edges": [
 					{"name": "Category", "domain": Mozilla.B2G.FinalState.getDomain()},
@@ -246,13 +199,14 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 				]
 			}));
 
-			//DIRTY REVERSE OF THE
+			//DIRTY REVERSE OF THE TYPES
 			churn.edges[0].domain.partitions.reverse();
 			churn.cube.reverse();
+			churn.edges[0].domain.partitions[0].style.visibility="visible";
 
 			aChart.show({
 				"id": "chartChurn",
-				"sheetDiv": "info",
+//				"sheetDiv": "info",
 				"type": "bar",
 				"stacked": true,
 				"cube": churn,
@@ -291,7 +245,8 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 					"from": "bugs",
 					"select": [
 						"bug_id",
-						"cf_blocking_b2g"
+						"cf_blocking_b2g",
+						"target_milestone"
 					],
 					"esfilter": {"and": [
 						GUI.getFilters("bugs"),
@@ -307,7 +262,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 
 			var blockers = yield (ElasticSearch.getMinMax({"and": [
 				GUI.getFilters("bugs"),
-				SCOPE,
+				{"terms":{"cf_blocking_b2g":BLOCKERS}},
 				Mozilla.BugStatus.Open.esfilter
 			]}));
 
@@ -323,12 +278,12 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 				});
 			}
 
-			var projectDomain = Mozilla.B2G.Project.getDomain();
-			projectDomain.partitions.pop();  //DO ONT SHOW THE Untargeted
+			var projectDomain = Mozilla.B2G.FinalState.getDomain();
+			projectDomain.partitions.pop();  //DO NOT SHOW THE Untargeted
 
 			var a = Log.action("Request Bugs", true);
 			var chart = yield(Q({
-				"name": "Average Age of "+projectName+" Blockers (Days)",
+				"name": "Average Age of "+teamName+" Blockers (Days)",
 				"from": allBlockers.list,
 				"select":
 					{"name": "Maximum", "value": "(aMath.min(max, time.min.getMilli())-nvl(min, time.min.getMilli()))/Duration.DAY.milli", "aggregate": "average", "default": 0, "style": {"color": "#00d6ff", "visibility": "hidden"}}
@@ -344,9 +299,14 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 			}));
 			Log.actionDone(a);
 
+			//DIRTY REVERSE OF THE TYPES
+			chart.edges[0].domain.partitions.reverse();
+			chart.cube.reverse();
+			chart.edges[0].domain.partitions[0].style.visibility="visible";
+
 			aChart.show({
 				"id": "chartBlockerAge",
-				"sheetDiv": "info",
+//				"sheetDiv": "info",
 				"type": "line",
 				"stacked": false,
 				"cube": chart,
@@ -360,33 +320,26 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 
 	$(document).ready(function () {
 		GUI.setup(
-				createChart,
-				[
-					{"id": "sampleMin", "name": "Start Date", "type": "time", "default": Date.eod().add("-18week")},
-					{"id": "sampleMax", "name": "End Date", "type": "time", "default": Date.today().ceilingWeek()},
-					{"id": "sampleInterval", "name": "Interval", "type": "duration", "default": "week"},
-					{"id": "team", "name": "Team", "type": PartitionFilter.newInstance({
-						"id": "teams",
-						"name": "All Teams",
-						"dimension": Mozilla.B2G.Team,
-						"onlyOne": true,
-						"expandAll": true
-					})},
-					{"id": "project", "name": "Project", "type": PartitionFilter.newInstance({
-						"id": "project",
-						"name": "Projects",
-						"dimension": Mozilla.B2G.Project,
-						"onlyOne": true,
-						"expandAll": true
-					})}
-				],
-				[
-					"sampleMin=Date.newInstance(sampleMin).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
-					"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')"
-				],
-				"bugs",
-				false,		//DO NOT SHOW DEFAULT FILTERS
-				false       //DO NOT PERFORM STANDARD CONSISTENCY CHECKS
+			createChart,
+			[
+				{"id": "sampleMin", "name": "Start Date", "type": "time", "default": Date.eod().add("-18week")},
+				{"id": "sampleMax", "name": "End Date", "type": "time", "default": Date.today().ceilingWeek()},
+				{"id": "sampleInterval", "name": "Interval", "type": "duration", "default": "week"},
+				{"id": "team", "name": "Team", "type": PartitionFilter.newInstance({
+					"id": "teams",
+					"name": "All Teams",
+					"dimension": Mozilla.B2G.Team,
+					"onlyOne": true,
+					"expandAll": true
+				})}
+			],
+			[
+				"sampleMin=Date.newInstance(sampleMin).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
+				"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')"
+			],
+			"bugs",
+			false,		//DO NOT SHOW DEFAULT FILTERS
+			false       //DO NOT PERFORM STANDARD CONSISTENCY CHECKS
 		);
 	});
 

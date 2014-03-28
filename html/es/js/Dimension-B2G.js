@@ -251,7 +251,7 @@ Dimension.addEdges(true, Mozilla, [
 			{"name": "Project", "index": "bugs", "isFacet": true,
 				"partitions": [
 					{"name": "1.3", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.3?"]}}},
-					{"name": "1.3t", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3t+", "1.3t?"]}}},
+					{"name": "1.3T", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3t+", "1.3t?"]}}},
 					{"name": "1.4", "esfilter": {"terms": {"cf_blocking_b2g": ["1.4+", "1.4?"]}}},
 					{"name": "1.5", "esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "1.5?"]}}},
 					{"name": "Untargeted", "esfilter": {"and": [
@@ -262,12 +262,15 @@ Dimension.addEdges(true, Mozilla, [
 
 			{"name": "FinalState", "index": "bugs", "isFacet": true,
 				"partitions": [
-					{"name": "Blocker", "style": {"color": "#d62728"}, "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}}},
-					{"name": "Targeted", "style": {"color": "#ff7f0e"}, "esfilter": {"and": [
+					{"name": "1.3", "style": {"color": "#d62728"}, "esfilter": {"term": {"cf_blocking_b2g": "1.3+"}}},
+					{"name": "1.3T", "style": {"color": "#ff7f0e"}, "esfilter": {"term": {"cf_blocking_b2g": "1.3T+"}}},
+					{"name": "1.4", "style": {"color": "#2ca02c"}, "esfilter": {"term": {"cf_blocking_b2g": "1.4+"}}},
+					{"name": "1.5", "style": {"color": "#1f77b4"}, "esfilter": {"term": {"cf_blocking_b2g": "1.5+"}}},
+					{"name": "Targeted", "style": {"color": "#9467bd"}, "esfilter": {"and": [
 						{"exists": {"field": "target_milestone"}},
 						{"not": {"term":{"target_milestone": ["---"]}}}
 					]}},
-					{"name": "Others", "style": {"color": "#dddddd"}, "esfilter": {"match_all": {}}}
+					{"name": "Others", "style": {"color": "#dddddd", "visibility":"hidden"}, "esfilter": {"match_all": {}}}
 				]
 			}
 		]
