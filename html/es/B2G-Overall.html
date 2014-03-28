@@ -274,11 +274,14 @@ function addTeamClickers(cube) {
 	$("td").filter(function () {
 		return nvl($(this).attr("id"), "").startsWith("_team");
 	}).click(function (e) {
-				var id = $(this).attr("id");
-				var team = cube.edges[0].domain.partitions[CNV.String2Integer(id.rightBut("_team".length))];
+		var id = $(this).attr("id");
+		var team = cube.edges[0].domain.partitions[CNV.String2Integer(id.rightBut("_team".length))];
 
-				window.open("B2G-Team.html#" + CNV.Object2URL({"team": "Team."+team.name}));
-			});
+		window.open("B2G-Team.html#" + CNV.Object2URL({
+			"team": "Team."+team.name,
+			"project": "1.3"
+		}));
+	});
 
 }//function
 

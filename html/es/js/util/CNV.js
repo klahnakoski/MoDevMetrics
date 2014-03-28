@@ -194,6 +194,10 @@ CNV.Date2milli = function(date){
 	return date.getMilli();
 };//method
 
+CNV.milli2Date = function(milli){
+	return new Date(milli);
+};//method
+
 
 
 //CONVERT TO SOME MOSTLY HUMAN READABLE FORM (MEANT TO BE DIGESTED BY OTHER TEXT TOOLS)
@@ -651,14 +655,14 @@ CNV.esFilter2Expression=function(esFilter){
 		var pair = esFilter[op];
 		var variableName = Object.keys(pair)[0];
 		var value = pair[variableName];
-		return (variableName) + "==" + CNV.Value2Quote(value);
+		return "Array.newInstance(" + variableName + ").contains(" + CNV.Value2Quote(value) + ")";  //ARRAY BASED FOR MULTIVALUED VARIABLES
 	} else if (op == "terms"){
 		var pair = esFilter[op];
 		var variableName = Object.keys(pair)[0];
 		var valueList = pair[variableName];
 		if (valueList.length == 0) Log.error("Expecting something in 'terms' array");
 		if (valueList.length == 1) return (variableName) + "==" + CNV.Value2Quote(valueList[0]);
-		output += "[" + valueList.map(CNV.String2Quote).join(", ") + "].contains(" + variableName + ")";
+		output += "[" + valueList.map(CNV.String2Quote).join(", ") + "].intersect(Array.newInstance(" + variableName + ")).length > 0";  //ARRAY BASED FOR MULTIVALUED VARIABLES
 		return output;
 	}else if (op=="exists"){
 		//"exists":{"field":"myField"}

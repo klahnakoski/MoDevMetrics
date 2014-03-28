@@ -39,7 +39,7 @@ Dimension.addEdges(true, Mozilla, [
 			{"name":"Team", "isFacet": true, "partitions":[
 				{"name":"Performance",
 					"esfilter":{"or":[
-						{"term":{"keyword":"perf"}},
+						{"term":{"keywords":"perf"}},
 						{"and":[
 							{"term":{"product":"firefox os"}},
 							{"term":{"component":"performance"}}
@@ -47,7 +47,7 @@ Dimension.addEdges(true, Mozilla, [
 					]}
 				},
 				{"name":"System Front-End", "esfilter":{"and":[
-					{"not":{"term":{"keyword":"perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"not":{"term":{"keywords":"perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"term": {"product": "firefox os"}},
 					{"terms":{"component":[
 						"gaia::browser",
@@ -60,7 +60,7 @@ Dimension.addEdges(true, Mozilla, [
 					]}}
 				]}},
 				{"name": "Productivity", "esfilter": {"and": [
-					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"term": {"product": "firefox os"}},
 					{"terms": {"component": [
 						"gaia::e-mail",
@@ -71,7 +71,7 @@ Dimension.addEdges(true, Mozilla, [
 					]}}
 				]}},
 				{"name": "Media", "esfilter": {"and": [
-					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"term": {"product": "firefox os"}},
 					{"terms": {"component": [
 						"gaia::camera",
@@ -82,7 +82,7 @@ Dimension.addEdges(true, Mozilla, [
 					]}}
 				]}},
 				{"name": "RIL", "esfilter": {"and": [
-					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"terms": {"component": [
 						"ril",
 						"nfc",
@@ -91,7 +91,7 @@ Dimension.addEdges(true, Mozilla, [
 					]}}
 				]}},
 				{"name": "System Platform", "esfilter": {"and": [
-					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"term": {"product": "firefox os"}},
 					{"terms": {"component": [
 						"gaia::settings",
@@ -102,7 +102,7 @@ Dimension.addEdges(true, Mozilla, [
 					]}}
 				]}},
 				{"name": "Multi-media Platform", "esfilter": {"and": [
-					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"terms": {"component": [
 						"video/audio: recording",
 						"video/audio",
@@ -111,7 +111,7 @@ Dimension.addEdges(true, Mozilla, [
 					]}}
 				]}},
 				{"name": "Comms", "esfilter": {"and": [
-					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"term": {"product": "firefox os"}},
 					{"terms": {"component": [
 						"dom: contacts",
@@ -122,7 +122,7 @@ Dimension.addEdges(true, Mozilla, [
 					]}}
 				]}},
 				{"name": "Devices", "esfilter": {"and": [
-					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"term": {"product": "firefox os"}},
 					{"terms": {"component": [
 						"audiochannel",
@@ -132,7 +132,7 @@ Dimension.addEdges(true, Mozilla, [
 					]}}
 				]}},
 				{"name": "Platform", "esfilter": {"and": [
-					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"terms": {"component": [
 						"Canvas: 2D".toLowerCase(),
 						"Canvas: WebGL".toLowerCase(),
@@ -157,7 +157,7 @@ Dimension.addEdges(true, Mozilla, [
 					]}}
 				]}},
 				{"name": "All Others", "esfilter": {"and": [
-					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"not": {"terms": {"component": [
 						//AN UNFORTUNATE LIST OF EVERYTHING, SHOULD BE AUTO-GENERATED, BUT I NEED A EQUATION SIMPLIFIER, OR ELSE I BREAK ES
 						"Canvas: 2D".toLowerCase(),
@@ -248,15 +248,17 @@ Dimension.addEdges(true, Mozilla, [
 				]
 			},
 
-			{"name": "Project", "index": "bugs", "isFacet": true, "partitions": [
-				{"name": "1.3", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.3?"]}}},
-				{"name": "1.3t", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3t+", "1.3t?"]}}},
-				{"name": "1.4", "esfilter": {"terms": {"cf_blocking_b2g": ["1.4+", "1.4?"]}}},
-				{"name": "1.5", "esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "1.5?"]}}},
-				{"name": "Untargeted", "esfilter": {"and": [
-					{"not": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?"]}}}
-				]}}
-			]},
+			{"name": "Project", "index": "bugs", "isFacet": true,
+				"partitions": [
+					{"name": "1.3", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.3?"]}}},
+					{"name": "1.3t", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3t+", "1.3t?"]}}},
+					{"name": "1.4", "esfilter": {"terms": {"cf_blocking_b2g": ["1.4+", "1.4?"]}}},
+					{"name": "1.5", "esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "1.5?"]}}},
+					{"name": "Untargeted", "esfilter": {"and": [
+						{"not": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?"]}}}
+					]}}
+				]
+			},
 
 			{"name": "FinalState", "index": "bugs", "isFacet": true,
 				"partitions": [

@@ -72,7 +72,7 @@ ElasticSearch.getMinMax=function*(esfilter){
 
 	var u2 = yield(ESQuery.run({
 		"from":"bugs",
-		"select":{"name":"max", "value":"expires_on ", "aggregate":"maximum"},
+		"select":{"name":"max", "value":"expires_on", "aggregate":"maximum"},
 		"edges":[
 			"bug_id"
 		],
