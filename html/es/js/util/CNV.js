@@ -169,7 +169,7 @@ CNV.Object2JSON = function(json){
 
 
 CNV.Object2URL=function(value){
-	return $.param(value);
+	return $.param(value).replaceAll("%5B%5D=", "=");
 };//method
 
 CNV.String2HTML = function(value){

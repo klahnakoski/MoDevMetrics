@@ -298,7 +298,7 @@ Qb.calc2List = function*(query){
 function* calc2Cube(query){
 	if (query.edges===undefined) query.edges=[];
 
-	if (query.edges.length==0){
+	if (query.edges.length==0 && Array.newInstance(query.select).length>0){
 		var o=yield (aggOP(query));
 		yield (o);
 	}//endif
@@ -308,6 +308,7 @@ function* calc2Cube(query){
 	//ASSIGN dataIndex TO ALL PARTITIONS
 	var edges = query.edges;
 	for(var f = 0; f < edges.length; f++){
+		edges[f].domain.partitions.sort(edges[f].domain.compare);
 		var p = 0;
 		for(; p < (edges[f].domain.partitions).length; p++){
 			edges[f].domain.partitions[p].dataIndex = p;

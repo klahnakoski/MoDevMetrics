@@ -21,6 +21,15 @@ Map.newInstance=function(key, value){
 	return output;
 };//method
 
+//LIST OF [k, v] TUPLES EXPECTED
+Map.zip=function(keys, values){
+	var output={};
+	keys.forall(function(k, i){
+		output[k]=values[i];
+	});
+	return output;
+};//method
+
 
 
 
@@ -84,12 +93,18 @@ Map.domain=function(map){
 
 //RETURN TRUE IF MAPS LOOK IDENTICAL
 Map.equals=function(a, b){
-	forAllKey(a, function(k, v, i){
-		if (b[k]!=v) return false;
-	});
-	forAllKey(b, function(k, v, i){
-		if (a[k]!=v) return false;
-	});
+	var keys=Object.keys(a);
+	for(var i=keys.length;i--;){
+		var key=keys[i];
+		if (b[key]!=a[key]) return false;
+	}//for
+
+	keys=Object.keys(b);
+	for(i=keys.length;i--;){
+		key=keys[i];
+		if (b[key]!=a[key]) return false;
+	}//for
+
 	return true;
 };//method
 

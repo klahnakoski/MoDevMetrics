@@ -35,7 +35,7 @@
 	<br><br>
 	<div id="info"></div>
 	<div id="details"></div>
-	<div class="footer"></div>
+	<div class="footer">Source code at <a href="https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Team.html">https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Team.html</a></div>
 </div>
 
 
@@ -43,11 +43,6 @@
 
 
 importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], function () {
-
-	$("#reload").click(function (e) {
-		$("#reload").html("reloading...");
-		reloadScripts();
-	});
 
 	var thread;
 	var createChart = function () {
@@ -74,12 +69,11 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 			SCOPE
 		]};
 
-		if (teamName==""){
-			$("#title").html("All Teams");
-		}else{
-			$("#title").html(teamName);
+		if (teamName == "") {
+			$("#title").html("Blockers - All Teams");
+		} else {
+			$("#title").html("Blockers - " + teamName);
 		}//endif
-
 
 		Thread.run(function*() {
 			///////////////////////////////////////////////////////////////////////

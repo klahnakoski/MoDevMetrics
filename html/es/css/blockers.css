@@ -1,0 +1,70 @@
+
+.blockers {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: normal;
+    text-align: left;
+    width:100%;
+}
+
+.blocker {
+    color:white;
+    display: inline-block;
+    font-weight: normal;
+    padding: 10px;
+    text-align: center
+}
+
+.program {
+    color:white;
+    display: inline-block;
+    font-weight: normal;
+    padding: 10px;
+    text-align: center;
+    width: 50px;
+    height:50px;
+
+}
+.component {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    color:black;
+    display: inline-block;
+    padding: 10px 10px 5px;
+    text-align: center;
+}
+.componentowner {
+    color:black;
+    font-size: 75%;
+    font-style: italic;
+    padding: 0 10px 5px;
+}
+
+.count {
+    font-family: Arial, Helvetica, sans-serif;
+    color:white;
+    font-size: 200%;
+    font-weight: bold;
+}
+.count_unassigned {
+    font-family: Arial, Helvetica, sans-serif;
+    color:white;
+    font-size: 100%;
+    font-weight: normal;
+}
+.componentowner {
+    font-family: Arial, Helvetica, sans-serif;
+    color:white;
+    font-size: 75%;
+    font-style: italic;
+}
+
+
+#noms {
+    background-color: #56C5FF;
+}
+#triage {
+    background-color: #008287;
+}
+#blockers {
+
+}

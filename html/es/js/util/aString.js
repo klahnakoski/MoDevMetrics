@@ -77,9 +77,7 @@ String.prototype.deformat = function(){
 };//method
 
 
-
-///
-/// EXPECTING AN OBJECT WITH KEY VALUE PAIRS
+//CASE INSENSITIVE VARIABLE REPLACEMENT
 String.prototype.replaceVars = function(values){
 	//COPY VALUES, BUT WITH lowerCase KEYS
 	var keys=Object.keys(values);
@@ -91,18 +89,24 @@ String.prototype.replaceVars = function(values){
 	var output = this;
 	var s=0;
 	while(true){
-		s = output.indexOf('{', s);
+		s = output.indexOf('{{', s);
 		if (s < 0) return output;
-		var e = output.indexOf('}', s);
+		var e = output.indexOf('}}', s);
 		if (e < 0) return output;
-		var key = output.substring(s + 1, e).toLowerCase();
+		var key = output.substring(s + 2, e).toLowerCase();
 
 		if (map[key]!==undefined){
-			output=output.replaceAll(output.substring(s, e + 1), map[key]);
+			output=output.replaceAll(output.substring(s, e + 2), map[key]);
 		}//endif
 		s=e;
 	}//while
 };//method
+
+
+
+
+
+
 
 String.prototype.left = function(amount){
 	return this.substring(0, aMath.min(this.length, amount));

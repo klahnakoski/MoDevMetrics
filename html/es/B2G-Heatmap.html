@@ -1,0 +1,227 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="application/javascript" src="js/imports/import.js"></script>
+</HEAD>
+<BODY>
+	<div id="nominations"></div>
+	<div id="triage"></div>
+	<div id="blockers"></div>
+	<div class="footer">
+		Source at <a href="https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Heatmap.html">https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-HeatMap.html</a>
+	</div>
+
+<script type="application/javascript">
+var NOW;
+var TOO_LATE;
+var REALLY_TOO_LATE;
+
+
+var WARNING_STYLE = {
+	"color": "white",
+	"font-weight": "bold",
+	"background-color": "#ff7f0e"
+};
+var ERROR_STYLE = {
+	"color": "white",
+	"font-weight": "bold",
+	"background-color": "#d62728"
+};
+var UNASSIGNED_STYLE = {
+	"color": "white",
+	"font-weight": "bold",
+	"background-color": "#9467bd"
+};
+
+
+importScript([
+	'css/blockers.css',
+	'js/main.js',
+	'js/Dimension-Bugzilla.js',
+	"js/Dimension-B2G.js",
+	"js/charts/aColor.js"
+], function() {
+	var thread;
+	var createChart = function () {
+		if (thread !== undefined)
+			thread.kill();
+		thread = Thread.run(__createChart());
+	};
+
+	var __createChart = function*() {
+		yield (ESQuery.loadColumns({"from": "bugs"}));
+
+		var a = Log.action("Get Bug Details", true);
+		//PULL THE RAW DATA, AND THEN OPERATE ON IT 112K, 2.17sec time
+		//THE AGGREGATES ARE SPENDING ABOUT 2/3 THE TIME TRANSMITTING THE QUERY
+		var allDetails = yield(ESQuery.run({
+			"from": "bugs",
+			"select": [
+				"bug_id",
+				"modified_ts",
+				"keywords",
+				"assigned_to",
+				"component",
+				"product",
+				"cf_blocking_b2g"
+			],
+			"esfilter": {"and": [
+				{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+"]}},
+				Mozilla.BugStatus.Open.esfilter,
+				Mozilla.CurrentRecords.esfilter
+			]}
+		}));
+		Log.actionDone(a);
+
+		var blockers = yield(Q({
+			"from": allDetails,
+			"select": [
+				{"name": "count", "value": "bug_id", "aggregate": "count"},
+				{"name": "age", "value": "Date.now().subtract(Date.newInstance(modified_ts)).divideBy(Duration.DAY)", "aggregate": "maximum"},
+				{"name": "unassignedCount", "value": '(assigned_to=="nobody@mozilla.org" ? 1 : 0)', "aggregate": "sum"}
+			],
+			"edges": [
+				"component",
+				{"name": "project", "domain":Mozilla.B2G.Project.getDomain()}
+			]
+		}));
+		blockers.cube.forall(function(component, i){
+			var total = aMath.sum.apply(undefined, component.select("count"));
+			if (total>0){
+				component.forall(function(project, j){
+					project.component = blockers.edges[0].domain.partitions[i].name;
+					project.project = blockers.edges[1].domain.partitions[j].name;
+					project.total = total;
+				});
+				var blockerHTML = showComponent(component);
+				$("#blockers").append(blockerHTML);
+			}//endif
+		});
+	};
+
+	$(document).ready(function () {
+		GUI.setup(
+			createChart,
+			[],
+			[],
+			null,
+			false		//DO NOT SHOW DEFAULT FILTERS
+		);
+	});
+});
+
+
+function addNumberClickers(cube, mainFilter) {
+	var prefix = cube.name.deformat() + "_value";
+	$("td").filter(function () {
+		return nvl($(this).attr("id"), "").startsWith(prefix);
+	}).click(function (e) {
+				var id = $(this).attr("id");
+				var coord = id.rightBut(prefix.length).split("x").map(function (v) {
+					return CNV.String2Integer(v);
+				});
+				var filter = {"and": cube.edges.map(function (edge, i) {
+					var part = edge.domain.partitions[coord[i]];
+					if (part.esfilter) {
+						return part.esfilter;
+					} else {
+						return {"term": Map.newInstance(edge.value, part.value)}
+					}//endif
+				})};
+				filter["and"].append(mainFilter);
+
+				Thread.run(function*() {
+					var bugs = yield(ESQuery.run({
+						"from": "bugs",
+						"select": "bug_id",
+						"esfilter": filter
+					}));
+					Bugzilla.showBugs(bugs.list);
+
+				});
+			});
+}//function
+
+function addTeamClickers(cube) {
+	$("td").filter(function () {
+		return nvl($(this).attr("id"), "").startsWith("_team");
+	}).click(function (e) {
+				var id = $(this).attr("id");
+				var team = cube.edges[0].domain.partitions[CNV.String2Integer(id.rightBut("_team".length))];
+
+				window.open("B2G-Team.html#" + CNV.Object2URL({
+					"team": "Team." + team.name
+				}));
+			});
+
+}//function
+
+
+// SHOW BLOCKER COUNT FOR ONE COMPONENT
+function showComponent(detail){
+	var TEMPLATE = '<div class="blocker">' +
+			'<div class="component">{{component}}</div>' +
+			'<div class="owner">{{owner}}</div>' +
+			'{{projectDetail}}' +
+			'</div>';
+
+	var component = Map.copy(detail[0]);
+	component.projectDetail=detail.map(function(project, i){
+		if (project.count>0){
+			return showBlocker(project);
+		}//endif
+
+	});
+	return TEMPLATE.replaceVars(component)
+}//function
+
+// SHOW BLOCKER COUNT FOR ONE COMPONENT, ONE PROJECT
+function showBlocker(detail){
+	var param = {
+		"bug_status": ["UNCONFIRMED", "NEW", "ASSIGNED", "REOPENED"],
+		"cf_blocking_b2g": detail.project+"+",
+		"component": detail.component
+	};
+	detail.param = CNV.Object2URL(param);
+
+	param.assigned_to="nobody@mozilla.org";
+	detail.unassigned = CNV.Object2URL(param);
+	detail.color=age2color(detail.age);
+
+	var TEMPLATE = '<div class="program"  style="background-color:{{color}}">' +
+			'<div class="release">{{project}}</div>' +
+			'<a class="count" href="https://bugzilla.mozilla.org/buglist.cgi?{{param}}">{{count}}</a>' +
+			(detail.unassignedCount > 0 ? '<a class="count_unassigned" href="https://bugzilla.mozilla.org/buglist.cgi?{{unassigned}}">({{unassignedCount}})</a>' : '') +
+			'</div>';
+
+
+	return TEMPLATE.replaceVars(detail)
+}//function
+
+function age2color(age){
+	var green = Color.green.multiply(0.4);
+	var color = green.rotate(Math.min(1.0, age/7)*120);
+	return color.toHTML();
+}//function
+
+function mix(a, b, ratio){
+	return new ColorLinear(
+			a.R*ratio + b.R*(1.0-ratio),
+			a.G*ratio + b.G*(1.0-ratio),
+			a.B*ratio + b.B*(1.0-ratio)
+	);
+}
+
+
+</script>
+
+
+</BODY>
+</HTML>
+
+
+
+

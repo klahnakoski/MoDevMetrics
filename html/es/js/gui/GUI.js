@@ -329,7 +329,7 @@ GUI = {};
 
 
 			//INSERT HTML
-			var template = '<span class="parameter_name">{NAME}</span><input type="{TYPE}" id="{ID}"><br><br>\n';
+			var template = '<span class="parameter_name">{{NAME}}</span><input type="{{TYPE}}" id="{{ID}}"><br><br>\n';
 			var html = "";
 			GUI.parameters.forEach(function (param) {
 				if ($("#" + param.id).length > 0) return;

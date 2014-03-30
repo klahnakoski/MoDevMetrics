@@ -72,6 +72,18 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 		thread = Thread.run(__createChart());
 	};
 
+	//REFRESH PERIODICALLY
+	Thread.run(function*(){
+		while(true){
+			try{
+				yield (Thread.sleep(5*60*1000));
+				createChart();
+			} catch(e){
+				//do nothing
+			}//try
+		}//while
+	});
+
 	var __createChart = function*() {
 		NOW = Date.today();
 		TOO_LATE = NOW.subtract(Duration.newInstance("2day"));
