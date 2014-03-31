@@ -4,6 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
+	<title>FFOS - Projects Dashboard</title>
 	<script type="application/javascript" src="js/imports/import.js"></script>
 </HEAD>
 <BODY>
@@ -103,32 +104,6 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 		var counting = null;
 		var countingThread = Thread.run(function*() {
 			var a = Log.action("Get Counts", true);
-
-//          PULL THE RAW DATA, AND THEN OPERATE ON IT 112K, 2.17sec time
-//  		THE AGGREGATES ARE SPENDING ABOUT 2/3 THE TIME TRANSMITTING THE QUERY
-//			var allDetails = yield(ESQuery.run({
-//				"from":"bugs",
-//				"select":[
-//					"bug_id",
-//					"modified_ts",
-//					"keywords",
-//					"assigned_to",
-//					"component",
-//					"product",
-//					"cf_blocking_b2g"
-//				],
-//				"esfilter":{"and":[
-//					{"or":[
-//						{"terms":{"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?"]}},
-//						{"and":[
-//							{"terms":{"keywords":["regression"]}},
-//							{"term": {"product": "firefox os"}}
-//						]}
-//					]},
-//					Mozilla.BugStatus.Open.esfilter,
-//					Mozilla.CurrentRecords.esfilter
-//				]}
-//			}));
 
 			counting = yield(ESQuery.run({
 				"from": "bugs",
@@ -293,7 +268,7 @@ function addTeamClickers(cube) {
 		var team = cube.edges[0].domain.partitions[CNV.String2Integer(id.rightBut("_team".length))];
 
 		window.open("B2G-Team.html#" + CNV.Object2URL({
-			"team": "Team."+team.name
+			"team": "Team."+team.name.replaceAll(" ", "_")
 		}));
 	});
 
@@ -381,9 +356,9 @@ function cube2grid(param) {
 
 
 function isVisible(projectName, stateName) {
-	if (projectName == "Untargeted" && ["Open - Unassigned", "Open - Assigned", "Regression"].contains(stateName)) {
+	if (projectName == "Other" && ["Open - Unassigned", "Open - Assigned", "Regression"].contains(stateName)) {
 		return true;
-	} else if (projectName != "Untargeted" && ["Nominated", "Blocker", "Regression"].contains(stateName)) {
+	} else if (projectName != "Other" && ["Nominated", "Blocker", "Regression"].contains(stateName)) {
 		return true;
 	}//endif
 	return false;

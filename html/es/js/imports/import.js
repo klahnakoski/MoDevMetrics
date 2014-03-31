@@ -19,7 +19,7 @@ var importScript;
 (function () {
 
 	var METHOD_NAME = "importScript";
-	var FORCE_RELOAD = false;
+	var FORCE_RELOAD = true;
 	var DEBUG = false;
 
 	if (typeof(window.Log) == "undefined") {
