@@ -254,7 +254,11 @@ Dimension.addEdges(true, Mozilla, [
 					{"name": "1.3T", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3t+", "1.3t?"]}}},
 					{"name": "1.4", "esfilter": {"terms": {"cf_blocking_b2g": ["1.4+", "1.4?"]}}},
 					{"name": "1.5", "esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "1.5?"]}}},
-					{"name": "Untargeted", "esfilter": {"and": [
+					{"name": "Targeted", "esfilter": {"and": [
+						{"exists": {"field": "target_milestone"}},
+						{"not": {"term":{"target_milestone": ["---"]}}}
+					]}},
+					{"name": "Other", "esfilter": {"and": [
 						{"not": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?"]}}}
 					]}}
 				]

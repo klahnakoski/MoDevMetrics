@@ -14,7 +14,9 @@
     text-align: center
 }
 
-.program {
+.project {
+    cursor: pointer;
+    position: relative;
     color:white;
     display: inline-block;
     font-weight: normal;
@@ -29,34 +31,73 @@
     font-weight: bold;
     color:black;
     display: inline-block;
-    padding: 10px 10px 5px;
+    padding: 10px 10px 0px;
     text-align: center;
 }
+
 .componentowner {
     color:black;
-    font-size: 75%;
+    font-weight: bold;
+    font-size: 70%;
     font-style: italic;
-    padding: 0 10px 5px;
+    padding: 0 10px 0px;
 }
+
+.componentmanager {
+    color:black;
+    font-weight: bold;
+    font-size: 70%;
+    font-style: italic;
+    padding: 0 10px 0px;
+}
+
+
+.release{
+    padding: 0 0 3px 0;
+}
+
 
 .count {
     font-family: Arial, Helvetica, sans-serif;
+    display: inline-block;
     color:white;
     font-size: 200%;
     font-weight: bold;
 }
+
+.unassigned{
+    position: absolute;
+    right:0px;
+    bottom:0px;
+
+    width: 0px;
+    height: 0px;
+    border-style: solid;
+    border-width: 0 0 40px 40px;
+    border-color: transparent transparent #000000 transparent;
+
+}
+
+.count:hover {
+    color:white;
+}
+
 .count_unassigned {
+    position: absolute;
+    right:3px;
+    bottom:-37px;
+
     font-family: Arial, Helvetica, sans-serif;
+    display: inline-block;
     color:white;
     font-size: 100%;
     font-weight: normal;
 }
-.componentowner {
-    font-family: Arial, Helvetica, sans-serif;
+
+.count_unassigned:hover {
     color:white;
-    font-size: 75%;
-    font-style: italic;
 }
+
 
 
 #noms {

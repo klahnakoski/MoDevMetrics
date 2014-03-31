@@ -9,7 +9,7 @@
 <BODY>
 <div id="nominations"></div>
 <div id="triage"></div>
-<h3>FFOS Blockers</h3>
+<h3>FFOS Triage</h3>
 <div id="blockers"></div>
 <div class="footer">
 	Source at <a href="https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Heatmap.html">https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-HeatMap.html</a>
@@ -43,27 +43,48 @@
 		var __createChart = function*() {
 			yield (ESQuery.loadColumns({"from": "bugs"}));
 
-			var a = Log.action("Get Bug Details", true);
 			//PULL THE RAW DATA, AND THEN OPERATE ON IT 112K, 2.17sec time
 			//THE AGGREGATES ARE SPENDING ABOUT 2/3 THE TIME TRANSMITTING THE QUERY
-			var allDetails = yield(ESQuery.run({
-				"from": "bugs",
-				"select": [
-					"bug_id",
-					"modified_ts",
-					"keywords",
-					"assigned_to",
-					"component",
-					"product",
-					"cf_blocking_b2g"
-				],
+			var allDetails=[];
+			var allDetailsThread=Thread.run(function*(){
+				var a = Log.action("Get Bug Details", true);
+				allDetails = yield(ESQuery.run({
+					"from": "bugs",
+					"select": [
+						"bug_id",
+						"modified_ts",
+						"keywords",
+						"assigned_to",
+						"component",
+						"product",
+						"cf_blocking_b2g"
+					],
+					"esfilter": {"and": [
+						{"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?"]}},
+						Mozilla.BugStatus.Open.esfilter,
+						Mozilla.CurrentRecords.esfilter
+					]}
+				}));
+				Log.actionDone(a);
+			});
+
+			var ages=yield(ESQuery.run({
+				"from":"bugs",
+				"select":{"value":"modified_ts", "aggregate":"minimum"},
+				"edges":["bug_id"],
 				"esfilter": {"and": [
-					{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+"]}},
-					Mozilla.BugStatus.Open.esfilter,
-					Mozilla.CurrentRecords.esfilter
+					{"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?"]}},
+					Mozilla.BugStatus.Open.esfilter
 				]}
 			}));
-			Log.actionDone(a);
+
+			yield (Thread.join(allDetailsThread));
+
+			//MAP THE TIMESTAMP TO THE DETAIL RECORD
+			var domain=ages.edges[0].domain;
+			allDetails.list.forall(function(d){
+				d.modified_ts=ages.cube[domain.getPartByKey(d.bug_id).dataIndex];
+			});
 
 			var blockers = yield(Q({
 				"from": allDetails,
@@ -87,7 +108,7 @@
 						project.project = blockers.edges[1].domain.partitions[j].name;
 						project.total = total;
 					});
-					var blockerHTML = showComponent(component);
+					var blockerHTML = showComponent(component, showTriage);
 					$("#blockers").append(blockerHTML);
 				}//endif
 			});

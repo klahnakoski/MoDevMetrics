@@ -308,7 +308,9 @@ function* calc2Cube(query){
 	//ASSIGN dataIndex TO ALL PARTITIONS
 	var edges = query.edges;
 	for(var f = 0; f < edges.length; f++){
-		edges[f].domain.partitions.sort(edges[f].domain.compare);
+		if (edges[f].domain.type=="default"){
+			edges[f].domain.partitions.sort(edges[f].domain.compare);
+		}//endif
 		var p = 0;
 		for(; p < (edges[f].domain.partitions).length; p++){
 			edges[f].domain.partitions[p].dataIndex = p;

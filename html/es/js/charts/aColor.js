@@ -42,6 +42,38 @@ Color = function (L, h, s) {
 	Color.green = new Color(1.0, 120.0, 1.0);
 	Color.blue = new Color(1.0, 0.0, 1.0);
 
+
+	var ColorSRGB = function (r, g, b) {
+		this.r = r;
+		this.g = g;
+		this.b = b;
+	};//function
+
+	ColorSRGB.prototype.lighter=function(){
+		return new ColorSRGB(this.r*1.2, this.g*1.2, this.b*1.2);
+	};
+
+	ColorSRGB.prototype.toHTML=function(){
+		return hex(this);
+	};
+
+
+	Color.newHTML=function(value){
+		if (value.startsWith("rgb(")){
+			value=value.between("rgb(", ")");
+			var rgb = value.split(",").map(function(v){return v.trim()-0;});
+			return new ColorSRGB(rgb[0], rgb[1], rgb[2]);
+		}//endif
+
+		//EXPECTING "#" AS FIRST VALUE
+		return new ColorSRGB(
+			CNV.hex2int(value.substring(1, 3)),
+			CNV.hex2int(value.substring(3, 5)),
+			CNV.hex2int(value.substring(5, 7))
+		);
+	}//function
+
+
 	Color.prototype.rotate = function (degrees) {
 		var h = this.h + degrees;
 		while (h < 0.0) h += 360.0;

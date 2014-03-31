@@ -24,9 +24,18 @@ Map.newInstance=function(key, value){
 //LIST OF [k, v] TUPLES EXPECTED
 Map.zip=function(keys, values){
 	var output={};
-	keys.forall(function(k, i){
-		output[k]=values[i];
-	});
+
+	if (values===undefined){
+		keys.forall(function(kv){
+			//LIST OF [k, v] TUPLES EXPECTED
+			output[kv[0]]=kv[1];
+		});
+	}else{
+		keys.forall(function(k, i){
+			output[k]=values[i];
+		});
+	}//endif
+
 	return output;
 };//method
 
