@@ -47,7 +47,7 @@ function showComponent(detail, showTYPE) {
 }//function
 
 // SHOW TRIAGE COUNT FOR ONE COMPONENT, ONE PROJECT
-function showTriage(detail) {
+function showNominations(detail) {
 	detail.param = CNV.Object2URL({
 		"bug_status": ["UNCONFIRMED", "NEW", "ASSIGNED", "REOPENED"],
 		"cf_blocking_b2g": detail.project + "?",
@@ -70,6 +70,7 @@ function showBlocker(detail) {
 		"cf_blocking_b2g": detail.project + "+",
 		"component": detail.component
 	};
+
 	detail.param = CNV.Object2URL(param);
 
 	param.assigned_to = "nobody@mozilla.org";
@@ -88,15 +89,8 @@ function showBlocker(detail) {
 
 // SHOW BLOCKER COUNT FOR ONE COMPONENT, ONE PROJECT
 function showRegression(detail) {
-	var param = {
-		"bug_status": ["UNCONFIRMED", "NEW", "ASSIGNED", "REOPENED"],
-		"keywords": "regression",
-		"component": detail.component
-	};
-	detail.param = CNV.Object2URL(param);
-
-	param.assigned_to = "nobody@mozilla.org";
-	detail.unassigned = CNV.Object2URL(param);
+	detail.param = CNV.Object2URL({"quicksearch":detail.bugs.join(",")});
+	detail.unassigned = CNV.Object2URL({"quicksearch":detail.unassigned_bugs.join(",")});
 	detail.color = age2color(detail.age);
 
 	var TEMPLATE = '<div class="project"  style="background-color:{{color}}" href="https://bugzilla.mozilla.org/buglist.cgi?{{param}}">' +

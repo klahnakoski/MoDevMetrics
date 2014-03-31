@@ -26,7 +26,7 @@
 		for(var i=min;i<max;i+=interval) output.push(i);
 		return output;
 	};//method
-	
+
 
 	//WITH undefined AND nulls REMOVED
 	Array.prototype.cleanCopy=function(){
@@ -85,6 +85,18 @@
 		}//endif
 		return output;
 	};//method
+
+
+	//RETURN MAP THAT USES field AS KEY TO ELEMENTS
+	Array.prototype.index = function(field) {
+		var output = {};
+		for (var i = 0; i < this.length; i++) {
+			var v = this[i];
+			if (v === undefined) continue;
+			output[v[field]] = v;
+		}//for
+	};
+
 
 	Array.prototype.groupBy=function(size){
 		if (size===undefined){
@@ -187,7 +199,7 @@
 		}//while
 	};
 
-	
+
 	Array.prototype.concatenate=function(separator){
 		return this.map(function(v){return v;}).join(separator);
 	};

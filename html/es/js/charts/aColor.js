@@ -102,8 +102,8 @@ Color = function (L, h, s) {
 		var xL = COLOR_MESH[Lfloor_2][hfloor];
 		var xHL = COLOR_MESH[Lfloor_2][hfloor_2];
 
-		return hex(Map.zip(["r", "g", "b"], ["r", "g", "b"].map(function (c) {
-			return x0[c] * (1 - Lpart) * (1 - hpart) + xH[c] * hpart * (1 - Lpart) + xL[c] * Lpart * (1 - hpart) + xHL[c] * hpart * Lpart;
+		return hex(Map.zip(["r", "g", "b"].map(function (c) {
+			return [c, x0[c] * (1 - Lpart) * (1 - hpart) + xH[c] * hpart * (1 - Lpart) + xL[c] * Lpart * (1 - hpart) + xHL[c] * hpart * Lpart];
 		})));
 	}
 

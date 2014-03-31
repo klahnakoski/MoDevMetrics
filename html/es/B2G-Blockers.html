@@ -4,6 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
+	<title>FFOS Blockers</title>
 	<script type="application/javascript" src="js/imports/import.js"></script>
 </HEAD>
 <BODY>
@@ -63,7 +64,7 @@
 			}));
 			Log.actionDone(a);
 
-			var blockers = yield(Q({
+			var components = yield(Q({
 				"from": allDetails,
 				"select": [
 					{"name": "count", "value": "bug_id", "aggregate": "count"},
@@ -77,12 +78,12 @@
 			}));
 
 			$("#blockers").html("");
-			blockers.cube.forall(function (component, i) {
+			components.cube.forall(function (component, i) {
 				var total = aMath.sum.apply(undefined, component.select("count"));
 				if (total > 0) {
 					component.forall(function (project, j) {
-						project.component = blockers.edges[0].domain.partitions[i].name;
-						project.project = blockers.edges[1].domain.partitions[j].name;
+						project.component = components.edges[0].domain.partitions[i].name;
+						project.project = components.edges[1].domain.partitions[j].name;
 						project.total = total;
 					});
 					var blockerHTML = showComponent(component, showBlocker);
@@ -90,7 +91,9 @@
 				}//endif
 			});
 
-			addProjectClickers(blockers);
+
+
+			addProjectClickers(components);
 		};
 
 		$(document).ready(function () {
