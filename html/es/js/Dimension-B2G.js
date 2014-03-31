@@ -131,31 +131,61 @@ Dimension.addEdges(true, Mozilla, [
 						"vendcom"
 					]}}
 				]}},
-				{"name": "Platform", "esfilter": {"and": [
+
+				{"name": "Networking (Necko)", "esfilter": {"and": [
 					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"terms": {"component": [
-						"Canvas: 2D".toLowerCase(),
-						"Canvas: WebGL".toLowerCase(),
+						"Networking".toLowerCase(),
+						"networking: cache",
+						"networking: http",
+						"networking: websockets"
+					]}}
+				]}},
+
+				{"name": "Layout", "esfilter": {"and": [
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"terms": {"component": [
 						"CSS Parsing and Computation".toLowerCase(),
+						"Layout".toLowerCase()
+					]}}
+				]}},
+
+				{"name": "Javascript", "esfilter": {"and": [
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"terms": {"component": [
+						"JavaScript Engine".toLowerCase(),
+						"JavaScript: GC".toLowerCase(),
+						"javascript engine: jit"
+					]}}
+				]}},
+
+				{"name": "DOM", "esfilter": {"and": [
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"terms": {"component": [
 						"dom".toLowerCase(),
 						"dom: apps".toLowerCase(),
 						"dom: events".toLowerCase(),
 						"dom: devices interfaces".toLowerCase(),
 						"dom: push notifications".toLowerCase(),
+						"dom: device interfaces"
+					]}}
+				]}},
+
+				{"name": "Graphics", "esfilter": {"and": [
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"terms": {"component": [
 						"Graphics".toLowerCase(),
 						"Graphics: Layers".toLowerCase(),
 						"Graphics: text".toLowerCase(),
-						"Hardware Abstraction Layer (HAL)".toLowerCase(),
+						"Canvas: 2D".toLowerCase(),
+						"Canvas: WebGL".toLowerCase(),
 						"ImageLib".toLowerCase(),
-						"IPC".toLowerCase(),
-						"JavaScript Engine".toLowerCase(),
-						"JavaScript: GC".toLowerCase(),
-						"Layout".toLowerCase(),
-						"MFBT".toLowerCase(),
-						"Networking".toLowerCase(),
 						"Panning and Zooming".toLowerCase()
 					]}}
 				]}},
+
+
+
 				{"name": "All Others", "esfilter": {"and": [
 					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"not": {"terms": {"component": [
@@ -168,6 +198,7 @@ Dimension.addEdges(true, Mozilla, [
 						"dom: events".toLowerCase(),
 						"dom: devices interfaces".toLowerCase(),
 						"dom: push notifications".toLowerCase(),
+						"dom: device interfaces",
 						"Graphics".toLowerCase(),
 						"Graphics: Layers".toLowerCase(),
 						"Graphics: text".toLowerCase(),
@@ -219,23 +250,17 @@ Dimension.addEdges(true, Mozilla, [
 						"audiochannel",
 						"bluetooth",
 						"hardware",
-						"vendcom"
+						"vendcom",
+						"javascript engine: jit",
+						"networking: cache",
+						"networking: http",
+						"networking: websockets"
 					]}}}
 				]}}
 			]},
 
 			{"name": "State", "index": "bugs", "isFacet": true,
 				"partitions": [
-					{"name": "Open - Unassigned", "esfilter": {"and": [
-						{"term": {"assigned_to": "nobody@mozilla.org"}},
-						{"not": {"term": {"keywords": "regression"}}},
-						{"not": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?"]}}}
-					]}},
-					{"name": "Open - Assigned", "esfilter": {"and": [
-						{"not": {"term": {"assigned_to": "nobody@mozilla.org"}}},
-						{"not": {"term": {"keywords": "regression"}}},
-						{"not": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?"]}}}
-					]}},
 					{"name": "Nominated", "esfilter": {"and": [
 						{"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "1.5?"]}},
 						{"not": {"term": {"keywords": "regression"}}}
@@ -254,10 +279,6 @@ Dimension.addEdges(true, Mozilla, [
 					{"name": "1.3T", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3t+", "1.3t?"]}}},
 					{"name": "1.4", "esfilter": {"terms": {"cf_blocking_b2g": ["1.4+", "1.4?"]}}},
 					{"name": "1.5", "esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "1.5?"]}}},
-					{"name": "Targeted", "esfilter": {"and": [
-						{"exists": {"field": "target_milestone"}},
-						{"not": {"term":{"target_milestone": ["---"]}}}
-					]}},
 					{"name": "Other", "esfilter": {"and": [
 						{"not": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?"]}}}
 					]}}

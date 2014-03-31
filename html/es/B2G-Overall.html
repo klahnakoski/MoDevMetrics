@@ -283,7 +283,7 @@ function cube2grid(param) {
 	var stateEdge = cube.getEdge(param.columns[1]);
 
 	var id_prefix = cube.name.deformat() + "_value";
-	var num_state = stateEdge.domain.partitions.length - 2; // -2 IS A DIRTY TRICK TO ONLY SHOW THE COLUMNS USED
+	var num_state = stateEdge.domain.partitions.length;
 
 	var header = "<thead>" +
 			"<tr><td rowspan='" + param.columns.length + "' style='vertical-align:middle;width:400px;'><h3>{{NAME}}</h3></td>{{PROJECT_HEADERS1}}</tr>" +
