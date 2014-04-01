@@ -57,6 +57,17 @@ Color = function (L, h, s) {
 		return hex(this);
 	};
 
+	Color.newInstance=function(value){
+		if (value.startsWith("lhs(")){
+			value=value.between("lhs(", ")");
+			var lhs = value.split(",").map(function(v){return v.trim()-0;});
+			return new Color(lhs[0], lhs[1], lhs[2]);
+		}//endif
+	};
+
+	Color.prototype.toString = function () {
+		return "lhs(" + this.L + ", " + this.h + ", " + this.s + ")";
+	};
 
 	Color.newHTML=function(value){
 		if (value.startsWith("rgb(")){
@@ -74,7 +85,7 @@ Color = function (L, h, s) {
 	}//function
 
 
-	Color.prototype.rotate = function (degrees) {
+	Color.prototype.hue = function (degrees) {
 		var h = this.h + degrees;
 		while (h < 0.0) h += 360.0;
 		while (h > 360.0) h -= 360.0;

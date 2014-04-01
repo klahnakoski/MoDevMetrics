@@ -42,6 +42,20 @@ String.prototype.replacePrefix=function(oldPrefix, newPrefix){
 };
 
 
+//FIND LAST INSTANCE OF find AND REPLACE WITH replace
+String.prototype.replaceLast=function(find, replace){
+	find = Array.newInstance(find);
+	for(var f=0;f<find.length;f++){
+		var i=this.lastIndexOf(find[f]);
+		if (i==-1) continue;
+		return this.left(i)+replace+this.rightBut(i+find[f].length);
+	}//for
+	return this;
+};
+
+
+
+
 String.prototype.rtrim=function(value){
 	if (value===undefined) value=" ";
 

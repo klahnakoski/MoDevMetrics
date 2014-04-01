@@ -275,7 +275,7 @@ var ColorLinear=function(r, g, b){
 		return Luv2Rgb(this);
 	};
 
-	ColorLUV.prototype.rotate=function(rads){
+	ColorLUV.prototype.hue=function(rads){
 		var result=new aMath.Cart(this.U,this.V)
 			.toPolar()
 			.rotate(rads)
@@ -285,7 +285,7 @@ var ColorLinear=function(r, g, b){
 		return new ColorLUV(this.L, result.x, result.y);
 	};
 
-	ColorLch.prototype.rotate=function(degrees){
+	ColorLch.prototype.hue=function(degrees){
 		return new ColorLch(this.L, this.c, this.h+degrees);
 	};
 

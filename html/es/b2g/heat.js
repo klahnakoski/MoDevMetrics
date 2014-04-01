@@ -6,6 +6,7 @@ importScript("owners.js");
 OWNERS = Map.zip(mapAllKey(OWNERS, function(k, v){
 	var manager;
 	var owner;
+	//PARSE THE <manager> "(" listOf(<assign_to>) ")" FORMAT
 	if (v.indexOf("(")>=0){
 		manager = v.left(v.indexOf("(")).trim();
 		owner = v.between("(", ")").trim();
@@ -14,13 +15,19 @@ OWNERS = Map.zip(mapAllKey(OWNERS, function(k, v){
 		owner="?";
 	}//endif
 
-	return [k.deformat(), {"name":k, "owner":{"name":owner, "manager":manager}}];
+
+	var name = k.replaceLast(["::", ": ", ":"], "<br>");
+	return [k.deformat(), {"name":name, "owner":{"name":owner, "manager":manager}}];
 }));
 
 function getOwner(comp){
 	var output = OWNERS[comp.deformat()];
 	if (output!==undefined) return output;
-	return {"name":comp, "owner":{"name":"", "manager":"unknown"}};
+
+	var name = comp.replaceLast(["::", ": ", ":"], "<br>");
+	output = {"name":name, "owner":{"name":"", "manager":"unknown"}};
+	OWNERS[comp.deformat()]=output;
+	return output;
 }//function
 
 
@@ -104,7 +111,7 @@ function showRegression(detail) {
 
 function addProjectClickers(cube) {
 	$(".project").hover(function (e) {
-		var old_color = $(this).attr("old_color");
+		var old_color = $(this).attr("background_lch");
 		if (old_color == undefined){
 			old_color = $(this).css("background-color");
 			$(this).attr("old_color", old_color);
@@ -126,9 +133,10 @@ function addProjectClickers(cube) {
 }//function
 
 
+
 function age2color(age) {
 	var green = Color.green.multiply(0.4);
-	var color = green.rotate(Math.min(1.0, age / 7) * 120);
+	var color = green.hue(Math.min(1.0, age / 7) * 120);
 	return color.toHTML();
 }//function
 

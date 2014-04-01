@@ -13,9 +13,19 @@ ProductFilter = function(){
 };
 
 
-ProductFilter.prototype.makeFilter = function(){
-	if (this.selected.length==0) return ESQuery.TrueFilter;
-	return {"terms":{"product":this.selected}};
+ProductFilter.esfilter={"match_all":true};  //USE THIS TO MAKE A SMALLER SET OF PRODUCTS
+
+
+ProductFilter.prototype.makeFilter = function () {
+	var output = {
+		"and": [
+			Mozilla.CurrentRecords.esfilter,
+			Mozilla.BugStatus.Open.esfilter,
+			ProductFilter.esfilter
+		]
+	};
+	if (this.selected.length > 0) output["and"].append({"terms": {"product": this.selected}});
+	return output;
 };//method
 
 
@@ -29,7 +39,8 @@ ProductFilter.prototype.makeQuery = function(filters){
 				"filter":{
 					"and":[
 						Mozilla.CurrentRecords.esfilter,
-						Mozilla.BugStatus.Open.esfilter
+						Mozilla.BugStatus.Open.esfilter,
+						ProductFilter.esfilter
 					]
 				}
 			}

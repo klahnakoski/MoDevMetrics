@@ -47,7 +47,7 @@
 			.data(data.reverse())
 			.enter().append("svg:path")
 			.style("fill", function(d, i){
-				return green.rotate(d*2*Math.PI).toHTML();
+				return green.hue(d*2*Math.PI).toHTML();
 			})
 			.attr("d", arc)
 			;

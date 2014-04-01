@@ -332,6 +332,7 @@ function cube2grid(param) {
 										.replaceAll("{{VALUE}}", value.count)
 										.replaceAll("{{STYLE}}", CNV.Map2Style(UNASSIGNED_STYLE));
 							} else if (project.name != "1.5" && ["Regression", "Blocker", "Nominated"].contains(state.name) && value.oldest < REALLY_TOO_LATE.getMilli()) {
+
 								html = stateData
 										.replaceAll("{{VALUE}}", value.count)
 										.replaceAll("{{STYLE}}", CNV.Map2Style(ERROR_STYLE));
