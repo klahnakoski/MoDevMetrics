@@ -36,6 +36,17 @@ Dimension.addEdges(true, Mozilla, [
 				{"name": "Unremarkable", "style": {}, "esfilter": {"matches_all": {}}}
 			]},
 
+			{"name": "Component",
+				"field": "component",
+				"type": "set",
+				"esfilter": ESQuery.TrueFilter,
+				"index":"bugs",
+				"limit":200,
+				"end": function (p) {
+					return p.name;
+				}
+			},
+
 			{"name":"Team", "isFacet": true, "partitions":[
 				{"name":"Performance",
 					"esfilter":{"or":[

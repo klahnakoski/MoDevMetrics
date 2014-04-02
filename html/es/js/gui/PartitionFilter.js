@@ -21,7 +21,7 @@ PartitionFilter.newInstance=function(param){
 
 	ASSERT.hasAttributes(param, [
 		"id",       //TO NAME THE DOM ELEMENTS
-		"name",     
+		"name",
 		"dimension",
 		["onlyOne","callback"], //CALLBACK WILL OVERRIDE THE onlyOne SHORTCUT
 		["expandDepth","expandAll"]
@@ -67,8 +67,10 @@ function convertToTreeLater(self, treeNode, dimension){
 			}//endif
 		}//while
 		var pleaseUpdate = (treeNode.children==WAITING_FOR_RESULTS);
-		treeNode.children = dimension.partitions.map(function(v, i){
-			if (i<nvl(dimension.limit, DEFAULT_CHILD_LIMIT)) return convertToTree(self, treeNode, 1, v);
+		treeNode.children = dimension.partitions.map(function (v, i) {
+			if (i < nvl(dimension.limit, DEFAULT_CHILD_LIMIT)){
+				return convertToTree(self, {}, 1, v);
+			}//endif
 		});
 		if (pleaseUpdate){
 			self.hierarchy=treeNode.children;
@@ -96,10 +98,10 @@ function convertToTree(self, parent, depth, dimension){
 			node.children=WAITING_FOR_RESULTS;
 			convertToTreeLater(self, node, dimension);
 		}else{
-			if (self.treeDepth > depth){
+			if (depth < self.treeDepth){
 				node.children=dimension.partitions.map(function(v,i){
 					if (i<nvl(dimension.limit, DEFAULT_CHILD_LIMIT))
-						return convertToTree(self, node, depth+1, v);
+						return convertToTree(self, depth==0 ? {} : node, depth+1, v);
 				});
 			}//endif
 		}//endif
@@ -143,7 +145,7 @@ PartitionFilter.prototype.getSimpleState=function(){
 	return this.selectedIDs.join(",");
 };
 
-	
+
 //RETURN SOMETHING SIMPLE ENOUGH TO BE USED IN A URL
 PartitionFilter.prototype.setSimpleState=function(value){
 	if (value!==undefined){
@@ -262,7 +264,7 @@ PartitionFilter.prototype.makeTree=function(){
 				}
 			});
 		}//endif
-			
+
 		if (self.expandAll) $(self.FIND_TREE).jstree('open_all');
 		self.refresh();
 	});

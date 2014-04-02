@@ -124,10 +124,32 @@
 			ProductFilter.esfilter={"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}};
 			GUI.setup(
 					createChart,
-					[],
+					[
+						{"id": "projectFilter", "name": "Releases", "type": PartitionFilter.newInstance({
+							"id": "Projects",
+							"name": "All Projects",
+							"dimension": Mozilla.B2G.Project,
+							"onlyOne": false,
+							"expandAll": true
+						})},
+						{"id": "teamFilter", "name": "Teams", "type": PartitionFilter.newInstance({
+							"id": "Teams",
+							"name": "All Teams",
+							"dimension": Mozilla.B2G.Team,
+							"onlyOne": true,
+							"expandAll": true
+						})},
+						{"id": "componentFilter", "name": "Components", "type": PartitionFilter.newInstance({
+							"id": "Components",
+							"name": "All Components",
+							"dimension": Mozilla.B2G.Component,
+							"onlyOne": false,
+							"expandAll": true
+						})}
+					],
 					[],
 					null,
-					true		//DO NOT SHOW DEFAULT FILTERS
+					false		//DO NOT SHOW DEFAULT FILTERS
 			);
 		});
 	});
