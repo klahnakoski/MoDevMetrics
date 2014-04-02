@@ -245,6 +245,56 @@ h4 {
     color: #888888;
 }
 
+.accordion_header_open {
+    color: white;
+    font-size: 18px;
+    background-color: #888888;
+    height: 18px;
+    /*width: 100%;*/
+    padding: 5px 5px 8px 5px;
+    margin: 5px 0 5px 0;
+}
+
+.accordion_header_open .arrow {
+    display:inline-block;
+    vertical-align: top;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 10px 5px 0 5px;
+    border-color: #ffffff transparent transparent transparent;
+    margin:7px 5px 0 0px;
+
+}
+
+.accordion_header_closed {
+    color: white;
+    font-size: 18px;
+    background-color: #888888;
+    height: 18px;
+    /*width: 100%;*/
+    padding: 5px 5px 8px 5px;
+    margin: 5px 0 5px 0;
+}
+
+.accordion_header_closed .arrow{
+    display:inline-block;
+    vertical-align: top;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 5px 0 5px 10px;
+    border-color: transparent transparent transparent #ffffff;
+    margin: 5px 5px 0 0px;
+
+}
+
+
+
+.accordion_body {
+    overflow: hidden;
+}
+
 
 .warning {
     font-family: 'Open Sans', sans-serif;

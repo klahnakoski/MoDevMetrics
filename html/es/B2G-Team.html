@@ -27,14 +27,15 @@
 
 
 <div style="align:left;position:relative;float:left;width:800px;padding-top: 10px;">
-	<h3>Incomplete! These numbers have not been verified!</h3>
-	<h3 id="title"></h3>
-	<div id="chartChurn" class="chart" style="float:none;width:800px;height:300px;"></div>
-	<div id="chartCount" class="chart" style="float:none;width:800px;height:300px;"></div>
-	<div id="chartBlockerAge" class="chart" style="float:none;width:800px;height:300px;"></div>
-	<br><br>
-	<div id="info"></div>
-	<div id="details"></div>
+	<div class="accordion_header_open" accordion_id="overview" accordion_group="main"><div class="arrow"></div>Overview</div>
+	<div id="overview">
+	</div>
+	<div class="accordion_header" accordion_id="blocker_history" accordion_group="main"><div class="arrow"></div>Blocker History</div>
+	<div class="accordion_body" id="blocker_history" style="display:none;">
+		<div id="chartChurn" class="chart" style="float:none;width:800px;height:300px;"></div>
+		<div id="chartCount" class="chart" style="float:none;width:800px;height:300px;"></div>
+		<div id="chartBlockerAge" class="chart" style="float:none;width:800px;height:300px;"></div>
+	</div>
 	<div class="footer">Source code at <a href="https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Team.html">https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Team.html</a></div>
 </div>
 
@@ -42,8 +43,7 @@
 <script type="application/javascript">
 
 
-importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], function () {
-
+importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js", "b2g/grid.js", "js/gui/accordion.js"], function () {
 	var thread;
 	var createChart = function () {
 		if (thread !== undefined)
@@ -70,9 +70,9 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 		]};
 
 		if (teamName == "") {
-			$("#title").html("Blockers - All Teams");
+			teamSummary({"name":"All Teams", "esfilter":{"match_all":{}}});
 		} else {
-			$("#title").html("Blockers - " + teamName);
+			teamSummary({"name":teamName, "esfilter":GUI.getFilters("bugs")});
 		}//endif
 
 		Thread.run(function*() {
@@ -336,6 +336,115 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js"], 
 			false       //DO NOT PERFORM STANDARD CONSISTENCY CHECKS
 		);
 	});
+
+
+function teamSummary(team) {
+	//MAKE CONTAINER DIV
+	var teamFilter = {"and": [
+		Mozilla.B2G.esfilter,
+		Mozilla.CurrentRecords.esfilter,
+		Mozilla.BugStatus.Open.esfilter,
+		team.esfilter
+	]};
+
+	Thread.run(function*() {
+
+		//FIND COMPONENTS
+		var components = yield(ESQuery.run({
+			"from": "bugs",
+			"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
+			"edges": ["component"],
+			"esfilter": {"and": [
+				Mozilla.B2G.esfilter,
+				Mozilla.CurrentRecords.esfilter,
+				team.name == "Performance" ? Mozilla.BugStatus.Open.esfilter : ESQuery.TrueFilter, //PERFORMANCE TEAM NEED NOT SHOW ALL COMPONENTS EVER TOUCHED
+				team.esfilter
+			]}
+		}));
+//				components = components.edges[0].domain.partitions.select("name");
+		var componentDomain = {"type": "set", "partitions": components.edges[0].domain.partitions.select("value")};
+
+		var counting = null;
+		var countingThread = Thread.run(function*() {
+			var a = Log.action("Get " + team.name + " Counts", true);
+			counting = yield(ESQuery.run({
+				"from": "bugs",
+				"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
+				"edges": [
+					{"name": "Component", "value": "component", "domain": componentDomain},
+					{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
+					{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
+				],
+				"esfilter": teamFilter
+			}));
+			Log.actionDone(a);
+			yield (null);
+		});
+
+		var ages = null;
+		var ageThread = Thread.run(function*() {
+			var a = Log.action("Get " + team.name + " Ages", true);
+			ages = yield(ESQuery.run({
+				"from": "bugs",
+				"select": {"name": "oldest", "value": "modified_ts", "aggregate": "minimum"},
+				"edges": [
+					{"name": "Component", "value": "component", "domain": componentDomain},
+					{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
+					{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
+				],
+				"esfilter": teamFilter
+			}));
+			Log.actionDone(a);
+		});
+
+		var uBlocker = null;
+		var uBlockerThread = Thread.run(function*() {
+			var a = Log.action("Get " + team.name + " uBlockers", true);
+			uBlocker = yield(ESQuery.run({
+				"from": "bugs",
+				"select": {"name": "unassigned", "value": "bug_id", "aggregate": "count"},
+				"edges": [
+					{"name": "Component", "value": "component", "domain": componentDomain},
+					{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
+					{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
+				],
+				"esfilter": {"and": [
+					teamFilter,
+					{"term": {"assigned_to": "nobody@mozilla.org"}},
+					{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}}
+				]}
+			}));
+			Log.actionDone(a);
+		});
+
+		yield (Thread.join(countingThread));
+		yield (Thread.join(ageThread));
+		yield (Thread.join(uBlockerThread));
+
+		var both = Qb.merge([
+			{"from": counting, "edges": ["Component", "Project", "State"]},
+			{"from": ages, "edges": ["Component", "Project", "State"]},
+			{"from": uBlocker, "edges": ["Component", "Project", "State"]}
+		]);
+
+		//SHOW GRID
+		both.name = team.name;
+		if (["Performance", "All Others", "All Teams"].contains(team.name)){
+			Qb.removeZeroParts(both, 0);
+		}//endif
+
+		var html = cube2grid({
+			"cube": both,
+			"rows": ["Component"],
+			"columns": ["Project", "State"]
+		});
+		$("#overview").html(html).updateAccordion();
+		addNumberClickers(both, teamFilter);
+	});
+
+}//function
+
+
 
 });
 

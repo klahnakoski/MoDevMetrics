@@ -13,7 +13,7 @@ ProductFilter = function(){
 };
 
 
-ProductFilter.esfilter={"match_all":true};  //USE THIS TO MAKE A SMALLER SET OF PRODUCTS
+ProductFilter.esfilter={"match_all":{}};  //USE THIS TO MAKE A SMALLER SET OF PRODUCTS
 
 
 ProductFilter.prototype.makeFilter = function () {

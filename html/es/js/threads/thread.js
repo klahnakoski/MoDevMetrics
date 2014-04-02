@@ -65,6 +65,24 @@ build=function(){
 	};//method
 
 
+	//JUST LIKE RUN, ONLY DOES NOT REGISTER THE THREAD IN isRunning
+	Thread.daemon = function(name, gen){
+		if (typeof(name) != "string"){
+			gen = name;
+			name = undefined;
+		}//endif
+
+		//START IN SILENT MODE
+		var output = new Thread(gen);
+		output.name = name;
+		output.parentThread = Thread.currentThread;
+		output.parentThread.children.push(this);
+		output.resume(output.stack.pop());
+		return output;
+	};//method
+
+
+
 	//FEELING LUCKY?  MAYBE THIS GENERATOR WILL NOT DELAY AND RETURN A VALID VALUE BEFORE IT BLOCKS
 	//YOU CAN HAVE IT BLOCK THE MAIN TREAD FOR time MILLISECONDS
 	Thread.runSynchronously = function(gen, time){

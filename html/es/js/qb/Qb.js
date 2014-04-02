@@ -11,6 +11,7 @@ importScript("../util/CNV.js");
 importScript("../util/aDate.js");
 importScript("../util/aUtil.js");
 importScript("../debug/aLog.js");
+importScript("../collections/aMatrix.js");
 importScript("MVEL.js");
 importScript("Qb.aggregate.js");
 importScript("Qb.column.js");
@@ -690,61 +691,54 @@ Qb.normalizeByX=function(query, multiple){
 };//method
 
 
+Qb.normalize=function(query, edgeIndex, multiple){
+	if (multiple===undefined) multiple=1;
+	if (query.cube===undefined) Log.error("Can only normalize a cube into a table at this time");
+
+	var totals=[];
+	var m=new Matrix({"data":query.cube});
+
+	m.forall(edgeIndex, function(v, i){
+		totals[i] = nvl(totals[i], 0) + aMath.abs(v);
+	});
+	m.map(query.edges.length, function (v, i) {
+		if (totals[i]!=0){
+			return v/totals[i];
+		}else{
+			return v;
+		}//endif
+	});
+};
+
+
 Qb.removeZeroParts=function(query, edgeIndex){
 	if (query.cube===undefined) Log.error("Can only normalize a cube into a table at this time");
 
-	var zeros=query.edges[edgeIndex].domain.partitions.map(function(){ return true;});
+	var domain = query.edges[edgeIndex].domain;
+	var zeros=domain.partitions.map(function(){ return true;});
 
-	if (query.edges.length!=2){
-		Log.error("not implemented yet");
+	//CHECK FOR ZEROS
+	var m = new Matrix({"data": query.cube});
+	m.forall(edgeIndex, function (v, i) {
+		if (v.count !== undefined && v.count != null && v.count != 0) zeros[i] = false;
+	});
 
-	}else{
-		if (edgeIndex==0){
-			for(var c=0;c<query.cube.length;c++){
-				for(var e=0;e<query.cube[c].length;e++){
-					var v=query.cube[c][e];
-					if (v!==undefined && v!=null && query.cube[c][e]!=0) zeros[c]=false;
-				}//for
-			}//for
+	//REMOVE ZERO PARTS FROM EDGE
+	var j = 0;
+	domain.partitions = domain.partitions.map(function (part, i) {
+		if (zeros[i]) return undefined;
+		var output = Map.copy(part);
+		output.dataIndex = j;
+		j++;
+		return output;
+	});
 
-			query.edges[0].domain.partitions=query.edges[0].domain.partitions.map(function(part, i){
-				if (zeros[i]) return undefined;
-				var output=Map.copy(part);
-				output.dataIndex=i;
-				return output;
-			});
-			query.edges[0].domain.NULL.dataIndex=query.edges[0].domain.partitions.length;
-			query.cube=query.cube.map(function(v, i){
-				if (zeros[i]) return undefined;
-				return v;
-			});
-		}else if (edgeIndex==1){
-			for(var c=0;c<query.cube.length;c++){
-				for(var e=0;e<query.cube[c].length;e++){
-					var v=query.cube[c][e];
-					if (v!==undefined && v!=null && query.cube[c][e]!=0) zeros[e]=false;
-				}//for
-			}//for
-			query.edges[1].domain.partitions=query.edges[1].domain.partitions.map(function(part, i){
-				if (zeros[i]) return undefined;
-				var output=Map.copy(part);
-				output.dataIndex=i;
-				return output;
-			});
-			query.edges[1].domain.NULL.dataIndex=query.edges[1].domain.partitions.length;
-			query.cube=query.cube.map(function(r, i){
-				return r.map(function(c, j){
-					if (zeros[j]) return undefined;
-					return c;
-				})
-			});
+	//REMOVE ZERO PARTS FROM CUBE
+	query.cube = m.filter(edgeIndex, function (v, i) {
+		if (!zeros[i]) return v;
+		return undefined;
+	});
 
-
-
-
-		}//endif
-
-	}//endif
 };
 
 
