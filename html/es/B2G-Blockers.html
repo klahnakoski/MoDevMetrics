@@ -9,20 +9,20 @@
 </HEAD>
 <BODY>
 <div id="sidebar" style="overflow: hidden; padding-right:0px; border-right:10px solid #777777">
-	<br>
-	<br>
+	<div id="description">
+		<div style="display:inline-block;height:10px;width:10px;background-color:#028D00;"></div>
+		Young<br>
 
-	<div style="height: 30px; text-align: center;vertical-align:middle;">
-		<span id="status" style="height:30px"></span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+		<div style="display:inline-block;height:10px;width:10px;background-color:rgb(152, 3, 3);"></div>
+		Old<br>
+
+		<div style="display:inline-block;bottom:0;width: 0;height: 0; border-style: solid; border-width: 0 0 10px 10px; border-color: transparent transparent #000000 transparent;"></div>
+		Unassigned Blocker<br>
 	</div>
 
 	<hr>
-	<div id="description">Incomplete<br><br>
+	<div id="filters" class="menu">
 	</div>
-	<hr>
-	<div id="parameters" class="parameters">
-	</div>
-	<div id="filters" class="menu"></div>
 </div>
 
 <h3>FFOS Blockers</h3>
@@ -125,21 +125,21 @@
 			GUI.setup(
 					createChart,
 					[
-						{"id": "projectFilter", "name": "Releases", "type": PartitionFilter.newInstance({
+						{"id": "project", "name": "Releases", "type": PartitionFilter.newInstance({
 							"id": "Projects",
 							"name": "All Projects",
 							"dimension": Mozilla.B2G.Project,
 							"onlyOne": false,
 							"expandAll": true
 						})},
-						{"id": "teamFilter", "name": "Teams", "type": PartitionFilter.newInstance({
+						{"id": "team", "name": "Teams", "type": PartitionFilter.newInstance({
 							"id": "Teams",
 							"name": "All Teams",
 							"dimension": Mozilla.B2G.Team,
 							"onlyOne": true,
 							"expandAll": true
 						})},
-						{"id": "componentFilter", "name": "Components", "type": PartitionFilter.newInstance({
+						{"id": "component", "name": "Components", "type": PartitionFilter.newInstance({
 							"id": "Components",
 							"name": "All Components",
 							"dimension": Mozilla.B2G.Component,
