@@ -75,7 +75,7 @@ function addTeamClickers(cube) {
 			var team = cube.edges[0].domain.partitions[CNV.String2Integer(id.rightBut("_team".length))];
 
 			window.open("B2G-Team.html#" + CNV.Object2URL({
-				"team": "Team." + team.name.replaceAll(" ", "_")
+				"team": team.name.replaceAll(" ", "_")
 			}));
 		});
 
