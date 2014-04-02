@@ -266,6 +266,10 @@ h4 {
     margin:7px 5px 0 0px;
 
 }
+.accordion_header_open:hover {
+    background-color: #999999;
+}
+
 
 .accordion_header_closed {
     color: white;
@@ -275,6 +279,10 @@ h4 {
     /*width: 100%;*/
     padding: 5px 5px 8px 5px;
     margin: 5px 0 5px 0;
+}
+
+.accordion_header_closed:hover {
+    background-color: #999999;
 }
 
 .accordion_header_closed .arrow{
