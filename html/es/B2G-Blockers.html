@@ -37,14 +37,7 @@
 </div>
 <script type="application/javascript">
 
-	importScript([
-		'b2g/blockers.css',
-		'js/main.js',
-		'js/Dimension-Bugzilla.js',
-		"js/Dimension-B2G.js",
-		"js/charts/aColor.js",
-		"b2g/heat.js"
-	], function () {
+	importScript('b2g/main_lib.js', function () {
 		heatCommon();
 
 		var thread;
