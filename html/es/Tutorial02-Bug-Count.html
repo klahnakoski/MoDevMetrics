@@ -61,7 +61,7 @@
                     },
                     "edges": [  //ONE DIMENSION OVER TIME
                         {"name": "date",
-                            "range": {  //THE VARIABLES THAT DEFINE THE DATE RANGE THAT EACH bug_version RECORD IS VALID FOR
+                            "range": {  //THE INDEX STORES BUG SNAPSHOTS VALID FROM modified_ts TO expires_on
                                 "min": "modified_ts",
                                 "max": "expires_on"
                             },
