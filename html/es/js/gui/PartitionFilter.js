@@ -74,6 +74,10 @@ function convertToTreeLater(self, treeNode, dimension){
 				return convertToTree(self, {}, 1, v);
 			}//endif
 		});
+		var allNode={"id":"__all__", "attr":{"id":"__all__"}, "data":"All"};
+		treeNode.children.prepend(allNode);
+		self.id2node["__all__"]=allNode;
+
 		if (pleaseUpdate){
 			self.hierarchy=treeNode.children;
 			self.setSimpleState(self.selectedIDs.join(","));
@@ -105,11 +109,10 @@ function convertToTree(self, parent, depth, dimension){
 					if (i<nvl(dimension.limit, DEFAULT_CHILD_LIMIT))
 						return convertToTree(self, depth==0 ? {} : node, depth+1, v);
 				});
-				if (depth==0 && self.showAll){
+				if (depth==0){
 					var allNode={"id":"__all__", "attr":{"id":"__all__"}, "data":"All"};
 					node.children.prepend(allNode);
 					self.id2node["__all__"]=allNode;
-//					self.parent["_all__"]={};
 				}//endif
 			}//endif
 		}//endif
