@@ -511,10 +511,8 @@ SIDE BAR
     margin: 0 0 0 0;
     top:0;
     bottom:0;
-    height: 100%;
     overflow: hidden;
     padding-right: 0;
-    /*display: inline-block;*/
     float:left;
 }
 
