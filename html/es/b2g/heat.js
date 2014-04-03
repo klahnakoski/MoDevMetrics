@@ -7,30 +7,30 @@ importScript("../js/util/aUtil.js");
 importScript("../js/util/aString.js");
 importScript("owners.js");
 
-OWNERS = Map.zip(mapAllKey(OWNERS, function(k, v){
+OWNERS = Map.zip(mapAllKey(OWNERS, function (k, v) {
 	var manager;
 	var owner;
 	//PARSE THE <manager> "(" listOf(<assign_to>) ")" FORMAT
-	if (v.indexOf("(")>=0){
+	if (v.indexOf("(") >= 0) {
 		manager = v.left(v.indexOf("(")).trim();
 		owner = v.between("(", ")").trim();
-	}else{
+	} else {
 		manager = v.trim();
-		owner="?";
+		owner = "?";
 	}//endif
 
 
 	var name = k.replaceLast(["::", ": ", ":"], "<br>");
-	return [k.deformat(), {"name":name, "owner":{"name":owner, "manager":manager}}];
+	return [k.deformat(), {"name": name, "owner": {"name": owner, "manager": manager}}];
 }));
 
-function getOwner(comp){
+function getOwner(comp) {
 	var output = OWNERS[comp.deformat()];
-	if (output!==undefined) return output;
+	if (output !== undefined) return output;
 
 	var name = comp.replaceLast(["::", ": ", ":"], "<br>");
-	output = {"name":name, "owner":{"name":"", "manager":"unknown"}};
-	OWNERS[comp.deformat()]=output;
+	output = {"name": name, "owner": {"name": "", "manager": "unknown"}};
+	OWNERS[comp.deformat()] = output;
 	return output;
 }//function
 
@@ -47,7 +47,7 @@ function showComponent(detail, showTYPE) {
 	var component = Map.copy(detail[0]);
 	component.component = getOwner(component.component).name;
 	component.manager = getOwner(component.component).owner.manager;
-	component.owner = "("+getOwner(component.component).owner.name+")";
+	component.owner = "(" + getOwner(component.component).owner.name + ")";
 	component.projectDetail = detail.map(function (project, i) {
 		if (project.count > 0) {
 			return showTYPE(project);
@@ -100,8 +100,8 @@ function showBlocker(detail) {
 
 // SHOW BLOCKER COUNT FOR ONE COMPONENT, ONE PROJECT
 function showRegression(detail) {
-	detail.param = CNV.Object2URL({"quicksearch":detail.bugs.join(",")});
-	detail.unassigned = CNV.Object2URL({"quicksearch":detail.unassigned_bugs.join(",")});
+	detail.param = CNV.Object2URL({"quicksearch": detail.bugs.join(",")});
+	detail.unassigned = CNV.Object2URL({"quicksearch": detail.unassigned_bugs.join(",")});
 	detail.color = age2color(detail.age);
 
 	var TEMPLATE = '<div class="project"  style="background-color:{{color}}" href="https://bugzilla.mozilla.org/buglist.cgi?{{param}}">' +
@@ -116,7 +116,7 @@ function showRegression(detail) {
 function addProjectClickers(cube) {
 	$(".project").hover(function (e) {
 		var old_color = $(this).attr("background_lch");
-		if (old_color == undefined){
+		if (old_color == undefined) {
 			old_color = $(this).css("background-color");
 			$(this).attr("old_color", old_color);
 		}//endif
@@ -137,13 +137,39 @@ function addProjectClickers(cube) {
 }//function
 
 
-
 function age2color(age) {
 	var green = Color.green.multiply(0.4);
 	var color = green.hue(Math.min(1.0, age / 7) * 120);
 	return color.toHTML();
 }//function
 
+
+//JUNK FOR THE Blockers/Regressions/Nominations
+function heatCommon() {
+	$("body").css("display", "block");
+
+	$('.sidebar_name').click(function () {
+		var self = $(this);
+		if (self.hasClass("selected")) {
+			self.removeClass("selected");
+			$("#sidebar").animate({"width": "0px"}, 500);
+			$(".content").animate({"padding-left":"40px"}, 500);
+		} else {
+			self.addClass("selected");
+			$("#sidebar").animate({"width": "300px"}, 500);
+			$(".content").animate({"padding-left":"340px"}, 500);
+		}//endif
+	});
+}
+
+function refresher(func){
+	Thread.run(function*() {
+		while (true) {
+			yield(Thread.sleep(5 * 60 * 1000));
+			func();
+		}//while
+	});
+}
 
 
 
