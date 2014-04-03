@@ -14,6 +14,7 @@ var DEFAULT_CHILD_LIMIT=20;     //IN THE EVENT THE PARTITION DOES NOT DECLARE A 
 var WAITING_FOR_RESULTS={"name":"WAITING_FOR_RESULTS"};
 
 PartitionFilter.newInstance=function(param){
+	//showAll - SET TO true(default) IF THE TOP OPTION IS "All"
 	//YOU MAY ALSO PASS A callback FUNCTION THAT ACCEPTS TWO ARRAYS:
 	//1st - LIST OF CHECKED NODES
 	//2nd - LIST OF PREVIOUSLY CHECKED NODES
@@ -29,6 +30,7 @@ PartitionFilter.newInstance=function(param){
 
 	var self=new PartitionFilter();
 	Map.copy(param, self);
+	self.showAll=nvl(self.showAll, true);
 
 	if (self.dimension.partitions===undefined && self.dimension.edges===undefined) Log.error(self.dimension.name+" does not have a partition defined");
 
@@ -103,6 +105,12 @@ function convertToTree(self, parent, depth, dimension){
 					if (i<nvl(dimension.limit, DEFAULT_CHILD_LIMIT))
 						return convertToTree(self, depth==0 ? {} : node, depth+1, v);
 				});
+				if (depth==0 && self.showAll){
+					var allNode={"id":"__all__", "attr":{"id":"__all__"}, "data":"All"};
+					node.children.prepend(allNode);
+					self.id2node["__all__"]=allNode;
+//					self.parent["_all__"]={};
+				}//endif
 			}//endif
 		}//endif
 	}//endif
@@ -133,7 +141,7 @@ PartitionFilter.prototype.getSelectedParts=function(){
 	var self=this;
 
 	return this.selectedIDs.map(function(id){
-		return self.id2part[id];
+		if (id !="__all__")	return self.id2part[id];
 	});
 };//method
 
@@ -141,17 +149,14 @@ PartitionFilter.prototype.getSelectedParts=function(){
 
 //RETURN SOMETHING SIMPLE ENOUGH TO BE USED IN A URL
 PartitionFilter.prototype.getSimpleState=function(){
-	if (this.selectedIDs.length==0) return undefined;
-	return this.selectedIDs.join(",");
+	var selected=this.selectedIDs.filter(function(v){ return v!="__all__";})
+	if (selected.length==0) return undefined;
+	return selected.join(",");
 };
 
 
 //RETURN SOMETHING SIMPLE ENOUGH TO BE USED IN A URL
 PartitionFilter.prototype.setSimpleState=function(value){
-	if (value!==undefined){
-		Log.debug()
-	}//endif
-
 	if (!value || value.trim()==""){
 		this.selectedIDs=[];
 	}else{
@@ -159,8 +164,12 @@ PartitionFilter.prototype.setSimpleState=function(value){
 	}//endif
 
 	//SOME VALUES WILL BE IMPOSSIBLE, SO SHOULD BE REMOVED
-	if (this.hierarchy!=WAITING_FOR_RESULTS)
+	if (this.hierarchy!=WAITING_FOR_RESULTS){
 		this.selectedIDs=this.getSelectedNodes().map(function(v, i){return v.id;});
+	}//endif
+	if (this.selectedIDs.length==0){
+		this.selectedIDs=["__all__"];
+	}//endif
 };
 
 
@@ -204,7 +213,7 @@ PartitionFilter.prototype.makeTree=function(){
 		if (self.disableUI) return;
 
 		var checked = {};
-		if (!self.callback && self.onlyOne){
+		if (!self.callback && (self.onlyOne || (self.showAll && data.rslt[0].id=="__all__"))){
 			//DID WE JUST CHECK OR UNCHECK?
 			$(".jstree-checked").each(function(){
 				if (data.rslt[0].id==$(this).attr("id")) checked=Map.newInstance(data.rslt[0].id, true);
@@ -215,18 +224,26 @@ PartitionFilter.prototype.makeTree=function(){
 //			$(".jstree-checked").each(function(){
 				checked[$(this).attr("id")] = true;
 			});
+			//CLICKING ON SOMETHING OTHER THAN ALL WILL CLEAR ALL
+			if (data.rslt[0].id!="__all__"){
+				checked["__all__"]=undefined;
+			}//endif
 		}//endif
 
 		//WE NOW HAVE A RIDICULOUS NUMBER OF CHECKED ITEMS, REDUCE TO MINIMUM COVER
 
 		//IF PARENT IS CHECKED, THEN DO NOT INCLUDE
-		var minCover = mapAllKey(checked, function(id, v, m){
-			if (checked[self.parents[id].id]) return;
-			return id;
-		});
-		minCover.sort();
-
-
+		var minCover;
+		if (checked["__all__"]){  //ULTIMATE PARENT
+			minCover =["__all__"];
+		}else{
+			minCover= mapAllKey(checked, function(id){
+				if (checked[self.parents[id].id]) return;
+				return id;
+			});
+			minCover.sort();
+			if (minCover.length==0) minCover=["__all__"];
+		}//endif
 
 		//HAS ANYTHING CHANGED?
 		var hasChanged = false;
@@ -280,12 +297,8 @@ PartitionFilter.prototype.makeHTML=function(){
 
 //RETURN AN ES FILTER
 PartitionFilter.prototype.makeFilter = function(){
-	if (this.selectedIDs.length == 0) return ESQuery.TrueFilter;
-
 	var selected = this.getSelectedParts();
 	if (selected.length == 0) return ESQuery.TrueFilter;
-
-	var self=this;
 	return {"or":selected.map(function(v){return v.esfilter;})};
 };//method
 
