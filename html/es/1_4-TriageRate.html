@@ -289,9 +289,9 @@ importScript(["js/main.js", 'js/Dimension-Bugzilla.js', 'js/Dimension-B2G.js'], 
 		Thread.run(function*() {
 			var a = Log.action("Get Bug Details", true);
 
-			var findBugs = yield(ESQuery.run({
+			var currentBugs = yield(ESQuery.run({
 				"from": "bugs",
-				"select": "bug_id",
+				"select": ["bug_id", "short_desc", "component", "bug_status"],
 				"esfilter": {"and": [
 					Mozilla.CurrentRecords.esfilter,
 					{"term": Map.newInstance(fieldname, triage)},
@@ -299,24 +299,16 @@ importScript(["js/main.js", 'js/Dimension-Bugzilla.js', 'js/Dimension-B2G.js'], 
 				]}
 			}));
 
-			//CURRENT STATUS
-			var aa = Log.action("Pull from BZ", true);
-			var currentBugs = yield (Bugzilla.search(
-					findBugs.list,
-					["id", "summary", "component", "status"]
-			));
-			Log.actionDone(aa);
-
 			//FORMAT THE BUGS FOR TABLE
 			var showBugs = yield(Qb.calc2List({
 				"from": currentBugs,
 //			"analytic":{"name":"Order","value":"rownum+1", "sort":["Close Date", "ID"]},
 				"select": [
-					{"name": "ID", "value": "Bugzilla.linkToBug(id)"},
+					{"name": "ID", "value": "Bugzilla.linkToBug(bug_id)"},
 //				{"name":"Close Date", "value":"(max==null) ? null : Date.newInstance(max).floorDay()"},
-					{"name": "Status", "value": "nvl(status, null)"},
+					{"name": "Status", "value": "nvl(bug_status, null)"},
 					{"name": "Component", "value": "nvl(component, null)"},
-					{"name": "Summary", "value": "nvl(summary, null)"}
+					{"name": "Summary", "value": "nvl(short_desc, null)"}
 				],
 				"sort": ["ID", "Status"]
 			}));
