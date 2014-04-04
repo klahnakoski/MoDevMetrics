@@ -19,8 +19,6 @@ ProductFilter.esfilter={"match_all":{}};  //USE THIS TO MAKE A SMALLER SET OF PR
 ProductFilter.prototype.makeFilter = function () {
 	var output = {
 		"and": [
-			Mozilla.CurrentRecords.esfilter,
-			Mozilla.BugStatus.Open.esfilter,
 			ProductFilter.esfilter
 		]
 	};
