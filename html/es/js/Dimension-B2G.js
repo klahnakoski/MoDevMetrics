@@ -14,6 +14,11 @@ Dimension.addEdges(true, Mozilla, [
 			{"term": {"product": "firefox os"}}
 		]},
 		"edges": [
+
+			{"name":"Nominations", "index":"bugs", "esfilter":{"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "1.5?"]}}},
+			{"name":"Blockers", "index":"bugs", "esfilter":{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}}},
+			{"name":"Regressions", "index":"bugs", "esfilter":{"term": {"keywords": ["regression"]}}},
+
 			{"name": "Markup", "index": "bugs", "isFacet": true, "partitions": [
 				{"name": "Unassigned", "style": {"color": "purple"}, "esfilter": {"and":[
 					{"term": {"assigned_to": "nobody@mozilla.org"}},
@@ -286,11 +291,11 @@ Dimension.addEdges(true, Mozilla, [
 
 			{"name": "Project", "index": "bugs", "isFacet": true,
 				"partitions": [
-					{"name": "1.3", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.3?"]}}},
-					{"name": "1.3T", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3t+", "1.3t?"]}}},
-					{"name": "1.4", "esfilter": {"terms": {"cf_blocking_b2g": ["1.4+", "1.4?"]}}},
-					{"name": "1.5", "esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "1.5?"]}}},
-					{"name": "Other", "esfilter": {"and": [
+					{"name": "1.3", "style": {"color": "#d62728"}, "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.3?"]}}},
+					{"name": "1.3T", "style": {"color": "#ff7f0e"}, "esfilter": {"terms": {"cf_blocking_b2g": ["1.3t+", "1.3t?"]}}},
+					{"name": "1.4", "style": {"color": "#2ca02c"}, "esfilter": {"terms": {"cf_blocking_b2g": ["1.4+", "1.4?"]}}},
+					{"name": "1.5", "style": {"color": "#1f77b4"}, "esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "1.5?"]}}},
+					{"name": "Other", "style": {"color": "#9467bd"}, "esfilter": {"and": [
 						{"not": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?"]}}}
 					]}}
 				]

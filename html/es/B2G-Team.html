@@ -28,13 +28,25 @@
 
 <div style="align:left;position:relative;float:left;width:800px;padding-top: 10px;">
 	<div class="accordion_header_open" accordion_id="overview" accordion_group="main"><div class="arrow"></div>Overview</div>
-	<div id="overview">
+	<div id="overview" style="padding-left: 10px">
 	</div>
-	<div class="accordion_header" accordion_id="blocker_history" accordion_group="main"><div class="arrow"></div>Blocker History</div>
+	<div class="accordion_header_closed" accordion_id="nom_history" accordion_group="main"><div class="arrow"></div>Nomination History</div>
+	<div class="accordion_body" id="nom_history" style="display:none;">
+		<div id="chartNomChurn" class="chart" style="width:800px;height:250px;"></div>
+		<div id="chartNomCount" class="chart" style="width:800px;height:250px;"></div>
+		<div id="chartNomAge" class="chart" style="width:800px;height:250px;"></div>
+	</div>
+	<div class="accordion_header_closed" accordion_id="blocker_history" accordion_group="main"><div class="arrow"></div>Blocker History</div>
 	<div class="accordion_body" id="blocker_history" style="display:none;">
-		<div id="chartChurn" class="chart" style="float:none;width:800px;height:300px;"></div>
-		<div id="chartCount" class="chart" style="float:none;width:800px;height:300px;"></div>
-		<div id="chartBlockerAge" class="chart" style="float:none;width:800px;height:300px;"></div>
+		<div id="chartBlockerChurn" class="chart" style="width:800px;height:250px;"></div>
+		<div id="chartBlockerCount" class="chart" style="width:800px;height:250px;"></div>
+		<div id="chartBlockerAge" class="chart" style="width:800px;height:250px;"></div>
+	</div>
+	<div class="accordion_header_closed" accordion_id="regression_history" accordion_group="main"><div class="arrow"></div>Regression History</div>
+	<div class="accordion_body" id="regression_history" style="display:none;">
+		<div id="chartRegressionChurn" class="chart" style="width:800px;height:250px;"></div>
+		<div id="chartRegressionCount" class="chart" style="width:800px;height:250px;"></div>
+		<div id="chartRegressionAge" class="chart" style="width:800px;height:250px;"></div>
 	</div>
 	<div class="footer">Source code at <a href="https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Team.html">https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Team.html</a></div>
 </div>
@@ -43,7 +55,7 @@
 <script type="application/javascript">
 
 
-importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js", "b2g/grid.js", "js/gui/accordion.js"], function () {
+importScript("b2g/chart_lib.js", function () {
 	var thread;
 	var createChart = function () {
 		if (thread !== undefined)
@@ -75,240 +87,57 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js", "
 			teamSummary({"name":teamName, "esfilter":GUI.getFilters("bugs")});
 		}//endif
 
-		Thread.run(function*() {
-			///////////////////////////////////////////////////////////////////////
-			// SIMPLE OPEN BUG COUNT, OVER TIME
-			///////////////////////////////////////////////////////////////////////
+		var timeDomain={
+			"type": "time",
+			"min": sampleMin,
+			"max": sampleMax,
+			"interval": sampleInterval
+		};
 
-			var chart = yield (ESQuery.run({
-				"name": "Open Bug Count",
-				"from": "bugs",
-				"select": {
-					"name": "num_bug",
-					"value": "bug_id",
-					"aggregate": "count"
-				},
-				"edges": [
-					{"name": "type", "domain":Mozilla.B2G.FinalState.getDomain()},
-					{"name": "date",
-						"range": {
-							"min": "modified_ts",
-							"max": "expires_on"
-						},
-						"allowNulls": false,
-						"domain": {
-							"type": "time",
-							"min": sampleMin,
-							"max": sampleMax.add(sampleInterval),
-							"interval": sampleInterval
-						}
-					}
-				],
-				"esfilter": {"and":[
-					mainFilter,
-					Mozilla.BugStatus.Open.esfilter
-				]}
-			}));
-
-			//DIRTY REVERSE OF THE TYPES
-			chart.edges[0].domain.partitions.reverse();
-			chart.cube.reverse();
-
-			aChart.show({
-				"id": "chartCount",
-//				"sheetDiv": "info",
-				"type": "area",
-				"stacked": true,
-				"cube": chart,
-				"height": "300",
-				xAxisSize: 50,
-				"width": 800
-			});
-		});
-
-
-		Thread.run(function*() {
-			///////////////////////////////////////////////////////////////////////
-			// THREAD TO GET CLOSE RATES
-			///////////////////////////////////////////////////////////////////////
-
-			var a = Log.action("Load Bug Closures", true);
-			//GET BUG FINAL STATES
-			var allBugs = null;
-			var allBugsThread = Thread.run(function*() {
-				allBugs = yield(ESQuery.run({
-					"from": "bugs",
-					"select": [
-						"bug_id",
-						"product",
-						"component",
-						"cf_blocking_b2g",
-						"keywords",
-						"target_milestone"
-					],
-					"esfilter": {"and": [
-						mainFilter,
-						Mozilla.CurrentRecords.esfilter,
-						Mozilla.BugStatus.Closed.esfilter,
-						{"range": {"modified_ts": {"gte": sampleMin.getMilli()}}},
-						{"term": {"bug_status": "resolved"}},
-						{"term": {"resolution": "fixed"}}
-					]}
-				}));
-			});
-
-			//PULL LATEST CLOSE DATES
-			var bugClose = yield(ESQuery.run({
-				"from": "bugs",
-				"select": {"name": "closeDate", "value": "expires_on", "aggregate": "maximum"},
-				"edges": [
-					"bug_id"
-				],
-				"esfilter": {"and": [
-					{"range": {"expires_on": {"gte": sampleMin.getMilli(), "lte": sampleMax.getMilli()}}},
-					Mozilla.BugStatus.Open.esfilter,
-					mainFilter
-				]}
-			}));
-
-			yield (Thread.join(allBugsThread));
-			Log.actionDone(a);
-
-			{//ADD THOSE closeDate TO TO MAIN LIST OF BUGS (WE SHOULD BE MERGING IN SOME FORM)
-				var domain = bugClose.edges[0].domain;
-				var data = bugClose.cube;
-				allBugs.list.forall(function (v) {
-					v.closeDate = Date.newInstance(data[domain.getPartByKey(v.bug_id).dataIndex]);    //USE dataIndex OF part TO LOOKUP closeDate IN CUBE
-				});
-				allBugs.columns.append({"name": "closeDate"});  //ADD TO METADATA
-			}
-
-			var churn = yield(Q({
-				"from": allBugs,
-				"name": "Resolved Fixed Bugs",
-				"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
-				"edges": [
-					{"name": "Category", "domain": Mozilla.B2G.FinalState.getDomain()},
-					{"name": "date", "value": "closeDate", "domain": {"type": "time", "min": sampleMin, "max": sampleMax, "interval": sampleInterval}}
-				]
-			}));
-
-			//DIRTY REVERSE OF THE TYPES
-			churn.edges[0].domain.partitions.reverse();
-			churn.cube.reverse();
-			churn.edges[0].domain.partitions[0].style.visibility="visible";
-
-			aChart.show({
-				"id": "chartChurn",
-//				"sheetDiv": "info",
-				"type": "bar",
-				"stacked": true,
-				"cube": churn,
-				xAxisSize: 50,
-				"clickAction": function (series, x, d) {
-					var category = churn.edges[0].domain.getPartByKey(series);
-					var date = churn.edges[1].domain.getPartByKey(x);
-
-					Thread.run(function*() {
-						var buglist = (yield (Qb.calc2List({
-							"from": allBugs,
-							"select": {"value": "bug_id"},
-							"where": {"and": [
-								{"range": {"closeDate": {"gte": date.min, "lt": date.max}}},
-								category.fullFilter,
-								mainFilter
-							]}
-
-						})));
-
-						Bugzilla.showBugs(buglist.list);
-					});
-				}//click
-			});
-		});
-
-
-		Thread.run(function*() {
-			///////////////////////////////////////////////////////////////////////
-			// THREAD TO AGE OF BLOCKERS
-			///////////////////////////////////////////////////////////////////////
-
-			var allBlockers = null;
-			var allBlockersThread = Thread.run(function*() {
-				allBlockers = yield(ESQuery.run({
-					"from": "bugs",
-					"select": [
-						"bug_id",
-						"cf_blocking_b2g",
-						"target_milestone"
-					],
-					"esfilter": {"and": [
-						GUI.getFilters("bugs"),
-						Mozilla.CurrentRecords.esfilter,
-						{"terms":{"cf_blocking_b2g":BLOCKERS}},
-						{"or":[
-							{"range":{"modified_ts":{"gte":sampleMin.getMilli()}}},
-							Mozilla.BugStatus.Open.esfilter
-						]}
-					]}
-				}));
-			});
-
-			var blockers = yield (ElasticSearch.getMinMax({"and": [
+		//BLOCKERS
+		showOpenCount({
+			"chartID":"chartBlockerCount",
+			"esfilter": {"and":[
 				GUI.getFilters("bugs"),
-				{"terms":{"cf_blocking_b2g":BLOCKERS}},
-				Mozilla.BugStatus.Open.esfilter
-			]}));
-
-			yield(Thread.join(allBlockersThread));
-
-			{//ADD THOSE max, min TO TO MAIN LIST OF BUGS (WE SHOULD BE MERGING IN SOME FORM)
-				data={};
-				var domain = blockers.edges[0].domain;
-				var data = blockers.cube;
-				allBlockers.list.forall(function (v) {
-					Map.copy({"min":null, "max":null}, v);  //DEFAULT VALUES
-					Map.copy(nvl(data[domain.getPartByKey(v.bug_id).dataIndex], {}), v);
-				});
-			}
-
-			var projectDomain = Mozilla.B2G.FinalState.getDomain();
-			projectDomain.partitions.pop();  //DO NOT SHOW THE Untargeted
-
-			var a = Log.action("Request Bugs", true);
-			var chart = yield(Q({
-				"name": "Average Age of "+teamName+" Blockers (Days)",
-				"from": allBlockers.list,
-				"select":
-					{"name": "Maximum", "value": "(aMath.min(max, time.min.getMilli())-nvl(min, time.min.getMilli()))/Duration.DAY.milli", "aggregate": "average", "default": 0, "style": {"color": "#00d6ff", "visibility": "hidden"}}
-				,
-				"edges": [
-					{"name": "Project", "domain":projectDomain},
-					{"name": "date",
-						"range": {"min": "min", "max": "max"},
-						"allowNulls": false,
-						domain: {"type": "time", "min": sampleMin, "max": sampleMax, "interval": sampleInterval}
-					}
-				]
-			}));
-			Log.actionDone(a);
-
-			//DIRTY REVERSE OF THE TYPES
-			chart.edges[0].domain.partitions.reverse();
-			chart.cube.reverse();
-			chart.edges[0].domain.partitions[0].style.visibility="visible";
-
-			aChart.show({
-				"id": "chartBlockerAge",
-//				"sheetDiv": "info",
-				"type": "line",
-				"stacked": false,
-				"cube": chart,
-				xAxisSize: 50
-			});
-
-
+				Mozilla.B2G.Blockers.esfilter,
+			]},
+			"timeDomain": timeDomain
 		});
+
+		showCloseRates({
+			"esfilter": mainFilter,
+			"timeDomain": timeDomain
+		});
+
+		showAges({
+			"esfilter": mainFilter,
+			"timeDomain": timeDomain
+		});
+
+		//NOMINATIONS
+		showOpenNomCount({
+			"chartID":"chartNomCount",
+			"esfilter": {"and":[
+				GUI.getFilters("bugs"),
+				Mozilla.B2G.Nominations.esfilter
+			]},
+			"timeDomain": timeDomain
+		});
+
+
+
+		//REGRESIONS
+//		showOpenCount({
+//			"chartID":"chartRegressionCount",
+//			"esfilter": {"and":[
+//				GUI.getFilters("bugs"),
+//				Mozilla.B2G.Regressions
+//			]},
+//			"timeDomain": timeDomain
+//		});
+
+
+
 	};
 
 

@@ -4,6 +4,7 @@
 
 
 importScript("../util/CNV.js");
+importScript("../collections/aArray.js");
 importScript("../util/aDate.js");
 importScript("../util/aUtil.js");
 importScript("../util/aParse.js");
