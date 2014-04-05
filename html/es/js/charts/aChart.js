@@ -149,7 +149,7 @@ var aChart={};
 
 var TIME_FORMAT="yyyy-MM-dd HH:mm:ss";
 
-	//STATIC MAP FROM MY CHART TYPES TO CCC CLASS NAMES
+//STATIC MAP FROM MY CHART TYPES TO CCC CLASS NAMES
 var CHART_TYPES={
 	"line":"LineChart",
 	"stackedarea":"StackedAreaChart",
@@ -562,6 +562,7 @@ aChart.show=function(params){
 
 	var categoryLabels;
 	if (chartCube.edges.length==1 || chartCube.edges[0].domain.partitions.length==0){
+		categoryAxis={"domain":{"type":"set", "partitions":chartCube.select}};
 		categoryLabels=Array.newInstance(chartCube.select).map(function(v, i){
 			return v.name;
 		});
@@ -569,7 +570,7 @@ aChart.show=function(params){
 		if (chartCube.select instanceof Array){
 			Log.error("Can not chart when select clause is an array");
 		}//endif
-
+		categoryAxis=chartCube.edges[0];
 		categoryLabels=getAxisLabels(chartCube.edges[0]);
 	}//endif
 
@@ -648,11 +649,12 @@ aChart.show=function(params){
 	var height=$("#"+divName).height();
 	var width=$("#"+divName).width();
 
-	var chartParams={
+	var defaultParam={
 		canvas: divName,
 		width: width,
 		height: height,
 		animate:false,
+		ignoreNulls: false,
 		title: nvl(params.name, chartCube.name),
 		legend: (chartCube.edges.length!=1 || Array.newInstance(chartCube.select).length>1),		//DO NOT SHOW LEGEND IF NO CATEGORIES
 		legendPosition: "bottom",
@@ -668,6 +670,11 @@ aChart.show=function(params){
 		yAxisPosition: "right",
 		yAxisSize: 50,
 		xAxisSize: 50,
+		tooltip:{
+//			"format":function(){
+//				return "hi there";
+//			}
+		},
 		"colors":styles.map(function(s){return s.color;}),
 		plotFrameVisible: false,
 		"colorNormByCategory": false,        //FOR HEAT CHARTS
@@ -692,12 +699,51 @@ aChart.show=function(params){
 		}
 	};
 
+	if (xaxis.domain.type=="time"){
+		//LOOK FOR DATES TO MARKUP
+
+		var dateMarks = [];
+		categoryAxis.domain.partitions.forall(function (part) {
+			Array.newInstance(part.dateMarks).forall(function (mark) {
+				var style = Map.setDefault({}, mark.style, part.style, {"color": "black", "lineWidth": "2.0", verticalAnchor: "top"});
+				style.strokeStyle = nvl(style.strokeStyle, style.color);
+				style.textStyle = nvl(style.textStyle, style.color);
+
+				if (mark.name !== undefined) {
+					//EXPECTING {"name":<name>, "date":<date>, "style":<style>} FORMAT
+					dateMarks.append({
+						"name": mark.name,
+						"date": Date.newInstance(mark.date),
+						"style": style
+					})
+				} else {
+					//EXPECTING <name>:<date> FORMAT
+					forAllKey(mark, function(name, date){
+						dateMarks.append({
+							"name": name,
+							"date": Date.newInstance(date),
+							"style": style
+						})
+					});
+				}
+			});
+		});
+		if (dateMarks.length>0){
+			defaultParam.renderCallback=function(){
+				var self=this;
+				dateMarks.forall(function(m){
+					self.chart.markEvent(m.date.format(Qb.domain.time.DEFAULT_FORMAT), m.name, m.style);
+				});
+				if (params.renderCallback) params.renderCallback();  //CHAIN EXISTING, IF ONE
+			};
+		}//endif
+	}//endif
 
 
-	copyParam(params, chartParams);
+	copyParam(params, defaultParam);
 
 
-	var chart = new pvc[CHART_TYPES[type]](chartParams);
+	var chart = new pvc[CHART_TYPES[type]](defaultParam);
 
 	//FILL THE CROSS TAB DATA STRUCTURE TO THE FORMAT EXPECTED (2D array of rows
 	//first row is series names, first column of each row is category name
@@ -728,7 +774,9 @@ aChart.show=function(params){
 
 	data.forall(function(v,i,d){
 		v=v.copy();
-		for(var j=0;j<v.length;j++) if (v[j]==null) Log.error("Charting library can not handle null values");
+		for(var j=0;j<v.length;j++){
+			if (v[j]==null) Log.error("Charting library can not handle null values");
+		}//for
 		v.splice(0,0, categoryLabels[i]);
 		d[i]=v;
 	});
@@ -771,7 +819,7 @@ aChart.show=function(params){
 		$("#"+sheetButtonID).click(function(){
 			var oldHtml=$("#"+params.sheetDiv).html();
 			var newHtml=CNV.Cube2HTMLTable(chartCube);
-			
+
 			if (oldHtml!=""){
 				$("#"+params.sheetDiv).html("");
 			}else{

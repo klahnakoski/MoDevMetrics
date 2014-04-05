@@ -17,7 +17,7 @@ Dimension.addEdges(true, Mozilla, [
 
 			{"name":"Nominations", "index":"bugs", "esfilter":{"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "1.5?"]}}},
 			{"name":"Blockers", "index":"bugs", "esfilter":{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}}},
-			{"name":"Regressions", "index":"bugs", "esfilter":{"term": {"keywords": ["regression"]}}},
+			{"name":"Regressions", "index":"bugs", "esfilter":{"term": {"keywords": "regression"}}},
 
 			{"name": "Markup", "index": "bugs", "isFacet": true, "partitions": [
 				{"name": "Unassigned", "style": {"color": "purple"}, "esfilter": {"and":[
@@ -291,10 +291,41 @@ Dimension.addEdges(true, Mozilla, [
 
 			{"name": "Project", "index": "bugs", "isFacet": true,
 				"partitions": [
-					{"name": "1.3", "style": {"color": "#d62728"}, "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.3?"]}}},
-					{"name": "1.3T", "style": {"color": "#ff7f0e"}, "esfilter": {"terms": {"cf_blocking_b2g": ["1.3t+", "1.3t?"]}}},
-					{"name": "1.4", "style": {"color": "#2ca02c"}, "esfilter": {"terms": {"cf_blocking_b2g": ["1.4+", "1.4?"]}}},
-					{"name": "1.5", "style": {"color": "#1f77b4"}, "esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "1.5?"]}}},
+					//https://wiki.mozilla.org/Release_Management/B2G_Landing
+					{"name": "1.3",
+						"dateMarks":[
+							{"name":"FC", "date":"Dec 9, 2013", "style":{strokeStyle:"black", verticalOffset: 10}},
+							{"name":"CF", "date":"Mar 17, 2014", "style":{strokeStyle:"black", verticalOffset: 10}}
+						],
+						"style": {"color": "#d62728"},
+						"esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.3?"]}}
+					},
+					{"name": "1.3T",
+						"dateMarks":[
+							{"name":"FC", "date":"Dec 9, 2013", "style":{strokeStyle:"black", verticalOffset: 20}},
+							{"name":"CF", "date":"Mar 17, 2014", "style":{strokeStyle:"black", verticalOffset: 20}}
+						],
+						"style": {"color": "#ff7f0e"},
+						"esfilter": {"terms": {"cf_blocking_b2g": ["1.3t+", "1.3t?"]}}
+					},
+					{"name": "1.4",
+						"dateMarks":[
+							{"name":"FC", "date":"Mar 17, 2014", "style":{strokeStyle:"black", verticalOffset: 30}},
+							{"name":"SC", "date":"Apr 28, 2014", "style":{strokeStyle:"black", verticalOffset: 30}},
+							{"name":"CF", "date":"Jun 9, 2014", "style":{strokeStyle:"black", verticalOffset: 30}}
+						],
+						"style": {"color": "#2ca02c"},
+						"esfilter": {"terms": {"cf_blocking_b2g": ["1.4+", "1.4?"]}}
+					},
+					{"name": "1.5/2.0",
+						"dateMarks":[
+							{"FC":"Jun 9, 2014"},
+							{"SC":"Jul 21, 2014"},
+							{"CF":"Sep 01, 2014"}
+						],
+						"style": {"color": "#1f77b4"},
+						"esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "1.5?"]}}
+					},
 					{"name": "Other", "style": {"color": "#9467bd"}, "esfilter": {"and": [
 						{"not": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?"]}}}
 					]}}
@@ -303,14 +334,46 @@ Dimension.addEdges(true, Mozilla, [
 
 			{"name": "FinalState", "index": "bugs", "isFacet": true,
 				"partitions": [
-					{"name": "1.3", "style": {"color": "#d62728"}, "esfilter": {"term": {"cf_blocking_b2g": "1.3+"}}},
-					{"name": "1.3T", "style": {"color": "#ff7f0e"}, "esfilter": {"term": {"cf_blocking_b2g": "1.3T+"}}},
-					{"name": "1.4", "style": {"color": "#2ca02c"}, "esfilter": {"term": {"cf_blocking_b2g": "1.4+"}}},
-					{"name": "1.5", "style": {"color": "#1f77b4"}, "esfilter": {"term": {"cf_blocking_b2g": "1.5+"}}},
-					{"name": "Targeted", "style": {"color": "#9467bd"}, "esfilter": {"and": [
-						{"exists": {"field": "target_milestone"}},
-						{"not": {"term":{"target_milestone": ["---"]}}}
-					]}},
+					{"name": "1.3",
+						"dateMarks":[
+							{"name":"FC", "date":"Dec 9, 2013", "style":{strokeStyle:"black", verticalOffset: 10}},
+							{"name":"CF", "date":"Mar 17, 2014", "style":{strokeStyle:"black", verticalOffset: 10}}
+						],
+						"style": {"color": "#d62728"},
+						"esfilter": {"term": {"cf_blocking_b2g": "1.3+"}}
+					},
+					{"name": "1.3T",
+						"dateMarks":[
+							{"name":"FC", "date":"Dec 9, 2013", "style":{strokeStyle:"black", verticalOffset: 20}},
+							{"name":"CF", "date":"Mar 17, 2014", "style":{strokeStyle:"black", verticalOffset: 20}}
+						],
+						"style": {"color": "#ff7f0e"},
+						"esfilter": {"term": {"cf_blocking_b2g": "1.3T+"}}},
+					{"name": "1.4",
+						"style": {"color": "#2ca02c"},
+						"esfilter": {"term": {"cf_blocking_b2g": "1.4+"}},
+						"dateMarks":[
+							{"name":"FC", "date":"Mar 17, 2014", "style":{strokeStyle:"black", verticalOffset: 30}},
+							{"name":"SC", "date":"Apr 28, 2014", "style":{strokeStyle:"black", verticalOffset: 30}},
+							{"name":"CF", "date":"Jun 9, 2014", "style":{strokeStyle:"black", verticalOffset: 30}}
+						]
+					},
+					{"name": "1.5",
+						"dateMarks":[
+							{"FC":"Jun 9, 2014"},
+							{"SC":"Jul 21, 2014"},
+							{"CF":"Sep 01, 2014"}
+						],
+						"style": {"color": "#1f77b4"},
+						"esfilter": {"term": {"cf_blocking_b2g": "1.5+"}}
+					},
+					{"name": "Targeted",
+						"style": {"color": "#9467bd"},
+						"esfilter": {"and": [
+							{"exists": {"field": "target_milestone"}},
+							{"not": {"term": {"target_milestone": "---"}}}
+						]}
+					},
 					{"name": "Others", "style": {"color": "#dddddd", "visibility":"hidden"}, "esfilter": {"match_all": {}}}
 				]
 			}

@@ -44,6 +44,7 @@ Log.note = function(message){
 	});
 };//method
 
+//USED AS SIDE-EFFECT BREAK POINTS
 Log.debug=function(){
 	Log.loggers.forall(function(v){
 		v.write("debug message");

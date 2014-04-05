@@ -34,7 +34,6 @@
 	<div class="accordion_body" id="nom_history" style="display:none;">
 		<div id="chartNomChurn" class="chart" style="width:800px;height:250px;"></div>
 		<div id="chartNomCount" class="chart" style="width:800px;height:250px;"></div>
-		<div id="chartNomAge" class="chart" style="width:800px;height:250px;"></div>
 	</div>
 	<div class="accordion_header_closed" accordion_id="blocker_history" accordion_group="main"><div class="arrow"></div>Blocker History</div>
 	<div class="accordion_body" id="blocker_history" style="display:none;">
@@ -96,20 +95,31 @@ importScript("b2g/chart_lib.js", function () {
 
 		//BLOCKERS
 		showOpenCount({
-			"chartID":"chartBlockerCount",
+			"chart":{
+				"id":"chartBlockerCount",
+				"name":"Open Blocker Count"
+			},
 			"esfilter": {"and":[
 				GUI.getFilters("bugs"),
-				Mozilla.B2G.Blockers.esfilter,
+				Mozilla.B2G.Blockers.esfilter
 			]},
 			"timeDomain": timeDomain
 		});
 
-		showCloseRates({
+		showChurn({
+			"chart":{
+				"id":"chartBlockerChurn",
+				"name":"Resolved Fixed Blockers"
+			},
 			"esfilter": mainFilter,
 			"timeDomain": timeDomain
 		});
 
 		showAges({
+			"chart":{
+				"id":"chartBlockerAge",
+				"name":"Average Age of Blockers (Days)"
+			},
 			"esfilter": mainFilter,
 			"timeDomain": timeDomain
 		});
@@ -125,18 +135,48 @@ importScript("b2g/chart_lib.js", function () {
 		});
 
 
+		showNomChurn({
+			"chartID":"chartNomChurn",
+			"esfilter": {"and":[
+				GUI.getFilters("bugs")
+			]},
+			"timeDomain": timeDomain
+		});
 
 		//REGRESIONS
-//		showOpenCount({
-//			"chartID":"chartRegressionCount",
-//			"esfilter": {"and":[
-//				GUI.getFilters("bugs"),
-//				Mozilla.B2G.Regressions
-//			]},
-//			"timeDomain": timeDomain
-//		});
+		showOpenCount({
+			"chart":{
+				"id":"chartRegressionCount",
+				"name":"Open Regression Count"
+			},
+			"esfilter": {"and":[
+				GUI.getFilters("bugs"),
+				Mozilla.B2G.Regressions.esfilter
+			]},
+			"timeDomain": timeDomain
+		});
+
+		showChurn({
+			"chart":{
+				"name":"Resolved Fixed Regressions",
+				"id":"chartRegressionChurn"
+			},
+			"esfilter": {"and":[
+				GUI.getFilters("bugs"),
+				Mozilla.B2G.Regressions.esfilter
+			]},
+			"timeDomain": timeDomain
+		});
 
 
+		showRegressionAge({
+			"chart":{
+				"id":"chartRegressionAge",
+				"name":"Average Age of Regressions (Days)"
+			},
+			"esfilter": mainFilter,
+			"timeDomain": timeDomain
+		});
 
 	};
 

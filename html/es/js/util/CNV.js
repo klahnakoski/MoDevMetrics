@@ -652,10 +652,12 @@ CNV.esFilter2Expression=function(esFilter){
 	} else if (op == "not"){
 		return "!(" + CNV.esFilter2Expression(esFilter[op]) + ")";
 	} else if (op == "term"){
-		var pair = esFilter[op];
-		var variableName = Object.keys(pair)[0];
-		var value = pair[variableName];
-		return "Array.newInstance(" + variableName + ").contains(" + CNV.Value2Quote(value) + ")";  //ARRAY BASED FOR MULTIVALUED VARIABLES
+		return mapAllKey(esFilter[op], function(variableName, value){
+			if (value instanceof Array){
+				Log.error("Do not use term filter with array of values ("+CNV.Object2JSON(esFilter)+")");
+			}//endif
+			return "Array.newInstance(" + variableName + ").contains(" + CNV.Value2Quote(value) + ")";  //ARRAY BASED FOR MULTIVALUED VARIABLES
+		}).join(" &&\n");
 	} else if (op == "terms"){
 		var pair = esFilter[op];
 		var variableName = Object.keys(pair)[0];

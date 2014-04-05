@@ -1,16 +1,14 @@
-
-
 importScript("../js/Dimension-B2G.js");
 
 
-function showOpenCount(args){
+function showOpenCount(args) {
 	Thread.run(function*() {
 		///////////////////////////////////////////////////////////////////////
 		// SIMPLE OPEN BUG COUNT, OVER TIME
 		///////////////////////////////////////////////////////////////////////
 
 		var timeDomain = Map.copy(args.timeDomain);
-		timeDomain.max=timeDomain.max.add(timeDomain.interval);
+		timeDomain.max = timeDomain.max.add(timeDomain.interval);
 
 		var chart = yield (ESQuery.run({
 			"name": "Open Bug Count",
@@ -21,7 +19,7 @@ function showOpenCount(args){
 				"aggregate": "count"
 			},
 			"edges": [
-				{"name": "type", "domain":Mozilla.B2G.FinalState.getDomain()},
+				{"name": "type", "domain": Mozilla.B2G.FinalState.getDomain()},
 				{"name": "date",
 					"range": {
 						"min": "modified_ts",
@@ -31,7 +29,7 @@ function showOpenCount(args){
 					"domain": timeDomain
 				}
 			],
-			"esfilter": {"and":[
+			"esfilter": {"and": [
 				args.esfilter,
 				Mozilla.BugStatus.Open.esfilter
 			]}
@@ -42,7 +40,8 @@ function showOpenCount(args){
 		chart.cube.reverse();
 
 		aChart.show({
-			"id": "chartBlockerCount",
+			"id": args.chart.id,
+			"name": args.chart.name,
 			"type": "area",
 			"stacked": true,
 			"cube": chart
@@ -51,8 +50,7 @@ function showOpenCount(args){
 }
 
 
-
-function showCloseRates(args){
+function showChurn(args) {
 	Thread.run(function*() {
 		///////////////////////////////////////////////////////////////////////
 		// THREAD TO GET CLOSE RATES
@@ -122,10 +120,11 @@ function showCloseRates(args){
 		//DIRTY REVERSE OF THE TYPES
 		churn.edges[0].domain.partitions.reverse();
 		churn.cube.reverse();
-		churn.edges[0].domain.partitions[0].style.visibility="visible";
+		churn.edges[0].domain.partitions[0].style.visibility = "visible";
 
 		aChart.show({
-			"id": "chartBlockerChurn",
+			"id": args.chart.id,
+			"name":args.chart.name,
 			"type": "bar",
 			"stacked": true,
 			"cube": churn,
@@ -153,9 +152,9 @@ function showCloseRates(args){
 }
 
 
-function showAges(args){
+function showAges(args) {
 	var timeDomain = Map.copy(args.timeDomain);
-	timeDomain.max=timeDomain.max.add(timeDomain.interval);
+	timeDomain.max = timeDomain.max.add(timeDomain.interval);
 
 	Thread.run(function*() {
 		///////////////////////////////////////////////////////////////////////
@@ -175,8 +174,8 @@ function showAges(args){
 					GUI.getFilters("bugs"),
 					Mozilla.CurrentRecords.esfilter,
 					Mozilla.B2G.Blockers.esfilter,
-					{"or":[
-						{"range":{"expires_on":{"gte":timeDomain.min.getMilli()}}},
+					{"or": [
+						{"range": {"expires_on": {"gte": timeDomain.min.getMilli()}}},
 						Mozilla.BugStatus.Open.esfilter
 					]}
 				]}
@@ -192,11 +191,11 @@ function showAges(args){
 		yield(Thread.join(allBlockersThread));
 
 		{//ADD THOSE max, min TO TO MAIN LIST OF BUGS (WE SHOULD BE MERGING IN SOME FORM)
-			data={};
+			data = {};
 			var domain = blockers.edges[0].domain;
 			var data = blockers.cube;
 			allBlockers.list.forall(function (v) {
-				Map.copy({"min":null, "max":null}, v);  //DEFAULT VALUES
+				Map.copy({"min": null, "max": null}, v);  //DEFAULT VALUES
 				Map.copy(nvl(data[domain.getPartByKey(v.bug_id).dataIndex], {}), v);
 			});
 		}
@@ -208,11 +207,9 @@ function showAges(args){
 		var chart = yield(Q({
 			"name": "Average Age of Blockers (Days)",
 			"from": allBlockers.list,
-			"select":
-				{"name": "Average", "value": "nvl(min, time.min)>time.min ? null : (time.min.getMilli() - nvl(min, time.min).getMilli())/Duration.DAY.milli", "aggregate": "average", "default": 0, "style": {"color": "#00d6ff", "visibility": "hidden"}}
-			,
+			"select": {"name": "Average", "value": "nvl(min, time.min)>time.min ? null : (time.min.getMilli() - nvl(min, time.min).getMilli())/Duration.DAY.milli", "aggregate": "average", "default": 0, "style": {"color": "#00d6ff", "visibility": "hidden"}},
 			"edges": [
-				{"name": "Project", "domain":projectDomain},
+				{"name": "Project", "domain": projectDomain},
 				{"name": "date",
 					"range": {"min": "min", "max": "max"},
 					"allowNulls": false,
@@ -225,10 +222,11 @@ function showAges(args){
 		//DIRTY REVERSE OF THE TYPES
 		chart.edges[0].domain.partitions.reverse();
 		chart.cube.reverse();
-		chart.edges[0].domain.partitions[0].style.visibility="visible";
+		chart.edges[0].domain.partitions[0].style.visibility = "visible";
 
 		aChart.show({
-			"id": "chartBlockerAge",
+			"id": args.chart.id,
+			"name": args.chart.name,
 			"type": "line",
 			"stacked": false,
 			"cube": chart
@@ -239,3 +237,4 @@ function showAges(args){
 
 
 }
+

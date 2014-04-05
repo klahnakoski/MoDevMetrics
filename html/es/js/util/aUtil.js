@@ -53,6 +53,23 @@ Map.copy = function(from, to){
 	return to;
 };
 
+
+//IF dest[k]==undefined THEN ASSIGN source[k]
+Map.setDefault = function(dest){
+	for(var s=1;s<arguments.length;s++){
+		var source=arguments[s];
+		if (source===undefined) continue;
+		var keys = Object.keys(source);
+		for(var k = 0; k < keys.length; k++){
+			var key = keys[k];
+			if (dest[key]===undefined){
+				dest[key]=source[key];
+			}//endif
+		}//for
+	}//for
+	return dest;
+};
+
 Map.jsonCopy=function(value){
 	if (value===undefined) return undefined;
 	return JSON.parse(JSON.stringify(value));

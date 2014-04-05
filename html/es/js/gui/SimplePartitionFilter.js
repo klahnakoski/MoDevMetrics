@@ -95,10 +95,6 @@ SimplePartitionFilter = function () {
 
 
 	SimplePartitionFilter.prototype.setSimpleState = function (value) {
-		if (value !== undefined) {
-			Log.debug()
-		}//endif
-
 		if (!value || value.trim() == "") {
 			this.selectedIDs = [];
 		} else {

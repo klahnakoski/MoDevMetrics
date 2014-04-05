@@ -43,6 +43,9 @@ Qb.compile = function(query, sourceColumns, useMVEL){
 	var edges = query.edges;
 	for(var g = 0; g < edges.length; g++){
 		var e=edges[g];
+		if (e.partitions!==undefined){
+			Log.error("An edge can not have partitions!  Did you give a domain to an edge?")
+		}//endif
 
 		if (typeof(e)=='string'){
 			e={"value":e}; //NOW DEFINE AN EDGE BY ITS VALUE
@@ -775,7 +778,6 @@ function Tree2Cube(query, cube, tree, depth){
 		for(var k=keys.length;k--;){
 			var p=domain.getPartByKey(keys[k]).dataIndex;
 			if (cube[p]===undefined){
-				Log.debug();
 				p=domain.getPartByKey(keys[k]).dataIndex;
 			}//endif
 			Tree2Cube(query, cube[p], tree[keys[k]], depth+1);

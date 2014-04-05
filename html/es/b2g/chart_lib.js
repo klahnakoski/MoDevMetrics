@@ -6,5 +6,6 @@ importScript([
 	"../b2g/grid.js",
 	"../js/gui/accordion.js",
 	"blockerCharts.js",
-	"nominationCharts.js"
+	"nominationCharts.js",
+	"regressionCharts.js"
 ]);
