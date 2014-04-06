@@ -62,7 +62,8 @@ var __createChart = function*(){
 	$("#title").html("B2G Bug Fix Rate");
 	$("#description").html(
 		"Show number of Resolution==FIXED bugs for four major B2G projects:<ul>"+
-        "<li><b>1.4</b> - blocking-b2g==&quot;1.4+&quot; OR target_milestone.startsWith(&quot;1.4&quot;)</li>"+
+		"<li><b>1.5</b> - blocking-b2g==&quot;1.5+&quot; OR target_milestone.startsWith(&quot;1.5&quot;)</li>"+
+		"<li><b>1.4</b> - blocking-b2g==&quot;1.4+&quot; OR target_milestone.startsWith(&quot;1.4&quot;)</li>"+
         "<li><b>1.3</b> - blocking-b2g in (&quot;1.3+&quot;, &quot;1.3t+&quot;) OR target_milestone.startsWith(&quot;1.3&quot;)</li>"+
         "<li><b>KOI</b> - blocking-b2g==&quot;koi+&quot; OR target_milestone.startsWith(&quot;1.2&quot;)</li>"+
 		"<li><b>LEO</b> - blocking-b2g==&quot;leo+&quot;</li>"+
@@ -159,7 +160,7 @@ var __createChart = function*(){
 			"esfilter": {"and": [
 				{"range": {"expires_on": {"gte": sampleMin.getMilli(), "lte": sampleMax.getMilli()}}},
 				Mozilla.BugStatus.Open.esfilter,
-				focal_dim.Project.esfilter,
+				focal_dim.Project.esfilter
 			]}
 		}));
 
@@ -234,7 +235,7 @@ $(document).ready(function(){
 				"sampleMax=Date.newInstance(sampleMax).addDay(1).floorWeek().addDay(-1).format('yyyy-MM-dd')"
 		],
 		"bugs",
-		false		//DO NOT SHOW DEFAULT FILTERS
+		false		//SHOW DEFAULT FILTERS?
 	);
 
 //	GUI.state.productFilter = ["B2G 1.0.0 (TEF)"];

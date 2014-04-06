@@ -240,18 +240,6 @@ importScript(["js/main.js", 'js/Dimension-Bugzilla.js', 'js/Dimension-B2G.js'], 
 				"cube": summary,
 				"xAxisSize": 50,
 				"timeSeries": true,
-				renderCallback: function(){
-					this.chart.markEvent(Date.newInstance("Mar 17, 2014").format(Qb.domain.time.DEFAULT_FORMAT),"CDF Released", {
-					        strokeStyle: "black",  /* Line Color */
-					        lineWidth: "2.0",  /* Line Width */
-					        textStyle: "black", /* Text Color */
-					        verticalOffset: 10, /* Distance between vertical anchor and label */
-					        verticalAnchor: "top", /* Vertical anchor: top or bottom */
-					        horizontalAnchor: "left", /* Horizontal anchor: left or right */
-					        forceHorizontalAnchor: false, /* Horizontal anchor position will be respected if true */
-					        horizontalAnchorSwapLimit: 80 /* Horizontal anchor will switch if less than this space available */
-					});
-				},
 				"clickAction": function (series, x, d) {
 					Thread.run(function*() {
 						var buglist = (yield (Qb.calc2List({

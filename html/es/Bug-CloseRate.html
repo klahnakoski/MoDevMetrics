@@ -87,58 +87,61 @@ var __createChart = function*(){
 
 
 		var resolutionParts=[
-			{"name":"fixed", "style":{}},
-			{"name":"duplicate", "style":{"visibility":"hidden"}},
-			{"name":"invalid", "style":{"visibility":"hidden"}},
-			{"name":"wontfix", "style":{"visibility":"hidden"}},
-			{"name":"worksforme", "style":{"visibility":"hidden"}}
+			{"name":"worksforme", "style":{}},
+			{"name":"wontfix", "style":{}},
+			{"name":"invalid", "style":{}},
+			{"name":"duplicate", "style":{}},
+			{"name":"fixed", "style":{}}
 		];
 
+		var resolutions=[];
+		var resolutionsThread=Thread.run(function*(){
+			resolutions=yield (ESQuery.run({
+				"from":"bugs",
+				"select":["bug_id", "resolution"],
+				"esfilter":{"and":[
+					Mozilla.CurrentRecords.esfilter,
+					Mozilla.BugStatus.Closed.esfilter,
+					customFilter,
+					GUI.getFilters("bugs"),
+					{"range": {"modified_ts": {"gte": sampleMin.getMilli()}}}
+				]}
+			}));
+		});
 
-		var resolutions=yield (ESQuery.run({
-			"from":"bugs",
-			"select":["bug_id", "resolution"],
-			"esfilter":{"and":[
-				Mozilla.CurrentRecords.esfilter,
-				Mozilla.BugStatus.Closed.esfilter,
+
+		//PULL LATEST CLOSE DATES
+		var bugClose = yield(ESQuery.run({
+			"from": "bugs",
+			"select": {"name": "closeTime", "value": "expires_on", "aggregate": "maximum"},
+			"edges": [
+				"bug_id"
+			],
+			"esfilter": {"and": [
+				{"range": {"expires_on": {"gte": sampleMin.getMilli(), "lte": sampleMax.getMilli()}}},
+				Mozilla.BugStatus.Open.esfilter,
 				customFilter,
 				GUI.getFilters("bugs")
 			]}
 		}));
 
-
-		var mm=yield (ElasticSearch.getMinMax({"and":[
-			{"range":{"expires_on":{"gte":sampleMin.getMilli()}}},
-			{"range":{"modified_ts":{"lte":sampleMax.getMilli()}}},
-			{"terms":{"bug_id":resolutions.list.select("bug_id")}},
-			Mozilla.BugStatus.Open.esfilter
-		]}));
-
-
+		yield (Thread.join(resolutionsThread));
 		Log.actionDone(a);
+
+		{//ADD THOSE closeTime TO TO MAIN LIST OF BUGS (WE SHOULD BE MERGING IN SOME FORM)
+			var domain = bugClose.edges[0].domain;
+			var data = bugClose.cube;
+			resolutions.list.forall(function (v) {
+				v.closeTime = Date.newInstance(data[domain.getPartByKey(v.bug_id).dataIndex]);    //USE dataIndex OF part TO LOOKUP closeTime IN CUBE
+			});
+			resolutions.columns.append({"name": "closeTime"});  //ADD TO METADATA
+		}
 
 		a=Log.action("Calc Close Times", true);
 		yield (Thread.yield());
 
-		var bugList=yield (Q({
-			"from":mm,
-			"select":[
-				{"name":"closeTime", "value":"max", "aggregate":"one"},
-				{"name":"resolution", "value":"r.resolution", "aggregate":"one"}
-			],
-			"edges":[
-				{"name":"bug_id", "value":"bug_id",
-					"allowNulls":false,
-					"domain":{"type":"set", "name":"r", "partitions":resolutions, "key":"bug_id", "value":"bug_id"}
-				}
-			],
-			"where":"max!==undefined"
-		}));
-
-
-
 		var chart=yield (Q({
-			"from":bugList,
+			"from":resolutions,
 			"select":{"name":"num", "value":"bug_id", "aggregate":"count"},
 			"edges": [
 				{"value":"resolution", "domain":{"type":"set", "partitions":resolutionParts, "value":"name", "key":"name"}},
@@ -151,14 +154,14 @@ var __createChart = function*(){
 
 		Log.actionDone(a);
 
-		var numWeeks=sampleMax.subtract(sampleMin).round(sampleInterval);
+		var numIntervals=sampleMax.subtract(sampleMin).round(sampleInterval);
 		var stats=yield (Q({
-			"from":bugList,
-			"select":[{"name":"average", "value":""+(1/numWeeks), "aggregate":"sum"}],
+			"from":resolutions,
+			"select":[{"name":"average", "value":""+(1/numIntervals), "aggregate":"sum"}],
 			"edges":[
 				{"value":"resolution", "domain":{"type":"set", "partitions":resolutionParts, "value":"name", "key":"name"}}
 			],
-			"where":sampleMin.getMilli()+"<=closeTime.getMilli() && closeTime.getMilli()<"+sampleMax.getMilli()
+			"where":"closeTime!=null && "+sampleMin.getMilli()+"<=closeTime.getMilli() && closeTime.getMilli()<"+sampleMax.getMilli()
 		}));
 
 		var interval_str=GUI.state.sampleInterval
@@ -166,11 +169,11 @@ var __createChart = function*(){
 		$("#stats").html(
 			'<span class="parameter_name">Number of '+interval_str+'s:</span>' + sampleMax.subtract(sampleMin).round(sampleInterval) + '<br><br>'+
 			//ARG!! I REALLY WANT PRESENTATION CUBES!!
-			'<span class="parameter_name">Fixed/'+interval_str+':</span>' + aMath.round(stats.cube[0].average, 1) + '<br>'+
-			'<span class="parameter_name">Duplicate/'+interval_str+':</span>' + aMath.round(stats.cube[1].average, 1) + '<br>'+
+			'<span class="parameter_name">Fixed/'+interval_str+':</span>' + aMath.round(stats.cube[4].average, 1) + '<br>'+
+			'<span class="parameter_name">Duplicate/'+interval_str+':</span>' + aMath.round(stats.cube[3].average, 1) + '<br>'+
 			'<span class="parameter_name">Invalid/'+interval_str+':</span>' + aMath.round(stats.cube[2].average, 1) + '<br>'+
-			'<span class="parameter_name">Wont\'Fix/'+interval_str+':</span>' + aMath.round(stats.cube[3].average, 1) + '<br>'+
-			'<span class="parameter_name">WorksForMe/'+interval_str+':</span>' + aMath.round(stats.cube[4].average, 1) + '<br>'
+			'<span class="parameter_name">Won\'tFix/'+interval_str+':</span>' + aMath.round(stats.cube[1].average, 1) + '<br>'+
+			'<span class="parameter_name">WorksForMe/'+interval_str+':</span>' + aMath.round(stats.cube[0].average, 1) + '<br>'
 		);
 
 
@@ -235,7 +238,7 @@ $(document).ready(function(){
 				"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')"
 		],
 		"bugs",
-		true	//DO NOT SHOW DEFAULT FILTERS
+		true	//SHOW DEFAULT FILTERS?
 	);
 
 //	GUI.state.productFilter = ["B2G 1.0.0 (TEF)"];
