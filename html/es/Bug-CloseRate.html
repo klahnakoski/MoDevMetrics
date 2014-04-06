@@ -94,6 +94,25 @@ var __createChart = function*(){
 			{"name":"fixed", "style":{}}
 		];
 
+//		//HOW MANY CLOSED BUGS ARE WE TALKING ABOUT?
+//		var numBugs=yield (ESQuery.run({
+//			"from":"bugs",
+//			"select":{"value":"bug_id", "aggregate":"count"},
+//			"esfilter":{"and":[
+//				Mozilla.CurrentRecords.esfilter,
+//				Mozilla.BugStatus.Closed.esfilter,
+//				customFilter,
+//				GUI.getFilters("bugs"),
+//				{"range": {"modified_ts": {"gte": sampleMin.getMilli()}}}
+//			]}
+//		}));
+//
+//		if (numBugs.cube>100){
+//			//BETTER TO MAKE ESTIMATES, JUST LOOK AT ALL CLOSE EVENTS
+//
+//		}//endif
+
+
 		var resolutions=[];
 		var resolutionsThread=Thread.run(function*(){
 			resolutions=yield (ESQuery.run({
@@ -137,9 +156,6 @@ var __createChart = function*(){
 			resolutions.columns.append({"name": "closeTime"});  //ADD TO METADATA
 		}
 
-		a=Log.action("Calc Close Times", true);
-		yield (Thread.yield());
-
 		var chart=yield (Q({
 			"from":resolutions,
 			"select":{"name":"num", "value":"bug_id", "aggregate":"count"},
@@ -151,8 +167,6 @@ var __createChart = function*(){
 				}
 			]
 		}));
-
-		Log.actionDone(a);
 
 		var numIntervals=sampleMax.subtract(sampleMin).round(sampleInterval);
 		var stats=yield (Q({
