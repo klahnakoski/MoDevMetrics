@@ -220,7 +220,7 @@ var __createChart = function*(){
 
 $(document).ready(function(){
 	GUI.setup(createChart, [
-		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().addMonth(-2)},//Date.now().addDay(-15).floorMonth()},
+		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().addMonth(-2)},
 		{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.eod()},
 		{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.WEEK},
 		{"id":"filter", "name":"ES Filter", "type":"json", "default":{"and":[

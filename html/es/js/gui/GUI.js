@@ -196,6 +196,7 @@ GUI = {};
 
 
 		GUI.corruptionCheck = function*() {
+			if (ESQuery.INDEXES.bugs.host.startsWith("https://esfrontline")) return;  //PUBLIC CLUSTER DOES NOT HAVE SCRIPTING
 
 			var t = aTimer.start("Corruption Check");
 
@@ -545,7 +546,7 @@ GUI = {};
 
 			var html = "";
 
-			html += '<h4><a href="#">Selection</a></h4>';
+			html += '<h4><a href="#">Selection Summary</a></h4>';
 			html += '<div id="summary"></div>';
 			GUI.customFilters.forall(function (f, i) {
 				html += '<h4><a href="#">' + f.name + '</a></h4>';

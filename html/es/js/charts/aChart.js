@@ -562,7 +562,7 @@ aChart.show=function(params){
 
 	var categoryLabels;
 	if (chartCube.edges.length==1 || chartCube.edges[0].domain.partitions.length==0){
-		categoryAxis={"domain":{"type":"set", "partitions":chartCube.select}};
+		categoryAxis={"domain":{"type":"set", "partitions":Array.newInstance(chartCube.select)}};
 		categoryLabels=Array.newInstance(chartCube.select).map(function(v, i){
 			return v.name;
 		});
@@ -732,7 +732,11 @@ aChart.show=function(params){
 			defaultParam.renderCallback=function(){
 				var self=this;
 				dateMarks.forall(function(m){
-					self.chart.markEvent(m.date.format(Qb.domain.time.DEFAULT_FORMAT), m.name, m.style);
+					try{
+						self.chart.markEvent(m.date.format(Qb.domain.time.DEFAULT_FORMAT), m.name, m.style);
+					}catch(e){
+						Log.warning("markEvent failed", e);
+					}
 				});
 				if (params.renderCallback) params.renderCallback();  //CHAIN EXISTING, IF ONE
 			};
