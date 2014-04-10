@@ -111,6 +111,7 @@ String.prototype.replaceVars = function(values){
 
 		if (map[key]!==undefined){
 			output=output.replaceAll(output.substring(s, e + 2), map[key]);
+			e = s + map[key].length;
 		}//endif
 		s=e;
 	}//while

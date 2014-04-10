@@ -111,7 +111,15 @@
 	};//method
 
 
+	//WE ASSUME func ACCEPTS (row, i, rows)
 	Array.prototype.filter=function(func){
+
+		if (typeof(func) == "function") {
+			//DO NOTHING
+		}else{
+			func = CNV.esFilter2function(func)
+		}//endif
+
 		var output=[];
 		for(var i=0;i<this.length;i++){
 			if (func(this[i], i)) output.push(this[i]);

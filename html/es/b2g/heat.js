@@ -16,7 +16,7 @@ OWNERS = Map.zip(mapAllKey(OWNERS, function (k, v) {
 		owner = v.between("(", ")").trim();
 	} else {
 		manager = v.trim();
-		owner = "?";
+		owner = "";
 	}//endif
 
 
@@ -24,12 +24,12 @@ OWNERS = Map.zip(mapAllKey(OWNERS, function (k, v) {
 	return [k.deformat(), {"name": name, "owner": {"name": owner, "manager": manager}}];
 }));
 
-function getOwner(comp) {
+function getComponentDetails(comp) {
 	var output = OWNERS[comp.deformat()];
 	if (output !== undefined) return output;
 
 	var name = comp.replaceLast(["::", ": ", ":"], "<br>");
-	output = {"name": name, "owner": {"name": "", "manager": "unknown"}};
+	output = {"name": name, "owner": {"name": "", "manager": ""}};
 	OWNERS[comp.deformat()] = output;
 	return output;
 }//function
@@ -45,28 +45,78 @@ function showComponent(detail, showTYPE) {
 		'</div>';
 
 	var component = Map.copy(detail[0]);
-	component.component = getOwner(component.component).name;
-	component.manager = getOwner(component.component).owner.manager;
-	component.owner = "(" + getOwner(component.component).owner.name + ")";
+	var meta =  getComponentDetails(component.component);
+	component.component = meta.name;
+	component.manager = meta.owner.manager;
+	component.owner = meta.owner.name=="" ? "": "(" + meta.owner.name + ")";
 	component.projectDetail = detail.map(function (project, i) {
 		if (project.count > 0) {
 			return showTYPE(project);
 		}//endif
+	}).join("");
+	return TEMPLATE.replaceVars(component)
+}//function
+
+// SHOW SUMMARY COUNT
+function showSummary(type, team, detail, showTYPE) {
+
+	var TEMPLATE = '<h3 style="padding: 20px 0 0 10px;vertical-align: top; display:inline-block">{{name}} {{type}}</h3><div class="blocker">' +
+		'{{projectDetail}}' +
+		'<div style="display:inline-block;width:50px">&nbsp;</div>' +
+		'{{total}}'
+		'</div>';
+
+	var total = aMath.sum.apply(undefined, detail.cube.select("count"));
+	var component = {};
+
+	if (team.length==0){
+		component.name = "All FFOS"
+	}else{
+		component.name = team.map(function(t){return t.name;}).join(", ")
+	}//endif
+
+	var numSummary=0;
+	component.projectDetail = detail.cube.map(function (project, i) {
+		project.project = detail.edges[0].domain.partitions[i].name;
+		project.bugs = detail.from.list.filter(detail.edges[0].domain.partitions[i].esfilter).select("bug_id");
+		project.unassignedBugs = detail.from.list.filter(detail.edges[0].domain.partitions[i].esfilter).filter(Mozilla.B2G.Unassigned.esfilter).select("bug_id");
+		if (project.count > 0) {
+			numSummary++;
+			return showTYPE(project);
+		}//endif
+	}).join("");
+	if (numSummary<2) component.projectDetail="";
+
+	component.total=showTYPE({
+		"project":"Total",
+		"count":aMath.sum.apply(undefined, detail.cube.select("count")),
+		"unassignedCount":aMath.sum.apply(undefined, detail.cube.select("unassignedCount")),
+		"age":aMath.max.apply(undefined, detail.cube.select("age")),
+		"bugs":detail.from.list.select("bug_id"),
+		"unassignedBugs": detail.from.list.filter(Mozilla.B2G.Unassigned.esfilter).select("bug_id")
 
 	});
+	component.type=type;
+
 	return TEMPLATE.replaceVars(component)
 }//function
 
 // SHOW TRIAGE COUNT FOR ONE COMPONENT, ONE PROJECT
 function showNominations(detail) {
-	detail.param = CNV.Object2URL({
-		"bug_status": ["UNCONFIRMED", "NEW", "ASSIGNED", "REOPENED"],
-		"cf_blocking_b2g": detail.project + "?",
-		"component": detail.component
-	});
+	if (detail.bugs){
+		detail.bugsURL = Bugzilla.searchBugsURL(detail.bugs);
+		detail.unassignedURL = Bugzilla.searchBugsURL(detail.unassignedBugs);
+	}else{
+		var param = {
+			"bug_status": ["UNCONFIRMED", "NEW", "ASSIGNED", "REOPENED"],
+			"cf_blocking_b2g": detail.project + "?",
+			"component": detail.component
+		};
+		detail.bugsURL = "https://bugzilla.mozilla.org/buglist.cgi?"+CNV.Object2URL(param);
+	}//endif
 	detail.color = age2color(detail.age);
 
-	var TEMPLATE = '<div class="project"  style="background-color:{{color}}" href="https://bugzilla.mozilla.org/buglist.cgi?{{param}}">' +
+	var TEMPLATE = '<div class="project"  style="background-color:{{color}}" href="{{bugsURL}}">' +
 		'<div class="release">{{project}}</div>' +
 		'<div class="count">{{count}}</div>' +
 		'</div>';
@@ -76,22 +126,26 @@ function showNominations(detail) {
 
 // SHOW BLOCKER COUNT FOR ONE COMPONENT, ONE PROJECT
 function showBlocker(detail) {
-	var param = {
-		"bug_status": ["UNCONFIRMED", "NEW", "ASSIGNED", "REOPENED"],
-		"cf_blocking_b2g": detail.project + "+",
-		"component": detail.component
-	};
+	if (detail.bugs){
+		detail.bugsURL = Bugzilla.searchBugsURL(detail.bugs);
+		detail.unassignedURL = Bugzilla.searchBugsURL(detail.unassignedBugs);
+	}else{
+		var param = {
+			"bug_status": ["UNCONFIRMED", "NEW", "ASSIGNED", "REOPENED"],
+			"cf_blocking_b2g": detail.project + "+",
+			"component": detail.component
+		};
+		detail.bugsURL = "https://bugzilla.mozilla.org/buglist.cgi?"+CNV.Object2URL(param);
 
-	detail.param = CNV.Object2URL(param);
-
-	param.assigned_to = "nobody@mozilla.org";
-	detail.unassigned = CNV.Object2URL(param);
+		param.assigned_to = "nobody@mozilla.org";
+		detail.unassignedURL = "https://bugzilla.mozilla.org/buglist.cgi?"+CNV.Object2URL(param);
+	}//endif
 	detail.color = age2color(detail.age);
 
-	var TEMPLATE = '<div class="project"  style="background-color:{{color}}" href="https://bugzilla.mozilla.org/buglist.cgi?{{param}}">' +
+	var TEMPLATE = '<div class="project"  style="background-color:{{color}}" href="{{bugsURL}}">' +
 		'<div class="release">{{project}}</div>' +
 		'<div class="count">{{count}}</div>' +
-		(detail.unassignedCount > 0 ? '<div class="unassigned"><a class="count_unassigned" href="https://bugzilla.mozilla.org/buglist.cgi?{{unassigned}}">{{unassignedCount}}</a></div>' : '') +
+		(detail.unassignedCount > 0 ? '<div class="unassigned"><a class="count_unassigned" href="{{unassignedURL}}">{{unassignedCount}}</a></div>' : '') +
 		'</div>';
 
 	return TEMPLATE.replaceVars(detail)
@@ -100,14 +154,14 @@ function showBlocker(detail) {
 
 // SHOW BLOCKER COUNT FOR ONE COMPONENT, ONE PROJECT
 function showRegression(detail) {
-	detail.param = CNV.Object2URL({"quicksearch": detail.bugs.join(",")});
-	detail.unassigned = CNV.Object2URL({"quicksearch": detail.unassigned_bugs.join(",")});
+	detail.bugsURL = Bugzilla.searchBugsURL(detail.bugs);
+	detail.unassignedURL = Bugzilla.searchBugsURL(detail.unassignedBugs);
 	detail.color = age2color(detail.age);
 
-	var TEMPLATE = '<div class="project"  style="background-color:{{color}}" href="https://bugzilla.mozilla.org/buglist.cgi?{{param}}">' +
+	var TEMPLATE = '<div class="project"  style="background-color:{{color}}" href="{{bugsURL}}">' +
 		'<div class="release">{{project}}</div>' +
 		'<div class="count">{{count}}</div>' +
-		(detail.unassignedCount > 0 ? '<div class="unassigned"><a class="count_unassigned" href="https://bugzilla.mozilla.org/buglist.cgi?{{unassigned}}">{{unassignedCount}}</a></div>' : '') +
+		(detail.unassignedCount > 0 ? '<div class="unassigned"><a class="count_unassigned" href="{{unassignedURL}}">{{unassignedCount}}</a></div>' : '') +
 		'</div>';
 
 	return TEMPLATE.replaceVars(detail)

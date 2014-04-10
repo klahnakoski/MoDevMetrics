@@ -74,12 +74,12 @@
 <BODY style="display: none;">
 <div style="overflow:hidden;">
 	<div id="sidebar">
-		<div id="description">
+		<div id="description" style="width:300px;">
 			Each component is colored on a continuous scale (<div style="vertical-align:middle;height:15px; width:150px; background: -moz-linear-gradient(left, #009F00,#699B00,  #CA7900,#954000, #A50303);position: relative;display:inline-block;">
 							<div style="top:-3px;left:1px;color:white;position: absolute;font-size: 15px">New</div>
 							<div style="top:-3px;right:1px;color:white;position: absolute;font-size: 15px">Old</div>
 						</div>)
-			according to the age of it's oldest member.  Green is new, while red is 7days or older.
+			according to the time since the earliest nomination.  Green is new, while red is 7days or older.
 			If the component has unassigned members, then it is marked with a <div style="display:inline-block;bottom:0;width: 0;height: 0; border-style: solid; border-width: 0 0 15px 15px; border-color: transparent transparent #000000 transparent;"></div>
 			 along with the count.
 		</div>
@@ -91,13 +91,16 @@
 	<div class="sidebar_name">
 		<div>Filters</div>
 	</div>
-	<div class="content">
-		<h3>FFOS Nominations</h3>
+	<div class="content" style="position:inherit;">
+		<div id="totals"><h3 style="display:inline-block;">FFOS Nominations</h3></div>
+		<div style="position:absolute;top:5px;right:10px;">
+			Age: <div style="vertical-align:middle;height:15px; width:150px; background: -moz-linear-gradient(left, #009F00,#699B00,  #CA7900,#954000, #A50303);position: relative;display:inline-block;"><div style="top:-3px;left:1px;color:white;position: absolute;font-size: 15px">New</div><div style="top:-3px;right:1px;color:white;position: absolute;font-size: 15px">7days+</div></div><br>
+		</div>
 		<div id="blockers"></div>
 	</div>
-</div>
-<div class="footer">
-	Source at <a href="https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Nominations.html">https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Nominations.html</a>
+	<div class="footer">
+		Source at <a href="https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Nominations.html">https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Nominations.html</a>
+	</div>
 </div>
 <script type="application/javascript">
 
@@ -185,6 +188,23 @@
 					$("#blockers").append(blockerHTML);
 				}//endif
 			});
+
+			var projectDomain=Mozilla.B2G.Project.getDomain();
+			projectDomain.end=function(p){return p.name;};
+			var totals = yield(Q({
+				"from": allDetails,
+				"select": [
+					{"name": "count", "value": "bug_id", "aggregate": "count"},
+					{"name": "age", "value": "Date.now().subtract(Date.newInstance(modified_ts)).divideBy(Duration.DAY)", "aggregate": "maximum"},
+					{"name": "unassignedCount", "value": '(assigned_to=="nobody@mozilla.org" ? 1 : 0)', "aggregate": "sum"}
+				],
+				"edges": [
+					{"name": "project", "domain": projectDomain}
+				]
+			}));
+
+			var blockerHTML = showSummary("Nominations", GUI.state.team.getSelectedParts(), totals, showNominations);
+			$("#totals").html(blockerHTML);
 
 			addProjectClickers(components);
 		};

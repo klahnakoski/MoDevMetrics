@@ -15,9 +15,10 @@ Dimension.addEdges(true, Mozilla, [
 		]},
 		"edges": [
 
-			{"name":"Nominations", "index":"bugs", "esfilter":{"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "1.5?"]}}},
-			{"name":"Blockers", "index":"bugs", "esfilter":{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}}},
-			{"name":"Regressions", "index":"bugs", "esfilter":{"term": {"keywords": "regression"}}},
+			{"name": "Nominations", "index": "bugs", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "1.5?"]}}},
+			{"name": "Blockers", "index": "bugs", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}}},
+			{"name": "Regressions", "index": "bugs", "esfilter": {"term": {"keywords": "regression"}}},
+			{"name": "Unassigned", "index": "bugs", "esfilter": {"term": {"assigned_to": "nobody@mozilla.org"}}},
 
 			{"name": "Markup", "index": "bugs", "isFacet": true, "partitions": [
 				{"name": "Unassigned", "style": {"color": "purple"}, "esfilter": {"and":[
@@ -123,7 +124,8 @@ Dimension.addEdges(true, Mozilla, [
 						"video/audio: recording",
 						"video/audio",
 						"webrtc",
-						"webrtc: video/audio"
+						"webrtc: video/audio",
+						"webrtc: audio/video"
 					]}}
 				]}},
 				{"name": "Comms", "esfilter": {"and": [
@@ -258,6 +260,7 @@ Dimension.addEdges(true, Mozilla, [
 						"video/audio",
 						"webrtc",
 						"webrtc: video/audio",
+						"webrtc: audio/video",
 						"dom: contacts",
 						"gaia::contacts",
 						"gaia::cost control",

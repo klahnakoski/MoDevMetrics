@@ -6,6 +6,11 @@
     width:100%;
 }
 
+#totals {
+    background-color: #DDDDDD;
+    height: 95px;
+}
+
 .blocker {
     color:white;
     display: inline-block;
@@ -24,6 +29,7 @@
     text-align: center;
     width: 50px;
     height:50px;
+    margin: 2px;
 
 }
 .component {
