@@ -286,7 +286,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js", "
 
 		yield (ESQuery.loadColumns({"from": "bugs"}));
 
-
+		var a=Log.action("Load all details", true);
 		var allBugs=yield(ESQuery.run({
 			"from":"bugs",
 			"select":[
@@ -300,13 +300,10 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js", "
 			],
 			"esfilter":mainFilter
 		}));
-
-
+		Log.actionDone(a);
 
 		var counting = null;
 		var countingThread = Thread.run(function*() {
-			var a = Log.action("Get Counts", true);
-
 			counting = yield(Q({
 				"from": allBugs,
 				"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
@@ -316,13 +313,11 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js", "
 					{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
 				]
 			}));
-			Log.actionDone(a);
 			yield (null);
 		});
 
 		var ages = null;
 		var ageThread = Thread.run(function*() {
-			var a = Log.action("Get Ages", true);
 			ages = yield(Q({
 				"from": allBugs,
 				"select": [
@@ -335,12 +330,10 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js", "
 					{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
 				]
 			}));
-			Log.actionDone(a);
 		});
 
 		var uBlocker = null;
 		var uBlockerThread = Thread.run(function*() {
-			var a = Log.action("Get Unassigned Blockers", true);
 			uBlocker = yield(Q({
 				"from": allBugs,
 				"select": {"name": "unassigned", "value": "bug_id", "aggregate": "count"},
@@ -354,7 +347,6 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js", "
 					{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}}
 				]}
 			}));
-			Log.actionDone(a);
 		});
 
 		yield (Thread.join(countingThread));
