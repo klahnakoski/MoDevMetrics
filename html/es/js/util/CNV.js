@@ -168,6 +168,43 @@ CNV.Object2JSON = function(json){
 };//method
 
 
+CNV.Object2CSS=function(value){
+	//FIND DEPTH
+	var depth=1;
+	forAllKey(value, function(name, value){
+		if (value!=null && typeof(value)=="object"){
+			depth=2;
+		}//endif
+	});
+
+	if (depth==2){
+		return mapAllKey(value, function(selector, css){
+			return selector+" {"+
+				mapAllKey(css, function(name, value){
+					return  name+":"+value;
+				}).join(";")+"}";
+		}).join("\n\n");
+	}else{
+		return mapAllKey(value, function(name, value){
+			return  name+":"+value;
+		}).join(";")
+	}//endif
+};//method
+
+CNV.style2Object=function(value){
+	return Map.zip(value.split(";").map(function (attr) {
+		if (attr.trim()=="") return undefined;
+		return attr.split(":").map(function(v){return v.trim();});
+	}));
+};//method
+
+CNV.Object2style=function(style){
+	return mapAllKey(style, function(name, value){
+		return name+":"+value;
+	}).join(";");
+};//method
+
+
 CNV.Object2URL=function(value){
 	return $.param(value).replaceAll("%5B%5D=", "=");
 };//method

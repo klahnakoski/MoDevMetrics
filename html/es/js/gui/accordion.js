@@ -41,9 +41,10 @@ $(document).ready(function () {
 	//MAKE SURE OPEN DIV RESIZE TO FULL
 	$.fn.updateAccordion = function update(){
 		var self=$(this);
-		return $(".accordion_header_open[accordion_id='" + self.attr("id") + "']").each(function(){
+		$(".accordion_header_open[accordion_id='" + self.attr("id") + "']").each(function(){
 			open(self);
 		});
+		return this;
 	};
 
 	$(".accordion_header, .accordion_header_open, .accordion_header_closed")

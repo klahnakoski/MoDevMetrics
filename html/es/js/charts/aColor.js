@@ -98,6 +98,9 @@ Color = function (L, h, s) {
 		return new Color(L, this.h, this.s);
 	};
 
+	Color.prototype.lighter = function(){
+		return new Color(this.L * 1.2, this.h, this.s);
+	};
 
 	Color.prototype.toHTML = function () {
 		var Lfloor = aMath.floor(this.L*COLOR_MESH.length);

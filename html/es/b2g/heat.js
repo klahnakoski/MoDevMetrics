@@ -7,22 +7,24 @@ importScript("../js/util/aUtil.js");
 importScript("../js/util/aString.js");
 importScript("owners.js");
 
-OWNERS = Map.zip(mapAllKey(OWNERS, function (k, v) {
-	var manager;
-	var owner;
-	//PARSE THE <manager> "(" listOf(<assign_to>) ")" FORMAT
-	if (v.indexOf("(") >= 0) {
-		manager = v.left(v.indexOf("(")).trim();
-		owner = v.between("(", ")").trim();
-	} else {
-		manager = v.trim();
-		owner = "";
-	}//endif
+if (typeof OWNERS != 'undefined'){
+	OWNERS = Map.zip(mapAllKey(OWNERS, function (k, v) {
+		var manager;
+		var owner;
+		//PARSE THE <manager> "(" listOf(<assign_to>) ")" FORMAT
+		if (v.indexOf("(") >= 0) {
+			manager = v.left(v.indexOf("(")).trim();
+			owner = v.between("(", ")").trim();
+		} else {
+			manager = v.trim();
+			owner = "";
+		}//endif
 
 
-	var name = k.replaceLast(["::", ": ", ":"], "<br>");
-	return [k.deformat(), {"name": name, "owner": {"name": owner, "manager": manager}}];
-}));
+		var name = k.replaceLast(["::", ": ", ":"], "<br>");
+		return [k.deformat(), {"name": name, "owner": {"name": owner, "manager": manager}}];
+	}));
+}//endif
 
 function getComponentDetails(comp) {
 	var output = OWNERS[comp.deformat()];
@@ -114,7 +116,7 @@ function showNominations(detail) {
 		};
 		detail.bugsURL = "https://bugzilla.mozilla.org/buglist.cgi?"+CNV.Object2URL(param);
 	}//endif
-	detail.color = age2color(detail.age);
+	detail.color = age2color(detail.age).toHTML();
 
 	var TEMPLATE = '<div class="project"  style="background-color:{{color}}" href="{{bugsURL}}">' +
 		'<div class="release">{{project}}</div>' +
@@ -140,7 +142,7 @@ function showBlocker(detail) {
 		param.assigned_to = "nobody@mozilla.org";
 		detail.unassignedURL = "https://bugzilla.mozilla.org/buglist.cgi?"+CNV.Object2URL(param);
 	}//endif
-	detail.color = age2color(detail.age);
+	detail.color = age2color(detail.age).toHTML();
 
 	var TEMPLATE = '<div class="project"  style="background-color:{{color}}" href="{{bugsURL}}">' +
 		'<div class="release">{{project}}</div>' +
@@ -156,7 +158,7 @@ function showBlocker(detail) {
 function showRegression(detail) {
 	detail.bugsURL = Bugzilla.searchBugsURL(detail.bugs);
 	detail.unassignedURL = Bugzilla.searchBugsURL(detail.unassignedBugs);
-	detail.color = age2color(detail.age);
+	detail.color = age2color(detail.age).toHTML();
 
 	var TEMPLATE = '<div class="project"  style="background-color:{{color}}" href="{{bugsURL}}">' +
 		'<div class="release">{{project}}</div>' +
@@ -194,7 +196,7 @@ function addProjectClickers(cube) {
 function age2color(age) {
 	var green = Color.green.multiply(0.4);
 	var color = green.hue(Math.min(1.0, age / 7) * 120);
-	return color.toHTML();
+	return color;
 }//function
 
 

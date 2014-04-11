@@ -190,9 +190,12 @@
 	<script type="text/javascript" src="js/Dimension-Bugzilla.js"></script>
 	<script type="text/javascript" src="js/Dimension-B2G.js"></script>
 	<script type="text/javascript" src="js/gui/accordion.js"></script>
+	<script type="text/javascript" src="js/gui/dynamic.js"></script>
 	<script type="text/javascript" src="js/gui/GUI.js"></script>
+	<script type="text/javascript" src="js/charts/aColor.js"></script>
 	<script type="text/javascript" src="js/charts/aChart.js"></script>
 	<script type="text/javascript" src="js/gui/ProductFilter.js"></script>
+	<script type="text/javascript" src="b2g/heat.js"></script>
 	<script type="text/javascript" src="b2g/grid.js"></script>
 	<script type="text/javascript" src="b2g/blockerCharts.js"></script>
 	<link type="text/css" rel="stylesheet" href="css/menu.css">
@@ -202,6 +205,10 @@
 	<style id="vakata-stylesheet" type="text/css"></style>
 	<style id="jstree-stylesheet" type="text/css"></style>
 	<link rel="stylesheet" type="text/css" media="all" href="file://lib/jstree/themes/default/style.css">
+	<link type="text/css" rel="stylesheet" href="b2g/blockers.css">
+<style type="text/css">
+#dynamicSelector0:hover{background-color:#458100;font-weight:bold;color:white;cursor:pointer;background-color:#4f9600}
+</style>
 </HEAD>
 <BODY>
 
@@ -214,7 +221,26 @@
 	</div>
 
 	<hr>
-	<div id="description">Incomplete<br><br>
+	<div id="description">
+		<div id="day0" style="display:inline-block;height:10px;width:10px;background-color:#008E00;"></div>
+		New<br>
+		<div id="day1" style="display:inline-block;height:10px;width:10px;background-color:#318000;"></div>
+		1 day old<br>
+		<div id="day2" style="display:inline-block;height:10px;width:10px;background-color:#638700;"></div>
+		2 days old<br>
+		<div id="day3" style="display:inline-block;height:10px;width:10px;background-color:#857B00;"></div>
+		3 days old<br>
+		<div id="day4" style="display:inline-block;height:10px;width:10px;background-color:#A05700;"></div>
+		4 days old<br>
+		<div id="day5" style="display:inline-block;height:10px;width:10px;background-color:#8B3C00;"></div>
+		5 days old<br>
+		<div id="day6" style="display:inline-block;height:10px;width:10px;background-color:#8A1C00;"></div>
+		6 days old<br>
+		<div id="day7" style="display:inline-block;height:10px;width:10px;background-color:#980303;"></div>
+		7+ days old<br>
+
+		<div style="display:inline-block;bottom:0;width: 0;height: 0; border-style: solid; border-width: 0 0 10px 10px; border-color: transparent transparent #000000 transparent;"></div>
+		Unassigned Blocker<br>
 	</div>
 	<hr>
 	<div id="parameters" class="parameters">
@@ -431,7 +457,7 @@ function teamSummary(team) {
 
 
 		//FIND COMPONENTS
-		var components = yield(ESQuery.run({
+		var components = yield(Q({
 			"from": allBugs,
 			"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
 			"edges": ["component"],
@@ -447,7 +473,6 @@ function teamSummary(team) {
 
 		var counting = null;
 		var countingThread = Thread.run(function*() {
-			var a = Log.action("Get " + team.name + " Counts", true);
 			counting = yield(Q({
 				"from": allBugs,
 				"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
@@ -457,7 +482,6 @@ function teamSummary(team) {
 					{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
 				]
 			}));
-			Log.actionDone(a);
 			yield (null);
 		});
 
@@ -466,7 +490,10 @@ function teamSummary(team) {
 			var a = Log.action("Get " + team.name + " Ages", true);
 			ages = yield(Q({
 				"from": allBugs,
-				"select": {"name": "oldest", "value": "modified_ts", "aggregate": "minimum"},
+				"select": [
+					{"name": "oldest", "value": "modified_ts", "aggregate": "minimum"},
+					{"name": "age", "value": "Date.now().subtract(Date.newInstance(modified_ts)).divideBy(Duration.DAY)", "aggregate": "maximum"}
+				],
 				"edges": [
 					{"name": "Component", "value": "component", "domain": componentDomain},
 					{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
@@ -517,6 +544,7 @@ function teamSummary(team) {
 			"columns": ["Project", "State"]
 		});
 		$("#overview").html(html).updateAccordion();
+		$("#overview").updateDynamicStyle();
 		addNumberClickers(both, teamFilter);
 	});
 
