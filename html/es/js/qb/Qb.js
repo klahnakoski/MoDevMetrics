@@ -856,6 +856,8 @@ Qb.getColumnsFromList = function(data){
 
 	var output = [];
 	for(var i = 0; i < data.length; i++){
+		//WHAT ABOUT LISTS OF VALUES, WHAT IS THE COLUMN "NAME"
+//		if (typeof data[i] != "object") return ["value"];
 		var keys = Object.keys(data[i]);
 		kk: for(var k = 0; k < keys.length; k++){
 			for(var c = 0; c < output.length; c++){

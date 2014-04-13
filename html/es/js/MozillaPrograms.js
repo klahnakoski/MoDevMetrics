@@ -56,9 +56,9 @@ var MozillaPrograms = {
 			["Regression", "keywords", "regression"],
 
 
-//        ["Snappy", "status_whiteboard.tokenized", "snappy:p1"],
-//        ["Snappy", "status_whiteboard.tokenized", "snappy:p2"],
-//        ["Snappy", "status_whiteboard.tokenized", "snappy:p3"],
+	        ["Snappy", "status_whiteboard.tokenized", "snappy:p1"],
+	        ["Snappy", "status_whiteboard.tokenized", "snappy:p2"],
+	        ["Snappy", "status_whiteboard.tokenized", "snappy:p3"],
 			["Snappy", "status_whiteboard.tokenized", "snappy"],        //Lawrence Mandel: JUST CATCH ALL SNAPPY
 //        ["MemShrink", "status_whiteboard.tokenized", "memshrink:p1"],
 //        ["MemShrink", "status_whiteboard.tokenized", "memshrink:p2"],

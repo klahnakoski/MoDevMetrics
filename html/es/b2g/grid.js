@@ -147,7 +147,6 @@ function cube2grid(param) {
 							html = html.replaceAll("{{unassigned}}", "");
 						}//endif
 
-
 						html = html.replaceAll("{{ID}}", id_prefix + t + "x" + p + "x" + s);
 						return html;
 					}//endif
