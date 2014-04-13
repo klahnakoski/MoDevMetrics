@@ -110,10 +110,9 @@ function showNomChurn(args) {
 			],
 			"edges": [
 				{"name": "cf_blocking_b2g", "test": "true", "domain": {"name": "project", "type": "set", "key": "value", "partitions": [
-					{"name": "1.3", "value": "1.3?"},
-					{"name": "1.3t", "value": "1.3t?"},
-					{"name": "1.4", "value": "1.4?"},
-					{"name": "1.5", "value": "1.5?"}
+					triage.map(function(v){
+						return {"name": v.leftBut(1), "value": v}
+					})
 				], "end": function (p) {
 					return p.value;
 				}}},
@@ -160,12 +159,6 @@ function showNomChurn(args) {
 						"1.4":"1.4",
 						"1.5/2.0":"1.5"
 					}[series]));
-
-					var temp = all.list.map(function(r){
-						if (r.bug_id== 	908549) return r;
-
-					});
-
 
 					var buglist = (yield (Qb.calc2List({
 						"from": all,

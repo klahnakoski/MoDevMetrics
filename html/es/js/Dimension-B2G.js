@@ -10,37 +10,32 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 Dimension.addEdges(true, Mozilla, [
 	{"name": "B2G",
 		"esfilter": {"or": [
-			{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?"]}},
+			{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?", "2.0+", "2.0?"]}},
 			{"term": {"product": "firefox os"}}
 		]},
 		"edges": [
 
-			{"name": "Nominations", "index": "bugs", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "1.5?"]}}},
-			{"name": "Blockers", "index": "bugs", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}}},
+			{"name": "Nominations", "index": "bugs", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "1.5?", "2.0?"]}}},
+			{"name": "Blockers", "index": "bugs", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "2.0+"]}}},
 			{"name": "Regressions", "index": "bugs", "esfilter": {"term": {"keywords": "regression"}}},
 			{"name": "Unassigned", "index": "bugs", "esfilter": {"term": {"assigned_to": "nobody@mozilla.org"}}},
 
-			{"name": "Markup", "index": "bugs", "isFacet": true, "partitions": [
-				{"name": "Unassigned", "style": {"color": "purple"}, "esfilter": {"and":[
-					{"term": {"assigned_to": "nobody@mozilla.org"}},
-					{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}}
-				]}},
-				{"name": "Too Old", "style": {"color": "red"}, "esfilter":  {"and":[
-					{"range": {"modified_ts": {"lt": Date.today().add("-week").getMilli()}}},
-					{"or":[
-						{"terms": {"cf_blocking_b2g": ["1.3+", "1.3t+", "1.4+", "1.3?", "1.3t?", "1.4?"]}}, //DO NOT INCLUDE 1.5
-						{"term": {"keywords": "regression"}}
-					]}
-				]}},
-				{"name": "Old", "style": {"color": "orange"}, "esfilter": {"and":[
-					{"range": {"modified_ts": {"lt": Date.today().add("-2day").getMilli()}}},
-					{"or":[
-						{"terms": {"cf_blocking_b2g": ["1.3+", "1.3t+", "1.4+", "1.3?", "1.3t?", "1.4?"]}}, //DO NOT INCLUDE 1.5
-						{"term": {"keywords": "regression"}}
-					]}
-				]}},
-				{"name": "Unremarkable", "style": {}, "esfilter": {"matches_all": {}}}
-			]},
+			//AN UNFORTUNATE DISTINCTION BETWEEN DIMENSIONS (ABOVE, THAT OVERLAP), AND PARTITIONS THAT DO NOT OVERLAP
+			{"name": "State", "index": "bugs", "isFacet": true,
+				"partitions": [
+					{"name": "Nominated", "esfilter": {"and": [
+						{"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "1.5?", "2.0?"]}},
+						{"not": {"term": {"keywords": "regression"}}}
+					]}},
+					{"name": "Blocker", "esfilter": {"and": [
+						{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "2.0+"]}},
+						{"not": {"term": {"keywords": "regression"}}}
+					]}},
+					{"name": "Regression", "esfilter": {"term": {"keywords": "regression"}}}
+				]
+			},
+
+
 
 			{"name": "Component",
 				"field": "component",
@@ -278,20 +273,6 @@ Dimension.addEdges(true, Mozilla, [
 				]}}
 			]},
 
-			{"name": "State", "index": "bugs", "isFacet": true,
-				"partitions": [
-					{"name": "Nominated", "esfilter": {"and": [
-						{"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "1.5?"]}},
-						{"not": {"term": {"keywords": "regression"}}}
-					]}},
-					{"name": "Blocker", "esfilter": {"and": [
-						{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}},
-						{"not": {"term": {"keywords": "regression"}}}
-					]}},
-					{"name": "Regression", "esfilter": {"term": {"keywords": "regression"}}}
-				]
-			},
-
 			{"name": "Project", "index": "bugs", "isFacet": true,
 				"partitions": [
 					//https://wiki.mozilla.org/Release_Management/B2G_Landing
@@ -327,10 +308,10 @@ Dimension.addEdges(true, Mozilla, [
 							{"CF":"Sep 01, 2014"}
 						],
 						"style": {"color": "#1f77b4"},
-						"esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "1.5?"]}}
+						"esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "1.5?", "2.0+", "2.0?"]}}
 					},
 					{"name": "Other", "style": {"color": "#9467bd"}, "esfilter": {"and": [
-						{"not": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?"]}}}
+						{"not": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?", "2.0+", "2.0?"]}}}
 					]}}
 				]
 			},
@@ -361,14 +342,14 @@ Dimension.addEdges(true, Mozilla, [
 							{"name":"CF", "date":"Jun 9, 2014", "style":{strokeStyle:"black", verticalOffset: 30}}
 						]
 					},
-					{"name": "1.5",
+					{"name": "1.5/2.0",
 						"dateMarks":[
 							{"FC":"Jun 9, 2014"},
 							{"SC":"Jul 21, 2014"},
 							{"CF":"Sep 01, 2014"}
 						],
 						"style": {"color": "#1f77b4"},
-						"esfilter": {"term": {"cf_blocking_b2g": "1.5+"}}
+						"esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "2.0+"]}}
 					},
 					{"name": "Targeted",
 						"style": {"color": "#9467bd"},
