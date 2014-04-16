@@ -112,7 +112,10 @@ function showNominations(detail) {
 		var param = {
 			"bug_status": ["UNCONFIRMED", "NEW", "ASSIGNED", "REOPENED"],
 			"cf_blocking_b2g": detail.project + "?",
-			"component": detail.component
+			"f1":"component",
+			"v1":detail.component,
+			"o1":"equals",
+			"query_format":"advanced"
 		};
 		detail.bugsURL = "https://bugzilla.mozilla.org/buglist.cgi?"+CNV.Object2URL(param);
 	}//endif
@@ -135,7 +138,10 @@ function showBlocker(detail) {
 		var param = {
 			"bug_status": ["UNCONFIRMED", "NEW", "ASSIGNED", "REOPENED"],
 			"cf_blocking_b2g": detail.project + "+",
-			"component": detail.component
+			"f1":"component",
+			"v1":detail.component,
+			"o1":"equals",
+			"query_format":"advanced"
 		};
 		detail.bugsURL = "https://bugzilla.mozilla.org/buglist.cgi?"+CNV.Object2URL(param);
 

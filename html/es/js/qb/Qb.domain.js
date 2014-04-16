@@ -1149,9 +1149,9 @@ Qb.domain.set.compileKey=function(domain){
 			var f =
 				"newGetKeyFunction=function(__part){\n"+
 				"	if (__part==this.NULL) return null;\n";
-					for(var att in partition){
-						if (key.indexOf(att) >= 0) f += "var " + att + "=__part." + att + ";\n";
-					}//for
+					forAllKey(partition, function(attrName, value){
+						if (key.indexOf(attrName) >= 0) f += "var " + attrName + "=__part." + attrName + ";\n";
+					});
 			f+=	"	return "+key+"\n"+
 				"}";
 			eval(f);

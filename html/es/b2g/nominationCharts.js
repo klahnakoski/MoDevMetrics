@@ -109,13 +109,17 @@ function showNomChurn(args) {
 				{"name": "count", "value": NOM_CHECK_LOGIC + " ? 1 : 0", "aggregate": "sum"}
 			],
 			"edges": [
-				{"name": "cf_blocking_b2g", "test": "true", "domain": {"name": "project", "type": "set", "key": "value", "partitions": [
-					triage.map(function(v){
+				{"name": "cf_blocking_b2g", "test": "true", "domain": {
+					"name": "project",
+					"type": "set",
+					"key": "value",
+					"partitions": triage.map(function(v){
 						return {"name": v.leftBut(1), "value": v}
-					})
-				], "end": function (p) {
-					return p.value;
-				}}},
+					}),
+					"end": function (p) {
+						return p.value;
+					}
+				}},
 				{"name": "modified_ts", "value": "Date.newInstance(modified_ts)", "domain": {"type": "time", "min": args.timeDomain.min, "max": args.timeDomain.max, "interval": args.timeDomain.interval, "value": "value"}}
 			]
 		}));
