@@ -8,7 +8,7 @@
 </HEAD>
 <BODY>
 
-<div id="sidebar">
+<div id="sidebar" style="width:300px;">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 	</div>
@@ -68,8 +68,7 @@ var __createChart = function*(){
 			{"range":{"modified_ts":{"gte":Date.newInstance(GUI.state.cohortMin).getMilli()}}},
 			{"range":{"modified_ts":{"lte":Date.today().getMilli()}}},
 			{"script":{"script":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value'}}  //ONLY THE DOCUMENT THAT CLOSES THE BUG
-		]},
-		"essize":GUI.state.esSize
+		]}
 	});
 
 	GUI.injectFilters(query);

@@ -11,6 +11,7 @@ importScript("../util/CNV.js");
 importScript("../util/aDate.js");
 importScript("../util/aUtil.js");
 importScript("../debug/aLog.js");
+importScript("../collections/aMatrix.js");
 importScript("MVEL.js");
 importScript("Qb.aggregate.js");
 importScript("Qb.column.js");
@@ -34,7 +35,7 @@ Qb.compile = function(query, sourceColumns, useMVEL){
 	var uniqueColumns={};
 
 	if (sourceColumns===undefined){
-	    Log.error("It seems we can't get schema from cluster?")
+		Log.error("It seems we can't get schema from cluster?")
 	}//endif
 
 	if (query.edges === undefined) query.edges=[];
@@ -42,6 +43,9 @@ Qb.compile = function(query, sourceColumns, useMVEL){
 	var edges = query.edges;
 	for(var g = 0; g < edges.length; g++){
 		var e=edges[g];
+		if (e.partitions!==undefined){
+			Log.error("An edge can not have partitions!  Did you give a domain to an edge?")
+		}//endif
 
 		if (typeof(e)=='string'){
 			e={"value":e}; //NOW DEFINE AN EDGE BY ITS VALUE
@@ -298,7 +302,7 @@ Qb.calc2List = function*(query){
 function* calc2Cube(query){
 	if (query.edges===undefined) query.edges=[];
 
-	if (query.edges.length==0){
+	if (query.edges.length==0 && Array.newInstance(query.select).length>0){
 		var o=yield (aggOP(query));
 		yield (o);
 	}//endif
@@ -308,6 +312,9 @@ function* calc2Cube(query){
 	//ASSIGN dataIndex TO ALL PARTITIONS
 	var edges = query.edges;
 	for(var f = 0; f < edges.length; f++){
+		if (edges[f].domain.type=="default"){
+			edges[f].domain.partitions.sort(edges[f].domain.compare);
+		}//endif
 		var p = 0;
 		for(; p < (edges[f].domain.partitions).length; p++){
 			edges[f].domain.partitions[p].dataIndex = p;
@@ -687,61 +694,54 @@ Qb.normalizeByX=function(query, multiple){
 };//method
 
 
+Qb.normalize=function(query, edgeIndex, multiple){
+	if (multiple===undefined) multiple=1;
+	if (query.cube===undefined) Log.error("Can only normalize a cube into a table at this time");
+
+	var totals=[];
+	var m=new Matrix({"data":query.cube});
+
+	m.forall(edgeIndex, function(v, i){
+		totals[i] = nvl(totals[i], 0) + aMath.abs(v);
+	});
+	m.map(query.edges.length, function (v, i) {
+		if (totals[i]!=0){
+			return v/totals[i];
+		}else{
+			return v;
+		}//endif
+	});
+};
+
+
 Qb.removeZeroParts=function(query, edgeIndex){
 	if (query.cube===undefined) Log.error("Can only normalize a cube into a table at this time");
 
-	var zeros=query.edges[edgeIndex].domain.partitions.map(function(){ return true;});
+	var domain = query.edges[edgeIndex].domain;
+	var zeros=domain.partitions.map(function(){ return true;});
 
-	if (query.edges.length!=2){
-		Log.error("not implemented yet");
+	//CHECK FOR ZEROS
+	var m = new Matrix({"data": query.cube});
+	m.forall(edgeIndex, function (v, i) {
+		if (v.count !== undefined && v.count != null && v.count != 0) zeros[i] = false;
+	});
 
-	}else{
-		if (edgeIndex==0){
-			for(var c=0;c<query.cube.length;c++){
-				for(var e=0;e<query.cube[c].length;e++){
-					var v=query.cube[c][e];
-					if (v!==undefined && v!=null && query.cube[c][e]!=0) zeros[c]=false;
-				}//for
-			}//for
+	//REMOVE ZERO PARTS FROM EDGE
+	var j = 0;
+	domain.partitions = domain.partitions.map(function (part, i) {
+		if (zeros[i]) return undefined;
+		var output = Map.copy(part);
+		output.dataIndex = j;
+		j++;
+		return output;
+	});
 
-			query.edges[0].domain.partitions=query.edges[0].domain.partitions.map(function(part, i){
-				if (zeros[i]) return undefined;
-				var output=Map.copy(part);
-				output.dataIndex=i;
-				return output;
-			});
-			query.edges[0].domain.NULL.dataIndex=query.edges[0].domain.partitions.length;
-			query.cube=query.cube.map(function(v, i){
-				if (zeros[i]) return undefined;
-				return v;
-			});
-		}else if (edgeIndex==1){
-			for(var c=0;c<query.cube.length;c++){
-				for(var e=0;e<query.cube[c].length;e++){
-					var v=query.cube[c][e];
-					if (v!==undefined && v!=null && query.cube[c][e]!=0) zeros[e]=false;
-				}//for
-			}//for
-			query.edges[1].domain.partitions=query.edges[1].domain.partitions.map(function(part, i){
-				if (zeros[i]) return undefined;
-				var output=Map.copy(part);
-				output.dataIndex=i;
-				return output;
-			});
-			query.edges[1].domain.NULL.dataIndex=query.edges[1].domain.partitions.length;
-			query.cube=query.cube.map(function(r, i){
-				return r.map(function(c, j){
-					if (zeros[j]) return undefined;
-					return c;
-				})
-			});
+	//REMOVE ZERO PARTS FROM CUBE
+	query.cube = m.filter(edgeIndex, function (v, i) {
+		if (!zeros[i]) return v;
+		return undefined;
+	});
 
-
-
-
-		}//endif
-
-	}//endif
 };
 
 
@@ -778,7 +778,6 @@ function Tree2Cube(query, cube, tree, depth){
 		for(var k=keys.length;k--;){
 			var p=domain.getPartByKey(keys[k]).dataIndex;
 			if (cube[p]===undefined){
-				Log.debug();
 				p=domain.getPartByKey(keys[k]).dataIndex;
 			}//endif
 			Tree2Cube(query, cube[p], tree[keys[k]], depth+1);
@@ -857,6 +856,8 @@ Qb.getColumnsFromList = function(data){
 
 	var output = [];
 	for(var i = 0; i < data.length; i++){
+		//WHAT ABOUT LISTS OF VALUES, WHAT IS THE COLUMN "NAME"
+//		if (typeof data[i] != "object") return ["value"];
 		var keys = Object.keys(data[i]);
 		kk: for(var k = 0; k < keys.length; k++){
 			for(var c = 0; c < output.length; c++){
@@ -935,39 +936,39 @@ Qb.merge=function(query){
 
 
 		//COPY ATTRIBUTES TO NEW JOINED
-	    var parts=[];
-	    var num=[];
+		var parts=[];
+		var num=[];
 
-	    var depth=output.edges.length;
-	    for(var d=0;d<depth;d++){
-		    domain = item.edges[d].domain;
-		    parts[d] = output.edges[d].domain.partitions.map(function(newpart, i){
-			    var oldpart = domain.getPartByKey(domain.getKey(newpart));  //OLD PARTS IN NEW ORDER
-			    if (oldpart.dataIndex!=newpart.dataIndex){
-				    Log.error("partitions have different orders, check this code works");
-			    }//endif
-			    return oldpart;
-		    });
-	        num[d]=parts[d].length;
-	    }//for
+		var depth=output.edges.length;
+		for(var d=0;d<depth;d++){
+			domain = item.edges[d].domain;
+			parts[d] = output.edges[d].domain.partitions.map(function(newpart, i){
+				var oldpart = domain.getPartByKey(domain.getKey(newpart));  //OLD PARTS IN NEW ORDER
+				if (oldpart.dataIndex!=newpart.dataIndex){
+					Log.error("partitions have different orders, check this code works");
+				}//endif
+				return oldpart;
+			});
+			num[d]=parts[d].length;
+		}//for
 
-	    var copy=function(from, to , d){
-	        for(var i=num[d];i--;){
-	            if (d<depth-1){
-	                copy(from[parts[d][i].dataIndex], to[i], d+1);
-	            }else{
-	                if (item.from.select instanceof Array){
-	                    Map.copy(from[parts[d][i].dataIndex], to[i])
-	                }else{
-	                    to[i][item.from.select.name]=from[parts[d][i].dataIndex]
-	                }//endif
-	            }//endif
-	        }//for
-		    if (output.edges[d].allowNulls){
-			    copy(from[num[d]], to[num[d]], d+1);
-		    }//endif
-	    };
-	    copy(item.from.cube, output.cube, 0);
+		var copy=function(from, to , d){
+			for(var i=num[d];i--;){
+				if (d<depth-1){
+					copy(from[parts[d][i].dataIndex], to[i], d+1);
+				}else{
+					if (item.from.select instanceof Array){
+						Map.copy(from[parts[d][i].dataIndex], to[i])
+					}else{
+						to[i][item.from.select.name]=from[parts[d][i].dataIndex]
+					}//endif
+				}//endif
+			}//for
+			if (output.edges[d].allowNulls){
+				copy(from[num[d]], to[num[d]], d+1);
+			}//endif
+		};
+		copy(item.from.cube, output.cube, 0);
 	});
 
 //	output.select=query.partitions[0].from.select;	//I AM TIRED, JUST MAKE A BUNCH OF ASSUMPTIONS
@@ -1168,6 +1169,7 @@ Qb.drill=function(query, parts){
 	};
 
 	Q=calc2Cube;
+
 
 
 })();

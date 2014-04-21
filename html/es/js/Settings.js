@@ -15,7 +15,7 @@ if (window.location.hostname=="metrics.mozilla.com"){
 	var find="html/es";
 		var i =window.location.pathname.indexOf(find)
 		if (i==-1){
-		    Settings.basePath="http://people.mozilla.com/~klahnakoski/es/";
+			Settings.basePath="http://people.mozilla.com/~klahnakoski/es/";
 	}else{
 		Settings.basePath=window.location.pathname.substring(0, i+find.length);
 	}//endif

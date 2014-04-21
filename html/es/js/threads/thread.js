@@ -29,15 +29,15 @@ build=function(){
 
 	Thread = function(gen){
 		if (typeof(gen) == "function"){
-	        try{
-	            gen = gen();	//MAYBE THE FUNCTION WILL CREATE A GENERATOR
-	            if (String(gen) !== '[object Generator]'){
-	                Log.error("You can not pass a function.  Pass a generator! (have function use the yield keyword instead)");
-	            }//endif
-	        }catch(e){
-	            Log.error("Expecting a Generator!", e);
-	        }//endif
-	    }//endif
+			try{
+				gen = gen();	//MAYBE THE FUNCTION WILL CREATE A GENERATOR
+				if (String(gen) !== '[object Generator]'){
+					Log.error("You can not pass a function.  Pass a generator! (have function use the yield keyword instead)");
+				}//endif
+			}catch(e){
+				Log.error("Expecting a Generator!", e);
+			}//endif
+		}//endif
 		this.parentThread = Thread.currentThread;
 
 		this.keepRunning = true;
@@ -63,6 +63,24 @@ build=function(){
 		output.start();
 		return output;
 	};//method
+
+
+	//JUST LIKE RUN, ONLY DOES NOT REGISTER THE THREAD IN isRunning
+	Thread.daemon = function(name, gen){
+		if (typeof(name) != "string"){
+			gen = name;
+			name = undefined;
+		}//endif
+
+		//START IN SILENT MODE
+		var output = new Thread(gen);
+		output.name = name;
+		output.parentThread = Thread.currentThread;
+		output.parentThread.children.push(this);
+		output.resume(output.stack.pop());
+		return output;
+	};//method
+
 
 
 	//FEELING LUCKY?  MAYBE THIS GENERATOR WILL NOT DELAY AND RETURN A VALID VALUE BEFORE IT BLOCKS
@@ -145,9 +163,9 @@ build=function(){
 					self.resume(retval);
 				};
 			} else{ //RETURNING A VALUE/OBJECT/FUNCTION TO CALLER
-	            var g = this.stack.pop();
-	            if (g.close!==undefined)
-	                g.close(); //ONLY HAPPENS WHEN EXCEPTION IN THREAD IS NOT CAUGHT
+				var g = this.stack.pop();
+				if (g.close!==undefined)
+					g.close(); //ONLY HAPPENS WHEN EXCEPTION IN THREAD IS NOT CAUGHT
 
 				if (this.stack.length == 0){
 					return this.shutdown(retval);
@@ -162,11 +180,11 @@ build=function(){
 				Thread.currentThread = this;
 
 				if (retval instanceof Exception){
-	                result = this.gen.throw(retval);  //THROW METHOD OF THE GENERATOR IS CALLED, WHICH IS SENT TO CALLER AS thrown EXCEPTION
+					result = this.gen.throw(retval);  //THROW METHOD OF THE GENERATOR IS CALLED, WHICH IS SENT TO CALLER AS thrown EXCEPTION
 				} else{
 					result = this.gen.next(retval)
 				}//endif
-	            retval=result.value;
+				retval=result.value;
 
 				Thread.currentThread = mainThread;
 			} catch(e){
@@ -187,6 +205,9 @@ build=function(){
 
 	//THIS IS A MESS, CALLED FROM DIFFERENT LOCATIONS, AND MUST DISCOVER
 	//CONTEXT TO RUN CORRECT CODE
+	//retval===undefined - NORMAL KILL
+	//retval===true - TOTAL KILL, NO TRY/CATCH (REALLY BAD) SUPPRESS THREAD EXCEPTION
+	//retval instanceof Exception - THROW SPECIFIC THREAD EXCEPTION
 	Thread.prototype.kill = function(retval){
 		//HOPEFULLY cr WILl BE UNDEFINED, OR NOT, (NOT CHANGING)
 		var cr = this.currentRequest;
@@ -208,7 +229,14 @@ build=function(){
 
 		if (this.stack.length>0){
 			this.stack.push(dummy); //TOP OF STACK IS THE RUNNING GENERATOR, THIS kill() CAME FROM BEYOND
-			this.resume(Thread.Interrupted);
+			if (retval==true){
+				while(this.stack.length>0){
+					var g = this.stack.pop();
+					if (g.close) g.close();  //PREMATURE CLOSE, REALLY BAD
+				}//while
+			}else{
+				this.resume(Thread.Interrupted);
+			}//endif
 			if (this.stack.length>0)
 				Log.error("Why does this Happen?");
 			return;
@@ -292,32 +320,32 @@ build=function(){
 
 	//WAIT FOR OTHER THREAD TO FINISH
 	Thread.join = function*(otherThread, timeout){
-	    if (timeout===undefined){
-	        if (DEBUG)
-	            while(otherThread.keepRunning){
-	      			yield(Thread.sleep(1000));
-	      			if (otherThread.keepRunning)
-	      				Log.note("Waiting for thread");
-	      		}//while
+		if (timeout===undefined){
+			if (DEBUG)
+				while(otherThread.keepRunning){
+		  			yield(Thread.sleep(1000));
+		  			if (otherThread.keepRunning)
+		  				Log.note("Waiting for thread");
+		  		}//while
 
-	        if (otherThread.keepRunning){
-	            //WE WILL SIMPLY MAKE THE JOINING THREAD LOOK LIKE THE otherThread's CALLER
-	            //(WILL ALSO PACKAGE ANY EXCEPTIONS THAT ARE THROWN FROM otherThread)
-	            var gen = Thread_join_resume(yield(Thread.Resume));
-	            gen.next();  //THE FIRST CALL TO next()
-	            otherThread.stack.unshift(gen);
-	            yield (Thread.suspend());
-	        } else{
-	            yield ({"threadResponse":otherThread.threadResponse});
-	        }//endif
-	    }else{
-	        //WE SHOULD USE A REAL SIGNAL, BUT I AM LAZY SO WE BUSY-WAIT
-	        for(var t=0;t<10;t++){
-	            if (otherThread.keepRunning){
-	                yield(Thread.sleep(timeout/10));
-	            }//endif
-	        }//for
-	    }//endif
+			if (otherThread.keepRunning){
+				//WE WILL SIMPLY MAKE THE JOINING THREAD LOOK LIKE THE otherThread's CALLER
+				//(WILL ALSO PACKAGE ANY EXCEPTIONS THAT ARE THROWN FROM otherThread)
+				var gen = Thread_join_resume(yield(Thread.Resume));
+				gen.next();  //THE FIRST CALL TO next()
+				otherThread.stack.unshift(gen);
+				yield (Thread.suspend());
+			} else{
+				yield ({"threadResponse":otherThread.threadResponse});
+			}//endif
+		}else{
+			//WE SHOULD USE A REAL SIGNAL, BUT I AM LAZY SO WE BUSY-WAIT
+			for(var t=0;t<10;t++){
+				if (otherThread.keepRunning){
+					yield(Thread.sleep(timeout/10));
+				}//endif
+			}//for
+		}//endif
 	};
 
 

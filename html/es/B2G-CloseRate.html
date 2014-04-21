@@ -13,7 +13,7 @@
 	<a href="http://people.mozilla.com/~klahnakoski/" class="button">More Charts</a>
 </div>
 
-<div id="sidebar">
+<div id="sidebar" style="width:300px;">
 	<br>
 	<br>
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
@@ -37,7 +37,7 @@
 <div style="align:left;position:relative;float:left;width:800px;">
 	<h3 id="title"></h3>
 
-	<div id="chart" class="chart" style="position: relative;"></div>
+	<div id="chart" class="chart" style="height:500px;width:800px;position: relative;"></div>
 	<br><br>
 	<div id="info" style="width:800px;float:left;"></div>
 	<div id="report"></div>
@@ -48,7 +48,7 @@
 
 
 
-importScript(['js/main.js', 'js/Dimension-Bugzilla.js'], function(){
+importScript(['js/main.js', 'js/Dimension-Bugzilla.js', 'js/Dimension-B2G.js'], function(){
 
 
 var thread;
@@ -62,7 +62,8 @@ var __createChart = function*(){
 	$("#title").html("B2G Bug Fix Rate");
 	$("#description").html(
 		"Show number of Resolution==FIXED bugs for four major B2G projects:<ul>"+
-        "<li><b>1.4</b> - blocking-b2g==&quot;1.4+&quot; OR target_milestone.startsWith(&quot;1.4&quot;)</li>"+
+		"<li><b>1.5</b> - blocking-b2g==&quot;1.5+&quot; OR target_milestone.startsWith(&quot;1.5&quot;)</li>"+
+		"<li><b>1.4</b> - blocking-b2g==&quot;1.4+&quot; OR target_milestone.startsWith(&quot;1.4&quot;)</li>"+
         "<li><b>1.3</b> - blocking-b2g in (&quot;1.3+&quot;, &quot;1.3t+&quot;) OR target_milestone.startsWith(&quot;1.3&quot;)</li>"+
         "<li><b>KOI</b> - blocking-b2g==&quot;koi+&quot; OR target_milestone.startsWith(&quot;1.2&quot;)</li>"+
 		"<li><b>LEO</b> - blocking-b2g==&quot;leo+&quot;</li>"+
@@ -79,31 +80,36 @@ var __createChart = function*(){
 
 	var focal_dim={"name":"Project", "edges":[]};
 	Dimension.addEdges(true, focal_dim, [
-		{"name":"Project", "index":"bugs", "partitions":[
-            {"name":"1.4", "esfilter":{"or":[
-                {"and":[
-                    {"exists":{"field":"target_milestone"}},
-                    {"prefix":{"target_milestone":"1.4"}},
-                    {"not":{"term":{"product": "instantbird"}}},
-                    {"not":{"term":{"product": "chat core"}}}
-                ]},
-                {"terms":{"cf_blocking_b2g":["1.4+"]}}
-            ]}},
-            {"name":"1.3", "esfilter":{"or":[
-                {"and":[
-                    {"exists":{"field":"target_milestone"}},
-                    {"prefix":{"target_milestone":"1.3"}},
-                    {"not":{"term":{"product": "instantbird"}}},
-                    {"not":{"term":{"product": "chat core"}}}
-                ]},
-                {"terms":{"cf_blocking_b2g":["1.3+", "1.3t+"]}}
-            ]}},
-            {"name":"KOI", "esfilter":{"or":[
+		{"name": "Project", "index": "bugs", "isFacet": true, "partitions": [
+			{"name": "1.5/2.0", "esfilter": {"or": [
+				{"and": [
+					{"exists": {"field": "target_milestone"}},
+					{"prefix": {"target_milestone": "1.5"}},
+					{"term": {"product": "firefox os"}}
+				]},
+				{"terms": {"cf_blocking_b2g": ["1.5+"]}}
+			]}},
+			{"name": "1.4", "esfilter": {"or": [
+				{"and": [
+					{"exists": {"field": "target_milestone"}},
+					{"prefix": {"target_milestone": "1.4"}},
+					{"term": {"product": "firefox os"}}
+				]},
+				{"terms": {"cf_blocking_b2g": ["1.4+"]}}
+			]}},
+			{"name": "1.3/1.3T", "esfilter": {"or": [
+				{"and": [
+					{"exists": {"field": "target_milestone"}},
+					{"prefix": {"target_milestone": "1.3"}},
+					{"term": {"product": "firefox os"}}
+				]},
+				{"terms": {"cf_blocking_b2g": ["1.3+", "1.3t+"]}}
+			]}},
+			{"name":"KOI", "esfilter":{"or":[
                 {"and":[
                     {"exists":{"field":"target_milestone"}},
                     {"prefix":{"target_milestone":"1.2"}},
-                    {"not":{"term":{"product": "instantbird"}}},
-                    {"not":{"term":{"product": "chat core"}}}
+	                {"term":{"product": "firefox os"}}
                 ]},
                 {"terms":{"cf_blocking_b2g":["koi+"]}}
             ]}},
@@ -114,130 +120,102 @@ var __createChart = function*(){
 
 	yield (ESQuery.loadColumns({"from":"bugs"}));
 
+	Thread.run(function*() {
+		///////////////////////////////////////////////////////////////////////
+		// THREAD TO GET CLOSE RATES
+		///////////////////////////////////////////////////////////////////////
 
-	Thread.run(function*(){
-		var a=Log.action("Get Bug Details", true);
+		var a = Log.action("Load Bug Closures", true);
+		//GET BUG FINAL STATES
+		var allBugs = null;
+		var allBugsThread = Thread.run(function*() {
+			allBugs = yield(ESQuery.run({
+				"from": "bugs",
+				"select": [
+					"bug_id",
+					"product",
+					"component",
+					"cf_blocking_b2g",
+					"keywords",
+					"target_milestone"
+				],
+				"esfilter": {"and": [
+					focal_dim.Project.esfilter,
+					Mozilla.CurrentRecords.esfilter,
+					Mozilla.BugStatus.Closed.esfilter,
+					{"range": {"modified_ts": {"gte": sampleMin.getMilli()}}},
+					{"term": {"bug_status": "resolved"}},
+					{"term": {"resolution": "fixed"}}
+				]}
+			}));
+		});
 
-
-		var resolutionParts=[
-			{"name":"fixed", "style":{}},
-			{"name":"duplicate", "style":{"visibility":"hidden"}},
-			{"name":"invalid", "style":{"visibility":"hidden"}},
-			{"name":"wontfix", "style":{"visibility":"hidden"}},
-			{"name":"worksforme", "style":{"visibility":"hidden"}}
-		];
-
-
-		var interesting_bugs = yield(ESQuery.run({
-			"from":"bugs",
-			"select":[
-				{"name":"count", "value":"bug_id", "aggregate":"count"}
+		//PULL LATEST CLOSE DATES
+		var bugClose = yield(ESQuery.run({
+			"from": "bugs",
+			"select": {"name": "closeDate", "value": "expires_on", "aggregate": "maximum"},
+			"edges": [
+				"bug_id"
 			],
-			"edges":[
-				{"value":"bug_id"}
-			],
-			"esfilter":{"and":[
-				{"range":{"expires_on":{"gte":sampleMin.getMilli()}}},
-//				{"range":{"modified_ts":{"lte":sampleMax.getMilli()}}},
+			"esfilter": {"and": [
+				{"range": {"expires_on": {"gte": sampleMin.getMilli(), "lte": sampleMax.getMilli()}}},
+				Mozilla.BugStatus.Open.esfilter,
 				focal_dim.Project.esfilter
 			]}
 		}));
 
-		interesting_bugs=yield (Qb.Cube2List(interesting_bugs));
-		interesting_bugs=interesting_bugs.select("bug_id");
-
-		var mm=yield (ElasticSearch.getMinMax({"and":[
-			{"terms":{"bug_id":interesting_bugs}},
-			Mozilla.BugStatus.Open.esfilter
-		]}));
-
-//$("#info").html(CNV.Cube2HTMLTable(mm));
-		// TODO: I am catching bugs marked part of project AFTER fixing
-		// I am concerned about missing bugs that are fixed, then project indicator is cleared
-		var resolutions=yield (ESQuery.run({
-			"from":"bugs",
-			"select":[
-				"bug_id",
-				"resolution",
-				focal_dim.Project.getSelect()
-			],
-			"esfilter":{"and":[
-				Mozilla.CurrentRecords.esfilter,
-				Mozilla.BugStatus.Closed.Resolved.Fixed.esfilter,
-				focal_dim.Project.esfilter
-			]}
-		}));
-
+		yield (Thread.join(allBugsThread));
 		Log.actionDone(a);
 
-		a=Log.action("Calc Close Times", true);
+		{//ADD THOSE closeDate TO TO MAIN LIST OF BUGS (WE SHOULD BE MERGING IN SOME FORM)
+			var domain = bugClose.edges[0].domain;
+			var data = bugClose.cube;
+			allBugs.list.forall(function (v) {
+				v.closeDate = Date.newInstance(data[domain.getPartByKey(v.bug_id).dataIndex]);    //USE dataIndex OF part TO LOOKUP closeDate IN CUBE
+			});
+			allBugs.columns.append({"name": "closeDate"});  //ADD TO METADATA
+		}
 
-		var bugList=yield (Q({
-			"from":mm,
-			"select":[
-				{"name":"closeTime", "value":"max", "aggregate":"one"},
-				{"name":"resolution", "value":"r.resolution", "aggregate":"one"},
-				{"name":"Project", "value":"r.Project", "aggregate":"one"}
-			],
-			"edges":[
-				{"name":"bug_id", "value":"bug_id",
-					"allowNulls":false,
-					"domain":{"type":"set", "name":"r", "partitions":resolutions, "key":"bug_id", "value":"bug_id"}
-				}
-			],
-			"where":"max!==undefined"
-		}));
-
-
-
-		var chart=yield (Q({
-			"from":bugList,
-			"select":{"name":"num", "value":"bug_id", "aggregate":"count"},
+		var churn = yield(Q({
+			"from": allBugs,
+			"name": "Resolved Fixed Bugs",
+			"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
 			"edges": [
-				{"name":"Project", "value":"Project", "domain":{"type":"set", "partitions":focal_dim.Project.partitions.select("name")}},
-				{"name":"date",
-					"value":"closeTime",
-					"domain":{"type":"date", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
-				}
+				{"name": "Category", "domain": focal_dim.Project.getDomain()},
+				{"name": "date", "value": "closeDate", "domain": {"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}}
 			]
 		}));
 
-		Log.actionDone(a);
-
+//		//DIRTY REVERSE OF THE TYPES
+//		churn.edges[0].domain.partitions.reverse();
+//		churn.cube.reverse();
+//		churn.edges[0].domain.partitions[0].style.visibility = "visible";
 
 		aChart.show({
-			"id":"chart",
-			"sheetDiv":"info",
-			"type":"bar",
-			"stacked":true,
-			"cube":chart,
-			"height":400,
-			extensionPoints: {
-				dot_shapeRadius: 5,
-				dot_shape:"circle",
-				line_lineWidth: 2
-			},
-			"clickAction":function(project, x, d){
-				Thread.run(function*(){
-					var date=Date.newInstance(x);
+			"id": "chart",
+			"type": "bar",
+			"stacked": true,
+			"cube": churn,
+			"clickAction": function (series, x, d) {
+				var category = churn.edges[0].domain.getPartByKey(series);
+				var date = churn.edges[1].domain.getPartByKey(x);
 
-					var list=yield (Qb.calc2List({
-						"from":bugList,
-						"select":{"value":"bug_id"},
-						"where":"closeTime!=null && "+
-								"closeTime.between(Date.newInstance("+date.getMilli()+"), Date.newInstance("+date.add(sampleInterval).getMilli()+")) && "+
-								"Project=="+CNV.String2Quote(project)
-					}));
+				Thread.run(function*() {
+					var buglist = (yield (Qb.calc2List({
+						"from": allBugs,
+						"select": {"value": "bug_id"},
+						"where": {"and": [
+							{"range": {"closeDate": {"gte": date.min, "lt": date.max}}},
+							category.fullFilter,
+							GUI.getFilters("bugs")
+						]}
 
-					Bugzilla.showBugs(list.list);
+					})));
+
+					Bugzilla.showBugs(buglist.list);
 				});
-				return true;
-
-			}
+			}//click
 		});
-		Log.actionDone(a);
-
-
 	});
 
 
@@ -257,7 +235,7 @@ $(document).ready(function(){
 				"sampleMax=Date.newInstance(sampleMax).addDay(1).floorWeek().addDay(-1).format('yyyy-MM-dd')"
 		],
 		"bugs",
-		false		//DO NOT SHOW DEFAULT FILTERS
+		false		//SHOW DEFAULT FILTERS?
 	);
 
 //	GUI.state.productFilter = ["B2G 1.0.0 (TEF)"];

@@ -57,23 +57,29 @@ ElasticSearch.bulkInsert=function*(indexName, typeName, dataArray){
 ElasticSearch.getMinMax=function*(esfilter){
 
 	//MUST CALL ES TWICE BECAUSE WE CAN ONLY HAVE ONE SELECT COLUMN IF WE HAVE EDGES
-	var u1 = yield(ESQuery.run({
+	var u1=null;
+	var minThread=Thread.run(function*(){
+		u1 = yield(ESQuery.run({
+			"from":"bugs",
+			"select":{"name":"min", "value":"modified_ts", "aggregate":"minimum"},
+			"edges":[
+				"bug_id"
+			],
+			"esfilter":esfilter
+		}));
+
+	});
+
+	var u2 = yield(ESQuery.run({
 		"from":"bugs",
-		"select":{"name":"min", "value":"modified_ts", "aggregate":"minimum"},
+		"select":{"name":"max", "value":"expires_on", "aggregate":"maximum"},
 		"edges":[
 			"bug_id"
 		],
 		"esfilter":esfilter
 	}));
 
-	var u2 = yield(ESQuery.run({
-		"from":"bugs",
-		"select":{"name":"max", "value":"expires_on ", "aggregate":"maximum"},
-		"edges":[
-			"bug_id"
-		],
-		"esfilter":esfilter
-	}));
+	yield (Thread.join(minThread));
 
 	//CONVERT TO DATE VALUES (ALSO CONVERTS HIGH DATE VALUE TO null)
 	u1.cube.forall(function(v, i){

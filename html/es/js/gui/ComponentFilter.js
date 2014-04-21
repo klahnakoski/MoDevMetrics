@@ -110,7 +110,7 @@ ComponentFilter.prototype.makeHTML=function(){
 
 ComponentFilter.prototype.injectHTML = function(components){
 	var html = '<ul id="componentsList" class="menu ui-selectable">';
-	var item = '<li class="{class}" id="component_{name}">{name} ({count})</li>';
+	var item = '<li class="{{class}}" id="component_{{name}}">{{name}} ({{count}})</li>';
 
 	//GIVE USER OPTION TO SELECT ALL PRODUCTS
 	var total = 0;

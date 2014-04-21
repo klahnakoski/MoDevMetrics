@@ -10,21 +10,57 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 Dimension.addEdges(true, Mozilla, [
 	{"name": "B2G",
 		"esfilter": {"or": [
-			{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?"]}},
+			{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?", "2.0+", "2.0?"]}},
 			{"term": {"product": "firefox os"}}
 		]},
 		"edges": [
-			{"name": "Age", "index": "bugs", "isFacet": true, "partitions": [
-				{"name": "Old", "style": {"color": "red"}, "esfilter": {"range": {"modified_ts": {"lt": Date.eod().add("-4day").getMilli()}}}},
-				{"name": "Close", "style": {"color": "orange"}, "esfilter": {"range": {"modified_ts": {"lt": Date.eod().add("-3day").getMilli()}}}},
-				{"name": "Young", "style": {"color": "green"}, "esfilter": {"range": {"modified_ts": {"lt": Date.eod().getMilli()}}}}
-			]},
+
+			{"name": "Nominations", "index": "bugs", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "1.5?", "2.0?"]}}},
+			{"name": "Blockers", "index": "bugs", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "2.0+"]}}},
+			{"name": "Regressions", "index": "bugs", "esfilter": {"term": {"keywords": "regression"}}},
+			{"name": "Unassigned", "index": "bugs", "esfilter": {"term": {"assigned_to": "nobody@mozilla.org"}}},
+
+			//AN UNFORTUNATE DISTINCTION BETWEEN DIMENSIONS (ABOVE, THAT OVERLAP), AND PARTITIONS THAT DO NOT OVERLAP
+			{"name": "State", "index": "bugs", "isFacet": true,
+				"partitions": [
+					{"name": "Nominated", "esfilter": {"and": [
+						{"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "1.5?", "2.0?"]}},
+						{"not": {"term": {"keywords": "regression"}}}
+					]}},
+					{"name": "Blocker", "esfilter": {"and": [
+						{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "2.0+"]}},
+						{"not": {"term": {"keywords": "regression"}}}
+					]}},
+					{"name": "Regression", "esfilter": {"term": {"keywords": "regression"}}}
+				]
+			},
+
+
+
+			{"name": "Component",
+				"field": "component",
+				"type": "set",
+				"esfilter": ESQuery.TrueFilter,
+				"index":"bugs",
+				"limit":200,
+				"end": function (p) {
+					return p.name;
+				}
+			},
 
 			{"name":"Team", "isFacet": true, "partitions":[
-				{"name":"Performance", "esfilter":{"term":{"keyword":"perf"}}},
-
-				{"name":"Systemsfe", "esfilter":{"and":[
-					{"not":{"term":{"keyword":"perf"}}}, //AN UNFORTUNATE REDUNDANCY
+				{"name":"Performance",
+					"esfilter":{"or":[
+						{"term":{"keywords":"perf"}},
+						{"and":[
+							{"term":{"product":"firefox os"}},
+							{"term":{"component":"performance"}}
+						]}
+					]}
+				},
+				{"name":"System Front-End", "esfilter":{"and":[
+					{"not":{"term":{"keywords":"perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"term": {"product": "firefox os"}},
 					{"terms":{"component":[
 						"gaia::browser",
 						"gaia::everything.me",
@@ -36,7 +72,8 @@ Dimension.addEdges(true, Mozilla, [
 					]}}
 				]}},
 				{"name": "Productivity", "esfilter": {"and": [
-					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"term": {"product": "firefox os"}},
 					{"terms": {"component": [
 						"gaia::e-mail",
 						"gaia::clock",
@@ -46,7 +83,8 @@ Dimension.addEdges(true, Mozilla, [
 					]}}
 				]}},
 				{"name": "Media", "esfilter": {"and": [
-					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"term": {"product": "firefox os"}},
 					{"terms": {"component": [
 						"gaia::camera",
 						"gaia::fmradio",
@@ -56,7 +94,7 @@ Dimension.addEdges(true, Mozilla, [
 					]}}
 				]}},
 				{"name": "RIL", "esfilter": {"and": [
-					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"terms": {"component": [
 						"ril",
 						"nfc",
@@ -65,7 +103,8 @@ Dimension.addEdges(true, Mozilla, [
 					]}}
 				]}},
 				{"name": "System Platform", "esfilter": {"and": [
-					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"term": {"product": "firefox os"}},
 					{"terms": {"component": [
 						"gaia::settings",
 						"gaia::system::window mgmt",
@@ -74,17 +113,19 @@ Dimension.addEdges(true, Mozilla, [
 						"gaia::system::lockscreen"
 					]}}
 				]}},
-				{"name": "Multi-media platform", "esfilter": {"and": [
-					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+				{"name": "Multi-media Platform", "esfilter": {"and": [
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"terms": {"component": [
 						"video/audio: recording",
 						"video/audio",
 						"webrtc",
-						"webrtc: video/audio"
+						"webrtc: video/audio",
+						"webrtc: audio/video"
 					]}}
 				]}},
 				{"name": "Comms", "esfilter": {"and": [
-					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"term": {"product": "firefox os"}},
 					{"terms": {"component": [
 						"dom: contacts",
 						"gaia::contacts",
@@ -94,7 +135,8 @@ Dimension.addEdges(true, Mozilla, [
 					]}}
 				]}},
 				{"name": "Devices", "esfilter": {"and": [
-					{"not": {"term": {"keyword": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"term": {"product": "firefox os"}},
 					{"terms": {"component": [
 						"audiochannel",
 						"bluetooth",
@@ -102,10 +144,87 @@ Dimension.addEdges(true, Mozilla, [
 						"vendcom"
 					]}}
 				]}},
+
+				{"name": "Networking (Necko)", "esfilter": {"and": [
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"terms": {"component": [
+						"Networking".toLowerCase(),
+						"networking: cache",
+						"networking: http",
+						"networking: websockets"
+					]}}
+				]}},
+
+				{"name": "Layout", "esfilter": {"and": [
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"terms": {"component": [
+						"CSS Parsing and Computation".toLowerCase(),
+						"Layout".toLowerCase()
+					]}}
+				]}},
+
+				{"name": "Javascript", "esfilter": {"and": [
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"terms": {"component": [
+						"JavaScript Engine".toLowerCase(),
+						"JavaScript: GC".toLowerCase(),
+						"javascript engine: jit"
+					]}}
+				]}},
+
+				{"name": "DOM", "esfilter": {"and": [
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"terms": {"component": [
+						"dom".toLowerCase(),
+						"dom: apps".toLowerCase(),
+						"dom: events".toLowerCase(),
+						"dom: devices interfaces".toLowerCase(),
+						"dom: push notifications".toLowerCase(),
+						"dom: device interfaces"
+					]}}
+				]}},
+
+				{"name": "Graphics", "esfilter": {"and": [
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"terms": {"component": [
+						"Graphics".toLowerCase(),
+						"Graphics: Layers".toLowerCase(),
+						"Graphics: text".toLowerCase(),
+						"Canvas: 2D".toLowerCase(),
+						"Canvas: WebGL".toLowerCase(),
+						"ImageLib".toLowerCase(),
+						"Panning and Zooming".toLowerCase()
+					]}}
+				]}},
+
+
+
 				{"name": "All Others", "esfilter": {"and": [
-					{"not": {"term": {"keyword": "perf"}}},
+					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"not": {"terms": {"component": [
-						//AN UNFORTUNATE LIST OF EVERYTHING, SHOULD BE AUTOGENERATED, BUT I NEED A EQUATION SIMPLIFIER
+						//AN UNFORTUNATE LIST OF EVERYTHING, SHOULD BE AUTO-GENERATED, BUT I NEED A EQUATION SIMPLIFIER, OR ELSE I BREAK ES
+						"Canvas: 2D".toLowerCase(),
+						"Canvas: WebGL".toLowerCase(),
+						"CSS Parsing and Computation".toLowerCase(),
+						"dom".toLowerCase(),
+						"dom: apps".toLowerCase(),
+						"dom: events".toLowerCase(),
+						"dom: devices interfaces".toLowerCase(),
+						"dom: push notifications".toLowerCase(),
+						"dom: device interfaces",
+						"Graphics".toLowerCase(),
+						"Graphics: Layers".toLowerCase(),
+						"Graphics: text".toLowerCase(),
+						"Hardware Abstraction Layer (HAL)".toLowerCase(),
+						"ImageLib".toLowerCase(),
+						"IPC".toLowerCase(),
+						"JavaScript Engine".toLowerCase(),
+						"JavaScript: GC".toLowerCase(),
+						"Layout".toLowerCase(),
+						"MFBT".toLowerCase(),
+						"Networking".toLowerCase(),
+						"Panning and Zooming".toLowerCase(),
+						"performance",
 						"gaia::browser",
 						"gaia::everything.me",
 						"gaia::first time experience",
@@ -136,6 +255,7 @@ Dimension.addEdges(true, Mozilla, [
 						"video/audio",
 						"webrtc",
 						"webrtc: video/audio",
+						"webrtc: audio/video",
 						"dom: contacts",
 						"gaia::contacts",
 						"gaia::cost control",
@@ -144,56 +264,103 @@ Dimension.addEdges(true, Mozilla, [
 						"audiochannel",
 						"bluetooth",
 						"hardware",
-						"vendcom"
+						"vendcom",
+						"javascript engine: jit",
+						"networking: cache",
+						"networking: http",
+						"networking: websockets"
 					]}}}
 				]}}
 			]},
 
-			{"name": "State", "index": "bugs", "isFacet": true,
+			{"name": "Project", "index": "bugs", "isFacet": true,
 				"partitions": [
-					{"name": "Open - Unassigned", "esfilter": {"and": [
-						{"term": {"assigned_to": "nobody@mozilla.org"}},
-						{"not": {"term": {"keywords": "regression"}}},
-						{"not": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?"]}}}
-					]}},
-					{"name": "Open - Assigned", "esfilter": {"and": [
-						{"not": {"term": {"assigned_to": "nobody@mozilla.org"}}},
-						{"not": {"term": {"keywords": "regression"}}},
-						{"not": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?"]}}}
-					]}},
-					{"name": "Nominated", "esfilter": {"and": [
-						{"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "1.5?"]}},
-						{"not": {"term": {"keywords": "regression"}}}
-					]}},
-					{"name": "Blocker", "esfilter": {"and": [
-						{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}},
-						{"not": {"term": {"keywords": "regression"}}}
-					]}},
-					{"name": "Regression", "esfilter": {"term": {"keywords": "regression"}}}
-				]},
+					//https://wiki.mozilla.org/Release_Management/B2G_Landing
+					{"name": "1.3",
+						"dateMarks":[
+							{"name":"FC", "date":"Dec 9, 2013", "style":{strokeStyle:"black", verticalOffset: 10}},
+							{"name":"CF", "date":"Mar 17, 2014", "style":{strokeStyle:"black", verticalOffset: 10}}
+						],
+						"style": {"color": "#d62728"},
+						"esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.3?"]}}
+					},
+					{"name": "1.3T",
+						"dateMarks":[
+							{"name":"FC", "date":"Dec 9, 2013", "style":{strokeStyle:"black", verticalOffset: 20}},
+							{"name":"CF", "date":"Mar 17, 2014", "style":{strokeStyle:"black", verticalOffset: 20}}
+						],
+						"style": {"color": "#ff7f0e"},
+						"esfilter": {"terms": {"cf_blocking_b2g": ["1.3t+", "1.3t?"]}}
+					},
+					{"name": "1.4",
+						"dateMarks":[
+							{"name":"FC", "date":"Mar 17, 2014", "style":{strokeStyle:"black", verticalOffset: 30}},
+							{"name":"SC", "date":"Apr 28, 2014", "style":{strokeStyle:"black", verticalOffset: 30}},
+							{"name":"CF", "date":"Jun 9, 2014", "style":{strokeStyle:"black", verticalOffset: 30}}
+						],
+						"style": {"color": "#2ca02c"},
+						"esfilter": {"terms": {"cf_blocking_b2g": ["1.4+", "1.4?"]}}
+					},
+					{"name": "1.5/2.0",
+						"dateMarks":[
+							{"FC":"Jun 9, 2014"},
+							{"SC":"Jul 21, 2014"},
+							{"CF":"Sep 01, 2014"}
+						],
+						"style": {"color": "#1f77b4"},
+						"esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "1.5?", "2.0+", "2.0?"]}}
+					},
+					{"name": "Other", "style": {"color": "#9467bd"}, "esfilter": {"and": [
+						{"not": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?", "2.0+", "2.0?"]}}}
+					]}}
+				]
+			},
 
-			{"name": "Project", "index": "bugs", "isFacet": true, "partitions": [
-				{"name": "1.3", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.3?"]}}},
-				{"name": "1.3t", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3t+", "1.3t?"]}}},
-				{"name": "1.4", "esfilter": {"terms": {"cf_blocking_b2g": ["1.4+", "1.4?"]}}},
-				{"name": "1.5", "esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "1.5?"]}}},
-				{"name": "Untargeted", "esfilter": {"and": [
-					{"term": {"product": "firefox os"}},
-					{"not": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?"]}}}
-				]}}
-
-//                {"name":"KOI", "esfilter":{"or":[
-////                    {"and":[
-////                        {"exists":{"field":"target_milestone"}},
-////                        {"prefix":{"target_milestone":"1.2"}},
-////                        {"not":{"term":{"product": "instantbird"}}},
-////                        {"not":{"term":{"product": "chat core"}}}
-////                    ]},
-//                    {"terms":{"cf_blocking_b2g":["koi+", "koi?"]}}
-//                ]}},
-//                {"name":"LEO", "esfilter":{"terms":{"cf_blocking_b2g":["leo+", "leo?"]}}},
-//                {"name":"HD", "esfilter":{"terms":{"cf_blocking_b2g":["hd+", "hd?"]}}}
-			]}
+			{"name": "FinalState", "index": "bugs", "isFacet": true,
+				"partitions": [
+					{"name": "1.3",
+						"dateMarks":[
+							{"name":"FC", "date":"Dec 9, 2013", "style":{strokeStyle:"black", verticalOffset: 10}},
+							{"name":"CF", "date":"Mar 17, 2014", "style":{strokeStyle:"black", verticalOffset: 10}}
+						],
+						"style": {"color": "#d62728"},
+						"esfilter": {"term": {"cf_blocking_b2g": "1.3+"}}
+					},
+					{"name": "1.3T",
+						"dateMarks":[
+							{"name":"FC", "date":"Dec 9, 2013", "style":{strokeStyle:"black", verticalOffset: 20}},
+							{"name":"CF", "date":"Mar 17, 2014", "style":{strokeStyle:"black", verticalOffset: 20}}
+						],
+						"style": {"color": "#ff7f0e"},
+						"esfilter": {"term": {"cf_blocking_b2g": "1.3T+"}}},
+					{"name": "1.4",
+						"style": {"color": "#2ca02c"},
+						"esfilter": {"term": {"cf_blocking_b2g": "1.4+"}},
+						"dateMarks":[
+							{"name":"FC", "date":"Mar 17, 2014", "style":{strokeStyle:"black", verticalOffset: 30}},
+							{"name":"SC", "date":"Apr 28, 2014", "style":{strokeStyle:"black", verticalOffset: 30}},
+							{"name":"CF", "date":"Jun 9, 2014", "style":{strokeStyle:"black", verticalOffset: 30}}
+						]
+					},
+					{"name": "1.5/2.0",
+						"dateMarks":[
+							{"FC":"Jun 9, 2014"},
+							{"SC":"Jul 21, 2014"},
+							{"CF":"Sep 01, 2014"}
+						],
+						"style": {"color": "#1f77b4"},
+						"esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "2.0+"]}}
+					},
+					{"name": "Targeted",
+						"style": {"color": "#9467bd"},
+						"esfilter": {"and": [
+							{"exists": {"field": "target_milestone"}},
+							{"not": {"term": {"target_milestone": "---"}}}
+						]}
+					},
+					{"name": "Others", "style": {"color": "#dddddd", "visibility":"hidden"}, "esfilter": {"match_all": {}}}
+				]
+			}
 		]
 	}
 ]);

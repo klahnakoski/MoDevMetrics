@@ -21,6 +21,24 @@ Map.newInstance=function(key, value){
 	return output;
 };//method
 
+//LIST OF [k, v] TUPLES EXPECTED
+Map.zip=function(keys, values){
+	var output={};
+
+	if (values===undefined){
+		keys.forall(function(kv){
+			//LIST OF [k, v] TUPLES EXPECTED
+			output[kv[0]]=kv[1];
+		});
+	}else{
+		keys.forall(function(k, i){
+			output[k]=values[i];
+		});
+	}//endif
+
+	return output;
+};//method
+
 
 
 
@@ -35,10 +53,29 @@ Map.copy = function(from, to){
 	return to;
 };
 
+
+//IF dest[k]==undefined THEN ASSIGN source[k]
+Map.setDefault = function(dest){
+	for(var s=1;s<arguments.length;s++){
+		var source=arguments[s];
+		if (source===undefined) continue;
+		var keys = Object.keys(source);
+		for(var k = 0; k < keys.length; k++){
+			var key = keys[k];
+			if (dest[key]===undefined){
+				dest[key]=source[key];
+			}//endif
+		}//for
+	}//for
+	return dest;
+};
+
 Map.jsonCopy=function(value){
+	if (value===undefined) return undefined;
 	return JSON.parse(JSON.stringify(value));
 };
 
+Map.clone = Map.jsonCopy;
 
 
 //IF map IS NOT 1-1 THAT'S YOUR PROBLEM
@@ -82,12 +119,18 @@ Map.domain=function(map){
 
 //RETURN TRUE IF MAPS LOOK IDENTICAL
 Map.equals=function(a, b){
-	forAllKey(a, function(k, v, i){
-		if (b[k]!=v) return false;
-	});
-	forAllKey(b, function(k, v, i){
-		if (a[k]!=v) return false;
-	});
+	var keys=Object.keys(a);
+	for(var i=keys.length;i--;){
+		var key=keys[i];
+		if (b[key]!=a[key]) return false;
+	}//for
+
+	keys=Object.keys(b);
+	for(i=keys.length;i--;){
+		key=keys[i];
+		if (b[key]!=a[key]) return false;
+	}//for
+
 	return true;
 };//method
 

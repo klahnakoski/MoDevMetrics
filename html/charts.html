@@ -10,7 +10,7 @@
 <BODY>
 
 
-<div id="sidebar">
+<div id="sidebar" style="width:300px;">
 	<br>
 	<h4>Code!</h4>
 	<a href="https://github.com/klahnakoski/MoDevMetrics">https://github.com/klahnakoski/MoDevMetrics</a>
@@ -82,7 +82,46 @@
 		</tr>
 		<tr>
 			<td>
-				<h3>Patch Reviews</h3><br>
+				<h3>Specific Projects</h3><br>
+
+				Over the past year there have been some for specific historical charts, and simple trend analysis.<br>
+
+				<div class="items">
+                    <a href="es/B2G-TriageRate.html">FFOS Bug Triage (Nominations)</a>
+               					<span class="info">The nomination queue can be filtered by product and component. It depends on
+               						Mozilla's standard practice using a tracking flag to mark bug one of "?" (triage), "+"
+               						(tracked), "-" (not tracked)</span>
+
+					<a href="es/TEF-CloseRate.html">TEF vs B2G Fix Rate</a>
+					<span class="info">Compare the fix rates for Boot2Gecko product and TEF+ blockers</span>
+
+					<a href="es/B2G-CloseRate.html">B2G Close Rate</a>
+					<span class="info">Derived from Bug Close Rate to show four major B2G projects, and only the
+						Resolved=FIXED.</span>
+
+					<a href="es/Security_Q1_Goal.html">Security's 2013 Q1 Goal</a>
+					<span class="info">The Security Teams have an ambitious goal to limit the age of high+ security
+						bugs.  This dashboard is meant to help visualize progress toward those goals.</span>
+
+					<a href="es/Security_byPriority.html">Security_byPriority</a>
+					<span class="info">Count security bugs by priority, over time</span>
+
+					<a href="es/Security_byRisk.html">Security_byRisk.html</a>
+					<span class="info">Show risk assessment by component, over time.  It uses security's scoring method
+						to give a number to each of the components</span>
+
+					<span class="expired">
+						<a href="es/Metro - Rough.html">Rough Metro</a>
+						<span class="info">A very slow and clunky set of charts trying to model the Agile method used by
+							the Metro project.</span>
+					</span>
+
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<h3>Patch Reviews (broken - require fixes to ETL)</h3><br>
 
 				<div class="items">
 					<a href="es/ReviewIntensity_First.html">ReviewIntensity_First</a>
@@ -123,60 +162,6 @@
 					<a href="es/Community_Retention.html">Community_Retention</a>
 					<span class="info">Same as above, but looking at change over time.</span>
 
-
-				</div>
-			</td>
-		</tr>
-		<tr>
-			<td>
-				<h3>Specific Projects</h3><br>
-
-				Over the past year there have been some for specific historical charts, and simple trend analysis.<br>
-
-				<div class="items">
-                    <a href="es/1_4-TriageRate.html">1.4 Triage</a>
-               					<span class="info">Triage Queue that can be filtered by product and component. It depends on
-               						Mozilla's standard practice using a tracking flag to mark bug one of "?" (triage), "+"
-               						(tracked), "-" (not tracked)</span>
-
-                    <a href="es/1_3t-TriageRate.html">1.3t Triage</a>
-               					<span class="info">Same, except different program</span>
-
-                    <a href="es/1_3-TriageRate.html">1.3 Triage</a>
-               					<span class="info">Same, except different program</span>
-
-					<a href="es/KOI-TriageRate.html">KOI Triage</a>
-					<span class="info">Triage Queue that can be filtered by product and component. It depends on
-						Mozilla's standard practice using a tracking flag to mark bug one of "?" (triage), "+"
-						(tracked), "-" (not tracked)</span>
-
-					<a href="es/Bug-TriageRate.html">TEF Triage</a>
-					<span class="info">View total bugs awaiting triage, historical triage rates, and breakdown of
-						triage results</span>
-
-					<a href="es/TEF-CloseRate.html">TEF vs B2G Fix Rate</a>
-					<span class="info">Compare the fix rates for Boot2Gecko product and TEF+ blockers</span>
-
-					<a href="es/B2G-CloseRate.html">B2G Close Rate</a>
-					<span class="info">Derived from Bug Close Rate to show four major B2G projects, and only the
-						Resolved=FIXED.</span>
-
-					<a href="es/Security_Q1_Goal.html">Security's 2013 Q1 Goal</a>
-					<span class="info">The Security Teams have an ambitious goal to limit the age of high+ security
-						bugs.  This dashboard is meant to help visualize progress toward those goals.</span>
-
-					<a href="es/Security_byPriority.html">Security_byPriority</a>
-					<span class="info">Count security bugs by priority, over time</span>
-
-					<a href="es/Security_byRisk.html">Security_byRisk.html</a>
-					<span class="info">Show risk assessment by component, over time.  It uses security's scoring method
-						to give a number to each of the components</span>
-
-					<span class="expired">
-						<a href="es/Metro - Rough.html">Rough Metro</a>
-						<span class="info">A very slow and clunky set of charts trying to model the Agile method used by
-							the Metro project.</span>
-					</span>
 
 				</div>
 			</td>

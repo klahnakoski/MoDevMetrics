@@ -42,6 +42,20 @@ String.prototype.replacePrefix=function(oldPrefix, newPrefix){
 };
 
 
+//FIND LAST INSTANCE OF find AND REPLACE WITH replace
+String.prototype.replaceLast=function(find, replace){
+	find = Array.newInstance(find);
+	for(var f=0;f<find.length;f++){
+		var i=this.lastIndexOf(find[f]);
+		if (i==-1) continue;
+		return this.left(i)+replace+this.rightBut(i+find[f].length);
+	}//for
+	return this;
+};
+
+
+
+
 String.prototype.rtrim=function(value){
 	if (value===undefined) value=" ";
 
@@ -77,9 +91,7 @@ String.prototype.deformat = function(){
 };//method
 
 
-
-///
-/// EXPECTING AN OBJECT WITH KEY VALUE PAIRS
+//CASE INSENSITIVE VARIABLE REPLACEMENT
 String.prototype.replaceVars = function(values){
 	//COPY VALUES, BUT WITH lowerCase KEYS
 	var keys=Object.keys(values);
@@ -91,18 +103,25 @@ String.prototype.replaceVars = function(values){
 	var output = this;
 	var s=0;
 	while(true){
-		s = output.indexOf('{', s);
+		s = output.indexOf('{{', s);
 		if (s < 0) return output;
-		var e = output.indexOf('}', s);
+		var e = output.indexOf('}}', s);
 		if (e < 0) return output;
-		var key = output.substring(s + 1, e).toLowerCase();
+		var key = output.substring(s + 2, e).toLowerCase();
 
 		if (map[key]!==undefined){
-			output=output.replaceAll(output.substring(s, e + 1), map[key]);
+			output=output.replaceAll(output.substring(s, e + 2), map[key]);
+			e = s + map[key].length;
 		}//endif
 		s=e;
 	}//while
 };//method
+
+
+
+
+
+
 
 String.prototype.left = function(amount){
 	return this.substring(0, aMath.min(this.length, amount));
@@ -154,5 +173,9 @@ String.prototype.ltrim=function(c){
 	return this.substring(0, e);
 };//method
 
+
+function isString(value){
+	return (typeof value)=="string";
+}//method
 
 

@@ -12,7 +12,7 @@
 	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
 </div>
 
-<div id="sidebar">
+<div id="sidebar" style="width:300px;">
 	<br>
 	<br>
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
@@ -47,8 +47,8 @@ importScript([
 	"js/Dimension-Bugzilla.js"
 ], function(){
 	var BUTTON_SIZE=20;
-	var ADD_BUTTON='<div id="{BUG_ID}expand" class="expandbutton" style="display: none;" title="Expand"><img src="'+Settings.imagePath+'/Plus.png"  style="height:'+BUTTON_SIZE+'px;width:'+BUTTON_SIZE+'px;"></div>';
-	var REMOVE_BUTTON='<div id="{BUG_ID}contract" class="expandbutton" style="display: none;" title="Collapse"><img src="'+Settings.imagePath+'/Minus.png"  style="height:'+BUTTON_SIZE+'px;width:'+BUTTON_SIZE+'px;"></div>';
+	var ADD_BUTTON='<div id="{{BUG_ID}}expand" class="expandbutton" style="display: none;" title="Expand"><img src="'+Settings.imagePath+'/Plus.png"  style="height:'+BUTTON_SIZE+'px;width:'+BUTTON_SIZE+'px;"></div>';
+	var REMOVE_BUTTON='<div id="{{BUG_ID}}contract" class="expandbutton" style="display: none;" title="Collapse"><img src="'+Settings.imagePath+'/Minus.png"  style="height:'+BUTTON_SIZE+'px;width:'+BUTTON_SIZE+'px;"></div>';
 
 	$("#description").html("Demonstrates the hierarchy ETL.  The hierarchy-over-time is approximated by the ETL, "+
 			"and used here to summarize** all current dependencies.  This demonstration does NOT take full advantage "+
@@ -70,9 +70,9 @@ var __createChart = function*(){
 		var topBugs=GUI.state.bugs.split(",");
 
 		var template='<table>'+
-				'<tr><td style="width:20px">'+ADD_BUTTON+REMOVE_BUTTON+'</td><td><h3><a href="{URL}">{BUG_ID} - {SUMMARY}</a></h3></td></tr>'+
-				'<tr><td></td><td><div id="{BUG_ID}progress" class="progress"></div></td></tr>'+
-				'<tr><td></td><td id="{BUG_ID}children"></td></tr>'+
+				'<tr><td style="width:20px">'+ADD_BUTTON+REMOVE_BUTTON+'</td><td><h3><a href="{{URL}}">{{BUG_ID}} - {{SUMMARY}}</a></h3></td></tr>'+
+				'<tr><td></td><td><div id="{{BUG_ID}}progress" class="progress"></div></td></tr>'+
+				'<tr><td></td><td id="{{BUG_ID}}children"></td></tr>'+
 				'</table>';
 
 		$("#list").html("");

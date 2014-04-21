@@ -26,7 +26,7 @@
 		for(var i=min;i<max;i+=interval) output.push(i);
 		return output;
 	};//method
-	
+
 
 	//WITH undefined AND nulls REMOVED
 	Array.prototype.cleanCopy=function(){
@@ -86,6 +86,18 @@
 		return output;
 	};//method
 
+
+	//RETURN MAP THAT USES field AS KEY TO ELEMENTS
+	Array.prototype.index = function(field) {
+		var output = {};
+		for (var i = 0; i < this.length; i++) {
+			var v = this[i];
+			if (v === undefined) continue;
+			output[v[field]] = v;
+		}//for
+	};
+
+
 	Array.prototype.groupBy=function(size){
 		if (size===undefined){
 			Log.error("Can only handle size parameter right now");
@@ -99,7 +111,15 @@
 	};//method
 
 
+	//WE ASSUME func ACCEPTS (row, i, rows)
 	Array.prototype.filter=function(func){
+
+		if (typeof(func) == "function") {
+			//DO NOTHING
+		}else{
+			func = CNV.esFilter2function(func)
+		}//endif
+
 		var output=[];
 		for(var i=0;i<this.length;i++){
 			if (func(this[i], i)) output.push(this[i]);
@@ -187,7 +207,7 @@
 		}//while
 	};
 
-	
+
 	Array.prototype.concatenate=function(separator){
 		return this.map(function(v){return v;}).join(separator);
 	};
