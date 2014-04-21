@@ -48,27 +48,6 @@ Dimension.addEdges(true, Mozilla, [
 			},
 
 			{"name":"Team", "isFacet": true, "partitions":[
-				{"name":"WebRTC",
-					"esfilter":{"or":[
-						{"and":[
-							{"term":{"product":"loop"}},
-							{"term":{"component":"general"}}
-						]},
-						{"and":[
-							{"term":{"product":"loop"}},
-							{"term":{"component":"client"}}
-						]},
-						{"and":[
-							{"term":{"product":"loop"}},
-							{"term":{"component":"server"}}
-						]},
-						{"and":[
-							{"term":{"product":"core"}},
-							{"prefix":{"component":"webrtc"}}
-						]}
-					]}
-				},
-
 				{"name":"Performance",
 					"esfilter":{"or":[
 						{"term":{"keywords":"perf"}},
@@ -174,7 +153,26 @@ Dimension.addEdges(true, Mozilla, [
 						"networking: websockets"
 					]}}
 				]}},
-
+				{"name":"WebRTC",
+					"esfilter":{"or":[
+						{"and":[
+							{"term":{"product":"loop"}},
+							{"term":{"component":"general"}}
+						]},
+						{"and":[
+							{"term":{"product":"loop"}},
+							{"term":{"component":"client"}}
+						]},
+						{"and":[
+							{"term":{"product":"loop"}},
+							{"term":{"component":"server"}}
+						]},
+						{"and":[
+							{"term":{"product":"core"}},
+							{"prefix":{"component":"webrtc"}}
+						]}
+					]}
+				},
 				{"name": "Layout", "esfilter": {"and": [
 					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"terms": {"component": [
