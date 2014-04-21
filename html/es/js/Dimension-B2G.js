@@ -18,6 +18,11 @@ Dimension.addEdges(true, Mozilla, [
 			{"name": "Blockers", "index": "bugs", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "2.0+"]}}},
 			{"name": "Regressions", "index": "bugs", "esfilter": {"term": {"keywords": "regression"}}},
 			{"name": "Unassigned", "index": "bugs", "esfilter": {"term": {"assigned_to": "nobody@mozilla.org"}}},
+			{"name": "Responsibility", "index": "bugs", "isFacet": true, "partitions": [
+				{"name":"FFOS Team", "esfilter":{"not":{"terms":{"status_whiteboard.tokenized":["NPOTB", "POVB"]}}}},
+				{"name":"Vendor (POVB)", "esfilter":{"term":{"status_whiteboard.tokenized":"POVB"}}},
+				{"name":"Not Part of the Build (NPOTB)", "esfilter":{"term":{"status_whiteboard.tokenized":"NPOTB"}}}
+			]},
 
 			//AN UNFORTUNATE DISTINCTION BETWEEN DIMENSIONS (ABOVE, THAT OVERLAP), AND PARTITIONS THAT DO NOT OVERLAP
 			{"name": "State", "index": "bugs", "isFacet": true,

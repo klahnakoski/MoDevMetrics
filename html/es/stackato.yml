@@ -1,4 +1,4 @@
-name: ffos
+name: charts
 instances: 1
 framework:
   type: php
