@@ -11,25 +11,7 @@ Dimension.addEdges(true, Mozilla, [
 	{"name": "B2G",
 		"esfilter": {"or": [
 			{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?", "2.0+", "2.0?"]}},
-			{"term": {"product": "firefox os"}},
-			{"or":[ //WebRTC COMPONENTS
-				{"and":[
-					{"term":{"product":"loop"}},
-					{"term":{"component":"general"}}
-				]},
-				{"and":[
-					{"term":{"product":"loop"}},
-					{"term":{"component":"client"}}
-				]},
-				{"and":[
-					{"term":{"product":"loop"}},
-					{"term":{"component":"server"}}
-				]},
-				{"and":[
-					{"term":{"product":"core"}},
-					{"prefix":{"component":"webrtc"}}
-				]}
-			]}
+			{"term": {"product": "firefox os"}}
 		]},
 		"edges": [
 			{"name": "Nominations", "index": "bugs", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "1.5?", "2.0?"]}}},
