@@ -305,11 +305,7 @@ importScript("b2g/chart_lib.js", function () {
 	};
 
 	var __createChart = function*() {
-		var BLOCKERS = ["1.3+", "1.3t+", "1.4+", "1.5+"];
-		var SCOPE = {"or": [
-			{"terms": {"cf_blocking_b2g": BLOCKERS}},
-			{"term": {"product": "firefox os"}}
-		]};
+		var SCOPE = Mozilla.B2G.esfilter;
 
 		var sampleMin = Date.newInstance(GUI.state.sampleMin);
 		var sampleMax = Date.newInstance(GUI.state.sampleMax).addDay(1);
@@ -342,8 +338,7 @@ importScript("b2g/chart_lib.js", function () {
 				"name": "Open Blocker Count"
 			},
 			"esfilter": {"and": [
-				GUI.getFilters("bugs"),
-				Mozilla.B2G.Blockers.esfilter
+				GUI.getFilters("bugs")
 			]},
 			"timeDomain": timeDomain
 		});

@@ -11,10 +11,27 @@ Dimension.addEdges(true, Mozilla, [
 	{"name": "B2G",
 		"esfilter": {"or": [
 			{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?", "2.0+", "2.0?"]}},
-			{"term": {"product": "firefox os"}}
+			{"term": {"product": "firefox os"}},
+			{"or":[ //WebRTC COMPONENTS
+				{"and":[
+					{"term":{"product":"loop"}},
+					{"term":{"component":"general"}}
+				]},
+				{"and":[
+					{"term":{"product":"loop"}},
+					{"term":{"component":"client"}}
+				]},
+				{"and":[
+					{"term":{"product":"loop"}},
+					{"term":{"component":"server"}}
+				]},
+				{"and":[
+					{"term":{"product":"core"}},
+					{"prefix":{"component":"webrtc"}}
+				]}
+			]}
 		]},
 		"edges": [
-
 			{"name": "Nominations", "index": "bugs", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "1.5?", "2.0?"]}}},
 			{"name": "Blockers", "index": "bugs", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "2.0+"]}}},
 			{"name": "Regressions", "index": "bugs", "esfilter": {"term": {"keywords": "regression"}}},
@@ -49,6 +66,27 @@ Dimension.addEdges(true, Mozilla, [
 			},
 
 			{"name":"Team", "isFacet": true, "partitions":[
+				{"name":"WebRTC",
+					"esfilter":{"or":[
+						{"and":[
+							{"term":{"product":"loop"}},
+							{"term":{"component":"general"}}
+						]},
+						{"and":[
+							{"term":{"product":"loop"}},
+							{"term":{"component":"client"}}
+						]},
+						{"and":[
+							{"term":{"product":"loop"}},
+							{"term":{"component":"server"}}
+						]},
+						{"and":[
+							{"term":{"product":"core"}},
+							{"prefix":{"component":"webrtc"}}
+						]}
+					]}
+				},
+
 				{"name":"Performance",
 					"esfilter":{"or":[
 						{"term":{"keywords":"perf"}},
@@ -200,7 +238,9 @@ Dimension.addEdges(true, Mozilla, [
 
 
 				{"name": "All Others", "esfilter": {"and": [
-					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term": {"keywords": "perf"}}},     //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term":{"product":"loop"}}},        //NO WebRTC Loop Product
+					{"not": {"prefix":{"component":"webrtc"}}},  //NO WebRTC
 					{"not": {"terms": {"component": [
 						//AN UNFORTUNATE LIST OF EVERYTHING, SHOULD BE AUTO-GENERATED, BUT I NEED A EQUATION SIMPLIFIER, OR ELSE I BREAK ES
 						"Canvas: 2D".toLowerCase(),
@@ -352,7 +392,7 @@ Dimension.addEdges(true, Mozilla, [
 						"esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "2.0+"]}}
 					},
 					{"name": "Targeted",
-						"style": {"color": "#9467bd"},
+						"style": {"color": "#9467bd", "visibility":"hidden"},
 						"esfilter": {"and": [
 							{"exists": {"field": "target_milestone"}},
 							{"not": {"term": {"target_milestone": "---"}}}
