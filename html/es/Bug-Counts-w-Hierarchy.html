@@ -85,7 +85,7 @@ var __createChart = function*(){
         // SIMPLE OPEN BUG COUNT, OVER TIME
         ///////////////////////////////////////////////////////////////////////
 
-        //GET ALL DEPENDENCIES FOR ALL TIME
+        //STEP 1: GET ALL DEPENDENCIES FOR ALL TIME
         var descendants = yield(ESQuery.run({
             "from":"bug_hierarchy",
             "select":[
@@ -97,8 +97,9 @@ var __createChart = function*(){
         descendants=descendants.list[0].descendants;
         descendants.appendArray(bug_ids);
 
-        //PULL DEPENDENCY DATA FROM ES
+        //STEP 2: PULL DEPENDENCY DATA FROM ES
         //THIS IS TO GET DAILY DEPENDENCY LISTS
+		var a= Log.action("Pull dependencies");
         var raw_data=yield (ESQuery.run({
 			"name":"Open Bug Count",
 			"from":"bugs",
@@ -114,6 +115,7 @@ var __createChart = function*(){
                 {"range": {"expires_on": {"gte": sampleMin.getMilli()}}}
             ]}
         }));
+		Log.actionDone(a);
 
         //ORGANIZE INTO DATACUBE: (DAY x BUG_ID)
         var data = yield (Q({
@@ -172,7 +174,8 @@ var __createChart = function*(){
             });
         }//for
 
-        //NOW WE CAN ASK MORE ABOUT THIS BUG LIST BY DAY
+        //STEP 3: NOW WE CAN ASK MORE ABOUT THIS BUG LIST BY DAY
+		a= Log.action("Get Aggregates");
         chart = yield (ESQuery.run({
             "from":"bugs",
             "select":{"name":"Num Bugs", "value":"bug_id", "aggregate":"count"},
@@ -185,7 +188,7 @@ var __createChart = function*(){
             }],
             "esfilter":mainFilter
         }));
-
+		Log.actionDone(a);
 
 		aChart.show({
 			"id":"chartCount",
