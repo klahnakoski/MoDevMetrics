@@ -93,7 +93,7 @@ ESQuery.parseColumns=function(indexName, parentName, esProperties){
 			var nestedName=indexName+"."+name;
 			if (ESQuery.INDEXES[nestedName]===undefined) ESQuery.INDEXES[nestedName]={};
 			ESQuery.INDEXES[nestedName].columns=ESQuery.parseColumns(nestedName, parentName, property.properties);
-			return;
+//			return;
 		}//endif
 
 		if (property.properties !== undefined) {
