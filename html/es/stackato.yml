@@ -1,0 +1,7 @@
+name: ffos
+instances: 1
+framework:
+  type: php
+  runtime: php
+mem: 128
+services:
