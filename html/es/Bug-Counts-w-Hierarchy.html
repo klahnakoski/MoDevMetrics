@@ -175,13 +175,16 @@ var __createChart = function*(){
         }//for
 
         //STEP 3: NOW WE CAN ASK MORE ABOUT THIS BUG LIST BY DAY
+		var statusDomain=Mozilla.BugStatus.getDomain();
+		statusDomain.isFacet=true;
+
 		a= Log.action("Get Aggregates");
         chart = yield (ESQuery.run({
             "from":"bugs",
             "select":{"name":"Num Bugs", "value":"bug_id", "aggregate":"count"},
             "edges":[{
                 "name":"status",
-                "domain":Mozilla.BugStatus.getDomain()
+                "domain":statusDomain
             },{
                 "name":"date",
                 "domain":{"type":"set", "partitions":parts, "isFacet":true}
