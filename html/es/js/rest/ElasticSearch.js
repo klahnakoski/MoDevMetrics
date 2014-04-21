@@ -21,34 +21,16 @@ if (window.location.hostname=="metrics.mozilla.com"){
 	ElasticSearch.baseURL="/bugzilla-analysis-es";
 	ElasticSearch.queryURL = "/bugzilla-analysis-es/bugs/_search";
 }else{
-	//FROM Mark Reid Sept 25, 2012 (for use during coding)
-	//ONLY WITH MOZILLA_MPT
-//	ElasticSearch.baseURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
-//	ElasticSearch.queryURL = "http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search";
-
-//	ElasticSearch.pushURL="http://localhost:9200";
+	ElasticSearch.pushURL="http://localhost:9200";
 //	ElasticSearch.pushURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
-	ElasticSearch.pushURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
+//	ElasticSearch.pushURL="http://elasticsearch-private.bugs.scl3.mozilla.com:9200";
 
-	//THESE ARE NOW ALL GOOD NODES!!
-	//(2:13:01 PM) mreid: ekyle, if you've still got things set to only hit elasticsearch7, you should probably change it to know about all 4 nodes
-	//(2:13:34 PM) ekyle: what are the numbers?
-	//(2:13:34 PM) pires [Paulo@moz-13DD0BFB.static.cpe.netcabo.pt] entered the room.
-	//(2:17:56 PM) mreid: ekyle, 4,5,7,8
-	//(2:18:16 PM) ekyle: thanks, I will see what I can do to distribute load!
-
-//	ElasticSearch.baseURL="http://elasticsearch4.metrics.scl3.mozilla.com:9200";
-//	ElasticSearch.baseURL="http://elasticsearch5.metrics.scl3.mozilla.com:9200";
-//	ElasticSearch.baseURL="http://elasticsearch7.metrics.scl3.mozilla.com:9200";
-//	ElasticSearch.baseURL="http://elasticsearch8.metrics.scl3.mozilla.com:9200";
-
-//	ElasticSearch.baseURL="http://localhost:9292";
-	ElasticSearch.baseURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
+	ElasticSearch.baseURL="http://elasticsearch-private.bugs.scl3.mozilla.com:9200";
+//	ElasticSearch.baseURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
 //	ElasticSearch.baseURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
 
-
 //	ElasticSearch.queryURL = "http://localhost:9292/bugs/_search";
-	ElasticSearch.queryURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9200/bugs/_search";
+	ElasticSearch.queryURL = "http://elasticsearch-private.bugs.scl3.mozilla.com:9200";
 //	ElasticSearch.queryURL = "http://klahnakoski-es.corp.tor1.mozilla.com:9200/bugs/_search";
 //	ElasticSearch.queryURL = "http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search";
 
@@ -278,7 +260,7 @@ ElasticSearchQuery.prototype.success = function(data){
 ElasticSearchQuery.prototype.error = function(errorData, errorMsg, errorThrown){
 	if (this.callbackObject===undefined) return;
 	if (this.callbackObject.error===undefined) Log.error(errorMsg);
-	
+
 	try{
 		this.callbackObject.error(this, errorData, errorMsg, errorThrown);
 	}catch(e){
