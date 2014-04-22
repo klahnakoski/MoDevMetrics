@@ -430,13 +430,13 @@ aChart.showScatter=function(params){
 		valueName=Array.newInstance(chartCube.select)[0].name;
 		seriesName=xaxis.name;
 		seriesFormatter=xaxis.domain.label;
-		columns=[seriesName, valueName];
+		columns=["placeholder", seriesName, valueName];
 		//GIVE EACH SELECT A ROW
 		data=chartCube.list.map(function(v, i){
 			return [
+				"",
 				seriesFormatter(v[seriesName]),
-				v[valueName],
-				""
+				v[valueName]
 			];
 		});
 	}else{

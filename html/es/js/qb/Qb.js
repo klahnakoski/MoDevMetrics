@@ -74,7 +74,8 @@ Qb.compile = function(query, sourceColumns, useMVEL){
 	for(var s = 0; s < select.length; s++){
 		if (typeof(select[s])=="string") select[s]={"value":select[s]};
 		if (select[s].name===undefined) select[s].name=select[s].value.split(".").last();
-		if (uniqueColumns[select[s].name]!==undefined) Log.error("All columns must have different names");
+		if (uniqueColumns[select[s].name]!==undefined)
+			Log.error("Column with name "+select[s].name+" appeared more than once");
 		select[s].columnIndex=s+edges.length;
 		columns[select[s].columnIndex] = select[s];
 		uniqueColumns[select[s].name] = select[s];
@@ -993,12 +994,19 @@ Qb.sort = function(data, sortOrder, columns){
 
 
 Qb.sort.compile=function(sortOrder, columns, useNames){
-	var orderedColumns = sortOrder.map(function(v){
-		for(var i=columns.length;i--;){
-			if (columns[i].name==v && !(columns[i].sortOrder==0)) return columns[i];
-		}//for
-		Log.error("Sorting can not find column named '"+v+"'");
-	});
+	var orderedColumns;
+	if (columns===undefined){
+		orderedColumns = sortOrder.map(function(v){
+			return {"name":v, "sortOrder":1, "domain":Qb.domain.value}
+		});
+	}else{
+		orderedColumns = sortOrder.map(function(v){
+			for(var i=columns.length;i--;){
+				if (columns[i].name==v && !(columns[i].sortOrder==0)) return columns[i];
+			}//for
+			Log.error("Sorting can not find column named '"+v+"'");
+		});
+	}//endif
 
 	var f="totalSort = function(a, b){\nvar diff;\n";
 	for(var o = 0; o < orderedColumns.length; o++){
@@ -1007,7 +1015,7 @@ Qb.sort.compile=function(sortOrder, columns, useNames){
 			Log.warning("what?");
 		}//endif
 
-		var index=useNames ? CNV.String2Quote(col.name) : col.columnIndex;
+		var index=useNames ? col.name.split(".").map(function(v){return CNV.String2Quote(v);}).join("][") : col.columnIndex;
 		f+="diff = orderedColumns["+o+"].domain.compare(a["+index+"], b["+index+"]);\n";
 		if (o==orderedColumns.length-1){
 			if (col.sortOrder===undefined || col.sortOrder==1){

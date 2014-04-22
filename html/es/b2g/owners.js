@@ -13,7 +13,7 @@ var OWNERS = {
   "CSS Parsing and Computation": "Jet Villegas",
   // "Emulator": "?", // Firefox OS
   // "FxA": "?", // Firefox OS
-  "DOM: Apps": "Fabrice DesrÃ©",
+  "DOM: Apps": "Fabrice Desré",
   "DOM: Core & HTML": "Andrew Overholt (Johnny Stenback)", // DOM
   "DOM": "Andrew Overholt (2nd: Johnny Stenback)", // DOM
   "DOM: Contacts": "David Scravaglieri (Anthony Ricaud)", // DOM
@@ -73,7 +73,7 @@ var OWNERS = {
   "NFC": "Ken Chang", // Firefox OS
   "Panning and Zooming": "Milan Sreckovic (Kartikaya Gupta, Botond Ballo)", // Core
   "Performance": "Mike Lee (Ben Kelly, Mason Chang)", // Firefox OS
-  "Runtime": "Gregor Wagner (Fabrice DesrÃ©)", // Firefox OS
+  "Runtime": "Gregor Wagner (Fabrice Desré)", // Firefox OS
   // "Simulator": "?", // Firefox OS
   "RIL": "Ken Chang", // Firefox OS
   "Video/Audio": "Jet Villegas", // Core

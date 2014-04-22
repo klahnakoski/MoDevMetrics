@@ -64,11 +64,10 @@ ESQuery.INDEXES={
 	"telemetry":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":"/telemetry_agg_valid_201305/data"},
 	"raw_telemetry":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/raw_telemetry/data"},
 
-	"talos":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/datazilla/results"},
-		"b2g_tests_kyle":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/b2g_tests/results"},
-		"b2g_tests":{"host":"http://elasticsearch4.bugs.scl3.mozilla.com:9200", "path":"/b2g_tests/results"},
+	"talos":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":"/talos/test_results"},
+	"b2g_tests":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":"/b2g_tests/results"},
 
-		"perfy": {"host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/perfy/scores"},
+	"perfy": {"host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/perfy/scores"},
 	"local_perfy":{"host":"http://localhost:9200", "path":"/perfy/scores"}
 
 };
@@ -121,6 +120,10 @@ ESQuery.parseColumns=function(indexName, parentName, esProperties){
 		}//endif
 
 
+		if (property.type=="object"){
+			//OBJECT WITH NO PROPERTIES IS NOT INDEXED, JUST STORED
+			columns.push({"name":fullName, "type":property.type, "useSource":true});
+		}else
 		if (["string", "boolean", "integer", "date", "long", "double"].contains(property.type)){
 			columns.push({"name":fullName, "type":property.type, "useSource":property.index=="no"});
 			if (property.index_name && name!=property.index_name)
@@ -414,7 +417,7 @@ ESQuery.prototype.compile = function(){
 	var extraSelect=[];
 	this.query.edges.forall(function(e){
 		if (e.domain !== undefined && Qb.domain.ALGEBRAIC.contains(e.domain.type) &&  e.domain.interval == "none"){
-			extraSelect.append({"name":e.name, "value":e.value});
+			extraSelect.append({"name":e.name, "value":e.value, "domain": e.domain});
 		}//endif
 	});
 
@@ -816,6 +819,7 @@ ESQuery.prototype.buildESCountQuery=function(value){
 	if (MVEL.isKeyword(value)){
 		//MAKE SURE value EXISTS
 		output.query.filtered.filter.and.push({"exists":{"field":value}});
+		output.size = 1;  //PREVENT QUERY CHECKER FROM THROWING ERROR
 	}else{
 		//COMPLICATED value IS PROBABLY A SCRIPT, USE IT
 		output.facets["0"]={
@@ -1159,7 +1163,14 @@ ESQuery.prototype.termsResults=function(data){
 	if (data.facets === undefined || data.facets.length==0){
 		//SIMPLE ES QUERY
 		if (this.query.select instanceof Array){
-			Log.error("TODO: implement be (pull fields)")
+			this.query.cube = Map.zip(this.select.map(function(s){
+				if (s.aggregate=="count"){
+					return [s.name, data.hits.total];
+				}else{
+					Log.error("Do not know how to handle yet")
+				}//endif
+			}));
+			return;
 		}else if (this.select[0].aggregate=="count"){
 			if (this.query.edges.length>0){
 				Log.error("not expected, expecting facets");

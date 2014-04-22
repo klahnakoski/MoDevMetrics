@@ -112,7 +112,7 @@ Qb.domain.value = {
 		return part;
 	},
 
-	getPartByKey:function(key){
+	getPartByKey:function(value){
 		return value;
 	},
 

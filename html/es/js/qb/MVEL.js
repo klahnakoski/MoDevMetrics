@@ -296,7 +296,12 @@ MVEL.esFacet2List=function(facet, selectClause){
 		var V = T[i].term.split("|");
 		var value = {};
 		for(var v = V.length; v--;){
-			value[selectClause[v % mod].name] = CNV.Pipe2Value(V[v]);
+			var s= selectClause[v % mod];
+			var val = CNV.Pipe2Value(V[v]);
+			if (s.domain!==undefined){
+				val=s.domain.getPartByKey(val);
+			}//endif
+			value[s.name] = val;
 			if ((v % mod) == 0){
 				output.push(value);
 				value = {};
