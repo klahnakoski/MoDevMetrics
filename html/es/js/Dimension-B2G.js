@@ -24,6 +24,8 @@ Dimension.addEdges(true, Mozilla, [
 				{"name":"Not Part of the Build (NPOTB)", "esfilter":{"term":{"status_whiteboard.tokenized":"NPOTB"}}}
 			]},
 
+			{"name": "QC Blocker", "index": "bug-hierarchy", "esfilter":{"term":{"blocked_by":984663}}},
+
 			//AN UNFORTUNATE DISTINCTION BETWEEN DIMENSIONS (ABOVE, THAT OVERLAP), AND PARTITIONS THAT DO NOT OVERLAP
 			{"name": "State", "index": "bugs", "isFacet": true,
 				"partitions": [

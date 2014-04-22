@@ -7,6 +7,10 @@ importScript("../js/util/aUtil.js");
 importScript("../js/util/aString.js");
 importScript("owners.js");
 
+
+var HIGHLIGHT=Color.blue.hue(60).multiply(0.6);
+
+
 if (typeof OWNERS != 'undefined'){
 	OWNERS = Map.zip(mapAllKey(OWNERS, function (k, v) {
 		var manager;
@@ -60,12 +64,14 @@ function showComponent(detail, showTYPE) {
 }//function
 
 // SHOW SUMMARY COUNT
-function showSummary(type, team, detail, showTYPE) {
+function showSummary(type, team, detail, specialBugs, showTYPE) {
 
 	var TEMPLATE = '<h3 style="padding: 20px 0 0 10px;vertical-align: top; display:inline-block">{{name}} {{type}}</h3><div class="blocker">' +
 		'{{projectDetail}}' +
 		'<div style="display:inline-block;width:50px">&nbsp;</div>' +
-		'{{total}}'
+		'{{total}}' +
+		'<div style="display:inline-block;width:50px">&nbsp;</div>' +
+		'{{specialDetail}}' +
 		'</div>';
 
 	var total = aMath.sum.apply(undefined, detail.cube.select("count"));
@@ -80,8 +86,6 @@ function showSummary(type, team, detail, showTYPE) {
 	var numSummary=0;
 	component.projectDetail = detail.cube.map(function (project, i) {
 		project.project = detail.edges[0].domain.partitions[i].name;
-		project.bugs = detail.from.list.filter(detail.edges[0].domain.partitions[i].esfilter).select("bug_id");
-		project.unassignedBugs = detail.from.list.filter(detail.edges[0].domain.partitions[i].esfilter).filter(Mozilla.B2G.Unassigned.esfilter).select("bug_id");
 		if (project.count > 0) {
 			numSummary++;
 			return showTYPE(project);
@@ -89,13 +93,16 @@ function showSummary(type, team, detail, showTYPE) {
 	}).join("");
 	if (numSummary<2) component.projectDetail="";
 
+	component.specialDetail = showTYPE(specialBugs);
+
 	component.total=showTYPE({
 		"project":"Total",
 		"count":aMath.sum.apply(undefined, detail.cube.select("count")),
 		"unassignedCount":aMath.sum.apply(undefined, detail.cube.select("unassignedCount")),
 		"age":aMath.max.apply(undefined, detail.cube.select("age")),
 		"bugs":detail.from.list.select("bug_id"),
-		"unassignedBugs": detail.from.list.filter(Mozilla.B2G.Unassigned.esfilter).select("bug_id")
+		"unassignedBugs": detail.from.list.filter(Mozilla.B2G.Unassigned.esfilter).select("bug_id"),
+		"additionalClass": "project-summary"
 
 	});
 	component.type=type;
@@ -132,6 +139,7 @@ function showNominations(detail) {
 // SHOW BLOCKER COUNT FOR ONE COMPONENT, ONE PROJECT
 function showBlocker(detail) {
 	if (detail.bugs){
+		detail.bugsList=detail.bugs.join(", ");
 		detail.bugsURL = Bugzilla.searchBugsURL(detail.bugs);
 		detail.unassignedURL = Bugzilla.searchBugsURL(detail.unassignedBugs);
 	}else{
@@ -150,7 +158,7 @@ function showBlocker(detail) {
 	}//endif
 	detail.color = age2color(detail.age).toHTML();
 
-	var TEMPLATE = '<div class="project"  style="background-color:{{color}}" href="{{bugsURL}}">' +
+	var TEMPLATE = '<div class="project {{additionalClass}}"  style="background-color:{{color}}" href="{{bugsURL}}" bugsList="{{bugsList}}">' +
 		'<div class="release">{{project}}</div>' +
 		'<div class="count">{{count}}</div>' +
 		(detail.unassignedCount > 0 ? '<div class="unassigned"><a class="count_unassigned" href="{{unassignedURL}}">{{unassignedCount}}</a></div>' : '') +
@@ -177,7 +185,7 @@ function showRegression(detail) {
 
 function addProjectClickers(cube) {
 	$(".project").hover(function (e) {
-		var old_color = $(this).attr("background_lch");
+		var old_color = $(this).attr("old_color");
 		if (old_color == undefined) {
 			old_color = $(this).css("background-color");
 			$(this).attr("old_color", old_color);
@@ -187,14 +195,41 @@ function addProjectClickers(cube) {
 		var old_color = $(this).attr("old_color");
 		$(this).css("background-color", old_color);
 	}).click(function (e) {
-			var link = $(this).attr("href");
-			window.open(link);
-		});
+		var link = $(this).attr("href");
+		window.open(link);
+	});
 
 	$(".count_unassigned").click(function (e) {
 		var link = $(this).attr("href");
 		window.open(link);
 		return false;
+	});
+
+	$(".project-summary").hover(function (e) {
+		var self = $(this);
+		var bugs = self.attr("bugsList").split(",").map(function (v) {
+			return CNV.String2Integer(v.trim());
+		});
+		$(".project").filter(function(){
+			var pro = $(this);
+
+			if (pro.get(0)==self.get(0)) return true;
+			if (pro.hasClass("project-summary")) return false;
+			var thisBugs=pro.attr("bugsList").split(",").map(function(v){return CNV.String2Integer(v.trim());});
+			return bugs.intersect(thisBugs).length>0;
+		}).each(function(){
+			var old_color = $(this).attr("old_color");
+			if (old_color == undefined) {
+				old_color = $(this).css("background-color");
+				$(this).attr("old_color", old_color);
+			}//endif
+			$(this).css("background-color", HIGHLIGHT.toHTML());
+		})
+	},function (e) {
+		$(".project").each(function(){
+			var old_color = $(this).attr("old_color");
+			$(this).css("background-color", old_color);
+		});
 	});
 }//function
 
