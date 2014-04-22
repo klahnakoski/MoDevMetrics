@@ -11,7 +11,6 @@ function showOpenCount(args) {
 		timeDomain.max = timeDomain.max.add(timeDomain.interval);
 
 		var chart = yield (ESQuery.run({
-			"name": "Open Bug Count",
 			"from": "bugs",
 			"select": {
 				"name": "num_bug",
@@ -121,6 +120,7 @@ function showChurn(args) {
 		churn.edges[0].domain.partitions.reverse();
 		churn.cube.reverse();
 		churn.edges[0].domain.partitions[0].style.visibility = "visible";
+		churn.edges[0].domain.partitions[1].style.visibility = "visible";
 
 		aChart.show({
 			"id": args.chart.id,

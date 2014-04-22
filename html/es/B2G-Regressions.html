@@ -68,7 +68,7 @@
 	<script type="text/javascript" src="b2g/main_lib.js"></script>
 	<style id="vakata-stylesheet" type="text/css"></style>
 	<style id="jstree-stylesheet" type="text/css"></style>
-	<link rel="stylesheet" type="text/css" media="all" href="http://people.mozilla.orglib/jstree/themes/default/style.css">
+	<link rel="stylesheet" type="text/css" media="all" href="lib/jstree/themes/default/style.css">
 
 </HEAD>
 <BODY style="display: none;">
@@ -216,6 +216,13 @@
 							"name": "All Components",
 							"dimension": Mozilla.B2G.Component,
 							"onlyOne": false,
+							"expandAll": true
+						})},
+						{"id": "responsibility", "name": "Responsibility", "default": "FFOS_Team", "type": PartitionFilter.newInstance({
+							"id": "Responsibility",
+							"name": "All Bugs",
+							"dimension": Mozilla.B2G.Responsibility,
+							"onlyOne": true,
 							"expandAll": true
 						})}
 					],

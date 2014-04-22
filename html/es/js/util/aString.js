@@ -109,9 +109,12 @@ String.prototype.replaceVars = function(values){
 		if (e < 0) return output;
 		var key = output.substring(s + 2, e).toLowerCase();
 
-		if (map[key]!==undefined){
+		var val = map[key];
+		if (val instanceof String || (typeof map[key])!="object"){
 			output=output.replaceAll(output.substring(s, e + 2), map[key]);
 			e = s + map[key].length;
+		}else{
+			Log.debug()
 		}//endif
 		s=e;
 	}//while

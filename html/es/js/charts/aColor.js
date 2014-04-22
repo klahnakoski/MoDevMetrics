@@ -102,6 +102,10 @@ Color = function (L, h, s) {
 		return new Color(this.L * 1.2, this.h, this.s);
 	};
 
+	Color.prototype.darker = function(){
+		return new Color(this.L / 1.2, this.h, this.s);
+	};
+
 	Color.prototype.toHTML = function () {
 		var Lfloor = aMath.floor(this.L*COLOR_MESH.length);
 		var Lfloor_2 = (Lfloor + 1) % COLOR_MESH.length;

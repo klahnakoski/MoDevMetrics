@@ -63,12 +63,14 @@
 	<script type="text/javascript" src="js/gui/ProductFilter.js"></script>
 	<script type="text/javascript" src="js/charts/aColor.js"></script>
 	<script type="text/javascript" src="js/gui/GUI.js"></script>
+	<script type="text/javascript" src="js/Hierarchy.js"></script>
+
 	<script type="text/javascript" src="b2g/heat.js"></script>
 	<link type="text/css" rel="stylesheet" href="css/menu.css">
 	<script type="text/javascript" src="b2g/main_lib.js"></script>
 	<style id="vakata-stylesheet" type="text/css"></style>
 	<style id="jstree-stylesheet" type="text/css"></style>
-	<link rel="stylesheet" type="text/css" media="all" href="http://people.mozilla.orglib/jstree/themes/default/style.css">
+	<link rel="stylesheet" type="text/css" media="all" href="lib/jstree/themes/default/style.css">
 </HEAD>
 <BODY style="display: none;">
 <div style="overflow:hidden;">
@@ -115,7 +117,45 @@
 		var __createChart = function*() {
 			yield (ESQuery.loadColumns({"from": "bugs"}));
 
-			var a = Log.action("Get Bug Details", true);
+			//THESE ARE IMPORTANT BLOCKERS
+			var a = Log.action("Get Hierarchy", true);
+			var possibleTree = (yield(ESQuery.run({
+				"from": "bug_hierarchy",
+				"select": [
+					"bug_id",
+					"descendants"
+				],
+				"esfilter": {"term": {"bug_id":984663}}
+			}))).list[0].descendants;
+			possibleTree.append(984663);
+
+			var allTree = (yield(ESQuery.run({
+				"from": "bugs",
+				"select": [
+					"bug_id",
+					"dependson"
+				],
+				"esfilter":	{"and": [
+					{"terms":{"bug_id": possibleTree}},
+					Mozilla.CurrentRecords.esfilter
+				]}
+			}))).list;
+
+			yield (Hierarchy.addDescendants({
+		       "from":allTree,
+		       "id_field":"bug_id",
+		       "fk_field":"dependson",
+		       "descendants_field": "dependencies"
+		    }));
+			Log.actionDone(a);
+
+			var QCBlockers = allTree.map(function(v){
+				if (v.bug_id==984663)
+					return v.dependencies;
+			})[0];
+
+
+			a = Log.action("Get Bug Details", true);
 			//PULL THE RAW DATA, AND THEN OPERATE ON IT 112K, 2.17sec time
 			//THE AGGREGATES ARE SPENDING ABOUT 2/3 THE TIME TRANSMITTING THE QUERY
 			var allDetails = yield(ESQuery.run({
@@ -129,8 +169,11 @@
 					"product",
 					"cf_blocking_b2g"
 				],
-				"esfilter": {"and": [
-					Mozilla.B2G.Blockers.esfilter,
+				"esfilter":	{"and": [
+					{"or":[
+						Mozilla.B2G.Blockers.esfilter,
+						{"terms":{"bug_id":QCBlockers}}
+					]},
 					Mozilla.BugStatus.Open.esfilter,
 					Mozilla.CurrentRecords.esfilter,
 					GUI.getFilters("bugs")
@@ -161,6 +204,7 @@
 						project.component = components.edges[0].domain.partitions[i].name;
 						project.project = components.edges[1].domain.partitions[j].name;
 						project.total = total;
+						project.additionalClass = "";
 					});
 					var blockerHTML = showComponent(component, showBlocker);
 					$("#blockers").append(blockerHTML);
@@ -168,20 +212,41 @@
 			});
 
 			var projectDomain=Mozilla.B2G.Project.getDomain();
+			projectDomain.name="project";
 			projectDomain.end=function(p){return p.name;};
 			var totals = yield(Q({
 				"from": allDetails,
 				"select": [
+//					{"name": "project", "value": "project.name", "aggregate": "one"},
+					{"name": "additionalClass", "value": '"project-summary"', "aggregate": "one"},
 					{"name": "count", "value": "bug_id", "aggregate": "count"},
+					{"name": "bugs", "value": "bug_id", "aggregate": "array"},
 					{"name": "age", "value": "Date.now().subtract(Date.newInstance(modified_ts)).divideBy(Duration.DAY)", "aggregate": "maximum"},
-					{"name": "unassignedCount", "value": '(assigned_to=="nobody@mozilla.org" ? 1 : 0)', "aggregate": "sum"}
+					{"name": "unassignedCount", "value": '(assigned_to=="nobody@mozilla.org" ? 1 : 0)', "aggregate": "sum"},
+					{"name": "unassignedBugs", "value": '(assigned_to=="nobody@mozilla.org" ? bug_id : null)', "aggregate": "array"}
 				],
 				"edges": [
 					{"name": "project", "domain": projectDomain}
 				]
 			}));
 
-			var blockerHTML = showSummary("Blockers", GUI.state.team.getSelectedParts(), totals, showBlocker);
+			var specialBlockers = (yield(Q({
+				"from": allDetails,
+				"select": [
+					{"name": "project", "value": '"QC"', "aggregate": "one"},
+					{"name": "additionalClass", "value":'"project-summary"', "aggregate":"one"},
+					{"name": "count", "value": "bug_id", "aggregate": "count"},
+					{"name": "bugs", "value": "bug_id", "aggregate": "array"},
+					{"name": "bugsList", "value": "bug_id", "aggregate": "join", "separator": ","},
+					{"name": "age", "value": "Date.now().subtract(Date.newInstance(modified_ts)).divideBy(Duration.DAY)", "aggregate": "maximum"},
+					{"name": "unassignedCount", "value": '(assigned_to=="nobody@mozilla.org" ? 1 : 0)', "aggregate": "sum"}
+				],
+				"where": {"terms":{"bug_id":QCBlockers}}
+			}))).cube;
+
+			if (specialBlockers.count==0) specialBlockers.project="QC";
+
+			var blockerHTML = showSummary("Blockers", GUI.state.team.getSelectedParts(), totals, specialBlockers, showBlocker);
 			$("#totals").html(blockerHTML);
 
 			addProjectClickers(components);
@@ -210,6 +275,13 @@
 							"name": "All Components",
 							"dimension": Mozilla.B2G.Component,
 							"onlyOne": false,
+							"expandAll": true
+						})},
+						{"id": "responsibility", "name": "Responsibility", "default":"FFOS_Team", "type": PartitionFilter.newInstance({
+							"id": "Responsibility",
+							"name": "All Bugs",
+							"dimension": Mozilla.B2G.Responsibility,
+							"onlyOne": true,
 							"expandAll": true
 						})}
 					],

@@ -14,11 +14,17 @@ Dimension.addEdges(true, Mozilla, [
 			{"term": {"product": "firefox os"}}
 		]},
 		"edges": [
-
 			{"name": "Nominations", "index": "bugs", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "1.5?", "2.0?"]}}},
 			{"name": "Blockers", "index": "bugs", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "2.0+"]}}},
 			{"name": "Regressions", "index": "bugs", "esfilter": {"term": {"keywords": "regression"}}},
 			{"name": "Unassigned", "index": "bugs", "esfilter": {"term": {"assigned_to": "nobody@mozilla.org"}}},
+			{"name": "Responsibility", "index": "bugs", "isFacet": true, "partitions": [
+				{"name":"FFOS Team", "esfilter":{"not":{"terms":{"status_whiteboard.tokenized":["NPOTB", "POVB"]}}}},
+				{"name":"Vendor (POVB)", "esfilter":{"term":{"status_whiteboard.tokenized":"POVB"}}},
+				{"name":"Not Part of the Build (NPOTB)", "esfilter":{"term":{"status_whiteboard.tokenized":"NPOTB"}}}
+			]},
+
+			{"name": "QC Blocker", "index": "bug-hierarchy", "esfilter":{"term":{"blocked_by":984663}}},
 
 			//AN UNFORTUNATE DISTINCTION BETWEEN DIMENSIONS (ABOVE, THAT OVERLAP), AND PARTITIONS THAT DO NOT OVERLAP
 			{"name": "State", "index": "bugs", "isFacet": true,
@@ -154,7 +160,26 @@ Dimension.addEdges(true, Mozilla, [
 						"networking: websockets"
 					]}}
 				]}},
-
+				{"name":"WebRTC",
+					"esfilter":{"or":[
+						{"and":[
+							{"term":{"product":"loop"}},
+							{"term":{"component":"general"}}
+						]},
+						{"and":[
+							{"term":{"product":"loop"}},
+							{"term":{"component":"client"}}
+						]},
+						{"and":[
+							{"term":{"product":"loop"}},
+							{"term":{"component":"server"}}
+						]},
+						{"and":[
+							{"term":{"product":"core"}},
+							{"prefix":{"component":"webrtc"}}
+						]}
+					]}
+				},
 				{"name": "Layout", "esfilter": {"and": [
 					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"terms": {"component": [
@@ -200,7 +225,9 @@ Dimension.addEdges(true, Mozilla, [
 
 
 				{"name": "All Others", "esfilter": {"and": [
-					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term": {"keywords": "perf"}}},     //AN UNFORTUNATE REDUNDANCY
+					{"not": {"term":{"product":"loop"}}},        //NO WebRTC Loop Product
+					{"not": {"prefix":{"component":"webrtc"}}},  //NO WebRTC
 					{"not": {"terms": {"component": [
 						//AN UNFORTUNATE LIST OF EVERYTHING, SHOULD BE AUTO-GENERATED, BUT I NEED A EQUATION SIMPLIFIER, OR ELSE I BREAK ES
 						"Canvas: 2D".toLowerCase(),
@@ -352,7 +379,7 @@ Dimension.addEdges(true, Mozilla, [
 						"esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "2.0+"]}}
 					},
 					{"name": "Targeted",
-						"style": {"color": "#9467bd"},
+						"style": {"color": "#9467bd", "visibility":"hidden"},
 						"esfilter": {"and": [
 							{"exists": {"field": "target_milestone"}},
 							{"not": {"term": {"target_milestone": "---"}}}
