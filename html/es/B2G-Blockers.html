@@ -233,7 +233,7 @@
 			var specialBlockers = (yield(Q({
 				"from": allDetails,
 				"select": [
-					{"name": "project", "value": '"QC"', "aggregate": "ne"},
+					{"name": "project", "value": '"QC"', "aggregate": "one"},
 					{"name": "additionalClass", "value":'"project-summary"', "aggregate":"one"},
 					{"name": "count", "value": "bug_id", "aggregate": "count"},
 					{"name": "bugs", "value": "bug_id", "aggregate": "array"},
