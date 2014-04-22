@@ -44,6 +44,7 @@ ESQuery.INDEXES={
 	"tor_private_bugs":{"host":"http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path":"/private_bugs/bug_version"},
 
 	"bug_hierarchy":{"host":"http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path":"/bug_hierarchy/bug_hierarchy"},
+	"public_bug_hierarchy":{"host":"https://esfrontline.bugzilla.mozilla.org:443", "path":"/bug_hierarchy/bug_hierarchy"},
 	//TODO: HAVE CODE SCAN SCHEMA FOR NESTED OPTIONS
 	"public_bugs.changes":{},
 	"public_bugs.attachments":{},
@@ -73,6 +74,7 @@ ESQuery.INDEXES={
 };
 
 ESQuery.INDEXES.bugs.alternate = ESQuery.INDEXES.public_bugs;
+ESQuery.INDEXES.bug_hierarchy.alternate = ESQuery.INDEXES.public_bug_hierarchy;
 
 
 ESQuery.getColumns=function(indexName){
@@ -93,7 +95,7 @@ ESQuery.parseColumns=function(indexName, parentName, esProperties){
 			var nestedName=indexName+"."+name;
 			if (ESQuery.INDEXES[nestedName]===undefined) ESQuery.INDEXES[nestedName]={};
 			ESQuery.INDEXES[nestedName].columns=ESQuery.parseColumns(nestedName, parentName, property.properties);
-			return;
+//			return;
 		}//endif
 
 		if (property.properties !== undefined) {

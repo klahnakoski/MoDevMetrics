@@ -9,15 +9,17 @@
 </HEAD>
 <BODY>
 
-<div id="sidebar">
+<div id="sidebar" style="width:300px;">
     <br>
     <br>
 
     <div style="height: 30px; text-align: center;vertical-align:middle;">
-        <span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+        <span id="status" style="height:30px"></span><span class="loading"><img src="images/spinner.gif" alt=""></span>
     </div>
     <hr>
-    <div id="description">Simple page to show bug counts over time</div>
+    <div id="description">Simple page to show bug counts over time<br><br>
+    Open your debugger to inspect the ES queries and responses.
+    </div>
     <hr>
     <div id="parameters" class="parameters">
     </div>
@@ -61,7 +63,7 @@
                     },
                     "edges": [  //ONE DIMENSION OVER TIME
                         {"name": "date",
-                            "range": {  //THE VARIABLES THAT DEFINE THE DATE RANGE THAT EACH bug_version RECORD IS VALID FOR
+                            "range": {  //THE INDEX STORES BUG SNAPSHOTS VALID FROM modified_ts TO expires_on
                                 "min": "modified_ts",
                                 "max": "expires_on"
                             },

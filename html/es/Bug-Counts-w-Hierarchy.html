@@ -56,9 +56,7 @@ var createChart=function(){
 
 var __createChart = function*(){
 
-    var TOP_BUG_ID=879822;
-
-
+	var bug_ids = GUI.state.bugList.split(",").map(function(v){return CNV.String2Integer(v.trim())});
 	var sampleMin=Date.newInstance(GUI.state.sampleMin);
 	var sampleMax=Date.newInstance(GUI.state.sampleMax).addDay(1);
 	var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
@@ -73,12 +71,12 @@ var __createChart = function*(){
             "from":"public_bugs",
             "select":"short_desc",
             "esfilter":{"and":[
-                {"term":{"bug_id":TOP_BUG_ID}},
+                {"terms":{"bug_id": bug_ids}},
                 Mozilla.CurrentRecords.esfilter
             ]}
         }));
 
-        $("#title").html(r.list[0]);
+        $("#title").html(r.list.join(", "));
     });
 
 
@@ -87,20 +85,21 @@ var __createChart = function*(){
         // SIMPLE OPEN BUG COUNT, OVER TIME
         ///////////////////////////////////////////////////////////////////////
 
-        //GET ALL DEPENDENCIES FOR ALL TIME
+        //STEP 1: GET ALL DEPENDENCIES FOR ALL TIME
         var descendants = yield(ESQuery.run({
             "from":"bug_hierarchy",
             "select":[
                 "bug_id",
                 "descendants"
             ],
-            "esfilter":{"term":{"bug_id":TOP_BUG_ID}}
+            "esfilter":{"terms":{"bug_id":bug_ids}}
         }));
         descendants=descendants.list[0].descendants;
-        descendants.append(TOP_BUG_ID);
+        descendants.appendArray(bug_ids);
 
-        //PULL DEPENDENCY DATA FROM ES
+        //STEP 2: PULL DEPENDENCY DATA FROM ES
         //THIS IS TO GET DAILY DEPENDENCY LISTS
+		var a= Log.action("Pull dependencies");
         var raw_data=yield (ESQuery.run({
 			"name":"Open Bug Count",
 			"from":"bugs",
@@ -116,6 +115,7 @@ var __createChart = function*(){
                 {"range": {"expires_on": {"gte": sampleMin.getMilli()}}}
             ]}
         }));
+		Log.actionDone(a);
 
         //ORGANIZE INTO DATACUBE: (DAY x BUG_ID)
         var data = yield (Q({
@@ -137,14 +137,14 @@ var __createChart = function*(){
         for (var day=0;day<data.cube.length;day++){
             bug = data.cube[day];
             day_part = data.edges[0].domain.partitions[day];
-            var top_bug = null;
+            var top_bug = [];
             var bug_map = {};
             var bugs = bug.map(function(dependson, b){
                 var output = {
                     "bug_id":data.edges[1].domain.partitions[b].value,
                     "dependson": dependson
                 };
-                if (output.bug_id == TOP_BUG_ID) top_bug = output;
+                if (bug_ids.contains(output.bug_id)) top_bug.append(output);
                 bug_map[output.bug_id]=output;
                 return output;
             });
@@ -156,6 +156,11 @@ var __createChart = function*(){
                 "descendants_field": "dependencies"
             }));
 
+	        var allDescendantsForToday = new aSet();
+	        top_bug.forall(function(b){
+		        allDescendantsForToday.addArray(b.dependencies);
+	        });
+
             //ADD TO THE LIST OF PARTITIONS, ONE FOR EACH DAY,
             //FILTERING BY THE DEPENDENT BUGS OF THAT DAY
             parts.append({
@@ -164,25 +169,29 @@ var __createChart = function*(){
                 "esfilter":{"and":[
                     {"range":{"modified_ts":{"lte":day_part.min.getMilli()}}},
                     {"range":{"expires_on":{"gt":day_part.min.getMilli()}}},
-                    {"terms":{"bug_id":top_bug.dependencies}}
+                    {"terms":{"bug_id":allDescendantsForToday.getArray()}}
                 ]}
             });
         }//for
 
-        //NOW WE CAN ASK MORE ABOUT THIS BUG LIST BY DAY
+        //STEP 3: NOW WE CAN ASK MORE ABOUT THIS BUG LIST BY DAY
+		var statusDomain=Mozilla.BugStatus.getDomain();
+		statusDomain.isFacet=true;
+
+		a= Log.action("Get Aggregates");
         chart = yield (ESQuery.run({
             "from":"bugs",
             "select":{"name":"Num Bugs", "value":"bug_id", "aggregate":"count"},
             "edges":[{
                 "name":"status",
-                "domain":Mozilla.BugStatus.getDomain()
+                "domain":statusDomain
             },{
                 "name":"date",
                 "domain":{"type":"set", "partitions":parts, "isFacet":true}
             }],
             "esfilter":mainFilter
         }));
-
+		Log.actionDone(a);
 
 		aChart.show({
 			"id":"chartCount",
@@ -205,6 +214,7 @@ var __createChart = function*(){
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [
+			{"id":"bugList", "name":"Meta Bugs", "type":"text", "default":"879822"},
 			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
 			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today().ceilingWeek()},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"week"}

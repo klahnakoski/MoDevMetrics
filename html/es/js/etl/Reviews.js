@@ -151,11 +151,11 @@ REVIEWS.get=function*(minBug, maxBug){
 			{"name":"requestee", "value":"attachments.flags.requestee"},
 			{"name":"created_by", "value":"attachments.created_by"},
 			"product",
-			"component",
-			{"name":"bug_status", "value":"(bug_status=='resolved'||bug_status=='verified'||bug_status=='closed') ? 'closed':'open'"},
-			{"name":"keywords", "value":"doc[\"keywords\"].value"},
-			"whiteboard",
-			{"name":"flags", "value":ETL.getFlags()}
+			"component"
+//			{"name":"bug_status", "value":"(bug_status=='resolved'||bug_status=='verified'||bug_status=='closed') ? 'closed':'open'"},
+//			{"name":"keywords", "value":"doc[\"keywords\"].value"},
+//			"whiteboard",
+//			{"name":"flags", "value":ETL.getFlags()}
 		],
 		"from":
 			"bugs.attachments.flags",
@@ -164,7 +164,7 @@ REVIEWS.get=function*(minBug, maxBug){
 				{"terms":{"attachments.flags.request_status":["?"]}},
 				{"terms":{"attachments.flags.request_type":["review", "superreview"]}},
 				{"script":{"script":"attachments.flags.modified_ts==modified_ts"}},
-				{"term":{"attachments[\"attachments.isobsolete\"]" : 0}}
+				{"term":{"attachments.isobsolete" : 0}}
 			]},
 		"esfilter":
 			esfilter
@@ -216,9 +216,7 @@ REVIEWS.get=function*(minBug, maxBug){
 			"bugs.attachments.flags",
 		"where":
 			{"and" : [
-					{"exists":{"field":"attachments"}},
-				{"not":{"missing":{"field":"attachments.flags.request_type", "existence":true, "null_value":true}}},
-//				{"term":{"attachments.attach_id":"420463"}},
+				{"exists":{"field":"attachments.flags.request_type"}},
 				{"terms":{"attachments.flags.request_type":["review", "superreview"]}},
 				{"or" : [
 					{ "and" : [//IF THE REQUESTEE SWITCHED THE ? FLAG, THEN IT IS DONE
@@ -249,7 +247,7 @@ REVIEWS.get=function*(minBug, maxBug){
 			"bug_id",
 			{"name":"attach_id", "value":"changes.attach_id"},
 			"modified_ts",
-			{"name":"requestee", "value":"changes.field_value_removed"},
+			{"name":"requestee", "value":"changes.old_value"},
 			{"name":"modified_by", "value":"null"},
 			"product",
 			"component",
@@ -259,16 +257,15 @@ REVIEWS.get=function*(minBug, maxBug){
 			"bugs.changes",
 		"where":
 			{"and":[//ONLY LOOK FOR NAME CHANGES IN THE "review?" FIELD
+				{"exists":{"field":"changes.field_name"}},
 				{"term":{"changes.field_name":"flags"}},
-				{"exists":{"field":"changes.field_value"}},
-				{"exists":{"field":"changes.field_value_removed"}},
 				{"or":[
 					{"prefix":{"changes.field_value":"review?"}},
 					{"prefix":{"changes.field_value":"superreview?"}}
 				]},
 				{"or":[
-					{"prefix":{"changes.field_value_removed":"review?"}},
-					{"prefix":{"changes.field_value_removed":"superreview?"}}
+					{"prefix":{"changes.old_value":"review?"}},
+					{"prefix":{"changes.old_value":"superreview?"}}
 				]}
 			]},
 		"esfilter":
@@ -283,19 +280,19 @@ REVIEWS.get=function*(minBug, maxBug){
 		Log.actionDone(a);
 	});
 
-	var doneReview;
-	var B=Thread.run("Get Review Ends", function*(){
-		var a=Log.action("Get Review Ends", true);
-		doneReview=yield(doneQuery.run());
-		Log.actionDone(a);
-	});
-
-	var switchedReview;
-	var C=Thread.run("Get Review Re-assignments", function*(){
-		var a=Log.action("Get Review Re-assignments", true);
-		switchedReview=yield(switchedQuery.run());
-		Log.actionDone(a);
-	});
+//	var doneReview;
+//	var B=Thread.run("Get Review Ends", function*(){
+//		var a=Log.action("Get Review Ends", true);
+//		doneReview=yield(doneQuery.run());
+//		Log.actionDone(a);
+//	});
+//
+//	var switchedReview;
+//	var C=Thread.run("Get Review Re-assignments", function*(){
+//		var a=Log.action("Get Review Re-assignments", true);
+//		switchedReview=yield(switchedQuery.run());
+//		Log.actionDone(a);
+//	});
 
 	yield (Thread.join(A));
 	yield (Thread.join(B));

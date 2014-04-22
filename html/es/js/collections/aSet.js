@@ -9,7 +9,8 @@ importScript("aArray.js");
 
 var aSet=function(data){
 	this.map={};
-	this.addArray(data);
+	if (data!==undefined)
+		this.addArray(data);
 };
 
 
