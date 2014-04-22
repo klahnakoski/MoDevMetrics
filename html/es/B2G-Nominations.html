@@ -191,20 +191,25 @@
 			});
 
 			var projectDomain=Mozilla.B2G.Project.getDomain();
+			projectDomain.name="project";
 			projectDomain.end=function(p){return p.name;};
 			var totals = yield(Q({
 				"from": allDetails,
 				"select": [
+//					{"name": "project", "value": "project.name", "aggregate": "one"},
+					{"name": "additionalClass", "value": '"project-summary"', "aggregate": "one"},
 					{"name": "count", "value": "bug_id", "aggregate": "count"},
+					{"name": "bugs", "value": "bug_id", "aggregate": "array"},
 					{"name": "age", "value": "Date.now().subtract(Date.newInstance(modified_ts)).divideBy(Duration.DAY)", "aggregate": "maximum"},
-					{"name": "unassignedCount", "value": '(assigned_to=="nobody@mozilla.org" ? 1 : 0)', "aggregate": "sum"}
+					{"name": "unassignedCount", "value": '(assigned_to=="nobody@mozilla.org" ? 1 : 0)', "aggregate": "sum"},
+					{"name": "unassignedBugs", "value": '(assigned_to=="nobody@mozilla.org" ? bug_id : null)', "aggregate": "array"}
 				],
 				"edges": [
 					{"name": "project", "domain": projectDomain}
 				]
 			}));
 
-			var blockerHTML = showSummary("Nominations", GUI.state.team.getSelectedParts(), totals, showNominations);
+			var blockerHTML = showSummary("Nominations", GUI.state.team.getSelectedParts(), totals, undefined, showNominations);
 			$("#totals").html(blockerHTML);
 
 			addProjectClickers(components);

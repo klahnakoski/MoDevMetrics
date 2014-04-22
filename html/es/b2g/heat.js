@@ -93,7 +93,12 @@ function showSummary(type, team, detail, specialBugs, showTYPE) {
 	}).join("");
 	if (numSummary<2) component.projectDetail="";
 
-	component.specialDetail = showTYPE(specialBugs);
+	if (specialBugs){
+		component.specialDetail = showTYPE(specialBugs);
+	}else{
+		component.specialDetail = "";
+	}//endif
+
 
 	component.total=showTYPE({
 		"project":"Total",
@@ -112,23 +117,12 @@ function showSummary(type, team, detail, specialBugs, showTYPE) {
 
 // SHOW TRIAGE COUNT FOR ONE COMPONENT, ONE PROJECT
 function showNominations(detail) {
-	if (detail.bugs){
-		detail.bugsURL = Bugzilla.searchBugsURL(detail.bugs);
-		detail.unassignedURL = Bugzilla.searchBugsURL(detail.unassignedBugs);
-	}else{
-		var param = {
-			"bug_status": ["UNCONFIRMED", "NEW", "ASSIGNED", "REOPENED"],
-			"cf_blocking_b2g": detail.project + "?",
-			"f1":"component",
-			"v1":detail.component,
-			"o1":"equals",
-			"query_format":"advanced"
-		};
-		detail.bugsURL = "https://bugzilla.mozilla.org/buglist.cgi?"+CNV.Object2URL(param);
-	}//endif
+	detail.bugsList = detail.bugs.join(",");
+	detail.bugsURL = Bugzilla.searchBugsURL(detail.bugs);
+	detail.unassignedURL = Bugzilla.searchBugsURL(detail.unassignedBugs);
 	detail.color = age2color(detail.age).toHTML();
 
-	var TEMPLATE = '<div class="project"  style="background-color:{{color}}" href="{{bugsURL}}">' +
+	var TEMPLATE = '<div class="project {{additionalClass}}"  style="background-color:{{color}}" href="{{bugsURL}}" bugsList="{{bugsList}}">' +
 		'<div class="release">{{project}}</div>' +
 		'<div class="count">{{count}}</div>' +
 		'</div>';
@@ -138,24 +132,9 @@ function showNominations(detail) {
 
 // SHOW BLOCKER COUNT FOR ONE COMPONENT, ONE PROJECT
 function showBlocker(detail) {
-	if (detail.bugs){
-		detail.bugsList=detail.bugs.join(", ");
-		detail.bugsURL = Bugzilla.searchBugsURL(detail.bugs);
-		detail.unassignedURL = Bugzilla.searchBugsURL(detail.unassignedBugs);
-	}else{
-		var param = {
-			"bug_status": ["UNCONFIRMED", "NEW", "ASSIGNED", "REOPENED"],
-			"cf_blocking_b2g": detail.project + "+",
-			"f1":"component",
-			"v1":detail.component,
-			"o1":"equals",
-			"query_format":"advanced"
-		};
-		detail.bugsURL = "https://bugzilla.mozilla.org/buglist.cgi?"+CNV.Object2URL(param);
-
-		param.assigned_to = "nobody@mozilla.org";
-		detail.unassignedURL = "https://bugzilla.mozilla.org/buglist.cgi?"+CNV.Object2URL(param);
-	}//endif
+	detail.bugsList=detail.bugs.join(", ");
+	detail.bugsURL = Bugzilla.searchBugsURL(detail.bugs);
+	detail.unassignedURL = Bugzilla.searchBugsURL(detail.unassignedBugs);
 	detail.color = age2color(detail.age).toHTML();
 
 	var TEMPLATE = '<div class="project {{additionalClass}}"  style="background-color:{{color}}" href="{{bugsURL}}" bugsList="{{bugsList}}">' +
@@ -170,11 +149,12 @@ function showBlocker(detail) {
 
 // SHOW BLOCKER COUNT FOR ONE COMPONENT, ONE PROJECT
 function showRegression(detail) {
+	detail.bugsList = detail.bugs.join(",");
 	detail.bugsURL = Bugzilla.searchBugsURL(detail.bugs);
 	detail.unassignedURL = Bugzilla.searchBugsURL(detail.unassignedBugs);
 	detail.color = age2color(detail.age).toHTML();
 
-	var TEMPLATE = '<div class="project"  style="background-color:{{color}}" href="{{bugsURL}}">' +
+	var TEMPLATE = '<div class="project {{additionalClass}}"  style="background-color:{{color}}" href="{{bugsURL}}" bugsList="{{bugsList}}">' +
 		'<div class="release">{{project}}</div>' +
 		'<div class="count">{{count}}</div>' +
 		(detail.unassignedCount > 0 ? '<div class="unassigned"><a class="count_unassigned" href="{{unassignedURL}}">{{unassignedCount}}</a></div>' : '') +
