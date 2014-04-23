@@ -78,7 +78,7 @@ function showSummary(type, team, detail, specialBugs, showTYPE) {
 	var component = {};
 
 	if (team.length==0){
-		component.name = "All FFOS"
+		component.name = "FFOS"
 	}else{
 		component.name = team.map(function(t){return t.name;}).join(", ")
 	}//endif
