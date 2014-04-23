@@ -129,17 +129,40 @@
 			}))).list[0].descendants;
 			possibleTree.append(984663);
 
-			var allTree = (yield(ESQuery.run({
-				"from": "bug_dependencies",
-				"select": [
-					"bug_id",
-					"dependson"
-				],
-				"esfilter":	{"and": [
-					{"terms":{"bug_id": possibleTree}},
-					Mozilla.CurrentRecords.esfilter
-				]}
-			}))).list;
+			var allTree;
+			var allTreeThread=Thread.run(function*(){
+				allTree = (yield(ESQuery.run({
+					"from": "bug_dependencies",
+					"select": [
+						"bug_id",
+						"dependson"
+					],
+					"esfilter":	{"and": [
+						{"terms":{"bug_id": possibleTree}},
+						Mozilla.CurrentRecords.esfilter
+					]}
+				}))).list;
+			});
+
+			var allOpen;
+			var allOpenThread=Thread.run(function*(){
+				allOpen = (yield(ESQuery.run({
+					"from": "bugs",
+					"select": "bug_id",
+					"esfilter":	{"and": [
+						{"terms":{"bug_id": possibleTree}},
+						Mozilla.BugStatus.Open.esfilter,
+						Mozilla.CurrentRecords.esfilter
+					]}
+				}))).list
+			});
+
+			yield (Thread.join(allTreeThread));
+			yield (Thread.join(allOpenThread));
+
+			allTree = allTree.filter(function(v){
+				return v.bug_id==984663 || allOpen.contains(v.bug_id);
+			});
 
 			yield (Hierarchy.addDescendants({
 		       "from":allTree,
