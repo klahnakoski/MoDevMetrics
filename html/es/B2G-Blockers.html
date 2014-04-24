@@ -172,12 +172,12 @@
 //		    }));
 //			Log.actionDone(a);
 //
-//			var QCBlockers = allTree.map(function(v){
+//			var CABlockers = allTree.map(function(v){
 //				if (v.bug_id==984663)
 //					return v.dependencies;
 //			})[0];
 
-			var QCBlockers= [0];
+			var CABlockers= [0];
 
 			a = Log.action("Get Bug Details", true);
 			//PULL THE RAW DATA, AND THEN OPERATE ON IT 112K, 2.17sec time
@@ -196,7 +196,7 @@
 				"esfilter":	{"and": [
 					{"or":[
 						Mozilla.B2G.Blockers.esfilter,
-						{"terms":{"bug_id":QCBlockers}}
+						{"terms":{"bug_id":CABlockers}}
 					]},
 					Mozilla.BugStatus.Open.esfilter,
 					Mozilla.CurrentRecords.esfilter,
@@ -257,7 +257,7 @@
 			var specialBlockers = (yield(Q({
 				"from": allDetails,
 				"select": [
-					{"name": "project", "value": '"QC"', "aggregate": "one"},
+					{"name": "project", "value": '"CA"', "aggregate": "one"},
 					{"name": "additionalClass", "value":'"project-summary"', "aggregate":"one"},
 					{"name": "count", "value": "bug_id", "aggregate": "count"},
 					{"name": "bugs", "value": "bug_id", "aggregate": "array"},
@@ -265,10 +265,10 @@
 					{"name": "age", "value": "Date.now().subtract(Date.newInstance(modified_ts)).divideBy(Duration.DAY)", "aggregate": "maximum"},
 					{"name": "unassignedCount", "value": '(assigned_to=="nobody@mozilla.org" ? 1 : 0)', "aggregate": "sum"}
 				],
-				"where": {"terms":{"bug_id":QCBlockers}}
+				"where": {"terms":{"bug_id":CABlockers}}
 			}))).cube;
 
-			if (specialBlockers.count==0) specialBlockers.project="QC";
+			if (specialBlockers.count==0) specialBlockers.project="CA";
 
 			var blockerHTML = showSummary("Blockers", GUI.state.team.getSelectedParts(), totals, specialBlockers, showBlocker);
 			$("#totals").html(blockerHTML);

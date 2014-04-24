@@ -314,12 +314,12 @@ importScript("b2g/chart_lib.js", function () {
 		var teamName = GUI.state.team.getSelectedParts().select("name").join(" and ");
 
 		var mainFilter = {"and": [
-			GUI.getFilters("bugs"),
-			SCOPE
+			GUI.getFilters("bugs")
 		]};
 
 		if (teamName == "") {
 			teamSummary({"name": "All Teams", "esfilter": {"match_all": {}}});
+			mainFilter.and.append(SCOPE);  //WE NEED MINIMUM SCOPE
 		} else {
 			teamSummary({"name": teamName, "esfilter": GUI.getFilters("bugs")});
 		}//endif
