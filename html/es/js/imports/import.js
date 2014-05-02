@@ -239,44 +239,6 @@ var importScript;
 		if (DEBUG) Log.note("Added " + numLoaded + " scripts");
 	}//function
 
-	// RELOAD SCRIPTS FOUND IN HEAD
-	reloadScripts = function reloadScripts() {
-		var head = document.getElementsByTagName('head')[0];
-		var existingScripts = [window.location.pathname];
-
-		var scripts = head.getElementsByTagName('script');
-		for (var s = 0; s < scripts.length; s++) {
-			var p = scripts[s].getAttribute("src");
-			var fp = getFullPath(window.location.pathname, p);
-			existingScripts.push(fp);
-		}//for
-
-
-		var numLoaded = existingScripts.length;
-		if (DEBUG) Log.note("Waiting for " + numLoaded + " scripts to reload");
-
-		function onLoadCallback() {
-			numLoaded--;
-			if (numLoaded == 0) {
-				window.location.reload(true);
-			}//endif
-		}
-
-		var frag = document.createDocumentFragment();   //http://ejohn.org/blog/dom-documentfragments/
-		for (var i = 0; i < existingScripts.length; i++) {
-			if (DEBUG) Log.note("Add script: " + shortPath(existingScripts[i]));
-			var script = document.createElement('script');
-			script.type = 'text/javascript';
-			script.onload = onLoadCallback;
-			script.async = false;
-			script.src = existingScripts[i] + "?" + new Date().getTime();  //RANDOM ENDING FORCES A REAL RELOAD
-			frag.appendChild(script);
-		}//for
-		head.appendChild(frag);
-		if (numLoaded == 0) window.location.reload(true);
-		if (DEBUG) Log.note("Added " + numLoaded + " scripts for reloading");
-	}//function
-
 
 	function sort(edges) {
 		var processed = [];
