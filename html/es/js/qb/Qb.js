@@ -142,7 +142,7 @@ function* calc2Tree(query){
 	var edges = query.edges;
 	query.columns = Qb.compile(query, sourceColumns);
 	var select = Array.newInstance(query.select);
-	var where = Qb.where.compile(query.where, sourceColumns, edges);
+	var where = Qb.where.compile(nvl(query.where, query.esfilter), sourceColumns, edges);
 	var numWhereFalse=0;
 
 
@@ -205,7 +205,6 @@ function* calc2Tree(query){
 				}//endif
 			}//endif
 		}//for
-
 
 		for(var r = results.length; r--;){
 			var pass = where(row, results[r]);
@@ -922,7 +921,8 @@ Qb.merge=function(query){
 		if (item.edges.length!=commonEdges.length) Log.error("Expecting all partitions to have same number of (common) edges declared");
 		item.edges.forall(function(edge, i){
 			if (typeof(edge)=="string") Log.error("can not find edge named '"+edge+"'");
-			if (!Qb.domain.equals(commonEdges[i].domain, edge.domain)) Log.error("Edges domains ("+item.from.name+", edge="+edge.name+") and ("+query[0].from.name+", edge="+commonEdges[i].name+") are different");
+			if (!Qb.domain.equals(commonEdges[i].domain, edge.domain))
+				Log.error("Edges domains ("+item.from.name+", edge="+edge.name+") and ("+query[0].from.name+", edge="+commonEdges[i].name+") are different");
 		});
 
 
@@ -1177,6 +1177,7 @@ Qb.drill=function(query, parts){
 	};
 
 	Q=calc2Cube;
+
 
 
 

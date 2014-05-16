@@ -201,6 +201,7 @@ h4 {
 
 .hoverable:hover {
 	background-color: #fafaba;
+    cursor: pointer;
 }
 
 
@@ -320,6 +321,7 @@ h4 {
 
 
 .table {
+    width: 100%;
     border-collapse: collapse;
     border-spacing: 0
 }

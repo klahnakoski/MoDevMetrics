@@ -93,7 +93,7 @@ importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 
 		var total=aMath.add.apply(null, sample.cube);
 
-		if (total>1000){
+		if (total>3000){
 			var chart = yield(ESQuery.run({
 				"name":"Page Load Times",
 				"from":"talos",
@@ -194,7 +194,15 @@ importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 					"dimension":Mozilla.Talos.Branch,
 					"onlyOne":true,
 					"expandAll":true
+				})},
+				{"id":"branch", "name":"OS", "type":PartitionFilter.newInstance({
+					"id":"OS",
+					"name":"OS",
+					"dimension":Mozilla.Talos.OS,
+					"onlyOne":true,
+					"expandAll":true
 				})}
+
 			],
 			[
 				'sampleInterval=Date.getBestInterval(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval), {"min":10, "max":100})'

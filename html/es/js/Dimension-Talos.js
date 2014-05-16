@@ -8,8 +8,15 @@ if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 
 Dimension.addEdges(false,  Mozilla, [
 	{"name":"Talos", "index":"talos", "edges":[
-		{"name":"Branch", "field":"test_build.branch", "isFacet":true, "limit":100, "type":"set"}
+		{"name":"Product", "field":"test_build.name", "type":"set", "limit":1000},
+		{"name":"Branch", "field":"test_build.branch", "type":"set", "limit":1000},
+		{"name":"OS", "field":["test_machine.os", "test_machine.osversion"], "type":"set", "limit":1000},
+		{"name":"Platform", "field":"test_machine.platform", "type":"set", "limit":1000},
+//		{"name":"Test", "field":["testrun.suite", "result.test_name"], "type":"set", "limit":1000},
+		{"name":"Revision", "field":"test_build.revision", "type":"uid"}
 	]}
+
+
 ]);
 
 

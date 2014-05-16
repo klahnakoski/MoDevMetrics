@@ -7,19 +7,43 @@ importScript("qb/ESQuery.js");
 
 if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 
+
+//webRTC MARKS BUGS A LITTLE DIFFERENT
+var webRTCFilter={"or":[
+	{"and":[
+		{"term":{"product":"loop"}},
+		{"terms":{"component":["general", "client", "server"]}}
+	]},
+	{"and":[
+		{"term":{"product":"core"}},
+		{"prefix":{"component":"webrtc"}}
+	]}
+]}
+
+
+
 Dimension.addEdges(true, Mozilla, [
 	{"name": "B2G",
+//				{"term": {"target_milestone": "mozilla31"}},
 		"esfilter": {"or": [
-			{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?", "2.0+", "2.0?"]}},
-			{"term": {"product": "firefox os"}}
+			{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.3?", "1.4?", "1.3t?", "2.0+", "2.0?"]}},
+			{"terms": {"cf_blocking_loop": ["fx30+", "fx31+", "fx32+", "fx33+", "fx30+", "fx34+", "fx35+", "fx36+", "fx30?", "fx31?", "fx32?", "fx33?", "fx30?", "fx34?", "fx35?", "fx36?"]}},
+			{"term": {"product": "firefox os"}},
+			webRTCFilter
 		]},
 		"edges": [
-			{"name": "Nominations", "index": "bugs", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "1.5?", "2.0?"]}}},
-			{"name": "Blockers", "index": "bugs", "esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "2.0+"]}}},
+			{"name": "Nominations", "index": "bugs", "esfilter": {"or":[
+				{"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "2.0?"]}},
+				{"terms": {"cf_blocking_loop": ["fx30?", "fx31?", "fx32?", "fx33?", "fx30?", "fx34?", "fx35?", "fx36?"]}}
+			]}},
+			{"name": "Blockers", "index": "bugs", "esfilter": {"or":[
+				{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "2.0+"]}},
+				{"terms": {"cf_blocking_loop": ["fx30+", "fx31+", "fx32+", "fx33+", "fx30+", "fx34+", "fx35+", "fx36+"]}}
+			]}},
 			{"name": "Regressions", "index": "bugs", "esfilter": {"term": {"keywords": "regression"}}},
 			{"name": "Unassigned", "index": "bugs", "esfilter": {"term": {"assigned_to": "nobody@mozilla.org"}}},
 			{"name": "Responsibility", "index": "bugs", "isFacet": true, "partitions": [
-				{"name":"FFOS Team", "esfilter":{"not":{"terms":{"status_whiteboard.tokenized":["NPOTB", "POVB"]}}}},
+				{"name":"FxOS Team", "esfilter":{"not":{"terms":{"status_whiteboard.tokenized":["NPOTB", "POVB"]}}}},
 				{"name":"Vendor (POVB)", "esfilter":{"term":{"status_whiteboard.tokenized":"POVB"}}},
 				{"name":"Not Part of the Build (NPOTB)", "esfilter":{"term":{"status_whiteboard.tokenized":"NPOTB"}}}
 			]},
@@ -30,11 +54,17 @@ Dimension.addEdges(true, Mozilla, [
 			{"name": "State", "index": "bugs", "isFacet": true,
 				"partitions": [
 					{"name": "Nominated", "esfilter": {"and": [
-						{"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "1.5?", "2.0?"]}},
+						{"or":[
+							{"terms": {"cf_blocking_b2g": ["1.3?", "1.4?", "1.3t?", "2.0?"]}},
+							{"terms": {"cf_blocking_loop": ["fx30?", "fx31?", "fx32?", "fx33?", "fx30?", "fx34?", "fx35?", "fx36?"]}}
+						]},
 						{"not": {"term": {"keywords": "regression"}}}
 					]}},
 					{"name": "Blocker", "esfilter": {"and": [
-						{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "2.0+"]}},
+						{"or":[
+							{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "2.0+"]}},
+							{"terms": {"cf_blocking_loop": ["fx30+", "fx31+", "fx32+", "fx33+", "fx30+", "fx34+", "fx35+", "fx36+"]}}
+						]},
 						{"not": {"term": {"keywords": "regression"}}}
 					]}},
 					{"name": "Regression", "esfilter": {"term": {"keywords": "regression"}}}
@@ -65,18 +95,9 @@ Dimension.addEdges(true, Mozilla, [
 					]}
 				},
 				{"name":"System Front-End", "esfilter":{"and":[
-					{"not":{"term":{"keywords":"perf"}}}, //AN UNFORTUNATE REDUNDANCY
-					{"term": {"product": "firefox os"}},
-					{"terms":{"component":[
-						"gaia::browser",
-						"gaia::everything.me",
-						"gaia::first time experience",
-						"gaia::homescreen",
-						"gaia::search",
-						"gaia::system",
-						"gaia::system::browser chrome"
-					]}}
+					{"term":{"status_whiteboard":"systemsfe"}}
 				]}},
+
 				{"name": "Productivity", "esfilter": {"and": [
 					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"term": {"product": "firefox os"}},
@@ -123,10 +144,7 @@ Dimension.addEdges(true, Mozilla, [
 					{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 					{"terms": {"component": [
 						"video/audio: recording",
-						"video/audio",
-						"webrtc",
-						"webrtc: video/audio",
-						"webrtc: audio/video"
+						"video/audio"
 					]}}
 				]}},
 				{"name": "Comms", "esfilter": {"and": [
@@ -160,24 +178,16 @@ Dimension.addEdges(true, Mozilla, [
 						"networking: websockets"
 					]}}
 				]}},
-				{"name":"WebRTC",
-					"esfilter":{"or":[
-						{"and":[
-							{"term":{"product":"loop"}},
-							{"term":{"component":"general"}}
-						]},
-						{"and":[
-							{"term":{"product":"loop"}},
-							{"term":{"component":"client"}}
-						]},
-						{"and":[
-							{"term":{"product":"loop"}},
-							{"term":{"component":"server"}}
-						]},
-						{"and":[
-							{"term":{"product":"core"}},
-							{"prefix":{"component":"webrtc"}}
-						]}
+				{"name": "WebRTC Loop",
+					"esfilter": {"and": [
+						{"term": {"product": "loop"}},
+						{"terms": {"component": ["general", "client", "server"]}}
+					]}
+				},
+				{"name": "WebRTC Platform",
+					"esfilter": {"and": [
+						{"term": {"product": "core"}},
+						{"prefix": {"component": "webrtc"}}
 					]}
 				},
 				{"name": "Layout", "esfilter": {"and": [
@@ -228,6 +238,7 @@ Dimension.addEdges(true, Mozilla, [
 					{"not": {"term": {"keywords": "perf"}}},     //AN UNFORTUNATE REDUNDANCY
 					{"not": {"term":{"product":"loop"}}},        //NO WebRTC Loop Product
 					{"not": {"prefix":{"component":"webrtc"}}},  //NO WebRTC
+					{"not": {"term":{"status_whiteboard":"systemsfe"}}},  //NO SYSTEM FRONTEND
 					{"not": {"terms": {"component": [
 						//AN UNFORTUNATE LIST OF EVERYTHING, SHOULD BE AUTO-GENERATED, BUT I NEED A EQUATION SIMPLIFIER, OR ELSE I BREAK ES
 						"Canvas: 2D".toLowerCase(),
@@ -309,7 +320,9 @@ Dimension.addEdges(true, Mozilla, [
 							{"name":"CF", "date":"Mar 17, 2014", "style":{strokeStyle:"black", verticalOffset: 10}}
 						],
 						"style": {"color": "#d62728"},
-						"esfilter": {"terms": {"cf_blocking_b2g": ["1.3+", "1.3?"]}}
+						"esfilter": {"or":[
+							{"terms": {"cf_blocking_b2g": ["1.3+", "1.3?"]}}
+						]}
 					},
 					{"name": "1.3T",
 						"dateMarks":[
@@ -317,7 +330,9 @@ Dimension.addEdges(true, Mozilla, [
 							{"name":"CF", "date":"Mar 17, 2014", "style":{strokeStyle:"black", verticalOffset: 20}}
 						],
 						"style": {"color": "#ff7f0e"},
-						"esfilter": {"terms": {"cf_blocking_b2g": ["1.3t+", "1.3t?"]}}
+						"esfilter": {"or":[
+							{"terms": {"cf_blocking_b2g": ["1.3t+", "1.3t?"]}}
+						]}
 					},
 					{"name": "1.4",
 						"dateMarks":[
@@ -326,19 +341,27 @@ Dimension.addEdges(true, Mozilla, [
 							{"name":"CF", "date":"Jun 9, 2014", "style":{strokeStyle:"black", verticalOffset: 30}}
 						],
 						"style": {"color": "#2ca02c"},
-						"esfilter": {"terms": {"cf_blocking_b2g": ["1.4+", "1.4?"]}}
+						"esfilter": {"or":[
+							{"terms": {"cf_blocking_b2g": ["1.4+", "1.4?"]}},
+							{"terms": {"cf_blocking_loop": ["fx30+", "fx30?"]}}
+						]}
 					},
-					{"name": "1.5/2.0",
+					{"name": "2.0",
 						"dateMarks":[
 							{"FC":"Jun 9, 2014"},
 							{"SC":"Jul 21, 2014"},
 							{"CF":"Sep 01, 2014"}
 						],
 						"style": {"color": "#1f77b4"},
-						"esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "1.5?", "2.0+", "2.0?"]}}
+						"esfilter": {"or":[
+							{"terms": {"cf_blocking_b2g": ["2.0+", "2.0?"]}},
+							{"terms": {"cf_blocking_loop": ["fx31?", "fx32?", "fx31+", "fx32+"]}}
+						]}
 					},
 					{"name": "Other", "style": {"color": "#9467bd"}, "esfilter": {"and": [
-						{"not": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+", "1.3?", "1.4?", "1.3t?", "1.5?", "2.0+", "2.0?"]}}}
+						{"not": {"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.3?", "1.4?", "1.3t?", "2.0+", "2.0?"]}}},
+						{"not": {"terms": {"cf_blocking_loop": ["fx30+", "fx31+", "fx32+", "fx33+", "fx30+", "fx34+", "fx35+", "fx36+", "fx30?", "fx31?", "fx32?", "fx33?", "fx30?", "fx34?", "fx35?", "fx36?"]}}}
+
 					]}}
 				]
 			},
@@ -369,14 +392,14 @@ Dimension.addEdges(true, Mozilla, [
 							{"name":"CF", "date":"Jun 9, 2014", "style":{strokeStyle:"black", verticalOffset: 30}}
 						]
 					},
-					{"name": "1.5/2.0",
+					{"name": "2.0",
 						"dateMarks":[
 							{"FC":"Jun 9, 2014"},
 							{"SC":"Jul 21, 2014"},
 							{"CF":"Sep 01, 2014"}
 						],
 						"style": {"color": "#1f77b4"},
-						"esfilter": {"terms": {"cf_blocking_b2g": ["1.5+", "2.0+"]}}
+						"esfilter": {"terms": {"cf_blocking_b2g": ["2.0+"]}}
 					},
 					{"name": "Targeted",
 						"style": {"color": "#9467bd", "visibility":"hidden"},

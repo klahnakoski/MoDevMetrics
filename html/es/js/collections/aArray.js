@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-
+importScript("../util/aUtil.js");
 
 
 
@@ -162,7 +162,10 @@
 	}//endif
 
 
-	Array.prototype.prepend=Array.prototype.unshift;
+	Array.prototype.prepend=function(v){
+		this.unshift(v);
+		return this;
+	};//method
 
 	Array.prototype.last=function(){
 		return this[this.length-1];
@@ -237,14 +240,29 @@
 	};//method
 
 
-	//RETURN UNION OF UNIQUE VALUES (WORKS ON STRINGS ONLY)
+	//RETURN UNION OF UNIQUE VALUES
+	//ASSUMES THAT THE COORCED STRING VALUE IS UNIQUE
 	Array.prototype.union = function(b){
 		var output={};
-		for(var i = this.length; i--;) output[this[i]]=1;
-		for(var j = b.length; j--;) output[b[j]]=1;
-		return Object.keys(output);
+		for(var i = this.length; i--;) output[this[i]]=this[i];
+		b = Array.newInstance(b);
+		for(var j = b.length; j--;) output[b[j]]=b[j];
+		return Map.getValues(output);
 	};//method
 
+	//RETURN UNION OF UNIQUE VALUES
+	//ASSUMES THAT THE COORCED STRING VALUE IS UNIQUE
+	Array.union = function union(arrays){
+		var output={};
+		arrays.forall(function(a){
+			a = Array.newInstance(a);
+			for(var i = a.length; i--;){
+				var v = a[i];
+				output[v]=v;
+			}//for
+		});
+		return Map.getValues(output);
+	};
 
 
 	Array.prototype.subtract=function(b){
