@@ -83,7 +83,7 @@ var __createChart = function*(){
 
 	var timeDomain = null;
 
-	var milestones = GUI.state.milestone.getSelectedParts();
+	var milestones = [];
 	var milestoneFilter = null;
 	if (milestones.length > 0) {
 		//SHOW UI dates AS DISABLED
@@ -159,7 +159,7 @@ var __createChart = function*(){
 		raw_data = yield(getRawDependencyData(featureFilter, timeDomain, needed_fields, false));
 	}//endif
 
-	var currFeatureFilter = GUI.state.hierarchyMode.getSimpleState() != "All dependencies" ? nvl(milestoneFilter, featureFilter) : {"match_all": {}};
+	var currFeatureFilter = {"match_all": {}};
 	yield (getDailyDependencies(raw_data, nvl(milestoneFilter, {"match_all": {}}) ));
 
 	//LAST DAY WILL BE CONSIDERED CURRENT FEATURE LIST
@@ -175,7 +175,6 @@ var __createChart = function*(){
 
 	restOfCharting({
 		"TODAY": TODAY,
-		"hierarchyMode":GUI.state.hierarchyMode.getSimpleState(),
 		"timeDomain": timeDomain,
 		"currOpenBugs": currOpenBugs,
 		"currTotalBugs": currTotalBugs,
@@ -203,7 +202,7 @@ function __reChart(){
 
 	yield (getDailyDependencies(raw_data, nvl(milestoneFilter, {"match_all": {}}) ));
 
-	var currFeatureFilter = GUI.state.hierarchyMode.getSimpleState() != "All dependencies" ? nvl(milestoneFilter, featureFilter) : {"match_all": {}};
+	var currFeatureFilter = {"match_all": {}};
 
 	//LAST DAY WILL BE CONSIDERED CURRENT FEATURE LIST
 	var currOpenBugs=raw_data.cube.last().filter({"and":[
@@ -218,7 +217,6 @@ function __reChart(){
 
 	restOfCharting({
 		"TODAY": Date.today(),
-		"hierarchyMode":GUI.state.hierarchyMode.getSimpleState(),
 		"timeDomain": {"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval},
 		"currOpenBugs": currOpenBugs,
 		"currTotalBugs": currTotalBugs,
@@ -305,12 +303,7 @@ function restOfCharting(env){
 		///////////////////////////////////////////////////////////////////////
 
 		//SHOW BARS FOR EVERY DAY, IF LESS THAN A 3WEEKS
-		var timeDomain = {"type":"time", "min": env.timeDomain.min, "max": env.timeDomain.max};
-		if (timeDomain.max.subtract(timeDomain.min).round(Duration.WEEK, 0) <= 3){
-			timeDomain.interval = Duration.DAY;
-		} else{
-			timeDomain.interval = Duration.WEEK;
-		}//endif
+		var timeDomain = {"type":"time", "min": env.timeDomain.min, "max": env.timeDomain.max, "interval":env.timeDomain.interval};
 
 		var bugsInEachDay= yield(Q({
 			"from": raw_data,
@@ -463,14 +456,6 @@ $(document).ready(function(){
 		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-6week")},
 		{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today().ceilingWeek()},
 		{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"day"},
-		{"id":"hierarchyMode", "name":"Dependencies", "type":RadioFilter.newInstance({
-			"id":"hierarchyMode",
-			"name":"Dependencies",
-			"message":"Chart all bug dependencies (default), or chart only the bugs matching milestone criterion<br><br>",
-			"options":["All dependencies", "Matching criterion"],
-			"default":"All dependencies",
-			"refreshCallback":__reChart
-		})},
 		{"id": "feature", "name": "Feature", "type": PartitionFilter.newInstance({
 			"id": "features",
 			"name": "All Features",
@@ -478,21 +463,11 @@ $(document).ready(function(){
 			"onlyOne": false,
 			"expandAll": true,
 			"treeDepth":0
-		})},
-		{"id": "milestone", "name": "Milestone", "type": PartitionFilter.newInstance({
-			"id": "milestones",
-			"name": "All Milestones",
-			"description": "You may restrict the feature to the only the bugs marked with the given milestone",
-			"dimension": Mozilla.Milestone,
-			"onlyOne": true,
-			"expandAll": true,
-			"treeDepth":0,
-			"refreshCallback":__reChart
 		})}
 		],
 			[
-				"sampleMin=Date.newInstance(sampleMin).floor(Duration.WEEK).format('yyyy-MM-dd')",
-				"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.WEEK).addDay(-1).format('yyyy-MM-dd')"
+				"sampleMin=Date.newInstance(sampleMin).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
+				"sampleMax=Date.newInstance(sampleMax).ceiling(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')"
 			],
 		"bugs",
 		false
