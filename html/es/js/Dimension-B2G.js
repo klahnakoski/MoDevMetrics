@@ -95,7 +95,7 @@ Dimension.addEdges(true, Mozilla, [
 					]}
 				},
 				{"name":"System Front-End", "esfilter":{"and":[
-					{"term":{"status_whiteboard":"systemsfe"}}
+					{"regexp":{"status_whiteboard":".*systemsfe.*"}}
 				]}},
 
 				{"name": "Productivity", "esfilter": {"and": [
@@ -117,7 +117,8 @@ Dimension.addEdges(true, Mozilla, [
 						"gaia::fmradio",
 						"gaia::gallery",
 						"gaia::music",
-						"gaia::video"
+						"gaia::video",
+						"gaia::ringtones"
 					]}}
 				]}},
 				{"name": "RIL", "esfilter": {"and": [
@@ -280,6 +281,7 @@ Dimension.addEdges(true, Mozilla, [
 						"gaia::gallery",
 						"gaia::music",
 						"gaia::video",
+						"gaia::ringtones",
 						"ril",
 						"nfc",
 						"wifi",
