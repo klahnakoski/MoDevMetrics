@@ -4,7 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-<script type="application/javascript" src="js/imports/import.js"></script>
+<script type="text/javascript" src="modevlib/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -44,7 +44,7 @@
 
 <script type="application/javascript">
 
-importScript(["js/main.js"], function(){
+importScript(["modevlib/main.js"], function(){
 
 var CUTOFF=Duration.newInstance("3week");
 $("#description").html("An attempt to get bug history to pull faster from ES<br><br>The initial load my be slow, and the chart boring, but it gets really amazing when you start filtering by program and product!");

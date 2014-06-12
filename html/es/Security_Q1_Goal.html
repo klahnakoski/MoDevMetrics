@@ -10,7 +10,7 @@
 	<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
 	<link type="text/css" rel="stylesheet" href="lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css"/>
 	<link type="text/css" rel="stylesheet" href="css/menu.css"/>
-	<script type="application/javascript" src="js/imports/import.js"></script>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -54,13 +54,13 @@
 <script type="application/javascript">
 
 
-importScript('js/main.js', function(){
+importScript('modevlib/main.js', function(){
 
 	$("#description").html("A dashboard to help security teams track their progress toward the 2013 Q1 goals<br><br>" +
 			"There are some limitations:  <ul><li>The Age on the chart is measured from the time the bug was marked sec-high+, while the Bug Age in the buglist below shows how old the bugs is.</li>" +
 			"<li>The age charted is from the FIRST time the bug was marked sec-high+, not the most recent time.  Any bugs recently marked sec-high+ more than once will alter the historical record on the chart, all the way back to the time the bug was first marked sec-high+</li>" +
 			"</ul>" +
-			"<br>Teams are defined in Mozilla.Security.Teams found in <a href='js/Dimension-Bugzilla.js'>Dimension-Bugzilla.js</a> (around line 224)"
+			"<br>Teams are defined in Mozilla.Security.Teams found in <a href='modevlib/Dimension-Bugzilla.js'>Dimension-Bugzilla.js</a> (around line 224)"
 	);
 
 
