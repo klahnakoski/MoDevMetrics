@@ -197,7 +197,7 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Perfy.js'], function(){
 			}else{
 				var param={
 					"platform":GUI.state.platform.getSimpleState(),
-					"benchmark":"Benchmark."+benchmark.partitions[index].value.replaceAll(" ", "_"),
+					"benchmark":benchmark.partitions[index].value.replaceAll(" ", "_"),
 					"date":Date.newInstance(GUI.state.date).format("yyyy-MM-dd")
 				};
 				window.open("Perfy-Details.html#"+CNV.Object2URL(param));
