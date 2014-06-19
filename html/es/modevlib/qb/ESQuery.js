@@ -75,7 +75,9 @@ ESQuery.INDEXES = {
 	"b2g_tests": {"host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/b2g_tests/results"},
 
 	"perfy": {"host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/perfy/scores"},
-	"local_perfy": {"host": "http://localhost:9200", "path": "/perfy/scores"}
+	"local_perfy": {"host": "http://localhost:9200", "path": "/perfy/scores"},
+
+	"eideticker": {"host": "http://localhost:9200", "path": "/eideticker/results"}
 
 };
 
