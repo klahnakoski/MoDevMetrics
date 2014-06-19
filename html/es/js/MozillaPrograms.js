@@ -6,6 +6,8 @@
 var MozillaPrograms = {
 	"columns": ["projectName", "attributeName", "attributeValue", "esfilter"],
 	"rows": [
+
+		["B2G 2.0", "cf_blocking_b2g", "2.0+"],
 		["B2G 1.4", "cf_blocking_b2g", "1.4+"],
 		["B2G 1.3", "cf_blocking_b2g", "1.3+"],
 		["B2G 1.3t", "cf_blocking_b2g", "1.3t+"],
@@ -90,8 +92,8 @@ var MozillaPrograms = {
 		["Fennec Triage", "cf_blocking_fennec10", "?"],
 		["Fennec Triage", "cf_blocking_fennec", "?"],
 
-		["Good First Bug", "status_whiteboard.tokenized", "good first bug"]
-
+		["Good First Bug", "status_whiteboard.tokenized", "good first bug"],
+		["Reopened", "bug_status", "reopened"]
 
 	]
 };
