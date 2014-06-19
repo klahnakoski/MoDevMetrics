@@ -5,7 +5,6 @@
 <HTML>
 <HEAD>
 	<script type="text/javascript" src="modevlib/imports/import.js"></script>
-    <link type="text/css" rel="stylesheet" href="css/menu.css"/>
 </HEAD>
 <BODY>
 
@@ -308,7 +307,7 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Perfy.js'], function(){
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [
-				{"id":"date", "name":"Test Date", "type":"date", "default":Date.today()},
+				{"id":"date", "name":"Test Date", "type":"date", "default":Date.newInstance("JAN 31 2014")},
 				{"id":"benchmark", "name":"Benchmark", "type":PartitionFilter.newInstance({
 					"id":"benchmark",
 					"name":"Benchmark",
