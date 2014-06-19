@@ -73,7 +73,7 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Perfy.js'], function(){
 	$("#title").html("Perfy!");
 
 	var __createChart = function*(){
-		var sampleDate = Date.eod();
+		var sampleDate = Date.newInstance("JAN 31 2014");
 		var totalsFilter={"terms":{"info.test":["total", "Kraken", "Octane"]}};
 
 
@@ -139,8 +139,8 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Perfy.js'], function(){
 		$( ".hoverable" ).click(function(self) {
 			var index=this.id.substring("chart".length).split("_");
 			var param={
-				"platform":"Platform."+Mozilla.Perfy.Platform.getDomain().partitions[index[0]].value.replaceAll(" ", "_"),
-				"benchmark":"Benchmark."+Mozilla.Perfy.Benchmark.getDomain().partitions[index[1]].value.replaceAll(" ", "_")
+				"platform":Mozilla.Perfy.Platform.getDomain().partitions[index[0]].value.replaceAll(" ", "_"),
+				"benchmark":Mozilla.Perfy.Benchmark.getDomain().partitions[index[1]].value.replaceAll(" ", "_")
 			};
 			window.open("Perfy-TimeSeries.html#"+CNV.Object2URL(param));
 		});
