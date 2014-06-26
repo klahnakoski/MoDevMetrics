@@ -4,8 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-	<script type="application/javascript" src="js/imports/import.js"></script>
-    <link type="text/css" rel="stylesheet" href="css/menu.css"/>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -61,7 +60,7 @@
 <script type="application/javascript">
 
 
-importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
+importScript(['modevlib/main.js', 'modevlib/Dimension-Perfy.js'], function(){
 	var thread;
 	var createChart = function(){
 		if (thread !== undefined)
@@ -158,7 +157,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [
-				{"id":"date", "name":"Test Date", "type":"date", "default":Date.today()},
+				{"id":"date", "name":"Test Date", "type":"date", "default":Date.newInstance("JAN 31 2014")},
 				{"id":"benchmark", "name":"Benchmark", "type":PartitionFilter.newInstance({
 					"id":"benchmark",
 					"name":"Benchmark",

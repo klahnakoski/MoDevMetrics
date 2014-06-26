@@ -4,8 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-	<script type="application/javascript" src="js/imports/import.js"></script>
-    <link type="text/css" rel="stylesheet" href="css/menu.css"/>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -58,7 +57,7 @@
 <script type="application/javascript">
 
 
-importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
+importScript(['modevlib/main.js', 'modevlib/Dimension-Perfy.js'], function(){
 	var thread;
 	var createChart = function(){
 		if (thread !== undefined)
@@ -66,13 +65,9 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		thread = Thread.run(__createChart());
 	};
 
-<<<<<<< HEAD
 	$("#description").html("Please <a href='https://wiki.mozilla.org/Platform/Games/GameFocusedBenchmarking'>read the wiki</a> for detailed explaination of testing procedure and analysis.<br><br> The latest overall score for each channel, and it's breakdown.  This chart is best used to view test result variance (bottom chart).  Click on the variance chart to see the specific test results.");
 
 	var __createChart = function*(){
-=======
-	var __createChart = function(){
->>>>>>> master
 		var sampleDate = Date.newInstance(GUI.state.date);
 //		var benchmark=GUI.state.benchmark;
 		var totalsFilter={"terms":{"info.test":["total", "Kraken", "Octane"]}};
@@ -125,8 +120,8 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 			Thread.run(function*(){
 				//SHOW ALL TESTS FOR THIS GROUP
 				var param={
-					"benchmark":"Benchmark."+benchmark+"."+test.replaceAll(" ", "_"),
-					"platform":"Platform."+GUI.state.platform.getSelectedParts()[0].name.replaceAll(" ", "_"),
+					"benchmark":benchmark+"."+test.replaceAll(" ", "_"),
+					"platform":GUI.state.platform.getSelectedParts()[0].name.replaceAll(" ", "_"),
 					"date":Date.newInstance(GUI.state.date).format("yyyy-MM-dd")
 				};
 				window.open("Perfy-Details.html#"+CNV.Object2URL(param));
@@ -190,11 +185,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 		});
 
 
-<<<<<<< HEAD
 		Thread.run(function*(){
-=======
-		Thread.run(function(){
->>>>>>> master
 			var data = yield(ESQuery.run({
 				"name":"Overall",
 				"from":"perfy",
@@ -316,7 +307,7 @@ importScript(['js/main.js', 'js/Dimension-Perfy.js'], function(){
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [
-				{"id":"date", "name":"Test Date", "type":"date", "default":Date.today()},
+				{"id":"date", "name":"Test Date", "type":"date", "default":Date.newInstance("JAN 31 2014")},
 				{"id":"benchmark", "name":"Benchmark", "type":PartitionFilter.newInstance({
 					"id":"benchmark",
 					"name":"Benchmark",

@@ -4,7 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-	<script type="application/javascript" src="js/imports/import.js"></script>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -54,7 +54,7 @@
 <script type="application/javascript">
 
 
-importScript(['js/main.js', 'js/Dimension-Telemetry.js'], function(){
+importScript(['modevlib/main.js', 'modevlib/Dimension-Telemetry.js'], function(){
 
 //SOMETHING IS CHANGING THE position=relative
 var fixer=Thread.run("Monitor regression div", function*(){

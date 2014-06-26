@@ -4,7 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-	<script type="application/javascript" src="js/imports/import.js"></script>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
 
 	<link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
 	<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
@@ -38,7 +38,7 @@
 <script type="application/javascript">
 
 
-importScript(["js/main.js"], function(){
+importScript(["modevlib/main.js"], function(){
 
 
 var createChart=function(){
@@ -169,7 +169,7 @@ var createChart=function(){
 
 var addToTable=function(name, value){
 	var tbody=$("#theTable tbody");
-	tbody.append("<tr>"+HTML.tag("td", name)+HTML.tag("td", value)+"</tr>");
+	tbody.append("<tr>"+wrapWithHtmlTag("td", name)+wrapWithHtmlTag("td", value)+"</tr>");
 };//method
 
 

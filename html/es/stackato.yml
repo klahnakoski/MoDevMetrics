@@ -15,4 +15,10 @@ ignores: [
   "html/es/lib/jstree/_docs",
   "html/es/lib/jstree/_demo"
 ]
+url: [
+  "charts.paas.mozilla.org",
+  "charts.mozilla.org",
+  "charts.paas.allizom.org"
+]
+
 services:

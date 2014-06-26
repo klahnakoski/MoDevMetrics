@@ -4,7 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-	<script type="application/javascript" src="js/imports/import.js"></script>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -37,7 +37,7 @@
 
 
 <script type="application/javascript">
-importScript(['js/main.js'], function(){
+importScript(['modevlib/main.js'], function(){
 
 	var CUTOFF=Duration.newInstance("3week");
 	$("#description").html("This chart includes all bugs <i>identified</i> between the Start and End Dates.  For closed bugs, the duration is defined from the time the bug is identified, to the time the bug is closed.  For open bugs, the duration is defined from the time the bug is identified, to the end of today (GMT).  These durations are partitioned into intervals, counted, and charted here.");

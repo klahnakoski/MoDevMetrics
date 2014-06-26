@@ -5,7 +5,7 @@
 <HTML>
 <HEAD>
 <HEAD>
-	<script type="application/javascript" src="js/imports/import.js"></script>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -50,7 +50,7 @@
 
 <script type="application/javascript">
 
-importScript(["js/main.js", 'js/Dimension-Bugzilla.js'], function(){
+importScript(["modevlib/main.js", 'modevlib/Dimension-Bugzilla.js'], function(){
 
 var CUTOFF = Duration.newInstance("3week");
 
@@ -244,10 +244,10 @@ var __createChart = function*(){
 		}))).list[0];
 
 		$("#stats").append(
-				'<span class="parameter_name">Average New Bugs:</span>' + aMath.round(perDay.avg_new, 1) + '/Day<br>' +
-				'<span class="parameter_name">Average Closed:</span>' + aMath.round(perDay.avg_closed, 1) + '/Day<br>' +
-				'<span class="parameter_name">Median New in Day:</span>' + aMath.round(perDay["med_new"], 1) + '<br>' +
-				'<span class="parameter_name">Median Closed in Day:</span>' + aMath.round(perDay["med_closed"], 1) + '<br>' +
+			'<span class="parameter_name">Average New Bugs:</span>' + aMath.round(perDay.avg_new, 1) + '/Day<br>' +
+			'<span class="parameter_name">Average Closed:</span>' + aMath.round(perDay.avg_closed, 1) + '/Day<br>' +
+			'<span class="parameter_name">Median New in Day:</span>' + aMath.round(perDay["med_new"], 1) + '<br>' +
+			'<span class="parameter_name">Median Closed in Day:</span>' + aMath.round(perDay["med_closed"], 1) + '<br>' +
 			''
 		);
 

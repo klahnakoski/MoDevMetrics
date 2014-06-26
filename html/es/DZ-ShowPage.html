@@ -4,7 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <HTML>
 <HEAD>
-	<script type="application/javascript" src="js/imports/import.js"></script>
+	<script type="application/javascript" src="modevlib/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -32,7 +32,7 @@
 	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
 </div>
 <div style="align:left;position:relative;float:left;width:800px;">
-	<h3 id="title">Test Timing Results</h3>
+	<h3 id="title">Talos Test Results</h3>
 
 	<div id="chart" class="chart" style="float:none;width:800px;height:400px;"></div>
 
@@ -46,14 +46,10 @@
 <script type="application/javascript">
 
 
-importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
-
-
-
+importScript(['modevlib/main.js', 'modevlib/Dimension-Talos.js'], function(){
 	$("#description").html(
 			"Simple look at time series"
 	);
-
 
 	var thread;
 	var createChart = function(){
@@ -66,12 +62,10 @@ importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 		var sampleMin = Date.newInstance(GUI.state.sampleMin);
 		var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
 		var sampleMax = Date.newInstance(GUI.state.sampleMax).add(sampleInterval);
-		var page='results.'+GUI.state.page.replaceAll(".", "_dot_").toLowerCase()+".last_20";
 		var branch=GUI.state.branch;
 
-		var esfilter={"and":[
-			{"term":{"testrun.suite": "tp5o"}},
-			{"range":{"testrun.date":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
+		var esfilter = {"and": [
+			{"range": {"testrun.date": {"gte": sampleMin.getMilli(), "lt": sampleMax.getMilli()}}},
 			GUI.getFilters("talos")
 		]};
 
@@ -81,25 +75,23 @@ importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 
 		//HOW MANY SAMPLES DO WE HAVE, TOO MANY AND WE USE A HEAT GRID
 		var sample = yield(ESQuery.run({
-			"name":"Page Load Times",
 			"from":"talos",
-			"select":{"name":"count", "value":page, "aggregate":"count"},
+			"select":{"name":"count", "value":"result.test_name", "aggregate":"count"},
 			"edges":[
-				{"name":"branch", "value":Mozilla.Talos.Branch.field, "domain":Mozilla.Talos.Branch.getDomain()}
+				{"name":"branch", "domain":Mozilla.Talos.Branch.getDomain()}
 			],
 			"esfilter":esfilter
 		}));
 
 		var total=aMath.add.apply(null, sample.cube);
 
-		if (total>1000){
+		if (total>3000){
 			var chart = yield(ESQuery.run({
-				"name":"Page Load Times",
 				"from":"talos",
 				"select":{"name":"count", "value":"1", "aggregate":"count"},
 				"edges":[
-					{"name":"mean", "value":page, "domain":{"type":"duration", "min":0, "interval":Duration.newInstance("50milli")}},
-					{"name":"date", "value":'testrun.date', "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}}
+					{"name":"mean", "value":"result.stats.median", "domain":{"type":"duration", "min":0, "interval":Duration.newInstance("50milli")}},
+					{"name":"date", "value":'testbuild.push_date', "domain":{"type":"time", "isFacet":true, "min":sampleMin, "max":sampleMax, "interval":sampleInterval}}
 				],
 				"esfilter":esfilter
 			}));
@@ -136,8 +128,6 @@ importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 						return;
 					}//endif
 
-
-
 					var newMin=part.min.subtract(edge.domain.interval);
 					var newMax=part.max.add(edge.domain.interval);
 					var interval=Date.getBestInterval(newMin, newMax, Duration.SECOND, {"min":10, "max":40});
@@ -151,27 +141,27 @@ importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 
 		}else{
 			var chart = yield(ESQuery.run({
-				"name":"Page Load Times",
 				"from":"talos",
 				"select": [
-					{"name":"mean", "value":page}
+					{"name":"median", "value":"result.stats.median"}
 				],
 				"edges":[
-					{"name":"date", "value":'testrun.date', "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":"none"}}
+					{"name":"date", "value":'datazilla.date_loaded', "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":"none"}}
 				],
 				"esfilter":esfilter
 			}));
 
-			chart.list.forall(function(v){
-				v.mean=aMath.mean.apply(null, v.mean);
-			});
+			chart.list = Qb.sort(chart.list, ["date.value"]);
 
 			aChart.showScatter({
 				"id":"chart",
 				"sheetDiv":"info",
 				"cube":chart,
 				"height":"400",
-				xAxisSize: 50
+				xAxisSize: 50,
+				extensionPoints: {
+					line_lineWidth: 0
+				}
 			});
 		}//endif
 
@@ -182,14 +172,34 @@ importScript(['js/main.js', 'js/Dimension-Talos.js'], function(){
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [
-				{"id":"sampleMin", "name":"Start Date", "type":"datetime", "default":Date.getDateFromFormat("2013-May-01", "yyyy-MMM-dd")},
-				{"id":"sampleMax", "name":"End Date", "type":"datetime", "default":Date.getDateFromFormat("2013-Sep-01", "yyyy-MMM-dd")},
-				{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.MONTH},
-				{"id":"page", "name":"Page URL", "type":"string", "default":"cnn_dot_com"},
+				{"id":"sampleMin", "name":"Start Date", "type":"datetime", "default":Date.now().subtract(Duration.newInstance("3month"))},
+				{"id":"sampleMax", "name":"End Date", "type":"datetime", "default":Date.now()},
+				{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.WEEK},
+				{"id":"test", "name":"Test", "type":PartitionFilter.newInstance({
+					"id":"test",
+					"name":"Test",
+					"dimension":Mozilla.Talos.Test,
+					"onlyOne":true,
+					"expandAll":true
+				})},
 				{"id":"branch", "name":"Branch", "type":PartitionFilter.newInstance({
-					"id":"Branch",
+					"id":"branch",
 					"name":"Branches",
 					"dimension":Mozilla.Talos.Branch,
+					"onlyOne":true,
+					"expandAll":true
+				})},
+				{"id":"os", "name":"OS", "type":PartitionFilter.newInstance({
+					"id":"os",
+					"name":"OS",
+					"dimension":Mozilla.Talos.OS,
+					"onlyOne":true,
+					"expandAll":true
+				})},
+				{"id":"platform", "name":"Platform", "type":PartitionFilter.newInstance({
+					"id":"platform",
+					"name":"Platform",
+					"dimension":Mozilla.Talos.Platform,
 					"onlyOne":true,
 					"expandAll":true
 				})}

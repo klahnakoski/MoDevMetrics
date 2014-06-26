@@ -5,7 +5,7 @@
 <HTML>
 
 <HEAD>
-	<script type="application/javascript" src="es/js/imports/import.js"></script>
+	<script type="text/javascript" src="es/modevlib/imports/import.js"></script>
 </HEAD>
 <BODY>
 
@@ -57,10 +57,14 @@
 </div>
 
 
-<script type="application/javascript">
+<script>
 
 
-	importScript(["es/js/main.js"], function(){
+	importScript([
+		"es/lib/jsonlint/jsl.parser.js",
+		"es/lib/jsonlint/jsl.format.js",
+		"es/modevlib/main.js"
+	], function(){
 
 		$().ready(function(){
 			//STYLE AS LINED TEXT AREA
@@ -68,7 +72,7 @@
 			$("#esquery").linedtextarea();
 		});
 
-		Thread.run(function*(){
+		Thread.daemon(function*(){
 			while(true){
 				$("#currtime").html(""+ aMath.round(Date.now().getMilli(), -3));
 				yield (Thread.sleep(333));
