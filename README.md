@@ -5,9 +5,6 @@ Mozilla Developer Metrics
 The current branch is [ES6](https://github.com/klahnakoski/MoDevMetrics/tree/es6)
 ---------------------------------------------------------------------------------
 
-FFOS Dashboard development is [B2G](https://github.com/klahnakoski/MoDevMetrics/tree/b2g)
------------------------------------------------------------------------------------------
-
 Objective
 ---------
 
