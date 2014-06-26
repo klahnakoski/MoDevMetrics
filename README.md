@@ -33,7 +33,7 @@ Drawbacks
 
   * **No GUI tools** - There is no drag-and-drop query builder, You must be proficient in SQL and other high level list
   comprehensions.
-  * **NO GUI Layout** - Layout of dashboard is done in HTML and CSS.
+  * **No GUI Layout** - Layout of dashboard is done in HTML and CSS.
   * **Limited Charting** (for now) - There are better charting libraries out there.
 
 Requirements
@@ -41,11 +41,13 @@ Requirements
 
 Access to one of the bug clusters is required:
 
-  - Proxy to public cluster<br>```https://esfrontline.bugs.mozilla.org:443/public_bugs/bug_version```
-  - Direct to public cluster (need VPN access)<br>```http://elasticsearch-zlb.bugs.scl3.mozilla.com:9200/public_bugs/bug_version```
+  - HTTPS proxy to public cluster<br> ```https://esfrontline.bugzilla.mozilla.org:443/public_bugs/bug_version```
+  - Non-encrypted proxy to public cluster<br>```http://esfrontline.bugzilla.mozilla.org:80/public_bugs/bug_version```
   - Direct to private cluster (need VPN access)<br>```http://elasticsearch-private.bugs.scl3.mozilla.com:9200/private_bugs/bug_version```
 
-Due to restrictions on the public cluster, it is best to test it with the [the minimum viable example page](html/es/Tutorial01-Minimum.html).  The clusters behind VPN can be tested normally with [ElasticSearch Head](https://github.com/mobz/elasticsearch-head).
+Due to restrictions on the public cluster, it is best to test it with the [the
+minimum viable example page](html/es/Tutorial01-Minimum.html).  The clusters
+behind VPN can be tested normally with [ElasticSearch Head](https://github.com/mobz/elasticsearch-head).
 
 Install
 -------
@@ -66,7 +68,8 @@ Examples
 Code examples to demonstrate minimum functionality:
 
   * [Test public connectivity](html/es/Tutorial01-Minimum.html)
-  * [Simple Bug Count](html/es/Tutorial02-Bug-Count.html)
+  * [Get comments](html/es/Tutorial02-Comments.html)
+  * [Simple Bug Count](html/es/Tutorial03-Bug-Count.html)
 
 
 Tutorials
