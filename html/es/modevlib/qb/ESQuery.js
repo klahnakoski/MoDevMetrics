@@ -73,6 +73,7 @@ ESQuery.INDEXES = {
 
 	"talos": {"host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/talos/test_results"},
 	"b2g_tests": {"host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/b2g_tests/results"},
+	"b2g": {"host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/b2g_tests/results"},
 
 	"perfy": {"host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/perfy/scores"},
 	"local_perfy": {"host": "http://localhost:9200", "path": "/perfy/scores"},
@@ -130,7 +131,7 @@ ESQuery.INDEXES.bug_dependencies.alternate = ESQuery.INDEXES.public_bug_dependen
 				//NESTED TYPE IS A NEW TYPE DEFINITION
 				var nestedName = indexName + "." + name;
 				if (ESQuery.INDEXES[nestedName] === undefined) ESQuery.INDEXES[nestedName] = {};
-				ESQuery.INDEXES[nestedName].columns = ESQuery.parseColumns(nestedName, parentName, property.properties);
+				ESQuery.INDEXES[nestedName].columns = ESQuery.parseColumns(nestedName, parentName, nvl(property.properties, {}));
 			}//endif
 
 			if (property.properties !== undefined) {

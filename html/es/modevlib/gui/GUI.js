@@ -35,12 +35,12 @@ importScript("../aFormat.js");
 
 GUI = {};
 (function () {
-
 		GUI.state = {};
 		GUI.customFilters = [];
 
+		$(".loading").hide();
 
-		Thread.showWorking = function() {
+		Thread.showWorking = function(numThread) {
 			var l = $(".loading");
 			l.show();
 		};//function
