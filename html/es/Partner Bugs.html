@@ -77,6 +77,12 @@ var __createChart = function*(){
 		Mozilla.BugStatus.Open.esfilter
 	]};
 
+	var name = GUI.state.partnerFilter.getSimpleState();
+	if (name==null){
+		$("#title").html("Partner Bugs");
+	}else{
+		$("#title").html(name + " Bugs");
+	}//endif
 
 	var allBugs;
 	var allBugsThread=Thread.run(function*(){
