@@ -35,9 +35,6 @@
 	<h3 id="title">Talos Test Results</h3>
 
 	<div id="chart" class="chart" style="float:none;width:800px;height:400px;"></div>
-
-
-
 	<div id="info"></div>
 	<div id="details"></div>
 </div>
@@ -60,110 +57,54 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Talos.js'], function(){
 
 	var __createChart = function*(){
 		var sampleMin = Date.newInstance(GUI.state.sampleMin);
-		var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
-		var sampleMax = Date.newInstance(GUI.state.sampleMax).add(sampleInterval);
-		var branch=GUI.state.branch;
+		var sampleMax = Date.newInstance(GUI.state.sampleMax).add(Duration.DAY);
 
 		var esfilter = {"and": [
-			{"range": {"testrun.date": {"gte": sampleMin.getMilli(), "lt": sampleMax.getMilli()}}},
+			{"exists":{"field":"test_build.push_date"}},
+			{"range": {"test_build.push_date": {"gte": sampleMin.getMilli(), "lt": sampleMax.getMilli()}}},
 			GUI.getFilters("talos")
 		]};
 
-		while (Mozilla.Talos.Branch.partitions instanceof Thread){
-			yield (Thread.sleep(200));
+		if (Mozilla.Talos.Branch.partitions instanceof Thread){
+			Thread.join(Mozilla.Talos.Branch.partitions);
 		}//while
 
 		//HOW MANY SAMPLES DO WE HAVE, TOO MANY AND WE USE A HEAT GRID
 		var sample = yield(ESQuery.run({
 			"from":"talos",
 			"select":{"name":"count", "value":"result.test_name", "aggregate":"count"},
+			"esfilter":esfilter
+		}));
+
+		if (sample.cube > 3000) {
+			Log.error("too many datapoints (>3000)");
+		} else if (sample.cube == 0) {
+			Log.error("no results")
+		}//endif
+
+		var chart = yield(ESQuery.run({
+			"from":"talos",
+			"select": [
+				{"name":"median", "value":"result.stats.median"}
+			],
 			"edges":[
-				{"name":"branch", "domain":Mozilla.Talos.Branch.getDomain()}
+				{"name":"date", "value":'test_build.push_date', "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":"none"}}
 			],
 			"esfilter":esfilter
 		}));
 
-		var total=aMath.add.apply(null, sample.cube);
+		chart.list = Qb.sort(chart.list, ["date.value"]);
 
-		if (total>3000){
-			var chart = yield(ESQuery.run({
-				"from":"talos",
-				"select":{"name":"count", "value":"1", "aggregate":"count"},
-				"edges":[
-					{"name":"mean", "value":"result.stats.median", "domain":{"type":"duration", "min":0, "interval":Duration.newInstance("50milli")}},
-					{"name":"date", "value":'testbuild.push_date', "domain":{"type":"time", "isFacet":true, "min":sampleMin, "max":sampleMax, "interval":sampleInterval}}
-				],
-				"esfilter":esfilter
-			}));
-
-			aChart.show({
-				"id":"chart",
-				"sheetDiv":"info",
-				"type":"heat",
-				"stacked":false,
-				"cube":chart,
-				"height":"400",
-				xAxisSize: 50,
-				extensionPoints: {
-					line_lineWidth: 2
-				},
-				"clickAction":function(series, x, d, elem){
-					var edge=chart.getEdge("date");
-					var part=edge.domain.getPartByKey(x);
-
-					if (edge.domain.interval.milli<15000 || chart.get("date", x).count<=25){
-						//PULL ORIGINAL SOURCE
-						Thread.run("Show specific page series", function*(){
-							var ids=yield (ESQuery.run({
-								"from":"talos",
-								"select":{"name":"id", "value":"test_run_id"},
-								"esfilter":{"and":[
-									esfilter,
-									{"range":{"test_build.push_date":{"gte":part.min.getMilli(), "lt":part.max.getMilli()}}}
-								]}
-							}));
-							ids=ids.list.join(",");
-							window.open("DZ-ShowSpecificPage.html#page="+GUI.state.page+"&start=5&id="+ids);
-						});
-						return;
-					}//endif
-
-					var newMin=part.min.subtract(edge.domain.interval);
-					var newMax=part.max.add(edge.domain.interval);
-					var interval=Date.getBestInterval(newMin, newMax, Duration.SECOND, {"min":10, "max":40});
-					GUI.state.sampleMin=newMin;
-					GUI.state.sampleMax=newMax;
-					GUI.state.sampleInterval=interval;
-					GUI.State2Parameter();
-					GUI.refresh();
-				}
-			});
-
-		}else{
-			var chart = yield(ESQuery.run({
-				"from":"talos",
-				"select": [
-					{"name":"median", "value":"result.stats.median"}
-				],
-				"edges":[
-					{"name":"date", "value":'datazilla.date_loaded', "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":"none"}}
-				],
-				"esfilter":esfilter
-			}));
-
-			chart.list = Qb.sort(chart.list, ["date.value"]);
-
-			aChart.showScatter({
-				"id":"chart",
-				"sheetDiv":"info",
-				"cube":chart,
-				"height":"400",
-				xAxisSize: 50,
-				extensionPoints: {
-					line_lineWidth: 0
-				}
-			});
-		}//endif
+		aChart.showScatter({
+			"id":"chart",
+			"sheetDiv":"info",
+			"cube":chart,
+			"height":"400",
+			xAxisSize: 50,
+			extensionPoints: {
+				line_lineWidth: 0
+			}
+		});
 
 		yield (null);
 
@@ -172,8 +113,8 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Talos.js'], function(){
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [
-				{"id":"sampleMin", "name":"Start Date", "type":"datetime", "default":Date.now().subtract(Duration.newInstance("3month"))},
-				{"id":"sampleMax", "name":"End Date", "type":"datetime", "default":Date.now()},
+				{"id":"sampleMin", "name":"Start Date", "type":"date", "default":Date.eod().subtract(Duration.newInstance("3month"))},
+				{"id":"sampleMax", "name":"End Date", "type":"date", "default":Date.today()},
 				{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.WEEK},
 				{"id":"test", "name":"Test", "type":PartitionFilter.newInstance({
 					"id":"test",

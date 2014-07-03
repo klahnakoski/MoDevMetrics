@@ -71,7 +71,7 @@ ESQuery.INDEXES = {
 	"telemetry": {"host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/telemetry_agg_valid_201305/data"},
 	"raw_telemetry": {"host": "http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path": "/raw_telemetry/data"},
 
-	"talos": {"host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/talos/test_results"},
+	"talos": {"host": "http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path": "/talos/test_results"},
 	"b2g_tests": {"host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/b2g_tests/results"},
 	"b2g": {"host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/b2g_tests/results"},
 

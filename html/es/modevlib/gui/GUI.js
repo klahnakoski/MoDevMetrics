@@ -603,7 +603,6 @@ GUI = {};
 
 				GUI.UpdateSummary();
 
-
 				if (refresh===undefined || refresh==true) GUI.refreshChart();
 			});
 		};
