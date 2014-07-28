@@ -755,10 +755,20 @@ aChart.show=function(params){
 		data=chartCube.cube.copy();
 	}//endif
 
+
+	//
+	//
 	data.forall(function(v,i,d){
 		v=v.copy();
 		for(var j=0;j<v.length;j++){
-			if (v[j]==null) Log.error("Charting library can not handle null values");
+			if (v[j]==null){
+				//the charting library has a bug that makes it simply not draw null values
+				//(or even leave a visual placeholder)  This results in a mismatch between
+				//the horizontal scale and the values charted.  For example, if the first
+				//day has null, then the second day is rendered in the first day position,
+				//and so on.
+				Log.error("Charting library can not handle null values (maybe set a default?)");
+			}//endif
 		}//for
 		v.splice(0,0, categoryLabels[i]);
 		d[i]=v;
