@@ -485,8 +485,8 @@ ESQuery.INDEXES.bug_dependencies.alternate = ESQuery.INDEXES.public_bug_dependen
 			this.select = undefined;
 		}//endif
 
-		if (this.query.where)
-			Log.error("ESQuery does not support the where clause, use esfilter instead");
+//		if (this.query.where)
+//			Log.error("ESQuery does not support the where clause, use esfilter instead");
 
 		//VERY IMPORTANT!! ES CAN ONLY USE TERM PACKING ON terms FACETS, THE OTHERS WILL REQUIRE EVERY PARTITION BEING A FACET
 		this.esMode = "terms_stats";
@@ -558,10 +558,13 @@ ESQuery.INDEXES.bug_dependencies.alternate = ESQuery.INDEXES.public_bug_dependen
 					if (name != "") name += ",";
 					name += esFacets[i][f].dataIndex;
 					condition.push(ESQuery.buildCondition(this.facetEdges[f], esFacets[i][f], this.query));
-					constants.push({"name": this.facetEdges[f].domain.name, "value": esFacets[i][f]});
+					constants.push({"name": this.facetEdges[f].name, "value": esFacets[i][f]});
 				}//for
 			}//for
 			var q = {"name": name};
+			if (this.query.where){
+				condition.push(MVEL.compile.expression(this.query.where, this, constants));
+			}//endif
 
 			var value = this.compileEdges2Term(constants);
 
@@ -785,16 +788,16 @@ ESQuery.INDEXES.bug_dependencies.alternate = ESQuery.INDEXES.public_bug_dependen
 	};
 
 	ESQuery.prototype.buildESQuery = function () {
-		var where;
-		if (this.query.where === undefined)        where = ESQuery.TrueFilter;
-		if (typeof(this.query.where) != "string")    where = ESQuery.TrueFilter; //NON STRING WHERE IS ASSUMED TO BE PSUDO-esFILTER (FOR CONVERSION TO MVEL)
-		if (typeof(this.query.where) == "string") {
-			if (where.trim() == "true") {
-				where = ESQuery.TrueFilter;
-			} else {
-				where = {"script": {"script": this.query.where}};
-			}//endif
-		}//endif
+//		var where;
+//		if (this.query.where === undefined)        where = ESQuery.TrueFilter;
+//		if (typeof(this.query.where) != "string")    where = ESQuery.TrueFilter; //NON STRING WHERE IS ASSUMED TO BE PSUDO-esFILTER (FOR CONVERSION TO MVEL)
+//		if (typeof(this.query.where) == "string") {
+//			if (this.query.where.trim() == "true") {
+//				where = ESQuery.TrueFilter;
+//			} else {
+//				where = {"script": {"script": this.query.where}};
+//			}//endif
+//		}//endif
 
 		var output = {
 			"query": {
@@ -804,7 +807,7 @@ ESQuery.INDEXES.bug_dependencies.alternate = ESQuery.INDEXES.public_bug_dependen
 					},
 					"filter": {
 						"and": [
-							where
+//							where
 						]
 					}
 				}

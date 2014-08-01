@@ -796,8 +796,6 @@ aChart.show=function(params){
 	});
 	chart.render(true, true, false);
 
-
-
 //	chart.basePanel.chart.legendPanel
 
 	//ADD BUTTON TO SHOW SHEET
