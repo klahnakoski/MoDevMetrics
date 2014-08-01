@@ -101,30 +101,18 @@ if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 				},
 
 				{"name": "Team", "isFacet": true, "partitions": [
-					{"name": "Performance",
-						"esfilter": {"or": [
-							{"term": {"keywords": "perf"}},
-							{"and": [
-								{"term": {"product": "firefox os"}},
-								{"term": {"component": "performance"}}
-							]}
-						]}
-					},
-					{"name": "System Front-End", "esfilter": {"and": [
-						{"regexp": {"status_whiteboard": ".*systemsfe.*"}}
-					]}},
 
-					{"name": "Productivity", "esfilter": {"and": [
-						{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+					{"name": "Comms", "esfilter": {"and": [
 						{"term": {"product": "firefox os"}},
 						{"terms": {"component": [
-							"gaia::e-mail",
-							"gaia::clock",
-							"gaia::calculator",
-							"gaia::calendar",
-							"gaia::notes"
+							"dom: contacts",
+							"gaia::contacts",
+							"gaia::cost control",
+							"gaia::dialer",
+							"gaia::sms"
 						]}}
 					]}},
+
 					{"name": "Media", "esfilter": {"and": [
 						{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 						{"term": {"product": "firefox os"}},
@@ -137,6 +125,37 @@ if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 							"gaia::ringtones"
 						]}}
 					]}},
+
+					{"name": "Performance",
+						"esfilter": {"or": [
+							{"and":[
+								{"term": {"keywords": "perf"}}
+							]},
+							{"and": [
+								{"term": {"product": "firefox os"}},
+								{"term": {"component": "performance"}}
+							]}
+						]}
+					},
+
+					{"name": "System Front-End", "esfilter": {"and": [
+						{"regexp": {"status_whiteboard": ".*systemsfe.*"}}
+					]}},
+
+					{"name":"Stream3", "esfilter": {"term":{"status_whiteboard.tokenized":"ft:stream3"}}},
+
+					{"name": "Productivity", "esfilter": {"and": [
+						{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
+						{"term": {"product": "firefox os"}},
+						{"terms": {"component": [
+							"gaia::e-mail",
+							"gaia::clock",
+							"gaia::calculator",
+							"gaia::calendar",
+							"gaia::notes"
+						]}}
+					]}},
+
 					{"name": "RIL", "esfilter": {"and": [
 						{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 						{"terms": {"component": [
@@ -162,17 +181,6 @@ if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 						{"terms": {"component": [
 							"video/audio: recording",
 							"video/audio"
-						]}}
-					]}},
-					{"name": "Comms", "esfilter": {"and": [
-						{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
-						{"term": {"product": "firefox os"}},
-						{"terms": {"component": [
-							"dom: contacts",
-							"gaia::contacts",
-							"gaia::cost control",
-							"gaia::dialer",
-							"gaia::sms"
 						]}}
 					]}},
 					{"name": "Devices", "esfilter": {"and": [
@@ -254,6 +262,7 @@ if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 						{"not": {"term": {"keywords": "perf"}}},     //AN UNFORTUNATE REDUNDANCY
 						{"not": {"term": {"product": "loop"}}},        //NO WebRTC Loop Product
 						{"not": {"prefix": {"component": "webrtc"}}},  //NO WebRTC
+						{"not": {"term": {"status_whiteboard": "ft:stream3"}}},  //NO Stream3
 						{"not": {"term": {"status_whiteboard": "systemsfe"}}},  //NO SYSTEM FRONTEND
 						{"not": {"terms": {"component": [
 							//AN UNFORTUNATE LIST OF EVERYTHING, SHOULD BE AUTO-GENERATED, BUT I NEED A EQUATION SIMPLIFIER, OR ELSE I BREAK ES
@@ -333,8 +342,8 @@ if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 						//https://wiki.mozilla.org/Release_Management/B2G_Landing
 //						{"name": "1.3",
 //							"dateMarks": [
-//								{"name": "FC", "date": "Dec 9, 2013", "style": {strokeStyle: "black", verticalOffset: 10}},
-//								{"name": "CF", "date": "Mar 17, 2014", "style": {strokeStyle: "black", verticalOffset: 10}}
+//								{"name": "FL", "date": "Dec 9, 2013", "style": {strokeStyle: "black", verticalOffset: 10}},
+//								{"name": "FC", "date": "Mar 17, 2014", "style": {strokeStyle: "black", verticalOffset: 10}}
 //							],
 //							"style": {"color": "#d62728"},
 //							"esfilter": {"or": [
@@ -342,9 +351,11 @@ if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 //							]}
 //						},
 						{"name": "1.3T",
+							"start_date":"Dec 9, 2013",
+							"targetDate":"Apr 28, 2014",
 							"dateMarks": [
-								{"name": "FC", "date": "Dec 9, 2013", "style": {strokeStyle: "black", verticalOffset: 20}},
-								{"name": "CF", "date": "Mar 17, 2014", "style": {strokeStyle: "black", verticalOffset: 20}}
+								{"name": "FL", "date": "Dec 9, 2013", "style": {strokeStyle: "black", verticalOffset: 20}},
+								{"name": "FC", "date": "Mar 17, 2014", "style": {strokeStyle: "black", verticalOffset: 20}}
 							],
 							"style": {"color": "#ff7f0e"},
 							"esfilter": {"or": [
@@ -352,10 +363,12 @@ if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 							]}
 						},
 						{"name": "1.4",
+							"start_date":"Dec 9, 2013",
+							"targetDate":"Jun 9, 2014",
 							"dateMarks": [
 								{"name":"Start", "date": "Dec 9, 2013"},
-								{"name": "FC", "date": "Mar 17, 2014", "style": {strokeStyle: "black", verticalOffset: 30}},
-								{"name": "SC", "date": "Apr 28, 2014", "style": {strokeStyle: "black", verticalOffset: 30}},
+								{"name": "FL", "date": "Mar 17, 2014", "style": {strokeStyle: "black", verticalOffset: 30}},
+								{"name": "FC", "date": "Apr 28, 2014", "style": {strokeStyle: "black", verticalOffset: 30}},
 								{"name": "CF", "date": "Jun 9, 2014", "style": {strokeStyle: "black", verticalOffset: 30}}
 							],
 							"style": {"color": "#2ca02c"},
@@ -365,11 +378,13 @@ if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 							]}
 						},
 						{"name": "2.0",
+							"start_date":"Apr 28, 2014",
+							"targetDate":"Sep 01, 2014",
 							"dateMarks": [
-								{"name":"Start", "date": "Dec 9, 2013"},
-								{"FC": "Jun 9, 2014"},
-								{"SC": "Jul 21, 2014"},
-								{"CF": "Sep 01, 2014"}
+								{"name":"Start", "date": "Apr 28, 2014"},
+								{"name":"FL", "date": "Jun 9, 2014"},
+								{"name":"FC", "date": "Jul 21, 2014"},
+								{"name":"CF", "date": "Sep 01, 2014"}
 							],
 							"style": {"color": "#1f77b4"},
 							"esfilter": {"or": [
@@ -378,9 +393,11 @@ if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 							]}
 						},
 						{"name": "2.1",
+							"start_date":"Jul 21, 2014",
+							"targetDate":"Sep 01, 2014",
 							"dateMarks": [
-								{"FC": "Jul 21, 2014"},
-								{"CF": "Sep 01, 2014"}
+								{"FL": "Jul 21, 2014"},
+								{"FC": "Sep 01, 2014"}
 							],
 							"style": {"color": "#d62728"},
 							"esfilter": {"or": [
@@ -438,20 +455,24 @@ if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 					"partitions": [
 //						{"name": "1.3",
 //							"dateMarks": [
-//								{"name": "FC", "date": "Dec 9, 2013", "style": {strokeStyle: "black", verticalOffset: 10}},
-//								{"name": "CF", "date": "Mar 17, 2014", "style": {strokeStyle: "black", verticalOffset: 10}}
+//								{"name": "FL", "date": "Dec 9, 2013", "style": {strokeStyle: "black", verticalOffset: 10}},
+//								{"name": "FC", "date": "Mar 17, 2014", "style": {strokeStyle: "black", verticalOffset: 10}}
 //							],
 //							"style": {"color": "#d62728"},
 //							"esfilter": {"term": {"cf_blocking_b2g": "1.3+"}}
 //						},
 						{"name": "1.3T",
+							"start_date":"Dec 9, 2013",
+							"targetDate":"Apr 28, 2014",
 							"dateMarks": [
-								{"name": "FC", "date": "Dec 9, 2013", "style": {strokeStyle: "black", verticalOffset: 20}},
-								{"name": "CF", "date": "Mar 17, 2014", "style": {strokeStyle: "black", verticalOffset: 20}}
+								{"name": "FL", "date": "Dec 9, 2013", "style": {strokeStyle: "black", verticalOffset: 20}},
+								{"name": "FC", "date": "Mar 17, 2014", "style": {strokeStyle: "black", verticalOffset: 20}}
 							],
 							"style": {"color": "#ff7f0e"},
 							"esfilter": {"terms": {"cf_blocking_b2g": ["1.3t+", "1.3t?"]}}},
 						{"name": "1.4",
+							"start_date":"Dec 9, 2013",
+							"targetDate":"Jun 9, 2014",
 							"style": {"color": "#2ca02c"},
 							"esfilter": {"or": [
 								{"terms": {"cf_blocking_b2g": ["1.4+", "1.4?"]}},
@@ -459,16 +480,18 @@ if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 							]},
 							"dateMarks": [
 								{"name":"Start", "date":"Dec 9, 2013"},
-								{"name": "FC", "date": "Mar 17, 2014", "style": {strokeStyle: "black", verticalOffset: 30}},
-								{"name": "SC", "date": "Apr 28, 2014", "style": {strokeStyle: "black", verticalOffset: 30}},
+								{"name": "FL", "date": "Mar 17, 2014", "style": {strokeStyle: "black", verticalOffset: 30}},
+								{"name": "FC", "date": "Apr 28, 2014", "style": {strokeStyle: "black", verticalOffset: 30}},
 								{"name": "CF", "date": "Jun 9, 2014", "style": {strokeStyle: "black", verticalOffset: 30}}
 							]
 						},
 						{"name": "2.0",
+							"start_date":"Apr 28, 2014",
+							"targetDate":"Sep 01, 2014",
 							"dateMarks": [
 								{"name":"Start", "date": "Apr 28, 2014"},
-								{"name":"FC", "date": "Jun 9, 2014"},
-								{"name":"SC", "date": "Jul 21, 2014"},
+								{"name":"FL", "date": "Jun 9, 2014"},
+								{"name":"FC", "date": "Jul 21, 2014"},
 								{"name":"CF", "date": "Sep 01, 2014"}
 							],
 							"style": {"color": "#1f77b4"},
@@ -478,9 +501,11 @@ if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 							]}
 						},
 						{"name": "2.1",
+							"start_date":"Jul 21, 2014",
+							"targetDate":"Sep 01, 2014",
 							"dateMarks": [
-								{"FC": "Jul 21, 2014"},
-								{"CF": "Sep 01, 2014"}
+								{"FL": "Jul 21, 2014"},
+								{"FC": "Sep 01, 2014"}
 							],
 							"style": {"color": "#d62728"},
 							"esfilter": {"or": [

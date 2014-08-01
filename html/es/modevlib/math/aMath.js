@@ -4,6 +4,8 @@
 
 
 aMath={};
+
+(function(){
 aMath.PI=Math.PI;
 
 
@@ -51,29 +53,26 @@ aMath.round=function(value, rounding){
 };//method
 
 
-aMath.min=function(){
-	var min=null;
-	for(var i=0;i<arguments.length;i++){
-		if (arguments[i]==null) continue;
-		if (min==null || min>arguments[i]) min=arguments[i];
-	}//for
-	return min;
-};//method
+	function SUM(values) {
+		var sum = null;
+		for (var i = 0; i < values.length; i++) {
+			var v = values[i];
+			if (v == null) continue;
+			if (sum == null)
+				sum = v;
+			else
+				sum += v;
+		}//for
+		return sum;
+	}
+
+	aMath.SUM = SUM;
+	aMath.sum = function () {
+		return SUM(arguments);
+	};//add
 
 
-aMath.add=function(){
-	var add=null;
-	for(var i=0;i<arguments.length;i++){
-		if (arguments[i]==null) continue;
-		if (add==null)
-			add=arguments[i];
-		else
-			add+=arguments[i];
-	}//for
-	return add;
-};//add
-
-aMath.sum=aMath.add;
+	aMath.add=aMath.sum;
 
 
 aMath.mean=function(){
@@ -92,19 +91,39 @@ aMath.mean=function(){
 	return add/count;
 };//add
 
+	function MAX(values){
+		var max=null;
+		for(var i=0;i<values.length;i++){
+			if (values[i]==null) continue;
+			if (max==null || max<values[i]) max=values[i];
+		}//for
+		return max;
+	}
 
-aMath.max=function(){
-	var max=null;
-	for(var i=0;i<arguments.length;i++){
-		if (arguments[i]==null) continue;
-		if (max==null || max<arguments[i]) max=arguments[i];
-	}//for
-	return max;
-};//method
+	aMath.MAX=MAX;
+	aMath.max=function(){
+		return MAX(arguments);
+	};//method
 
-//
-aMath.average=function(array){
-	var total=0.0;
+
+	function MIN(values){
+		var min=null;
+		for(var i=0;i<values.length;i++){
+			if (values[i]==null) continue;
+			if (min==null || min>values[i]) min=values[i];
+		}//for
+		return min;
+	}//method
+
+	aMath.MIN = MIN;
+	aMath.min = function () {
+		return MIN(arguments);
+	};//method
+
+
+	//
+	aMath.average=function(array){
+		var total=0.0;
 	var count=0;
 	for(var i=0;i<array.length;i++){
 		if (array[i]==null) continue;
@@ -136,6 +155,8 @@ aMath.niceCeiling=function(value){
 			return niceNumbers[i]*d;
 	Log.error("bug");
 };
+
+})();
 
 
 

@@ -472,7 +472,7 @@ aChart.showScatter=function(params){
 
 	//STARTS AS VISIBLE, SO TOGGLE TO HIDE
 	styles.forall(function(s, i){
-		if (s.visibility && s.visibility=="hidden"){
+		if (s.visibility && s.visibility=="hidden" && chart.legendPanel!=null){
 			var datums=chart.legendPanel.data._datums.map(function(d){
 				if (d.key.indexOf(","+categoryLabels[i]+",")>=0) return d;
 			});
@@ -787,7 +787,7 @@ aChart.show=function(params){
 
 	//STARTS AS VISIBLE, SO TOGGLE TO HIDE
 	styles.forall(function(s, i){
-		if (s.visibility && s.visibility=="hidden"){
+		if (s.visibility && s.visibility=="hidden" && chart.legendPanel!=null){
 			var datums=chart.legendPanel.data._datums.map(function(d){
 				if (d.key.indexOf(","+categoryLabels[i]+",")>=0) return d;
 			});
@@ -850,6 +850,7 @@ function fixClickAction(chartParams){
 
 //name IS OPTIONAL
 function findDateMarks(part, name){
+	try{
 	var output = [];
 	Array.newInstance(part.dateMarks).forall(function (mark) {
 		var style = Map.setDefault({}, mark.style, part.style, {"color": "black", "lineWidth": "2.0", verticalAnchor: "top"});
@@ -880,6 +881,9 @@ function findDateMarks(part, name){
 	}else{
 		return output;
 	}//endif
+	}catch(e){
+		Log.error("some error found", e);
+	}//try
 }//method
 
 aChart.findDateMarks = findDateMarks;
