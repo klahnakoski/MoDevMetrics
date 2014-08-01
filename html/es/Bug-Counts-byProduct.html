@@ -49,16 +49,12 @@
 			var sampleMax = Date.newInstance(GUI.state.sampleMax).addDay(1);
 			var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
 
+			var mainFilter = {"and": [
+				GUI.getFilters("bugs"),
+				Mozilla.BugStatus.Open.esfilter   //SEE Dimension-Bugzilla TO SEE MORE COMPLICATED DEFINITIONS
+			]};
+
 			Thread.run(function*() {  //jsThreads ARE GREAT BECAUSE WE DO NOT NEED CALLBACKS
-				yield (ESQuery.loadColumns("bugs"));  //NEEDED FOR THE MVEL.compile.expression BELOW
-
-				var mainFilter = {"and": [
-					GUI.getFilters("bugs"),
-					Mozilla.BugStatus.Open.esfilter,   //SEE Dimension-Bugzilla TO SEE MORE COMPLICATED DEFINITIONS
-//					{"script": {"script": MVEL.compile.expression("floorDay(date.min) - modified_ts < " + Duration.YEAR.milli, {"from": "bugs"})}},
-//					{"terms": {"product": ["firefox", "firefox for android", "toolkit", "core", "loop"]}}
-				]};
-
 				var chart = yield (ESQuery.run({
 					"name": "Open Bug Count",  //HUMANE NAME FOR THIS DATASET
 					"from": "bugs",  //ESQuery.INDEXES MAPS NAMES TO ES CONNECTION INFO
@@ -90,7 +86,6 @@
 				aChart.show({
 					"id": "chartCount",
 					"type": "line",
-					"stacked": false,
 					"cube": chart,
 					xAxisSize: 50
 				});
