@@ -17,6 +17,8 @@
 		<span id="status" style="height:30px"></span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 	</div>
 	<hr>
+	<div id="testMessage"></div>
+	<hr>
 	<div id="description">Simple page to show bug counts over time<br><br>
 		Open your debugger to inspect the ES queries and responses.
 	</div>
@@ -54,7 +56,7 @@
 					GUI.getFilters("bugs"),
 					Mozilla.BugStatus.Open.esfilter,   //SEE Dimension-Bugzilla TO SEE MORE COMPLICATED DEFINITIONS
 //					{"script": {"script": MVEL.compile.expression("floorDay(date.min) - modified_ts < " + Duration.YEAR.milli, {"from": "bugs"})}},
-					{"terms": {"product": ["firefox", "firefox for android", "toolkit", "core", "loop"]}}
+//					{"terms": {"product": ["firefox", "firefox for android", "toolkit", "core", "loop"]}}
 				]};
 
 				var chart = yield (ESQuery.run({
@@ -81,14 +83,14 @@
 							}
 						}
 					],
-					"where": "floorDay(date.min) - modified_ts < " + Duration.YEAR.milli,
+					"where": "date.min - modified_ts < " + Duration.newInstance("18week").milli,
 					"esfilter": mainFilter
 				}));
 
 				aChart.show({
 					"id": "chartCount",
 					"type": "line",
-					"stacked": true,
+					"stacked": false,
 					"cube": chart,
 					xAxisSize: 50
 				});
@@ -112,7 +114,7 @@
 						//WE WANT THE END DATE TO BE THE LAST DATE OF THE GIVEN INTERVAL (EG: LAST DAY OF THE WEEK)
 						"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')"
 					],
-					"public_bugs",
+					"bugs",
 					true		//SHOW DEFAULT FILTERS?
 			);
 		});

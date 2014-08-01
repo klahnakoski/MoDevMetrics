@@ -571,6 +571,9 @@ ESQuery.DEBUG = false;
 				}//for
 			}//for
 			var q = {"name": name};
+			if (this.query.where){
+				condition.push({"script":{"script":MVEL.compile.expression(this.query.where, this.query, constants)}});
+			}//endif
 
 			var value = this.compileEdges2Term(constants);
 
