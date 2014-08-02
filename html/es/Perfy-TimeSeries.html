@@ -129,7 +129,11 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Perfy.js'], function(){
 			}//endif
 		});
         if (latestTests.length==0){
+<<<<<<< HEAD
             $(".chart").html('<div class="warning" style="height=100%;width=100%;display:table-cell;margin-left:auto;margin-right:auto;text-align:center;vertical-align:middle;">No data before '+sampleDate.ceilingDay().format("NNN dd, yyyy")+'.</div>');
+=======
+            $(".chart").html('<div class="warning" style="height=100%;width=100%;display:table-cell;text-align:center;vertical-align:middle;">No data before '+sampleDate.ceilingDay().format("NNN dd, yyyy")+'.</div>');
+>>>>>>> master
             yield (null);
         }//endif
 		latestTests = {"or":latestTests};
