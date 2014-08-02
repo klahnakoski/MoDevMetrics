@@ -50,14 +50,14 @@
 			var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
 
 			var mainFilter = {"and": [
-				GUI.getFilters("bugs"),
+				GUI.getFilters("private_bugs"),
 				Mozilla.BugStatus.Open.esfilter   //SEE Dimension-Bugzilla TO SEE MORE COMPLICATED DEFINITIONS
 			]};
 
 			Thread.run(function*() {  //jsThreads ARE GREAT BECAUSE WE DO NOT NEED CALLBACKS
 				var chart = yield (ESQuery.run({
 					"name": "Open Bug Count",  //HUMANE NAME FOR THIS DATASET
-					"from": "bugs",  //ESQuery.INDEXES MAPS NAMES TO ES CONNECTION INFO
+					"from": "private_bugs",  //ESQuery.INDEXES MAPS NAMES TO ES CONNECTION INFO
 					"select": {  // JUST LIKE SQL: SELECT COUNT(bug_id) AS num_bug
 						"name": "num_bug",
 						"value": "bug_id",
@@ -109,7 +109,7 @@
 						//WE WANT THE END DATE TO BE THE LAST DATE OF THE GIVEN INTERVAL (EG: LAST DAY OF THE WEEK)
 						"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')"
 					],
-					"bugs",
+					"private_bugs",
 					true		//SHOW DEFAULT FILTERS?
 			);
 		});

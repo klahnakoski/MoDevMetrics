@@ -128,29 +128,30 @@ Log.red=function(message){
 	$('#log_alert').html(html);
 };//method
 
-Log.alert=function(message, ok_callback, cancel_callback){
-	Log.red(message);
+Log.alert = function (message, ok_callback, cancel_callback) {
 	Log.note(message);
-//
-//	var d=$('<div>'+message+"</div>").dialog({
-//		title:"Alert",
-//		draggable: false,
-//		modal: true,
-//		resizable: false,
-//
-//		buttons: {
-//			"OK": function () {
-//					$(this).dialog("close");
-//					if (ok_callback) ok_callback();
-//				},
-//			"Cancel":cancel_callback ? function () {
-//					$(this).dialog("close");
-//					cancel_callback();
-//				} : undefined
-//		}
-//	});
-};//method
+	if (cancel_callback===undefined && ok_callback===undefined) {
+		Log.red(message);
+	} else {
+		var d = $('<div>' + message + "</div>").dialog({
+			title: "Alert",
+			draggable: false,
+			modal: true,
+			resizable: false,
 
+			buttons: {
+				"OK": function () {
+					$(this).dialog("close");
+					if (ok_callback) ok_callback();
+				},
+				"Cancel": cancel_callback ? function () {
+					$(this).dialog("close");
+					cancel_callback();
+				} : undefined
+			}
+		});
+	}//endif
+};//method
 
 
 //TRACK ALL THE ACTIONS IN PROGRESS
