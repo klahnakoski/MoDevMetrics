@@ -646,6 +646,7 @@ MVEL.FUNCTIONS={
 			"var v = doc[name];\n"+
 //			"if (v is org.elasticsearch.common.mvel2.ast.Function) v = v();=n" +
 			"if (v==null || v.value==null) { null; } else " +
+//			"if (v is Long || v is Integer || v is Double) { v; } else " +
 			"if (v.values.size()<=1){ v.value; } else " + //ES MAKES NO DISTINCTION BETWEEN v or [v], SO NEITHER DO I
 			"{for(k : v.values) out.add(k); out;}" +
 		"};\n",

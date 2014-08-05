@@ -472,7 +472,7 @@ aChart.showScatter=function(params){
 
 	//STARTS AS VISIBLE, SO TOGGLE TO HIDE
 	styles.forall(function(s, i){
-		if (s.visibility && s.visibility=="hidden"){
+		if (s.visibility && s.visibility=="hidden" && chart.legendPanel!=null){
 			var datums=chart.legendPanel.data._datums.map(function(d){
 				if (d.key.indexOf(","+categoryLabels[i]+",")>=0) return d;
 			});
@@ -755,10 +755,20 @@ aChart.show=function(params){
 		data=chartCube.cube.copy();
 	}//endif
 
+
+	//
+	//
 	data.forall(function(v,i,d){
 		v=v.copy();
 		for(var j=0;j<v.length;j++){
-			if (v[j]==null) Log.error("Charting library can not handle null values");
+			if (v[j]==null){
+				//the charting library has a bug that makes it simply not draw null values
+				//(or even leave a visual placeholder)  This results in a mismatch between
+				//the horizontal scale and the values charted.  For example, if the first
+				//day has null, then the second day is rendered in the first day position,
+				//and so on.
+				Log.error("Charting library can not handle null values (maybe set a default?)");
+			}//endif
 		}//for
 		v.splice(0,0, categoryLabels[i]);
 		d[i]=v;
@@ -777,7 +787,7 @@ aChart.show=function(params){
 
 	//STARTS AS VISIBLE, SO TOGGLE TO HIDE
 	styles.forall(function(s, i){
-		if (s.visibility && s.visibility=="hidden"){
+		if (s.visibility && s.visibility=="hidden" && chart.legendPanel!=null){
 			var datums=chart.legendPanel.data._datums.map(function(d){
 				if (d.key.indexOf(","+categoryLabels[i]+",")>=0) return d;
 			});
@@ -785,8 +795,6 @@ aChart.show=function(params){
 		}//endif
 	});
 	chart.render(true, true, false);
-
-
 
 //	chart.basePanel.chart.legendPanel
 
@@ -842,6 +850,7 @@ function fixClickAction(chartParams){
 
 //name IS OPTIONAL
 function findDateMarks(part, name){
+	try{
 	var output = [];
 	Array.newInstance(part.dateMarks).forall(function (mark) {
 		var style = Map.setDefault({}, mark.style, part.style, {"color": "black", "lineWidth": "2.0", verticalAnchor: "top"});
@@ -872,6 +881,9 @@ function findDateMarks(part, name){
 	}else{
 		return output;
 	}//endif
+	}catch(e){
+		Log.error("some error found", e);
+	}//try
 }//method
 
 aChart.findDateMarks = findDateMarks;
