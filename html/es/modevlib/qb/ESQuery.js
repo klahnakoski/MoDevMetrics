@@ -1457,6 +1457,13 @@ ESQuery.INDEXES.bug_dependencies.alternate = ESQuery.INDEXES.public_bug_dependen
 					return splitField(s.value)[0].split(".")[0];  //ES DOES NOT STORE COMPOUND FIELDS, ONLY INDEXES THEM.
 				});
 			}//endif
+		} else if (!isDeep && Array.AND(select.map(function(s){return MVEL.isKeyword(s.value);}))) {
+			this.esQuery.facets.mvel = {
+				"terms": {
+					"field": select[0].value,
+					"size": this.query.essize
+				}
+			};
 		} else if (!isDeep && select.length == 1 && MVEL.isKeyword(select[0].value)) {
 			this.esQuery.facets.mvel = {
 				"terms": {
