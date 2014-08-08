@@ -1,0 +1,456 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="application/javascript" src="js/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+<div id="sidebar" style="width:300px;">
+	<br>
+	<br>
+
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px"></span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description">Incomplete<br><br>
+	</div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+
+<div style="align:left;position:relative;float:left;width:800px;padding-top: 10px;">
+	<div class="accordion_header_open" accordion_id="overview" accordion_group="main"><div class="arrow"></div>Overview</div>
+	<div id="overview">
+	</div>
+	<div class="accordion_header" accordion_id="blocker_history" accordion_group="main"><div class="arrow"></div>Blocker History</div>
+	<div class="accordion_body" id="blocker_history" style="display:none;">
+		<div id="chartChurn" class="chart" style="float:none;width:800px;height:300px;"></div>
+		<div id="chartCount" class="chart" style="float:none;width:800px;height:300px;"></div>
+		<div id="chartBlockerAge" class="chart" style="float:none;width:800px;height:300px;"></div>
+	</div>
+	<div class="footer">Source code at <a href="https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Team.html">https://github.com/klahnakoski/MoDevMetrics/blob/b2g/html/es/B2G-Team.html</a></div>
+</div>
+
+
+<script type="application/javascript">
+
+
+importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js", "b2g/grid.js", "js/gui/accordion.js"], function () {
+	var thread;
+	var createChart = function () {
+		if (thread !== undefined)
+			thread.kill();
+		thread = Thread.run(__createChart());
+	};
+
+	var __createChart = function*() {
+		var BLOCKERS = ["1.3+", "1.3t+", "1.4+", "1.5+"];
+		var SCOPE = {"or": [
+			{"terms": {"cf_blocking_b2g": BLOCKERS}},
+			{"term": {"product": "firefox os"}}
+		]};
+
+		var sampleMin = Date.newInstance(GUI.state.sampleMin);
+		var sampleMax = Date.newInstance(GUI.state.sampleMax).addDay(1);
+		var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
+
+		var teamName = GUI.state.team.getSelectedParts().select("name").join(" and ");
+
+		var mainFilter = {"and": [
+			GUI.getFilters("bugs"),
+			SCOPE
+		]};
+
+		if (teamName == "") {
+			teamSummary({"name":"All Teams", "esfilter":{"match_all":{}}});
+		} else {
+			teamSummary({"name":teamName, "esfilter":GUI.getFilters("bugs")});
+		}//endif
+
+		Thread.run(function*() {
+			///////////////////////////////////////////////////////////////////////
+			// SIMPLE OPEN BUG COUNT, OVER TIME
+			///////////////////////////////////////////////////////////////////////
+
+			var chart = yield (ESQuery.run({
+				"name": "Open Bug Count",
+				"from": "bugs",
+				"select": {
+					"name": "num_bug",
+					"value": "bug_id",
+					"aggregate": "count"
+				},
+				"edges": [
+					{"name": "type", "domain":Mozilla.B2G.FinalState.getDomain()},
+					{"name": "date",
+						"range": {
+							"min": "modified_ts",
+							"max": "expires_on"
+						},
+						"allowNulls": false,
+						"domain": {
+							"type": "time",
+							"min": sampleMin,
+							"max": sampleMax.add(sampleInterval),
+							"interval": sampleInterval
+						}
+					}
+				],
+				"esfilter": {"and":[
+					mainFilter,
+					Mozilla.BugStatus.Open.esfilter
+				]}
+			}));
+
+			//DIRTY REVERSE OF THE TYPES
+			chart.edges[0].domain.partitions.reverse();
+			chart.cube.reverse();
+
+			aChart.show({
+				"id": "chartCount",
+//				"sheetDiv": "info",
+				"type": "area",
+				"stacked": true,
+				"cube": chart,
+				"height": "300",
+				xAxisSize: 50,
+				"width": 800
+			});
+		});
+
+
+		Thread.run(function*() {
+			///////////////////////////////////////////////////////////////////////
+			// THREAD TO GET CLOSE RATES
+			///////////////////////////////////////////////////////////////////////
+
+			var a = Log.action("Load Bug Closures", true);
+			//GET BUG FINAL STATES
+			var allBugs = null;
+			var allBugsThread = Thread.run(function*() {
+				allBugs = yield(ESQuery.run({
+					"from": "bugs",
+					"select": [
+						"bug_id",
+						"product",
+						"component",
+						"cf_blocking_b2g",
+						"keywords",
+						"target_milestone"
+					],
+					"esfilter": {"and": [
+						mainFilter,
+						Mozilla.CurrentRecords.esfilter,
+						Mozilla.BugStatus.Closed.esfilter,
+						{"range": {"modified_ts": {"gte": sampleMin.getMilli()}}},
+						{"term": {"bug_status": "resolved"}},
+						{"term": {"resolution": "fixed"}}
+					]}
+				}));
+			});
+
+			//PULL LATEST CLOSE DATES
+			var bugClose = yield(ESQuery.run({
+				"from": "bugs",
+				"select": {"name": "closeDate", "value": "expires_on", "aggregate": "maximum"},
+				"edges": [
+					"bug_id"
+				],
+				"esfilter": {"and": [
+					{"range": {"expires_on": {"gte": sampleMin.getMilli(), "lte": sampleMax.getMilli()}}},
+					Mozilla.BugStatus.Open.esfilter,
+					mainFilter
+				]}
+			}));
+
+			yield (Thread.join(allBugsThread));
+			Log.actionDone(a);
+
+			{//ADD THOSE closeDate TO TO MAIN LIST OF BUGS (WE SHOULD BE MERGING IN SOME FORM)
+				var domain = bugClose.edges[0].domain;
+				var data = bugClose.cube;
+				allBugs.list.forall(function (v) {
+					v.closeDate = Date.newInstance(data[domain.getPartByKey(v.bug_id).dataIndex]);    //USE dataIndex OF part TO LOOKUP closeDate IN CUBE
+				});
+				allBugs.columns.append({"name": "closeDate"});  //ADD TO METADATA
+			}
+
+			var churn = yield(Q({
+				"from": allBugs,
+				"name": "Resolved Fixed Bugs",
+				"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
+				"edges": [
+					{"name": "Category", "domain": Mozilla.B2G.FinalState.getDomain()},
+					{"name": "date", "value": "closeDate", "domain": {"type": "time", "min": sampleMin, "max": sampleMax, "interval": sampleInterval}}
+				]
+			}));
+
+			//DIRTY REVERSE OF THE TYPES
+			churn.edges[0].domain.partitions.reverse();
+			churn.cube.reverse();
+			churn.edges[0].domain.partitions[0].style.visibility="visible";
+
+			aChart.show({
+				"id": "chartChurn",
+//				"sheetDiv": "info",
+				"type": "bar",
+				"stacked": true,
+				"cube": churn,
+				xAxisSize: 50,
+				"clickAction": function (series, x, d) {
+					var category = churn.edges[0].domain.getPartByKey(series);
+					var date = churn.edges[1].domain.getPartByKey(x);
+
+					Thread.run(function*() {
+						var buglist = (yield (Qb.calc2List({
+							"from": allBugs,
+							"select": {"value": "bug_id"},
+							"where": {"and": [
+								{"range": {"closeDate": {"gte": date.min, "lt": date.max}}},
+								category.fullFilter,
+								mainFilter
+							]}
+
+						})));
+
+						Bugzilla.showBugs(buglist.list);
+					});
+				}//click
+			});
+		});
+
+
+		Thread.run(function*() {
+			///////////////////////////////////////////////////////////////////////
+			// THREAD TO AGE OF BLOCKERS
+			///////////////////////////////////////////////////////////////////////
+
+			var allBlockers = null;
+			var allBlockersThread = Thread.run(function*() {
+				allBlockers = yield(ESQuery.run({
+					"from": "bugs",
+					"select": [
+						"bug_id",
+						"cf_blocking_b2g",
+						"target_milestone"
+					],
+					"esfilter": {"and": [
+						GUI.getFilters("bugs"),
+						Mozilla.CurrentRecords.esfilter,
+						{"terms":{"cf_blocking_b2g":BLOCKERS}},
+						{"or":[
+							{"range":{"modified_ts":{"gte":sampleMin.getMilli()}}},
+							Mozilla.BugStatus.Open.esfilter
+						]}
+					]}
+				}));
+			});
+
+			var blockers = yield (ElasticSearch.getMinMax({"and": [
+				GUI.getFilters("bugs"),
+				{"terms":{"cf_blocking_b2g":BLOCKERS}},
+				Mozilla.BugStatus.Open.esfilter
+			]}));
+
+			yield(Thread.join(allBlockersThread));
+
+			{//ADD THOSE max, min TO TO MAIN LIST OF BUGS (WE SHOULD BE MERGING IN SOME FORM)
+				data={};
+				var domain = blockers.edges[0].domain;
+				var data = blockers.cube;
+				allBlockers.list.forall(function (v) {
+					Map.copy({"min":null, "max":null}, v);  //DEFAULT VALUES
+					Map.copy(nvl(data[domain.getPartByKey(v.bug_id).dataIndex], {}), v);
+				});
+			}
+
+			var projectDomain = Mozilla.B2G.FinalState.getDomain();
+			projectDomain.partitions.pop();  //DO NOT SHOW THE Untargeted
+
+			var a = Log.action("Request Bugs", true);
+			var chart = yield(Q({
+				"name": "Average Age of "+teamName+" Blockers (Days)",
+				"from": allBlockers.list,
+				"select":
+					{"name": "Maximum", "value": "(aMath.min(max, time.min.getMilli())-nvl(min, time.min.getMilli()))/Duration.DAY.milli", "aggregate": "average", "default": 0, "style": {"color": "#00d6ff", "visibility": "hidden"}}
+				,
+				"edges": [
+					{"name": "Project", "domain":projectDomain},
+					{"name": "date",
+						"range": {"min": "min", "max": "max"},
+						"allowNulls": false,
+						domain: {"type": "time", "min": sampleMin, "max": sampleMax, "interval": sampleInterval}
+					}
+				]
+			}));
+			Log.actionDone(a);
+
+			//DIRTY REVERSE OF THE TYPES
+			chart.edges[0].domain.partitions.reverse();
+			chart.cube.reverse();
+			chart.edges[0].domain.partitions[0].style.visibility="visible";
+
+			aChart.show({
+				"id": "chartBlockerAge",
+//				"sheetDiv": "info",
+				"type": "line",
+				"stacked": false,
+				"cube": chart,
+				xAxisSize: 50
+			});
+
+
+		});
+	};
+
+
+	$(document).ready(function () {
+		GUI.setup(
+			createChart,
+			[
+				{"id": "sampleMin", "name": "Start Date", "type": "time", "default": Date.eod().add("-18week")},
+				{"id": "sampleMax", "name": "End Date", "type": "time", "default": Date.today().ceilingWeek()},
+				{"id": "sampleInterval", "name": "Interval", "type": "duration", "default": "week"},
+				{"id": "team", "name": "Team", "type": PartitionFilter.newInstance({
+					"id": "teams",
+					"name": "All Teams",
+					"dimension": Mozilla.B2G.Team,
+					"onlyOne": true,
+					"expandAll": true
+				})}
+			],
+			[
+				"sampleMin=Date.newInstance(sampleMin).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
+				"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')"
+			],
+			"bugs",
+			false,		//DO NOT SHOW DEFAULT FILTERS
+			false       //DO NOT PERFORM STANDARD CONSISTENCY CHECKS
+		);
+	});
+
+
+function teamSummary(team) {
+	//MAKE CONTAINER DIV
+	var teamFilter = {"and": [
+		Mozilla.B2G.esfilter,
+		Mozilla.CurrentRecords.esfilter,
+		Mozilla.BugStatus.Open.esfilter,
+		team.esfilter
+	]};
+
+	Thread.run(function*() {
+
+		//FIND COMPONENTS
+		var components = yield(ESQuery.run({
+			"from": "bugs",
+			"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
+			"edges": ["component"],
+			"esfilter": {"and": [
+				Mozilla.B2G.esfilter,
+				Mozilla.CurrentRecords.esfilter,
+				team.name == "Performance" ? Mozilla.BugStatus.Open.esfilter : ESQuery.TrueFilter, //PERFORMANCE TEAM NEED NOT SHOW ALL COMPONENTS EVER TOUCHED
+				team.esfilter
+			]}
+		}));
+//				components = components.edges[0].domain.partitions.select("name");
+		var componentDomain = {"type": "set", "partitions": components.edges[0].domain.partitions.select("value")};
+
+		var counting = null;
+		var countingThread = Thread.run(function*() {
+			var a = Log.action("Get " + team.name + " Counts", true);
+			counting = yield(ESQuery.run({
+				"from": "bugs",
+				"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
+				"edges": [
+					{"name": "Component", "value": "component", "domain": componentDomain},
+					{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
+					{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
+				],
+				"esfilter": teamFilter
+			}));
+			Log.actionDone(a);
+			yield (null);
+		});
+
+		var ages = null;
+		var ageThread = Thread.run(function*() {
+			var a = Log.action("Get " + team.name + " Ages", true);
+			ages = yield(ESQuery.run({
+				"from": "bugs",
+				"select": {"name": "oldest", "value": "modified_ts", "aggregate": "minimum"},
+				"edges": [
+					{"name": "Component", "value": "component", "domain": componentDomain},
+					{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
+					{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
+				],
+				"esfilter": teamFilter
+			}));
+			Log.actionDone(a);
+		});
+
+		var uBlocker = null;
+		var uBlockerThread = Thread.run(function*() {
+			var a = Log.action("Get " + team.name + " uBlockers", true);
+			uBlocker = yield(ESQuery.run({
+				"from": "bugs",
+				"select": {"name": "unassigned", "value": "bug_id", "aggregate": "count"},
+				"edges": [
+					{"name": "Component", "value": "component", "domain": componentDomain},
+					{"name": "Project", "domain": Mozilla.B2G.Project.getDomain()},
+					{"name": "State", "domain": Mozilla.B2G.State.getDomain()}
+				],
+				"esfilter": {"and": [
+					teamFilter,
+					{"term": {"assigned_to": "nobody@mozilla.org"}},
+					{"terms": {"cf_blocking_b2g": ["1.3+", "1.4+", "1.3t+", "1.5+"]}}
+				]}
+			}));
+			Log.actionDone(a);
+		});
+
+		yield (Thread.join(countingThread));
+		yield (Thread.join(ageThread));
+		yield (Thread.join(uBlockerThread));
+
+		var both = Qb.merge([
+			{"from": counting, "edges": ["Component", "Project", "State"]},
+			{"from": ages, "edges": ["Component", "Project", "State"]},
+			{"from": uBlocker, "edges": ["Component", "Project", "State"]}
+		]);
+
+		//SHOW GRID
+		both.name = team.name;
+		if (["Performance", "All Others", "All Teams"].contains(team.name)){
+			Qb.removeZeroParts(both, 0);
+		}//endif
+
+		var html = cube2grid({
+			"cube": both,
+			"rows": ["Component"],
+			"columns": ["Project", "State"]
+		});
+		$("#overview").html(html).updateAccordion();
+		addNumberClickers(both, teamFilter);
+	});
+
+}//function
+
+
+
+});
+
+</script>
+
+
+</BODY>
+</HTML>
+

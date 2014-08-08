@@ -14,7 +14,7 @@ var importScript;
 (function () {
 
 	var METHOD_NAME = "importScript";
-	var FORCE_RELOAD = false;  //COMPENSATE FOR BUG https://bugzilla.mozilla.org/show_bug.cgi?id=991252
+	var FORCE_RELOAD = true;  //COMPENSATE FOR BUG https://bugzilla.mozilla.org/show_bug.cgi?id=991252
 	var DEBUG = false;
 
 	if (typeof(window.Log) == "undefined") {
@@ -253,20 +253,15 @@ var importScript;
 					}//endif
 				}//for
 
-				{//HACK
-					//THIS IS AN UNPROVEN HACK TO SOLVE THE CYCLE PROBLEM
-					//IF A PARENT OF unprocessed NODE HAS BEEN VISITED, THEN THE NODE WILL
-					//HAVE __parent DEFINED, AND IN THEORY WE SHOULD BE ABLE CONTINUE
-					//WORKING ON THOSE
-					if (queue.length == 0 && unprocessed.length > 0) {
-						var smallLoop = findSmallLoop(unprocessed);
-						if (smallLoop===undefined){
-							Log.error("No loop found where one is expected")
-						}//endif
-						unprocessed = subtract(unprocessed, smallLoop);
-						queue = queue.concat(smallLoop);
+				if (queue.length == 0 && unprocessed.length > 0) {
+					//WE HAVE A LOOP!  FIND THE SMALLEST ONE AND CONTINUE
+					var smallLoop = findSmallLoop(unprocessed);
+					if (smallLoop===undefined){
+						Log.error("No loop found where one is expected")
 					}//endif
-				}//END OF HACK
+					queue = [smallLoop[0]];
+					unprocessed = subtract(unprocessed, queue);
+				}//endif
 
 				var next = queue.shift();
 				processStartingPoint(next);
@@ -275,17 +270,36 @@ var importScript;
 
 
 		function findSmallLoop(candidates){
+			var queue=candidates.concat();
 			var smallestLoop;
 
 			function DFS(n, past){
+				queue = subtract(queue, [n]);
 				var t = graph[n];
 				t.children.forEach(function(c){
-					if (c==n) return;
 					if (!contains(candidates, c)) return;
-					if (contains(past, c)){
-						//LOOP FOUND
-						if (smallestLoop===undefined || past.length < smallestLoop.length){
-							smallestLoop = past.concat()
+					var i=past.indexOf(c);
+					if (i>=0){
+						//LOOP FOUND__parent
+						var loop = past.slice(i);
+						{//ROTATE loop SO loop[0] HAS MINIMUM INDEGREE
+							var indegree = 1000000;
+							var r;
+							for (var t=0;t<loop.length;t++){
+								var j=graph[loop[t]].indegrees;
+								if (j<indegree){
+									indegree=j;
+									r=t
+								}//endif
+							}//for
+							loop = loop.slice(r).concat(loop.slice(0,r));
+						}
+						if (smallestLoop === undefined) {
+							smallestLoop = loop
+						} else if (graph[loop[0]].indegrees < graph[smallestLoop[0]].indegrees) {
+							smallestLoop = loop
+						} else if (graph[loop[0]].indegrees == graph[smallestLoop[0]].indegrees && loop.length < smallestLoop.length){
+							smallestLoop = loop
 						}//endif
 						return;
 					}//endif
@@ -295,9 +309,10 @@ var importScript;
 				});
 			}//function
 
-			candidates.forEach(function(c){
+			while (queue.length>0){
+				var c=queue[0];
 				DFS(c, [c]);
-			});
+			}//while
 
 			return smallestLoop;
 		}//method
@@ -312,8 +327,6 @@ var importScript;
 				var childName = node.children[i];
 				var child = graph[childName];
 				child.indegrees--;
-				child.__parent = node;		//MARKUP FOR HACK
-				child.__depth = Math.min(child.__depth, node.__depth) + 1;
 			}//for
 
 			var nodeID = node.id;
@@ -328,7 +341,6 @@ var importScript;
 				var n = {};
 				n.id = name;
 				n.indegrees = 0;
-				n.__depth = 0;
 				n.children = [];
 				graph[name] = n;
 				if (DEBUG && contains(unprocessed, name))
@@ -346,6 +358,7 @@ var importScript;
 			addVertex(e.file);
 			addVertex(e.import);
 
+			if (e.import == e.file) continue;
 			graph[e.import].children.push(e.file);
 			graph[e.file].indegrees += 1;
 		}//for
