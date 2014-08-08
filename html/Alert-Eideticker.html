@@ -94,7 +94,7 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Eideticker.js'], function(
 			"esfilter":esfilter
 		}));
 
-		chart.list = Qb.sort(chart.list, ["metadata.date"]);
+		chart.list = Qb.sort(chart.list, ["date"]);
 
 		aChart.showScatter({
 			"id":"chart",

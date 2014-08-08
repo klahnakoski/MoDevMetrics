@@ -261,6 +261,17 @@ importScript("../util/aUtil.js");
 		return Map.getValues(output);
 	};
 
+
+	function AND(values){
+		for(var i=values.length;i--;){
+			var v=values[i];
+			if (v==false) return false;
+		}//for
+		return true;
+	}
+	Array.AND=AND;
+
+
 	Array.extend=function extend(){
 		var arrays = (arguments.length==1  && arguments[0] instanceof Array) ? arguments[0] : arguments;
 		var output=[];

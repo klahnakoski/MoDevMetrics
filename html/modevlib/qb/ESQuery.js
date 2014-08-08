@@ -816,7 +816,7 @@ ESQuery.DEBUG = false;
 					},
 					"filter": {
 						"and": [
-//							where
+							{"match_all":{}}
 						]
 					}
 				}
@@ -1448,12 +1448,21 @@ ESQuery.DEBUG = false;
 		var self = this;
 		this.esQuery = this.buildESQuery();
 		var select = Array.newInstance(this.query.select);
-
 		var isDeep = splitField(self.query.from).length > 1;
 
 		//WE CAN OPTIMIZE WHEN ALL THE FIELDS ARE SIMPLE ENOUGH
 		this.esMode = isDeep ? "setop" : "fields";
+
+		//LIST ALL PRIMITIVE FIELDS
+		var leafNodes = ESQuery.getColumns(this.query.from).map(function(c){
+			if ([].contains(c.type)) return undefined;
+			if (!["long", "double", "string", "boolean", ].contains(c.type)){
+				Log.error("do not know how to handle type");
+			}//endif
+			return c.name;
+		});
 		select.forall(function (s, i) {
+			if (leafNodes.contains(s.value)) return; //PRIMITIVE FIELDS CAN BE USED IN fields
 			var path = splitField(s.value);
 			if (path.length > 1 || !MVEL.isKeyword(path[0])) {
 				self.esMode = "setop";  //RETURN TO setop
@@ -1464,10 +1473,8 @@ ESQuery.DEBUG = false;
 		if (this.esMode == "fields") {
 			this.esQuery.size = nvl(this.query.limit, 200000);
 			this.esQuery.sort = nvl(this.query.sort, []);
-			if (this.query.select.value != "_source") {
-				this.esQuery.fields = select.map(function (s) {
-					return splitField(s.value)[0].split(".")[0];  //ES DOES NOT STORE COMPOUND FIELDS, ONLY INDEXES THEM.
-				});
+			if (select[0].value != "_source") {
+				this.esQuery.fields = select.select("value");
 			}//endif
 		} else if (!isDeep && Array.AND(select.map(function(s){return MVEL.isKeyword(s.value);}))) {
 			this.esQuery.facets.mvel = {
