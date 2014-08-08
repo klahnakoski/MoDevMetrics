@@ -446,7 +446,7 @@ ESQuery.DEBUG = false;
 
 		if (extraSelect.length == this.query.edges.length) {
 			this.termsEdges = [];
-			this.select = Array.newInstance(this.query.select);
+			this.select = Array.newInstance(this.query.select).copy();
 			this.select.appendArray(extraSelect)
 		} else {
 			this.termsEdges = this.query.edges.copy();
@@ -1447,7 +1447,7 @@ ESQuery.DEBUG = false;
 	ESQuery.prototype.compileSetOp = function () {
 		var self = this;
 		this.esQuery = this.buildESQuery();
-		var select = Array.newInstance(this.query.select);
+		var select = this.select;
 		var isDeep = splitField(self.query.from).length > 1;
 
 		//WE CAN OPTIMIZE WHEN ALL THE FIELDS ARE SIMPLE ENOUGH
@@ -1505,13 +1505,23 @@ ESQuery.DEBUG = false;
 		var o = [];
 		var T = data.hits.hits;
 
-		if (this.query.select instanceof Array) {
+		if (this.query.select instanceof Array || this.select.length > 1) {
 			for (var i = T.length; i--;) {
 				var record = T[i].fields
 				var new_rec = {};
-				this.query.select.forall(function (s, j) {
-					var field = splitField(s.value)[0].split(".")[0];  //USING BASE OF MULTI_FIELD WHICH HAS ACTUAL VALUE
-					new_rec[s.name] = nvl(record[s.value], T[i][field]);
+				this.select.forall(function (s, j) {
+					if (s.domain && s.domain.interval=="none"){
+						//THESE none-interval EDGES WERE ADDED TO THE SELECT LIST
+						if (s.domain.type=="time"){
+							new_rec[s.name] = {"value": record[s.value]}
+						}else{
+							Log.error("Do not know how to handle domain of type {{type}}", {"type": s.domain.type});
+						}//endif
+					}else{
+						var field = splitField(s.value)[0].split(".")[0];  //USING BASE OF MULTI_FIELD WHICH HAS ACTUAL VALUE
+						new_rec[s.name] = nvl(record[s.value], T[i][field]);
+					}
+
 				});
 				o.push(new_rec)
 			}//for

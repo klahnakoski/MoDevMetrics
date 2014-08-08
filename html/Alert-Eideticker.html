@@ -88,13 +88,15 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Eideticker.js'], function(
 		var chart = yield(ESQuery.run({
 			"from":"eideticker",
 			"select": [
-				{"name":"value", "value":"metrics."+GUI.state.metric},
-				{"name":"date", "value":'metadata.date'}
+				{"name":"value", "value":"metrics."+GUI.state.metric}
+			],
+			"edges":[
+				{"name":"date", "value":'metadata.date', "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":"none"}}
 			],
 			"esfilter":esfilter
 		}));
 
-		chart.list = Qb.sort(chart.list, ["date"]);
+		chart.list = Qb.sort(chart.list, ["date.value"]);
 
 		aChart.showScatter({
 			"id":"chart",
