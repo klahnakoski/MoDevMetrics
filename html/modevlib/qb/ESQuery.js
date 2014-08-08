@@ -1455,9 +1455,9 @@ ESQuery.DEBUG = false;
 
 		//LIST ALL PRIMITIVE FIELDS
 		var leafNodes = ESQuery.getColumns(this.query.from).map(function(c){
-			if ([].contains(c.type)) return undefined;
-			if (!["long", "double", "string", "boolean"].contains(c.type)){
-				Log.error("do not know how to handle type");
+			if (["object"].contains(c.type)) return undefined;
+			if (!["long", "double", "integer", "string", "boolean"].contains(c.type)){
+				Log.error("do not know how to handle type {{type}}", {"type":c.type});
 			}//endif
 			return c.name;
 		});
