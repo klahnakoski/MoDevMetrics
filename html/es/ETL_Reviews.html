@@ -40,13 +40,13 @@ importScript([
 	});
 
 	$("#inc").click(function(){
-		Thread.run(function(){
+		Thread.run(function*(){
 			yield (ETL.incrementalInsert(REVIEWS));
 		});
 	});
 
 	$("#test").click(function(){
-		Thread.run((function(){
+		Thread.run((function*(){
 			var bugs=yield(ESQuery.run({
 				"select" : [
 					{"name":"bug_id", "value":"bugs.bug_id"}
@@ -91,7 +91,7 @@ importScript([
 
 
 	$("#markup").click(function(){
-		Thread.run((function(){
+		Thread.run((function*(){
 			var reviews=yield (REVIEWS.postMarkup());
 					})());
 	});
