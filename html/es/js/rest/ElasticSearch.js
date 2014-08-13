@@ -21,8 +21,8 @@ if (window.location.hostname=="metrics.mozilla.com"){
 	ElasticSearch.baseURL="/bugzilla-analysis-es";
 	ElasticSearch.queryURL = "/bugzilla-analysis-es/bugs/_search";
 }else{
-	ElasticSearch.pushURL="http://localhost:9200";
-//	ElasticSearch.pushURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
+//	ElasticSearch.pushURL="http://localhost:9200";
+	ElasticSearch.pushURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
 //	ElasticSearch.pushURL="http://elasticsearch-private.bugs.scl3.mozilla.com:9200";
 
 	ElasticSearch.baseURL="http://elasticsearch-private.bugs.scl3.mozilla.com:9200";
