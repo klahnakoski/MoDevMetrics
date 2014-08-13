@@ -1,0 +1,111 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+<h3>Resolutions Over Time</h3>
+
+<div id="sidebar" style="width:300px;">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters"></div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div id="chart" style="height:600px"></div>
+
+<script type="application/javascript">
+
+importScript([
+	"modevlib/main.js"
+], function(){
+	$("#description").html("This chart counts all closed bugs in the given sample, and the resolution categories each falls into.");
+
+	var thread;
+	var createChart = function(){
+		if (thread !== undefined)
+			thread.kill();
+		thread = Thread.run(__createChart());
+	};
+
+	var __createChart = function*(){
+
+		var query = new ESQuery({
+			"name":"Resolution by Bug Age",
+			"from":"bugs",
+			"select":{"name":"Count", "value":"1", "aggregate":"count"},
+			"edges":[
+				{"name":"Resolution Type", "value":'resolution'},
+				//{"name":"Cohort", "value":'modified_ts', "domain":{"type":"time", "min":Date.now().add("-6month"), "max":Date.now().add("-1second"), "interval":"6month"}},
+				{"name":"Age", "value":'doc["modified_ts"].value-doc["created_ts"].value', "domain":{"type":"duration", "min":GUI.state.minX, "max":GUI.state.maxX, "interval":GUI.state.intervalX}}
+			],
+			"esfilter":{"and":[
+				{"not":{"term":{"resolution":""}}},
+				//THERE IS ONE verified WITH resolution=""
+				Mozilla.BugStatus.Closed.esfilter,
+				{"range":{"modified_ts":{"gte":Date.newInstance(GUI.state.sampleMin).getMilli()}}},
+				{"range":{"modified_ts":{"lte":Date.newInstance(GUI.state.sampleMax).getMilli()}}},
+				{"script":{"script":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value'}}
+			]},
+			"essize":GUI.state.esSize
+		});
+
+		(GUI.injectFilters(query));
+
+		Log.note(CNV.Object2JSON(query.esQuery));
+
+		Log.action("Calling ES");
+		var chartCube = (yield(query.run()));
+
+		Qb.normalizeByX(chartCube, 100);
+
+		var a = Log.action("Make chart", true);
+		aChart.show({
+			"id":"chart",
+			"sheetDiv":"info",
+			"type":"stacked",
+			"cube":chartCube,
+			extensionPoints: {
+				dot_shapeRadius: 4, //USED ON CHART (CCC v1)
+				line_lineWidth: 0
+			}
+		});
+		Log.actionDone(a);
+	};
+
+	$(document).ready(function(){
+		GUI.setup(createChart, [
+			{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
+			{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3year")},
+			{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.newInstance("13week")},
+			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.today().add("-2year")},
+			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.today()},
+			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
+		],
+				[
+					"maxX=Duration.newInstance(maxX).add(Duration.newInstance(intervalX)).add(Duration.newInstance('-second')).floor(Duration.newInstance(intervalX)).toString()"
+				]);
+	});
+});
+</script>
+
+
+</BODY>
+</HTML>

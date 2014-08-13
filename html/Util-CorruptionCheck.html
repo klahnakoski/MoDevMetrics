@@ -1,0 +1,152 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+
+<div style="height: 30px; text-align: center;vertical-align:middle;">
+	<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+</div>
+<h3>Corrupted Bugs Within the Last Three Months:</h3>
+<div id="results">Waiting for results</div>
+<div id="fixes">Waiting for fixes</div>
+
+
+
+<script type="application/javascript">
+
+
+USE_DOT=true;
+
+importScript(["modevlib/main.js"], function(){
+
+	//ES CAN BE OUT-OF-SYNCH WITH BZ ON PARTICULAR BUGS DURING UNSTABLE PERIODS
+
+	Thread.run(function*(){
+		var a = Log.action("Find suspicious bugs", true);
+
+		var result=yield (ESQuery.run({
+			"from":"bugs",
+			"select":{"name":"num_null", "value":"expires_on>"+Date.eod().getMilli()+" ? 1 : 0", "aggregate":"sum"},
+			"edges":["bug_id"],
+			"esfilter":{"range":{"modified_ts":{"gte":Date.now().addMonth(-3).getMilli()}}}
+		}));
+
+		var numBad=yield (Qb.calc2List({
+			"from":result,
+			"select":[
+				{"name":"bug ID", "value":"bug_id"},
+				{"name":"count(expires_on==null)", "value":"num_null"}
+			],
+			"where":"num_null!=1"
+		}));
+
+		numBad.list=numBad.list.left(100);
+		$("#results").html(CNV.List2HTMLTable(numBad));
+		Log.actionDone(a);
+
+
+		a = Log.action("Get suspicious bug details", true);
+		//FIX THEM?
+		var broken=yield (ESQuery.run({
+			"from":"bugs",
+			"select":[
+				{"value":"_id"},
+				{"value":"bug_id"},
+				{"value":"modified_ts"},
+				{"value":"expires_on"},
+				{"value":"bug_version_num"}
+			],
+			"esfilter":{"terms":{"bug_id":numBad.list.map(function(v){return v["bug ID"];})}}
+		}));
+		Log.actionDone(a);
+
+        var times = yield(Qb.calc2List({
+            "select":[
+                {"value":"_id"},
+                {"value":"bug_id"},
+                {"value":"modified_ts"},
+                {"name":"expires_on", "value":"Date.newInstance(expires_on)==null ? null : expires_on"},
+                {"value":"bug_version_num"}
+            ],
+            "from":broken,
+            "analytic":{"name":"new_expires_on", "value":"(rownum>=rows.length-1 ? null : rows[rownum+1].modified_ts)", "edges":["bug_id"], "sort":["modified_ts"]}
+        }));
+
+		var fixed=yield (Qb.calc2List({
+			"from": times,
+			"select":[
+				{"value":"_id"},
+				{"value":"bug_id"},
+				{"value":"modified_ts"},
+				{"value":"expires_on"},
+				{"value":"new_expires_on"},
+				{"value":"bug_version_num"}
+
+			],
+			"where":"new_expires_on != expires_on",
+			"sort":["expires_on", "new_expires_on"]
+		}));
+
+
+		//GET ALL THE SOURCES OF THE BAD RECORDS
+		var a = Log.action("Get bug _source json", true);
+		var sources=[];
+
+		var host = ESQuery.INDEXES["bugs"].host;
+		var path = ESQuery.INDEXES["bugs"].path;
+
+		for(var i=fixed.list.length;i--;){
+			try{
+				var v=fixed.list[i];
+				var output=yield (Rest.get({
+					url: host+path+"/"+v._id,
+					dataType: "json"
+				}));
+				output._source._id=v._id;
+				sources.append(output._source);
+			}catch(e){
+
+			}//try
+		}
+		Log.actionDone(a);
+
+		//ASSIGN NEW expires_on
+		var fixer={};
+		fixed.list.forall(function(v){
+			return fixer[v._id]=v.new_expires_on
+		});
+
+		bulk=[];
+		sources.forall(function(s){
+			s.expires_on=fixer[s._id];
+//			if (s.bug_id==902525){
+//			bulk.append(JSON.stringify({ "delete" : { "_id" : s._id } }));
+				bulk.append(JSON.stringify({ "index":{ "_id" : s._id } }));
+				bulk.append(JSON.stringify(s));
+//			}//endif
+		});
+
+		// REMOVE COMMENT TO APPLY FIX
+		a = Log.action("bulk index fixes", true);
+        var paths=ESQuery.INDEXES["bugs"].path.split("/").substring(1);
+		yield (ElasticSearch.bulkInsert(paths[0], paths[1], bulk));
+		Log.actionDone(a);
+
+
+		$("#fixes").html(CNV.List2HTMLTable(fixed));
+
+
+	});
+
+});
+</script>
+
+
+</BODY>
+</HTML>

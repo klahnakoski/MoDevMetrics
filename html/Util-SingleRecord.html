@@ -1,0 +1,166 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+
+
+<h2>Simple Query</h2>
+<div id="status"></div>
+<div id="info"></div>
+<div id="tab"></div>
+<div id="chart" style="width:800px;height:400px;"></div>
+<div id="chart2" style="width:800px;height:400px;"></div>
+
+
+<script type="application/javascript">
+	importScript([
+		"modevlib/main.js"
+	], function(){
+		Thread.run(function*(){
+
+			Log.note(Date.newInstance(1352207434236).format("yyyy-NNN-dd HHmmss"));
+//		yield (ESQuery.loadColumns({"from":"bugs"}));
+
+//			var temp = MVEL.compile.expression("getDocArray(dependson).length>0", {"from": "bugs"	  });
+
+var esQuery = {
+	"query":{"filtered":{ "query":{"match_all":{}}, "filter":{"and":[
+		{"and":[
+			{"term":{"bug_id":	902953}},
+				 {
+                                "range":{
+                                    "bug_id":{
+                                        "lt"  : 1000000,
+                                        "gte" :  900000
+                                    }
+                                }
+                            },
+//				                                "exists":{
+//                                    "field" : "bug_group"
+//                                },
+			{"missing":{"field":"expires_on", "null_value":true}}
+		]}
+	]} }},
+	"from":0,
+	"size":2000,
+	"sort":["bug_version_num"]
+};
+
+
+//			var esQuery =	{
+//    "sort" : [ ],
+//    "from"   : 0,
+//    "fields" : [
+//        "bug_id",
+//        "bug_group",
+//		"expires_on"
+//    ],
+//    "facets":{ },
+//    "query":{
+//        "filtered":{
+//            "filter":{
+//                "and" : [
+//                    {
+//                        "match_all":{ }
+//                    },
+//                    {
+//                        "and" : [
+//                            {
+//                                "range":{
+//                                    "bug_id":{
+//                                        "lt"  : 1000000,
+//                                        "gte" :  900000
+//                                    }
+//                                }
+//                            },
+//                            {
+//                                "exists":{
+//                                    "field" : "bug_group"
+//                                }
+//                            },
+////                           {"missing":{"field":"expires_on", "existence":true, "null_value":true}}
+//                        ]
+//                    }
+//                ]
+//            },
+//            "query":{
+//                "match_all":{ }
+//            }
+//        }
+//    },
+//    "size"   : 200000
+//};
+//		{
+//			"facets":{"mvel":{"terms":{ "size":200000, "script_field":"doc[\"dependson\"].value"}}},
+//			"sort":[], "size":0, "from":0, "query":{"filtered":{ "filter":{"and":[
+////			{"term":{"bug_id":180171}}  //BAD
+////			{"term":{"bug_id":6625}}	//GOOD
+//		]}, "query":{"match_all":{}} }} };
+
+
+			try{
+				var data = yield(Rest.post({
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/bug_version/_mapping?pretty=true",
+//			"url":'http://localhost:9200/bug_hierarchy/bug_hierarchy/_search',
+
+
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bugs/_search",
+			"url":"http://elasticsearch4.bugs.scl3.mozilla.com:9200/private_bugs/bug_version/_search",
+
+
+//			"url":"http://10.242.30.66:9200/makes/_search",
+//			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/datazilla20131108_213623/_search",
+//			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9200/raw_telemetry/_search",
+//			"url":"http://klahnakoski-es.corp.tor1.mozilla.com:9201/public_bugs/bug_version/_search",
+
+//			"url":"http://localhost:9200/perfy/_search",
+//			"url":"http://129.97.26.17:9200/bugs/bug_version/_search",
+// 			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_summary/bug_summary/_search",
+
+//			"url":"http://localhost:9200/reviews/review/_search",
+//			"url":"http://localhost:9200/bug_tags/bug_tags/_search",
+//			"url":"http://localhost:9200/raw_telemetry/data/_search",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/reviews/review/_search",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/bug_tags/bug_tags/_search",
+//				"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/telemetry/_search",
+//			"url":"http://elasticsearch7.metrics.scl3.mozilla.com:9200/org_chart/person/_search",
+					"data":esQuery
+				}));
+
+
+				Log.note(CNV.Object2JSON(data));
+
+				var htmlSummary = CNV.ESResult2HTMLSummaries(data);
+				var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));
+				$("#info").html(htmlSummary + "<br><br>" + htmlResults);
+
+//				$("#tab").html(CNV.String2HTMLTable(CNV.List2Tab(CNV.ESResult2List(data))));
+
+//		while(true){
+//			if (ETL.allFlags!==undefined) break;
+//			yield (Thread.sleep(200));
+//		}//while
+//		var reviews=yield (REVIEWS.get(674239, 674240));
+//		$("#info").append(CNV.List2HTMLTable(reviews));
+//
+
+
+			} catch(e){
+				Log.warning("Error sending requests", e);
+				document.getElementById("info").innerHTML = "Response Error."+
+					"<ul><li>Ensure you are connected to the MPT network.</li>"+
+				"<li style=\"vertical-align:top; \">Ensure your browser is not blocking http content <image src=\"images/http_from_https.png\"  style=\"height:96px;width:128px;vertical-align:top; \"/></li></ul>";
+			}
+
+		});
+	});
+</script>
+
+</BODY>
+</HTML>

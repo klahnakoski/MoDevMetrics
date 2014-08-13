@@ -1,0 +1,296 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+
+
+
+<div id="sidebar" style="width:300px;">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3>Team Reviews</h3>
+	<div id="chartResponse" style="width:400px;height:200px;float:left;display: inline;"></div>
+	<div id="chartProducts" style="width:400px;height:200px;float:left;display: inline;"></div>
+	<div id="chart" style="width:800px;height:400px;"></div>
+
+	<div id="info"></div>
+	<div id="report"></div>
+</div>
+
+<script type="application/javascript">
+
+importScript([
+	"modevlib/main.js",
+	"js/etl/Reviews.js"
+], function(){
+
+	$("#description").html("Shows the number of incoming reviews and the number of reviews completed for each interval.  The latter is shown as a negative to increase clarity.  The &quot;Still Open&quot; (Green) shows the total number of reviews open more than 24 hours, which is the cumulative sum of the other two."+
+			"<br><span class='warning'>If a review is open more then 18weeks, it will be removed from the Still Open total</span>"
+	);
+
+	var thread;
+	var createChart=function(){
+		if (thread!==undefined)
+			thread.kill();
+		thread=Thread.run( __createChart());
+	};
+
+	var __createChart = function*(){
+
+		var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
+		var sampleMin=Date.newInstance(GUI.state.sampleMin);//.floor(sampleInterval);
+		var sampleMax=sampleMin.add(Date.newInstance(GUI.state.sampleMax).add(sampleInterval).subtract(sampleMin, sampleInterval).floor(sampleInterval));
+
+		var mainFilter={"and":[
+				{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}}
+			]};
+		GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
+
+		//CHART OF AGGREGATE RESPONSE TIMES
+		Thread.run(function*(){
+			var response=yield (ESQuery.run({
+				"name":"Response Time Breakdown",
+				"from":"reviews",
+				"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
+				"edges":[
+					{"name":"wait_time",
+						value:"(coalesce(zero2null(doc[\"review_time\"].value), "+Date.eod().getMilli()+")-doc[\"request_time\"].value)",
+						"allowNulls":"true",
+						"domain":{"type":"duration", "min":0, "max":"10day", "interval":"day"}
+					}
+				],
+				"esfilter":mainFilter
+			}));
+
+			response.edges[0].domain.NULL.name="Over 10 days";
+
+			aChart.show({
+				"id":"chartResponse",
+				"type":"bar",
+				"cube":response,
+				"height":200,
+				"width":400,
+				"xAxisSize": 70
+			});
+		});
+
+
+		//CHART OF AGGREGATE RESPONSE TIMES
+		Thread.run(function*(){
+			var a=Log.action("Grab Stats", true);
+
+			var df=(yield (ESQuery.run({
+				"name":"DF",
+				"from":"reviews",
+				"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
+				"edges":[
+					{"name":"wait_time",
+						"allowNulls":true,
+						value:"(coalesce(zero2null(review_time), "+Date.eod().getMilli()+")-doc[\"request_time\"].value)",
+						"domain":{"type":"duration", "min":0, "max":"10day", "interval":"hour", "value":"value"}
+					}
+				],
+				"esfilter":mainFilter
+			})));
+			Log.actionDone(a);
+
+			a=Log.action("Calc Stats", true);
+			var percentile90=Stats.df.percentile(df.cube, 0.90)/24;  //INTERVALS ARE IN HOURS, CONVERT TO DAYS
+
+
+			var stats=(yield (Q({
+				"from":
+					yield (Qb.Cube2List(df)),
+				"select": [
+					{"name":"total", "value":"count", "aggregate":"sum"},
+					{"name":"under_24_hours", "value":"(wait_time!=null && wait_time.milli<"+Duration.newInstance('24hour').milli+") ? count : 0", "aggregate":"sum"},
+					{"name":"over_10_days", "value":"wait_time==null ? count : 0", "aggregate":"sum"}
+				]
+			}))).cube;
+
+			var numWeek=sampleMax.subtract(sampleMin).milli/Duration.MILLI_VALUES.week;
+
+			$("#stats").html(
+				'<span class="parameter_name">Total Reviews:</span><b>'+stats.total+'</b><br>'+
+				'<span class="parameter_name">Reviews per week:</span><b>'+aMath.round(stats.total/numWeek, 1)+'</b><br>'+
+				'<span class="parameter_name">% Under One Day:</span><b>'+aMath.round(stats.under_24_hours/stats.total*100, 1)+'%</b><br>'+
+				'<span class="parameter_name">% Over 10days:</span><b>'+aMath.round(stats.over_10_days/stats.total*100, 1)+'%</b><br>'+
+				'<span class="parameter_name">90th percentile:</span><b>'+aMath.round(percentile90, 1)+'days</b><br>'
+			);
+			Log.actionDone(a);
+		});
+
+		//CHART PRODUCT BREAKDOWN
+		Thread.run(function*(){
+			var q=new ESQuery({
+				"name":"Product Breakdown",
+				"from":"reviews",
+				"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
+				"edges":[
+					{"name":"product", "value":"product"}
+				],
+				"esfilter":mainFilter
+			});
+
+			var response=yield (q.run());
+
+			aChart.showPie({
+				"id":"chartProducts",
+				"cube":response,
+				"height":200,
+				"width":400
+			});
+
+		});
+
+
+		var a=Log.action("Grab Review Details", true);
+		var q1=new ESQuery({
+			"from":"reviews",
+			"select":[
+				{"name":"request_count", "value":"bug_id", "aggregate":"count"}
+			],
+			"edges":[
+				{"name":"time", "value":"request_time", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}}
+			],
+			"esfilter":mainFilter
+		});
+		var requested = yield (q1.run());
+
+
+		var q2= new ESQuery({
+			"from":"reviews",
+			"select":{"name":"review_count", "value":"bug_id", "aggregate":"count"},
+			"edges":[
+				{"name":"time", "value":"review_time", "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}}
+			],
+			"esfilter":mainFilter
+		});
+		var reviewed = yield (q2.run());
+
+
+		//SHOW AS NEGATIVE
+		reviewed.cube=reviewed.cube.map(function(v, i){return -v;});
+
+
+
+		//WE CAN NOT DO THIS DIRECTLY: WE WILL REQUIRE MULTIPLE COUNTS PER REVIEW
+		var q3=new ESQuery({
+			"from":"reviews",
+			"select":[
+//				{"name":"bug_id", "value":"reviews.bug_id"},
+//				{"name":"attach_id", "value":"reviews.attach_id"},
+				{"name":"wait_time_over_day", "value":"(coalesce(reviews.review_time, "+Date.eod().getMilli()+")-reviews.request_time > "+Duration.MILLI_VALUES.day+") ? 1 : 0"},
+				{"name":"wait_time", "value":"coalesce(reviews.review_time, "+Date.eod().getMilli()+")-reviews.request_time"},
+				{"name":"request_time", "value":"reviews.request_time"},
+				{"name":"review_time", "value":"coalesce(reviews.review_time,"+Date.eod().getMilli()+")"}
+			],
+			"esfilter":{"and":[
+				{"script":{"script":	//NO NEED TO CONSIDER THE MINI-REVIEWS
+					MVEL.FUNCTIONS.coalesce+
+					"(coalesce(_source.review_time, "+Date.eod().getMilli()+")-_source.request_time > "+Duration.MILLI_VALUES.day+") ? 1 : 0;"
+				}},
+				{"range":{"request_time":{"lt":sampleMax.getMilli()}}},
+				{"or":[
+					{"range":{"review_time":{"gte":sampleMin.getMilli()}}}, //REVIEWED AFTER THE min
+					{"missing":{"field":"review_time"}}						//...OR NEVER REVIEWED
+				]}
+			]}
+		});
+		GUI.injectFilters(q3);
+		var stillOpen = (yield (q3.run())).list;
+
+
+		var open=yield (Q({
+			"from":stillOpen,
+			"select":{"name":"open_count", "value":"request_time", "aggregate":"count"},
+			"edges":[
+				{"name":"time", "value":"request_time",
+					"test":	"review_time-request_time > "+Duration.MILLI_VALUES.day+" && "+
+							"time.min < review_time && "+
+							"time.min < request_time+"+Duration.MILLI_VALUES.week*18+" && "+  //JUST IGNORE THE REALLY OLD reviews
+							"request_time+"+Duration.MILLI_VALUES.day+" < time.max",
+					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+
+				}
+			]
+		}));
+		Log.actionDone(a);
+
+		//WE HAVE THREE SERIES, ALL DEFINED OVER THE SAME DOMAIN, WHAT TO DO?
+		//THE THREE ARE PARTS OF THE CATEGORY DIMENSION
+
+		//MERGE ALL RESULTS
+		var chart=Qb.merge([
+            {"from":requested, "edges":["time"]},
+            {"from":reviewed, "edges":["time"]},
+            {"from":open, "edges":["time"]}
+        ]);
+
+		aChart.show({
+			"id":"chart",
+		"sheetDiv":"info",
+			"type":"line",
+			"cube":chart,
+			"height":400
+		});
+
+
+	};//createChart
+
+//	$("#description").click(function(){
+//		createChart();
+//	});
+
+	$(document).ready(function(){
+		GUI.setup(createChart, [
+			{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.today().add("-3month")},
+			{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.today()},
+			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.DAY},
+			{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000},
+			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("reviewer")}
+		],
+		[
+			"sampleMin=Date.newInstance(sampleMin).format(\"yyyy-MM-dd\")",
+			"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+		],
+		"reviews",
+		true);
+	});
+
+});
+//	createChart();
+
+</script>
+
+
+</BODY>
+</HTML>

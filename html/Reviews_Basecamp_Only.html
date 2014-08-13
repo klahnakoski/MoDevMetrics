@@ -1,0 +1,332 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="text/javascript" src="modevlib/Settings.js">
+	</script>
+</HEAD>
+<BODY>
+
+
+<script type="application/javascript" src="lib/webdetails/cdf/Base.js"></script>
+<script type="application/javascript" src="lib/jquery.js"></script>
+<script type="application/javascript" src="lib/jstree/jquery.jstree.js"></script>
+<script type="application/javascript" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
+<script type="application/javascript" src="lib/webdetails/data/q01-01.js"></script>
+<script type="application/javascript" src="lib/webdetails/lib/protovis-d3.3.js"></script>
+<script type="application/javascript" src="lib/webdetails/lib/jquery.tipsy.js"></script>
+<script type="application/javascript" src="lib/webdetails/lib/tipsy.js"></script>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
+
+<script type="application/javascript" src="lib/webdetails/pvc/pvc.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcPanel.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcLegend.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcWaterfall.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcPie.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcBar.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcLine.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcData.js"></script>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
+
+<script type="application/javascript" src="lib/webdetails/pvcDocUtils.js"></script>
+
+<link type="text/css" rel="stylesheet" href="lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css"/>
+<script type="application/javascript" src="lib/jquery-ui/js/jquery-ui-1.10.2.custom.js"></script>
+<script type="application/javascript" src="lib/jquery.ba-bbq/jquery.ba-bbq.js"></script>
+
+<link type="text/css" rel="stylesheet" href="css/menu.css"/>
+
+
+<script type="text/javascript" src="modevlib/util/aUtil.js"></script>
+<script type="text/javascript" src="modevlib/collections/aArray.js"></script>
+<script type="text/javascript" src="modevlib/util/aString.js"></script>
+<script type="text/javascript" src="modevlib/math/aMath.js"></script>
+<script type="text/javascript" src="modevlib/util/CNV.js"></script>
+<script type="text/javascript" src="modevlib/util/aUtil.js"></script>
+<script type="text/javascript" src="modevlib/collections/aArray.js"></script>
+<script type="text/javascript" src="modevlib/util/aString.js"></script>
+<script type="text/javascript" src="modevlib/math/aMath.js"></script>
+<script type="text/javascript" src="modevlib/util/aDate.js"></script>
+<script type="text/javascript" src="modevlib/util/aDuration.js"></script>
+
+<script type="text/javascript" src="modevlib/MozillaPrograms.js"></script>
+<script type="text/javascript" src="modevlib/Dimension.js"></script>
+<script type="text/javascript" src="modevlib/Dimension-Bugzilla.js"></script>
+<script type="text/javascript" src="modevlib/rest/BugzillaClient.js"></script>
+<script type="text/javascript" src="modevlib/Bugzilla.js"></script>
+
+<script type="text/javascript" src="modevlib/math/Stats.js"></script>
+<script type="text/javascript" src="modevlib/debug/aLog.js"></script>
+<script type="text/javascript" src="modevlib/qb/aCompiler.js"></script>
+<script type="text/javascript" src="modevlib/Hierarchy.js"></script>
+<script type="text/javascript" src="modevlib/qb/MVEL.js"></script>
+
+<script type="text/javascript" src="modevlib/threads/thread.js"></script>
+<script type="text/javascript" src="modevlib/qb/Qb.js"></script>
+<script type="text/javascript" src="modevlib/qb/Qb.analytic.js"></script>
+<script type="text/javascript" src="modevlib/qb/Qb.aggregate.js"></script>
+<script type="text/javascript" src="modevlib/qb/Qb.column.js"></script>
+<script type="text/javascript" src="modevlib/qb/Qb.cube.js"></script>
+<script type="text/javascript" src="modevlib/qb/Qb.domain.js"></script>
+<script type="text/javascript" src="modevlib/qb/ESQuery.js"></script>
+<script type="text/javascript" src="modevlib/charts/aChart.js"></script>
+
+
+
+<script type="text/javascript" src="modevlib/rest/ElasticSearch.js"></script>
+
+
+
+
+<script type="text/javascript" src="modevlib/charts/DateRangeIterator.js"></script>
+
+<script type="text/javascript" src="modevlib/gui/Filter.js"></script>
+<script type="text/javascript" src="modevlib/gui/ComponentFilter.js"></script>
+<script type="text/javascript" src="modevlib/gui/TeamFilter.js"></script>
+<script type="text/javascript" src="modevlib/gui/ProductFilter.js"></script>
+
+<script type="text/javascript" src="modevlib/gui/ProgramFilter.js"></script>
+
+<script type="text/javascript" src="modevlib/gui/GUI.js"></script>
+<script type="text/javascript" src="modevlib/util/aTimer.js"></script>
+
+
+<link type="text/css" rel="stylesheet" href="css/menu.css"/>
+
+<div id="info"></div>
+
+<div id="pending" style="align:left;"></div>
+
+<div id="complete"></div>
+
+<div id="open"></div>
+<!--<div id="info"></div>-->
+<!--<table><tr><td style="padding-left:40px;vertical-align: top;width:200px">-->
+<!--<div id="open" style="align:left;display:inline;width:200px"></div>-->
+<!--</td><td style="padding-left:40px;vertical-align: top">-->
+<!--<span id="pending" style="align:left;display:inline;"></span>-->
+<!--</td><td style="padding-left:40px;vertical-align: top">-->
+<!--<span id="complete" style="align:left;display:inline;"></span>-->
+<!--</td></tr></table>-->
+
+<script type="application/javascript">
+
+var query = {
+	"query": {
+		"filtered":{
+			"query": {
+				"match_all":{}
+			},
+			"filter": {
+				"and":[
+					{ "range":{ "expires_on":{ "gt" : Date.now().addDay(1) } } },
+					{ "term":{"cf_blocking_basecamp": "+"}},
+					Mozilla.BugStatus.Open.esfilter
+				]
+			}
+		}
+	},
+	"from":0,
+	"size":0,
+	"sort":[
+		{ "bug_version_num":{"sort" : "asc"} }
+	],
+
+	"facets":{
+		"pending": {
+			"terms": {
+				"script_field":
+						new MVEL().code({
+							"select" : [
+								{"name":"bug_id", "value":"bugs.bug_id"},
+								{"name":"modified_ts", "value":"bugs.modified_ts"},
+								{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
+							],
+							"from":
+									"bugs.attachments.flags",
+							"where":
+							{"and" : [
+								{"terms":{"bugs.attachments.flags.request_status" : ["?"]}},
+								{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+								{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
+							]}
+						}),
+				"size": 100000
+			}
+		},
+		"assigned": {
+			"terms": {
+				"script_field":
+						new MVEL().code({
+							"select" : [
+								{"name":"bug_id", "value":"bugs.bug_id"},
+								{"name":"assigned_to", "value":"bugs.assigned_to"}
+							],
+							"from":
+									"bugs"
+						}),
+				"size": 100000
+			}
+		},
+		"reviewed": {
+			"terms": {
+				"script_field":
+						new MVEL().code({
+							"select" : [
+								{"name":"bug_id", "value":"bugs.bug_id"},
+								{"name":"modified_ts", "value":"bugs.modified_ts"},
+								{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
+							],
+							"from":
+									"bugs.attachments.flags",
+							"where":
+							{"and" : [
+								{"terms":{"bugs.attachments.flags.request_status" : ["+"]}},
+								{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+								{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
+							]}
+						}),
+				"size": 100000
+			}
+		}
+
+
+
+	}
+};
+
+Log.note(query.facets.assigned.terms.script_field);
+
+
+Thread.run(function*(){
+	var data = ElasticSearch.search("bugs", query);
+
+	var esResult = MVEL.esFacet2List(data.facets.pending, [
+		{"name":"bug_id", "value":"bugs.bug_id"},
+		{"name":"modified_ts", "value":"bugs.modified_ts"},
+		{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
+	]);
+
+	var pendingReview = (yield(Qb.calc2List({
+		"from":
+				esResult,
+		"select":[
+			{"name":"request_time", "value":"modified_ts", "aggregate":"minimum"}
+		],
+		"edges":[
+			{"name":"requestee", "value":"requestee"},
+			{"name":"bug_id", "value":"bug_id"}
+		]
+	})));
+
+
+	var result = (yield(Qb.calc2List({
+		"from":
+			//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
+				pendingReview,
+		"select":[
+			{"name":"numPending", "value":"1", aggregate:"count", "sort":"descending"},
+			{"name":"maxWaitTime", "value":"aMath.round(Date.now().subtract(Date.newInstance(request_time)).divideBy(Duration.DAY), 1)+\"days\"", "aggregate":"maximum"},
+			{"name":"bugs", "value":"bug_id", aggregate:"join", "separator":","}
+		],
+		"edges":[
+			{"name":"requestee", "value":"requestee"}
+		],
+		"sort":[
+			"numPending"
+		]
+	}))).list;
+
+	//ADD LINK TO BUGS
+	result = (yield(Qb.calc2List({
+		"from":result,
+		"select":[
+			{"name":"requestee", "value":"requestee"},
+			{"name":"Number Pending", value:"numPending"},
+			{"name":"Max Wait Time", "value":"maxWaitTime"},
+			{"name":"Bug List", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
+		]
+	}))).list;
+
+
+	var esResult3 = MVEL.esFacet2List(data.facets.reviewed, [
+		{"name":"bug_id", "value":"bugs.bug_id"},
+		{"name":"modified_ts", "value":"bugs.modified_ts"},
+		{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
+	]);
+
+	var doneReview = (yield(Qb.calc2List({
+		"from":
+				esResult3,
+		"select":[
+			{"name":"wait_time", "value":"aMath.round(Date.now().subtract(Date.newInstance(modified_ts)).divideBy(Duration.DAY), 1)+\"days\"", "aggregate":"minimum"}
+		],
+		"edges":[
+			{"name":"bug_id", "value":"bug_id"}
+		]
+	})));
+
+	//FILTER OUT review?
+	doneReview = doneReview.list.map(function(v, i){
+		for(var p = 0; p < pendingReview.list.length; p++){
+			if (pendingReview.list[p].bug_id == v.bug_id) return undefined;
+		}//for
+		return v;
+	});
+
+
+	//ADD LINK TO BUGS
+	var result3 = (yield(Qb.calc2List({
+		"from":doneReview,
+		"select":[
+			{"name":"Wait Time", value:"wait_time"},
+			{"name":"Bug", "value":"\"<a href='https://bugzilla.mozilla.org/show_bug.cgi?id=\"+bug_id+\"'>\"+bug_id+\"</a>\""}
+		]
+	}))).list;
+
+
+	var assigned = MVEL.esFacet2List(data.facets.assigned, [
+		{"name":"bug_id"},
+		{"name":"assigned_to"}
+	]);
+
+	var result2 = (yield(Qb.calc2List({
+		"from":
+				assigned,
+		"select":[
+			{"name":"numPending", "value":"1", aggregate:"count", "sort":"descending"},
+			{"name":"bugs", "value":"bug_id", aggregate:"join", "separator":","}
+		],
+		"edges":[
+			{"name":"assigned_to", "value":"assigned_to"}
+		],
+		"sort":[
+			"numPending"
+		]
+	}))).list;
+
+	//ADD LINK TO BUGS
+	result2 = (yield(Qb.calc2List({
+		"from":result2,
+		"select":[
+			{"name":"assigned_to", value:"assigned_to"},
+			{"name":"numPending", value:"numPending"},
+			{"name":"bugs", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bugs).replaceAll(', ', '%2C')+\"'>\"+bugs+\"</a>\""}
+		]
+	}))).list;
+
+	$("#pending").html("<h2>Pending Review (R?)</h2>" + CNV.List2HTMLTable(result));
+	$("#complete").html("<h2>Review Completed (R+)</h2>" + CNV.List2HTMLTable(result3));
+	$("#open").html("<h2>Assigned To</h2>" + CNV.List2HTMLTable(result2));
+
+});
+
+</script>
+
+</BODY>
+</HTML>

@@ -1,0 +1,341 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+<div id="sidebar" style="width:300px;">
+	<br>
+	<br>
+
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description">
+        Please <a href='https://wiki.mozilla.org/Platform/Games/GameFocusedBenchmarking'>read the wiki</a>
+        for detailed explanation of testing procedure and analysis.<br><br>
+        The latest overall score for each channel, and it's breakdown.  This
+        chart is best used to view test result variance (bottom chart).
+        Click on the variance chart to see the specific test results.<br><br>
+        <span class="warning">You will require <a href="https://mana.mozilla.org/wiki/pages/viewpage.action?pageId=30769829">Mozilla Datacenter VPN</a> to access the server</span>
+	</div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3 id="title">Perfy!</h3>
+	<table>
+		<tr><td>
+			<div id="chart" class="chart" style="float:none;width:800px;height:400px;"></div>
+		</td><td>
+			<div id="overall" class="chart" style="float:left;width:150px;height:400px;"></div>
+		</td></tr>
+	</table>
+
+	<div id="confidence" class="chart" style="float:none;width:800px;height:400px;"></div>
+	<div id="info"></div>
+	<div id="details"></div>
+</div>
+
+
+<script type="application/javascript">
+
+
+importScript(['modevlib/main.js', 'modevlib/Dimension-Perfy.js'], function(){
+	var thread;
+	var createChart = function(){
+		if (thread !== undefined)
+			thread.kill();
+		thread = Thread.run(__createChart());
+	};
+
+	$("#description").html("Please <a href='https://wiki.mozilla.org/Platform/Games/GameFocusedBenchmarking'>read the wiki</a> for detailed explaination of testing procedure and analysis.<br><br> The latest overall score for each channel, and it's breakdown.  This chart is best used to view test result variance (bottom chart).  Click on the variance chart to see the specific test results.");
+
+	var __createChart = function*(){
+		var sampleDate = Date.newInstance(GUI.state.date);
+//		var benchmark=GUI.state.benchmark;
+		var totalsFilter={"terms":{"info.test":["total", "Kraken", "Octane"]}};
+
+		//WAIT FOR MENU TO LOAD
+		while (Mozilla.Perfy.Benchmark.partitions instanceof Thread){
+			yield (Thread.sleep(200));
+		}//while
+
+		if (GUI.state.benchmark.getSelectedParts().length==0 || GUI.state.platform.getSelectedParts().length==0){
+			$("#title").html("Perfy - Please select Benchmark and Platform");
+			yield (null)
+		}//endif
+
+		var benchmarkName=GUI.state.benchmark.getSelectedParts()[0].name.toUpperCase();
+		var platformName=GUI.state.platform.getSelectedParts()[0].name;
+
+		$("#title").html("Perfy - "+benchmarkName+" on "+platformName);
+
+
+
+		//LOOK FOR LATEST TEST DATA
+		var max_date=yield (ESQuery.run({
+			"from":"perfy",
+			"select":{"value":"info.started", "aggregate":"maximum"},
+			"edges":[
+				{"name":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()},
+				{"name":"Benchmark", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":0})}
+			],
+			"esfilter":{"and":[
+				totalsFilter,
+				{"range":{"info.started":{"lt":sampleDate.ceilingDay().getMilli()}}},
+				GUI.state.platform.makeFilter()
+			]}
+		}));
+
+
+		function drillToReplicates(channel, _benchmark, value){
+			var test=_benchmark.split(".").left(1).join(".");
+			var benchmark=_benchmark.split(".").rightBut(1).join(".");
+
+			var param={
+				"Benchmark":benchmark,
+				"Channel":channel
+			};
+
+			//					var date=max_date.cube[range2.edges[0].domain.getPartByKey(platform).dataIndex][range2.edges[1].domain.getPartByKey(benchmark).dataIndex];
+			param_date=max_date.get(param);
+
+			Thread.run(function*(){
+				//SHOW ALL TESTS FOR THIS GROUP
+				var param={
+					"benchmark":benchmark+"."+test.replaceAll(" ", "_"),
+					"platform":GUI.state.platform.getSelectedParts()[0].name.replaceAll(" ", "_"),
+					"date":Date.newInstance(GUI.state.date).format("yyyy-MM-dd")
+				};
+				window.open("Perfy-Details.html#"+CNV.Object2URL(param));
+			});
+		}//function
+
+
+		//FILTER SPECIFICALLY FOR THE LATEST TESTS
+		var testFilter=[];
+		Mozilla.Perfy.Channel.partitions.forall(function(channel, c){
+			Mozilla.Perfy.Benchmark.partitions.forall(function(benchmark, b){
+				if (aMath.isNumeric(max_date.cube[c][b])){
+					testFilter.append({"and":[
+						channel.esfilter,
+						benchmark.esfilter,
+						{"term":{"info.started":max_date.cube[c][b]}}
+					]});
+				}//endif
+			});
+		});
+		testFilter={"or":testFilter};
+
+
+		var esfilter={"and":[
+			{"not":totalsFilter}, //IGNORE AGGREGATE VALUES
+			testFilter,
+			GUI.getFilters("perfy")
+		]};
+
+		Thread.run(function*(){
+			var data = yield(ESQuery.run({
+				"name":"Specific Test Results",
+				"from":"perfy",
+				"select":{"name":"score", "value":"score", "aggregate":"average"},
+				"edges":[
+					{"name":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()},
+					{"name":"Test", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":1})}
+				],
+				"esfilter":esfilter
+			}));
+
+			//REMOVE ZERO EDGES
+			Qb.removeZeroParts(data, 0);
+			Qb.removeZeroParts(data, 1);
+
+
+			aChart.show({
+				"id":"chart",
+				"sheetDiv":"info",
+				"type":"bar",
+				"stacked":false,
+				"cube":data,
+				"legendPosition":"right",
+				"legendSize":150,
+				xAxisSize: 100,
+				extensionPoints: {
+					line_lineWidth: 2
+				},
+				"clickAction":drillToReplicates
+			});
+		});
+
+
+		Thread.run(function*(){
+			var data = yield(ESQuery.run({
+				"name":"Overall",
+				"from":"perfy",
+				"select":{"name":"score", "value":"score", "aggregate":"average"},
+				"edges":[
+					{"name":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()},
+					{"name":"Test", "domain":Mozilla.Perfy.Benchmark.getDomain({"depth":0})}
+				],
+				"esfilter":{"and":[
+					totalsFilter, //ONLY AGGREGATE VALUES
+					testFilter,
+					GUI.getFilters("perfy")
+				]}
+			}));
+
+			//REMOVE ZERO EDGES
+			Qb.removeZeroParts(data, 0);
+			Qb.removeZeroParts(data, 1);
+
+			if (data.cube.length==0){
+				$("#overall").html("");
+				yield (null);
+			}//endif
+
+			aChart.show({
+				"id":"overall",
+				"sheetDiv":"info",
+				"type":"bar",
+				"stacked":false,
+				"cube":data,
+				"legend":false,
+				xAxisSize: 100,
+				extensionPoints: {
+					line_lineWidth: 2
+				}
+			});
+
+
+		});
+
+
+
+
+
+		Thread.run(function*(){
+			var a=Log.action("Get Score Details",true);
+			var data = yield(ESQuery.run({
+				"name":"Results",
+				"from":"perfy",
+				"select": [
+					Mozilla.Perfy.Channel.getSelect(),
+					Mozilla.Perfy.Benchmark.getSelect({"depth":1}),
+					{"name":"score", "value":"score"}
+				],
+				"esfilter":esfilter
+			}));
+
+			//PICK MIDDLE 90% (ROUNDED UP)
+			var range=yield (Q({
+				"from":data,
+				"select":[
+					//REPORT 90% OF VALUES
+					{"name":"range", "value":"score", "aggregate":"middle", "percentile":0.70},
+					{"name":"median", "value":"score", "aggregate":"median"}
+				],
+				"edges":[
+					{"name":"Channel", "value":"Channel"},
+					{"name":"Benchmark", "value":"Benchmark"}
+				]
+			}));
+
+			//ENSURE WE MAINTAIN ORDER OF PARTS
+			var domain=Mozilla.Perfy.Benchmark.getDomain({"depth":1});
+			domain.partitions=domain.partitions.map(function(v){
+				return v.name;
+			});
+
+			var range2=yield (Q({
+				"from":range,
+				"select":
+					{"name":"range", "value":"(range.max-range.min)/median"}
+				,
+				"edges":[
+					{"name":"Channel", "value":"Channel", "domain":Mozilla.Perfy.Channel.getDomain()},
+					{"name":"Benchmark", "value":"Benchmark", "domain":{"type":"set", "partitions":domain.partitions}}
+				]
+			}));
+
+
+			Qb.removeZeroParts(range2, 0);
+			Qb.removeZeroParts(range2, 1);
+
+
+
+			aChart.show({
+				"name":"Range of Middle 70% (as percent of median)",
+				"id":"confidence",
+				"sheetDiv":"info",
+				"type":"bar",
+				"stacked":false,
+				"cube":range2,
+				orthoAxisFixedMax:1.00,
+				"legendPosition":"right",
+				"legendSize":150,
+				xAxisSize: 100,
+
+				extensionPoints: {
+					line_lineWidth: 2
+				},
+				"clickAction":drillToReplicates
+			});
+
+			Log.actionDone(a);
+		});
+
+
+	};
+
+
+	$(document).ready(function(){
+		GUI.setup(createChart, [
+				{"id":"date", "name":"Test Date", "type":"date", "default":Date.newInstance("JAN 31 2014")},
+				{"id":"benchmark", "name":"Benchmark", "type":PartitionFilter.newInstance({
+					"id":"benchmark",
+					"name":"Benchmark",
+					"dimension":Mozilla.Perfy.Benchmark,
+					"onlyOne":true,
+					"expandAll":false
+				})},
+				{"id":"platform", "name":"Platform", "type":PartitionFilter.newInstance({
+					"id":"platform",
+					"name":"Platform",
+					"dimension":Mozilla.Perfy.Platform,
+					"onlyOne":true,
+					"expandAll":false
+				})}
+			],
+			[
+			],
+			"perfy",
+			false
+		);
+	});
+
+
+	});
+
+</script>
+
+
+</BODY>
+</HTML>
+

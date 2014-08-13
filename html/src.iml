@@ -6,6 +6,7 @@
       <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/es/js" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/es/modevlib" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/../.idea" />
     </content>
     <orderEntry type="inheritedJdk" />

@@ -1,0 +1,190 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+<div id="sidebar" style="width:300px;">
+	<br>
+	<br>
+
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description">
+        Please <a href='https://wiki.mozilla.org/Platform/Games/GameFocusedBenchmarking'>read the wiki</a>
+        for detailed explanation of testing procedure and analysis.<br><br>
+        These individual test results are intended to help characterize large variance<br><br>
+        <span class="warning">You will require <a href="https://mana.mozilla.org/wiki/pages/viewpage.action?pageId=30769829">Mozilla Datacenter VPN</a> to access the server</span>
+	</div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3 id="title"></h3>
+	<table id="main">
+		<tbody>
+			<tr><td>Please Wait</td></tr>
+		</tbody>
+	</table>
+	<div id="info" style="float:left;"></div>
+</div>
+
+<div style="visibility: hidden">
+	<table id="template">
+		<tr><td><h4>{{channel}}</h4></td></tr>
+		<tr>
+			<td>
+				<div id="chart{{NUM}}" class="chart" style="width:800px;height:200px;"></div>
+			</td>
+		</tr>
+	</table>
+</div>
+
+<script type="application/javascript">
+
+
+importScript(['modevlib/main.js', 'modevlib/Dimension-Perfy.js'], function(){
+	var thread;
+	var createChart = function(){
+		if (thread !== undefined)
+			thread.kill();
+		thread = Thread.run(__createChart());
+	};
+
+	var __createChart = function*(){
+		var sampleDate = Date.newInstance(GUI.state.date);
+		var totalsFilter={"terms":{"info.test":["total", "Kraken", "Octane"]}};
+		var channelDomain=Mozilla.Perfy.Channel.getDomain();
+
+		//WAIT FOR MENU TO LOAD
+		while (Mozilla.Perfy.Benchmark.partitions instanceof Thread){
+			yield (Thread.sleep(200));
+		}//while
+
+		//PICK JUST ONE SAMPLE FROM EACH COMBINATION
+		var lastTestDate = yield(ESQuery.run({
+			"from":"perfy",
+			"select":{"name":"maxDate", "value":"info.started", "aggregate":"maximum"},
+			"edges":[
+				{"name":"channel", "domain":channelDomain}
+			],
+			"esfilter":{"and":[
+				GUI.getFilters("perfy"),
+				{"range":{"info.started":{"lte":sampleDate.getMilli()+1000}}}
+			]}
+		}));
+
+
+		if (GUI.state.benchmark.getSelectedParts().length==0 || GUI.state.platform.getSelectedParts().length==0){
+			$("#title").html("Perfy - Please select Benchmark and Platform");
+			yield (null)
+		}//endif
+
+		var testPart=GUI.state.benchmark.getSelectedParts()[0];
+
+		var benchmarkName=testPart.parent.name.toUpperCase()+" ("+testPart.name+")";
+		var platformName=GUI.state.platform.getSelectedParts()[0].name;
+
+		$("#title").html("Perfy Details - "+benchmarkName+" on "+platformName);
+
+		var template=$("#template").find("tbody").html();
+		var rows=$("#main tbody");
+		rows.children().remove();
+
+		channelDomain.partitions.forall(function(channel, rownum){
+			var title=channel.name+" (last run "+Date.newInstance(lastTestDate.cube[rownum]).format("dd-NNN-yyyy")+")";
+			rows.append(template.replaceAll("{{NUM}}", ""+rownum).replaceAll("{{channel}}", ""+title));
+			showOneTest(
+				rownum,
+				channel,
+				{"and":[
+					{"not":totalsFilter}, //IGNORE AGGREGATE VALUES
+					{"range":{"info.started":{"gte":lastTestDate.cube[rownum]-1000, "lt":lastTestDate.cube[rownum]+1000}}},
+					GUI.getFilters("perfy"),
+					channel.esfilter
+				]}
+			);
+		});
+
+
+	};
+
+
+	function showOneTest(rownum, channel, esfilter){
+		Thread.run(function*(){
+			var data = yield(ESQuery.run({
+				"from":"perfy",
+				"select":{"name":"score", "value":"score", "aggregate":"average"},
+				"edges":[
+					{"name":"iteration", "value":"info.iteration", "domain":{"type":"count"}}
+				],
+				"esfilter":esfilter
+			}));
+
+			aChart.show({
+				"id":"chart"+rownum,
+				"sheetDiv":"info",
+				"type":"bar",
+				"stacked":false,
+				"cube":data,
+				"colors":[channel.style.color],
+				"legend":false,
+				xAxisSize: 40,
+				extensionPoints: {
+					line_lineWidth: 2
+				}
+			});
+		});
+	}
+
+
+	$(document).ready(function(){
+		GUI.setup(createChart, [
+				{"id":"date", "name":"Test Date", "type":"date", "default":Date.newInstance("JAN 31 2014")},
+				{"id":"benchmark", "name":"Benchmark", "type":PartitionFilter.newInstance({
+					"id":"benchmark",
+					"name":"Benchmark",
+					"dimension":Mozilla.Perfy.Benchmark,
+					"onlyOne":true,
+					"expandAll":false
+				})},
+				{"id":"platform", "name":"Platform", "type":PartitionFilter.newInstance({
+					"id":"platform",
+					"name":"Platform",
+					"dimension":Mozilla.Perfy.Platform,
+					"onlyOne":true,
+					"expandAll":false
+				})}
+			],
+			[
+			],
+			"perfy",
+			false
+		);
+	});
+
+});
+
+</script>
+
+
+</BODY>
+</HTML>
+

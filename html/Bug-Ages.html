@@ -1,0 +1,294 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+
+<div id="sidebar" style="width:300px;">
+	<br>
+	<br>
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description">Summarize age of bugs over the sample given<br><br>
+		This is best used on a small number of bugs because bugs details must be
+		brought to the client for further processing<br><br>
+		Please look at the <a href='./js/etl/bug_version.json'>ES Schema</a> to
+		get a full listing of fields available.  Field names are a little
+		different from BZ.
+	</div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3 id="title">Age of Open Bugs</h3>
+	<div id="chart"       class="chart" style="float:none;width:800px;height:300px;"></div>
+	<div id="chartCount"  class="chart" style="float:none;width:800px;height:300px;"></div>
+	<div id="chartChurn"  class="chart" style="float:none;width:800px;height:300px;"></div>
+	ElasicSearch Filter
+	<textarea id="filter" rows="5" cols="60" style="width:100%;"></textarea>
+	<br><br>
+	<div id="info"></div>
+	<div id="details"></div>
+</div>
+
+
+<script type="application/javascript">
+
+
+importScript('modevlib/main.js', function(){
+
+
+
+var thread;
+var createChart=function(){
+	if (thread!==undefined)
+		thread.kill();
+	thread=Thread.run( __createChart());
+};
+
+var __createChart = function*(){
+
+	var sampleMin=Date.newInstance(GUI.state.sampleMin);
+	var sampleMax=Date.newInstance(GUI.state.sampleMax).addDay(1);
+	var sampleInterval=Duration.DAY;
+
+	var createTime="doc[\"create_time\"].value";
+//	var idTime=GUI.state.programFilter.bugStatusMinimum_fromSource();
+//	var testValue=GUI.state.programFilter.bugStatusMinimum_fromDoc();
+
+
+//	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
+
+	var mainFilter={"and":[
+		GUI.getFilters("bugs"),
+		GUI.state.filter,
+		Mozilla.BugStatus.Open.esfilter
+	]};
+
+
+	var allBugs;
+	var allBugsThread=Thread.run(function*(){
+		Log.action("Request Bugs");
+
+		allBugs=yield (ElasticSearch.getMinMax(mainFilter));
+
+		var chart=yield(Q({
+			"name":"Age (Days)",
+			"from":allBugs,
+			"select":[
+				{"name":"50th Percentile", "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "aggregate":"percentile", "percentile":0.50, "default":0, "style":{"color":"blue"}},
+				{"name":"Maximum",         "value":"(aMath.min(max, time.min.getMilli())-min)/Duration.DAY.milli", "aggregate":"maximum", "default":0, "style":{"color":"#00d6ff", "visibility":"hidden"}}
+			],
+			"edges":[
+				{"name":"date",
+					"range":{"min":"min", "max":"max"},
+					"allowNulls":false,
+					domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+				}
+			]
+		}));
+
+
+		var a=Log.action("Make chart", true);
+		aChart.show({
+			"id":"chart",
+			"sheetDiv":"info",
+			"type":"line",
+			"stacked":false,
+			"cube":chart,
+			"height":"300",
+			xAxisSize: 50
+		});
+		Log.actionDone(a);
+	});
+
+
+	Thread.run(function*(){
+		var details=yield (ESQuery.run({
+			"from":"bugs",
+			"select":[
+				"bug_id",
+				"product",
+				"component",
+				"created_ts",
+				"assigned_to"
+			],
+			"esfilter":{"and":[
+				mainFilter,
+				{"range":{"expires_on":{"gt":Date.eod().getMilli()}}}
+			]}
+
+		}));
+
+		yield (Thread.join(allBugsThread));
+		//INSERT allBugs MIN/MAX VALUES INTO details
+		details.list.forall(function(v, i){
+			var mm=allBugs.get("bug_id", v.bug_id);
+			v.max=mm.max;
+			v.min=mm.min;
+		});
+		details.columns.push({"name":"min"});
+		details.columns.push({"name":"max"});
+
+		details=yield (Qb.calc2List({
+			"from":details,
+			"select":[
+				{"name":"ID", "value":"Bugzilla.linkToBug(bug_id)"},
+				{"name":"Product", "value":"product"},
+				{"name":"Component", "value":"component"},
+				{"name":"Created Date", "value":"Date.newInstance(created_ts).floorDay()"},
+				{"name":"Match Date", "value":"Date.newInstance(min).floorDay()"},
+				{"name":"Age (Days)", "value":"Date.eod().subtract(Date.newInstance(min)).round(Duration.DAY, 1)", "sort":"descending"},
+				{"name":"Assigned To", "value":"assigned_to"}
+			],
+			"sort":["Age (Days)"]
+		}));
+
+
+		$("#details").html(CNV.List2HTMLTable(details));
+
+
+	});
+
+
+	Thread.run(function*(){
+		var a=Log.action("Request Bugs", true);
+		var chart=yield (ESQuery.run({
+			"name":"Open Bug Count",
+			"from":"bugs",
+			"select":{"name":"num_bug", "value":"bug_id", "aggregate":"count"},
+			"edges":[
+				{"name":"date",
+					"range":{"min":"modified_ts", "max":"expires_on"},
+					"allowNulls":false,
+					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+				}
+			],
+			"esfilter":mainFilter
+		}));
+		Log.actionDone(a);
+
+
+		var a=Log.action("Make chart", true);
+		aChart.show({
+			"id":"chartCount",
+			"sheetDiv":"info",
+			"type":"line",
+			"stacked":false,
+			"cube":chart,
+			"height":"300",
+			xAxisSize: 50,
+			"width":800
+		});
+		Log.actionDone(a);
+
+
+	});
+
+
+	Thread.run(function*(){
+
+		yield (Thread.join(allBugsThread));
+
+		//SHOW BARS FOR EVERY DAY, IF LESS THAN A 3WEEKS
+		var interval;
+		if (sampleMax.subtract(sampleMin).round(Duration.WEEK, 0)<=3){
+			interval=Duration.DAY;
+		}else{
+			interval=Duration.WEEK;
+		}//endif
+
+		var churn=yield(Q({
+			"from":allBugs,
+			"name":"New and Closed Bugs",
+			"select":[
+				{"name":"New", "value":"time.value.getMilli()==min.floor(\""+interval.toString()+"\").getMilli() ? 1 : 0", "aggregate":"sum", "default":"0", "style":{"color":"seagreen"}},
+				{"name":"Closed", "value":"(max!=null && time.value.getMilli()==max.floor(\""+interval.toString()+"\").getMilli()) ? -1 : 0", "aggregate":"sum", "default":"0", "style":{"color":"goldenrod"}}
+			],
+			"edges":[
+				{"name":"date",
+					"test":"min.between(time.min, time.max) || (max!==undefined && max.between(time.min, time.max))",
+					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":interval}
+				}
+			]
+		}));
+
+		var chart=aChart.show({
+			"id":"chartChurn",
+			"sheetDiv":"info",
+			"type":"bar",
+			"stacked":false,
+			"cube":churn,
+			"height":"300",
+			xAxisSize: 50,
+			"width":800,
+			"clickAction":function(series, x, d){
+				var part=churn.edges[0].domain.getPartByKey(x);
+				var field = {"New":"min", "Closed":"max"}[series];
+
+				Thread.run(function*(){
+					var buglist=(yield (Qb.calc2List({
+						"from":allBugs,
+						"select":{"value":"bug_id"},
+						"where":""+field+"!==undefined && "+field+".between("+CNV.Date2Code(part.min)+", "+CNV.Date2Code(part.max)+")"
+					})));
+
+					Bugzilla.showBugs(buglist.list);
+				});
+			}//click
+		});
+	});
+
+
+
+	yield (null);
+};
+
+
+
+
+
+	$(document).ready(function(){
+		GUI.setup(createChart, [
+			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
+			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today().ceilingWeek()},
+			{"id":"filter", "name":"ES Filter", "type":"json", "default":{"and":[
+				{"term":{"component":"repository account requests"}}
+			]}
+		}
+		],
+		[
+			"sampleMin=Date.newInstance(sampleMin).floorWeek().format('yyyy-MM-dd')",
+			"sampleMax=Date.newInstance(sampleMax).addDay(1).floorWeek().addDay(-1).format('yyyy-MM-dd')"
+		],
+		"bugs",
+		true		//SHOW DEFAULT FILTERS?
+		);
+	});
+
+});
+
+</script>
+
+
+</BODY>
+</HTML>
+

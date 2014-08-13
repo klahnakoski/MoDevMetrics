@@ -1,0 +1,3369 @@
+{
+	"bug_version":{
+		"dynamic_templates":
+				[{
+						"default_dates":{
+							"mapping":{
+								"type": "date"
+							},
+							"match": "*_ts"
+						}
+					},{
+						"default_durations":{
+							"mapping":{
+								"type": "integer"
+							},
+							"match": "*_days"
+						}
+					},{
+						"default_strings":{
+							"mapping":{
+								"index": "not_analyzed",
+								"type": "string"
+							},
+							"match": "*"
+						}
+					}
+				],
+		"_all":{
+			"enabled": false
+		},
+		"_source":{
+			"compress": true
+		},
+		"properties":{
+			"alias":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"assigned_to":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"assignee_accessible":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"attachments":{
+				"type": "nested",
+				"dynamic": "strict",
+				"properties":{
+					"attach_id":{
+						"type": "integer"
+					},
+					"attachments.description":{
+						"type": "string"
+					},
+					"attachments.filename":{
+						"type": "string"
+					},
+					"attachments.isobsolete":{
+						"type": "boolean",
+						"index_name": "is_obsolete"
+					},
+					"attachments.ispatch":{
+						"type": "boolean",
+						"index_name": "is_patch"
+					},
+					"attachments.isprivate":{
+						"type": "boolean",
+						"index_name": "is_private"
+					},
+					"attachments.mimetype":{
+						"type": "string"
+					},
+					"created_by":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"created_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"flags":{
+						"type": "nested",
+						"dynamic": "strict",
+						"properties":{
+							"duration_days":{
+								"type": "integer"
+							},
+							"modified_by":{
+								"type": "string",
+								"index": "not_analyzed"
+							},
+							"modified_ts":{
+								"type": "date",
+								"format": "dateOptionalTime"
+							},
+							"previous_modified_by":{
+								"type": "string",
+								"index": "not_analyzed"
+							},
+							"previous_modified_ts":{
+								"type": "date",
+								"format": "dateOptionalTime"
+							},
+							"previous_status":{
+								"type": "string",
+								"index": "not_analyzed"
+							},
+							"previous_value":{
+								"type": "string",
+								"index": "not_analyzed"
+							},
+							"request_status":{
+								"type": "string",
+								"index": "not_analyzed"
+							},
+							"request_type":{
+								"type": "string",
+								"index": "not_analyzed"
+							},
+							"requestee":{
+								"type": "string",
+								"index": "not_analyzed"
+							},
+							"value":{
+								"type": "string",
+								"index": "not_analyzed"
+							}
+						}
+					},
+					"modified_by":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"modified_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"previous_values":{
+						"properties":{
+							"attachments.isobsolete_change_away_ts":{
+								"type": "date",
+								"format": "dateOptionalTime"
+							},
+							"attachments.isobsolete_change_to_ts":{
+								"type": "date",
+								"format": "dateOptionalTime"
+							},
+							"attachments.isobsolete_duration_days":{
+								"type": "integer"
+							},
+							"attachments.isobsolete_value":{
+								"type": "string",
+								"index": "not_analyzed"
+							},
+							"attachments.ispatch_change_away_ts":{
+								"type": "date",
+								"format": "dateOptionalTime"
+							},
+							"attachments.ispatch_change_to_ts":{
+								"type": "date",
+								"format": "dateOptionalTime"
+							},
+							"attachments.ispatch_duration_days":{
+								"type": "integer"
+							},
+							"attachments.ispatch_value":{
+								"type": "string",
+								"index": "not_analyzed"
+							},
+							"attachments.isprivate_change_away_ts":{
+								"type": "date",
+								"format": "dateOptionalTime"
+							},
+							"attachments.isprivate_change_to_ts":{
+								"type": "date",
+								"format": "dateOptionalTime"
+							},
+							"attachments.isprivate_duration_days":{
+								"type": "integer"
+							},
+							"attachments.isprivate_value":{
+								"type": "string",
+								"index": "not_analyzed"
+							},
+							"attachments.mimetype_change_away_ts":{
+								"type": "date",
+								"format": "dateOptionalTime"
+							},
+							"attachments.mimetype_change_to_ts":{
+								"type": "date",
+								"format": "dateOptionalTime"
+							},
+							"attachments.mimetype_duration_days":{
+								"type": "integer"
+							},
+							"attachments.mimetype_value":{
+								"type": "string",
+								"index": "not_analyzed"
+							}
+						}
+					}
+				}
+			},
+			"blocked":{
+				"type": "integer",
+				"index_name": "blocked_by"
+			},
+			"bug_file_loc":{
+				"type": "string",
+				"index_name": "url",
+				"index": "not_analyzed"
+			},
+			"bug_group":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"bug_id":{
+				"type": "integer"
+			},
+			"bug_severity":{
+				"type": "string",
+				"index_name": "severity",
+				"index": "not_analyzed"
+			},
+			"bug_status":{
+				"type": "string",
+				"index_name": "status",
+				"index": "not_analyzed"
+			},
+			"bug_version_num":{
+				"type": "integer"
+			},
+			"cc":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cclist_accessible":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_blocking_191":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_blocking_192":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_blocking_20":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_blocking_b2g":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_blocking_basecamp":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_blocking_fennec":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_blocking_fennec10":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_blocking_fx":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_blocking_kilimanjaro":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_blocking_seamonkey21":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_blocking_thunderbird30":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_blocking_thunderbird31":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_blocking_thunderbird32":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_blocking_thunderbird33":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_colo_site":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_crash_signature":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_due_date":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_last_resolved":{
+				"type": "date",
+				"format": "yyyy-MM-dd HH:mm:ss"
+			},
+			"cf_locale":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_office":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_shadow_bug":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_191":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_192":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_20":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_b2g18":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_esr10":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_firefox10":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_firefox11":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_firefox12":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_firefox13":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_firefox14":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_firefox15":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_firefox16":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_firefox17":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_firefox18":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_firefox19":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_firefox20":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_firefox5":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_firefox6":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_firefox7":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_firefox8":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_firefox9":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_firefox_esr17":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_seamonkey21":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_seamonkey210":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_seamonkey211":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_seamonkey212":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_seamonkey213":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_seamonkey214":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_seamonkey215":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_seamonkey216":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_seamonkey217":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_seamonkey22":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_seamonkey23":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_seamonkey24":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_seamonkey25":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_seamonkey26":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_seamonkey27":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_seamonkey28":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_seamonkey29":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird10":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird11":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird12":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird13":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird14":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird15":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird16":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird17":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird18":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird19":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird20":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird30":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird31":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird32":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird33":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird6":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird7":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird8":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird9":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird_esr10":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_status_thunderbird_esr17":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_b2g18":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_esr10":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_firefox10":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_firefox11":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_firefox12":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_firefox13":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_firefox14":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_firefox15":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_firefox16":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_firefox17":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_firefox18":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_firefox19":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_firefox20":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_firefox5":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_firefox6":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_firefox7":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_firefox8":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_firefox9":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_firefox_esr17":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_seamonkey210":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_seamonkey211":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_seamonkey212":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_seamonkey213":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_seamonkey214":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_seamonkey215":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_seamonkey216":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_seamonkey22":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_seamonkey23":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_seamonkey24":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_seamonkey25":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_seamonkey26":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_seamonkey27":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_seamonkey28":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_seamonkey29":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_thunderbird10":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_thunderbird11":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_thunderbird12":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_thunderbird13":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_thunderbird14":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_thunderbird15":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_thunderbird16":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_thunderbird17":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_thunderbird18":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_thunderbird19":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_thunderbird20":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_thunderbird6":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_thunderbird7":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_thunderbird8":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_thunderbird9":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_thunderbird_esr10":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"cf_tracking_thunderbird_esr17":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"changes":{
+				"type": "nested",
+				"dynamic": "strict",
+				"properties":{
+					"attach_id":{
+						"type": "integer"
+					},
+					"field_name":{
+						"type": "string"
+					},
+					"field_value":{
+						"type": "string"
+					},
+					"field_value_removed":{
+						"type": "string"
+					}
+				}
+			},
+			"component":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"created_by":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"created_ts":{
+				"type": "date",
+				"format": "dateOptionalTime"
+			},
+			"deadline":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"dependson":{
+				"type": "integer",
+				"index_name": "depends_on"
+			},
+			"dupe_by":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"dupe_of":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"estimated_time":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"everconfirmed":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"expires_on":{
+				"type": "date",
+				"format": "dateOptionalTime",
+				"null_value": "9999999999000"
+			},
+			"flags":{
+				"type": "nested",
+				"dynamic": "strict",
+				"properties":{
+					"duration_days":{
+						"type": "integer"
+					},
+					"modified_by":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"modified_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"previous_modified_by":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"previous_modified_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"previous_status":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"previous_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"request_status":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"request_type":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"requestee":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"value":{
+						"type": "string",
+						"index": "not_analyzed"
+					}
+				}
+			},
+			"keywords":{
+				"type": "string",
+				"index_name": "keyword",
+				"index": "not_analyzed"
+			},
+			"longdescs.isprivate":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"modified_by":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"modified_ts":{
+				"type": "date",
+				"format": "dateOptionalTime"
+			},
+			"op_sys":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"previous_values":{
+				"properties":{
+					"assigned_to_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"assigned_to_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"assigned_to_duration_days":{
+						"type": "integer"
+					},
+					"assigned_to_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"assignee_accessible_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"assignee_accessible_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"assignee_accessible_duration_days":{
+						"type": "integer"
+					},
+					"assignee_accessible_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"bug_file_loc_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"bug_file_loc_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"bug_file_loc_duration_days":{
+						"type": "integer"
+					},
+					"bug_file_loc_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"bug_severity_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"bug_severity_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"bug_severity_duration_days":{
+						"type": "integer"
+					},
+					"bug_severity_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"bug_status_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"bug_status_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"bug_status_duration_days":{
+						"type": "integer"
+					},
+					"bug_status_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cclist_accessible_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cclist_accessible_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cclist_accessible_duration_days":{
+						"type": "integer"
+					},
+					"cclist_accessible_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_blocking_191_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_191_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_191_duration_days":{
+						"type": "integer"
+					},
+					"cf_blocking_191_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_blocking_192_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_192_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_192_duration_days":{
+						"type": "integer"
+					},
+					"cf_blocking_192_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_blocking_20_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_20_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_20_duration_days":{
+						"type": "integer"
+					},
+					"cf_blocking_20_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_blocking_b2g_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_b2g_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_b2g_duration_days":{
+						"type": "integer"
+					},
+					"cf_blocking_b2g_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_blocking_basecamp_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_basecamp_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_basecamp_duration_days":{
+						"type": "integer"
+					},
+					"cf_blocking_basecamp_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_blocking_fennec10_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_fennec10_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_fennec10_duration_days":{
+						"type": "integer"
+					},
+					"cf_blocking_fennec10_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_blocking_fennec_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_fennec_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_fennec_duration_days":{
+						"type": "integer"
+					},
+					"cf_blocking_fennec_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_blocking_fx_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_fx_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_fx_duration_days":{
+						"type": "integer"
+					},
+					"cf_blocking_fx_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_blocking_kilimanjaro_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_kilimanjaro_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_kilimanjaro_duration_days":{
+						"type": "integer"
+					},
+					"cf_blocking_kilimanjaro_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_blocking_seamonkey21_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_seamonkey21_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_seamonkey21_duration_days":{
+						"type": "integer"
+					},
+					"cf_blocking_seamonkey21_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_blocking_thunderbird30_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_thunderbird30_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_thunderbird30_duration_days":{
+						"type": "integer"
+					},
+					"cf_blocking_thunderbird30_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_blocking_thunderbird31_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_thunderbird31_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_thunderbird31_duration_days":{
+						"type": "integer"
+					},
+					"cf_blocking_thunderbird31_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_blocking_thunderbird32_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_thunderbird32_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_thunderbird32_duration_days":{
+						"type": "integer"
+					},
+					"cf_blocking_thunderbird32_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_blocking_thunderbird33_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_thunderbird33_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_blocking_thunderbird33_duration_days":{
+						"type": "integer"
+					},
+					"cf_blocking_thunderbird33_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_colo_site_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_colo_site_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_colo_site_duration_days":{
+						"type": "integer"
+					},
+					"cf_colo_site_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_crash_signature_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_crash_signature_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_crash_signature_duration_days":{
+						"type": "integer"
+					},
+					"cf_crash_signature_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_due_date_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_due_date_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_due_date_duration_days":{
+						"type": "integer"
+					},
+					"cf_due_date_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_last_resolved_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_last_resolved_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_last_resolved_duration_days":{
+						"type": "integer"
+					},
+					"cf_last_resolved_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_locale_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_locale_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_locale_duration_days":{
+						"type": "integer"
+					},
+					"cf_locale_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_office_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_office_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_office_duration_days":{
+						"type": "integer"
+					},
+					"cf_office_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_shadow_bug_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_shadow_bug_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_shadow_bug_duration_days":{
+						"type": "integer"
+					},
+					"cf_shadow_bug_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_191_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_191_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_191_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_191_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_192_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_192_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_192_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_192_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_20_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_20_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_20_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_20_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_b2g18_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_b2g18_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_b2g18_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_b2g18_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_esr10_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_esr10_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_esr10_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_esr10_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_firefox10_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox10_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox10_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_firefox10_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_firefox11_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox11_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox11_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_firefox11_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_firefox12_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox12_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox12_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_firefox12_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_firefox13_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox13_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox13_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_firefox13_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_firefox14_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox14_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox14_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_firefox14_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_firefox15_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox15_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox15_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_firefox15_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_firefox16_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox16_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox16_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_firefox16_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_firefox17_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox17_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox17_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_firefox17_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_firefox18_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox18_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox18_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_firefox18_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_firefox19_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox19_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox19_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_firefox19_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_firefox20_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox20_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox20_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_firefox20_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_firefox5_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox5_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox5_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_firefox5_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_firefox6_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox6_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox6_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_firefox6_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_firefox7_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox7_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox7_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_firefox7_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_firefox8_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox8_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox8_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_firefox8_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_firefox9_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox9_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox9_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_firefox9_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_firefox_esr17_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox_esr17_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_firefox_esr17_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_firefox_esr17_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_seamonkey210_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey210_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey210_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_seamonkey210_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_seamonkey211_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey211_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey211_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_seamonkey211_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_seamonkey212_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey212_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey212_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_seamonkey212_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_seamonkey213_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey213_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey213_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_seamonkey213_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_seamonkey214_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey214_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey214_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_seamonkey214_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_seamonkey215_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey215_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey215_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_seamonkey215_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_seamonkey216_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey216_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey216_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_seamonkey216_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_seamonkey217_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey217_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey217_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_seamonkey217_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_seamonkey21_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey21_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey21_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_seamonkey21_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_seamonkey22_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey22_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey22_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_seamonkey22_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_seamonkey23_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey23_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey23_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_seamonkey23_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_seamonkey24_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey24_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey24_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_seamonkey24_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_seamonkey25_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey25_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey25_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_seamonkey25_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_seamonkey26_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey26_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey26_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_seamonkey26_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_seamonkey27_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey27_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey27_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_seamonkey27_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_seamonkey28_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey28_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey28_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_seamonkey28_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_seamonkey29_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey29_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_seamonkey29_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_seamonkey29_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird10_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird10_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird10_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird10_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird11_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird11_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird11_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird11_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird12_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird12_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird12_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird12_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird13_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird13_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird13_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird13_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird14_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird14_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird14_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird14_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird15_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird15_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird15_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird15_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird16_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird16_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird16_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird16_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird17_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird17_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird17_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird17_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird18_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird18_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird18_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird18_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird19_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird19_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird19_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird19_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird20_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird20_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird20_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird20_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird30_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird30_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird30_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird30_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird31_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird31_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird31_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird31_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird32_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird32_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird32_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird32_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird33_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird33_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird33_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird33_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird6_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird6_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird6_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird6_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird7_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird7_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird7_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird7_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird8_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird8_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird8_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird8_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird9_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird9_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird9_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird9_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird_esr10_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird_esr10_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird_esr10_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird_esr10_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_status_thunderbird_esr17_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird_esr17_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_status_thunderbird_esr17_duration_days":{
+						"type": "integer"
+					},
+					"cf_status_thunderbird_esr17_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_b2g18_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_b2g18_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_b2g18_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_b2g18_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_esr10_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_esr10_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_esr10_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_esr10_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_firefox10_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox10_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox10_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_firefox10_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_firefox11_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox11_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox11_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_firefox11_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_firefox12_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox12_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox12_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_firefox12_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_firefox13_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox13_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox13_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_firefox13_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_firefox14_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox14_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox14_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_firefox14_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_firefox15_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox15_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox15_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_firefox15_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_firefox16_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox16_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox16_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_firefox16_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_firefox17_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox17_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox17_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_firefox17_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_firefox18_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox18_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox18_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_firefox18_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_firefox19_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox19_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox19_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_firefox19_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_firefox20_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox20_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox20_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_firefox20_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_firefox5_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox5_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox5_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_firefox5_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_firefox6_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox6_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox6_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_firefox6_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_firefox7_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox7_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox7_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_firefox7_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_firefox8_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox8_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox8_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_firefox8_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_firefox9_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox9_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox9_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_firefox9_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_firefox_esr17_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox_esr17_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_firefox_esr17_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_firefox_esr17_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_seamonkey210_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey210_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey210_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_seamonkey210_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_seamonkey211_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey211_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey211_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_seamonkey211_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_seamonkey212_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey212_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey212_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_seamonkey212_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_seamonkey213_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey213_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey213_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_seamonkey213_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_seamonkey214_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey214_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey214_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_seamonkey214_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_seamonkey215_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey215_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey215_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_seamonkey215_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_seamonkey216_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey216_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey216_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_seamonkey216_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_seamonkey22_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey22_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey22_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_seamonkey22_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_seamonkey23_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey23_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey23_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_seamonkey23_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_seamonkey24_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey24_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey24_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_seamonkey24_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_seamonkey25_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey25_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey25_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_seamonkey25_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_seamonkey26_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey26_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey26_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_seamonkey26_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_seamonkey27_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey27_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey27_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_seamonkey27_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_seamonkey28_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey28_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey28_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_seamonkey28_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_seamonkey29_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey29_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_seamonkey29_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_seamonkey29_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_thunderbird10_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird10_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird10_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_thunderbird10_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_thunderbird11_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird11_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird11_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_thunderbird11_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_thunderbird12_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird12_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird12_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_thunderbird12_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_thunderbird13_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird13_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird13_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_thunderbird13_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_thunderbird14_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird14_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird14_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_thunderbird14_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_thunderbird15_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird15_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird15_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_thunderbird15_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_thunderbird16_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird16_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird16_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_thunderbird16_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_thunderbird17_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird17_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird17_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_thunderbird17_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_thunderbird18_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird18_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird18_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_thunderbird18_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_thunderbird19_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird19_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird19_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_thunderbird19_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_thunderbird20_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird20_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird20_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_thunderbird20_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_thunderbird6_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird6_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird6_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_thunderbird6_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_thunderbird7_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird7_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird7_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_thunderbird7_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_thunderbird8_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird8_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird8_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_thunderbird8_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_thunderbird9_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird9_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird9_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_thunderbird9_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_thunderbird_esr10_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird_esr10_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird_esr10_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_thunderbird_esr10_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"cf_tracking_thunderbird_esr17_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird_esr17_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"cf_tracking_thunderbird_esr17_duration_days":{
+						"type": "integer"
+					},
+					"cf_tracking_thunderbird_esr17_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"component_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"component_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"component_duration_days":{
+						"type": "integer"
+					},
+					"component_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"deadline_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"deadline_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"deadline_duration_days":{
+						"type": "integer"
+					},
+					"estimated_time_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"estimated_time_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"estimated_time_duration_days":{
+						"type": "integer"
+					},
+					"estimated_time_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"everconfirmed_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"everconfirmed_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"everconfirmed_duration_days":{
+						"type": "integer"
+					},
+					"everconfirmed_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"longdescs.isprivate_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"longdescs.isprivate_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"longdescs.isprivate_duration_days":{
+						"type": "integer"
+					},
+					"longdescs.isprivate_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"op_sys_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"op_sys_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"op_sys_duration_days":{
+						"type": "integer"
+					},
+					"op_sys_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"priority_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"priority_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"priority_duration_days":{
+						"type": "integer"
+					},
+					"priority_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"product_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"product_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"product_duration_days":{
+						"type": "integer"
+					},
+					"product_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"qa_contact_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"qa_contact_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"qa_contact_duration_days":{
+						"type": "integer"
+					},
+					"qa_contact_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"qacontact_accessible_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"qacontact_accessible_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"qacontact_accessible_duration_days":{
+						"type": "integer"
+					},
+					"qacontact_accessible_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"remaining_time_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"remaining_time_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"remaining_time_duration_days":{
+						"type": "integer"
+					},
+					"remaining_time_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"rep_platform_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"rep_platform_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"rep_platform_duration_days":{
+						"type": "integer"
+					},
+					"rep_platform_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"reporter_accessible_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"reporter_accessible_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"reporter_accessible_duration_days":{
+						"type": "integer"
+					},
+					"reporter_accessible_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"reporter_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"reporter_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"reporter_duration_days":{
+						"type": "integer"
+					},
+					"reporter_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"resolution_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"resolution_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"resolution_duration_days":{
+						"type": "integer"
+					},
+					"resolution_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"status_whiteboard_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"status_whiteboard_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"status_whiteboard_duration_days":{
+						"type": "integer"
+					},
+					"status_whiteboard_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"target_milestone_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"target_milestone_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"target_milestone_duration_days":{
+						"type": "integer"
+					},
+					"target_milestone_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"uncertain_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"uncertain_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"uncertain_duration_days":{
+						"type": "integer"
+					},
+					"uncertain_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"version_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"version_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"version_duration_days":{
+						"type": "integer"
+					},
+					"version_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"work_time_change_away_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"work_time_change_to_ts":{
+						"type": "date",
+						"format": "dateOptionalTime"
+					},
+					"work_time_duration_days":{
+						"type": "integer"
+					},
+					"work_time_value":{
+						"type": "string",
+						"index": "not_analyzed"
+					}
+				}
+			},
+			"priority":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"product":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"qa_contact":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"qacontact_accessible":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"remaining_time":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"rep_platform":{
+				"type": "string",
+				"index_name": "platform",
+				"index": "not_analyzed"
+			},
+			"reported_by":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"reporter":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"reporter_accessible":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"resolution":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"see_also":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"short_desc":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"status_whiteboard":{
+				"type": "multi_field",
+				"fields":{
+					"status_whiteboard":{
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"tokenized":{
+						"type": "string",
+						"analyzer": "whiteboard_tokens",
+						"include_in_all": false
+					},
+					"tokenized_shingled":{
+						"type": "string",
+						"analyzer": "whiteboard_shingle_tokens",
+						"include_in_all": false
+					},
+					"words":{
+						"type": "string",
+						"analyzer": "whiteboard_words",
+						"include_in_all": false
+					},
+					"words_shingled":{
+						"type": "string",
+						"analyzer": "whiteboard_shingle_words",
+						"include_in_all": false
+					}
+				}
+			},
+			"target_milestone":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"uncertain":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"version":{
+				"type": "string"
+			},
+			"votes":{
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"work_time":{
+				"type": "string",
+				"index": "not_analyzed"
+			}
+		}
+	}
+}

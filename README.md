@@ -1,45 +1,81 @@
 
-Setup
-=====
+Mozilla Developer Metrics
+=========================
 
-After cloning, you must ```git submodule init``` and ```git submodule update```.  Here is my full session:
+Objective
+---------
 
-**git clone https://github.com/klahnakoski/MoDevMetrics.git**
-    
-	Cloning into 'MoDevMetrics'...
-	remote: Counting objects: 6563, done.
-	remote: Compressing objects: 100% (3142/3142), done.
-	remote: Total 6563 (delta 4485), reused 5226 (delta 3148)
-	Receiving objects: 100% (6563/6563), 17.89 MiB | 234 KiB/s, done.
-	Resolving deltas: 100% (4485/4485), done.
-	Checking out files: 100% (437/437), done.
+This project is designed to optimize the creation of dashboards using ElasticSearch data.  Many tools already exist to
+make dashboards, for example: Cognos, MicroStrategy, Pentaho and Tableau.  Unlike these tools, MoDevMetrics is suited
+for programmers: Code, testability, and version control are important.
 
-**cd MoDevMetrics**
+Examples
+--------
 
-**git submodule init**
-
-    Submodule 'html/es/lib/jsImport' (https://github.com/klahnakoski/jsImport.git) registered for path 'html/es/lib/jsImport'
-    Submodule 'html/es/lib/jsThreads' (https://github.com/mozilla/jsThreads.git) registered for path 'html/es/lib/jsThreads'
-
-**git submodule update**
-
-    Cloning into 'html/es/lib/jsImport'...
-    remote: Counting objects: 17, done.
-    remote: Compressing objects: 100% (13/13), done.
-    remote: Total 17 (delta 1), reused 14 (delta 1)
-    Unpacking objects: 100% (17/17), done.
-    Submodule path 'html/es/lib/jsImport': checked out '9496679302367d4c21b86684a69f5eb682e09541'
-    Cloning into 'html/es/lib/jsThreads'...
-    remote: Counting objects: 43, done.
-    remote: Compressing objects: 100% (35/35), done.
-    emote: Total 43 (delta 15), reused 31 (delta 6)
-    Unpacking objects: 100% (43/43), done.
-    Submodule path 'html/es/lib/jsThreads': checked out '0feb4d42a0b3e1583e4e2179e068546850c78487'
+[My page of charts](http://people.mozilla.org/~klahnakoski/charts.html) hosts the master branch of this repo.  Please
+feel free to view and run them through your debugger.
 
 
-Other Notes
------------
-The interesting stuff start in ./html/es
+Benefits
+--------
 
-  - [Reference document covering the query format](docs/CUBE.md)
-  - [Dimension Definitions](docs/Dimension Definitions.md)
+  * **No Web Server** - Dashboards are simply Javascript (AJAX) and HTML.  There is no server to setup.
+  * **No Schema** - ElasticSearch stores JSON documents with little fixed schema.  This is good for rapid prototyping,
+  and makes it easy to annotate data without adding the complications of data migration.
+  * **Code is versionable** - Data topology and data queries are described in JSON, dashboard layout is HTML and CSS.
+  This makes the code (and changes to the code) amenable to version control.
+  * **Queries are JSON** - Queries are in JSON structures, which are easily transmitted or serialized, and are easily
+  handled by both Javascript and Python.  The Qb query form provides an abstraction layer between the docstore/database
+  holding the data and the charting/stats package performing the analysis.
+
+Drawbacks
+---------
+
+  * **No GUI tools** - There is no drag-and-drop query builder, You must be proficient in SQL and other high level list
+  comprehensions.
+  * **No GUI Layout** - Layout of dashboard is done in HTML and CSS.
+  * **Limited Charting** (for now) - There are better charting libraries out there.
+
+Requirements
+------------
+
+Access to one of the bug clusters is required:
+
+  - HTTPS proxy to public cluster<br> ```https://esfrontline.bugzilla.mozilla.org:443/public_bugs/bug_version```
+  - Non-encrypted proxy to public cluster<br>```http://esfrontline.bugzilla.mozilla.org:80/public_bugs/bug_version```
+  - Direct to private cluster (need VPN access)<br>```http://elasticsearch-private.bugs.scl3.mozilla.com:9200/private_bugs/bug_version```
+
+Due to restrictions on the public cluster, it is best to test it with the [the
+minimum viable example page](html/es/Tutorial01-Minimum.html).  The clusters
+behind VPN can be tested normally with [ElasticSearch Head](https://github.com/mobz/elasticsearch-head).
+
+Install
+-------
+
+    git clone https://github.com/klahnakoski/MoDevMetrics.git
+
+    Cloning into 'MoDevMetrics'...
+    remote: Counting objects: 6563, done.
+    remote: Compressing objects: 100% (3142/3142), done.
+    remote: Total 6563 (delta 4485), reused 5226 (delta 3148)
+    Receiving objects: 100% (6563/6563), 17.89 MiB | 234 KiB/s, done.
+    Resolving deltas: 100% (4485/4485), done.
+    Checking out files: 100% (437/437), done.
+
+Examples
+--------
+
+Code examples to demonstrate minimum functionality:
+
+  * [Test public connectivity](html/es/Tutorial01-Minimum.html)
+  * [Get comments](html/es/Tutorial02-Comments.html)
+  * [Simple Bug Count](html/es/Tutorial03-Bug-Count.html)
+
+
+Tutorials
+----------
+
+  - [Tutorial on querying ElasticSearch](https://github.com/klahnakoski/Qb/tree/master/docs/BZ_Tutorial.md)
+  - [Tutorial on MVEL and advanced querying](https://github.com/klahnakoski/Qb/tree/master/docs/MVEL_Tutorial.md)
+  - [Reference document covering the query format](https://github.com/klahnakoski/Qb/tree/master/docs/Qb_Reference.md)
+  - [Dimension Definitions](https://github.com/klahnakoski/Qb/tree/master/docs/Dimension Definitions.md)

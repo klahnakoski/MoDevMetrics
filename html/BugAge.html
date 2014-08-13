@@ -1,0 +1,116 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+<div id="sidebar" style="width:300px;">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3>Age of Closed Bugs</h3>
+	<div id="chart" style="position:relative;width:800px;height:600px;"></div>
+	<div id="info"></div>
+	<div id="report"></div>
+</div>
+
+
+<script type="application/javascript">
+
+importScript('modevlib/main.js', function(){
+
+	$("#description").html("Count of number of bugs closed since &lt;Sample From&gt;. Counts are broken into cohorts to help compare change over time.");
+
+
+
+
+
+var thread;
+var createChart=function(){
+	if (thread!==undefined)
+		thread.kill();
+	thread=Thread.run( __createChart());
+};
+
+var __createChart = function*(){
+	var interval = Date.today().subtract(Date.newInstance(GUI.state.cohortMin)).multiply(1 / GUI.state.cohortNum);
+
+	var query = new ESQuery({
+		"name":"Age of Closed Bugs (%)",
+		"from":"bugs",
+		"select":{"name":"Count", "value":"1", "aggregate":"count"},
+		"edges":[
+			{"name":"Cohort", "value":"modified_ts", "domain":{"type":"time", "min":GUI.state.cohortMin, "max":Date.today(), "interval":interval, format:"NNN yyyy"}},
+			{"name":"Age", "value":'doc["modified_ts"].value-doc["created_ts"].value', allowNulls:true, "domain":{"type":"duration", "min":GUI.state.minX, "max":GUI.state.maxX, "interval":GUI.state.intervalX}}
+		],
+		"esfilter":{"and":[
+			Mozilla.BugStatus.Closed.esfilter,
+			{"range":{"modified_ts":{"gte":Date.newInstance(GUI.state.cohortMin).getMilli()}}},
+			{"range":{"modified_ts":{"lte":Date.today().getMilli()}}},
+			{"script":{"script":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value'}}  //ONLY THE DOCUMENT THAT CLOSES THE BUG
+		]}
+	});
+
+	GUI.injectFilters(query);
+
+	var a=Log.action("Calling ES");
+	var chartCube=yield(query.run());
+	Log.actionDone(a);
+
+
+	Qb.normalizeByCohort(chartCube, 100);
+	var last=chartCube.edges[1].domain.partitions.length-1;
+	chartCube.edges[1].domain.NULL.name=chartCube.edges[1].domain.partitions[last].max.toString()+" and over";
+
+	a=Log.action("Make chart", true);
+	aChart.show({
+		"id":"chart",
+		"sheetDiv":"info",
+		"type":"bar",
+		"cube":chartCube
+	});
+	Log.actionDone(a);
+};
+
+
+	$(document).ready(function(){
+//		Thread.run(function*(){
+
+			GUI.setup(createChart, [
+				{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
+				{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
+				{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.WEEK},
+				{"id":"cohortMin", "name":"Sample From", "type":"time", "default":Date.today().add("-2year")},
+				{"id":"cohortNum", "name":"Number of Cohorts", "type":"number", "default":4},
+				{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000},
+				{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance('assigned_to'), "default":""}
+			], [], "bugs", true);
+//		});
+	});
+})
+
+</script>
+
+
+</BODY>
+</HTML>

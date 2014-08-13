@@ -1,0 +1,156 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+<div id="sidebar" style="width:300px;">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div>
+<h3 id="title">Community First Outgoing Reviews</h3>
+
+<div id="chart"></div>
+
+<div id="info"></div>
+<div id="report"></div>
+</div>
+
+<script type="application/javascript">
+importScript(["modevlib/main.js", "js/etl/Reviews.js"], function(){
+
+var CUTOFF=Duration.newInstance("3week");
+$("#description").html("Given the number of outgoing reviews from BZ members, what is the chance another review will be requested in the given window?  All values shown are percentages.  For each BZ email, only the first outgoing review per bug is considered."+
+"<br><span class='warning'>Please note this chart is in an early stage: I have not looked into if underlying date is polluted, or if this is a useful measure.</span>"
+);
+
+var thread;
+var createChart=function(){
+	if (thread!==undefined)
+		thread.kill();
+	thread=Thread.run( __createChart());
+};
+
+var __createChart = function*(){
+
+	var sampleMin=Date.newInstance(GUI.state.sampleMin);
+	var sampleMax=Date.newInstance(GUI.state.sampleMax).ceilingDay();
+	var windowSize=Duration.newInstance(GUI.state.window);
+	var maxRequest=20;
+
+	var sampleSize=sampleMax.subtract(sampleMin);
+	$("#title").html("Community First Outgoing Reviews ("+sampleSize.toString()+" sample)");
+
+	var mainFilter={"and":[
+		{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.add(windowSize).getMilli()}}},
+		{"range":{"requester_review_num":{"gte":0, "lte":maxRequest+1}}}	//ONLY ONE REVIEW PER BUG IS CONSIDERED
+	]};
+	GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
+
+
+	var a=Log.action("Download Times");
+	var requestTimes=yield(ESQuery.run({
+		"from":"reviews",
+		"select":[
+			{"value":"requester_review_num"},
+			{"value":"request_time"},
+			{"value":"requester"}
+		],
+		"esfilter":mainFilter
+	}));
+	Log.actionDone(a, true);
+
+	var markup = yield(Qb.calc2List({
+		"from":requestTimes,
+		"analytic":[
+			{"name":"time_to_next", "value":"rows[rownum+1]===undefined ? null : rows[rownum+1].request_time-request_time", "sort":"request_time", "edges":["requester"]}
+		]
+	}));
+
+
+	var totals=yield (Q({
+		"from":markup,
+		"select":[
+			{"name":"num_next", "value":"(time_to_next!=null && time_to_next<"+windowSize.milli+") ? 1 : 0", "aggregate":"sum"},
+			{"name":"num_total", "value":"1", "aggregate":"count"}
+		],
+		"edges":[
+			{"name":"requester_review_num", "value":"requester_review_num", "domain":{"type":"numeric", "min":0, "max":20, "interval":1, "value":"value"}}
+		],
+		"where":"request_time<"+sampleMax.getMilli()
+	}));
+
+	$("#stats").html(
+		'<span class="parameter_name"># First Reviews:</span><b>'+totals.cube[1].num_total+'</b><br>'+
+		'<span class="parameter_name"># Second < '+aMath.round(windowSize.milli/Duration.MILLI_VALUES.day, 0)+' days:</span><b>'+totals.cube[1].num_next+'</b><br>'+
+		'<span class="parameter_name">Retention:</span><b>'+aMath.round(100*totals.cube[1].num_next/aMath.max(1, totals.cube[1].num_total))+'%</b><br>'
+	);
+
+
+	var chart=yield(Q({
+		"from":totals,
+		"select":{"name":"percent", "value":"aMath.round(100*num_next/aMath.max(1, num_total))", "aggregate":"one"},
+		"edges":[
+			{"value":"requester_review_num", "domain":{"type":"numeric", "min":0, "max":20, "interval":1, "value":"value"}}
+		]
+	}));
+
+//	durations.edges[1].domain.NULL.name="Over "+GUI.state.maxX;
+
+	var a=Log.action("Make chart", true);
+	aChart.show({
+		"id":"chart",
+		"sheetDiv":"info",
+		"type":"bar",
+		"stacked":true,
+		"cube":chart,
+		"height":500,
+		showValues: true
+	});
+	Log.actionDone(a);
+
+
+};
+
+
+
+
+
+	$(document).ready(function(){
+		GUI.setup(createChart, [
+			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":new Date(2012, 1, 1)},
+			{"id":"sampleMax", "name":"End Date", "type":"time", "default":new Date(2012, 1, 1).add(Duration.newInstance("18week-day"))},
+			{"id":"window", "name":"Window Size", "type":"duration", "default":Duration.newInstance("13week")}
+		],
+		[
+		],
+		"reviews");
+	});
+});
+</script>
+
+
+</BODY>
+</HTML>
+

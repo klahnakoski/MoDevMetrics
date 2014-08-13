@@ -1,0 +1,241 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="text/javascript" src="modevlib/Settings.js">
+	</script>
+</HEAD>
+<BODY>
+
+
+<script type="application/javascript" src="lib/webdetails/cdf/Base.js"></script>
+<script type="application/javascript" src="lib/jquery.js"></script>
+<script type="application/javascript" src="lib/jstree/jquery.jstree.js"></script>
+<script type="application/javascript" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
+<script type="application/javascript" src="lib/webdetails/data/q01-01.js"></script>
+<script type="application/javascript" src="lib/webdetails/lib/protovis-d3.3.js"></script>
+<script type="application/javascript" src="lib/webdetails/lib/jquery.tipsy.js"></script>
+<script type="application/javascript" src="lib/webdetails/lib/tipsy.js"></script>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
+
+<script type="application/javascript" src="lib/webdetails/pvc/pvc.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcPanel.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcLegend.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcWaterfall.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcPie.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcBar.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcLine.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcData.js"></script>
+
+<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
+
+<script type="application/javascript" src="lib/webdetails/pvcDocUtils.js"></script>
+
+
+<link type="text/css" rel="stylesheet" href="lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css"/>
+<script type="application/javascript" src="lib/jquery-ui/js/jquery-ui-1.10.2.custom.js"></script>
+<script type="application/javascript" src="lib/jquery.ba-bbq/jquery.ba-bbq.js"></script>
+
+<link type="text/css" rel="stylesheet" href="css/menu.css"/>
+
+
+<script type="text/javascript" src="modevlib/util/aUtil.js"></script>
+<script type="text/javascript" src="modevlib/collections/aArray.js"></script>
+<script type="text/javascript" src="modevlib/util/aString.js"></script>
+<script type="text/javascript" src="modevlib/math/aMath.js"></script>
+<script type="text/javascript" src="modevlib/util/CNV.js"></script>
+<script type="text/javascript" src="modevlib/util/aUtil.js"></script>
+<script type="text/javascript" src="modevlib/collections/aArray.js"></script>
+<script type="text/javascript" src="modevlib/util/aString.js"></script>
+<script type="text/javascript" src="modevlib/math/aMath.js"></script>
+<script type="text/javascript" src="modevlib/util/aDate.js"></script>
+<script type="text/javascript" src="modevlib/util/aDuration.js"></script>
+
+<script type="text/javascript" src="modevlib/MozillaPrograms.js"></script>
+<script type="text/javascript" src="modevlib/Dimension.js"></script>
+<script type="text/javascript" src="modevlib/Dimension-Bugzilla.js"></script>
+<script type="text/javascript" src="modevlib/rest/BugzillaClient.js"></script>
+<script type="text/javascript" src="modevlib/Bugzilla.js"></script>
+
+<script type="text/javascript" src="modevlib/math/Stats.js"></script>
+<script type="text/javascript" src="modevlib/debug/aLog.js"></script>
+<script type="text/javascript" src="modevlib/qb/MVEL.js"></script>
+<script type="text/javascript" src="modevlib/qb/aCompiler.js"></script>
+<script type="text/javascript" src="modevlib/Hierarchy.js"></script>
+
+<script type="text/javascript" src="modevlib/threads/thread.js"></script>
+<script type="text/javascript" src="modevlib/qb/Qb.js"></script>
+<script type="text/javascript" src="modevlib/qb/Qb.analytic.js"></script>
+<script type="text/javascript" src="modevlib/qb/Qb.aggregate.js"></script>
+<script type="text/javascript" src="modevlib/qb/Qb.column.js"></script>
+<script type="text/javascript" src="modevlib/qb/Qb.cube.js"></script>
+<script type="text/javascript" src="modevlib/qb/Qb.domain.js"></script>
+<script type="text/javascript" src="modevlib/rest/Rest.js"></script>
+<script type="text/javascript" src="modevlib/qb/ESQuery.js"></script>
+<script type="text/javascript" src="modevlib/charts/aChart.js"></script>
+
+
+
+<script type="text/javascript" src="modevlib/rest/ElasticSearch.js"></script>
+
+
+
+
+<script type="text/javascript" src="modevlib/charts/DateRangeIterator.js"></script>
+
+<script type="text/javascript" src="modevlib/gui/Filter.js"></script>
+<script type="text/javascript" src="modevlib/gui/ComponentFilter.js"></script>
+<script type="text/javascript" src="modevlib/gui/TeamFilter.js"></script>
+<script type="text/javascript" src="modevlib/gui/ProductFilter.js"></script>
+
+<script type="text/javascript" src="modevlib/gui/ProgramFilter.js"></script>
+
+<script type="text/javascript" src="modevlib/gui/GUI.js"></script>
+<script type="text/javascript" src="modevlib/util/aTimer.js"></script>
+
+
+<table style="width: 100%;">
+<tr>
+	<td style="width: 320px;  vertical-align:text-top;">
+		<div style="height: 30px; text-align: center;vertical-align:middle;">
+			<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+		</div>
+
+		<hr>
+		<div id="testMessage"></div>
+		<hr>
+		<div id="parameters" class="parameters">
+		</div>
+		<div id="filters" class="menu"></div>
+	</td>
+	<td id="summary2">
+	</td>
+</tr>
+</table>
+<div id="info"></div>
+<div id="description"></div>
+<div id="report"></div>
+
+
+<script type="application/javascript">
+
+
+var query;
+
+
+var createChart = function(){
+	if (query !== undefined) query.kill();
+
+
+	var mark = Duration.newInstance(GUI.state.benchMark);
+	var sampleMin = Date.today().subtract(Duration.newInstance(GUI.state.sampleSize));
+	var sampleMax = Date.today();
+
+
+	query = new ESQuery({
+		"name":"When Bugs are marked",
+		"from":"bugs",
+		"select":{"name":"marked_time", "value":"modified_ts", "aggregate":"minimum"},
+		"edges":[
+			{"name":"bug_id", "value":"bug_id"}
+		],
+		"esfilter":Mozilla.BugStatus.Open.esfilter,
+		"essize":GUI.state.esSize
+	});
+
+
+	var queryClosed = new ESQuery({
+		"name":"Closed Bugs",
+		"from":"bugs",
+		"select":{"name":"closed_time", "value":"modified_ts", "aggregate":"minimum"},
+		"edges":[
+			{"name":"bug_id", "value":"bug_id"}
+		],
+		"where":'doc["previous_values.bug_status_change_away_ts"].value==doc["modified_ts"].value',  //ONLY THE DOCUMENT THAT CLOSES THE BUG
+		"esfilter":{"and":[
+			Mozilla.BugStatus.Closed.esfilter,
+			{"range":{"modified_ts":{"gte":sampleMin.getMilli()}}},
+			{"range":{"modified_ts":{"lte":sampleMax.getMilli()}}}
+//			{"script":{"script":'doc["modified_ts"].value-doc["created_ts"].value>'+Duration.newInstance("439day").milli}}
+//			,{"range":{"bug_id":{"gt":"400000"}}}
+		]},
+		"essize":GUI.state.esSize
+	});
+
+	(GUI.injectFilters(query));
+	(GUI.injectFilters(queryClosed));
+
+	if (GUI.state.selectedProducts.length == 0 && GUI.state.programFilter.selected.length == 0){
+		$("#summary2").html("Will not work over all bugs, too big.  Make a selection");
+		return;
+
+	}//endif
+
+	Log.action("Calling ES");
+	queryClosed.run(function(closedBugAges){
+		query.run(function(markedBugs){
+
+			var marked = Qb.cube.toList(markedBugs);
+			var closed = Qb.cube.toList(closedBugAges);
+
+			var markedInSample = (yield(Qb.calc2List({
+				"from":marked,
+				"select":[
+					{"name":"bug_id", "value":"bug_id", "aggregate":"one"},
+					{"name":"marked_time", "value":"Date.newInstance(marked_time)", "aggregate":"one"},
+					{"name":"is_closed", "value":"closed.bug_id", "aggregate":"binary"},
+					{"name":"closed_time", "value":"Date.newInstance(closed.closed_time)", "aggregate":"minimum"},
+					{"name":"is_good", "value":"closed.closed_time-marked_time<" + mark.milli + " ? 1 : 0", "aggregate":"one"}
+				],
+				"edges":[
+					{"name":"closed", value:"bug_id",
+						"domain":{"type":"set", "name":"closed", "key":"bug_id", "partitions":closed}
+					}
+				],
+				"where":"marked_time>" + sampleMin.getMilli()
+			}))).list;
+
+
+			var summary = (yield(Qb.calc2List({
+				"from":markedInSample,
+				"select":[
+					{"name":"total", "value":"bug_id", "aggregate":"count"},
+					{"name":"numClosed", "value":"is_closed", "aggregate":"sum"},
+					{"name":"numGood", "value":"is_good", "aggregate":"sum"}
+				]
+			}))).list[0];
+
+			$("#summary2").html(
+					"<h3>" +
+							"Number marked in sample:" + summary.total + "<br>" +
+							"Number marked and closed in sample:" + summary.numClosed + "<br>" +
+							"Number closed within " + mark.toString() + ":" + summary.numGood + "<br>" +
+							"% closed within " + mark.toString() + ":" + aMath.round(summary.numGood / summary.total * 100, 1) + "%" +
+							"</h3>"
+			);
+
+		});
+	});
+
+};
+
+
+$(document).ready(function(){
+	GUI.setup(createChart, [
+		{"id":"sampleSize", "name":"Sample", "type":"Duration", "default":"3month"},
+		{"id":"benchMark", "name":"Benchmark", "type":"Duration", "default":"2week"},
+		{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
+	]);
+	createChart();
+});
+
+</script>
+
+
+</BODY>
+</HTML>

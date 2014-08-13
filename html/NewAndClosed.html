@@ -1,0 +1,259 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="text/javascript" src="modevlib/Settings.js">
+	</script>
+</HEAD>
+<BODY>
+
+
+<script type="application/javascript" src="lib/webdetails/cdf/Base.js"></script>
+<script type="application/javascript" src="lib/jquery.js"></script>
+<script type="application/javascript" src="lib/jstree/jquery.jstree.js"></script>
+<script type="application/javascript" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
+<script type="application/javascript" src="lib/webdetails/data/q01-01.js"></script>
+<script type="application/javascript" src="lib/webdetails/lib/protovis-d3.3.js"></script>
+<script type="application/javascript" src="lib/webdetails/lib/jquery.tipsy.js"></script>
+<script type="application/javascript" src="lib/webdetails/lib/tipsy.js"></script>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
+
+<script type="application/javascript" src="lib/webdetails/pvc/pvc.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcPanel.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcLegend.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcWaterfall.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcPie.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcBar.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcLine.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcData.js"></script>
+
+<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
+
+<script type="application/javascript" src="lib/webdetails/pvcDocUtils.js"></script>
+
+<link type="text/css" rel="stylesheet" href="lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css"/>
+<script type="application/javascript" src="lib/jquery-ui/js/jquery-ui-1.10.2.custom.js"></script>
+<script type="application/javascript" src="lib/jquery.ba-bbq/jquery.ba-bbq.js"></script>
+
+<link type="text/css" rel="stylesheet" href="css/menu.css"/>
+
+
+<script type="text/javascript" src="modevlib/util/aUtil.js"></script>
+<script type="text/javascript" src="modevlib/collections/aArray.js"></script>
+<script type="text/javascript" src="modevlib/util/aString.js"></script>
+<script type="text/javascript" src="modevlib/math/aMath.js"></script>
+<script type="text/javascript" src="modevlib/util/CNV.js"></script>
+<script type="text/javascript" src="modevlib/util/aUtil.js"></script>
+<script type="text/javascript" src="modevlib/collections/aArray.js"></script>
+<script type="text/javascript" src="modevlib/util/aString.js"></script>
+<script type="text/javascript" src="modevlib/math/aMath.js"></script>
+<script type="text/javascript" src="modevlib/util/aDate.js"></script>
+<script type="text/javascript" src="modevlib/util/aDuration.js"></script>
+
+<script type="text/javascript" src="modevlib/MozillaPrograms.js"></script>
+<script type="text/javascript" src="modevlib/Dimension.js"></script>
+<script type="text/javascript" src="modevlib/Dimension-Bugzilla.js"></script>
+<script type="text/javascript" src="modevlib/rest/BugzillaClient.js"></script>
+<script type="text/javascript" src="modevlib/Bugzilla.js"></script>
+
+<script type="text/javascript" src="modevlib/math/Stats.js"></script>
+<script type="text/javascript" src="modevlib/debug/aLog.js"></script>
+<script type="text/javascript" src="modevlib/qb/MVEL.js"></script>
+<script type="text/javascript" src="modevlib/qb/aCompiler.js"></script>
+<script type="text/javascript" src="modevlib/Hierarchy.js"></script>
+
+<script type="text/javascript" src="modevlib/threads/thread.js"></script>
+<script type="text/javascript" src="modevlib/qb/Qb.js"></script>
+<script type="text/javascript" src="modevlib/qb/Qb.analytic.js"></script>
+<script type="text/javascript" src="modevlib/qb/Qb.aggregate.js"></script>
+<script type="text/javascript" src="modevlib/qb/Qb.column.js"></script>
+<script type="text/javascript" src="modevlib/qb/Qb.cube.js"></script>
+<script type="text/javascript" src="modevlib/qb/Qb.domain.js"></script>
+<script type="text/javascript" src="modevlib/rest/Rest.js"></script>
+<script type="text/javascript" src="modevlib/qb/ESQuery.js"></script>
+<script type="text/javascript" src="modevlib/charts/aChart.js"></script>
+
+
+
+<script type="text/javascript" src="modevlib/rest/ElasticSearch.js"></script>
+
+
+
+
+<script type="text/javascript" src="modevlib/charts/DateRangeIterator.js"></script>
+
+<script type="text/javascript" src="modevlib/gui/Filter.js"></script>
+<script type="text/javascript" src="modevlib/gui/ComponentFilter.js"></script>
+<script type="text/javascript" src="modevlib/gui/TeamFilter.js"></script>
+<script type="text/javascript" src="modevlib/gui/ProductFilter.js"></script>
+
+<script type="text/javascript" src="modevlib/gui/ProgramFilter.js"></script>
+
+<script type="text/javascript" src="modevlib/gui/GUI.js"></script>
+<script type="text/javascript" src="modevlib/util/aTimer.js"></script>
+
+
+<h3>New Bugs vs Closed Bugs</h3>
+
+<div id="sidebar" style="width:300px;">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div id="chart" style="position:relative;"></div>
+
+<div id="info"></div>
+<div id="report"></div>
+
+<script type="application/javascript">
+
+$("#description").html("Shows the number of new bugs and number of closed bugs over given interal.  <span class=\"warning\">New count is too low when filtering, only bugs properly marked at open time are counted here</span>");
+
+var rangeChart = null;
+
+var createChart = function(){
+	if (rangeChart != undefined) rangeChart.kill();
+
+	var chartRequest = {
+		"requests" :[
+			{
+				"esQuery":{
+					"query": {
+						"match_all":{}
+					},
+					"filter":{
+						"and":[
+//								{"not":{"terms":{ "bug_status" : ["resolved", "verified", "closed"] }}},
+							{"script":{"script":'doc["modified_ts"].value==doc["created_ts"].value'}}
+						]
+					},
+					"from" : 0,
+					"size" : 0,
+					"sort" : []
+				},
+				"seriesName" : "New"
+			},
+			{
+				"esQuery":{
+					"query": {
+						"match_all":{}
+					},
+					"filter":{
+						"and":[
+							{"terms":{"bug_status" : ["resolved"]}},
+							//, "verified", "closed"]}},
+							{"not": {"terms":{"previous_values.bug_status_value": ["resolved"]}}},
+							{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}}
+						]
+					},
+					"from" : 0,
+					"size" : 0,
+					"sort" : []
+				},
+				"seriesName" : "Resolved"
+			},
+			{
+				"esQuery":{
+					"query": {
+						"match_all":{}
+					},
+					"filter":{
+						"and":[
+							{"terms":{"bug_status" : ["verified"]}},
+							//, "verified", "closed"]}},
+							{"not": {"terms":{"previous_values.bug_status_value": ["verified"]}}},
+							{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}}
+						]
+					},
+					"from" : 0,
+					"size" : 0,
+					"sort" : []
+				},
+				"seriesName" : "Verified"
+			},
+			{
+				"esQuery":{
+					"query": {
+						"match_all":{}
+					},
+					"filter":{
+						"and":[
+							{"terms":{"bug_status" : ["closed"]}},
+							//, "verified", "closed"]}},
+							{"not": {"terms":{"previous_values.bug_status_value": ["closed"]}}},
+							{"not": {"range":{"expires_on": {"gt": Date.now().addDay(1)}}}}
+						]
+					},
+					"from" : 0,
+					"size" : 0,
+					"sort" : []
+				},
+				"seriesName" : "Closed"
+			}
+		],
+//			"evaluations":[
+//				{"seriesName":"NewAndOpen", "code":"Total"
+//
+////			]
+//			"baseline" : [{
+//				"name" : "New and Open",
+//				"data" : "Total",
+//				"start" : "Open"
+//			}],
+//////					"track" : true,
+//			"showSeries" : ["Open", "New and Open"],
+		"chartTitle" : "New Bugs and Closed Bugs",
+		"canvas" : "chart",
+		"originZero" : true,
+		"chartType" : "StackedAreaChart",
+		"interval": GUI.state.intervalX,
+//			"groupSize" : 7,
+		"startDate" : GUI.state.startDate,
+		"endDate" : GUI.state.endDate,
+		"useWindow":true
+	};
+
+	GUI.injectFilterss(chartRequest.requests);
+
+	console.log("chartRequest: " + CNV.Object2JSON(chartRequest));
+
+	rangeChart = new RangeChart(chartRequest);
+	rangeChart.run();
+};
+
+
+$(document).ready(function(){
+	GUI.setup(createChart, [
+		{"id":"startDate", "name":"Min X-axis on Chart", "type":"time", "default":Date.today().add("-1year")},
+		{"id":"endDate", "name":"Max X-axis on Chart", "type":"time", "default":Date.today()},
+		{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.WEEK},
+		{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
+	],
+			[
+				"endDate=GUI.fixEndDate(Date.newInstance(startDate), Date.newInstance(endDate), Duration.newInstance(intervalX)).format('yyyy-MM-dd')"
+			]);
+	createChart();
+});
+</script>
+
+
+</BODY>
+</HTML>

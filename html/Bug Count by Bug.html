@@ -1,0 +1,56 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+<div id="info"></div>
+
+<script type="application/javascript">
+	importScript("main.js", function(){
+		var query = {
+			"query":{
+				"filtered":{
+					"query": {
+						"match_all":{}
+					},
+					"filter":{
+						"and" : [
+							Mozilla.BugStatus.Open.esfilter
+						]
+					}
+				}
+			},
+			"from": 0,
+			"size": 20,
+			"sort": [],
+			"facets":{
+				"Bugs per Bug": {
+					"terms": {
+						"field": "assigned_to",
+						"size": 10,
+						"sort":"count"
+					}
+				}
+			}
+
+		};
+
+		Thread.run(function*(){
+			var data = ElasticSearch.search("bugs", query);
+			Log.note(CNV.Object2JSON(data));
+
+			var htmlSummary = CNV.ESResult2HTMLSummaries(data);
+			var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));
+
+			document.getElementById("info").innerHTML = htmlSummary + "<br><br>" + htmlResults;
+		});
+	});
+</script>
+
+</BODY>
+</HTML>

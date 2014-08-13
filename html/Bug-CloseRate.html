@@ -1,0 +1,269 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">More Charts</a>
+</div>
+
+<div id="sidebar" style="width:300px;">
+	<br>
+	<br>
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3 id="title"></h3>
+
+	<div id="chart" class="chart" style="position: relative;height:600px;"></div>
+	<br><br>
+	ElasicSearch Filter
+	<textarea id="filter" rows="5" cols="60" style="width:100%;"></textarea>
+	<br><br>
+	<div id="info" style="width:800px;float:left;"></div>
+	<div id="report"></div>
+</div>
+
+
+<script type="application/javascript">
+
+
+
+importScript(['modevlib/main.js', 'modevlib/Dimension-Bugzilla.js'], function(){
+
+
+var thread;
+var createChart = function(){
+	if (thread !== undefined)
+		thread.kill();
+	thread = Thread.run(__createChart());
+};
+
+var __createChart = function*(){
+	$("#title").html("Bug Close Rate");
+	$("#description").html("Shows the number of bugs closed over the given interval, and calculates the average close rate."
+	+"You must provide JSON that will be used as the ES Filter."
+	+"The team filter will filter who was assigned the bug"
+	+'<br><br><span class="warning">This chart must download all relevant bugs states.  The more you filter, the faster this chart will go.</span>'
+	);
+
+
+	var sampleMin = Date.newInstance(GUI.state.sampleMin);
+	var sampleMax =Date.newInstance(GUI.state.sampleMax).addDay(1);
+	var sampleInterval = Duration.newInstance(GUI.state.sampleInterval)
+
+	var customFilter=GUI.state.filter;
+	if (Object.keys(customFilter).length==0){
+		customFilter=ESQuery.TrueFilter
+	}//endif
+
+	yield (ESQuery.loadColumns({"from":"bugs"}));
+
+
+	Thread.run(function*(){
+		var a=Log.action("Get Bug Details", true);
+
+
+		var resolutionParts=[
+			{"name":"worksforme", "style":{}},
+			{"name":"wontfix", "style":{}},
+			{"name":"invalid", "style":{}},
+			{"name":"duplicate", "style":{}},
+			{"name":"fixed", "style":{}}
+		];
+
+//		//HOW MANY CLOSED BUGS ARE WE TALKING ABOUT?
+//		var numBugs=yield (ESQuery.run({
+//			"from":"bugs",
+//			"select":{"value":"bug_id", "aggregate":"count"},
+//			"esfilter":{"and":[
+//				Mozilla.CurrentRecords.esfilter,
+//				Mozilla.BugStatus.Closed.esfilter,
+//				customFilter,
+//				GUI.getFilters("bugs"),
+//				{"range": {"modified_ts": {"gte": sampleMin.getMilli()}}}
+//			]}
+//		}));
+//
+//		if (numBugs.cube>100){
+//			//BETTER TO MAKE ESTIMATES, JUST LOOK AT ALL CLOSE EVENTS
+//
+//		}//endif
+
+
+		var resolutions=[];
+		var resolutionsThread=Thread.run(function*(){
+			resolutions=yield (ESQuery.run({
+				"from":"bugs",
+				"select":["bug_id", "resolution"],
+				"esfilter":{"and":[
+					Mozilla.CurrentRecords.esfilter,
+					Mozilla.BugStatus.Closed.esfilter,
+					customFilter,
+					GUI.getFilters("bugs"),
+					{"range": {"modified_ts": {"gte": sampleMin.getMilli()}}}
+				]}
+			}));
+		});
+
+
+		//PULL LATEST CLOSE DATES
+		var bugClose = yield(ESQuery.run({
+			"from": "bugs",
+			"select": {"name": "closeTime", "value": "expires_on", "aggregate": "maximum"},
+			"edges": [
+				"bug_id"
+			],
+			"esfilter": {"and": [
+				{"range": {"expires_on": {"gte": sampleMin.getMilli(), "lte": sampleMax.getMilli()}}},
+				Mozilla.BugStatus.Open.esfilter,
+				customFilter,
+				GUI.getFilters("bugs")
+			]}
+		}));
+
+		yield (Thread.join(resolutionsThread));
+		Log.actionDone(a);
+
+		{//ADD THOSE closeTime TO TO MAIN LIST OF BUGS (WE SHOULD BE MERGING IN SOME FORM)
+			var domain = bugClose.edges[0].domain;
+			var data = bugClose.cube;
+			resolutions.list.forall(function (v) {
+				v.closeTime = Date.newInstance(data[domain.getPartByKey(v.bug_id).dataIndex]);    //USE dataIndex OF part TO LOOKUP closeTime IN CUBE
+			});
+			resolutions.columns.append({"name": "closeTime"});  //ADD TO METADATA
+		}
+
+		var chart=yield (Q({
+			"from":resolutions,
+			"select":{"name":"num", "value":"bug_id", "aggregate":"count"},
+			"edges": [
+				{"value":"resolution", "domain":{"type":"set", "partitions":resolutionParts, "value":"name", "key":"name"}},
+				{"name":"date",
+					"value":"closeTime",
+					"domain":{"type":"date", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+				}
+			]
+		}));
+
+		var numIntervals=sampleMax.subtract(sampleMin).round(sampleInterval);
+		var stats=yield (Q({
+			"from":resolutions,
+			"select":[{"name":"average", "value":""+(1/numIntervals), "aggregate":"sum"}],
+			"edges":[
+				{"value":"resolution", "domain":{"type":"set", "partitions":resolutionParts, "value":"name", "key":"name"}}
+			],
+			"where":"closeTime!=null && "+sampleMin.getMilli()+"<=closeTime.getMilli() && closeTime.getMilli()<"+sampleMax.getMilli()
+		}));
+
+		var interval_str=GUI.state.sampleInterval
+
+		$("#stats").html(
+			'<span class="parameter_name">Number of '+interval_str+'s:</span>' + sampleMax.subtract(sampleMin).round(sampleInterval) + '<br><br>'+
+			//ARG!! I REALLY WANT PRESENTATION CUBES!!
+			'<span class="parameter_name">Fixed/'+interval_str+':</span>' + aMath.round(stats.cube[4].average, 1) + '<br>'+
+			'<span class="parameter_name">Duplicate/'+interval_str+':</span>' + aMath.round(stats.cube[3].average, 1) + '<br>'+
+			'<span class="parameter_name">Invalid/'+interval_str+':</span>' + aMath.round(stats.cube[2].average, 1) + '<br>'+
+			'<span class="parameter_name">Won\'tFix/'+interval_str+':</span>' + aMath.round(stats.cube[1].average, 1) + '<br>'+
+			'<span class="parameter_name">WorksForMe/'+interval_str+':</span>' + aMath.round(stats.cube[0].average, 1) + '<br>'
+		);
+
+
+		Log.actionDone(a);
+
+		aChart.show({
+			"id":"chart",
+			"sheetDiv":"info",
+			"type":"bar",
+			"stacked":true,
+			"cube":chart,
+			"height":400,
+			extensionPoints: {
+				dot_shapeRadius: 5,
+				dot_shape:"circle",
+				line_lineWidth: 2
+			},
+			"clickAction":function(resolution, x, d){
+				Thread.run(function*(){
+					var date=Date.newInstance(x);
+
+					var list=yield (Qb.calc2List({
+						"from":bugList,
+						"select":{"value":"bug_id"},
+						"where":"closeTime!=null && "+
+								"closeTime.between(Date.newInstance("+date.getMilli()+"), Date.newInstance("+date.add(sampleInterval).getMilli()+")) && "+
+								"resolution=="+CNV.String2Quote(resolution)
+					}));
+
+					Bugzilla.showBugs(list.list);
+				});
+				return true;
+
+			}
+		});
+		Log.actionDone(a);
+
+
+	});
+
+
+
+
+
+};
+
+
+$(document).ready(function(){
+	GUI.setup(createChart, [
+		{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().addMonth(-2)},
+		{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.eod()},
+		{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":Duration.WEEK},
+		{"id":"filter", "name":"ES Filter", "type":"json", "default":{"and":[
+				{"term":{"product":"boot2gecko"}},
+				{"not":{"terms":{"cf_blocking_b2g":["tef+","shira+","leo+"]}}}
+			]}
+		},
+		{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
+		],
+		[
+				"sampleMin=Date.newInstance(sampleMin).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
+				"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')"
+		],
+		"bugs",
+		true	//SHOW DEFAULT FILTERS?
+	);
+
+//	GUI.state.productFilter = ["B2G 1.0.0 (TEF)"];
+
+});
+
+
+});
+</script>
+
+
+</BODY>
+</HTML>
+
