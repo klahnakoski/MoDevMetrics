@@ -213,12 +213,7 @@ build = function () {
 				Thread.currentThread = mainThread;
 			} catch (e) {
 				Thread.currentThread = mainThread;
-
-				if (e instanceof Exception) {
-					retval = e;
-				} else {
-					retval = new Exception("Error", e);
-				}//endif
+				retval = Exception.wrap(e);
 			}//try
 		}//while
 		//CAN GET HERE WHEN THREAD IS KILLED AND Thread.Resume CALLS BACK
@@ -415,9 +410,17 @@ build = function () {
 
 if (window.Exception === undefined) {
 
-	window.Exception = function (description, cause) {
-		this.message = description;
+	window.Exception = function (message, cause) {
+		this.message = message;
 		this.cause = cause;
+	};
+
+	window.Exception.wrap=function(e){
+		if (e instanceof Exception) {
+			return e;
+		} else {
+			return new Exception("Error", e);
+		}//endif
 	};
 
 	Array.prototype.remove = function (obj, start) {

@@ -6,7 +6,7 @@
 importScript("ETL.js");
 
 var REVIEWS={};
-REVIEWS.BATCH_SIZE=1000;
+REVIEWS.BATCH_SIZE=100;
 REVIEWS.pushHost=
 REVIEWS.aliasName="reviews";
 REVIEWS.newIndexName=undefined;  //CURRENT INDEX FOR INSERT
@@ -140,6 +140,7 @@ REVIEWS.get=function*(minBug, maxBug){
 		esfilter={"range":{"bug_id":{"gte":minBug, "lt":maxBug}}}
 	}//endif
 
+	yield (ESQuery.loadColumns("private_bugs"));
 
 	var reviewQuery=new ESQuery({
 		"timeout":60000,
@@ -158,7 +159,7 @@ REVIEWS.get=function*(minBug, maxBug){
 //			{"name":"flags", "value":ETL.getFlags()}
 		],
 		"from":
-			"bugs.attachments.flags",
+			"private_bugs.attachments.flags",
 		"where":
 			{"and" : [
 				{"terms":{"attachments.flags.request_status":["?"]}},
@@ -182,7 +183,7 @@ REVIEWS.get=function*(minBug, maxBug){
 //			{"name":"bug_status", "value":"(bug_status=='resolved'||bug_status=='verified'||bug_status=='closed') ? 'closed':'open'"}
 //		],
 //		"from":
-//			"bugs.attachments.flags",
+//			"private_bugs.attachments.flags",
 //		"where":
 //			{"and" : [
 //				{"terms":{"attachments.flags.request_status":["?"]}},
@@ -193,7 +194,7 @@ REVIEWS.get=function*(minBug, maxBug){
 //		"esfilter":
 //			esfilter
 //	});
-
+//
 
 
 
@@ -213,24 +214,22 @@ REVIEWS.get=function*(minBug, maxBug){
 			{"name":"review_result", "value":"attachments.flags.request_status=='+' ? '+' : (attachments.flags.request_status=='-' ? '-' : '?')"}
 		],
 		"from":
-			"bugs.attachments.flags",
+			"private_bugs.attachments.flags",
 		"where":
 			{"and" : [
-				{"exists":{"field":"attachments.flags.request_type"}},
 				{"terms":{"attachments.flags.request_type":["review", "superreview"]}},
 				{"or" : [
 					{ "and" : [//IF THE REQUESTEE SWITCHED THE ? FLAG, THEN IT IS DONE
 						{"not":{"terms":{"attachments.flags.request_status":["?"]}}}
 					]},
-					{"and":[//IF OBSOLEETED THE ATTACHMENT, IT IS DONE
+					{"and":[//IF OBSOLETED THE ATTACHMENT, IT IS DONE
 						{"term":{"attachments[\"attachments.isobsolete\"]" : 1}},
-						{"not":{"missing":{"field":"previous_values", "existence":true, "null_value":true}}},
+						{"not":{"missing":{"field":"previous_values"}}},
 						{"term":{"previous_values[\"attachments.isobsolete_values\"]" : 0}}
 					]},
 					{ "and":[//SOME BUGS ARE CLOSED WITHOUT REMOVING REVIEW
 						{"terms":{"bug_status":["resolved", "verified", "closed"]}},
-						{"not":{"missing":{"field":"previous_values", "existence":true, "null_value":true}}},
-						{"not":{"missing":{"field":"previous_values.bug_status_value", "existence":true, "null_value":true}}},
+						{"not":{"missing":{"field":"previous_values"}}},
 						{"not": {"terms":{"previous_values.bug_status_value": ["resolved", "verified", "closed"]}}}
 					]}
 				]}
@@ -257,7 +256,6 @@ REVIEWS.get=function*(minBug, maxBug){
 			"bugs.changes",
 		"where":
 			{"and":[//ONLY LOOK FOR NAME CHANGES IN THE "review?" FIELD
-				{"exists":{"field":"changes.field_name"}},
 				{"term":{"changes.field_name":"flags"}},
 				{"or":[
 					{"prefix":{"changes.field_value":"review?"}},
@@ -273,6 +271,8 @@ REVIEWS.get=function*(minBug, maxBug){
 	});
 
 
+
+
 	var inReview;
 	var A=Thread.run("Get Review Requests", function*(){
 		var a=Log.action("Get Review Requests", true);
@@ -280,19 +280,19 @@ REVIEWS.get=function*(minBug, maxBug){
 		Log.actionDone(a);
 	});
 
-//	var doneReview;
-//	var B=Thread.run("Get Review Ends", function*(){
-//		var a=Log.action("Get Review Ends", true);
-//		doneReview=yield(doneQuery.run());
-//		Log.actionDone(a);
-//	});
-//
-//	var switchedReview;
-//	var C=Thread.run("Get Review Re-assignments", function*(){
-//		var a=Log.action("Get Review Re-assignments", true);
-//		switchedReview=yield(switchedQuery.run());
-//		Log.actionDone(a);
-//	});
+	var doneReview;
+	var B=Thread.run("Get Review Ends", function*(){
+		var a=Log.action("Get Review Ends", true);
+		doneReview=yield(doneQuery.run());
+		Log.actionDone(a);
+	});
+
+	var switchedReview;
+	var C=Thread.run("Get Review Re-assignments", function*(){
+		var a=Log.action("Get Review Re-assignments", true);
+		switchedReview=yield(switchedQuery.run());
+		Log.actionDone(a);
+	});
 
 	yield (Thread.join(A));
 	yield (Thread.join(B));

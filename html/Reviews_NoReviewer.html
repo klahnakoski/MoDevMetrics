@@ -35,17 +35,9 @@ importScript(["modevlib/main.js"], function(){
 				{"name":"request_time", "value":"bugs.modified_ts"}
 			],
 			"where":{"and":[
-				{"missing":{
-					"field" : "bugs.attachments.flags.review_time",
-					"existence" : true,
-					"null_value" : true
-				}},
+				{"missing":{"field" : "bugs.attachments.flags.review_time"}},
 				{"or":[
-					{"missing":{
-						"field" : "bugs.attachments.flags.requestee",
-						"existence" : true,
-						"null_value" : true
-					}},
+					{"missing":{"field" : "bugs.attachments.flags.requestee"}},
 					{"term":{"bugs.attachments.flags.requestee":"nobody@mozilla.org"}}
 				]},
 				{"terms":{"bugs.attachments.flags.request_status" : ["?"]}},

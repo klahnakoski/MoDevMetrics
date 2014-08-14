@@ -23,15 +23,18 @@ importScript("../util/CNV.js");
 
 	function wrap(e){
 		if (e===undefined || e instanceof Exception) return e;
+		if (e instanceof Error){
+			var output=new Exception(e.message, e.cause);
+			output.fileName= e.fileName;
+			output.lineNumber = e.lineNumber;
+			output.columnNumber = e.columnNumber;
+			output.stack = parseStack(e.stack);
+			return output;
+		}//endif
 
-		var output=new Exception(e.message, e.cause);
-		output.fileName= e.fileName;
-		output.lineNumber = e.lineNumber;
-		output.columnNumber = e.columnNumber;
-		output.stack = parseStack(e.stack);
-		return output;
+		return new Exception(""+e);
 	}//function
-
+	Exception.wrap = wrap;
 
 	//window.Exception@file:///C:/Users/klahnakoski/git/MoDevMetrics/html/modevlib/debug/aException.js:14:4
 	//build@file:///C:/Users/klahnakoski/git/MoDevMetrics/html/modevlib/threads/thread.js:76:2
@@ -86,10 +89,17 @@ importScript("../util/CNV.js");
 
 
 	Exception.prototype.toString=function(){
-		var output = this.message + "\n" +
-			(this.stack ? this.stack.map(function(s){
-				return "File " + s.fileName.split("/").last() + ", line " + s.lineNumber + ", in " + s.function + "\n";
-			}).join("").indent(1) : "");
+		var output = this.message + "\n";
+
+		if (this.stack){
+			output = output + this.stack.map(function(s){
+				try{
+					return "File " + s.fileName.split("/").last() + ", line " + s.lineNumber + ", in " + s.function + "\n";
+				}catch(e){
+					throw "Not expected"
+				}//try
+			}).join("").indent(1);
+		}//endif
 
 		if (this.cause === undefined){
 			return output;
@@ -107,7 +117,7 @@ importScript("../util/CNV.js");
 		}//endif
 	};
 
-	Exception.TIMEOUT=new Exception("Timeout", undefined);
+	Exception.TIMEOUT=new Exception("TIMEOUT");
 
 	window.Exception=Exception;
 
