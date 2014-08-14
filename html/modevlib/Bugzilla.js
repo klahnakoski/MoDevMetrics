@@ -52,7 +52,7 @@ Bugzilla.search=function*(bugList, fields){
 		}, function(status, data){
 			if (status=="error"){
 				numCalls--;
-				throw new Exception("can not get bugs!");
+				Log.error("can not get bugs!");
 			}//endif
 			numCalls--;
 			Log.note(result.length+"+"+data.length);

@@ -224,9 +224,9 @@ MVEL.prototype.from = function(fromPath, loopVariablePrefix){
 //        var ifPath = String.join(currPath, ".?");
 		var shortPath = this.translate(pathi);
 		this.prefixMap.unshift({"path":pathi, "variable":loopVariable});
+		this.prefixMap.unshift({"path":path.slice(1, i+1).join("."), "variable":loopVariable});
 
 		var loop;
-
 //        if (i==1){
 //            loop = loopCode
 //                .replaceAll("<VAR>", loopVariable)
@@ -249,7 +249,7 @@ MVEL.prototype.translate = function(variableName){
 	var shortForm = variableName;
 	for(var p = 0; p < (this.prefixMap).length; p++){
 		var prefix = this.prefixMap[p].path;
-		if (shortForm==prefix){
+		if (shortForm.replaceAll(".?", ".")==prefix){
 			shortForm=this.prefixMap[p].variable;
 		}else{
 			shortForm=shortForm.replacePrefix(prefix+".", this.prefixMap[p].variable+".?"); //ADD NULL CHECK
@@ -646,6 +646,7 @@ MVEL.FUNCTIONS={
 			"var v = doc[name];\n"+
 //			"if (v is org.elasticsearch.common.mvel2.ast.Function) v = v();=n" +
 			"if (v==null || v.value==null) { null; } else " +
+			"if (v is org.elasticsearch.index.fielddata.ScriptDocValues) { v=v.getValues(); for(int i =0; i < v.size(); i++) out.add(v.get(i)); out; } else "+
 //			"if (v is Long || v is Integer || v is Double) { v; } else " +
 			"if (v.values.size()<=1){ v.value; } else " + //ES MAKES NO DISTINCTION BETWEEN v or [v], SO NEITHER DO I
 			"{for(k : v.values) out.add(k); out;}" +

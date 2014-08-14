@@ -328,7 +328,10 @@ ESQuery.DEBUG = false;
 
 
 	ESQuery.prototype.run = function*() {
-		if (!this.query.index) {
+		if (this.query.url) {
+			this.query.index = {};
+			this.query.index.url = this.query.url;
+		}else if (!this.query.index) {
 			this.query.index = ESQuery.INDEXES[splitField(this.query.from)[0]];
 			if (this.query.index === undefined) Log.error("must have host defined");
 			this.query.index.url = this.query.index.host + this.query.index.path;

@@ -67,7 +67,7 @@ Log.error = function(description, cause, stackOffset){
 };//method
 
 Log.warning = function(description, cause){
-	var e=new Exception(description, cause);
+	var e=new Exception(description, cause, 1);
 	console.warn(e.toString());
 };//method
 

@@ -36,6 +36,17 @@ build = function () {
 	var dummy = {"close": function () {
 	}};//DUMMY GENERATOR
 
+	//RETURN FIRST NOT NULL, AND DEFINED VALUE
+	function nvl(){
+		var args = arguments;
+		var a;
+		for(var i=0;i<args.length;i++){
+			a=args[i];
+			if (a!==undefined && a!=null) return a;
+		}//for
+		return null;
+	}//method
+
 	Thread = function (gen) {
 		if (typeof(gen) == "function") {
 			try {
@@ -289,9 +300,9 @@ build = function () {
 
 		if (retval instanceof Exception) {
 			if (POPUP_ON_ERROR || DEBUG){
-				Log.alert("Uncaught Error in thread: " + (this.name !== undefined ? this.name : "") + "\n  " + retval.toString());
+				Log.alert("Uncaught Error in thread: " + nvl(this.name, "") + "\n  " + retval.toString());
 			}else{
-				Log.warning("Uncaught Error in thread: " + (this.name !== undefined ? this.name : "") + "\n  ", retval);
+				Log.warning("Uncaught Error in thread: " + nvl(this.name, "") + "\n  ", retval);
 			}//endif
 		}//endif
 
