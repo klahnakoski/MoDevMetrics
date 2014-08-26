@@ -114,7 +114,6 @@ if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 					]}},
 
 					{"name": "Media", "esfilter": {"and": [
-						{"not": {"term": {"keywords": "perf"}}}, //AN UNFORTUNATE REDUNDANCY
 						{"term": {"product": "firefox os"}},
 						{"terms": {"component": [
 							"gaia::camera",
@@ -125,18 +124,6 @@ if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 							"gaia::ringtones"
 						]}}
 					]}},
-
-					{"name": "Performance",
-						"esfilter": {"or": [
-							{"and":[
-								{"term": {"keywords": "perf"}}
-							]},
-							{"and": [
-								{"term": {"product": "firefox os"}},
-								{"term": {"component": "performance"}}
-							]}
-						]}
-					},
 
 					{"name": "System Front-End", "esfilter": {"and": [
 						{"regexp": {"status_whiteboard": ".*systemsfe.*"}}

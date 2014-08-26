@@ -6,13 +6,18 @@
 
 String.join = function(list, seperator){
 	var output = "";
-
 	for(var i = 0; i < list.length; i++){
 		if (output != "") output += seperator;
 		output += list[i];
 	}//for
 	return output;
 };
+
+String.trim=function(v){
+	return v.trim();
+};
+
+
 
 //RETURN THE STRING BETWEEN THE start AND end
 //IF end IS UNDEFINED, THEN GRABS TO END OF STRING
