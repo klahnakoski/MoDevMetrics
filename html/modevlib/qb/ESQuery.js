@@ -1513,7 +1513,7 @@ ESQuery.DEBUG = false;
 
 		if (this.query.select instanceof Array || this.select.length > 1) {
 			for (var i = T.length; i--;) {
-				var record = T[i].fields
+				var record = nvl(T[i].fields, {});
 				var new_rec = {};
 				this.select.forall(function (s, j) {
 					if (s.domain && s.domain.interval=="none"){
