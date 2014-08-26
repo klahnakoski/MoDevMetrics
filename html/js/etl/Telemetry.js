@@ -50,7 +50,7 @@ Telemetry.get=function(minBug, maxBug){
 		while(!Telemetry.people){
 			yield (Thread.sleep(1000));  //YIELD TO ALLOW SCRIPT TO LOAD AND EXECUTE
 		}//while
-		
+
 		//HERE WE JUST RETURN THE LOCAL COPY
 		people=Telemetry.people.map(function(v, i){
 			return {"id":v.dn, "name":v.cn, "manager":v.manager ? v.manager.dn : null, "email":v.bugzillaemail};
@@ -117,7 +117,8 @@ Telemetry.insert=function(people){
 	});
 
 	var a=Log.action("Push people to ES", true);
-	var results=yield (ElasticSearch.bulkInsert(Telemetry.newIndexName, Telemetry.typeName, insert));
+	var destination = {"host": "", "path": Telemetry.newIndexName + "/" + Telemetry.typeName};
+	var results = yield (ElasticSearch.bulkInsert(destination, insert));
 	Log.note(CNV.Object2JSON(CNV.JSON2Object(results)));
 
 	Log.actionDone(a);

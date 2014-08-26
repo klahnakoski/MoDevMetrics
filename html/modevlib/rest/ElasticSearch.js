@@ -27,9 +27,9 @@ ElasticSearch.search=function*(index, esquery){
 	yield (output);
 };
 
-ElasticSearch.setRefreshInterval=function*(indexName, rate){
+ElasticSearch.setRefreshInterval=function*(destination, rate){
 	var data=yield (Rest.put({
-		"url": ElasticSearch.pushURL+"/"+indexName+"/_settings",
+		"url": destination.host.trim("/")+"/"+destination.path.trim("/").split("/")[0]+"/_settings",
 		"data":{"index":{"refresh_interval":"1s"}}
 	}));
 	Log.note("Refresh Interval to "+rate+": "+CNV.Object2JSON(data));
@@ -38,10 +38,10 @@ ElasticSearch.setRefreshInterval=function*(indexName, rate){
 
 
 //EXPECTING THE DATA ARRAY TO ALREADY HAVE ODD ENTRIES STARTING WITH { "create":{ "_id" : ID } }
-ElasticSearch.bulkInsert=function*(indexName, typeName, dataArray){
+ElasticSearch.bulkInsert=function*(destination, dataArray){
 //	try{
 		yield (Rest.post({
-			"url":ElasticSearch.pushURL+"/"+indexName+"/"+typeName+"/_bulk",
+			"url":destination.host.trim("/")+"/"+destination.path.trim("/")+"/_bulk",
 			"data":dataArray.join("\n")+"\n",
 			dataType: "text"
 		}));

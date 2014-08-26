@@ -32,13 +32,13 @@ Thread.run("get bug columns", function*(){
 ///////////////////////////////////////////////////////////////////////////////
 ETL.removeOldIndexes=function*(etl){
 	//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
-	var data=yield (Rest.get({url: ElasticSearch.pushURL+"/_aliases"}));
+	var data=yield (Rest.get({url: etl.destination.host+"/_aliases"}));
 	Log.note(data);
 
 	var keys=Object.keys(data);
 	for(var k=keys.length;k--;){
 		var name=keys[k];
-		if (!name.startsWith(etl.aliasName)) continue;
+		if (!name.startsWith(etl.destination.alias)) continue;
 		if (name==etl.newIndexName) continue;
 
 		if (etl.newIndexName===undefined){
@@ -56,14 +56,14 @@ ETL.removeOldIndexes=function*(etl){
 				continue;
 			}else if (name>etl.oldIndexName){
 				//DELETE VERY OLD INDEX
-				yield (Rest["delete"]({url: ElasticSearch.pushURL+"/"+etl.oldIndexName}));
+				yield (Rest["delete"]({url: etl.destination.host+"/"+etl.oldIndexName}));
 				etl.oldIndexName=name;
 				continue;
 			}//endif
 		}//endif
 
 		//OLD, REMOVE IT
-		yield (Rest["delete"]({url: ElasticSearch.pushURL+"/"+name}));
+		yield (Rest["delete"]({url: etl.destination.host+"/"+name}));
 	}//for
 };
 
@@ -76,16 +76,16 @@ ETL.updateAlias=function*(etl){
 
 
 	//UPDATE THE AUTO-INDEXING TO EVERY SECOND
-	yield (ElasticSearch.setRefreshInterval(etl.newIndexName, "1s"));
+	yield (ElasticSearch.setRefreshInterval(etl.destination, "1s"));
 
 	var a=Log.action("Change alias pointers");
 
 	//MAKE ALIAS
 	yield (Rest.post({
-		"url":ElasticSearch.pushURL+"/_aliases",
+		"url":etl.destination.host+"/_aliases",
 		"data":{
 			"actions":[
-				{"add":{"index":etl.newIndexName, "alias":etl.aliasName}}
+				{"add":{"index":etl.newIndexName, "alias":etl.destination.alias}}
 			]
 		}
 	}));
@@ -93,10 +93,10 @@ ETL.updateAlias=function*(etl){
 	if (etl.oldIndexName!==undefined && etl.oldIndexName!=etl.newIndexName){
 		try{
 			yield (Rest.post({
-				"url":ElasticSearch.pushURL+"/_aliases",
+				"url":etl.destination.host+"/_aliases",
 				"data":{
 					"actions":[
-						{"remove":{"index":etl.oldIndexName, "alias":etl.aliasName}}
+						{"remove":{"index":etl.oldIndexName, "alias":etl.destination.alias}}
 					]
 				}
 			}));
@@ -126,7 +126,7 @@ ETL.newInsert=function*(etl){
 	yield (ETL.removeOldIndexes(etl));
 
 	//DO NOT UPDATE INDEX WHILE DOING THE BULK LOAD
-	yield (ElasticSearch.setRefreshInterval(etl.newIndexName, "-1"));
+	yield (ElasticSearch.setRefreshInterval(etl.destination, "-1"));
 
 	var maxBug=yield(ETL.getMaxBugID());
 	var maxBatches=aMath.floor(maxBug/etl.BATCH_SIZE);
@@ -154,8 +154,8 @@ ETL.resumeInsert=function*(etl){
 
 	//GET THE MAX AND MIN TO FIND WHERE TO START
 	var maxResults=yield(ESQuery.run({
-		"url":ElasticSearch.pushURL+"/"+etl.newIndexName+"/"+etl.typeName,
-		"from":etl.aliasName,
+		"url":etl.destination.host+"/"+destination.path.trim("/"),
+		"from":etl.destination.alias,
 		"select":[
 			{"name":"maxBug", "value":"bug_id", "aggregate":"maximum"},
 			{"name":"minBug", "value":"bug_id", "aggregate":"minimum"}
@@ -185,15 +185,15 @@ ETL.resumeInsert=function*(etl){
 };
 
 
-//SET THE etl.newIndexName TO THE INDEX BEING USED BY etl.aliasName
+//SET THE etl.newIndexName TO THE INDEX BEING USED BY etl.destination.alias
 ETL.getCurrentIndex=function*(etl){
 
-	var data = yield(Rest.get({url: ElasticSearch.pushURL + "/_aliases"}));
+	var data = yield(Rest.get({url: etl.destination.host + "/_aliases"}));
 	Log.note(data);
 	var keys = Object.keys(data);
 	for(var k = keys.length; k--;){
 		var name = keys[k];
-		if (!name.startsWith(etl.aliasName)) continue;
+		if (!name.startsWith(etl.destination.alias)) continue;
 		if (Object.keys(data[name].aliases).length > 0){
 			etl.newIndexName = name;
 		}//endif

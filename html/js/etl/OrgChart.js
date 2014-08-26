@@ -15,10 +15,9 @@ importScript("ETL.js");
 
 
 	OrgChart.BATCH_SIZE = 1000000000;		//ETL IS BUG BASED, BIG ENOUGH TO DO IN ONE BATCH
-	OrgChart.aliasName = "org_chart";
+	OrgChart.destination = ESQuery.INDEXES.org_chart;
 	OrgChart.newIndexName = undefined;  //CURRENT INDEX FOR INSERT
-	OrgChart.oldIndexName = undefined;  //WHERE THE CURENT ALIAS POINTS
-	OrgChart.typeName = "person";
+	OrgChart.oldIndexName = undefined;  //WHERE THE CURRENT ALIAS POINTS
 
 
 	OrgChart.push = function*() {
@@ -26,7 +25,7 @@ importScript("ETL.js");
 	};
 
 
-	OrgChart.start = function () {
+	OrgChart.start = function*() {
 		OrgChart.oldIndexName = undefined;
 		yield (null);
 	};
@@ -74,24 +73,24 @@ importScript("ETL.js");
 	};//method
 
 
-	OrgChart.getLastUpdated = function () {
+	OrgChart.getLastUpdated = function*() {
 		yield (Date.now());
 	};
 
 
-	OrgChart.makeSchema = function () {
+	OrgChart.makeSchema = function*() {
 		//MAKE SCHEMA
-		OrgChart.newIndexName = OrgChart.aliasName + Date.now().format("yyMMdd_HHmmss");
+		OrgChart.newIndexName = OrgChart.destination.alias + Date.now().format("yyMMdd_HHmmss");
 
 
 		var setup = {
 			"settings": {
 				//ORG CHART IS SO SMALL, IT WILL HAVE EMPTY SHARDS IF THERE ARE TOO MANY
 				"index.number_of_shards": 1,
-				"index.number_of_replicas": 1,
+				"index.number_of_replicas": 0,
 				"index.routing.allocation.total_shards_per_node": 1
 			},
-			"mappings": Map.newInstance(OrgChart.typeName, {
+			"mappings": {"person": {
 				"_source": {"enabled": true},
 				"_all": {"enabled": false},
 				"properties": {
@@ -100,13 +99,16 @@ importScript("ETL.js");
 					"manager": {"type": "string", "store": "yes", "index": "not_analyzed", "null_value": "null"},
 					"email": {"type": "string", "store": "yes", "index": "not_analyzed"}
 				}
-			})
+			}}
 		};
 
 		var data = yield (Rest.post({
-			"url": ElasticSearch.pushURL + "/" + OrgChart.newIndexName,
+			"url": OrgChart.destination.host + "/" + OrgChart.newIndexName,
 			"data": setup
 		}));
+
+		OrgChart.destination.path = OrgChart.newIndexName + "/" + OrgChart.destination.path.trim("/").split("/")[1];
+
 		Log.note(data);
 
 
@@ -115,7 +117,7 @@ importScript("ETL.js");
 	};
 
 
-	OrgChart.insert = function (people) {
+	OrgChart.insert = function*(people) {
 		var uid = Util.GUID();
 		var insert = [];
 		people.forall(function (r, i) {
@@ -124,7 +126,7 @@ importScript("ETL.js");
 		});
 
 		var a = Log.action("Push people to ES", true);
-		var results = yield (ElasticSearch.bulkInsert(OrgChart.newIndexName, OrgChart.typeName, insert));
+		var results = yield (ElasticSearch.bulkInsert(OrgChart.destination, insert));
 		if (DEBUG) Log.note(CNV.Object2JSON(CNV.JSON2Object(results)));
 
 		Log.actionDone(a);

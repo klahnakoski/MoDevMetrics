@@ -134,8 +134,7 @@ importScript(["modevlib/main.js"], function(){
 
 		// REMOVE COMMENT TO APPLY FIX
 		a = Log.action("bulk index fixes", true);
-        var paths=ESQuery.INDEXES["bugs"].path.split("/").substring(1);
-		yield (ElasticSearch.bulkInsert(paths[0], paths[1], bulk));
+        yield (ElasticSearch.bulkInsert(ESQuery.INDEXES["bugs"], bulk));
 		Log.actionDone(a);
 
 
