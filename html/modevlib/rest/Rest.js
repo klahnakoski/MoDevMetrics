@@ -154,11 +154,11 @@ Rest.post=function(ajaxParam){
 	return Rest.send(ajaxParam);
 };//method
 
-Rest["delete"]=function(ajaxParam){
-//	Log.warning("DISABLED DELETE OF "+ajaxParam.url);
-//	yield (null);
-	ajaxParam.type="DELETE";
-	return Rest.send(ajaxParam);
+Rest["delete"]=function*(ajaxParam){
+	Log.warning("DISABLED DELETE OF "+ajaxParam.url);
+	yield (null);
+//	ajaxParam.type="DELETE";
+//	yield (Rest.send(ajaxParam));
 };//method
 
 

@@ -7,120 +7,117 @@ importScript("../../modevlib/qb/ESQuery.js");
 importScript("../../modevlib/qb/Qb.js");
 
 
+ETL = {};
 
-ETL={};
 
+Thread.run("get bug columns", function*() {
+	yield (ESQuery.loadColumns({"from": "bugs"}));
 
-Thread.run("get bug columns", function*(){
-	yield (ESQuery.loadColumns({"from":"bugs"}));
-
-	if (ESQuery.INDEXES.bugs.columns===undefined) yield (null);
+	if (ESQuery.INDEXES.bugs.columns === undefined) yield (null);
 
 	var temp = yield (Qb.calc2List({
-		"from":ESQuery.INDEXES.bugs.columns,
-		"edges":["name"],
-		"where":"name.startsWith('cf_')"
+		"from": ESQuery.INDEXES.bugs.columns,
+		"edges": ["name"],
+		"where": "name.startsWith('cf_')"
 	}));
-	ETL.allFlags=temp.list.map(function(v){return v.name;});
+	ETL.allFlags = temp.list.map(function (v) {
+		return v.name;
+	});
 });
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // RUN THIS NEAR BEGINNING TO REMOVE ALL BUT THE oldIndex (ONE WITH THE ALIAS)
 // AND THE newIndex (THE NEWEST WITHOUT AN ALIAS)
 ///////////////////////////////////////////////////////////////////////////////
-ETL.removeOldIndexes=function*(etl){
+ETL.removeOldIndexes = function*(etl) {
 	//GET ALL INDEXES, AND REMOVE OLD ONES, FIND MOST RECENT
-	var data=yield (Rest.get({url: etl.destination.host+"/_aliases"}));
+	var data = yield (Rest.get({url: etl.destination.host + "/_aliases"}));
 	Log.note(data);
 
-	var keys=Object.keys(data);
-	for(var k=keys.length;k--;){
-		var name=keys[k];
+	var keys = Object.keys(data);
+	for (var k = keys.length; k--;) {
+		var name = keys[k];
 		if (!name.startsWith(etl.destination.alias)) continue;
-		if (name==etl.newIndexName) continue;
+		if (name == etl.newIndexName) continue;
 
-		if (etl.newIndexName===undefined){
-			etl.newIndexName=name;
+		if (etl.newIndexName === undefined) {
+			etl.newIndexName = name;
 			continue;
-		}else if (name>etl.newIndexName){
-			var oldName=etl.newIndexName;
-			etl.newIndexName=name;
-			name=oldName;
+		} else if (name > etl.newIndexName) {
+			var oldName = etl.newIndexName;
+			etl.newIndexName = name;
+			name = oldName;
 		}//endif
 
-		if (Object.keys(data[name].aliases).length>0){
-			if (etl.oldIndexName===undefined){
-				etl.oldIndexName=name;
+		if (Object.keys(data[name].aliases).length > 0) {
+			if (etl.oldIndexName === undefined) {
+				etl.oldIndexName = name;
 				continue;
-			}else if (name>etl.oldIndexName){
+			} else if (name > etl.oldIndexName) {
 				//DELETE VERY OLD INDEX
-				yield (Rest["delete"]({url: etl.destination.host+"/"+etl.oldIndexName}));
-				etl.oldIndexName=name;
+				yield (Rest["delete"]({url: etl.destination.host + "/" + etl.oldIndexName}));
+				etl.oldIndexName = name;
 				continue;
 			}//endif
 		}//endif
 
 		//OLD, REMOVE IT
-		yield (Rest["delete"]({url: etl.destination.host+"/"+name}));
+		yield (Rest["delete"]({url: etl.destination.host + "/" + name}));
 	}//for
 };
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // REDIRECT alias TO POINT FROM oldIndexName TO newIndexName
 ////////////////////////////////////////////////////////////////////////////////
-ETL.updateAlias=function*(etl){
+ETL.updateAlias = function*(etl) {
 
 
 	//UPDATE THE AUTO-INDEXING TO EVERY SECOND
 	yield (ElasticSearch.setRefreshInterval(etl.destination, "1s"));
 
-	var a=Log.action("Change alias pointers");
+	var a = Log.action("Change alias pointers");
 
 	//MAKE ALIAS
 	yield (Rest.post({
-		"url":etl.destination.host+"/_aliases",
-		"data":{
-			"actions":[
-				{"add":{"index":etl.newIndexName, "alias":etl.destination.alias}}
+		"url": etl.destination.host + "/_aliases",
+		"data": {
+			"actions": [
+				{"add": {"index": etl.newIndexName, "alias": etl.destination.alias}}
 			]
 		}
 	}));
 
-	if (etl.oldIndexName!==undefined && etl.oldIndexName!=etl.newIndexName){
-		try{
+	if (etl.oldIndexName !== undefined && etl.oldIndexName != etl.newIndexName) {
+		try {
 			yield (Rest.post({
-				"url":etl.destination.host+"/_aliases",
-				"data":{
-					"actions":[
-						{"remove":{"index":etl.oldIndexName, "alias":etl.destination.alias}}
+				"url": etl.destination.host + "/_aliases",
+				"data": {
+					"actions": [
+						{"remove": {"index": etl.oldIndexName, "alias": etl.destination.alias}}
 					]
 				}
 			}));
-		}catch(e){
-			Log.warning("Could not remove alias from "+etl.oldIndexName, e);
+		} catch (e) {
+			Log.warning("Could not remove alias from " + etl.oldIndexName, e);
 		}//try
 	}//endif
 
 };
 
 
-ETL.getMaxBugID=function*(){
-	var maxResults=yield(ESQuery.run({
-		"select":{"name":"bug_id", "value":"bug_id", "aggregate":"maximum"},
-		"from" : "bugs",
-		"edges":[]
+ETL.getMaxBugID = function*() {
+	var maxResults = yield(ESQuery.run({
+		"select": {"name": "bug_id", "value": "bug_id", "aggregate": "maximum"},
+		"from": "bugs",
+		"edges": []
 	}));
 	yield maxResults.cube.bug_id;
 };//method
 
 
-
-
-ETL.newInsert=function*(etl){
+ETL.newInsert = function*(etl) {
 
 	yield (etl.makeSchema());
 	yield (ETL.removeOldIndexes(etl));
@@ -128,8 +125,8 @@ ETL.newInsert=function*(etl){
 	//DO NOT UPDATE INDEX WHILE DOING THE BULK LOAD
 	yield (ElasticSearch.setRefreshInterval(etl.destination, "-1"));
 
-	var maxBug=yield(ETL.getMaxBugID());
-	var maxBatches=aMath.floor(maxBug/etl.BATCH_SIZE);
+	var maxBug = yield(ETL.getMaxBugID());
+	var maxBatches = aMath.floor(maxBug / etl.BATCH_SIZE);
 
 	if (etl.start) yield (etl.start());
 
@@ -142,40 +139,39 @@ ETL.newInsert=function*(etl){
 };
 
 
-
-ETL.resumeInsert=function*(etl){
+ETL.resumeInsert = function*(etl) {
 	//MAKE SCHEMA
 	yield (ETL.removeOldIndexes(etl));
 
-	if (etl.newIndexName==etl.oldIndexName){
+	if (etl.newIndexName == etl.oldIndexName) {
 		ETL.newInsert(etl);
 		return;
 	}//endif
 
 	//GET THE MAX AND MIN TO FIND WHERE TO START
-	var maxResults=yield(ESQuery.run({
-		"url":etl.destination.host+"/"+destination.path.trim("/"),
-		"from":etl.destination.alias,
-		"select":[
-			{"name":"maxBug", "value":"bug_id", "aggregate":"maximum"},
-			{"name":"minBug", "value":"bug_id", "aggregate":"minimum"}
-			]
+	var maxResults = yield(ESQuery.run({
+		"url": etl.destination.host + "/" + destination.path.trim("/"),
+		"from": etl.destination.alias,
+		"select": [
+			{"name": "maxBug", "value": "bug_id", "aggregate": "maximum"},
+			{"name": "minBug", "value": "bug_id", "aggregate": "minimum"}
+		]
 	}));
 
-	var minBug=maxResults.cube.minBug;
-	var maxBug=maxResults.cube.maxBug;
-	if (!isFinite(minBug)){
-		minBug=yield (ETL.getMaxBugID());
-		maxBug=minBug;
+	var minBug = maxResults.cube.minBug;
+	var maxBug = maxResults.cube.maxBug;
+	if (!isFinite(minBug)) {
+		minBug = yield (ETL.getMaxBugID());
+		maxBug = minBug;
 	}//endif
 //Log.warning("minbug set to 750000");
 //minBug=750000;
 
 	if (etl.resume) yield (etl.resume());
 
-	var toBatch=aMath.floor(minBug/etl.BATCH_SIZE);
+	var toBatch = aMath.floor(minBug / etl.BATCH_SIZE);
 
-	yield (ETL.insertBatches(etl, 0, toBatch, aMath.floor(maxBug/etl.BATCH_SIZE)));
+	yield (ETL.insertBatches(etl, 0, toBatch, aMath.floor(maxBug / etl.BATCH_SIZE)));
 
 	if (etl.postMarkup) yield (etl.postMarkup());
 
@@ -186,15 +182,15 @@ ETL.resumeInsert=function*(etl){
 
 
 //SET THE etl.newIndexName TO THE INDEX BEING USED BY etl.destination.alias
-ETL.getCurrentIndex=function*(etl){
+ETL.getCurrentIndex = function*(etl) {
 
 	var data = yield(Rest.get({url: etl.destination.host + "/_aliases"}));
 	Log.note(data);
 	var keys = Object.keys(data);
-	for(var k = keys.length; k--;){
+	for (var k = keys.length; k--;) {
 		var name = keys[k];
 		if (!name.startsWith(etl.destination.alias)) continue;
-		if (Object.keys(data[name].aliases).length > 0){
+		if (Object.keys(data[name].aliases).length > 0) {
 			etl.newIndexName = name;
 		}//endif
 	}//for
@@ -203,45 +199,45 @@ ETL.getCurrentIndex=function*(etl){
 
 
 //UPDATE BUG_TAGS THAT MAY HAVE HAPPENED AFTER startTime
-ETL.incrementalInsert=function*(etl){
+ETL.incrementalInsert = function*(etl) {
 
 	yield (ETL.getCurrentIndex(etl));
-	if (etl.newIndexName===undefined) Log.error("No index found! (Initial ETL not completed?)");
-	var startTime=yield (etl.getLastUpdated());
+	if (etl.newIndexName === undefined) Log.error("No index found! (Initial ETL not completed?)");
+	var startTime = yield (etl.getLastUpdated());
 
 	if (etl.resume) yield (etl.resume());
 
 
 	//FIND RECENTLY TOUCHED BUGS
-	var a=Log.action("Get changed bugs", true);
-	var data=yield (ESQuery.run({
-		"from":"bugs",
-		"select":{"name":"bug_id", "value":"bug_id", "aggregate":"count"},
-		"edges":[
-			{"name":"bug_ids", "value":"bug_id"}
+	var a = Log.action("Get changed bugs", true);
+	var data = yield (ESQuery.run({
+		"from": "bugs",
+		"select": {"name": "bug_id", "value": "bug_id", "aggregate": "count"},
+		"edges": [
+			{"name": "bug_ids", "value": "bug_id"}
 		],
-		"esfilter":{
-			"range":{"modified_ts":{"gte":startTime.addHour(-4).getMilli()}}
+		"esfilter": {
+			"range": {"modified_ts": {"gte": startTime.addHour(-4).getMilli()}}
 		}
 	}));
 	Log.actionDone(a);
 
 
-	var buglist=data.edges[0].domain.partitions.map(function(v,i){
+	var buglist = data.edges[0].domain.partitions.map(function (v, i) {
 		return v.value;
 	});
-	Log.note(buglist.length+" bugs found: "+JSON.stringify(buglist));
+	Log.note(buglist.length + " bugs found: " + JSON.stringify(buglist));
 	//FIND EXISTING RECORDS FOR THOSE BUGS
 
 	//GET NEW RECORDS FOR THOSE BUGS
-	var batches=buglist.groupBy(etl.BATCH_SIZE);
-	for(var b=0;b<batches.length;b++){
-		a=Log.action("get changed bugs", true);
-		var batch=batches[b].values;
-		var bugSummaries=yield (etl.get(batch, null));
+	var batches = buglist.groupBy(etl.BATCH_SIZE);
+	for (var b = 0; b < batches.length; b++) {
+		a = Log.action("get changed bugs", true);
+		var batch = batches[b].values;
+		var bugSummaries = yield (etl.get(batch, null));
 		Log.actionDone(a);
 
-		a=Log.action("insert changed bugs", true);
+		a = Log.action("insert changed bugs", true);
 		yield (etl.insert(bugSummaries));
 		Log.actionDone(a);
 	}//for
@@ -252,31 +248,31 @@ ETL.incrementalInsert=function*(etl){
 };
 
 
-ETL.insertBatches=function*(etl, fromBatch, toBatch, maxBatch){
-	if (aMath.isNaN(toBatch)) toBatch=1000000;
-	if (aMath.isNaN(maxBatch)) maxBatch=1000000;
+ETL.insertBatches = function*(etl, fromBatch, toBatch, maxBatch) {
+	if (aMath.isNaN(toBatch)) toBatch = 1000000;
+	if (aMath.isNaN(maxBatch)) maxBatch = 1000000;
 
-	for(var b=toBatch;b>=fromBatch;b--){
-		var data=yield (etl.get(b*etl.BATCH_SIZE, (b+1)*etl.BATCH_SIZE));
-		if (data instanceof Array && data.length==0) continue;
+	for (var b = toBatch; b >= fromBatch; b--) {
+		var data = yield (etl.get(b * etl.BATCH_SIZE, (b + 1) * etl.BATCH_SIZE));
+		if (data instanceof Array && data.length == 0) continue;
 		yield (etl.insert(data));
-		Log.note("Done batch "+b+"/"+maxBatch+" (from "+(b*etl.BATCH_SIZE)+" to "+((b+1)*etl.BATCH_SIZE)+") into "+etl.newIndexName);
+		Log.note("Done batch " + b + "/" + maxBatch + " (from " + (b * etl.BATCH_SIZE) + " to " + ((b + 1) * etl.BATCH_SIZE) + ") into " + etl.newIndexName);
 	}//for
 };//method
 
 
 //insert MUST BE AN ARRAY OF STRINGS WHICH WILL BE CONCATENATED WITH \n AND
 //LIMITED TO 10MEG CHUNKS AND SENT TO insertFunction FOR PROCESSING
-ETL.chunk=function*(insert, insertFunction){
+ETL.chunk = function*(insert, insertFunction) {
 //ES HAS 100MB LIMIT, BREAK INTO SMALLER CHUNKS
-	var threads=[];
+	var threads = [];
 
-	if (insert.length==0) yield(null);
+	if (insert.length == 0) yield(null);
 	var bytes = 0;
 	var e = insert.length;
-	for(var s = insert.length; s -= 2;){
+	for (var s = insert.length; s -= 2;) {
 		bytes += insert[s].length + insert[s + 1].length + 2;
-		if (bytes > 5 * 1024 * 1024){//STOP AT 10 MEGS
+		if (bytes > 5 * 1024 * 1024) {//STOP AT 10 MEGS
 			s += 2;	//NOT THE PAIR THAT PUT IT OVER
 
 			var data = insert.substring(s, e).join("\n") + "\n";
@@ -290,28 +286,28 @@ ETL.chunk=function*(insert, insertFunction){
 	data = insert.substring(0, e).join("\n") + "\n";
 	threads.push(Thread.run("insert some data", insertFunction(data)));
 
-	for(var t=threads.length;t--;){
+	for (var t = threads.length; t--;) {
 		yield (Thread.join(threads[t]));
 	}//for
 
 };
 
-ETL.parseWhiteBoard=function(whiteboard){
-	if (whiteboard==null || whiteboard===undefined)
+ETL.parseWhiteBoard = function (whiteboard) {
+	if (whiteboard == null || whiteboard === undefined)
 		return "";
-	return whiteboard.split("[").map(function(v, i){
-		var index=v.indexOf("]");
-		if (index==-1) index=v.indexOf(" ");
-		if (index==-1) index=v.length;
+	return whiteboard.split("[").map(function (v, i) {
+		var index = v.indexOf("]");
+		if (index == -1) index = v.indexOf(" ");
+		if (index == -1) index = v.length;
 		return v.substring(0, index).trim().toLowerCase();
 	}).join(" ");
 };
 
 
 // GET THE cf_* FLAGS FROM THE bug_history DOCUMENTS
-ETL.getFlags=function(){
+ETL.getFlags = function () {
 	var getFlags = "var _cf_ = \"\";\n";
-	ETL.allFlags.map(function(v){
+	ETL.allFlags.map(function (v) {
 		getFlags += "_cf_+=getFlagValue(" + MVEL.Value2MVEL(v) + ");\n";
 //		getFlags += "if (" + v + "\"]!=null && " + v + "\"].value!=null) output+=\" " + v + "\"+" + v + "\"].value.trim();\n";
 	});
