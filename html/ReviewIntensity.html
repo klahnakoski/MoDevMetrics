@@ -71,13 +71,14 @@ importScript([
 		var sampleMin=Date.newInstance(GUI.state.sampleMin);//.floor(sampleInterval);
 		var sampleMax=sampleMin.add(Date.newInstance(GUI.state.sampleMax).add(sampleInterval).subtract(sampleMin, sampleInterval).floor(sampleInterval));
 
-		var mainFilter={"and":[
-				{"range":{"request_time":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}}
-			]};
+		var mainFilter = {"and": [
+			{"range": {"request_time": {"gte": sampleMin.getMilli() - Duration.WEEK.milli * 18, "lt": sampleMax.getMilli()}}},
+			{"terms": {"request_type": ["review", "superreview"]}}
+		]};
 
 		var requesteeList=ESQuery.TrueFilter;
 		if (GUI.state.requestee.trim().length>0){
-			requesteeList={"terms":{"reviewer": GUI.state.requestee.split(",").map(function(v){return v.trim();})}};
+			requesteeList={"terms":{"reviewer": GUI.state.requestee.split(",").map(String.trim)}};
 			mainFilter.and.push(requesteeList);
 		}//endif
 		GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
@@ -136,7 +137,7 @@ importScript([
 
 			var stats=(yield (Q({
 				"from":
-					yield (Qb.Cube2List(df)),
+					(yield (Qb.Cube2List(df))),
 				"select": [
 					{"name":"total", "value":"count", "aggregate":"sum"},
 					{"name":"under_24_hours", "value":"(wait_time!=null && wait_time.milli<"+Duration.newInstance('24hour').milli+") ? count : 0", "aggregate":"sum"},
@@ -217,18 +218,21 @@ importScript([
 			"select":[
 //				{"name":"bug_id", "value":"reviews.bug_id"},
 //				{"name":"attach_id", "value":"reviews.attach_id"},
-				{"name":"wait_time_over_day", "value":"(coalesce(reviews.review_time, "+Date.eod().getMilli()+")-reviews.request_time > "+Duration.MILLI_VALUES.day+") ? 1 : 0"},
-				{"name":"wait_time", "value":"coalesce(reviews.review_time, "+Date.eod().getMilli()+")-reviews.request_time"},
-				{"name":"request_time", "value":"reviews.request_time"},
-				{"name":"review_time", "value":"coalesce(reviews.review_time,"+Date.eod().getMilli()+")"}
+				{"name":"wait_time_over_day", "value":"(coalesce(review_time, "+Date.eod().getMilli()+")-request_time > "+Duration.MILLI_VALUES.day+") ? 1 : 0"},
+				{"name":"wait_time", "value":"coalesce(review_time, "+Date.eod().getMilli()+")-request_time"},
+				{"name":"request_time", "value":"request_time"},
+				{"name":"review_time", "value":"coalesce(review_time,"+Date.eod().getMilli()+")"}
 			],
-			"esfilter":{"and":[
-				{"script":{"script":	//NO NEED TO CONSIDER THE MINI-REVIEWS
-					MVEL.FUNCTIONS.coalesce+
-					"(coalesce(_source.review_time, "+Date.eod().getMilli()+")-_source.request_time > "+Duration.MILLI_VALUES.day+") ? 1 : 0;"
+			"esfilter": {"and": [
+				{"script": {"script":	//NO NEED TO CONSIDER THE MINI-REVIEWS
+					MVEL.compile.expression(
+						"(coalesce(review_time, " + Date.eod().getMilli() + ") - request_time > " + Duration.MILLI_VALUES.day + ") ? 1 : 0;",
+						{"from": "reviews"}
+					)
 				}},
 				requesteeList,
-				{"range":{"request_time":{"lt":sampleMax.getMilli()}}},
+
+				{"range": {"request_time":{"lt":sampleMax.getMilli()}}},
 				{"or":[
 					{"range":{"review_time":{"gte":sampleMin.getMilli()}}}, //REVIEWED AFTER THE min
 					{"missing":{"field":"review_time"}}						//...OR NEVER REVIEWED
