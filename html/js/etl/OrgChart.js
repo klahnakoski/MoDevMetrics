@@ -87,7 +87,7 @@ importScript("ETL.js");
 			"settings": {
 				//ORG CHART IS SO SMALL, IT WILL HAVE EMPTY SHARDS IF THERE ARE TOO MANY
 				"index.number_of_shards": 1,
-				"index.number_of_replicas": 0,
+				"index.number_of_replicas": 2,
 				"index.routing.allocation.total_shards_per_node": 1
 			},
 			"mappings": {"person": {
