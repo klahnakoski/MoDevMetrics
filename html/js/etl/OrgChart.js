@@ -103,11 +103,11 @@ importScript("ETL.js");
 		};
 
 		var data = yield (Rest.post({
-			"url": OrgChart.destination.host + "/" + OrgChart.newIndexName,
+			"url": joinPath(OrgChart.destination.host, OrgChart.newIndexName),
 			"data": setup
 		}));
 
-		OrgChart.destination.path = OrgChart.newIndexName + "/" + OrgChart.destination.path.trim("/").split("/")[1];
+		OrgChart.destination.path = joinPath(OrgChart.newIndexName, OrgChart.destination.path.trim("/").split("/")[1]);
 
 		Log.note(data);
 

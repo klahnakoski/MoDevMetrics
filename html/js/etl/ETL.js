@@ -38,7 +38,7 @@ ETL.removeOldIndexes = function*(etl) {
 	var keys = Object.keys(data);
 	for (var k = keys.length; k--;) {
 		var name = keys[k];
-		if (!name.startsWith(etl.destination.alias)) continue;
+		if (!name.match(new RegExp(etl.destination.alias+"\\d{6}_\\d{6}"))) continue;
 		if (name == etl.newIndexName) continue;
 
 		if (etl.newIndexName === undefined) {
@@ -56,14 +56,14 @@ ETL.removeOldIndexes = function*(etl) {
 				continue;
 			} else if (name > etl.oldIndexName) {
 				//DELETE VERY OLD INDEX
-				yield (Rest["delete"]({url: etl.destination.host + "/" + etl.oldIndexName}));
+				yield (Rest["delete"]({url: joinPath(etl.destination.host, etl.oldIndexName)}));
 				etl.oldIndexName = name;
 				continue;
 			}//endif
 		}//endif
 
 		//OLD, REMOVE IT
-		yield (Rest["delete"]({url: etl.destination.host + "/" + name}));
+		yield (Rest["delete"]({url: joinPath(etl.destination.host, name)}));
 	}//for
 };
 
@@ -150,7 +150,7 @@ ETL.resumeInsert = function*(etl) {
 
 	//GET THE MAX AND MIN TO FIND WHERE TO START
 	var maxResults = yield(ESQuery.run({
-		"url": etl.destination.host + "/" + destination.path.trim("/"),
+		"url": joinPath(etl.destination.host, destination.path),
 		"from": etl.destination.alias,
 		"select": [
 			{"name": "maxBug", "value": "bug_id", "aggregate": "maximum"},

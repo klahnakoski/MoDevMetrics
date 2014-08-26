@@ -105,7 +105,7 @@ importScript(["modevlib/main.js"], function(){
 			try{
 				var v=fixed.list[i];
 				var output=yield (Rest.get({
-					url: host+path+"/"+v._id,
+					url: joinPath(host, path, v.id),
 					dataType: "json"
 				}));
 				output._source._id=v._id;

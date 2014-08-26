@@ -29,7 +29,7 @@ ElasticSearch.search=function*(index, esquery){
 
 ElasticSearch.setRefreshInterval=function*(destination, rate){
 	var data=yield (Rest.put({
-		"url": destination.host.trim("/")+"/"+destination.path.trim("/").split("/")[0]+"/_settings",
+		"url": joinPath(destination.host, destination.path, "_settings"),
 		"data":{"index":{"refresh_interval":"1s"}}
 	}));
 	Log.note("Refresh Interval to "+rate+": "+CNV.Object2JSON(data));
@@ -41,7 +41,7 @@ ElasticSearch.setRefreshInterval=function*(destination, rate){
 ElasticSearch.bulkInsert=function*(destination, dataArray){
 //	try{
 		yield (Rest.post({
-			"url":destination.host.trim("/")+"/"+destination.path.trim("/")+"/_bulk",
+			"url":joinPath(destination.host, destination.path, "_bulk"),
 			"data":dataArray.join("\n")+"\n",
 			dataType: "text"
 		}));

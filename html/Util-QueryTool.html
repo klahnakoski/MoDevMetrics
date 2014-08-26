@@ -116,7 +116,7 @@
 				eval("query=" + code);
 				var url=$("#index").val();
 				if (url.trim()!=""){
-					query.url=url+"/"+query.from;
+					query.url=joinPath(url, query.from);
 				}
 				yield(ESQuery.loadColumns(query));
 				cubeQuery = new ESQuery(query);

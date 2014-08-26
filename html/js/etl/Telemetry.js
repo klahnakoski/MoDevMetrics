@@ -76,7 +76,7 @@ Telemetry.makeSchema=function(){
 	Telemetry.newIndexName=Telemetry.aliasName+Date.now().format("yyMMdd_HHmmss");
 
 	var data=yield (Rest.post({
-		"url":ElasticSearch.pushURL+"/"+Telemetry.newIndexName,
+		"url":joinPath(ElasticSearch.pushURL, Telemetry.newIndexName),
 		"data":{"mappings":{"data": TelemetrySchema}}
 	}));
 	Log.note(data);
@@ -102,7 +102,7 @@ Telemetry.makeSchema=function(){
 		}//endif
 
 		//OLD, REMOVE IT
-		yield (Rest["delete"]({url: ElasticSearch.pushURL+"/"+name}));
+		yield (Rest["delete"]({url: joinPath(ElasticSearch.pushURL, name)}));
 	}//for
 
 };
@@ -117,7 +117,7 @@ Telemetry.insert=function(people){
 	});
 
 	var a=Log.action("Push people to ES", true);
-	var destination = {"host": "", "path": Telemetry.newIndexName + "/" + Telemetry.typeName};
+	var destination = {"host": "", "path": joinPath(Telemetry.newIndexName, Telemetry.typeName)};
 	var results = yield (ElasticSearch.bulkInsert(destination, insert));
 	Log.note(CNV.Object2JSON(CNV.JSON2Object(results)));
 
