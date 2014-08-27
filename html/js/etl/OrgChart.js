@@ -60,7 +60,10 @@ importScript("ETL.js");
 
 			//HERE WE JUST RETURN THE LOCAL COPY
 			people = OrgChart.people.map(function (v, i) {
-				return {"id": v.dn, "name": v.cn, "manager": v.manager ? v.manager.dn : null, "email": v.bugzillaemail};
+				var emails = Array.union(v.emailalias, [v.bugzillaemail], [v.mail]).map(function(v){
+					return v.split(" ")[0].lower();  //REMOVE STUFF AFTER SPACES
+				});
+				return {"id": v.dn, "name": v.cn, "manager": v.manager ? v.manager.dn : null, "email": emails};
 			});
 
 			Log.note(people.length + " people found")
@@ -96,7 +99,7 @@ importScript("ETL.js");
 				"properties": {
 					"id": {"type": "string", "store": "yes", "index": "not_analyzed"},
 					"name": {"type": "string", "store": "yes", "index": "not_analyzed"},
-					"manager": {"type": "string", "store": "yes", "index": "not_analyzed", "null_value": "null"},
+					"manager": {"type": "string", "store": "yes", "index": "not_analyzed"},
 					"email": {"type": "string", "store": "yes", "index": "not_analyzed"}
 				}
 			}}
@@ -121,6 +124,8 @@ importScript("ETL.js");
 		var uid = Util.GUID();
 		var insert = [];
 		people.forall(function (r, i) {
+			if (r.id===undefined)
+				return;
 			insert.push(JSON.stringify({ "create": { "_id": uid + "-" + i } }));
 			insert.push(JSON.stringify(r));
 		});
