@@ -2,7 +2,7 @@
 Mozilla Developer Metrics
 =========================
 
-The current branch is [ES6](https://github.com/klahnakoski/MoDevMetrics/tree/es6)
+The current branch is [dev](https://github.com/klahnakoski/MoDevMetrics/tree/dev)
 ---------------------------------------------------------------------------------
 
 Objective
