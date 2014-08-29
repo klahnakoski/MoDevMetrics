@@ -267,7 +267,7 @@ function restOfCharting(env){
 		////////////////////////////////////////////////////////////////////////////
 		var a = Log.action("Get buglist", true);
 		var bugs = yield (ESQuery.run({
-			"from":"bugs",
+			"from":"private_bugs",
 			"select":[
 				"bug_id",
 				"short_desc",
@@ -286,12 +286,12 @@ function restOfCharting(env){
 		var details = yield (Qb.calc2List({
 			"from":bugs,
 			"select":[
-				{"name":"bug_id", "value":"new HTML(Bugzilla.linkToBug(bug_id))"},
+				{"name":"bug_id", "value":"Bugzilla.linkToBug(bug_id)"},
 				{"name":"Summary", "value":"short_desc"},
 				{"name":"Owner", "value":"assigned_to"},
 				{"name":"Status", "value":"bug_status + (resolution ? ' - '+resolution : '')"}
 			],
-			"sort":["Status", "bug_id"]
+			"sort":["Status"]
 		}));
 
 		$("#buglist").html(CNV.List2HTMLTable(details));
@@ -469,7 +469,7 @@ $(document).ready(function(){
 				"sampleMin=Date.newInstance(sampleMin).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
 				"sampleMax=Date.newInstance(sampleMax).ceiling(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')"
 			],
-		"bugs",
+		"private_bugs",
 		false
 	);
 
