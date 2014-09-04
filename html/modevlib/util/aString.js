@@ -159,10 +159,13 @@ function isString(value){
 
 
 function joinPath(){
-	var output=[];
+	var output = [];
 	output.append(arguments[0].rtrim("/"));
-	for(var i=1;i<arguments.length;i++){
-		output.append(arguments[i].trim("/"))
+	for (var i = 1; i < arguments.length; i++) {
+		var a = arguments[i];
+		if (a !== undefined && a != null) {
+			output.append(arguments[i].trim("/"))
+		}//endif
 	}//for
 	return output.join("/");
-}
+}//method
