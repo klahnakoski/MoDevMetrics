@@ -1007,6 +1007,7 @@ Qb.merge=function(query){
 ////////////////////////////////////////////////////////////////////////////////
 //TAKE data LIST OF OBJECTS AND ENSURE names ARE ORDERED
 Qb.sort = function(data, sortOrder, columns){
+	sortOrder = Array.newInstance(sortOrder);
 	if (sortOrder.length==0) return data;
 	var totalSort = Qb.sort.compile(sortOrder, columns, true);
 	try{
@@ -1044,8 +1045,14 @@ Qb.sort.compile=function(sortOrder, columns, useNames){
 			Log.warning("what?");
 		}//endif
 
-		if (MVEL.isKeyword(col.name)){
-			var index=useNames ? splitField(col.name).map(function(v){return CNV.String2Quote(v);}).join("][") : col.columnIndex;
+
+		var index;
+		if (!useNames){
+			index = col.columnIndex;
+		}else if (MVEL.isKeyword(col.name)){
+			index=splitField(col.name).map(function(v){return CNV.String2Quote(v);}).join("][");
+		}else if (columns.select("name").contains(col.name)){
+			index=CNV.String2Quote(col.name);
 		}else{
 			Log.error("Can not handle");
 		}//endif

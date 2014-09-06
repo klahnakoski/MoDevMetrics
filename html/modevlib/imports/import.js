@@ -362,25 +362,6 @@ var importScript;
 			graph[e.import].children.push(e.file);
 			graph[e.file].indegrees += 1;
 		}//for
-		if (DEBUG){
-			Log.note(
-				"Graph\n"+
-				(function(){
-					var output = [];
-					var keys = Object.keys(graph);
-					for (var i = keys.length; i--;) {
-						var parent = keys[i];
-						var children = graph[parent].children;
-
-						for (var j = children.length; j--;) {
-							output.push(parent + "\t" + children[j])
-						}//for
-					}//for
-					return output.join("\n");
-				})()
-			);
-		}//endif
-
 		var numberOfNodes = Object.keys(graph).length;
 		processList();
 

@@ -33,6 +33,29 @@ Hierarchy.fromList=function(args){
 		}//endif
 	});
 
+	//WE MAY HAVE CYCLES!! (REMOVE CYCLES UP TO 2 IN LENGTH)
+	var deleteMe=[];
+	Map.forall(childList, function(parent, children){
+		children.forall(function(child){
+			if (child.id==parent){
+				deleteMe.append([parent, child]);
+				return;
+			}//endif
+
+			var grandchildren = childList[child.id];
+			if (grandchildren) grandchildren.forall(function(grand){
+				if (grand.id==parent){
+					deleteMe.append([parent, child]);
+				}//endif
+			});
+		});
+	});
+	deleteMe.forall(function(pair){
+		childList[pair[0]]=childList[pair[0]].filter({"not":{"term":{"id":pair[1].id}}});
+	});
+	roots.appendArray(deleteMe.select("1"));
+
+
 	var heir=function(children){
 		children.forall(function(child, i){
 			var grandchildren=childList[child[args.id_field]];
@@ -285,7 +308,7 @@ function* getRawDependencyData(esfilter, dateRange, selects) {
 
     var allSelects = selects.union(["bug_id", "dependson", "bug_status", "modified_ts", "expires_on"]);
 
-    var a = Log.action("Pull dependencies");
+    var a = Log.action("Pull details");
     var raw_data = yield (ESQuery.run(
         {
             "name": "Open Bug Count",
@@ -301,6 +324,7 @@ function* getRawDependencyData(esfilter, dateRange, selects) {
     Log.actionDone(a);
 
     //ORGANIZE INTO DATACUBE: (DAY x BUG_ID)
+	var a = Log.action("Fill raw cube");
     var data = yield (Q(
         {
             "from": raw_data,
@@ -315,6 +339,7 @@ function* getRawDependencyData(esfilter, dateRange, selects) {
             ]
         }
     ));
+	Log.actionDone(a);
 
     //ADDING COLUMNS AS MARKUP
     data.columns.append({"name": "counted"});

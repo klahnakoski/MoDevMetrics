@@ -13,131 +13,155 @@
 	<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 </div>
 <h3>Corrupted Bugs Within the Last Three Months:</h3>
+
 <div id="results">Waiting for results</div>
 <div id="fixes">Waiting for fixes</div>
-
 
 
 <script type="application/javascript">
 
 
-USE_DOT=true;
+USE_DOT = true;
 
 importScript(["modevlib/main.js"], function(){
 
 	//ES CAN BE OUT-OF-SYNCH WITH BZ ON PARTICULAR BUGS DURING UNSTABLE PERIODS
-
 	Thread.run(function*(){
 		var a = Log.action("Find suspicious bugs", true);
 
-		var result=yield (ESQuery.run({
-			"from":"bugs",
-			"select":{"name":"num_null", "value":"expires_on>"+Date.eod().getMilli()+" ? 1 : 0", "aggregate":"sum"},
-			"edges":["bug_id"],
-			"esfilter":{"range":{"modified_ts":{"gte":Date.now().addMonth(-3).getMilli()}}}
+		var bugs = yield (ESQuery.run({
+			"from" : "public_bugs_backend",
+			"select" : {"name" : "count", "value" : "bug_id", "aggregate" : "count"},
+			"edges" : ["bug_id"],
+			"esfilter" : {"range" : {"modified_ts" : {"gte" : Date.now().addWeek(-2).getMilli()}}}
+		}));
+		bugs = bugs.edges[0].domain.partitions.select("value");
+		bugs = [1007019];
+
+		var result = yield (ESQuery.run({
+			"from" : "public_bugs_backend",
+			"select" : {"name" : "num_null", "value" : "bug_id", "aggregate" : "count"},
+			"edges" : ["bug_id"],
+			"esfilter" : {"and" : [
+				{"range" : {"expires_on" : {"gte" : Date.eod().getMilli()}}},
+				{"or" : [
+					{"range" : {"modified_ts" : {"gte" : Date.now().addMonth(-6).getMilli()}}},
+					{"terms" : {"bug_id" : bugs}}
+				]}
+			]}
 		}));
 
-		var numBad=yield (Qb.calc2List({
-			"from":result,
-			"select":[
-				{"name":"bug ID", "value":"bug_id"},
-				{"name":"count(expires_on==null)", "value":"num_null"}
+		var numBad = yield (Qb.calc2List({
+			"from" : result,
+			"select" : [
+				{"name" : "bug ID", "value" : "bug_id"},
+				{"name" : "count(expires_on==null)", "value" : "num_null"}
 			],
-			"where":"num_null!=1"
+			"where" : "num_null!=1"
 		}));
 
-		numBad.list=numBad.list.left(100);
+		numBad.list = numBad.list.left(100);
 		$("#results").html(CNV.List2HTMLTable(numBad));
 		Log.actionDone(a);
 
 
 		a = Log.action("Get suspicious bug details", true);
 		//FIX THEM?
-		var broken=yield (ESQuery.run({
-			"from":"bugs",
-			"select":[
-				{"value":"_id"},
-				{"value":"bug_id"},
-				{"value":"modified_ts"},
-				{"value":"expires_on"},
-				{"value":"bug_version_num"}
+		var broken = yield (ESQuery.run({
+			"from" : "public_bugs_backend",
+			"select" : [
+				{"value" : "_id"},
+				{"value" : "bug_id"},
+				{"value" : "modified_ts"},
+				{"value" : "expires_on"},
+				{"value" : "bug_version_num"}
 			],
-			"esfilter":{"terms":{"bug_id":numBad.list.map(function(v){return v["bug ID"];})}}
+			"esfilter" : {"terms" : {"bug_id" : numBad.list.select("bug ID")}}
 		}));
 		Log.actionDone(a);
 
-        var times = yield(Qb.calc2List({
-            "select":[
-                {"value":"_id"},
-                {"value":"bug_id"},
-                {"value":"modified_ts"},
-                {"name":"expires_on", "value":"Date.newInstance(expires_on)==null ? null : expires_on"},
-                {"value":"bug_version_num"}
-            ],
-            "from":broken,
-            "analytic":{"name":"new_expires_on", "value":"(rownum>=rows.length-1 ? null : rows[rownum+1].modified_ts)", "edges":["bug_id"], "sort":["modified_ts"]}
-        }));
+		var times = yield(Qb.calc2List({
+			"select" : [
+				{"value" : "_id"},
+				{"value" : "bug_id"},
+				{"value" : "modified_ts"},
+				{"name" : "expires_on", "value" : "Date.newInstance(expires_on)==null ? null : expires_on"},
+				{"value" : "bug_version_num"}
+			],
+			"from" : broken,
+			"analytic" : [
+				{"name" : "new_expires_on", "value" : "(rownum>=rows.length-1 ? null : rows[rownum+1].modified_ts)", "edges" : ["bug_id"], "sort" : ["modified_ts"]},
+				{"name" : "new_bug_version_num", "value" : "rownum+1", "edges" : ["bug_id"], "sort" : ["modified_ts"]}
+			]
+		}));
 
-		var fixed=yield (Qb.calc2List({
-			"from": times,
-			"select":[
-				{"value":"_id"},
-				{"value":"bug_id"},
-				{"value":"modified_ts"},
-				{"value":"expires_on"},
-				{"value":"new_expires_on"},
-				{"value":"bug_version_num"}
+		var fixed = yield (Qb.calc2List({
+			"from" : times,
+			"select" : [
+				{"value" : "_id"},
+				{"value" : "bug_id"},
+				{"value" : "modified_ts"},
+				{"value" : "expires_on"},
+				{"value" : "new_expires_on"},
+				{"value" : "bug_version_num"},
+				{"value" : "new_bug_version_num"}
 
 			],
-			"where":"new_expires_on != expires_on",
-			"sort":["expires_on", "new_expires_on"]
+			"where" :
+//				"bug_id==1007019 && " +
+				"(new_expires_on != expires_on || new_bug_version_num!=bug_version_num)",
+			"sort" : ["expires_on", "new_expires_on"]
 		}));
 
 
 		//GET ALL THE SOURCES OF THE BAD RECORDS
 		var a = Log.action("Get bug _source json", true);
-		var sources=[];
+		var sources = [];
 
-		var host = ESQuery.INDEXES["bugs"].host;
-		var path = ESQuery.INDEXES["bugs"].path;
+		var host = ESQuery.INDEXES["public_bugs_backend"].host;
+		var path = ESQuery.INDEXES["public_bugs_backend"].path;
 
-		for(var i=fixed.list.length;i--;){
-			try{
-				var v=fixed.list[i];
-				var output=yield (Rest.get({
-					url: host+path+"/"+v._id,
-					dataType: "json"
+		for (var i = fixed.list.length; i--;) {
+			try {
+				var v = fixed.list[i];
+				var output = yield (Rest.get({
+					url : joinPath(host, path, v._id),
+					dataType : "json"
 				}));
-				output._source._id=v._id;
+				output._source._id = v._id;
 				sources.append(output._source);
-			}catch(e){
-
+			} catch (e) {
+				Log.error("can not get json for {{id}}", {"id" : v._id}, e);
 			}//try
 		}
 		Log.actionDone(a);
 
 		//ASSIGN NEW expires_on
-		var fixer={};
+		var fixer = {};
 		fixed.list.forall(function(v){
-			return fixer[v._id]=v.new_expires_on
+			return fixer[v._id] = {
+				"expires_on" : v.new_expires_on,
+				"bug_version_num" : v.new_bug_version_num
+			}
 		});
 
-		bulk=[];
+		bulk = [];
 		sources.forall(function(s){
-			s.expires_on=fixer[s._id];
-//			if (s.bug_id==902525){
-//			bulk.append(JSON.stringify({ "delete" : { "_id" : s._id } }));
-				bulk.append(JSON.stringify({ "index":{ "_id" : s._id } }));
-				bulk.append(JSON.stringify(s));
-//			}//endif
+			Map.forall(fixer[s._id], function(k, v){
+				s[k] = v;
+			});
+			bulk.append(JSON.stringify({ "index" : { "_id" : s._id } }));
+			bulk.append(JSON.stringify(s));
 		});
 
 		// REMOVE COMMENT TO APPLY FIX
-		a = Log.action("bulk index fixes", true);
-        var paths=ESQuery.INDEXES["bugs"].path.split("/").substring(1);
-		yield (ElasticSearch.bulkInsert(paths[0], paths[1], bulk));
-		Log.actionDone(a);
-
+		if (bulk.length == 0) {
+			Log.note("Nothing to change")
+		} else {
+			a = Log.action("bulk index fixes", true);
+			yield (ElasticSearch.bulkInsert(ESQuery.INDEXES["public_bugs_backend"], bulk));
+			Log.actionDone(a);
+		}//endif
 
 		$("#fixes").html(CNV.List2HTMLTable(fixed));
 
