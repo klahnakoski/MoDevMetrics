@@ -7,6 +7,8 @@ var MozillaPrograms = {
 		"columns": ["projectName", "attributeName", "attributeValue", "esfilter"],
 		"rows": [
 			["e10s Blockers", "cf_tracking_e10s", "+"],
+			["e10s (M2)", "cf_tracking_e10s", "m2+"],
+			["e10s (M3)", "cf_tracking_e10s", "m3+"],
 			["e10s Noms", "cf_tracking_e10s", "?"],
 			["e10s Later", "cf_tracking_e10s", "later"],
 
