@@ -228,19 +228,19 @@ Dimension.prototype = {
 						return {"name": f, "value": f}
 					});
 
-					var a = Log.action("Get parts of " + dim.name, true);
-					var parts = yield (ESQuery.run({
-						"from": dim.index,
-						"select": {"name": "count", "value": "1", "aggregate": "count"},
-						"edges": edges,
-						"esfilter": dim.esfilter,
-						"limit": dim.limit
-					}));
-					Log.actionDone(a);
-
-					var d = parts.edges[0].domain;
-
 					if (dim.path !== undefined) {
+						var a = Log.action("Get parts of " + dim.name, true);
+						var parts = yield (ESQuery.run({
+							"from": dim.index,
+							"select": {"name": "count", "value": "1", "aggregate": "count"},
+							"edges": edges,
+							"esfilter": dim.esfilter,
+							"limit": dim.limit
+						}));
+						Log.actionDone(a);
+
+						var d = parts.edges[0].domain;
+
 						if (edges.length > 1) Log.error("Not supported yet");
 						//EACH TERM RETURNED IS A PATH INTO A PARTITION TREE
 						var temp = {"partitions": []};
@@ -257,6 +257,18 @@ Dimension.prototype = {
 						if (dim.value === undefined) dim.value = "name";
 						dim.partitions = temp.partitions;
 					} else if (edges.length == 1) {
+						var a = Log.action("Get parts of " + dim.name, true);
+						var parts = yield (ESQuery.run({
+							"from": dim.index,
+							"select": {"name": "count", "value": "1", "aggregate": "count"},
+							"edges": edges,
+							"esfilter": dim.esfilter,
+							"limit": dim.limit
+						}));
+						Log.actionDone(a);
+
+						var d = parts.edges[0].domain;
+
 						dim.value = "name";  //USE THE "name" ATTRIBUTE OF PARTS
 
 						//SIMPLE LIST OF PARTS RETURNED, BE SURE TO INTERRELATE THEM
@@ -272,6 +284,18 @@ Dimension.prototype = {
 					} else if (edges.length == 2) {
 						dim.value = "name";  //USE THE "name" ATTRIBUTE OF PARTS
 
+						//TODO: THIS IS REALLY SLOW!!
+						var a = Log.action("Get parts of " + dim.name, true);
+						var parts = yield (ESQuery.run({
+							"from": dim.index,
+							"select": {"name": "count", "value": "1", "aggregate": "count"},
+							"edges": edges,
+							"esfilter": dim.esfilter,
+							"limit": dim.limit
+						}));
+						Log.actionDone(a);
+
+						var d = parts.edges[0].domain;
 						var d2 = parts.edges[1].domain;
 
 						//SIMPLE LIST OF PARTS RETURNED, BE SURE TO INTERRELATE THEM
