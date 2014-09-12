@@ -29,7 +29,8 @@ Dimension.prototype = {
 		if (!this.partitions && this.edges) {
 			//USE EACH EDGE AS A PARTITION, BUT isFacet==true SO IT ALLOWS THE OVERLAP
 			partitions = this.edges.map(function (v, i) {
-				if (i >= nvl(self.limit, DEFAULT_QUERY_LIMIT)) return undefined;
+				if (i >= nvl(self.limit, DEFAULT_QUERY_LIMIT))
+					return undefined;
 				if (v.esfilter === undefined) return;
 				return {
 					"name": v.name,
