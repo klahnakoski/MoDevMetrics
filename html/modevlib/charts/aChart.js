@@ -138,8 +138,6 @@ importScript([
 	"../../lib/ccc/pvc/data/translation/BoxplotChartTranslationOper.js",
 	"../../lib/ccc/pvc/pvcBoxplotPanel.js",
 	"../../lib/ccc/pvc/pvcBoxplotChart.js",
-
-	"../../lib/ccc/data/q01-01.js"
 ]);
 
 
