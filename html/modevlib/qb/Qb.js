@@ -482,10 +482,8 @@ function* setOP(query){
 	var select = Array.newInstance(query.select);
 	var columns = select;
 
-
-
 	for(s = 0; s < select.length; s++){
-		if (typeof(s)=='string') select[s]={"value":s};
+		if (typeof(select[s])=='string') select[s]={"value":s};
 		Qb.column.compile(select[s], sourceColumns, undefined);
 	}//for
 	var where = Qb.where.compile(query.where, sourceColumns, []);

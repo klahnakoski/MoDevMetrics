@@ -1,0 +1,172 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js">
+	</script>
+</HEAD>
+<BODY>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+
+
+<h3 id="header">Project Status Dashboard</h3>
+
+<div id="sidebar" style="width:300px;">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description">Derived from the B2G dashboard<br><br>Filter by your
+		Program, Product and Component to get a specific status on bugs. It will
+		show all bugs with a review pending. Bugs with review complete, but not landed.
+		And, all assigned bugs
+	</div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+<div id="info"></div>
+<div style="float:left;width:800px">
+	<table style="width:100%">
+	<tr>
+		<td id="pending"></td>
+	</tr>
+	<tr>
+		<td id="complete"></td>
+	</tr>
+	<tr style="max-height:800px;overflow-y: scroll;">
+		<td id="open"></td>
+	</tr>
+	</table>
+</div>
+<!--<div style="float:left;position: relative;" id="open"></div>-->
+
+
+<script type="application/javascript">
+
+
+importScript("modevlib/main.js", function(){
+
+	var thread;
+	var createChart = function(){
+		if (thread !== undefined)
+			thread.kill();
+		thread = Thread.run(__createChart());
+	};
+
+	var __createChart = function*(){
+
+		Thread.run(function*(){
+			var a = Log.action("Get bugs with patches", true);
+
+			var bugs = yield (ESQuery.run({
+				"from":"bugs",
+				"select":"_source",
+				"esfilter":{"and":[
+					{"range":{"expires_on":{"gt":Date.eod().getMilli()}}},
+					Mozilla.BugStatus.Open.esfilter,
+					{ "nested": {
+						"path" : "attachments",
+						"query": {
+							"filtered":{
+								"query":{
+									"match_all":{}
+								},
+								"filter":{"and":[
+									{"term":{"attachments.isobsolete" : 0}},
+									{"or":[
+										{"term":{"attachments.ispatch" : 1}},
+										{"terms":{"attachments.flags.request_type" : ["review", "superreview"]}}
+									]}
+								]}
+							}
+						}
+					}},
+					GUI.getFilters("bugs")
+				]}
+			}));
+
+			Log.actionDone(a);
+
+			var pending = yield (Qb.calc2List({
+				"from":bugs,
+				"select":[
+					"bug_id",
+					"modified_ts",
+					"attachments.flags.requestee"
+				],
+				"where":{"and":[
+					{"terms":{"attachments.flags.request_type" : ["review", "superreview"]}},
+					{"term":{"bugs.attachments.ispatch" : 1}},
+					{"term":{"attachments.isobsolete" : 0}},
+					{"or":[
+						{"missing":{"field":"attachments.flags.request_status"}},
+						{"term":{"attachments.flags.request_status":"?"}}
+					]}
+				]}
+			}));
+
+			var a = Log.action("Process Pending", true);
+
+			var result = (yield(Qb.calc2List({
+				"from":
+					pending,
+				"select":[
+					{"name":"numPending", "value":"1", aggregate:"count", "sort":"descending"},
+					{"name":"maxWaitTime", "value":"aMath.round(Date.now().subtract(Date.newInstance(request_time)).divideBy(Duration.DAY), 1)+\"days\"", "aggregate":"maximum"},
+					{"name":"bugs", "value":"bug_id", aggregate:"join", "separator":","}
+				],
+				"edges":[
+					{"name":"requestee", "value":"requestee"}
+				],
+				"sort":[
+					"numPending"
+				]
+			}))).list;
+
+			//ADD LINK TO BUGS
+			result = (yield(Qb.calc2List({
+				"from":result,
+				"select":[
+					{"name":"requestee", "value":"requestee"},
+					{"name":"Number Pending", value:"numPending"},
+					{"name":"Max Wait Time", "value":"maxWaitTime"},
+					{"name":"Bug List", "value":"Bugzilla.linkToBug(bugs)"}
+				]
+			}))).list;
+
+			$("#pending").html("<h3>Pending Review (R?)</h3>" + CNV.List2HTMLTable(result));
+			Log.actionDone(a);
+
+		});
+
+	};//createChart
+
+
+	$(document).ready(function(){
+		GUI.setup(
+			createChart,
+			[
+				{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance(null)}
+			],
+			[],
+			"bugs",
+			true
+		);
+	});
+
+});
+</script>
+
+</BODY>
+</HTML>
