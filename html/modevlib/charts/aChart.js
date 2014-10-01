@@ -257,13 +257,13 @@ aChart.showPie=function(params){
 					other+=v;
 				}//endif
 			});
-			values = Qb.sort(values, {"value:":"value", "sort":-1});
-			if (other > 0) values.append({"name": "Other", "value": other});
-		}else{
+			values = Qb.sort(values, {"value" : "value", "sort" : -1});
+			if (other > 0) values.append({"name" : "Other", "value" : other});
+		} else {
 			values = chartCube.cube.map(function(v, i){
-				values.append({"name":seriesLabels[i], "value":v})
+				return {"name" : seriesLabels[i], "value" : v}
 			});
-			values = Qb.sort(values, {"value:":"value", "sort":-1});
+			values = Qb.sort(values, {"value" : "value", "sort" : -1});
 		}//endif
 	} else if (chartCube.edges.length==2){
 		var aLabels=getAxisLabels(chartCube.edges[0]);
