@@ -36,7 +36,6 @@ importScript(["modevlib/main.js"], function(){
 			"esfilter" : {"range" : {"modified_ts" : {"gte" : Date.now().addWeek(-2).getMilli()}}}
 		}));
 		bugs = bugs.edges[0].domain.partitions.select("value");
-		bugs = [1007019];
 
 		var result = yield (ESQuery.run({
 			"from" : "public_bugs_backend",
@@ -155,13 +154,13 @@ importScript(["modevlib/main.js"], function(){
 		});
 
 		// REMOVE COMMENT TO APPLY FIX
-		if (bulk.length == 0) {
-			Log.note("Nothing to change")
-		} else {
-			a = Log.action("bulk index fixes", true);
-			yield (ElasticSearch.bulkInsert(ESQuery.INDEXES["public_bugs_backend"], bulk));
-			Log.actionDone(a);
-		}//endif
+//		if (bulk.length == 0) {
+//			Log.note("Nothing to change")
+//		} else {
+//			a = Log.action("bulk index fixes", true);
+//			yield (ElasticSearch.bulkInsert(ESQuery.INDEXES["public_bugs_backend"], bulk));
+//			Log.actionDone(a);
+//		}//endif
 
 		$("#fixes").html(CNV.List2HTMLTable(fixed));
 

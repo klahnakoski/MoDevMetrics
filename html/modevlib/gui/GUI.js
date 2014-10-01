@@ -4,12 +4,14 @@
 
 
 importScript([
-		"../../lib/jquery.js",
-		"../../lib/jquery-ui/js/jquery-ui-1.10.2.custom.js",
-		"../../lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css",
-		"../../lib/jquery.ba-bbq/jquery.ba-bbq.js",
-		"../../lib/jquery-linedtextarea/jquery-linedtextarea.css",
-		"../../lib/jquery-linedtextarea/jquery-linedtextarea.js"
+	"../../lib/jquery.js",
+	"../../lib/jquery-ui/js/jquery-ui-1.10.2.custom.js",
+	"../../lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css",
+	"../../lib/jquery.ba-bbq/jquery.ba-bbq.js",
+	"../../lib/jquery-linedtextarea/jquery-linedtextarea.css",
+	"../../lib/jquery-linedtextarea/jquery-linedtextarea.js",
+	"../../lib/jsonlint/jsl.parser.js",
+	"../../lib/jsonlint/jsl.format.js"
 ]);
 
 importScript("Filter.js");

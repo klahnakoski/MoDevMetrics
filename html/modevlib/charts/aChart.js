@@ -138,8 +138,6 @@ importScript([
 	"../../lib/ccc/pvc/data/translation/BoxplotChartTranslationOper.js",
 	"../../lib/ccc/pvc/pvcBoxplotPanel.js",
 	"../../lib/ccc/pvc/pvcBoxplotChart.js",
-
-	"../../lib/ccc/data/q01-01.js"
 ]);
 
 
@@ -741,7 +739,14 @@ aChart.show=function(params){
 //				return "hi there";
 //			}
 		},
-		"colors":styles.map(function(s){return s.color;}),
+		"colors":styles.map(function(s){
+			var c = s.color;
+			if (c.toHTML){
+				return c.toHTML();
+			}else{
+				return c;
+			}//endif
+		}),
 		plotFrameVisible: false,
 		"colorNormByCategory": false,        //FOR HEAT CHARTS
 		extensionPoints: {
@@ -943,7 +948,12 @@ function findDateMarks(part, name){
 	});
 
 	if (name){
-		return output.filter(function(p){return p.name==name;}).first().date;
+		var matches = output.filter(function(p){return p.name==name;});
+		if (matches.length>0){
+			return matches.first().date;
+		}else{
+			return output;
+		}//endif
 	}else{
 		return output;
 	}//endif
@@ -1039,7 +1049,8 @@ function getAxisLabels(axis){
 			} else if (v.milli === undefined){
 				return v.value.toString();
 			} else{
-				return v.toString();
+				return ""+v.divideBy(Duration.DAY);
+//				return v.toString();
 			}//endif
 		});
 	} else if (axis.domain.type == "numeric"){

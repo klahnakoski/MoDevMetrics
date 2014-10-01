@@ -77,6 +77,7 @@ ESQuery.DEBUG = false;
 		"raw_telemetry": {"style":{"color":"black","background-color":yellow}, "host": "http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path": "/raw_telemetry/data"},
 
 		"talos": {"style":{"color":"black","background-color":yellow}, "host": "http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path": "/talos/test_results"},
+		"public_talos": {"style":{"color":"black","background-color":yellow}, "host": "http://67.55.30.33:9201", "path": "/talos/test_results"},
 		"b2g_tests": {"style":{"color":"black","background-color":yellow}, "host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/b2g_tests/results"},
 		"b2g": {"style":{"color":"black","background-color":yellow}, "host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/b2g_tests/results"},
 
@@ -96,6 +97,8 @@ ESQuery.DEBUG = false;
 	ESQuery.INDEXES.bugs.alternate = ESQuery.INDEXES.public_bugs;
 	ESQuery.INDEXES.bug_hierarchy.alternate = ESQuery.INDEXES.public_bug_hierarchy;
 	ESQuery.INDEXES.bug_dependencies.alternate = ESQuery.INDEXES.public_bug_dependencies;
+	ESQuery.INDEXES.talos.alternate=ESQuery.INDEXES.public_talos;
+
 
 })();
 
