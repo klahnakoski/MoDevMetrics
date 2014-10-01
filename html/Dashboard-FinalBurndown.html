@@ -277,7 +277,7 @@ var __createChart = function*(){
 
 
 	//REQUIRED
-	flat.list=yield(Qb.Cube2List(flat));	//FORCE flat.list TO EXIST
+	flat.list=Qb.Cube2List(flat);	//FORCE flat.list TO EXIST
 
 	aChart.addPredictionLine({
 		"source":{

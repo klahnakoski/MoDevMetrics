@@ -80,18 +80,17 @@ Matrix.prototype.forall = function(func, other){
 
 //PROVIDE func(v, i, c, cube) WHERE
 // v - IS A VALUE IN THE CUBE
-// i - IS THE INDEX INTO THE edge
 // c - AN ARRAY OF COORDINATES v IS FOUND AT
 // cube - THE WHOLE CUBE
 // func MUST RETURN A NEW VALUE
-Matrix.prototype.map = function (edge, func) {
+Matrix.prototype.map = function (func) {
 	var data=this.data;
 	var num = this.num;
 	var c = Uint32Array(this.num);
 
 	function iter(v, d) {
 		if (d == num) {
-			return func(v, c[edge], c, data);
+			return func(v, c, data);
 		} else {
 			var output=[];
 			for (var j = 0; j < v.length; j++) {

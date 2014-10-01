@@ -137,7 +137,7 @@ importScript([
 
 			var stats=(yield (Q({
 				"from":
-                    (yield (Qb.Cube2List(df))),
+                    Qb.Cube2List(df),
 				"select": [
 					{"name":"total", "value":"count", "aggregate":"sum"},
 					{"name":"under_24_hours", "value":"(wait_time!=null && wait_time.milli<"+Duration.newInstance('24hour').milli+") ? count : 0", "aggregate":"sum"},

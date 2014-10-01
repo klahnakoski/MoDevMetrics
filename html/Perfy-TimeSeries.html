@@ -248,7 +248,7 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Perfy.js'], function(){
 			maxScore=aMath.niceCeiling(max);
 
 			//DUE TO INCOMPLETE Q(), I MUST
-			range.list = yield(Qb.Cube2List(range, {"useStruct":true}));
+			range.list = Qb.Cube2List(range, {"useStruct":true});
 
 			aChart.showScatter({
 				"id":"chart"+i,

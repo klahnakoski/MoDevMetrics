@@ -82,16 +82,18 @@ importScript([
 				{"terms" : {"reviewer" : Array.union(persons.select("email"))}}
 			]}
 		}));
-		var ordered = (yield(Q.Cube2List(ordering))).sort({"value":"count", "sort":-1});
+		var ordered = Qb.sort(Qb.Cube2List(ordering), {"value":"count", "sort":-1});
 
 
 
 		//FOR EACH PERSON
-		ordered.forEach(function(person){
+		var scale=[];
+		ordered.select("reviewer").forall(function(person, p){
+			var pi=p;
 			addPerson(person);
 
 			//SHOW PAST REVIEWS
-			Thread.run(function*(){
+			var pastThread = Thread.run(function*(){
 				var response = yield (ESQuery.run({
 					"from" : "reviews",
 					"select" : {"name" : "count", "value" : "bug_id", "aggregate" : "count"},
@@ -107,14 +109,16 @@ importScript([
 					]}
 				}));
 
+				scale[pi] = aMath.max(aMath.niceCeiling(aMath.MAX(response.cube)), 20);
+
 				aChart.show({
 					"id" : person.id + "History",
 					"type" : "bar",
 					"cube" : response,
-					"height" : 100,
+					"height" : 3*scale[pi]+40,
 					"width" : 400,
 					"xAxisSize" : 40,
-					"orthoAxisFixedMax" : scale
+					"orthoAxisFixedMax" : scale[pi]
 				});
 			});
 
@@ -130,7 +134,7 @@ importScript([
 					"esfilter" : {"and" : [
 						{"or" : [
 							{"missing" : {"field" : "review_time"}},
-							{"range" : {"review_time" : {"gte" : timeDomain.max.getMilli(), "lt" : Date.eod().getMilli()}}},
+							{"range" : {"review_time" : {"gte" : timeDomain.max.getMilli(), "lt" : Date.eod().getMilli()}}}
 						]},
 						{"terms" : {"reviewer" : person.email}}
 					]}
@@ -141,21 +145,25 @@ importScript([
 					"select" : {"name":"count", "value" : "bug_id", "aggregate" : "count", "default":0},
 					"edges" : [
 						{"name" : "status", "value" : "review_time==null ? 'pending' : 'done'"},
-						{"name":".", "value":"''"}
+						{"name":"this week", "value":CNV.String2Quote(timeDomain.max.format("MM/dd"))}
 					]
 				}));
 
-				aChart.show({
-					"id" : person.id + "Current",
-					"type" : "bar",
-					"stacked" : true,
-					"cube" : thisWeekCount,
-					"height" : 100,
-					"width" : 100,
-					"xAxisSize" : 40,
-					"legend": false,
-					"orthoAxisFixedMax" : scale
-				});
+				pastThread.join();
+
+				if (aMath.SUM(thisWeekCount.cube.select(0))>0){
+					aChart.show({
+						"id" : person.id + "Current",
+						"type" : "bar",
+						"stacked" : true,
+						"cube" : thisWeekCount,
+						"height" : scale[pi]*3+40,
+						"width" : 100,
+						"xAxisSize" : 40,
+						"legend": false,
+						"orthoAxisFixedMax" : scale[pi]
+					});
+				}//endif
 
 				//SHOW PENDING BY COMPONENT
 				var thisWeekComponents = yield(Q({
@@ -165,13 +173,20 @@ importScript([
 						"component"
 					]
 				}));
+				//WE DO NOT WANT THE COMPONENTS TO SHARE COLOR WITH THE COUNTS (BUMP BY 2)
+				thisWeekComponents.edges[0].domain.partitions.forall(function(p, i){
+					p.style = aChart.DEFAULT_STYLES[(i + 2) % aChart.DEFAULT_STYLES.length]
+				});
 
-				if (thisWeekComponents.edges[0].domain.partitions.length>1){
+
+				if (thisWeekComponents.edges[0].domain.partitions.length>0){
 					aChart.showPie({
 						"id" : person.id + "Components",
 						"cube" : thisWeekComponents,
-						"height" : 150,
-						"minPercent":0.07
+						"height" : Math.min(Math.sqrt(aMath.SUM(thisWeekComponents.cube))*30, 150),
+						"minPercent":0.07,
+						"otherStyle":{"color":"lightgray"},
+						"legendPaddings":0
 					});
 				}//endif
 
@@ -186,7 +201,7 @@ importScript([
 
 	function addPerson(person){
 		var template=
-			'<tr><td height="150px"><table>' +
+			'<tr><td height="130px"><table>' +
 				'<tr >' +
 				'<td height="30px" colspan="2"><h3>{{name}}</h3></td>'+
 				'</tr>'+
@@ -195,7 +210,7 @@ importScript([
 				'<td height="100px" id="{{id}}Current"></td>' +
 				'</tr>'+
 			'</table></td>' +
-			'<td height="130px" id="{{id}}Components"></td>' +
+			'<td style="height:130px;position: relative;"><div style="position: bottom;" id="{{id}}Components"></div></td>' +
 			'</tr>'
 		;
 
