@@ -151,6 +151,25 @@ TeamFilter.prototype.getSelectedPeople=function*(){
 	yield selected;
 };//method
 
+TeamFilter.prototype.getAllSelectedPeople = function*(){
+	var selected = yield(this.getSelectedPeople());
+	if (selected.length == 0){
+		yield [];
+		return
+	}//endif
+
+	//FIND BZ EMAILS THAT THE GIVEN LIST MAP TO
+	var output=[];
+	var getEmail=function(children){
+		children.forall(function(child, i){
+			output.append(child);
+			if (child.children)
+				getEmail(child.children);
+		});
+	};//method
+	getEmail(selected);
+	yield output;
+};//method
 
 
 //RETURN SOMETHING SIMPLE ENOUGH TO BE USED IN A URL

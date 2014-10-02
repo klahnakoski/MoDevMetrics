@@ -26,8 +26,8 @@
 	<div id="filters" class="menu"></div>
 </div>
 
-<table id="people">
-	<tr><td colspan="3"><h3>Incoming Reviews by Individual</h3></td></tr>
+<h3>Incoming Reviews by Individual</h3>
+<table id="people" style="width:850px">
 </table>
 
 <script type="application/javascript">
@@ -44,26 +44,22 @@ importScript([
 	};
 
 	var __createChart = function*(){
-
+		$("#people").html("");
 		var scale=20;
 		var sampleMax = Date.now().floor(Duration.WEEK);
 		var sampleMin = sampleMax.subtract(Duration.newInstance("6week"));
 		var timeDomain = {"type":"time", "min" : sampleMin, "max" : sampleMax, "interval" : Duration.WEEK};
 
-		var teams = GUI.state.teamFilter.getSimpleState().split(",");
+//		var teams = GUI.state.teamFilter.getSimpleState().split(",");
 		var persons = [];
 		var email2person={};
-		GUI.state.teamFilter.people.forEach(function(p){
-			teams.forEach(function(t){
-				if (p.manager==t){
-					p=Map.copy(p);
-					p.id=p.id.deformat();
-					p.email=Array.newInstance(p.email);
-					persons.append(p);
-					p.email.forEach(function(e){
-						email2person[e]=p
-					});
-				}//endif
+		(yield(GUI.state.teamFilter.getAllSelectedPeople())).forall(function(p){
+			p=Map.copy(p);
+			p.id=p.id.deformat();
+			p.email=Array.newInstance(p.email);
+			persons.append(p);
+			p.email.forEach(function(e){
+				email2person[e]=p
 			});
 		});
 
@@ -104,7 +100,7 @@ importScript([
 						}
 					],
 					"esfilter" : {"and" : [
-						{"range" : {"review_time" : {"gte" : timeDomain.min.getMilli(), "lt" : timeDomain.max.getMilli()}}},
+						{"range" : {"review_time" : {"gte" : timeDomain.min.getMilli(), "lt" : timeDomain.max.addWeek().getMilli()}}},
 						{"terms" : {"reviewer" : person.email}}
 					]}
 				}));
@@ -118,7 +114,20 @@ importScript([
 					"height" : 3*scale[pi]+40,
 					"width" : 400,
 					"xAxisSize" : 40,
-					"orthoAxisFixedMax" : scale[pi]
+					"orthoAxisFixedMax" : scale[pi],
+					"clickAction":function(series, x, d, elem){
+						Thread.run(function*(){
+							var bugs = yield (ESQuery.run({
+								"from" : "reviews",
+								"select" : "bug_id",
+								"esfilter" : {"and" : [
+									{"terms" : {"reviewer" : person.email}},
+									{"range" : {"review_time" : {"gte" : x.getMilli(), "lt" : x.addWeek(1).getMilli()}}}
+								]}
+							}));
+							Bugzilla.showBugs(new aSet(bugs.list).getArray());
+						});
+					}
 				});
 			});
 
@@ -140,11 +149,16 @@ importScript([
 					]}
 				}));
 
+				var typeDomain={"type":"set", "key":"name", "partitions":[
+					{"name":"pending", "style":aChart.DEFAULT_STYLES[1]},
+					{"name":"done", "style":aChart.DEFAULT_STYLES[0]}
+				]};
+
 				var thisWeekCount = yield(Q({
 					"from" : thisWeeksReviews,
 					"select" : {"name":"count", "value" : "bug_id", "aggregate" : "count", "default":0},
 					"edges" : [
-						{"name" : "status", "value" : "review_time==null ? 'pending' : 'done'"},
+						{"name" : "status", "value" : "review_time==null ? 'pending' : 'done'", "domain":typeDomain},
 						{"name":"this week", "value":CNV.String2Quote(timeDomain.max.format("MM/dd"))}
 					]
 				}));
@@ -161,7 +175,27 @@ importScript([
 						"width" : 100,
 						"xAxisSize" : 40,
 						"legend": false,
-						"orthoAxisFixedMax" : scale[pi]
+						"orthoAxisFixedMax" : scale[pi],
+						"clickAction":function(series, x, d, elem){
+							Thread.run(function*(){
+								var bugs=[];
+								if (series=="done"){
+									bugs = yield (Q({
+										"from" : thisWeeksReviews,
+										"select" : "bug_id",
+										"where" : {"exists":"review_time"}
+									}));
+								}else{
+									bugs = yield (Q({
+										"from" : thisWeeksReviews,
+										"select" : "bug_id",
+										"where" : {"missing":"review_time"}
+									}));
+								}//endif
+
+								Bugzilla.showBugs(new aSet(bugs.list).getArray());
+							});
+						}
 					});
 				}//endif
 
@@ -184,9 +218,21 @@ importScript([
 						"id" : person.id + "Components",
 						"cube" : thisWeekComponents,
 						"height" : Math.min(Math.sqrt(aMath.SUM(thisWeekComponents.cube))*30, 150),
+						"width": 300,
 						"minPercent":0.07,
 						"otherStyle":{"color":"lightgray"},
-						"legendPaddings":0
+						"legendPaddings":0,
+						"legendSize":100,
+						"clickAction":function(series, x, d, elem){
+							Thread.run(function*(){
+								var bugs = yield (Q({
+									"from" : thisWeeksReviews,
+									"select" : "bug_id",
+									"where":{"term":{"component":x}}
+								}));
+								Bugzilla.showBugs(new aSet(bugs.list).getArray());
+							});
+						}
 					});
 				}//endif
 

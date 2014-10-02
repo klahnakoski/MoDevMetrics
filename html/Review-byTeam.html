@@ -1,0 +1,138 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+<div id="sidebar" style="width:300px;">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<h3>Incoming Reviews by Team</h3>
+<table>
+	<tbody>
+	<tr>
+		<td>
+			<div id="pending" class="chart" style="height:100px;width:600px;"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<div id="reviewers" class="chart" style="height:400px;width:600px;"></div>
+		</td>
+	</tr>
+	</tbody>
+</table>
+
+<script type="application/javascript">
+
+importScript([
+	"modevlib/main.js",
+	"modevlib/util/aTemplate.js"
+], function(){
+	var thread;
+	var createChart = function(){
+		if (thread !== undefined)
+			thread.kill();
+		thread = Thread.run(__createChart());
+	};
+
+	var __createChart = function*(){
+		$("#people").html("");
+		var scale = 20;
+		var sampleMax = Date.now().floor(Duration.WEEK);
+		var sampleMin = sampleMax.subtract(Duration.newInstance("6week"));
+		var timeDomain = {"type" : "time", "min" : sampleMin, "max" : sampleMax, "interval" : Duration.WEEK};
+
+//		var teams = GUI.state.teamFilter.getSimpleState().split(",");
+		var persons = [];
+		var email2person = {};
+		(yield(GUI.state.teamFilter.getAllSelectedPeople())).forall(function(p){
+			p = Map.copy(p);
+			p.id = p.id.deformat();
+			p.email = Array.newInstance(p.email);
+			persons.append(p);
+			p.email.forEach(function(e){
+				email2person[e] = p
+			});
+		});
+
+
+
+
+		var reviewers = yield (ESQuery.run({
+			"from" : "reviews",
+			"select" : {"name" : "count", "value" : "bug_id", "aggregate" : "count"},
+			"edges" : [
+				{"name" : "reviewer", "value" : "reviewer"}
+			],
+			"esfilter" : {"and" : [
+				{"or" : [
+					{"missing" : {"field" : "review_time"}},
+					{"range" : {"review_time" : {"gte" : timeDomain.min.getMilli(), "lt" : timeDomain.max.getMilli()}}}
+				]},
+				{"terms" : {"reviewer" : Array.union(persons.select("email"))}}
+			]}
+		}));
+
+		aChart.show({
+			"id" : "reviewers",
+			"type" : "bar",
+			"cube" : reviewers,
+			"xAxisSize" : 100,
+			"clickAction" : function(series, x, d, elem){
+				Thread.run(function*(){
+					var bugs = yield (ESQuery.run({
+						"from" : "reviews",
+						"select" : "bug_id",
+						"esfilter" : {"and" : [
+							{"terms" : {"reviewer" : x}},
+							{"range" : {"review_time" : {"gte" : timeDomain.min.getMilli(), "lt" : timeDomain.max.getMilli()}}}
+						]}
+					}));
+					Bugzilla.showBugs(new aSet(bugs.list).getArray());
+				});
+			}
+		});
+
+
+	};//__createChart
+
+
+	$(document).ready(function(){
+		GUI.setup(
+			createChart,
+			[
+				{"id" : "teamFilter", "name" : "Team", "type" : TeamFilter.newInstance("reviewer")}
+			],
+			[
+			],
+			"reviews",
+			false);
+	});
+});
+
+
+</script>
+
+
+</BODY>
+</HTML>

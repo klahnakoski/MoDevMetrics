@@ -769,6 +769,7 @@ aChart.show=function(params){
 		yAxisPosition: "right",
 		yAxisSize: 50,
 		xAxisSize: 50,
+		"otherStyle":{"color":"lightgray"},
 		tooltip:{
 //			"format":function(){
 //				return "hi there";

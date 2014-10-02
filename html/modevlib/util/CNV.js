@@ -761,13 +761,13 @@ CNV.esFilter2function=function(esFilter){
 		};
 	}else if (op=="exists"){
 		//"exists":{"field":"myField"}
-		var field = esFilter[op].field;
+		var field = nvl(esFilter[op].field, esFilter[op]);
 		return function(row, i, rows){
 			var val =row[field];
 			return (val!==undefined && val!=null);
 		};
 	}else if (op=="missing"){
-		var field = esFilter[op].field;
+		var field = nvl(esFilter[op].field, esFilter[op]);
 		return function(row, i, rows){
 			var val =row[field];
 			return (val===undefined || val==null);

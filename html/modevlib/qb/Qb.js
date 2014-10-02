@@ -323,9 +323,20 @@ Qb.calc2List = function*(query){
 function* calc2Cube(query){
 	if (query.edges===undefined) query.edges=[];
 
-	if (query.edges.length==0 && Array.newInstance(query.select).length>0){
-		var o=yield (aggOP(query));
-		yield (o);
+	if (query.edges.length==0){
+		var isAgg=false;
+		Array.newInstance(query.select).forall(function(s){
+			if (s.aggregate!==undefined && s.aggregate!="none"){
+				isAgg=true;
+			}//endif
+		});
+		if (isAgg){
+			var oA=yield (aggOP(query));
+			yield (oA);
+		}else{
+			var oS=yield (setOP(query));
+			yield (oS);
+		}//endif
 	}//endif
 
 	yield (calc2Tree(query));
@@ -491,10 +502,10 @@ function* setOP(query){
 	var select = Array.newInstance(query.select);
 	var columns = select;
 
-	for(s = 0; s < select.length; s++){
-		if (typeof(select[s])=='string') select[s]={"value":s};
-		Qb.column.compile(select[s], sourceColumns, undefined);
-	}//for
+	select.forall(function(s, i){
+		if (typeof(s)=='string') select[i]={"value":s};
+		Qb.column.compile(select[i], sourceColumns, undefined);
+	});
 	var where = Qb.where.compile(query.where, sourceColumns, []);
 
 	var output = [];

@@ -264,6 +264,7 @@ Date.prototype.addWeekday = function(value){
 
 
 Date.prototype.addWeek = function(value){
+	if (value===undefined) value=1;
 	var output = new Date(this);
 	output.setUTCDate(this.getUTCDate() + (value * 7));
 	return output;
