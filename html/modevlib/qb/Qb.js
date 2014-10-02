@@ -601,22 +601,22 @@ Qb.Cube2List=function(query, options){
 
 	var m = new Matrix({"data":query.cube});
 
-	var output = null;
+	var output = [];
 	if (query.select instanceof Array){
-		output = m.map(function(v, c){
+		m.forall(function(v, c){
 			var o = Map.copy(v);
 			for(var e=0;e<c.length;e++){
 				o[names[e]]=endFunction[e](parts[e][c[e]]);
 			}//for
-			return o;
+			output.append(o);
 		});
 	}else{
-		output = m.map(function(v, c){
+		m.forall(function(v, c){
 			var o = Map.newInstance(query.select.name, v);
 			for(var e=0;e<c.length;e++){
 				o[names[e]]=endFunction[e](parts[e][c[e]]);
 			}//for
-			return o;
+			output.append(o);
 		});
 	}//endif
 	return output;
