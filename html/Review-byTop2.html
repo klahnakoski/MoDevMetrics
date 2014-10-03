@@ -1,0 +1,242 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+<div id="sidebar" style="width:300px;">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<h3 id="title">Top N Reviewers</h3>
+<table>
+	<tbody>
+	<tr>
+		<td>
+			<div id="pending" class="chart" style="height:200px;width:800px;"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<div id="reviewers" class="chart" style="height:300px;width:800px;"></div>
+		</td>
+	</tr>
+	</tbody>
+</table>
+
+<script type="application/javascript">
+
+importScript([
+	"modevlib/main.js",
+	"modevlib/util/aTemplate.js"
+], function(){
+
+	var MAX_REVIEWERS = 30;
+	var WIDTH = 800;
+
+	$("#title").html("Top "+MAX_REVIEWERS+" Reviewers");
+
+	var thread;
+	var createChart = function(){
+		if (thread !== undefined)
+			thread.kill();
+		thread = Thread.run(__createChart());
+	};
+
+	var __createChart = function*(){
+		$("#people").html("");
+		var scale = 20;
+		var sampleMax = Date.now().floor(Duration.WEEK);
+		var sampleMin = sampleMax.subtract(Duration.newInstance("6week"));
+		var timeDomain = {"type" : "time", "min" : sampleMin, "max" : sampleMax, "interval" : Duration.WEEK};
+
+//		var teams = GUI.state.teamFilter.getSimpleState().split(",");
+		var persons = [];
+		var email2person = {};
+		(yield(GUI.state.teamFilter.getAllSelectedPeople())).forall(function(p){
+			p = Map.copy(p);
+			p.id = p.id.deformat();
+			p.email = Array.newInstance(p.email);
+			persons.append(p);
+			p.email.forEach(function(e){
+				email2person[e] = p
+			});
+		});
+
+		var mainFilter={"terms" : {"reviewer" : Array.union(persons.select("email"))}}
+		if (persons.length==0){
+			mainFilter={"match_all":{}};
+		}//endif
+
+
+		var domain = {"type" : "set", "key" : "name", "isFacet" : true, "partitions" : [
+//			{"name":"pending", "esfilter":{"missing" : {"field" : "review_time"}}},
+			{"name" : "done", "esfilter" : {"and" : [
+				{"exists" : {"field" : "review_time"}},
+				{"range" : {"review_time" : {"gte" : timeDomain.min.getMilli(), "lt" : timeDomain.max.getMilli()}}}
+			]}}
+		]};
+
+
+		var reviewers = yield (ESQuery.run({
+			"name" : "Past 6 weeks Reviews Completed",
+			"from" : "reviews",
+			"select" : {"name" : "count", "value" : "bug_id", "aggregate" : "count"},
+			"edges" : [
+				{"name" : "type", "domain" : domain},
+				"reviewer"
+			],
+			"esfilter" : {"and" : [
+				mainFilter,
+				{"range" : {"review_time" : {"gte" : timeDomain.min.getMilli(), "lt" : timeDomain.max.getMilli()}}}
+			]}
+		}));
+
+		//SORT REVIEWERS BY count
+		var ordered = Qb.sort(Qb.Cube2List(reviewers), {"value" : "count", "sort" : -1});
+		var old_parts = reviewers.edges[1].domain.partitions;
+		var new_parts = [];
+		var new_cube = [
+			[]
+		];
+		for (var n = 0; n < aMath.min(ordered.length, MAX_REVIEWERS); n++) {
+			var nn = ordered[n];
+			for (var o = 0; o < old_parts.length; o++) {
+				var oo = old_parts[o];
+				oo.esfilter = {"term" : {"reviewer" : oo.value}};
+				if (nn.reviewer == oo.value) {
+					new_parts[n] = oo;
+					new_cube[0][n] = -reviewers.cube[0][o];
+					break;
+				}//endif
+			}//for
+		}//for
+		reviewers.edges[1].domain.partitions = new_parts;
+		reviewers.cube = new_cube;
+
+		//THIS IS WHAT WE WOULD HAVE LIKED TO DO
+		//reviewers=yield(Q({
+		//	"from":reviewers,
+		//	"sort":{"reviewer":{"value":"count", "sort":-1, "aggregate":"sum"}}
+		//}));
+
+		Thread.run(function*(){
+			var domain = {"type" : "set", "key" : "name", "isFacet" : true, "partitions" : [
+				{"name" : "pending", "esfilter" : {"missing" : {"field" : "review_time"}}, "style" : aChart.DEFAULT_STYLES[1]}
+			]};
+
+
+			var pending = yield (ESQuery.run({
+				"name" : "Pending Reviews",
+				"from" : "reviews",
+				"select" : {"name" : "count", "value" : "bug_id", "aggregate" : "count"},
+				"edges" : [
+					{"name" : "type", "domain" : domain},
+					{"value" : "reviewer", "domain" : {"type" : "set", "key" : "value", "partitions" : new_parts, "isFacet" : true}}
+				],
+				"esfilter" : {"and" : [
+					{"range" : {"request_time" : {"gte" : timeDomain.min.addWeek(-18).getMilli()}}},
+					mainFilter
+				]}
+			}));
+
+
+			aChart.show({
+				"id" : "pending",
+				"type" : "bar",
+				"width" : WIDTH,
+				"cube" : pending,
+				"yAxisSize" : 40,
+				"xAxisSize" : 100,
+				extensionPoints: {
+					xAxisLabel_textAngle: -aMath.PI/2,
+					xAxisLabel_textAlign: "right",
+					xAxisLabel_textBaseline: "bottom",
+					xAxisLabel_textMargin: "0.3"
+
+				},
+				"legend" : false,
+				"clickAction" : function(series, x, d, elem){
+					Thread.run(function*(){
+						var bugs = yield (ESQuery.run({
+							"from" : "reviews",
+							"select" : "bug_id",
+							"esfilter" : {"and" : [
+								{"term" : {"reviewer" : x}},
+								{"range" : {"request_time" : {"gte" : timeDomain.min.addWeek(-18).getMilli()}}},
+								{"missing":{"field":"review_time"}}
+							]}
+						}));
+						Bugzilla.showBugs(new aSet(bugs.list).getArray());
+					});
+				}
+			});
+
+
+		});
+
+		aChart.show({
+			"id" : "reviewers",
+			"type" : "bar",
+			"cube" : reviewers,
+			"width" : WIDTH,
+			"titlePosition":"bottom",
+			"xAxisSize" : 0,
+			"yAxisSize" : 40,
+			"legend" : false,
+			"clickAction" : function(series, x, d, elem){
+				Thread.run(function*(){
+					var bugs = yield (ESQuery.run({
+						"from" : "reviews",
+						"select" : "bug_id",
+						"esfilter" : {"and" : [
+							{"term" : {"reviewer" : x}},
+							{"range" : {"review_time" : {"gte" : timeDomain.min.getMilli(), "lt" : timeDomain.max.getMilli()}}}
+						]}
+					}));
+					Bugzilla.showBugs(new aSet(bugs.list).getArray());
+				});
+			}
+		});
+
+
+	};//__createChart
+
+
+	$(document).ready(function(){
+		GUI.setup(
+			createChart,
+			[
+				{"id" : "teamFilter", "name" : "Team", "type" : TeamFilter.newInstance("reviewer")}
+			],
+			[
+			],
+			"reviews",
+			false);
+	});
+});
+
+
+</script>
+
+
+</BODY>
+</HTML>
