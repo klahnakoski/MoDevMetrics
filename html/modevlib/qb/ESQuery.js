@@ -68,7 +68,8 @@ ESQuery.DEBUG = false;
 
 
 //        "reviews": {"style":{"color":"black","background-color":green}, "host": "http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path": "/reviews/patch_review"},
-        "reviews": {"style":{"color":"black","background-color":yellow}, "host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/reviews/patch_review"},
+		"public_reviews": {"style":{"color":"white","background-color":green}, "host": "https://esfrontline.bugzilla.mozilla.org:443", "path": "/reviews/patch_review"},
+		"reviews": {"style":{"color":"black","background-color":yellow}, "host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/reviews/patch_review"},
 		"bug_summary": {"style":{"color":"black","background-color":yellow}, "host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/bug_summary/bug_summary"},
 		"bug_tags": {"style":{"color":"black","background-color":yellow}, "host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path": "/bug_tags/bug_tags"},
 		"org_chart": {"style":{"color":"black","background-color":yellow}, "host": "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "alias":"org_chart", "path": "/org_chart/person"},
@@ -98,6 +99,7 @@ ESQuery.DEBUG = false;
 	ESQuery.INDEXES.bug_hierarchy.alternate = ESQuery.INDEXES.public_bug_hierarchy;
 	ESQuery.INDEXES.bug_dependencies.alternate = ESQuery.INDEXES.public_bug_dependencies;
 	ESQuery.INDEXES.talos.alternate=ESQuery.INDEXES.public_talos;
+	ESQuery.INDEXES.reviews.alternate = ESQuery.INDEXES.public_reviews;
 
 
 })();
