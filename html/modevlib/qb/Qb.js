@@ -289,8 +289,7 @@ Qb.calc2List = function*(query){
 	yield (Thread.yield());
 
 	//ORDER THE OUTPUT
-	if (query.sort === undefined) query.sort = [];
-	if (!(query.sort instanceof Array)) query.sort=[query.sort];
+	query.sort = Array.newInstance(query.sort);
 	output = Qb.sort(output, query.sort, query.columns);
 
 	//COLLAPSE OBJECTS TO SINGLE VALUE
@@ -994,9 +993,15 @@ Qb.sort.compile=function(sortOrder, columns, useNames){
 		});
 	}else{
 		orderedColumns = sortOrder.map(function(v){
-			for(var i=columns.length;i--;){
-				if (columns[i].name==v && !(columns[i].sortOrder==0)) return columns[i];
-			}//for
+			if (v.value!==undefined){
+				for(var i=columns.length;i--;){
+					if (columns[i].name==v.value && !(columns[i].sortOrder==0)) return {"name": v.value, "sortOrder":nvl(v.sort, 1), "domain":Qb.domain.value};
+				}//for
+			}else{
+				for(var i=columns.length;i--;){
+					if (columns[i].name==v && !(columns[i].sortOrder==0)) return {"name":v, "sortOrder":1, "domain":Qb.domain.value};
+				}//for
+			}
 			Log.error("Sorting can not find column named '"+v+"'");
 		});
 	}//endif
