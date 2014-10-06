@@ -1,13 +1,15 @@
 
+//USES GUI.state TO PULL THE TEAMS
+
 function*getReviewers(timeDomain, maxReviewers){
 	maxReviewers=nvl(maxReviewers, 100);
 
 	var persons = [];
-	var email2person = {};
 
+	var allEmails = GUI.state.emails.split(",").map(String.trim);
 	var allSelected=(yield(GUI.state.teamFilter.getAllSelectedPeople()));
 
-	if (allSelected.length==0){
+	if (allSelected.length==0 && allEmails.length==0){
 		Log.alert("Must select a team", function(){});
 		Log.error("No team selected");
 	}//endif
@@ -18,11 +20,19 @@ function*getReviewers(timeDomain, maxReviewers){
 		p.email = Array.newInstance(p.email);
 		p.esfilter = {"terms" : {"reviewer" : p.email}};
 		persons.append(p);
-		p.email.forEach(function(e){
-			email2person[e] = p
-		});
 
+		allEmails = allEmails.subtract(p.email)
 	});
+	allEmails.forall(function(e){
+		p = {
+			"id" : e.deformat(),
+			"name" : e,
+			"email" : Array.newInstance(e),
+			"esfilter" : {"term" : {"reviewer" : e}}
+		};
+		persons.append(p);
+	});
+
 
 	var domain = {"type" : "set", "key" : "name", "isFacet" : true, "partitions" : [
 		{"name":"pending", "esfilter":{"missing" : {"field" : "review_time"}}},

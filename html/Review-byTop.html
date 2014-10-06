@@ -15,7 +15,16 @@
 	</div>
 
 	<hr>
-	<div id="description"></div>
+	<div id="description">
+		The objective of this dashboard is to help identify people that have
+		too many reviews.  The counting is indiscriminate; any patch with a
+		"review?" removed (either plussed, minused, or reassigned) is counted.
+		<br><br>
+		The top chart shows the current pending reviews; click on them to see
+		what they are.<br><br>
+		The bottom chart shows the past 6 full weeks' reviews:  Click on a bar
+		to get a list of the bugs involved.
+	</div>
 	<hr>
 	<div id="testMessage"></div>
 	<hr>
@@ -180,6 +189,7 @@ importScript([
 		GUI.setup(
 			createChart,
 			[
+				{"id":"emails", "name":"Bugzilla emails", "type":"text"},
 				{"id" : "teamFilter", "name" : "Team", "type" : TeamFilter.newInstance("reviewer")}
 			],
 			[
