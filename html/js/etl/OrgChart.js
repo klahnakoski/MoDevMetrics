@@ -60,7 +60,13 @@ importScript("ETL.js");
 
 			//HERE WE JUST RETURN THE LOCAL COPY
 			people = OrgChart.people.map(function (v, i) {
-				return {"id": v.dn, "name": v.cn, "manager": v.manager ? v.manager.dn : null, "email": v.bugzillaemail};
+				var mails = Array.union(
+					Array.newInstance(v.bugzillaemail),
+					Array.newInstance(v.mail),
+					Array.newInstance(v.emailalias)
+				);
+
+				return {"id": v.dn, "name": v.cn, "manager": v.manager ? v.manager.dn : null, "email": mails};
 			});
 
 			Log.note(people.length + " people found")
