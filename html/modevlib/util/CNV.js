@@ -738,7 +738,7 @@ CNV.esFilter2function=function(esFilter){
 			for(var k = 0; k < variables.length; k++){
 				var variable = variables[k];
 				var val=terms[variable];
-				var row_val=row[variable];
+				var row_val=Map.get(row, variable);
 				if (val instanceof Date){
 					if (row_val.getTime()!=terms[variable].getTime()) return false;
 				}else if (row_val instanceof Array){

@@ -93,6 +93,19 @@ Map.expecting=function(obj, keyList){
 	}//for
 };
 
+// ASSUME THE DOTS (.) IN fieldName ARE SEPARATORS
+// AND THE RESULTING LIST IS A PATH INTO THE STRUCTURE
+// (ESCAPE "." WITH "\\.", IF REQUIRED)
+Map.get=function(obj, fieldName){
+	if (obj===undefined || obj==null) return obj;
+	var path = splitField(fieldName);
+	for (var i=0;i<path.length;i++){
+		obj = obj[path[i]];
+		if (obj===undefined || obj==null) return obj;
+	}//endif
+	return obj;
+};//method
+
 
 Map.codomain=function(map){
 	var output=[];

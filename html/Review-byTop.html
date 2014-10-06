@@ -46,13 +46,14 @@
 
 importScript([
 	"modevlib/main.js",
-	"modevlib/util/aTemplate.js"
+	"modevlib/util/aTemplate.js",
+	"js/review.js"
 ], function(){
 
 	var MAX_REVIEWERS = 30;
 	var WIDTH = 800;
 
-	$("#title").html("Top "+MAX_REVIEWERS+" Reviewers");
+	$("#title").html("Top " + MAX_REVIEWERS + " Reviewers");
 
 	var thread;
 	var createChart = function(){
@@ -68,93 +69,77 @@ importScript([
 		var sampleMin = sampleMax.subtract(Duration.newInstance("6week"));
 		var timeDomain = {"type" : "time", "min" : sampleMin, "max" : sampleMax, "interval" : Duration.WEEK};
 
-//		var teams = GUI.state.teamFilter.getSimpleState().split(",");
-		var persons = [];
-		var email2person = {};
-		(yield(GUI.state.teamFilter.getAllSelectedPeople())).forall(function(p){
-			p = Map.copy(p);
-			p.id = p.id.deformat();
-			p.email = Array.newInstance(p.email);
-			persons.append(p);
-			p.email.forEach(function(e){
-				email2person[e] = p
+		var reviewers = yield(getReviewers(timeDomain, MAX_REVIEWERS));
+
+		Thread.run(function*(){
+			///////////////////////////////////////////////////////////////////
+			// PAST 6 WEEKS DONE
+			///////////////////////////////////////////////////////////////////
+
+			var reviewed = yield (ESQuery.run({
+				"name" : "Past 6 weeks Reviews Completed",
+				"from" : "reviews",
+				"select" : {"name" : "count", "value" : "bug_id", "aggregate" : "count"},
+				"edges" : [
+					{"name" : "type", "value" : "'done'"},
+					{"value" : "reviewer", "domain" : reviewers.edges[1].domain}
+				],
+				"esfilter" : {"and" : [
+					{"range" : {"review_time" : {"gte" : timeDomain.min.getMilli(), "lt" : timeDomain.max.getMilli()}}}
+				]}
+			}));
+
+			aChart.show({
+				"id" : "reviewers",
+				"type" : "bar",
+				"cube" : reviewed,
+				"width" : WIDTH,
+				"xAxisSize" : 100,
+				"yAxisSize" : 100,
+				"legend" : false,
+				"clickAction" : function(series, x, d, elem){
+					var emails = reviewers.edges[1].domain.partitions.filter({"term":{"name":x}})[0].email;
+
+					Thread.run(function*(){
+						var bugs = yield (ESQuery.run({
+							"from" : "reviews",
+							"select" : "bug_id",
+							"esfilter" : {"and" : [
+								{"terms" : {"reviewer" : emails}},
+								{"range" : {"review_time" : {"gte" : timeDomain.min.getMilli(), "lt" : timeDomain.max.getMilli()}}}
+							]}
+						}));
+						Bugzilla.showBugs(new aSet(bugs.list).getArray());
+					});
+				}
 			});
 		});
 
-		var mainFilter={"terms" : {"reviewer" : Array.union(persons.select("email"))}}
-		if (persons.length==0){
-			mainFilter={"match_all":{}};
-		}//endif
-
-
-		var domain = {"type" : "set", "key" : "name", "isFacet" : true, "partitions" : [
-//			{"name":"pending", "esfilter":{"missing" : {"field" : "review_time"}}},
-			{"name" : "done", "esfilter" : {"and" : [
-				{"exists" : {"field" : "review_time"}},
-				{"range" : {"review_time" : {"gte" : timeDomain.min.getMilli(), "lt" : timeDomain.max.getMilli()}}}
-			]}}
-		]};
-
-
-		var reviewers = yield (ESQuery.run({
-			"name" : "Past 6 weeks Reviews Completed",
-			"from" : "reviews",
-			"select" : {"name" : "count", "value" : "bug_id", "aggregate" : "count"},
-			"edges" : [
-				{"name" : "type", "domain" : domain},
-				"reviewer"
-			],
-			"esfilter" : {"and" : [
-				mainFilter,
-				{"range" : {"review_time" : {"gte" : timeDomain.min.getMilli(), "lt" : timeDomain.max.getMilli()}}}
-			]}
-		}));
-
-		//SORT REVIEWERS BY count
-		var ordered = Qb.sort(Qb.Cube2List(reviewers), {"value" : "count", "sort" : -1});
-		var old_parts = reviewers.edges[1].domain.partitions;
-		var new_parts = [];
-		var new_cube = [
-			[]
-		];
-		for (var n = 0; n < aMath.min(ordered.length, MAX_REVIEWERS); n++) {
-			var nn = ordered[n];
-			for (var o = 0; o < old_parts.length; o++) {
-				var oo = old_parts[o];
-				oo.esfilter = {"term" : {"reviewer" : oo.value}};
-				if (nn.reviewer == oo.value) {
-					new_parts[n] = oo;
-					new_cube[0][n] = reviewers.cube[0][o];
-					break;
-				}//endif
-			}//for
-		}//for
-		reviewers.edges[1].domain.partitions = new_parts;
-		reviewers.cube = new_cube;
-
-		//THIS IS WHAT WE WOULD HAVE LIKED TO DO
-		//reviewers=yield(Q({
-		//	"from":reviewers,
-		//	"sort":{"reviewer":{"value":"count", "sort":-1, "aggregate":"sum"}}
-		//}));
 
 		Thread.run(function*(){
-			var domain = {"type" : "set", "key" : "name", "isFacet" : true, "partitions" : [
-				{"name" : "pending", "esfilter" : {"missing" : {"field" : "review_time"}}, "style" : aChart.DEFAULT_STYLES[1]}
-			]};
-
-
+			///////////////////////////////////////////////////////////////////
+			// PENDING
+			///////////////////////////////////////////////////////////////////
 			var pending = yield (ESQuery.run({
 				"name" : "Pending Reviews",
 				"from" : "reviews",
 				"select" : {"name" : "count", "value" : "bug_id", "aggregate" : "count"},
 				"edges" : [
-					{"name" : "type", "domain" : domain},
-					{"value" : "reviewer", "domain" : {"type" : "set", "key" : "value", "partitions" : new_parts, "isFacet" : true}}
+					{
+						"name" : "type",
+						"domain": {
+							"type" : "set",
+							"key" : "name",
+							"isFacet" : true,
+							"partitions" : [
+								{"name" : "pending", "esfilter" : {"missing" : {"field" : "review_time"}}, "style" : aChart.DEFAULT_STYLES[1]}
+							]}
+					},
+					{"value" : "reviewer", "domain" : reviewers.edges[1].domain}
 				],
 				"esfilter" : {"and" : [
 					{"range" : {"request_time" : {"gte" : timeDomain.min.addWeek(-18).getMilli()}}},
-					mainFilter
+					{"missing" : {"field" : "review_time"}}
 				]}
 			}));
 
@@ -169,13 +154,15 @@ importScript([
 				"legend" : false,
 				"clickAction" : function(series, x, d, elem){
 					Thread.run(function*(){
+						var emails = reviewers.edges[1].domain.partitions.filter({"term":{"name":x}})[0].email;
+
 						var bugs = yield (ESQuery.run({
 							"from" : "reviews",
 							"select" : "bug_id",
 							"esfilter" : {"and" : [
-								{"term" : {"reviewer" : x}},
+								{"terms" : {"reviewer" : emails}},
 								{"range" : {"request_time" : {"gte" : timeDomain.min.addWeek(-18).getMilli()}}},
-								{"missing":{"field":"review_time"}}
+								{"missing" : {"field" : "review_time"}}
 							]}
 						}));
 						Bugzilla.showBugs(new aSet(bugs.list).getArray());
@@ -185,30 +172,6 @@ importScript([
 
 
 		});
-
-		aChart.show({
-			"id" : "reviewers",
-			"type" : "bar",
-			"cube" : reviewers,
-			"width" : WIDTH,
-			"xAxisSize" : 100,
-			"yAxisSize" : 100,
-			"legend" : false,
-			"clickAction" : function(series, x, d, elem){
-				Thread.run(function*(){
-					var bugs = yield (ESQuery.run({
-						"from" : "reviews",
-						"select" : "bug_id",
-						"esfilter" : {"and" : [
-							{"term" : {"reviewer" : x}},
-							{"range" : {"review_time" : {"gte" : timeDomain.min.getMilli(), "lt" : timeDomain.max.getMilli()}}}
-						]}
-					}));
-					Bugzilla.showBugs(new aSet(bugs.list).getArray());
-				});
-			}
-		});
-
 
 	};//__createChart
 
