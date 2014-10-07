@@ -106,7 +106,7 @@ function* getPendingPatches(mainFilter){
 	///////////////////////////////////////////////////////////////////////////
 	var bugs = yield (ESQuery.run({
 		"from" : "public_bugs",
-		"select" : ["bug_id", "attachments"],
+		"select" : ["bug_id", "short_desc", "attachments"],
 		"esfilter" : {"and" : [
 			{"range" : {"expires_on" : {"gt" : Date.eod().getMilli()}}},
 			Mozilla.BugStatus.Open.esfilter,

@@ -17,11 +17,13 @@
 	<hr>
 	<div id="description">
 		The objective of this dashboard is to help identify people that have
-		too many reviews.  Only reviews that are reassigned are not counted.
+		too many reviews.
+		<!--Reviews that are reassigned are not counted.-->
 		<br><br>
-		The top chart shows the current pending reviews; click on them to see
-		what they are.<br><br>
-		The bottom chart shows the past 6 full weeks' reviews:  Click on a bar
+		The top chart shows the current pending reviews, and is no more than
+		<span class="warning">10 minutes behind Bugzilla</span>.  Click on
+		them to see what they are.<br><br>
+		The bottom chart shows the past 6 full weeks' reviews (<span class="warning" id="date_range"></span>). Click on a bar
 		to get a list of the bugs involved.
 	</div>
 	<hr>
@@ -75,6 +77,7 @@ importScript([
 		var scale = 20;
 		var sampleMax = Date.now().floor(Duration.WEEK);
 		var sampleMin = sampleMax.subtract(Duration.newInstance("6week"));
+		$("#date_range").html(" from "+sampleMin.format("NNN dd")+" to "+sampleMax.addDay(-1).format("NNN dd"));
 		var timeDomain = {"type" : "time", "min" : sampleMin, "max" : sampleMax, "interval" : Duration.WEEK};
 
 		var reviewers = yield(getReviewers(timeDomain, MAX_REVIEWERS));
