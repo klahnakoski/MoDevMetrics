@@ -17,8 +17,7 @@
 	<hr>
 	<div id="description">
 		The objective of this dashboard is to help identify people that have
-		too many reviews.  The counting is indiscriminate; any patch with a
-		"review?" removed (either plussed, minused, or reassigned) is counted.
+		too many reviews.  Only reviews that are reassigned are not counted.
 		<br><br>
 		The top chart shows the current pending reviews; click on them to see
 		what they are.<br><br>
@@ -94,6 +93,7 @@ importScript([
 					{"value" : "reviewer", "domain" : reviewers.edges[1].domain}
 				],
 				"esfilter" : {"and" : [
+//					{"terms" : {"review_result" : ["+", "-"]}},
 					{"range" : {"review_time" : {"gte" : timeDomain.min.getMilli(), "lt" : timeDomain.max.getMilli()}}}
 				]}
 			}));
@@ -126,29 +126,52 @@ importScript([
 
 
 		Thread.run(function*(){
+
+			var allPatches = yield (getPendingPatches({"and":[
+				//FILTER TO LIMIT TO ONLY REVIEWERS WE ARE INTERESTED IN
+				{ "nested" : {
+					"path" : "attachments.flags",
+					"query" : {
+						"filtered" : {
+							"query" : {
+								"match_all" : {}
+							},
+							"filter" : {"and" : [
+								{"terms":{"attachments.flags.requestee":Array.union(reviewers.edges[1].domain.partitions.select("email"))}}
+							]}
+						}
+					}
+				}}
+			]}	));
+
 			///////////////////////////////////////////////////////////////////
 			// PENDING
 			///////////////////////////////////////////////////////////////////
-			var pending = yield (ESQuery.run({
+			var pending = yield (Q({
 				"name" : "Pending Reviews",
-				"from" : "reviews",
-				"select" : {"name" : "count", "value" : "bug_id", "aggregate" : "count"},
+				"from" : allPatches,
+				"select" : {"name" : "count", "value" : "bug.bug_id", "aggregate" : "count"},
 				"edges" : [
 					{
-						"name" : "type",
-						"domain": {
-							"type" : "set",
-							"key" : "name",
-							"isFacet" : true,
-							"partitions" : [
-								{"name" : "pending", "esfilter" : {"missing" : {"field" : "review_time"}}, "style" : aChart.DEFAULT_STYLES[1]}
-							]}
+					"name" : "type",
+					"value":"'pending'",
+					"domain": {
+						"type" : "set",
+						"key" : "name",
+						"isFacet" : true,
+						"partitions" : [
+							{"name" : "pending", "style" : aChart.DEFAULT_STYLES[1]}
+						]}
 					},
-					{"value" : "reviewer", "domain" : reviewers.edges[1].domain}
+					{
+						"name":"reviewer",
+						"domain" : reviewers.edges[1].domain
+					}
 				],
-				"esfilter" : {"and" : [
+				"where" : {"and" : [
 					{"range" : {"request_time" : {"gte" : timeDomain.min.addWeek(-18).getMilli()}}},
-					{"missing" : {"field" : "review_time"}}
+					{"missing" : {"field" : "review_time"}},
+					{"exists" : {"field" : "reviewer"}}
 				]}
 			}));
 

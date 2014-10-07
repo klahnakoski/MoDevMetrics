@@ -65,7 +65,10 @@
 <script type="application/javascript">
 
 
-importScript("modevlib/main.js", function(){
+importScript([
+	"modevlib/main.js",
+	"js/review.js"
+], function(){
 
 	var thread;
 	var createChart = function(){
@@ -85,7 +88,7 @@ importScript("modevlib/main.js", function(){
 				"select" : [
 					{"name" : "BugID", "value" : "Bugzilla.linkToBug(bug.bug_id)"},
 					{"name" : "Summary", "value" : "bug.short_desc"},
-					{"name" : "Age (days)", "value" : "aMath.round(Date.eod().subtract(Date.newInstance(nvl(modified_ts, attachment.modified_ts))).divideBy(Duration.DAY), {'digits':2})"}
+					{"name" : "Age (days)", "value" : "aMath.round(Date.eod().subtract(Date.newInstance(nvl(modified_ts, attachment.modified_ts))).divideBy(Duration.DAY), 0)"}
 				],
 				"where" : {"missing" : "requestee"},
 				"sort" : {"value" : "Age (days)", "sort" : -1}
@@ -101,7 +104,7 @@ importScript("modevlib/main.js", function(){
 					{"name" : "BugID", "value" : "Bugzilla.linkToBug(bug.bug_id)"},
 					{"name" : "Summary", "value" : "bug.short_desc"},
 					{"name" : "Reviewer", "value" : "nvl(requestee, '')"},
-					{"name" : "Age (days)", "value" : "aMath.round(Date.eod().subtract(Date.newInstance(nvl(modified_ts, attachment.modified_ts))).divideBy(Duration.DAY), {'digits':2})"}
+					{"name" : "Age (days)", "value" : "aMath.round(Date.eod().subtract(Date.newInstance(nvl(modified_ts, attachment.modified_ts))).divideBy(Duration.DAY), 0)"}
 				],
 				"where" : {"exists" : "requestee"},
 				"sort" : {"value" : "Age (days)", "sort" : -1}
@@ -127,78 +130,6 @@ importScript("modevlib/main.js", function(){
 	});
 
 
-
-
-	function* getPendingPatches(mainFilter){
-		var a = Log.action("Get bugs with patches", true);
-
-		///////////////////////////////////////////////////////////////////////////
-		// PULL OUT ALL RECENT BUGS THAT HAVE A PENDING REVIEW
-		///////////////////////////////////////////////////////////////////////////
-		var bugs = yield (ESQuery.run({
-			"from" : "public_bugs",
-			"select" : "_source",
-			"esfilter" : {"and" : [
-	//					{"range":{"modified_ts":{"gt":Date.eod().addWeek(-18).getMilli()}}},
-				{"range" : {"expires_on" : {"gt" : Date.eod().getMilli()}}},
-				Mozilla.BugStatus.Open.esfilter,
-				{ "nested" : {
-					"path" : "attachments",
-					"query" : {
-						"filtered" : {
-							"query" : {
-								"match_all" : {}
-							},
-							"filter" : {"and" : [
-								{"term" : {"attachments.isobsolete" : 0}},
-								{"or" : [
-									{"term" : {"attachments.ispatch" : 1}},
-									{"terms" : {"attachments.flags.request_type" : ["review", "superreview"]}}
-								]},
-	//									{"range":{"attachments.flags.modified_ts":{"gte":Date.eod().addWeek(-18).getMilli()}}}
-							]}
-						}
-					}
-				}},
-				mainFilter
-			]}
-		}));
-
-		Log.actionDone(a);
-
-		///////////////////////////////////////////////////////////////////////////
-		// FILTER OUT JUST THE FLAGS THAT REPRESENT REVIEWS (OR RAW PATCH)
-		///////////////////////////////////////////////////////////////////////////
-		var allPatches = [];
-		bugs.list.forall(function(b){
-			b.attachments.forall(function(a){
-				var flags = Array.newInstance(a.flags);
-				if (flags.length == 0) flags.append({});
-				a.flags = undefined;
-
-				flags.forall(function(f){
-					if (
-						(
-							["review", "superreview"].contains(f.request_type) ||
-								a.ispatch == 1
-							) &&
-							a.isobsolete == 0 &&
-							(
-								f.request_status === undefined ||
-									f.request_status == "?"
-								)
-						) {
-						f.bug = b;
-						f.attachment = a;
-						allPatches.append(f);
-					}//endif
-				});
-			});
-			b.attachments = undefined;
-		});
-
-		yield allPatches;
-	}
 
 });
 </script>
