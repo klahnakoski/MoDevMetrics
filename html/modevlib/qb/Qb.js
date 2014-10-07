@@ -588,7 +588,8 @@ Qb.Cube2List=function(query, options){
 	options.useLabels=nvl(options.useLabels, false);
 
 	//PRECOMPUTE THE EDGES
-	var domains = query.edges.select("domain");
+	var edges = query.edges;
+	var domains = edges.select("domain");
 	var endFunction=domains.select("end");
 	if (options.useStruct){
 		endFunction=query.edges.map(function(e){ return function(v){return v;};});
@@ -605,7 +606,11 @@ Qb.Cube2List=function(query, options){
 		m.forall(function(v, c){
 			var o = Map.copy(v);
 			for(var e=0;e<c.length;e++){
-				o[names[e]]=endFunction[e](parts[e][c[e]]);
+				if (edges[e].allowNulls && parts[e].length==c[e]){
+					o[names[e]]=domain[e].NULL;
+				}else{
+					o[names[e]]=endFunction[e](parts[e][c[e]]);
+				}//endif
 			}//for
 			output.append(o);
 		});
