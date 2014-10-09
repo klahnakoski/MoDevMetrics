@@ -671,6 +671,10 @@ ESQuery.DEBUG = false;
 
 		var output = [];
 		var partitions = edge.domain.partitions;
+		if (partitions.length==0){
+			Log.error("There are no partitions in edge "+edge.name+", which is destined for a facet, which wil result in nothing")
+		}//endif
+
 		for (var i = 0; i < partitions.length; i++) {
 			var deeper = this.getAllEdges(edgeDepth + 1);
 			for (var o = 0; o < deeper.length; o++) {
