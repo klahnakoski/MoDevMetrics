@@ -20,7 +20,7 @@ var Log = new function(){
 };
 
 (function(){
-	Log.FORMAT = new Template("{{type}} : {{timestamp|datetime('MMM dd HH:mm:ss.fff')}} : {{message}}");
+	Log.FORMAT = new Template("{{type}} : {{timestamp|datetime('MM dd HH:mm:ss.fff')}} : {{message}}");
 
 	Log.loggers=[];
 
@@ -46,7 +46,7 @@ var Log = new function(){
 	}
 
 	function log2html(message){
-		return "<p>"+CNV.Object2JSON(message)+"</p>"
+		return "<p>"+CNV.String2HTML(JSON.stringify(message))+"</p>"
 	}
 
 	//ADD THE DEFAULT CONSOLE LOGGING
