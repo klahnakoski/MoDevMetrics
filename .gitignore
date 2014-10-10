@@ -10,3 +10,4 @@ html/es/lib/jstree/_demo
 tests/.env
 *.pyc
 /html/src.iml
+/.env
