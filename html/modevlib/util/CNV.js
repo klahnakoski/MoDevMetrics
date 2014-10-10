@@ -172,7 +172,7 @@ CNV.Object2JSON = function(json){
 CNV.Object2CSS=function(value){
 	//FIND DEPTH
 	var depth=1;
-	forAllKey(value, function(name, value){
+	Map.forall(value, function(name, value){
 		if (value!=null && typeof(value)=="object"){
 			depth=2;
 		}//endif

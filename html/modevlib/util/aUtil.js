@@ -81,7 +81,7 @@ Map.clone = Map.jsonCopy;
 //IF map IS NOT 1-1 THAT'S YOUR PROBLEM
 Map.inverse=function(map){
 	var output={};
-	forAllKey(map, function(k, v){output[v]=k;});
+	Map.forall(map, function(k, v){output[v]=k;});
 	return output;
 };//method
 
@@ -221,7 +221,7 @@ Map.getValues=function getValues(map){
 var reverseMap=function(map, codomain){
 	var output=[];
 	codomain.forall(function(c, i){
-		forAllKey(map, function(k, v){
+		Map.forall(map, function(k, v){
 			if (v===c) output.push(k);
 		});
 	});

@@ -251,7 +251,7 @@ GUI = {};
 			if (!GUI.State2URL.isEnabled) return;
 
 			var simplestate = {};
-			forAllKey(GUI.state, function (k, v) {
+			Map.forall(GUI.state, function (k, v) {
 
 				var p = GUI.parameters.map(function (v, i) {
 					if (v.id == k) return v;
@@ -291,7 +291,7 @@ GUI = {};
 
 		GUI.URL2State = function () {
 			var urlState = jQuery.bbq.getState();
-			forAllKey(urlState, function (k, v) {
+			Map.forall(urlState, function (k, v) {
 				if (GUI.state[k] === undefined) return;
 
 				var p = GUI.parameters.map(function (v, i) {

@@ -27,7 +27,7 @@ def test_one_page(path):
         driver.close()
 
 
-def wait_for_logs(driver):
+def wait_for_errors(driver):
     logs = []
     new_logs = driver.get_log('browser')
     logs.extend(new_logs)

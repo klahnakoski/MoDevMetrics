@@ -141,7 +141,7 @@ ESQuery.DEBUG = false;
 	//RETURN THE COLUMN DEFINITIONS IN THE GIVEN esProperties OBJECT
 	ESQuery.parseColumns = function (indexName, parentName, esProperties) {
 		var columns = [];
-		forAllKey(esProperties, function (name, property) {
+		Map.forall(esProperties, function (name, property) {
 			var fullName = [parentName, name].concatenate(".");
 
 			if (property.type == "nested") {
@@ -162,7 +162,7 @@ ESQuery.DEBUG = false;
 			if (property.type === undefined) return;
 			if (property.type == "multi_field") {
 				property.type = property.fields[name].type;  //PULL DEFAULT TYPE
-				forAllKey(property.fields, function (n, p, i) {
+				Map.forall(property.fields, function (n, p, i) {
 					if (n == name) {
 						//DEFAULT
 						columns.push({"name": fullName, "type": p.type, "useSource": p.index == "no"});
@@ -385,7 +385,7 @@ ESQuery.DEBUG = false;
 			}//try
 
 			var self = this;
-			if (postResult.facets) forAllKey(postResult.facets, function (facetName, f) {
+			if (postResult.facets) Map.forall(postResult.facets, function (facetName, f) {
 				if (f._type == "statistical") return;
 				if (!f.terms) return;
 
@@ -1364,7 +1364,7 @@ ESQuery.DEBUG = false;
 
 		//FILL Qb
 		if (self.query.select instanceof Array) {
-			forAllKey(data.facets, function (edgeName, facetValue) {
+			Map.forall(data.facets, function (edgeName, facetValue) {
 				var coord = edgeName.split(",");
 				var d = cube;
 				var num = self.query.edges.length;
@@ -1381,7 +1381,7 @@ ESQuery.DEBUG = false;
 				}//for
 			});
 		} else {
-			forAllKey(data.facets, function (edgeName, facetValue) {
+			Map.forall(data.facets, function (edgeName, facetValue) {
 				var coord = edgeName.split(",");
 				var d = cube;
 				var num = self.query.edges.length - 1;

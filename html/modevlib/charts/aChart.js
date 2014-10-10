@@ -973,7 +973,7 @@ function findDateMarks(part, name){
 			})
 		} else {
 			//EXPECTING <name>:<date> FORMAT
-			forAllKey(mark, function(name, date){
+			Map.forall(mark, function(name, date){
 				output.append({
 					"name": name,
 					"date": Date.newInstance(date),

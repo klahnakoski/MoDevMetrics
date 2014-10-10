@@ -276,7 +276,7 @@ TeamFilter.prototype.injectHTML = function(hier){
 		});
 
 		//IF MANAGER IS CHECKED, THEN DO NOT INCLUDE
-		forAllKey(checked, function(id, v, m){
+		Map.forall(checked, function(id, v, m){
 			if (checked[self.managers[id]]) return;
 			minCover.push(id);
 		});
