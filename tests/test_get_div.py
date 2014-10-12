@@ -1,5 +1,4 @@
 from pyLibrary.env.files import File
-from pyLibrary.thread.threads import Thread
 
 from selenium import webdriver
 
@@ -12,7 +11,7 @@ def test_one_page():
 
     # print messages
     try:
-        for l in [e.text for e in elements]:
+        for l in [e.get_attribute('innerHTML') for e in elements]:
             if l.find("Hello World") >= 0:
                 assert True
                 return
