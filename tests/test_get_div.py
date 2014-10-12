@@ -1,22 +1,12 @@
+from pyLibrary.env.files import File
 from pyLibrary.thread.threads import Thread
-import pytest
 
 from selenium import webdriver
 
-LOG_DIV = "test_logs"
 
-
-@pytest.mark.parametrize("path", [
-    "file:///C:/Users/klahnakoski/git/MoDevMetrics/html/Review-byTop.html#emails=&teamFilter=ctalbert%40mozilla.com",
-])
-def test_one_page(path):
-    if path.find("#") >= 0:
-        path = path.replace("#", "#log=" + LOG_DIV+"&")
-    else:
-        path = path + "#log=" + LOG_DIV
-
+def test_one_page():
     driver = BetterDriver(webdriver.Firefox())
-    driver.get(path)
+    driver.get(File("html/test.html").abspath)
 
     logs = wait_for_logs(driver)
 
@@ -33,11 +23,11 @@ def test_one_page(path):
 
 def wait_for_logs(driver):
     old_length = -1
-    elements = driver.find("#" + LOG_DIV + " p *")
+    elements = driver.find("#test p")
     while len(elements) != old_length:
         Thread.sleep(seconds=10)
         old_length = len(elements)
-        elements = driver.find("#" + LOG_DIV + " p *")
+        elements = driver.find("#test p")
 
     return [e.text for e in elements]
 
