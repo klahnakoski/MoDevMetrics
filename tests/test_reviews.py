@@ -22,14 +22,14 @@ LOG_DIV = "test_logs"
     "html/Reviews_Pending_18.html"
 ])
 def test_one_page(path):
-    path = "file:///" + File(path).abspath
-    if path.find("#") >= 0:
-        path = path.replace("#", "#log=" + LOG_DIV + "&")
+    fullpath = "file:///" + File(path).abspath.replace("\\", "/")
+    if fullpath.find("#") >= 0:
+        fullpath = fullpath.replace("#", "#log=" + LOG_DIV + "&")
     else:
-        path = path + "#log=" + LOG_DIV
+        fullpath = fullpath + "#log=" + LOG_DIV
 
     driver = BetterDriver(webdriver.Firefox())
-    driver.get(path)
+    driver.get(fullpath)
 
     logs = wait_for_logs(driver)
 
