@@ -1,6 +1,8 @@
 from pyLibrary.cnv import CNV
+from pyLibrary.collections import OR
 from pyLibrary.env.files import File
 from pyLibrary.env.logs import Log
+from pyLibrary.structs.wraps import listwrap
 from pyLibrary.thread.threads import Thread
 import pytest
 
@@ -12,7 +14,7 @@ LOG_DIV = "test_logs"
 @pytest.mark.parametrize("path", [
     "html/Review-byTop.html#emails=&teamFilter=ctalbert%40mozilla.com",
     "html/Review-byReviewer.html#emails=&teamFilter=ctalbert%40mozilla.com",
-    "html/Dashboard-byPatchStatus.html#productFilter=core",
+    "html/Dashboard-byPatchStatus.html#productFilter=core&componentFilter=css+parsing+and+computation",
     "html/ReviewIntensity.html#requestee=&productFilter=core",
     "html/ReviewIntensity_First.html#requestee=&productFilter=core",
     "html/Reviews_NoReviewer.html",
@@ -32,7 +34,7 @@ def test_one_page(path):
     logs = wait_for_logs(driver)
 
     # IF SPINNER STILL SHOWS, THEN WE GOT LOADING ISSUES
-    isLoading = driver.find(".loading")
+    isLoading = OR([e.is_displayed() for e in driver.find(".loading")])
     if isLoading:
         Log.error("page still loading: {{page}}", {"page": path})
 
