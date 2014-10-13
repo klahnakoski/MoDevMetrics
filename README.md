@@ -6,8 +6,10 @@ Objective
 ---------
 
 This project is designed to optimize the creation of dashboards using ElasticSearch data.  Many tools already exist to
-make dashboards, for example: Cognos, MicroStrategy, Pentaho and Tableau.  Unlike these tools, MoDevMetrics is suited
-for programmers: Code, testability, and version control are important.
+make dashboards, for example: Cognos, MicroStrategy, Pentaho and Tableau.  Unlike these tools, dashboard creation is
+done in code rather than a GUI tool.  I believe the benefits of code testability and version control outweigh the loss
+of GUI tools.  Furthermore, with dashboard layout and specification reified in source code, further tools can be
+built atop what is here.
 
 Examples
 --------
@@ -67,10 +69,21 @@ Examples
 
 Code examples to demonstrate minimum functionality:
 
-  * [Test public connectivity](html/es/Tutorial01-Minimum.html)
-  * [Get comments](html/es/Tutorial02-Comments.html)
-  * [Simple Bug Count](html/es/Tutorial03-Bug-Count.html)
+  * [Test public connectivity](html/Tutorial01-Minimum.html)
+  * [Get comments](html/Tutorial02-Comments.html)
+  * [Simple Bug Count](html/Tutorial03-Bug-Count.html)
 
+Running Tests
+-------------
+
+Tests use Python and Selenium
+
+  * Install Python [instructions](https://github.com/klahnakoski/pyLibrary#windows-7-install-instructions-for-python)
+  * Install libraries required for testing:  ```pip install -r tests\requirements.txt```
+  * Run tests: ```py.test tests```
+
+They take a long time to run, and require you have access to an ElasticSearch cluster with Bugzilla bug_version
+records
 
 Tutorials
 ----------
