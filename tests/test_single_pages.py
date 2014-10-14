@@ -14,17 +14,13 @@ import pytest
 from selenium import webdriver
 from util import MoDevMetricsDriver, path2fullpath
 
-
+##############################################################################
+# SINGLE PAGE DASHBOARDS, UNRELATED TO ANY OTHER THEME
+##############################################################################
 
 @pytest.mark.parametrize("path", [
-    "html/Review-byTop.html#emails=&teamFilter=ctalbert%40mozilla.com",
-    "html/Review-byReviewer.html#emails=&teamFilter=ctalbert%40mozilla.com",
-    "html/Dashboard-byPatchStatus.html#productFilter=core&componentFilter=css+parsing+and+computation",
-    "html/ReviewIntensity.html#requestee=&productFilter=core",
-    "html/ReviewIntensity_First.html#requestee=&productFilter=core",
-    "html/Reviews_NoReviewer.html",
-    "html/Reviews_Pending.html",
-    "html/Reviews_Pending_18.html"
+    "html/Partner-Bugs.html#sampleMax=2014-10-25&sampleMin=2014-06-08",
+    "html/Partner-Bugs.html",
 ])
 def test_one_page(path):
     fullpath = path2fullpath(path)

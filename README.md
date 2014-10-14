@@ -82,8 +82,7 @@ Tests use Python and Selenium
   * Install libraries required for testing:  ```pip install -r tests\requirements.txt```
   * Run tests: ```py.test tests```
 
-They take a long time to run, and require you have access to an ElasticSearch cluster with Bugzilla bug_version
-records
+They take a long time to run, and require you have access to one of the bug clusters.
 
 Tutorials
 ----------

@@ -18,12 +18,8 @@
 	</div>
 
 	<hr>
-	<div id="description">Summarize age of bugs over the sample given<br><br>
-		This is best used on a small number of bugs because bugs details must be
-		brought to the client for further processing<br><br>
-		Please look at the <a href='./js/etl/bug_version.json'>ES Schema</a> to
-		get a full listing of fields available.  Field names are a little
-		different from BZ.
+	<div id="description">A historical view of <a href="https://wiki.mozilla.org/B2G/QA/Preinstalled_Apps_Triage">Preinstalled Apps Triage</a>
+		There is no static rule to define these, so <a href="https://github.com/klahnakoski/MoDevMetrics/blob/dev/html/modevlib/Dimension-Partners.js">they are defined here</a>.
 	</div>
 	<hr>
 	<div id="testMessage"></div>
@@ -208,7 +204,7 @@ var __createChart = function*(){
 
 		//SHOW BARS FOR EVERY DAY, IF LESS THAN A 3WEEKS
 		var interval;
-		if (sampleMax.subtract(sampleMin).round(Duration.WEEK, 0)<=3){
+		if (sampleMax.subtract(sampleMin).round(Duration.WEEK, 0)<=4){
 			interval=Duration.DAY;
 		}else{
 			interval=Duration.WEEK;
@@ -224,7 +220,7 @@ var __createChart = function*(){
 			"edges":[
 				{"name":"date",
 					"test":"min.between(time.min, time.max) || (max!==undefined && max.between(time.min, time.max))",
-					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":interval}
+					"domain":{"type":"time", "min":sampleMin, "max":sampleMax.subtract(interval), "interval":interval}
 				}
 			]
 		}));
