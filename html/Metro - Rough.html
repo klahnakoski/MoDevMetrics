@@ -309,7 +309,7 @@ var __createChart = function*(){
 	});
 
 //	var allAssignedBugs=yield(getIterationRanges(bugs[iterationParent].dependson));
-//	allAssignedBugs=yield(Qb.Cube2List(allAssignedBugs));
+//	allAssignedBugs=Qb.Cube2List(allAssignedBugs);
 
 	////////////////////////////////////////////////////////////////////////////
 	// TOTAL BY ITERATION
@@ -821,7 +821,7 @@ function getDescendants(parent, startDate, endDate){
 			Mozilla.BugStatus.Open.esfilter
 		]}));
 
-		ages=yield (Qb.Cube2List(ages));
+		ages=Qb.Cube2List((ages);
 
 		ages.forall(function(v,i){
 			bugs[v.bug_id].open_time=v.min;

@@ -50,7 +50,7 @@ importScript("ETL.js");
 			yield (Thread.yield());  //YIELD TO ALLOW FUNCTION TO BE ASSIGNED TO window
 
 			var url = PHONEBOOK_URL + "/search.php?format=jsonp&callback=" + JSONP_CALLBACK + "&query=*";
-			var html = $("<script type=\"application/javascript;version=1.9\" src=\"" + url + "\"></script>");
+			var html = $("<script type=\"application/javascript\" src=\"" + url + "\"></script>");
 			var body = $("body");
 			body.append(html);
 

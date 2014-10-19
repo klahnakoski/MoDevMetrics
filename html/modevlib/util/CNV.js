@@ -172,7 +172,7 @@ CNV.Object2JSON = function(json){
 CNV.Object2CSS=function(value){
 	//FIND DEPTH
 	var depth=1;
-	forAllKey(value, function(name, value){
+	Map.forall(value, function(name, value){
 		if (value!=null && typeof(value)=="object"){
 			depth=2;
 		}//endif
@@ -684,11 +684,12 @@ CNV.hex2int = function(value){
 
 
 //CONVERT FROM STRING TO SOMETHING THAT CAN BE USED BY $()
-CNV.String2JQuery=function(str){
-	var output=str.replace(/([ ;&,\.\+\*\~':"\!\^#$%@\[\]\(\)\/=>\|])/g, '\\$1');
-//	output=output.replaceAll(" ", "\\ ");
-	return output;
-};//method
+function String2Selector(str){
+    return str.replace(/([ ;&,\.\+\*\~':"\!\^#$%@\[\]\(\)\/=>\|])/g, '\\$1');
+}//method
+
+CNV.String2JQuery=String2Selector;
+CNV.String2Selector=String2Selector;
 
 
 TRUE_FILTER = function(row, i, rows){return true;};
@@ -737,7 +738,7 @@ CNV.esFilter2function=function(esFilter){
 			for(var k = 0; k < variables.length; k++){
 				var variable = variables[k];
 				var val=terms[variable];
-				var row_val=row[variable];
+				var row_val=Map.get(row, variable);
 				if (val instanceof Date){
 					if (row_val.getTime()!=terms[variable].getTime()) return false;
 				}else if (row_val instanceof Array){
@@ -760,13 +761,13 @@ CNV.esFilter2function=function(esFilter){
 		};
 	}else if (op=="exists"){
 		//"exists":{"field":"myField"}
-		var field = esFilter[op].field;
+		var field = nvl(esFilter[op].field, esFilter[op]);
 		return function(row, i, rows){
 			var val =row[field];
 			return (val!==undefined && val!=null);
 		};
 	}else if (op=="missing"){
-		var field = esFilter[op].field;
+		var field = nvl(esFilter[op].field, esFilter[op]);
 		return function(row, i, rows){
 			var val =row[field];
 			return (val===undefined || val==null);

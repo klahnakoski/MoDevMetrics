@@ -135,7 +135,7 @@ importScript([
 
 			var stats=(yield (Q({
 				"from":
-					(yield (Qb.Cube2List(df))),
+					Qb.Cube2List(df),
 				"select": [
 					{"name":"total", "value":"count", "aggregate":"sum"},
 					{"name":"under_24_hours", "value":"(wait_time!=null && wait_time.milli<"+Duration.newInstance('24hour').milli+") ? count : 0", "aggregate":"sum"},
@@ -212,8 +212,9 @@ importScript([
 
 
 		//SHOW AS NEGATIVE
-		reviewed.cube=reviewed.cube.map(function(v, i){return -v;});
-
+		reviewed.cube = reviewed.cube.map(function(v, i){
+			return -v;
+		});
 
 
 		//WE CAN NOT DO THIS DIRECTLY: WE WILL REQUIRE MULTIPLE COUNTS PER REVIEW

@@ -137,7 +137,7 @@
 				Log.action("Got result");
 
 				if (data.cube !== undefined){
-					data.list = yield(Qb.Cube2List(data));
+					data.list = Qb.Cube2List(data);
 					$("#result").html("<div>" + data.list.length + " rows (up to 100 shown)</div>" + CNV.List2HTMLTable(data.list, {"limit":3000}));
 				} else if (data.list !== undefined){
 					$("#result").html("<div>" + data.list.length + " rows (up to 100 shown)</div>" + CNV.List2HTMLTable(data.list, {"limit":3000}));
