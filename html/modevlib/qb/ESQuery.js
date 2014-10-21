@@ -319,6 +319,40 @@ ESQuery.DEBUG = false;
 
 	ESQuery.run = function*(query) {
 		yield (ESQuery.loadColumns(query));
+
+		//SPECIAL CASE FOR COUNTING IN TWO SIMPLE DIMENSIONS
+		if (
+			Array.newInstance(query.select).length==1 &&  //ONLY ONE select
+			Array.newInstance(query.select)[0].aggregate=="count" &&  //IT MUST BE COUNTING ONLY
+			Array.newInstance(query.edges).length==2 &&
+			MVEL.isKeyword(query.edges[0].value) &&
+			MVEL.isKeyword(query.edges[1].value) &&
+			(query.edges[0].domain===undefined || query.edges[0].domain.type=="default") &&
+			(query.edges[1].domain===undefined || query.edges[1].domain.type=="default")
+		){
+			var first = yield (ESQuery.run({
+				"from":query.from,
+				"select":query.select,
+				"edges":[Map.copy(query.edges[0])],
+				"esfilter":query.esfilter
+			}));
+
+			//MAKE THE FIRST DIMENSION CONCRETE
+			query.edges[0].domain={
+				"type":"set",
+				"isFacet":true,
+				"partitions":first.cube.map(function(v, i){
+					var part = first.edges[0].domain.partitions[i];
+					return {
+						"name":part.name,
+						"value":part.value,
+						"esfilter":{"term":Map.newInstance(query.edges[0].value, part.value)}
+					};
+				})
+			};
+		}//endif
+
+
 		var esq = new ESQuery(query);
 
 		if (Object.keys(esq.esQuery.facets).length == 0 && esq.esQuery.size == 0)
@@ -464,12 +498,7 @@ ESQuery.DEBUG = false;
 			this.select = Array.newInstance(this.query.select);
 		}//endif
 
-
 		if (this.termsEdges.length == 0) {
-			if (this.select.length == 5) {
-				Log.debug();
-			}
-
 			//NO EDGES IMPLIES SIMPLER QUERIES: EITHER A SET OPERATION, OR RETURN SINGLE AGGREGATE
 			if (this.select[0].aggregate === "none") {  //"none" IS GIVEN TO undefined OPERATIONS DURING COMPILE
 				this.esMode = "setop";
