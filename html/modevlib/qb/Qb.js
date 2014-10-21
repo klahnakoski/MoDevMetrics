@@ -607,7 +607,7 @@ Qb.Cube2List=function(query, options){
 			var o = Map.copy(v);
 			for(var e=0;e<c.length;e++){
 				if (edges[e].allowNulls && parts[e].length==c[e]){
-					o[names[e]]=domain[e].NULL;
+					o[names[e]]=endFunction[e](domains[e].NULL);
 				}else{
 					o[names[e]]=endFunction[e](parts[e][c[e]]);
 				}//endif
@@ -618,7 +618,11 @@ Qb.Cube2List=function(query, options){
 		m.forall(function(v, c){
 			var o = Map.newInstance(query.select.name, v);
 			for(var e=0;e<c.length;e++){
-				o[names[e]]=endFunction[e](parts[e][c[e]]);
+				if (edges[e].allowNulls && parts[e].length==c[e]){
+					o[names[e]]=endFunction[e](domains[e].NULL);
+				}else{
+					o[names[e]]=endFunction[e](parts[e][c[e]]);
+				}//endif
 			}//for
 			output.append(o);
 		});

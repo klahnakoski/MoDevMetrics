@@ -120,7 +120,7 @@ importScript([
 				"edges" : [
 					{"name" : "wait_time",
 						"allowNulls" : true,
-						value : "(coalesce(zero2null(review_time), " + Date.eod().getMilli() + ")-doc[\"request_time\"].value)",
+						value:"(coalesce(zero2null(review_time), "+Date.eod().getMilli()+")-request_time)",
 						"domain" : {"type" : "duration", "min" : 0, "max" : "10day", "interval" : "hour", "value" : "value"}
 					}
 				],
@@ -227,12 +227,12 @@ importScript([
 				{"name" : "review_time", "value" : "review_time"}
 			],
 			"esfilter" : {"and" : [
-				{"script" : {"script" :	//ONLY CONSIDER THE REVIEWS LONGER THAN A DAY
-					MVEL.compile.expression(
-						"(coalesce(review_time, " + Date.eod().getMilli() + ") - request_time > " + Duration.MILLI_VALUES.day + ") ? 1 : 0;",
-						{"from" : "reviews"}
-					)
-				}},
+//				{"script":{"script":	//ONLY CONSIDER THE REVIEWS LONGER THAN A DAY
+//					MVEL.compile.expression(
+//						"(coalesce(review_time, " + Date.eod().getMilli() + ") - request_time > " + Duration.MILLI_VALUES.day + ") ? 1 : 0;",
+//						{"from": "reviews"}
+//					)
+//				}},
 				mainFilter,
 				{"range" : {"request_time" : {"gte" : sampleMin.getMilli() - Duration.WEEK.milli * 18, "lt" : sampleMax.getMilli()}}},
 				{"or" : [
@@ -247,8 +247,8 @@ importScript([
 			"select" : {"name" : "open_count", "value" : "request_time", "aggregate" : "count"},
 			"edges" : [
 				{"name" : "time", "value" : "request_time",
-					"test" : "review_time-request_time > " + Duration.MILLI_VALUES.day + " && " +
-						"request_time < time.min.getMilli() && time.min.getMilli() < review_time && " +
+					"test":	"nvl(review_time, time.min.getMilli())-request_time > "+Duration.MILLI_VALUES.day+" && "+
+							"request_time < time.min.getMilli() && time.min.getMilli() < nvl(review_time, Date.eod().getMilli()) && "+
 						"time.min.getMilli() < request_time+" + Duration.MILLI_VALUES.week * 18, //JUST IGNORE THE REALLY OLD reviews
 					"domain" : {"type" : "time", "min" : sampleMin, "max" : sampleMax, "interval" : sampleInterval}
 
