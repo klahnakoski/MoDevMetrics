@@ -11,3 +11,4 @@ tests/.env
 *.pyc
 /html/src.iml
 /.env
+*.iml
