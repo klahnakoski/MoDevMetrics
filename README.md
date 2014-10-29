@@ -48,7 +48,7 @@ Access to one of the bug clusters is required:
   - Direct to private cluster (need VPN access)<br>```http://elasticsearch-private.bugs.scl3.mozilla.com:9200/private_bugs/bug_version```
 
 Due to restrictions on the public cluster, it is best to test it with the [the
-minimum viable example page](html/es/Tutorial01-Minimum.html).  The clusters
+minimum viable example page](html/Tutorial01-Minimum.html).  The clusters
 behind VPN can be tested normally with [ElasticSearch Head](https://github.com/mobz/elasticsearch-head).
 
 Install
