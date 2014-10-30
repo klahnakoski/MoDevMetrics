@@ -699,24 +699,26 @@ Qb.normalize=function(query, edgeIndex, multiple){
 
 
 //selectValue - THE FIELD TO USE TO CHECK FOR ZEROS (REQUIRED IF RECORDS ARE OBJECTS INSTEAD OF VALUES)
-Qb.removeZeroParts=function(query, edgeIndex, selectValue){
-	if (query.cube===undefined) Log.error("Can only normalize a cube into a table at this time");
-	if (selectValue===undefined) Log.error("method now requires third parameter");
+Qb.removeZeroParts = function(query, edgeIndex, selectValue){
+	if (query.cube === undefined) Log.error("Can only normalize a cube into a table at this time");
+	if (selectValue === undefined) Log.error("method now requires third parameter");
 
 	var domain = query.edges[edgeIndex].domain;
-	var zeros=domain.partitions.map(function(){ return true;});
+	var zeros = domain.partitions.map(function(){
+		return true;
+	});
 
 	//CHECK FOR ZEROS
-	var m = new Matrix({"data": query.cube});
-		if (query.select instanceof Array){
-			m.forall(edgeIndex, function (v, i) {
-				if (v[selectValue] !== undefined && v[selectValue] != null && v[selectValue] != 0) zeros[i] = false;
-			});
-		}else{
-			m.forall(edgeIndex, function (v, i) {
-				if (v !== undefined && v != null && v != 0) zeros[i] = false;
-			});
-		}//endif
+	var m = new Matrix({"data" : query.cube});
+	if (query.select instanceof Array) {
+		m.forall(function(v, c){
+			if (v[selectValue] !== undefined && v[selectValue] != null && v[selectValue] != 0) zeros[c[edgeIndex]] = false;
+		});
+	} else {
+		m.forall(function(v, i){
+			if (v !== undefined && v != null && v != 0) zeros[edgeIndex] = false;
+		});
+	}//endif
 
 	//REMOVE ZERO PARTS FROM EDGE
 	var j = 0;
