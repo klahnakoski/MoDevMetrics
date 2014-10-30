@@ -14,6 +14,9 @@ Matrix=function(arg){
 			d = d[0];
 		}//while
 		this.num=this.dim.length;
+		if (this.num==0 && typeof(arg.data)=="object"){
+			Log.error("Expecting an array");
+		}//endif
 		this.data=arg.data;
 	}else if (arg instanceof Array){
 		//EXPECTING COORDINATES ARRAY
@@ -131,4 +134,25 @@ Matrix.prototype.filter = function (edge, func) {
 	return iter(data, 0);
 };
 
+Matrix.prototype.get=function(coord){
+	if (coord.length!=this.num){
+		Log.error("expecting coordinates of "+this.num+" dimensions")
+	}//endif
+	var d=this.data;
+	for(var i=0;i<coord.length;i++){
+		d=d[coord[i]];
+	}//for
+	return d;
+};
 
+Matrix.prototype.set=function(coord, value){
+	if (coord.length!=this.num){
+		Log.error("expecting coordinates of "+this.num+" dimensions")
+	}//endif
+	var d=this.data;
+	for(var i=0;i<coord.length-1;i++){
+		d=d[coord[i]];
+	}//for
+	d[coord[this.num-1]]=value;
+	return this;
+};
