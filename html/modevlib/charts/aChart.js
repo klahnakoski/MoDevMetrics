@@ -934,22 +934,26 @@ aChart.show=function(params){
 
 //FIX CLICKACTION SO IT WORKS IN BOTH CHART VERSIONS
 function fixClickAction(chartParams){
+	fixAction(chartParams, "clickAction");
+	fixAction(chartParams, "tooltipFormat");
+}
 
-	var clickAction = chartParams.clickAction;
-	chartParams.clickAction = function(series, x, d, elem){
+function fixAction(chartParams, actionName){
+	var action = chartParams[actionName];
+	chartParams[actionName] = function(series, x, d, elem){
 		if (series.atoms !== undefined){
 			//CCC VERSION 2
 			var s = nvl(series.atoms.series, {"value":"data"}).value;
-			var c = series.atoms.category.value;
-			var v = series.atoms.value.value;
+			var c = nvl(series.atoms.category, series.atoms.x).value;
+			var v = nvl(series.atoms.value, series.atoms.y).value;
 			if (c instanceof Date){  //CCC 2 DATES ARE IN LOCAL TZ
 				c = c.addTimezone();
 			}//endif
 
-			return clickAction(s, c, v, elem);
+			return action(s, c, v, elem, series.dataIndex);
 		} else{
 			//CCC VERSION 1
-			return clickAction(series, x, d, elem);
+			return action(series, x, d, elem);
 		}//endif
 	};//method
 }

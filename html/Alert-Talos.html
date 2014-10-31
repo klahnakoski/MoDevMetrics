@@ -97,7 +97,8 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Talos.js'], function(){
 		var chart = yield(ESQuery.run({
 			"from":"talos",
 			"select": [
-				{"name":"median", "value":"result.stats.median"}
+				{"name":"median", "value":"result.stats.median"},
+				{"name":"revision", "value":"test_build.revision"}
 			],
 			"edges":[
 				{"name":"date", "value":DATE_FIELD, "domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":"none"}}
@@ -115,6 +116,16 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Talos.js'], function(){
 			xAxisSize: 50,
 			extensionPoints: {
 				line_lineWidth: 0
+			},
+			tooltipFormat: function(category, x, y, elem, index){
+				//FIND THE MATCHING ELEMENT
+//				var item = chart.list.filter(function(v){return v.median==y && v.date==x}).first();
+				var item = chart.list[index];
+				return "<div style='text-align:left'>" +
+					"<b>Revision</b>: " + item.revision + "<br/>" +
+					"<b>Push Date</b>: " + x.format("MMM dd HH:mm:ss") + "<br/>" +
+					"<b>Median</b>: " + y +
+					"</div>";
 			}
 		});
 
