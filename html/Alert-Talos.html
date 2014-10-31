@@ -86,8 +86,8 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Talos.js'], function(){
 			"esfilter":esfilter
 		}));
 
-		if (sample.cube > 3000) {
-			Log.alert("too many datapoints (>3000)");
+		if (sample.cube > 10000) {
+			Log.alert("too many datapoints (>10000)");
 			return;
 		} else if (sample.cube == 0) {
 			Log.alert("no results");
