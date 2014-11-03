@@ -136,7 +136,8 @@ build = function () {
 
 	//ADD A KILLABLE CHILD {"kill":function}
 	function addChild(child){
-		this.children.append(child);
+		this.children.push(child);
+		child.parentThread=this;
 	}//function
 	Thread.prototype.addChild = addChild;
 
