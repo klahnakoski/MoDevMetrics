@@ -403,19 +403,25 @@ ESQuery.INDEXES = Settings.indexes;
 
 		var esFacets;
 
-		//THESE SMOOTH EDGES REQUIRE ALL DATA (SETOP)
-		var extraSelect = [];
-		this.query.edges.forall(function(e){
-			if (e.domain !== undefined && Qb.domain.ALGEBRAIC.contains(e.domain.type) && e.domain.interval == "none") {
-				extraSelect.append({"name": e.name, "value": e.value, "domain": e.domain});
-			}//endif
-		});
+		var smoothEdges = [];
+		if (Array.AND(Array.newInstance(this.query.select).map(function(s){return s.aggregate=="none";}))){
+			//NO AGGREGATION IMPLIES SIMPLE GROUP BY, USE SETOP TO COLLECT DATA
+			this.query.edges.forall(function(e){
+				smoothEdges.append({"name": e.name, "value": e.value, "domain": e.domain});
+			});
+		}else{
+			//THESE SMOOTH EDGES REQUIRE ALL DATA (SETOP)
+			this.query.edges.forall(function(e){
+				if (e.domain !== undefined && Qb.domain.ALGEBRAIC.contains(e.domain.type) && e.domain.interval == "none") {
+					smoothEdges.append({"name": e.name, "value": e.value, "domain": e.domain});
+				}//endif
+			});
+		}
 
-
-		if (extraSelect.length == this.query.edges.length) {
+		if (smoothEdges.length == this.query.edges.length) {
 			this.termsEdges = [];
 			this.select = Array.newInstance(this.query.select).copy();
-			this.select.appendArray(extraSelect)
+			this.select.appendArray(smoothEdges)
 		} else {
 			this.termsEdges = this.query.edges.copy();
 			this.select = Array.newInstance(this.query.select);
@@ -1471,39 +1477,41 @@ ESQuery.INDEXES = Settings.indexes;
 
 
 	ESQuery.prototype.fieldsResults = function(data){
+		var i;
 		var o = [];
 		var T = data.hits.hits;
 
-		if (this.query.select instanceof Array || this.select.length > 1) {
-			for (var i = T.length; i--;) {
-				var record = nvl(T[i].fields, {});
-				var new_rec = {};
-				this.select.forall(function(s, j){
-					if (s.domain && s.domain.interval == "none") {
-						//THESE none-interval EDGES WERE ADDED TO THE SELECT LIST
-						if (s.domain.type == "time") {
-							new_rec[s.name] = {"value": record[s.value]}
-						} else {
-							Log.error("Do not know how to handle domain of type {{type}}", {"type": s.domain.type});
-						}//endif
-					} else {
-						var field = splitField(s.value)[0].split(".")[0];  //USING BASE OF MULTI_FIELD WHICH HAS ACTUAL VALUE
-						new_rec[s.name] = nvl(record[s.value], T[i][field]);
-					}
-
-				});
-				o.push(new_rec)
-			}//for
-		} else {
+		if (!this.query.select instanceof Array && this.select.length == 1) {
 			//NOT ARRAY MEANS OUTPUT IS LIST OF VALUES, NOT OBJECTS
 			var n = this.query.select.name;
 			if (this.query.select.value == "_source") {
-				for (var i = T.length; i--;) o.push(T[i]._source);
+				for (i = T.length; i--;) o.push(T[i]._source);
 			} else {
-				for (var i = T.length; i--;) o.push(T[i].fields[n]);
+				for (i = T.length; i--;) o.push(T[i].fields[n]);
 			}//endif
+
+			this.query.list = o;
+			return
 		}//endif
 
+		for (var i = T.length; i--;) {
+			var record = nvl(T[i].fields, {});
+			var new_rec = {};
+			this.select.forall(function(s, j){
+				if (s.domain && s.domain.interval == "none") {
+					//THESE none-interval EDGES WERE ADDED TO THE SELECT LIST
+					if (s.domain.type == "time") {
+						new_rec[s.name] = {"value": record[s.value]}
+					} else {
+						Log.error("Do not know how to handle domain of type {{type}}", {"type": s.domain.type});
+					}//endif
+				} else {
+					var field = splitField(s.value)[0].split(".")[0];  //USING BASE OF MULTI_FIELD WHICH HAS ACTUAL VALUE
+					new_rec[s.name] = nvl(record[s.value], T[i][field]);
+				}
+			});
+			o.push(new_rec)
+		}//for
 		this.query.list = o;
 	};//method
 
