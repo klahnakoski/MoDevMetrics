@@ -68,6 +68,8 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Performance.js'], function
 
 		var sampleMin = Date.newInstance(GUI.state.sampleMin);
 		var sampleMax = Date.newInstance(GUI.state.sampleMax).add(Duration.DAY);
+		var revisions = GUI.state.revision.split(",").map(String.trim);
+		if (revisions.length==1 && revisions[0]=="") revisions=[];
 
 		var esfilter = {"and": [
 			{"exists": {"field": DATE_FIELD}},
@@ -109,6 +111,21 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Performance.js'], function
 		}));
 		Log.actionDone(a);
 
+		chart.list.forall(function(v){
+			revisions.forall(function(r){
+				if (v.revision.startsWith(r)){
+					if (!chart.edges[0].domain.dateMarks){
+						chart.edges[0].domain.dateMarks=[];
+					}//endif
+					chart.edges[0].domain.dateMarks.append({
+						"name": v.revision,
+						"date": Date.newInstance(v.date.value)
+					});
+				}
+			});
+
+		});
+
 		chart.list = Qb.sort(chart.list, ["date.value"]);
 
 		aChart.showScatter({
@@ -139,6 +156,7 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Performance.js'], function
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [
+			{"id": "revision", "name":"Revision", "type":"string"},
 			{"id": "sampleMin", "name": "Start Date", "type": "date", "default": Date.eod().subtract(Duration.newInstance("3month"))},
 			{"id": "sampleMax", "name": "End Date", "type": "date", "default": Date.today()},
 			{"id": "sampleInterval", "name": "Interval", "type": "duration", "default": Duration.WEEK},
@@ -160,7 +178,7 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Performance.js'], function
 				"id": "branch",
 				"name": "Branches",
 				"dimension": Mozilla.Talos.Branch,
-				"onlyOne": true,
+				"onlyOne": false,
 				"expandAll": true
 			})},
 			{"id": "os", "name": "OS", "type": PartitionFilter.newInstance({
