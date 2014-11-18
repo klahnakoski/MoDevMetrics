@@ -62,7 +62,7 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Performance.js'], function
 	var createChart = function(){
 		if (thread !== undefined)
 			thread.kill();
-		thread = Thread.run(__createChart());
+		thread = Thread.run("createChart", __createChart);
 	};
 
 	var __createChart = function*(){
@@ -82,7 +82,7 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Performance.js'], function
 		function oneTest(testName, testNum){
 			$("#title" + testNum).html(testName);
 
-			Thread.run(function*(){
+			Thread.run(testName, function*(){
 				var esfilter = {"and": [
 					{"exists": {"field": DATE_FIELD}},
 					{"range": Map.newInstance(DATE_FIELD, {"gte": sampleMin.getMilli(), "lt": sampleMax.getMilli()})},
@@ -108,6 +108,9 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Performance.js'], function
 						],
 						"esfilter": esfilter
 					}));
+				}catch(e){
+					Log.note("query "+testName+" cancelled");
+					return;
 				} finally {
 					Log.actionDone(a);
 				}//try
