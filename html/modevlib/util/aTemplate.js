@@ -1,6 +1,7 @@
 importScript("../collections/aArray.js");
 importScript("aUtil.js");
 importScript("aString.js");
+importScript("CNV.js");
 
 
 var Template = function Template(template){
@@ -25,7 +26,9 @@ var Template = function Template(template){
 
 	var FUNC = {};
 	FUNC.html = CNV.String2HTML;
-	FUNC.css = CNV.Object2style;
+	FUNC.style = CNV.Object2style;
+	FUNC.css = CNV.Object2CSS;
+	FUNC.attribute = CNV.value2HTMLAttribute;
 	FUNC.datetime = function(d, f){
 		if (f===undefined){
 			f="yyyy-MM-dd HH:mm:ss";
@@ -105,9 +108,14 @@ var Template = function Template(template){
 				}//endif
 			}//for
 
-			val = "" + val;
+			if (val==null){
+				val="";  //NULL IS NOTHING
+			}else{
+				val = "" + val;  //undefined WILL SHOW AS UGLY "undefined"
+			}//endif
+
 			if (val !== undefined && (val instanceof String || typeof(val) == "string" || (typeof map[key]) != "object")) {
-				output = output.replaceAll(output.substring(s, e + 2), val);
+				output = output.substring(0, s) + val + output.substring(e + 2);
 				e = s + val.length;
 			} else {
 				//Log.debug()

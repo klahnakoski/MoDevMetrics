@@ -983,7 +983,9 @@ Qb.merge=function(query){
 ////////////////////////////////////////////////////////////////////////////////
 // ORDERING
 ////////////////////////////////////////////////////////////////////////////////
-//TAKE data LIST OF OBJECTS AND ENSURE names ARE ORDERED
+//TAKE data LIST OF OBJECTS
+//sortOrder IS THE sort CLAUSE
+//columns ARE OPTIONAL, TO MAP SORT value TO column NAME
 Qb.sort = function(data, sortOrder, columns){
 	sortOrder = Array.newInstance(sortOrder);
 	if (sortOrder.length==0) return data;
@@ -1034,7 +1036,7 @@ Qb.sort.compile=function(sortOrder, columns, useNames){
 		if (!useNames){
 			index = col.columnIndex;
 		}else if (MVEL.isKeyword(col.name)){
-			index=splitField(col.name).map(function(v){return CNV.String2Quote(v);}).join("][");
+			index=splitField(col.name).map(CNV.String2Quote).join("][");
 		}else if (columns.select("name").contains(col.name)){
 			index=CNV.String2Quote(col.name);
 		}else{
