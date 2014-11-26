@@ -140,7 +140,7 @@ GUI = {};
 		//SHOW THE LAST TIME ES WAS UPDATED
 		GUI.showLastUpdated = function(indexName) {
 			if (!GUI.checkLastUpdated) return;
-			
+
 			Thread.run("show last updated timestamp", function*() {
 				var time;
 
@@ -193,7 +193,7 @@ GUI = {};
 					esHasErrorInIndex = false;
 					time = new Date((yield(ESQuery.run({
 						"from":"talos",
-						"select":{"name": "max_date", "value":"datazilla.date_loaded","aggregate":"maximum"}
+						"select":{"name": "max_date", "value":"testrun.date","aggregate":"maximum"}
 					}))).cube.max_date);
 					$("#testMessage").html("Latest Push " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 				} else {

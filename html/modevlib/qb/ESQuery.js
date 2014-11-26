@@ -130,6 +130,10 @@ ESQuery.INDEXES = Settings.indexes;
 
 		var indexInfo = ESQuery.INDEXES[indexName];
 
+		if (indexInfo===undefined){
+			Log.error("No index with name {{name}} can be found", {"name":indexName})
+		}//endif
+
 		//WE MANAGE ALL THE REQUESTS FOR THE SAME SCHEMA, DELAYING THEM IF THEY COME IN TOO FAST
 		if (indexInfo.fetcher === undefined) {
 			indexInfo.fetcher = Thread.run(function*(){

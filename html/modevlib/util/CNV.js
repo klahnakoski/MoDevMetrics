@@ -395,7 +395,8 @@ CNV.Cube2HTMLTable=function(query){
 
 	var e=query.edges[0];
 
-	if (query.edges.length==0){
+	if (query.edges.length==0 || (query.edges.length==1 && query.edges[0].domain.interval=="none")){
+		//NO EDGES, OR ONLY SMOOTH EDGES MEANS ALL POINTS MUST BE LISTED
 		return CNV.List2HTMLTable(query);
 	}else if (query.edges.length==1){
 		header += "<td>" + CNV.String2HTML(e.name) + "</td>";
@@ -510,7 +511,7 @@ CNV.List2HTMLTable = function(data, options){
 	columns.forall(function(v, i){
 		header += wrapWithHtmlTag("td", v.name);
 	});
-	header = "<thead><tr>" + header + "</tr></thead>";
+	header = "<thead><tr><div>" + header + "</div></tr></thead>";
 
 
 	var output = "";
@@ -521,7 +522,7 @@ CNV.List2HTMLTable = function(data, options){
 		var row = "";
 		for(var c = 0; c < columns.length; c++){
 			var value = data[i][columns[c].name];
-			row += wrapWithHtmlTag("td", value);
+			row += wrapWithHtmlTag(["td", "div"], value);
 		}//for
 		output += "<tr>" + row + "</tr>\n";
 	}//for
@@ -534,53 +535,59 @@ CNV.List2HTMLTable = function(data, options){
 };//method
 
 
-wrapWithHtmlTag=function(tagName, value){
-	if (tagName===undefined) tagName="td";
+wrapWithHtmlTag = function(tagName, value){
+	if (tagName === undefined) tagName = "td";
+	tagName = Array.newInstance(tagName);
+	var prefix = tagName.map(function(t){
+		return "<" + t + ">"
+	}).join("");
+	var suffix = Qb.reverse(tagName).map(function(t){
+		return "</" + t + ">"
+	}).join("");
 
-	if (value === undefined){
+
+	if (value === undefined) {
 //		return "<"+tagName+">&lt;undefined&gt;</"+tagName+">";
-		return "<"+tagName+"></"+tagName+">";
-	} else if (value == null){
+		return prefix + suffix;
+	} else if (value == null) {
 //		return "<"+tagName+">&lt;null&gt;</"+tagName+">";
-		return "<"+tagName+"></"+tagName+">";
-	}else if (value instanceof HTML){
-		return "<"+tagName+">" + value + "</"+tagName+">";
-	} else if (typeof(value)=="string"){
-		return "<"+tagName+">" + CNV.String2HTML(value) + "</"+tagName+">";
-	} else if (aMath.isNumeric(value)){
-		if ((""+value).length==13){
+		return prefix + suffix;
+	} else if (value instanceof HTML) {
+		return prefix + value + suffix;
+	} else if (typeof(value) == "string") {
+		return prefix + CNV.String2HTML(value) + suffix;
+	} else if (aMath.isNumeric(value)) {
+		if (("" + value).length == 13) {
 			//PROBABLY A TIMESTAMP
-			value=new Date(value);
-			if (value.floorDay().getMilli()==value.getMilli()){
-				return "<"+tagName+">" + new Date(value).format("dd-NNN-yyyy") + "</"+tagName+">";
-			}else{
-				return "<"+tagName+">" + new Date(value).format("dd-NNN-yyyy HH:mm:ss") + "</"+tagName+">";
+			value = new Date(value);
+			if (value.floorDay().getMilli() == value.getMilli()) {
+				return prefix + new Date(value).format("dd-NNN-yyyy") + suffix;
+			} else {
+				return prefix + new Date(value).format("dd-NNN-yyyy HH:mm:ss") + suffix;
 			}//endif
-		}else{
-			return "<"+tagName+" style='text-align:right;'>" + value + "</"+tagName+">";
+		} else {
+			return prefix.leftBut(1) + " style='text-align:right;'>" + value + suffix;
 		}
-	} else if (value.milli){
+	} else if (value.milli) {
 		//DURATION
-		return "<"+tagName+">" + value.toString() + "</"+tagName+">";
-	} else if (value.getTime){
-		if (value.floorDay().getMilli()==value.getMilli()){
-			return "<"+tagName+">" + new Date(value).format("dd-NNN-yyyy") + "</"+tagName+">";
-		}else{
-			return "<"+tagName+">" + new Date(value).format("dd-NNN-yyyy HH:mm:ss") + "</"+tagName+">";
+		return prefix + value.toString() + suffix;
+	} else if (value.getTime) {
+		if (value.floorDay().getMilli() == value.getMilli()) {
+			return prefix + new Date(value).format("dd-NNN-yyyy") + suffix;
+		} else {
+			return prefix + new Date(value).format("dd-NNN-yyyy HH:mm:ss") + suffix;
 		}//endif
 //	} else if (value.toString !== undefined){
-//		return "<"+tagName+">" + CNV.String2HTML(value.toString()) + "</"+tagName+">";
+//		return prefix + CNV.String2HTML(value.toString()) + suffix;
 	}//endif
 
 	var json = CNV.Object2JSON(value);
 //	if (json.indexOf("\n") == -1){
-		return "<"+tagName+">" + CNV.String2HTML(json) + "</"+tagName+">";
+	return prefix + CNV.String2HTML(json) + suffix;
 //	} else{
 //		return "<"+tagName+">&lt;json not included&gt;</"+tagName+">";
 //	}//endif
 };
-
-
 
 
 ///////////////////////////////////////////////////////////////////////////////

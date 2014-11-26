@@ -49,6 +49,8 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Performance.js'], function
 		"Simple look at time series"
 	);
 
+	var TABLE = "talos";
+
 
 	var thread;
 	var createChart = function(){
@@ -58,23 +60,15 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Performance.js'], function
 	};
 
 	var __createChart = function*(){
-		var DATE_FIELD;
-		if (ESQuery.INDEXES["talos"].host.indexOf("67.55.30.33") >= 0) {
-			DATE_FIELD = "datazilla.date_loaded";
-		} else {
-			DATE_FIELD = "test_build.push_date";
-		}//endif
-
-
 		var sampleMin = Date.newInstance(GUI.state.sampleMin);
 		var sampleMax = Date.newInstance(GUI.state.sampleMax).add(Duration.DAY);
 		var revisions = GUI.state.revision.split(",").map(String.trim);
 		if (revisions.length==1 && revisions[0]=="") revisions=[];
 
 		var esfilter = {"and": [
-			{"exists": {"field": DATE_FIELD}},
-			{"range": Map.newInstance(DATE_FIELD, {"gte": sampleMin.getMilli(), "lt": sampleMax.getMilli()})},
-			GUI.getFilters("talos")
+			{"exists": {"field": "test_build.push_date"}},
+			{"range": {"test_build.push_date": {"gte": sampleMin.getMilli(), "lt": sampleMax.getMilli()}}},
+			GUI.getFilters(TABLE)
 		]};
 
 		if (Mozilla.Talos.Branch.partitions instanceof Thread) {
@@ -83,7 +77,7 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Performance.js'], function
 
 		//HOW MANY SAMPLES DO WE HAVE, TOO MANY AND WE USE A HEAT GRID
 		var sample = yield(ESQuery.run({
-			"from": "talos",
+			"from": TABLE,
 			"select": {"name": "count", "value": "result.test_name", "aggregate": "count"},
 			"esfilter": esfilter
 		}));
@@ -98,14 +92,14 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Performance.js'], function
 
 		var a = Log.action("Pull perf data", true);
 		var chart = yield(ESQuery.run({
-			"from": "talos",
+			"from": TABLE,
 			"select": [
 				{"name": "median", "value": "result.stats.median"},
 				{"name": "revision", "value": "test_build.revision"},
 				{"name": "samples", "value": "result.samples"}
 			],
 			"edges": [
-				{"name": "date", "value": DATE_FIELD, "domain": {"type": "time", "min": sampleMin, "max": sampleMax, "interval": "none"}}
+				{"name": "date", "value": "test_build.push_date", "domain": {"type": "time", "min": sampleMin, "max": sampleMax, "interval": "none"}}
 			],
 			"esfilter": esfilter
 		}));
@@ -160,13 +154,6 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Performance.js'], function
 			{"id": "sampleMin", "name": "Start Date", "type": "date", "default": Date.eod().subtract(Duration.newInstance("3month"))},
 			{"id": "sampleMax", "name": "End Date", "type": "date", "default": Date.today()},
 			{"id": "sampleInterval", "name": "Interval", "type": "duration", "default": Duration.WEEK},
-			{"id": "test", "name": "Test", "type": PartitionFilter.newInstance({
-				"id": "test",
-				"name": "Test",
-				"dimension": Mozilla.Talos.TestOnly,
-				"onlyOne": true,
-				"expandAll": true
-			})},
 			{"id": "suite", "name": "Suite", "type": PartitionFilter.newInstance({
 				"id": "suite",
 				"name": "suite",
@@ -200,7 +187,7 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Performance.js'], function
 			[
 				'sampleInterval=Date.getBestInterval(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval), {"min":10, "max":100})'
 			],
-			"talos",
+			TABLE,
 			false
 		);
 	});

@@ -56,9 +56,10 @@ importScript("charts/aColor.js");
 			"telemetry" : {"style" : {"color" : "black", "background-color" : yellow}, "host" : "http://elasticsearch-private.bugs.scl3.mozilla.com:9200", "path" : "/telemetry_agg_valid_201305/data"},
 			"raw_telemetry" : {"style" : {"color" : "black", "background-color" : yellow}, "host" : "http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path" : "/raw_telemetry/data"},
 
-			"talos" : {"style" : {"color" : "black", "background-color" : yellow}, "host" : "http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path" : "/talos/test_results"},
-			"kyle_talos" : {"style" : {"color" : "black", "background-color" : yellow}, "host" : "http://192.168.0.98:9200", "path" : "/talos/test_results"},
-			"local_talos" : {"style" : {"color" : "black", "background-color" : yellow}, "host" : "http://localhost:9200", "path" : "/talos/test_results"},
+//			"talos" : {"style" : {"color" : "black", "background-color" : yellow}, "host" : "http://klahnakoski-es.corp.tor1.mozilla.com:9200", "path" : "/talos/test_results"},
+//			"kyle_talos" : {"style" : {"color" : "black", "background-color" : yellow}, "host" : "http://192.168.0.98:9200", "path" : "/talos/test_results"},
+//			"local_talos" : {"style" : {"color" : "black", "background-color" : yellow}, "host" : "http://localhost:9200", "path" : "/talos/test_results"},
+			"talos" : {"style" : {"color" : "black", "background-color" : yellow}, "host" : "http://localhost:9200", "path" : "/talos/test_results"},
 			"public_talos" : {"style" : {"color" : "black", "background-color" : yellow}, "host" : "http://67.55.30.33:9201", "path" : "/talos/test_results"},
 
 			"talos2" : {"style" : {"color" : "black", "background-color" : yellow}, "host" : "http://localhost:9200", "path" : "/talos2/test_results"},
