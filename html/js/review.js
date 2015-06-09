@@ -5,7 +5,7 @@ function*getReviewers(timeDomain, maxReviewers){
 
 	var persons = [];
 
-	var allEmails = GUI.state.emails.split(",").map(String.trim);
+	var allEmails = GUI.state.emails.split(",").map(String.trim).filter(function(e){return e!="";});
 	var allSelected = (yield(GUI.state.teamFilter.getAllSelectedPeople()));
 
 	if (allSelected.length == 0 && allEmails.length == 0) {
