@@ -70,6 +70,7 @@ importScript([
 
 			//SHOW PAST REVIEWS
 			var pastThread = Thread.run(function*(){
+				var a=Log.action("Load past", true);
 				var response = yield (ESQuery.run({
 					"from" : "reviews",
 					"select" : {"name" : "count", "value" :"bug_id", "aggregate" : "count"},
@@ -85,6 +86,7 @@ importScript([
 						{"terms" : {"reviewer" : person.email}}
 					]}
 				}));
+				Log.actionDone(a);
 
 				scale[pi] = aMath.max(aMath.niceCeiling(aMath.MAX(response.cube)), 20);
 
@@ -114,6 +116,7 @@ importScript([
 
 			//SHOW PENDING REVIEW COUNT
 			Thread.run(function*(){
+				var a=Log.action("Load pending", true);
 				var thisWeeksReviews = yield (ESQuery.run({
 					"from" : "reviews",
 					"select" : [
@@ -143,6 +146,7 @@ importScript([
 						{"name":"this week", "value":CNV.String2Quote(timeDomain.max.format("MM/dd"))}
 					]
 				}));
+				Log.actionDone(a);
 
 				pastThread.join();
 
