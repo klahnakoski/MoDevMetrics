@@ -5,11 +5,7 @@ Mozilla Developer Metrics
 Objective
 ---------
 
-This project is designed to optimize the creation of dashboards using ElasticSearch data.  Many tools already exist to
-make dashboards, for example: Cognos, MicroStrategy, Pentaho and Tableau.  Unlike these tools, dashboard creation is
-done in code rather than a GUI tool.  I believe the benefits of code testability and version control outweigh the loss
-of GUI tools.  Furthermore, with dashboard layout and specification reified in source code, further tools can be
-built atop what is here.
+This project is designed to optimize the creation of dashboards using ElasticSearch data.   Dashboards are written as static HTML/Javascript; which can make AjAX calls to the public cluster; and provide an interactive experience with little effort.  
 
 Examples
 --------
@@ -29,6 +25,7 @@ Benefits
   * **Queries are JSON** - Queries are in JSON structures, which are easily transmitted or serialized, and are easily
   handled by both Javascript and Python.  The Qb query form provides an abstraction layer between the docstore/database
   holding the data and the charting/stats package performing the analysis.
+
 
 Drawbacks
 ---------
@@ -63,6 +60,22 @@ Install
     Receiving objects: 100% (6563/6563), 17.89 MiB | 234 KiB/s, done.
     Resolving deltas: 100% (4485/4485), done.
     Checking out files: 100% (437/437), done.
+
+Branches
+--------
+
+Multiple branches are in this repo:
+
+* **dev** - Mostly working version, found at http://people.mozilla.org/~klahnakoski/modevmetrics/
+* **ETL** - stable working version responsible for some additional ETL
+* **corruption fixer** - code that fixes some inconsistencies due to data extraction anomalies in the original ETL
+* **master** - not used
+* **merge** - an attempt to upgrade the MoDevLibrary
+* **perfy** - working version of the Perfy performance dashboard (no longer in use)
+* **review** - for the review queue dashboards
+* **selenium_test** - attempt to bring in a testing framework
+* **talos** - for Talos performance tracking dashboard (no longer in use)
+
 
 Examples
 --------
