@@ -66,11 +66,11 @@ Branches
 
 Multiple branches are in this repo:
 
-* **dev** - Mostly working version, found at http://people.mozilla.org/~klahnakoski/modevmetrics/
+* **dev** - Default, active, mostly working, branch
+* **merge** - an attempt to upgrade the MoDevLibrary
+* **master** - deployed to at [http://people.mozilla.org/~klahnakoski/modevmetrics/](http://people.mozilla.org/~klahnakoski/modevmetrics/)
 * **ETL** - stable working version responsible for some additional ETL
 * **corruption fixer** - code that fixes some inconsistencies due to data extraction anomalies in the original ETL
-* **master** - not used
-* **merge** - an attempt to upgrade the MoDevLibrary
 * **perfy** - working version of the Perfy performance dashboard (no longer in use)
 * **review** - for the review queue dashboards
 * **selenium_test** - attempt to bring in a testing framework
