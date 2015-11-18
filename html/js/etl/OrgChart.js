@@ -132,7 +132,7 @@ importScript("ETL.js");
 
 		var a = Log.action("Push people to ES", true);
 		var results = yield (ElasticSearch.bulkInsert(OrgChart.destination, insert));
-		if (DEBUG) Log.note(CNV.Object2JSON(CNV.JSON2Object(results)));
+		if (DEBUG) Log.note(convert.Object2JSON(convert.JSON2Object(results)));
 
 		Log.actionDone(a);
 	};//method

@@ -46,7 +46,7 @@
 <script type="text/javascript" src="modevlib/collections/aArray.js"></script>
 <script type="text/javascript" src="modevlib/util/aString.js"></script>
 <script type="text/javascript" src="modevlib/math/aMath.js"></script>
-<script type="text/javascript" src="modevlib/util/CNV.js"></script>
+<script type="text/javascript" src="modevlib/util/convert.js"></script>
 <script type="text/javascript" src="modevlib/util/aUtil.js"></script>
 <script type="text/javascript" src="modevlib/collections/aArray.js"></script>
 <script type="text/javascript" src="modevlib/util/aString.js"></script>
@@ -320,9 +320,9 @@ Thread.run(function*(){
 		]
 	}))).list;
 
-	$("#pending").html("<h2>Pending Review (R?)</h2>" + CNV.List2HTMLTable(result));
-	$("#complete").html("<h2>Review Completed (R+)</h2>" + CNV.List2HTMLTable(result3));
-	$("#open").html("<h2>Assigned To</h2>" + CNV.List2HTMLTable(result2));
+	$("#pending").html("<h2>Pending Review (R?)</h2>" + convert.List2HTMLTable(result));
+	$("#complete").html("<h2>Review Completed (R+)</h2>" + convert.List2HTMLTable(result3));
+	$("#open").html("<h2>Assigned To</h2>" + convert.List2HTMLTable(result2));
 
 });
 

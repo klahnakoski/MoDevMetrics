@@ -60,7 +60,7 @@ importScript(["modevlib/main.js"], function(){
 		}));
 
 		numBad.list = numBad.list.left(100);
-		$("#results").html(CNV.List2HTMLTable(numBad));
+		$("#results").html(convert.List2HTMLTable(numBad));
 		Log.actionDone(a);
 
 
@@ -162,7 +162,7 @@ importScript(["modevlib/main.js"], function(){
 //			Log.actionDone(a);
 //		}//endif
 
-		$("#fixes").html(CNV.List2HTMLTable(fixed));
+		$("#fixes").html(convert.List2HTMLTable(fixed));
 
 
 	});

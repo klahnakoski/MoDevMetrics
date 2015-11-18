@@ -219,7 +219,7 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Bugzilla.js'], function(){
 							"select": {"value": "bug_id"},
 							"where": "closeTime!=null && " +
 								"closeTime.between(Date.newInstance(" + date.getMilli() + "), Date.newInstance(" + date.add(sampleInterval).getMilli() + ")) && " +
-								"resolution==" + CNV.String2Quote(resolution)
+								"resolution==" + convert.String2Quote(resolution)
 						}));
 
 						Bugzilla.showBugs(list.list);

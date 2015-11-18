@@ -118,9 +118,9 @@ importScript([
 			"from":rawPatches,
 			"select":[
 				{"name":"closed_ts",
-					"value":'!["resolved", "verified", "closed"].contains(status) && is_obsolete==0 && review_status!="-" ? null : Date.newInstance(modified_ts).floor('+CNV.Value2Quote(sampleInterval)+').getMilli()',
+					"value":'!["resolved", "verified", "closed"].contains(status) && is_obsolete==0 && review_status!="-" ? null : Date.newInstance(modified_ts).floor('+convert.Value2Quote(sampleInterval)+').getMilli()',
 					"aggregate":"maximum", "default":Date.eod().getMilli()},
-				{"name":"created_ts", "value":'Date.newInstance(created_ts).floor('+CNV.Value2Quote(sampleInterval)+').getMilli()', "aggregate":"minimum"},
+				{"name":"created_ts", "value":'Date.newInstance(created_ts).floor('+convert.Value2Quote(sampleInterval)+').getMilli()', "aggregate":"minimum"},
 				{"name":"review_status", "value":"review_status", "aggregate":"minimum"},
 				{"name":"feedback_status", "value":"feedback_status", "aggregate":"minimum"}
 			],
@@ -230,7 +230,7 @@ importScript([
 				{"name":"num", "value":"1", "aggregate":"sum", "default":0}
 			],
 			"edges":[
-				{"name":"age", "value":"Duration.newInstance(Date.eod().getMilli()-created_ts).floor("+CNV.Value2Quote(sampleInterval)+")",
+				{"name":"age", "value":"Duration.newInstance(Date.eod().getMilli()-created_ts).floor("+convert.Value2Quote(sampleInterval)+")",
 					"allowNulls":true,
 					"domain":{"type":"duration", "min":0, "max":"12week", "interval":"week"}
 				}

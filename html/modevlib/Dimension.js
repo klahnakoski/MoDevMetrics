@@ -13,6 +13,7 @@ var DEFAULT_QUERY_LIMIT = 20;
 
 Dimension.prototype = {
 	"getDomain": function (param) {
+		//param.fullFilter  SET TO true TO HAVE FULL FILTER IN PARTITIONS
 		//param.depth IS MEANT TO REACH INTO SUB-PARTITIONS
 		if (param === undefined) {
 			param = {
@@ -20,8 +21,10 @@ Dimension.prototype = {
 				"separator": "."
 			};
 		}//endif
-		param.depth = nvl(param.depth, 0);
-		param.separator = nvl(param.separator, ".");
+		param.depth = coalesce(param.depth, 0);
+		param.separator = coalesce(param.separator, ".");
+
+		var useFullFilter = coalesce(param.fullFilter, false);
 
 		var self = this;
 		var partitions = null;
@@ -29,54 +32,45 @@ Dimension.prototype = {
 		if (!this.partitions && this.edges) {
 			//USE EACH EDGE AS A PARTITION, BUT isFacet==true SO IT ALLOWS THE OVERLAP
 			partitions = this.edges.map(function (v, i) {
-				if (i >= nvl(self.limit, DEFAULT_QUERY_LIMIT))
+				if (i >= coalesce(self.limit, DEFAULT_QUERY_LIMIT))
 					return undefined;
 				if (v.esfilter === undefined) return;
-				return {
-					"name": v.name,
-					"value": v.name,
-					"esfilter": v.esfilter,
-					"fullFilter": v.fullFilter,
-					"dateMarks": v.dateMarks,
-					"start_date": v.start_date,
-					"targetDate": v.targetDate,
-					"style": Map.clone(nvl(v.style, {})),
-					"weight": v.weight //YO! WHAT DO WE *NOT* COPY?
-				};
+				v.style = coalesce(v.style, {});
+				var temp = v.parent;
+				v.parent=undefined;
+				var output = Map.clone(v);
+				v.parent=temp;
+				output.esfilter = useFullFilter ? v.fullFilter : v.esfilter;
+				return output;
 			});
 			self.isFacet = true;
 		} else if (param.depth == 0) {
 			partitions = this.partitions.map(function (v, i) {
-				if (i >= nvl(self.limit, DEFAULT_QUERY_LIMIT)) return undefined;
-				return {
-					"name": v.name,
-					"value": v.value,
-					"esfilter": v.esfilter,
-					"fullFilter": v.fullFilter,
-					"dateMarks": v.dateMarks,
-					"targetDate": v.targetDate,
-					"style": Map.clone(nvl(v.style, {})),
-					"weight": v.weight   //YO!  WHAT DO WE *NOT* COPY?
-				};
+				if (i >= coalesce(self.limit, DEFAULT_QUERY_LIMIT)) return undefined;
+				v.style = coalesce(v.style, {});
+				var temp = v.parent;
+				v.parent=undefined;
+				var output = Map.clone(v);
+				v.parent=temp;
+				output.esfilter = useFullFilter ? v.fullFilter : v.esfilter;
+				return output;
 			})
 		} else if (param.depth == 1) {
 			partitions = [];
 			var rownum = 0;
 			self.partitions.forall(function (part, i) {
-				if (i >= nvl(self.limit, DEFAULT_QUERY_LIMIT)) return undefined;
+				if (i >= coalesce(self.limit, DEFAULT_QUERY_LIMIT)) return undefined;
 				rownum++;
 				part.partitions.forall(function (subpart, j) {
-					partitions.append({
-						"name": [subpart.name, subpart.parent.name].join(param.separator),
-						"value": subpart.value,
-						"esfilter": subpart.esfilter,
-						"fullFilter": subpart.fullFilter,
-						"dateMarks": subpart.dateMarks,
-						"targetDate": subpart.targetDate,
-						"style": Map.setDefault({}, subpart.style, subpart.parent.style),
-						"weight": subpart.weight   //YO!  WHAT DO WE *NOT* COPY?
-					});
+					var temp = subpart.parent;
+					subpart.parent=undefined;
+					var newPart= Map.clone(subpart);
+					subpart.parent=temp;
 
+					newPart.name = [subpart.name, subpart.parent.name].join(param.separator);
+					newPart.esfilter = useFullFilter ? subpart.fullFilter : subpart.esfilter;
+					newPart.style = Map.setDefault({}, subpart.style, subpart.parent.style);
+					partitions.append(newPart);
 				})
 			})
 		} else {
@@ -101,10 +95,10 @@ Dimension.prototype = {
 			//PLEASE SPLIT end() INTO value() (replacing the string value) AND
 			//label() (for presentation)
 			"value": (!this.value && this.partitions) ? "name" : this.value,
-			"label": nvl(this.label, (this.type == "set" && this.name !== undefined) ? function (v) {
+			"label": coalesce(this.label, (this.type == "set" && this.name !== undefined) ? function (v) {
 				return v.name;
 			} : undefined),
-			"end": nvl(this.end, (this.type == "set" && this.name !== undefined) ? function (v) {
+			"end": coalesce(this.end, (this.type == "set" && this.name !== undefined) ? function (v) {
 				return v;
 			} : undefined),  //I DO NOT KNOW WHY IS NOT return v.name
 //			"value":(!this.value && this.partitions) ? "name" : this.value,
@@ -131,7 +125,7 @@ Dimension.prototype = {
 
 		var output = {
 			"name": this.name,
-			"value": MVEL.Parts2TermScript(nvl(param !== undefined ? param.index : null, this.index), domain)
+			"value": MVEL.Parts2TermScript(coalesce(param !== undefined ? param.index : null, this.index), domain)
 		};
 		return output;
 	}
@@ -149,7 +143,7 @@ Dimension.prototype = {
 		if (index === undefined) index = 0;
 		if (index == childPath.length) return;
 		var c = childPath[index];
-		parentPart.count = nvl(parentPart.count, 0) + count;
+		parentPart.count = coalesce(parentPart.count, 0) + count;
 
 		if (parentPart.partitions === undefined) parentPart.partitions = [];
 		for (var i = 0; i < parentPart.partitions.length; i++) {
@@ -174,9 +168,9 @@ Dimension.prototype = {
 					p.parent = part;
 					convertPart(p, otherFilters);
 					if (siblingFilter != undefined) otherFilters.append(siblingFilter);
-					p.value = nvl(p.value, p.name);
+					p.value = coalesce(p.value, p.name);
 					if (part.index) p.index = part.index;   //COPY INDEX DOWN
-					part[p.name] = nvl(part[p.name], p);
+					part[p.name] = coalesce(part[p.name], p);
 				});
 			}//endif
 
@@ -191,7 +185,7 @@ Dimension.prototype = {
 						return {"not": f}
 					}))
 				}//endif
-				if (lowerCaseOnly) part.esfilter = CNV.JSON2Object(CNV.Object2JSON(part.esfilter).toLowerCase());
+				if (lowerCaseOnly) part.esfilter = convert.json2value(convert.value2json(part.esfilter).toLowerCase());
 			} else if (part.partitions) {
 				//DEFAULT esfilter IS THE UNION OF ALL CHILD FILTERS
 				if (part.partitions.length > 600) Log.error("Must define an esfilter on " + part.name + ", there are too many partitions (" + part.partitions.length + ")");
@@ -204,10 +198,15 @@ Dimension.prototype = {
 		}
 
 		function convertDim(dim) {
+			if (isString(dim.index)){
+				dim.index = window.Settings.indexes[dim.index];
+				dim.index.source= window.Settings.host_types[dim.index.host_type]
+			}//endif
+
 			if (dim.edges) {
 				//ALLOW ACCESS TO SUB-PART BY NAME (IF ONLY THERE IS NO NAME COLLISION)
 				dim.edges.forall(function (e, i) {
-					dim[e.name] = nvl(dim[e.name], e);
+					dim[e.name] = coalesce(dim[e.name], e);
 					e.parent = dim;
 					if (dim.index) e.index = dim.index;   //COPY INDEX DOWN
 					convertDim(e);
@@ -229,8 +228,8 @@ Dimension.prototype = {
 
 					if (dim.path !== undefined) {
 						var a = Log.action("Get parts of " + dim.name, true);
-						var parts = yield (ESQuery.run({
-							"from": dim.index,
+						var parts = yield (dim.index.source({
+							"from": dim.index._id,
 							"select": {"name": "count", "value": "1", "aggregate": "count"},
 							"edges": edges,
 							"esfilter": dim.esfilter,
@@ -243,7 +242,7 @@ Dimension.prototype = {
 						if (edges.length > 1) Log.error("Not supported yet");
 						//EACH TERM RETURNED IS A PATH INTO A PARTITION TREE
 						var temp = {"partitions": []};
-						parts.cube.forall(function (count, i) {
+						parts.data.count.forall(function (count, i) {
 							var a = dim.path(d.end(d.partitions[i]));
 							if (!(a instanceof Array)) Log.error("The path function on " + dim.name + " must return an ARRAY of parts");
 							addParts(
@@ -257,26 +256,29 @@ Dimension.prototype = {
 						dim.partitions = temp.partitions;
 					} else if (edges.length == 1) {
 						var a = Log.action("Get parts of " + dim.name, true);
-						var parts = yield (ESQuery.run({
-							"from": dim.index,
-							"select": {"name": "count", "value": "1", "aggregate": "count"},
-							"edges": edges,
-							"esfilter": dim.esfilter,
-							"limit": dim.limit
-						}));
-						Log.actionDone(a);
+						try{
+							var parts = yield (dim.index.source({
+								"from": dim.index._id,
+								"select": {"name": "count", "value": "1", "aggregate": "count"},
+								"edges": edges,
+								"esfilter": dim.esfilter,
+								"limit": dim.limit
+							}));
+						}finally{
+							Log.actionDone(a);
+						}
 
-						var d = parts.edges[0].domain;
+						var temp_domain = parts.edges[0].domain;
 
 						dim.value = "name";  //USE THE "name" ATTRIBUTE OF PARTS
 
 						//SIMPLE LIST OF PARTS RETURNED, BE SURE TO INTERRELATE THEM
-						dim.partitions = parts.cube.map(function (count, i) {
+						dim.partitions = temp_domain.partitions.map(function (p, i) {
 							var part = {
-								"name": "" + d.partitions[i].name,  //CONVERT TO STRING
-								"value": d.end(d.partitions[i]),
-								"esfilter": {"term": Map.newInstance(dim.field[0], d.partitions[i].value)},
-								"count": count
+								"name": "" + p.name,  //CONVERT TO STRING
+								"value": temp_domain.end(p),
+								"esfilter": {"term": Map.newInstance(dim.field[0], p.value)},
+								"count": parts.data.count[i]
 							};
 							return part;
 						});
@@ -285,20 +287,24 @@ Dimension.prototype = {
 
 						//TODO: THIS IS REALLY SLOW!!
 						var a = Log.action("Get parts of " + dim.name, true);
-						var parts = yield (ESQuery.run({
-							"from": dim.index,
-							"select": {"name": "count", "value": "1", "aggregate": "count"},
-							"edges": edges,
-							"esfilter": dim.esfilter,
-							"limit": dim.limit
-						}));
-						Log.actionDone(a);
+						try{
+							var parts = yield (dim.index.source({
+								"from": dim.index._id,
+								"select": {"name": "count", "value": "1", "aggregate": "count"},
+								"edges": edges,
+								"esfilter": dim.esfilter,
+								"limit": dim.limit
+							}));
+						}finally{
+							Log.actionDone(a);
+						}
+
 
 						var d = parts.edges[0].domain;
 						var d2 = parts.edges[1].domain;
 
 						//SIMPLE LIST OF PARTS RETURNED, BE SURE TO INTERRELATE THEM
-						dim.partitions = parts.cube.map(function (subcube, i) {
+						dim.partitions = parts.data.count.map(function (subcube, i) {
 							var part = {
 								"name": "" + d.partitions[i].name,  //CONVERT TO STRING
 								"value": d.end(d.partitions[i]),

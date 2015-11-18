@@ -38,7 +38,7 @@ Matrix=function(arg){
 function forall1(edge, func){
 	var data = this.data;
 	var num = this.num;
-	var c = new Uint32Array(this.num);
+	var c = Uint32Array(this.num);
 
 	function iter(v, d){
 		if (d == num) {
@@ -78,10 +78,10 @@ Matrix.prototype.forall = function(func, other){
 		}//endif
 	}//function
 	iter(data, 0);
-}
+};
 
 
-//PROVIDE func(v, i, c, cube) WHERE
+//PROVIDE func(v, c, cube) WHERE
 // v - IS A VALUE IN THE CUBE
 // c - AN ARRAY OF COORDINATES v IS FOUND AT
 // cube - THE WHOLE CUBE
@@ -89,7 +89,7 @@ Matrix.prototype.forall = function(func, other){
 Matrix.prototype.map = function (func) {
 	var data=this.data;
 	var num = this.num;
-	var c = new Uint32Array(this.num);
+	var c = Uint32Array(this.num);
 
 	function iter(v, d) {
 		if (d == num) {

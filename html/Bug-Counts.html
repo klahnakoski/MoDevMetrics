@@ -194,7 +194,7 @@ var __createChart = function*(){
 		}));
 
 
-		$("#details").html(CNV.List2HTMLTable(details));
+		$("#details").html(convert.List2HTMLTable(details));
 
 
 	});
@@ -283,7 +283,7 @@ var __createChart = function*(){
 					var buglist=(yield (Qb.calc2List({
 						"from":allBugs,
 						"select":{"value":"bug_id"},
-						"where":""+field+"!==undefined && "+field+".between("+CNV.Date2Code(part.min)+", "+CNV.Date2Code(part.max)+")"
+						"where":""+field+"!==undefined && "+field+".between("+convert.Date2Code(part.min)+", "+convert.Date2Code(part.max)+")"
 					})));
 
 					Bugzilla.showBugs(buglist.list);

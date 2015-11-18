@@ -124,7 +124,7 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Perfy.js'], function(){
 					"platform":GUI.state.platform.getSelectedParts()[0].name.replaceAll(" ", "_"),
 					"date":Date.newInstance(GUI.state.date).format("yyyy-MM-dd")
 				};
-				window.open("Perfy-Details.html#"+CNV.Object2URL(param));
+				window.open("Perfy-Details.html#"+convert.Object2URL(param));
 			});
 		}//function
 

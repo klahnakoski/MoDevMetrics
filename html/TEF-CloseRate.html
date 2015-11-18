@@ -133,7 +133,7 @@ var __createChart = function*(){
 			"where":"max!==undefined"
 		}));
 
-//$("#info").html(CNV.Cube2HTMLTable(bugList));
+//$("#info").html(convert.Cube2HTMLTable(bugList));
 
 		var domain={
 			"type":"set",
@@ -200,7 +200,7 @@ var __createChart = function*(){
 						"select":{"value":"bug_id"},
 						"where":"closeTime!=null && "+
 								"closeTime.between(Date.newInstance("+date.getMilli()+"), Date.newInstance("+date.add(sampleInterval).getMilli()+")) && "+
-								"type=="+CNV.String2Quote(type)
+								"type=="+convert.String2Quote(type)
 					}));
 
 					Bugzilla.showBugs(list.list);

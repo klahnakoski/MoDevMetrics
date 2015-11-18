@@ -8,7 +8,7 @@
 
 importScript("../../lib/jquery.js");
 
-// ADD DYNAMIC STYLING TO NODES!
+// ADD DYNAMIC STYLING TO DOCUMENT ELEMENTS!
 //
 // Example:
 // <div dynamicStyle=":hover {background_color: black}">Hello World</div>

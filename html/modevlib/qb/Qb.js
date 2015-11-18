@@ -7,7 +7,7 @@ if (Qb===undefined) var Qb = {};
 
 
 
-importScript("../util/CNV.js");
+importScript("../util/convert.js");
 importScript("../util/aDate.js");
 importScript("../util/aUtil.js");
 importScript("../debug/aLog.js");
@@ -94,7 +94,18 @@ Qb.compile = function(query, sourceColumns, useMVEL){
 	var select = Array.newInstance(query.select);
 	for(var s = 0; s < select.length; s++){
 		if (typeof(select[s])=="string") select[s]={"value":select[s]};
-		if (select[s].name===undefined) select[s].name=splitField(select[s].value).last();
+		if (select[s].name===undefined){
+			if (select[s].value===undefined) {
+				select[s].name = select[s].aggregate;
+				select[s].value = ".";
+			}else{
+				select[s].name=splitField(select[s].value).last();
+			}//endif
+		}else{
+			if (select[s].value===undefined) {
+				select[s].value = ".";
+			}//endif
+		}//endif
 		if (uniqueColumns[select[s].name]!==undefined)
 			Log.error("Column with name "+select[s].name+" appeared more than once");
 		select[s].columnIndex=s+edges.length;
@@ -156,21 +167,23 @@ function* calc2Tree(query){
 
 	var sourceColumns  = yield (Qb.getColumnsFromQuery(query));
 	if (sourceColumns===undefined){
-		Log.error("Can not get column definitions from query:\n"+CNV.Object2JSON(query).indent(1))
+		Log.error("Can not get column definitions from query:\n"+convert.value2json(query).indent(1))
 	}//endif
 	var from = query.from.list;
 
 	var edges = query.edges;
 	query.columns = Qb.compile(query, sourceColumns);
 	var select = Array.newInstance(query.select);
-	var _where = Qb.where.compile(nvl(query.where, query.esfilter), sourceColumns, edges);
+	var _where = Qb.where.compile(coalesce(query.where, query.esfilter), sourceColumns, edges);
 	var numWhereFalse=0;
 
 
 	var tree = {};
 	query.tree = tree;
 	FROM: for(var i = 0; i < from.length; i++){
-		yield (Thread.yield());
+		if (i%1000==0) {
+			yield (Thread.yield());
+		}//endif
 
 		var row = from[i];
 		//CALCULATE THE GROUP COLUMNS TO PLACE RESULT
@@ -581,25 +594,124 @@ Qb.toTable=function(query){
 };//method
 
 
-Qb.Cube2List=function(query, options){
-	//WILL end() ALL PARTS UNLESS options.useStruct==true OR options.useLabels==true
-	options=nvl(options, {});
-	options.useStruct=nvl(options.useStruct, false);
-	options.useLabels=nvl(options.useLabels, false);
+Qb.ActiveDataCube2List=function(query, options){
+	//ActiveData CUBE IS A MAP OF CUBES   {"a": [[]], "b":[[]]}
+	//MoDevLib CUBE IS A CUBE OF MAPS   [[{"a":v, "b":w}]]  which I now know as wrong
 
 	//PRECOMPUTE THE EDGES
-	var edges = query.edges;
+	var edges = Array.newInstance(query.edges);
+	var domains = edges.select("domain");
+	var parts=domains.map(function(d, i){
+		if (d.type=="rownum"){
+			return Array.newRange(d.min, d.max);
+		}else {
+			return d.partitions;
+		}//endif
+	});
+	var edge_names=edges.select("name");
+
+	endFunction = edges.map(function(e){
+		if (e.domain.key===undefined){
+			return function(part){
+				return part;
+			};
+		}else if (MVEL.isKeyword(e.domain.key)){
+			return function(part){
+				if (part===undefined || part==null){
+					return null;
+				}else{
+					return part[e.domain.key];
+				};
+			};
+		}else{
+			Log.error("Can not support domains without keys at this time");
+		}//endif
+	});
+
+	if (edge_names.length==0){
+		if (query.select instanceof Array){
+			return [query.cube];
+		}else{
+			return [query.cube];
+		}//endif
+	}//endif
+
+
+	var select = Array.newInstance(query.select);
+	if (select.length == 0){
+		//MAYBE IT IS A ZERO-CUBE?
+		for(var i=0;i<edges.length;i++){
+			e = edges[i];
+			if (Array.newInstance(e.domain.partitions).length==0){
+				return [];
+			}//endif
+		}//for
+		Log.error("Do not know how to listify cube with no select");
+	}//endif
+	var select_names = select.select("name");
+
+	//DO NOT SHOW THE FIELDS WHICH ARE A PREFIX OF ANOTHER
+	select_names = select_names.map(function(v){
+		var is_prefix=v;
+		select_names.forall(function(u){
+			if (u.startsWith(v+".")) is_prefix=undefined;
+		});
+		return is_prefix;
+	});
+
+	var m = new Matrix({"data": coalesce(query.cube[select_names[0]], [])});
+
+	var output = [];
+	m.forall(function(v, c){
+		var o = {};
+		for (var e = 0; e < c.length; e++) {
+			if (edges[e].allowNulls && parts[e].length == c[e]) {
+				o[edge_names[e]] = endFunction[e](domains[e].NULL);
+			} else {
+				o[edge_names[e]] = endFunction[e](parts[e][c[e]]);
+			}//endif
+		}//for
+		for (var s = 0; s < select_names.length; s++) {
+			var val = query.cube[select_names[s]];
+			for (var i = 0; i < c.length; i++) val = val[c[i]];
+			o[select_names[s]] = val;
+		}//for
+		output.append(o);
+	});
+	return output;
+};
+
+Qb.Cube2List=function(query, options){
+	if (query.meta) { //ActiveData INDICATOR
+		return Qb.ActiveDataCube2List(query, options);
+	}//endif
+
+	//WILL end() ALL PARTS UNLESS options.useStruct==true OR options.useLabels==true
+	options=coalesce(options, {});
+	options.useStruct=coalesce(options.useStruct, false);
+	options.useLabels=coalesce(options.useLabels, false);
+
+	//PRECOMPUTE THE EDGES
+	var edges = Array.newInstance(query.edges);
 	var domains = edges.select("domain");
 	var endFunction=domains.select("end");
 	if (options.useStruct){
-		endFunction=query.edges.map(function(e){ return function(v){return v;};});
+		endFunction=edges.map(function(e){ return function(v){return v;};});
 	}else if (options.useLabels){
 		endFunction=domains.select("label");
 	}//endif
 	var parts=domains.select("partitions");
-	var names=query.edges.select("name");
+	var edge_names=edges.select("name");
 
-	var m = new Matrix({"data":query.cube});
+	if (edge_names.length==0){
+		if (query.select instanceof Array){
+			return [query.cube];
+		}else{
+			return [Map.newInstance(query.select.name, query.cube)];
+		}//endif
+	}//endif
+
+	var m = new Matrix({"shape":[], "data":query.cube});
 
 	var output = [];
 	if (query.select instanceof Array){
@@ -607,9 +719,9 @@ Qb.Cube2List=function(query, options){
 			var o = Map.copy(v);
 			for(var e=0;e<c.length;e++){
 				if (edges[e].allowNulls && parts[e].length==c[e]){
-					o[names[e]]=endFunction[e](domains[e].NULL);
+					o[edge_names[e]]=endFunction[e](domains[e].NULL);
 				}else{
-					o[names[e]]=endFunction[e](parts[e][c[e]]);
+					o[edge_names[e]]=endFunction[e](parts[e][c[e]]);
 				}//endif
 			}//for
 			output.append(o);
@@ -619,9 +731,9 @@ Qb.Cube2List=function(query, options){
 			var o = Map.newInstance(query.select.name, v);
 			for(var e=0;e<c.length;e++){
 				if (edges[e].allowNulls && parts[e].length==c[e]){
-					o[names[e]]=endFunction[e](domains[e].NULL);
+					o[edge_names[e]]=endFunction[e](domains[e].NULL);
 				}else{
-					o[names[e]]=endFunction[e](parts[e][c[e]]);
+					o[edge_names[e]]=endFunction[e](parts[e][c[e]]);
 				}//endif
 			}//for
 			output.append(o);
@@ -648,7 +760,7 @@ Qb.normalizeByCohort=function(query, multiple){
 		var total=0;
 		for(var e=0;e<query.cube[c].length;e++) total+=aMath.abs(query.cube[c][e]);
 		if (total!=0){
-			for(var e=0;e<query.cube[c].length;e++) query.cube[c][e]*=(multiple/total);
+			for(e=0;e<query.cube[c].length;e++) query.cube[c][e]*=(multiple/total);
 		}//endif
 	}//for
 };//method
@@ -686,7 +798,7 @@ Qb.normalize=function(query, edgeIndex, multiple){
 	var m=new Matrix({"data":query.cube});
 
 	m.forall(edgeIndex, function(v, i){
-		totals[i] = nvl(totals[i], 0) + aMath.abs(v);
+		totals[i] = coalesce(totals[i], 0) + aMath.abs(v);
 	});
 	m.map(query.edges.length, function (v, i) {
 		if (totals[i]!=0){
@@ -834,9 +946,14 @@ Qb.getColumnsFromQuery=function*(query){
 		} else if (query.from.cube){
 			query.from.list = Qb.Cube2List(query.from);
 			sourceColumns = query.from.columns;
-		}else if (query.from.from!=undefined){
-			query.from=yield (Qb.calc2List(query.from));
-			sourceColumns=yield (Qb.getColumnsFromQuery(query));
+		}else if (query.from.from!=undefined) {
+			query.from = yield (Qb.calc2List(query.from));
+			sourceColumns = yield (Qb.getColumnsFromQuery(query));
+		}else if (query.select !==undefined && query.edges !== undefined){
+			var output = [];
+			output.extend(query.edges.map(Qb.column.normalize));
+			output.extend(query.select.map(Qb.column.normalize));
+			return output;
 		}else{
 			Log.error("Do not know how to handle this");
 		}//endif
@@ -853,20 +970,15 @@ Qb.getColumnsFromList = function(data){
 	if (data.length==0 || typeof(data[0])=="string")
 		return [];
 
-	var output = [];
-	for(var i = 0; i < data.length; i++){
-		//WHAT ABOUT LISTS OF VALUES, WHAT IS THE COLUMN "NAME"
-//		if (typeof data[i] != "object") return ["value"];
-		var keys = Object.keys(data[i]);
-		kk: for(var k = 0; k < keys.length; k++){
-			for(var c = 0; c < output.length; c++){
-				if (output[c].name == keys[k]) continue kk;
-			}//for
-			var column={"name":keys[k], "domain":Qb.domain.value};
-			output.push(column);
-		}//for
+	var output = {};
+	for(var i = 0; i < data.length; i++) {
+		Map.forall(data[i], function(k, v){
+			if (v === undefined || v == null) return;
+			if (output[k]) return;
+			output[k] = {"name": k, "domain": Qb.domain.value};
+		});
 	}//for
-	return output;
+	return Map.values(output);
 };//method
 
 
@@ -987,10 +1099,23 @@ Qb.merge=function(query){
 //sortOrder IS THE sort CLAUSE
 //columns ARE OPTIONAL, TO MAP SORT value TO column NAME
 Qb.sort = function(data, sortOrder, columns){
+	if (sortOrder instanceof Function){
+		try{
+			data = data.copy();
+			data.sort(sortOrder);
+			return data;
+		}catch(e){
+			Log.error("bad sort function", e)
+		}//try
+	}//endif
+
+
+
 	sortOrder = Array.newInstance(sortOrder);
 	if (sortOrder.length==0) return data;
 	var totalSort = Qb.sort.compile(sortOrder, columns, true);
 	try{
+		data = data.copy();
 		data.sort(totalSort);
 		return data;
 	}catch(e){
@@ -1004,7 +1129,7 @@ Qb.sort.compile=function(sortOrder, columns, useNames){
 	if (columns===undefined){
 		orderedColumns = sortOrder.map(function(v){
 			if (v.value!==undefined && v.sort!==undefined){
-				return {"name": v.value, "sortOrder":nvl(v.sort, 1), "domain":Qb.domain.value};
+				return {"name": v.value, "sortOrder":coalesce(v.sort, 1), "domain":Qb.domain.value};
 			}else{
 				return {"name":v, "sortOrder":1, "domain":Qb.domain.value};
 			}//endif
@@ -1013,7 +1138,7 @@ Qb.sort.compile=function(sortOrder, columns, useNames){
 		orderedColumns = sortOrder.map(function(v){
 			if (v.value!==undefined){
 				for(var i=columns.length;i--;){
-					if (columns[i].name==v.value && !(columns[i].sortOrder==0)) return {"name": v.value, "sortOrder":nvl(v.sort, 1), "domain":Qb.domain.value};
+					if (columns[i].name==v.value && !(columns[i].sortOrder==0)) return {"name": v.value, "sortOrder":coalesce(v.sort, 1), "domain":Qb.domain.value};
 				}//for
 			}else{
 				for(var i=columns.length;i--;){
@@ -1036,9 +1161,9 @@ Qb.sort.compile=function(sortOrder, columns, useNames){
 		if (!useNames){
 			index = col.columnIndex;
 		}else if (MVEL.isKeyword(col.name)){
-			index=splitField(col.name).map(CNV.String2Quote).join("][");
+			index=splitField(col.name).map(convert.String2Quote).join("][");
 		}else if (columns.select("name").contains(col.name)){
-			index=CNV.String2Quote(col.name);
+			index=convert.String2Quote(col.name);
 		}else{
 			Log.error("Can not handle");
 		}//endif
@@ -1167,6 +1292,38 @@ Qb.drill=function(query, parts){
 		return output;
 	};
 
+	Qb.requiredFields = function requiredFields(esfilter){
+		//THIS LOOKS INTO DIMENSION DEFINITIONS, AS WELL AS ES FILTERS
+
+		if (esfilter===undefined) return [];
+
+		var parts = coalesce(esfilter.edges, esfilter.partitions, esfilter.and, esfilter.or);
+		if (parts){
+			var rf = requiredFields(esfilter.esfilter);
+			//A DIMENSION! - USE IT ANYWAY
+			return Array.union(parts.map(requiredFields).append(rf));
+		}//endif
+
+		if (esfilter.esfilter){
+			return requiredFields(esfilter.esfilter);
+		}else if (esfilter.not){
+			return requiredFields(esfilter.not);
+		}else if (esfilter.term){
+			return Object.keys(esfilter.term)
+		}else if (esfilter.terms){
+			return Object.keys(esfilter.terms)
+		}else if (esfilter.regexp){
+			return Object.keys(esfilter.regexp)
+		}else if (esfilter.missing){
+			return [esfilter.missing.field]
+		}else if (esfilter.exists) {
+			return [esfilter.missing.field]
+		}else if (esfilter.nested){
+			 return [splitField(esfilter.nested.path)[0]]
+		}else{
+			return []
+		}//endif
+	};//method
 
 
 	Qb.query={};

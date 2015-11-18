@@ -44,7 +44,11 @@ aMath = {};
 	aMath.round = function(value, rounding){
 		if (rounding === undefined) return Math.round(value);
 		var d;
-		if (rounding.digits !== undefined) {
+		if (value===undefined || value==null){
+			return null;
+ 		} else if (value==0) {
+			return 0.0;
+		} else if (rounding.digits !== undefined) {
 			d = Math.pow(10, rounding.digits - aMath.ceiling(aMath.log10(value)));
 		} else {
 			d = Math.pow(10, rounding);
@@ -143,7 +147,7 @@ aMath = {};
 	aMath.log = Math.log;
 	aMath.random = Math.random;
 
-	niceNumbers = [11, 12, 15, 20, 22, 24, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100];
+	var niceNumbers = [11, 12, 15, 20, 22, 24, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100];
 
 	aMath.niceCeiling = function(value){
 		if (value == 0) return 0;

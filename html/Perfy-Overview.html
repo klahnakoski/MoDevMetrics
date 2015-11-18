@@ -142,7 +142,7 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Perfy.js'], function(){
 				"platform":Mozilla.Perfy.Platform.getDomain().partitions[index[0]].value.replaceAll(" ", "_"),
 				"benchmark":Mozilla.Perfy.Benchmark.getDomain().partitions[index[1]].value.replaceAll(" ", "_")
 			};
-			window.open("Perfy-TimeSeries.html#"+CNV.Object2URL(param));
+			window.open("Perfy-TimeSeries.html#"+convert.Object2URL(param));
 		});
 
 		//FILL CHARTS

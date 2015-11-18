@@ -136,7 +136,7 @@ var __createChart = function*(){
 		if (zSpecificParts){
 			edgeZ.domain.partitions=edgeZ.domain.partitions.filter(function(p){return partNames.contains(p.name);});
 		}//endif
-//		query.where=CNV.Object2JSON(Z.map(function(p){return p.name;}))+".contains(Z.name)";
+//		query.where=convert.Object2JSON(Z.map(function(p){return p.name;}))+".contains(Z.name)";
 
 	}else if (PART_QUERY===undefined){
 		yield (null);	//NOT ENOUGH DIMENSIONS TO CHART YET
@@ -170,7 +170,7 @@ var __createChart = function*(){
 
 
 
-	$("#cube").val(CNV.Object2JSON(query));
+	$("#cube").val(convert.Object2JSON(query));
 
 
 	var a=Log.action("Request Data from ES", false);

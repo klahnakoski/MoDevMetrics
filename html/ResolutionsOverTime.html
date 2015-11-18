@@ -69,7 +69,7 @@ importScript([
 
 		(GUI.injectFilters(query));
 
-		Log.note(CNV.Object2JSON(query.esQuery));
+		Log.note(convert.Object2JSON(query.esQuery));
 
 		Log.action("Calling ES");
 		var chartCube = (yield(query.run()));

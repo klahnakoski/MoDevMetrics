@@ -222,7 +222,7 @@ importScript("modevlib/main.js", function(){
 			}))).list;
 
 
-			$("#pending").html("<h3>Pending Review (R?)</h3>" + CNV.List2HTMLTable(result));
+			$("#pending").html("<h3>Pending Review (R?)</h3>" + convert.List2HTMLTable(result));
 
 			Log.actionDone(a);
 		});
@@ -266,7 +266,7 @@ importScript("modevlib/main.js", function(){
 				]
 			}))).list;
 
-			$("#complete").html("<h3>Review Completed (R+)</h3>" + CNV.List2HTMLTable(result3));
+			$("#complete").html("<h3>Review Completed (R+)</h3>" + convert.List2HTMLTable(result3));
 
 			Log.actionDone(a);
 		});
@@ -306,7 +306,7 @@ importScript("modevlib/main.js", function(){
 				]
 			}))).list;
 
-			$("#open").html("<h3>Assigned To</h3>" + CNV.List2HTMLTable(result));
+			$("#open").html("<h3>Assigned To</h3>" + convert.List2HTMLTable(result));
 
 			Log.actionDone(a);
 		});

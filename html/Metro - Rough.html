@@ -510,7 +510,7 @@ var __createChart = function*(){
 //			"from":teamVelocity,
 //			"analytic":[
 //				{"name":"numLeft", "value":"aMath.ceiling(remaining/velocity)"},
-//				{"name":"doneDate", "value":CNV.Date2Code(currentIteration.endDate)+".addWeekday(12*numLeft)"},
+//				{"name":"doneDate", "value":convert.Date2Code(currentIteration.endDate)+".addWeekday(12*numLeft)"},
 //				{"name":"description", "value":"numLeft+' (done '+doneDate.format('dd-NNN-yy')"}
 //			],
 //			"edges":[
@@ -668,7 +668,7 @@ function showIteration(iteration){
 			{"name":lastDayStats.doneCount+" Stories ("+ lastDayStats.donePoints+" points)", "value":""+lastDayStats.donePoints},
 			{"name":"Remainder", "value":""+(lastDayStats.totalPoints-lastDayStats.donePoints)}
 		],
-		"where":"date=="+CNV.Date2Code(iteration.endDate.addDay(-1))
+		"where":"date=="+convert.Date2Code(iteration.endDate.addDay(-1))
 	}));
 
 	aChart.showPie({
@@ -700,7 +700,7 @@ function showStories(stories){
 		]
 	}));
 
-	$("#stories").html(CNV.List2HTMLTable(data));
+	$("#stories").html(convert.List2HTMLTable(data));
 }//method
 
 

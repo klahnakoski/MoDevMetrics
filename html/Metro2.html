@@ -74,8 +74,8 @@ importScript(['modevlib/main.js', "modevlib/Dimension-Bugzilla.js"], function(){
 			Mozilla.BugStatus.Open.esfilter,
 			{"term":{"product":"firefox for metro"}},
 			Mozilla.ScrumBugs.Points.esfilter,
-			{"range":{"expires_on":{"gt":CNV.Date2milli(sampleMin)}}},
-			{"range":{"modified_ts":{"lte":CNV.Date2milli(sampleMax)}}}
+			{"range":{"expires_on":{"gt":convert.Date2milli(sampleMin)}}},
+			{"range":{"modified_ts":{"lte":convert.Date2milli(sampleMax)}}}
 		]};
 
 

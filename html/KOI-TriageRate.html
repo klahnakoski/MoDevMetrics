@@ -287,7 +287,7 @@ var __createChart = function*(){
 				{"name":"Accepted", "value":"accepted", "aggregate":"sum", "default":0, "style":{"color":"#76b41f"} },
 				{"name":"Rejected", "value":"rejected", "aggregate":"sum", "default":0, "style":{"color":"firebrick"}}
 			],
-			"where":"modified_ts.between("+CNV.Date2Code(statsMin)+", "+CNV.Date2Code(sampleMax)+")"
+			"where":"modified_ts.between("+convert.Date2Code(statsMin)+", "+convert.Date2Code(sampleMax)+")"
 		}));
 
 
@@ -344,7 +344,7 @@ var __createChart = function*(){
 			"sort":["ID", "Status"]
 		}));
 
-		$("#report").html(CNV.List2HTMLTable(showBugs));
+		$("#report").html(convert.List2HTMLTable(showBugs));
 
 		Log.actionDone(a);
 
