@@ -244,8 +244,8 @@ importScript([
 			"select":{"name":"open_count", "value":"request_time", "aggregate":"count"},
 			"edges":[
 				{"name":"time", "value":"request_time",
-					"test":	"nvl(review_time, time.min.getMilli())-request_time > "+Duration.MILLI_VALUES.day+" && "+
-							"request_time < time.min.getMilli() && time.min.getMilli() < nvl(review_time, Date.eod().getMilli()) && "+
+					"test":	"coalesce(review_time, time.min.getMilli())-request_time > "+Duration.MILLI_VALUES.day+" && "+
+							"request_time < time.min.getMilli() && time.min.getMilli() < coalesce(review_time, Date.eod().getMilli()) && "+
 							"time.min.getMilli() < request_time+"+Duration.MILLI_VALUES.week*18, //JUST IGNORE THE REALLY OLD reviews
 					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
 

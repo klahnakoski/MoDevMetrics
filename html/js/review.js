@@ -1,7 +1,7 @@
 //USES GUI.state TO PULL THE TEAMS
 
 function*getReviewers(timeDomain, maxReviewers){
-	maxReviewers = nvl(maxReviewers, 100);
+	maxReviewers = coalesce(maxReviewers, 100);
 
 	var persons = [];
 
@@ -158,7 +158,7 @@ function* getPendingPatches(mainFilter){
 					f.bug = b;
 					f.attachment = a;
 					f.reviewer = f.requestee;
-					f.request_time = nvl(f.modified_ts, a.modified_ts);
+					f.request_ticoalesce= nvl(f.modified_ts, a.modified_ts);
 					allPatches.append(f);
 				}//endif
 			});

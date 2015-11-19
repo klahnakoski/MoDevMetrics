@@ -88,7 +88,7 @@ importScript([
 				"select" : [
 					{"name" : "BugID", "value" : "Bugzilla.linkToBug(bug.bug_id)"},
 					{"name" : "Summary", "value" : "bug.short_desc"},
-					{"name" : "Age (days)", "value" : "aMath.round(Date.eod().subtract(Date.newInstance(nvl(modified_ts, attachment.modified_ts))).divideBy(Duration.DAY), 0)"}
+					{"name" : "Age (days)", "value" : "aMath.round(Date.eod().subtract(Date.newInstance(coalesce(modified_ts, attachment.modified_ts))).divideBy(Duration.DAY), 0)"}
 				],
 				"where" : {"missing" : "requestee"},
 				"sort" : {"value" : "Age (days)", "sort" : -1}
@@ -103,8 +103,8 @@ importScript([
 				"select" : [
 					{"name" : "BugID", "value" : "Bugzilla.linkToBug(bug.bug_id)"},
 					{"name" : "Summary", "value" : "bug.short_desc"},
-					{"name" : "Reviewer", "value" : "nvl(requestee, '')"},
-					{"name" : "Age (days)", "value" : "aMath.round(Date.eod().subtract(Date.newInstance(nvl(modified_ts, attachment.modified_ts))).divideBy(Duration.DAY), 0)"}
+					{"name" : "Reviewer", "value" : "coalesce(requestee, '')"},
+					{"name" : "Age (days)", "value" : "aMath.round(Date.eod().subtract(Date.newInstance(coalesce(modified_ts, attachment.modified_ts))).divideBy(Duration.DAY), 0)"}
 				],
 				"where" : {"exists" : "requestee"},
 				"sort" : {"value" : "Age (days)", "sort" : -1}

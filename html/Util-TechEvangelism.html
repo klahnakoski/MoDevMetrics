@@ -51,7 +51,7 @@
 					"from":raw_bugs.hits.hits.select("fields"),
 					"analytic":[
 						{"name":"age", "value":"Math.max(previous_values.bug_status_change_away_ts, created_ts)- created_ts", "edges":[]},
-						{"name":"closed_ts", "value":"nvl(previous_values.bug_status_change_away_ts, modified_ts)", "edges":[]},
+						{"name":"closed_ts", "value":"coalesce(previous_values.bug_status_change_away_ts, modified_ts)", "edges":[]},
 						{"name":"previous_bug_status", "value":"previous_values.bug_status_value", "edges":[]}
 					]
 				}));

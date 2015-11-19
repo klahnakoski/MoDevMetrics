@@ -160,7 +160,7 @@ var __createChart = function*(){
 	}//endif
 
 	var currFeatureFilter = {"match_all": {}};
-	yield (getDailyDependencies(raw_data, nvl(milestoneFilter, {"match_all": {}}) ));
+	yield (getDailyDependencies(raw_data, coalesce(milestoneFilter, {"match_all": {}}) ));
 
 	//LAST DAY WILL BE CONSIDERED CURRENT FEATURE LIST
 	var currOpenBugs=raw_data.cube.last().filter({"and":[
@@ -200,7 +200,7 @@ function __reChart(){
 		milestoneFilter = {"or": milestones.select("esfilter")};
 	}//endif
 
-	yield (getDailyDependencies(raw_data, nvl(milestoneFilter, {"match_all": {}}) ));
+	yield (getDailyDependencies(raw_data, coalesce(milestoneFilter, {"match_all": {}}) ));
 
 	var currFeatureFilter = {"match_all": {}};
 

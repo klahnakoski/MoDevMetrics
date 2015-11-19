@@ -448,8 +448,8 @@ var __createChart = function*(){
 		var progressBar=(yield (Q({
 			"from":iterations,
 			"select":[
-				{"name":"Completed", "value":"nvl(endCount, 0)", "aggregate":"sum", "default":"0", "style":{"color":"firebrick"}},
-				{"name":"Current", "value":"(!endCount) ? nvl(startCount, 0) : 0", "aggregate":"sum","style":{"color":"goldenrod"}},
+				{"name":"Completed", "value":"coalesce(endCount, 0)", "aggregate":"sum", "default":"0", "style":{"color":"firebrick"}},
+				{"name":"Current", "value":"(!endCount) ? coalesce(startCount, 0) : 0", "aggregate":"sum","style":{"color":"goldenrod"}},
 				{"name":"Backlog", "value":""+backlogCount.cube.total_points, "aggregate":"one", "style":{"color":"gray"}}
 			],
 			"edges":[
@@ -586,8 +586,8 @@ var __createChart = function*(){
 		var chart=yield (Q({
 			"from":iterations,
 			"select":[
-				{"name":"Committed", "value":"nvl(startCount, 0)", "aggregate":"sum", "default":0, "style":{"color":"mediumseagreen"}},
-				{"name":"Completed", "value":"nvl(endCount, 0)",  "aggregate":"sum", "default":0, "style":{"color":"firebrick"}}
+				{"name":"Committed", "value":"coalesce(startCount, 0)", "aggregate":"sum", "default":0, "style":{"color":"mediumseagreen"}},
+				{"name":"Completed", "value":"coalesce(endCount, 0)",  "aggregate":"sum", "default":0, "style":{"color":"firebrick"}}
 			],
 			"edges":[
 				{"name":"iteration",
@@ -786,7 +786,7 @@ function getDescendants(parent, startDate, endDate){
 				Log.note("");
 			}//endif
 
-			var deps=nvl(b.dependson, []);
+			var deps=coalesce(b.dependson, []);
 			deps.forall(function(w, i){
 				w = w - 0;
 				if (!bugs[w]){

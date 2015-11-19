@@ -268,7 +268,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js", "
 				var data = blockers.cube;
 				allBlockers.list.forall(function (v) {
 					Map.copy({"min":null, "max":null}, v);  //DEFAULT VALUES
-					Map.copy(nvl(data[domain.getPartByKey(v.bug_id).dataIndex], {}), v);
+					Map.copy(coalesce(data[domain.getPartByKey(v.bug_id).dataIndex], {}), v);
 				});
 			}
 
@@ -280,7 +280,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js", "
 				"name": "Average Age of "+teamName+" Blockers (Days)",
 				"from": allBlockers.list,
 				"select":
-					{"name": "Maximum", "value": "(aMath.min(max, time.min.getMilli())-nvl(min, time.min.getMilli()))/Duration.DAY.milli", "aggregate": "average", "default": 0, "style": {"color": "#00d6ff", "visibility": "hidden"}}
+					{"name": "Maximum", "value": "(aMath.min(max, time.min.getMilli())-coalesce(min, time.min.getMilli()))/Duration.DAY.milli", "aggregate": "average", "default": 0, "style": {"color": "#00d6ff", "visibility": "hidden"}}
 				,
 				"edges": [
 					{"name": "Project", "domain":projectDomain},

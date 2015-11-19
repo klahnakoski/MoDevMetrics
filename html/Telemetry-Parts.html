@@ -214,7 +214,7 @@ var __createChart = function*(){
 			var d=v;
 			while(true){
 				if (d.getDomain){
-					selectedDim=nvl(selectedDim, d);
+					selectedDim=coalesce(selectedDim, d);
 					if (d==selectedDim) return v;
 				}//endif
 				if (!d.parent) break;
