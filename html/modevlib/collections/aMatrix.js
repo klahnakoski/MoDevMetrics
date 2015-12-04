@@ -35,7 +35,7 @@ Matrix=function(arg){
 function forall1(edge, func){
 	var data = this.data;
 	var num = this.num;
-	var c = Uint32Array(this.num);
+	var c = new Uint32Array(this.num);
 
 	function iter(v, d){
 		if (d == num) {
@@ -62,7 +62,7 @@ Matrix.prototype.forall = function(func, other){
 
 	var data = this.data;
 	var num = this.num;
-	var c = Uint32Array(this.num);
+	var c = new Uint32Array(this.num);
 
 	function iter(v, d){
 		if (d == num) {
@@ -86,7 +86,7 @@ Matrix.prototype.forall = function(func, other){
 Matrix.prototype.map = function (func) {
 	var data=this.data;
 	var num = this.num;
-	var c = Uint32Array(this.num);
+	var c = new Uint32Array(this.num);
 
 	function iter(v, d) {
 		if (d == num) {
