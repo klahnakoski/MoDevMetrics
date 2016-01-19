@@ -1,17 +1,21 @@
 
-Mozilla Developer Metrics
-=========================
+Mozilla Development Metrics
+===========================
 
 Objective
 ---------
 
-This project is designed to optimize the creation of dashboards using ElasticSearch data.   Dashboards are written as static HTML/Javascript; which can make AjAX calls to the public cluster; and provide an interactive experience with little effort.  
+This project is designed to optimize the creation of dashboards using 
+ElasticSearch data.   Dashboards are written as static HTML/Javascript; which 
+can make AjAX calls to the public cluster; and provide an interactive 
+experience with little effort.  
 
 Examples
 --------
 
-[My page of charts](http://people.mozilla.org/~klahnakoski/charts.html) hosts the master branch of this repo.  Please
-feel free to view and run them through your debugger.
+[My page of charts](http://people.mozilla.org/~klahnakoski/charts.html) hosts 
+the master branch of this repo.  Please feel free to view and run them 
+through your debugger.
 
 
 Benefits

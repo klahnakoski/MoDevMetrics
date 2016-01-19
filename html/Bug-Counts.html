@@ -308,8 +308,6 @@ var __createChart = function*(){
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"week"}
 		],
 		[
-//			"if (Date.newInstance(sampleMax).subtract(Date.newInstance(sampleMin)).round(Duration.WEEK, 0)>=5) sampleInterval='week'",
-//			"if (Date.newInstance(sampleMax).subtract(Date.newInstance(sampleMin)).round(Duration.WEEK, 0)<=3) sampleInterval='day'",
 			"sampleMin=Date.newInstance(sampleMin).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
 			"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')"
 		],
