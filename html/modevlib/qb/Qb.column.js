@@ -122,16 +122,10 @@ Qb.where.compile = function(whereClause, sourceColumns, edges){
 		return CNV.esFilter2function(whereClause);
 	}//endif
 
+	var columnName;
 	var f = "whereMethod=function(__source, __result){\n";
-	for(var s = 0; s < sourceColumns.length; s++){
-		var columnName = sourceColumns[s].name;
-		//ONLY DEFINE VARS THAT ARE USED
-		if (whereClause.indexOf(columnName) != -1){
-			f += "var " + columnName + "=__source[\"" + columnName + "\"];\n";
-		}//endif
-	}//for
 	if (edges !== undefined) for(var i = 0; i < edges.length; i++){
-		var columnName = edges[i].name;
+		columnName = edges[i].name;
 		var domainName = edges[i].domain.name;
 		//ONLY DEFINE VARS THAT ARE USED
 		if (whereClause.indexOf(domainName) != -1){
@@ -139,6 +133,13 @@ Qb.where.compile = function(whereClause, sourceColumns, edges){
 		}//endif
 		if (whereClause.indexOf(columnName) != -1){
 			f += "var " + columnName + "=__result["+i+"];\n";
+		}//endif
+	}//for
+	for(var s = 0; s < sourceColumns.length; s++){
+		columnName = sourceColumns[s].name;
+		//ONLY DEFINE VARS THAT ARE USED
+		if (whereClause.indexOf(columnName) != -1){
+			f += "var " + columnName + "=__source[\"" + columnName + "\"];\n";
 		}//endif
 	}//for
 
