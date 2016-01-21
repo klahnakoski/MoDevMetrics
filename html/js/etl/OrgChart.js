@@ -3,9 +3,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
-var OrgChart = {};
-
 importScript("ETL.js");
+
+var OrgChart = {};
 
 (function () {
 	var DEBUG = false;
