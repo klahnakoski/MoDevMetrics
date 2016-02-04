@@ -501,8 +501,9 @@ SIDE BAR
 
 
 #sidebar {
-    padding: 0;
+    padding: 5px;
     margin: 0;
+    float: left;
 }
 
 #sidebar h2 {
