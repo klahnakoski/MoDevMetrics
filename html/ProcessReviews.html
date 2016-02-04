@@ -75,12 +75,12 @@
 <script type="text/javascript" src="modevlib/qb/MVEL.js"></script>
 
 <script type="text/javascript" src="modevlib/threads/thread.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.analytic.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.aggregate.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.column.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.cube.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.domain.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.analytic.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.aggregate.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.column.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.cube.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.domain.js"></script>
 <script type="text/javascript" src="modevlib/rest/Rest.js"></script>
 <script type="text/javascript" src="modevlib/qb/ESQuery.js"></script>
 <script type="text/javascript" src="modevlib/charts/aChart.js"></script>
@@ -226,7 +226,7 @@ var getReviews = function(minBug, maxBug){
 				doneReview.list.appendArray(switchedReview.list);
 
 
-				var reviewQueues = (yield(Qb.calc2List({
+				var reviewQueues = (yield(qb.calc2List({
 					"from":
 							inReview.list,
 					"select":[

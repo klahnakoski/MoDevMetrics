@@ -262,7 +262,7 @@ var __createChart = function*(){
 			"timeSeries": true,
 			"clickAction":function(series, x, d){
 				Thread.run(function*(){
-					var buglist=(yield (Qb.calc2List({
+					var buglist=(yield (qb.calc2List({
 						"from":bugs,
 						"select":{"value":"bug_id"},
 						"where":series.toLowerCase()+"==1 && modified_ts.getMilli()=="+x.getMilli()
@@ -331,7 +331,7 @@ var __createChart = function*(){
 		Log.actionDone(aa);
 
 		//FORMAT THE BUGS FOR TABLE
-		var showBugs=yield(Qb.calc2List({
+		var showBugs=yield(qb.calc2List({
 			"from":currentBugs,
 //			"analytic":{"name":"Order","value":"rownum+1", "sort":["Close Date", "ID"]},
 			"select":[

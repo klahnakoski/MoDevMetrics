@@ -8,41 +8,43 @@
 </HEAD>
 <BODY>
 
-<div id="sidebar" style="width:300px;">
-	<br>
-	<br>
-	<div style="height: 30px; text-align: center;vertical-align:middle;">
-		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+
+<table><tr><td>
+	<div id="sidebar" style="width:300px;">
+		<br>
+		<br>
+		<div style="height: 30px; text-align: center;vertical-align:middle;">
+			<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+		</div>
+
+		<hr>
+		<div id="description">Summarize number of of bugs over the sample given<br><br>
+			This is best used on a small number of bugs because details must be
+			brought to the client for further processing<br><br>
+			<span class="warning">Only bugs that had activity in the year prior to the Start Date are counted</span>
+		</div>
+		<hr>
+		<div id="testMessage"></div>
+		<hr>
+		<div id="stats"></div>
+		<hr>
+		<div id="parameters" class="parameters">
+		</div>
+		<div id="filters" class="menu"></div>
 	</div>
 
-	<hr>
-	<div id="description">Summarize number of of bugs over the sample given<br><br>
-		This is best used on a small number of bugs because details must be
-		brought to the client for further processing<br><br>
-		<span class="warning">Only bugs that had activity in the year prior to the Start Date are counted</span>
+</td>
+<td>
+	<div style="align:left;position:relative;float:left;width:800px;">
+		<h3 id="title"></h3>
+		<div id="chartCount"  class="chart" style="float:none;width:800px;height:300px;"></div>
+		<div id="chartChurn"  class="chart" style="float:none;width:800px;height:300px;"></div>
+		<div id="chart"       class="chart" style="float:none;width:800px;height:300px;"></div>
+		<br><br>
+		<div id="info"></div>
+		<div id="details"></div>
 	</div>
-	<hr>
-	<div id="testMessage"></div>
-	<hr>
-	<div id="stats"></div>
-	<hr>
-	<div id="parameters" class="parameters">
-	</div>
-	<div id="filters" class="menu"></div>
-</div>
-
-<div style="float:right;display: inline;">
-	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
-</div>
-<div style="align:left;position:relative;float:left;width:800px;">
-	<h3 id="title"></h3>
-	<div id="chartCount"  class="chart" style="float:none;width:800px;height:300px;"></div>
-	<div id="chartChurn"  class="chart" style="float:none;width:800px;height:300px;"></div>
-	<div id="chart"       class="chart" style="float:none;width:800px;height:300px;"></div>
-	<br><br>
-	<div id="info"></div>
-	<div id="details"></div>
-</div>
+</td></tr></table>
 
 
 <script type="application/javascript">
@@ -179,7 +181,7 @@ var __createChart = function*(){
 		details.columns.push({"name":"min"});
 		details.columns.push({"name":"max"});
 
-		details=yield (Qb.calc2List({
+		details=yield (qb.calc2List({
 			"from":details,
 			"select":[
 				{"name":"ID", "value":"Bugzilla.linkToBug(bug_id)"},
@@ -280,7 +282,7 @@ var __createChart = function*(){
 				var field = {"New":"min", "Closed":"max"}[series];
 
 				Thread.run(function*(){
-					var buglist=(yield (Qb.calc2List({
+					var buglist=(yield (qb.calc2List({
 						"from":allBugs,
 						"select":{"value":"bug_id"},
 						"where":""+field+"!==undefined && "+field+".between("+convert.Date2Code(part.min)+", "+convert.Date2Code(part.max)+")"

@@ -118,7 +118,7 @@ var createChart=function(){
 					result=MVEL.esFacet2List(result.facets.all, [{"name":col.name.replaceAll(".", "_")}]);
 
 
-					var result2=yield (Qb.calc2List({
+					var result2=yield (qb.calc2List({
 						"from":result,
 						"edges":[
 							col.name.replaceAll(".", "_")

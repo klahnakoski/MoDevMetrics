@@ -78,7 +78,7 @@ var __createChart = function*(){
 		var old=yield (q.run());
 
 		var a=Log.action("Get Old Reviews", true);
-		var oldRequests=(yield (Qb.calc2List({
+		var oldRequests=(yield (qb.calc2List({
 			"from":old.list,
 			"select":[
 				{"name":"avg_wait_time", "value":""+Date.today().getMilli()+"-request_time", "aggregate":"average"},
@@ -94,7 +94,7 @@ var __createChart = function*(){
 		}))).list;
 
 		//ADD LINK TO BUGS
-		var show=(yield (Qb.calc2List({
+		var show=(yield (qb.calc2List({
 			"from":oldRequests,
 			"select":[
 				{"name":"Reviewer", value:"reviewer"},
@@ -162,7 +162,7 @@ var __createChart = function*(){
 
 	a=Log.action("Calc Stats", false);
 
-	var wait_times=(yield (Qb.calc2List({
+	var wait_times=(yield (qb.calc2List({
 		"from":reviews.list,
 		"select":[{"name":"wait_time", "value":"coalesce(review_time, Date.eod())-request_time"}]
 	}))).list;

@@ -176,7 +176,7 @@ importScript("modevlib/main.js", function(){
 		]);
 
 
-		var pendingReview = (yield(Qb.calc2List({
+		var pendingReview = (yield(qb.calc2List({
 			"from":
 					esResult,
 			"select":[
@@ -193,7 +193,7 @@ importScript("modevlib/main.js", function(){
 			var a = Log.action("Process Pending", true);
 
 
-			var result = (yield(Qb.calc2List({
+			var result = (yield(qb.calc2List({
 				"from":
 					//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
 						pendingReview,
@@ -211,7 +211,7 @@ importScript("modevlib/main.js", function(){
 			}))).list;
 
 			//ADD LINK TO BUGS
-			result = (yield(Qb.calc2List({
+			result = (yield(qb.calc2List({
 				"from":result,
 				"select":[
 					{"name":"requestee", "value":"requestee"},
@@ -236,7 +236,7 @@ importScript("modevlib/main.js", function(){
 				{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
 			]);
 
-			var doneReview = (yield(Qb.calc2List({
+			var doneReview = (yield(qb.calc2List({
 				"from":
 						esResult3,
 				"select":[
@@ -258,7 +258,7 @@ importScript("modevlib/main.js", function(){
 
 
 			//ADD LINK TO BUGS
-			var result3 = (yield(Qb.calc2List({
+			var result3 = (yield(qb.calc2List({
 				"from":doneReview,
 				"select":[
 					{"name":"Wait Time", value:"aMath.round(Duration.newInstance(wait_time).divideBy(Duration.DAY), 1)+'days'"},
@@ -281,7 +281,7 @@ importScript("modevlib/main.js", function(){
 			]);
 
 
-			var result = (yield(Qb.calc2List({
+			var result = (yield(qb.calc2List({
 				"from":
 						assigned,
 				"select":[
@@ -297,7 +297,7 @@ importScript("modevlib/main.js", function(){
 			}))).list;
 
 			//ADD LINK TO BUGS
-			result = (yield(Qb.calc2List({
+			result = (yield(qb.calc2List({
 				"from":result,
 				"select":[
 					{"name":"assigned_to", value:"assigned_to"},

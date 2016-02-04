@@ -214,7 +214,7 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Bugzilla.js'], function(){
 					Thread.run(function*(){
 						var date = Date.newInstance(x);
 
-						var list = yield (Qb.calc2List({
+						var list = yield (qb.calc2List({
 							"from": bugList,
 							"select": {"value": "bug_id"},
 							"where": "closeTime!=null && " +

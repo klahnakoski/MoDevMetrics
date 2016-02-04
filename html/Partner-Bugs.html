@@ -145,7 +145,7 @@ var __createChart = function*(){
 		details.columns.push({"name":"min"});
 		details.columns.push({"name":"max"});
 
-		details=yield (Qb.calc2List({
+		details=yield (qb.calc2List({
 			"from":details,
 			"select":[
 				{"name":"ID", "value":"new HTML(Bugzilla.linkToBug(bug_id))"},
@@ -239,7 +239,7 @@ var __createChart = function*(){
 				var field = {"New":"min", "Closed":"max"}[series];
 
 				Thread.run(function*(){
-					var buglist=(yield (Qb.calc2List({
+					var buglist=(yield (qb.calc2List({
 						"from":allBugs,
 						"select":{"value":"bug_id"},
 						"where":""+field+"!==undefined && "+field+".between("+convert.Date2Code(part.min)+", "+convert.Date2Code(part.max)+")"

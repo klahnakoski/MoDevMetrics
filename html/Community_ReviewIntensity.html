@@ -136,7 +136,7 @@ importScript([
 
 			var stats = (yield(Q({
 				"from":
-						Qb.Cube2List(df),
+						qb.Cube2List(df),
 				"select": [
 					{"name":"total", "value":"count", "aggregate":"sum"},
 					{"name":"under_24_hours", "value":"(wait_time!=null && wait_time.milli<" + Duration.newInstance('24hour').milli + ") ? count : 0", "aggregate":"sum"},
@@ -263,7 +263,7 @@ importScript([
 		//THE THREE ARE PARTS OF THE CATEGORY DIMENSION
 
 		//MERGE ALL RESULTS
-		var chart = Qb.merge([
+		var chart = qb.merge([
             {"from":requested, "edges":["time"]},
             {"from":reviewed, "edges":["time"]},
             {"from":open, "edges":["time"]}

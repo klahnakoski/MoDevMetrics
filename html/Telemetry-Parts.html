@@ -178,10 +178,10 @@ var __createChart = function*(){
 	Log.actionDone(a);
 
 	if (GUI.state.normalizeZ){
-		Qb.normalizeByCohort(chart, 100);
+		qb.normalizeByCohort(chart, 100);
 	}//endif
 	if (GUI.state.normalizeX){
-		Qb.normalizeByX(chart, 100);
+		qb.normalizeByX(chart, 100);
 	}//endif
 
 	edgeX.allowNulls=false;

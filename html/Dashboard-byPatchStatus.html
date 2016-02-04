@@ -83,7 +83,7 @@ importScript([
 			var mainFilter = GUI.getFilters("public_bugs");
 			var allPatches = yield (getPendingPatches(mainFilter));
 
-			var rawPatches = yield (Qb.calc2List({
+			var rawPatches = yield (qb.calc2List({
 				"from" : allPatches,
 				"select" : [
 					{"name" : "BugID", "value" : "Bugzilla.linkToBug(bug.bug_id)"},
@@ -98,7 +98,7 @@ importScript([
 
 
 
-			var pending = yield (Qb.calc2List({
+			var pending = yield (qb.calc2List({
 				"from" : allPatches,
 				"select" : [
 					{"name" : "BugID", "value" : "Bugzilla.linkToBug(bug.bug_id)"},

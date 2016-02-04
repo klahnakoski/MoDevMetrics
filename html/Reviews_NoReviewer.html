@@ -68,7 +68,7 @@ importScript(["modevlib/main.js"], function(){
 			]}
 		})));
 
-		var result = (yield(Qb.calc2List({
+		var result = (yield(qb.calc2List({
 			"from":	reviews.list,
 			"select":[
 				{"name":"wait_time", "value":"Date.eod().getMilli()-request_time", aggregate:"maximum", "sort":"descending"}
@@ -82,7 +82,7 @@ importScript(["modevlib/main.js"], function(){
 		}))).list;
 
 		//ALTER bugs LIST TO INCLUDE LINK
-		result = (yield(Qb.calc2List({
+		result = (yield(qb.calc2List({
 			"from":result,
 			"select":[
 				{"name":"Bug ID", "value":"\"<a href='https://bugzilla.mozilla.org/buglist.cgi?quicksearch=\"+(''+bug_id).replaceAll(', ', '%2C')+\"'>\"+bug_id+\"</a>\""},

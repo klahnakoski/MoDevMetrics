@@ -67,12 +67,12 @@
 <script type="text/javascript" src="modevlib/qb/MVEL.js"></script>
 
 <script type="text/javascript" src="modevlib/threads/thread.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.analytic.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.aggregate.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.column.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.cube.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.domain.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.analytic.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.aggregate.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.column.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.cube.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.domain.js"></script>
 <script type="text/javascript" src="modevlib/qb/ESQuery.js"></script>
 <script type="text/javascript" src="modevlib/charts/aChart.js"></script>
 
@@ -212,7 +212,7 @@ Thread.run(function*(){
 		{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
 	]);
 
-	var pendingReview = (yield(Qb.calc2List({
+	var pendingReview = (yield(qb.calc2List({
 		"from":
 				esResult,
 		"select":[
@@ -225,7 +225,7 @@ Thread.run(function*(){
 	})));
 
 
-	var result = (yield(Qb.calc2List({
+	var result = (yield(qb.calc2List({
 		"from":
 			//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
 				pendingReview,
@@ -243,7 +243,7 @@ Thread.run(function*(){
 	}))).list;
 
 	//ADD LINK TO BUGS
-	result = (yield(Qb.calc2List({
+	result = (yield(qb.calc2List({
 		"from":result,
 		"select":[
 			{"name":"requestee", "value":"requestee"},
@@ -260,7 +260,7 @@ Thread.run(function*(){
 		{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
 	]);
 
-	var doneReview = (yield(Qb.calc2List({
+	var doneReview = (yield(qb.calc2List({
 		"from":
 				esResult3,
 		"select":[
@@ -281,7 +281,7 @@ Thread.run(function*(){
 
 
 	//ADD LINK TO BUGS
-	var result3 = (yield(Qb.calc2List({
+	var result3 = (yield(qb.calc2List({
 		"from":doneReview,
 		"select":[
 			{"name":"Wait Time", value:"wait_time"},
@@ -295,7 +295,7 @@ Thread.run(function*(){
 		{"name":"assigned_to"}
 	]);
 
-	var result2 = (yield(Qb.calc2List({
+	var result2 = (yield(qb.calc2List({
 		"from":
 				assigned,
 		"select":[
@@ -311,7 +311,7 @@ Thread.run(function*(){
 	}))).list;
 
 	//ADD LINK TO BUGS
-	result2 = (yield(Qb.calc2List({
+	result2 = (yield(qb.calc2List({
 		"from":result2,
 		"select":[
 			{"name":"assigned_to", value:"assigned_to"},

@@ -283,7 +283,7 @@ function restOfCharting(env){
 		}));
 		Log.actionDone(a);
 
-		var details = yield (Qb.calc2List({
+		var details = yield (qb.calc2List({
 			"from":bugs,
 			"select":[
 				{"name":"bug_id", "value":"Bugzilla.linkToBug(bug_id)"},

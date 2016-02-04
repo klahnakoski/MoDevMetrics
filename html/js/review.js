@@ -70,7 +70,7 @@ function*getReviewers(timeDomain, maxReviewers){
 	//	"from":reviewers,
 	//	"sort":{"reviewer":{"value":"count", "sort":-1, "aggregate":"sum", "where":{"term":{"type":"done"}}}}
 	//}));
-	var ordered = Qb.sort(Qb.Cube2List(reviewers).filter({"term" : {"type.name" : "done"}}), {"value" : "count", "sort" : -1});
+	var ordered = qb.sort(qb.Cube2List(reviewers).filter({"term" : {"type.name" : "done"}}), {"value" : "count", "sort" : -1});
 	var old_parts = reviewers.edges[1].domain.partitions;
 	var new_parts = [];
 	var new_cube = reviewers.cube.map(function(){

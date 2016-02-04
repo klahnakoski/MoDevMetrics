@@ -127,7 +127,7 @@ var __createChart = function*(){
 		});
 
 		//FORMAT THE BUGS FOR TABLE
-		var showBugs=yield(Qb.calc2List({
+		var showBugs=yield(qb.calc2List({
 			"from":historyBugs.cube,
 //			"analytic":{"name":"Order","value":"rownum+1", "sort":["Close Date", "ID"]},
 			"select":[
@@ -233,7 +233,7 @@ var __createChart = function*(){
 			};
 		});
 
-		var perDay = (yield(Qb.calc2List({
+		var perDay = (yield(qb.calc2List({
 			"from":diff,
 			"select":[
 				{"name":"avg_new", "value":"net_new", "aggregate":"average"},
@@ -277,7 +277,7 @@ var __createChart = function*(){
 
 
 	//REQUIRED
-	flat.list=Qb.Cube2List(flat);	//FORCE flat.list TO EXIST
+	flat.list=qb.Cube2List(flat);	//FORCE flat.list TO EXIST
 
 	aChart.addPredictionLine({
 		"source":{

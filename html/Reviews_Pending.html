@@ -67,12 +67,12 @@
 <script type="text/javascript" src="modevlib/qb/MVEL.js"></script>
 
 <script type="text/javascript" src="modevlib/threads/thread.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.analytic.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.aggregate.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.column.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.cube.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.domain.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.analytic.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.aggregate.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.column.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.cube.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.domain.js"></script>
 <script type="text/javascript" src="modevlib/rest/Rest.js"></script>
 <script type="text/javascript" src="modevlib/qb/ESQuery.js"></script>
 <script type="text/javascript" src="modevlib/charts/aChart.js"></script>
@@ -167,7 +167,7 @@ Thread.run(function*(){
 	]);
 
 	var reviews = //REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
-			(yield(Qb.calc2List({
+			(yield(qb.calc2List({
 				"from":
 						esResult,
 				"select": {"name":"age", "value":"Date.now().floor('day').getMilli()-modified_ts", aggregate:"minimum"},
@@ -178,7 +178,7 @@ Thread.run(function*(){
 			}))).list;
 
 
-	var average = (yield(Qb.calc2List({
+	var average = (yield(qb.calc2List({
 		"from": reviews,
 		"select": {"name":"avg_age", "value":"age", aggregate:"average"}
 	}))).list[0].avg_age;
@@ -203,7 +203,7 @@ Thread.run(function*(){
 	);
 
 
-	var result = (yield(Qb.calc2List({
+	var result = (yield(qb.calc2List({
 		"from": reviews,
 		"select":[
 			{"name":"avg_age", "value":"age", aggregate:"average"},
@@ -219,7 +219,7 @@ Thread.run(function*(){
 	}))).list;
 
 	//ADD LINK TO BUGS
-	result = (yield(Qb.calc2List({
+	result = (yield(qb.calc2List({
 		"from":result,
 		"select":[
 			{"name":"requestee", "value":"requestee"},

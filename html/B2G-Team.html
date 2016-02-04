@@ -210,7 +210,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js", "
 					var date = churn.edges[1].domain.getPartByKey(x);
 
 					Thread.run(function*() {
-						var buglist = (yield (Qb.calc2List({
+						var buglist = (yield (qb.calc2List({
 							"from": allBugs,
 							"select": {"value": "bug_id"},
 							"where": {"and": [
@@ -421,7 +421,7 @@ function teamSummary(team) {
 		yield (Thread.join(ageThread));
 		yield (Thread.join(uBlockerThread));
 
-		var both = Qb.merge([
+		var both = qb.merge([
 			{"from": counting, "edges": ["Component", "Project", "State"]},
 			{"from": ages, "edges": ["Component", "Project", "State"]},
 			{"from": uBlocker, "edges": ["Component", "Project", "State"]}
@@ -430,7 +430,7 @@ function teamSummary(team) {
 		//SHOW GRID
 		both.name = team.name;
 		if (["Performance", "All Others", "All Teams"].contains(team.name)){
-			Qb.removeZeroParts(both, 0);
+			qb.removeZeroParts(both, 0);
 		}//endif
 
 		var html = cube2grid({

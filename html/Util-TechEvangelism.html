@@ -47,7 +47,7 @@
 					}
 				}));
 
-				data=yield (Qb.calc2List({
+				data=yield (qb.calc2List({
 					"from":raw_bugs.hits.hits.select("fields"),
 					"analytic":[
 						{"name":"age", "value":"Math.max(previous_values.bug_status_change_away_ts, created_ts)- created_ts", "edges":[]},
