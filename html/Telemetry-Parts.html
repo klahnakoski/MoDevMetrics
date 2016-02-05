@@ -1,0 +1,287 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+
+<a href="http://people.mozilla.com/~klahnakoski/" class="tabzilla">HOME</a>
+
+
+<div id="sidebar" style="width:400px;position: relative;">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3>Telemetry</h3>
+
+
+	<div id="chart" class="chart" style="height:600px;width:600px;"></div>
+	<form action="">
+	<h4>Filter</h4>
+	<textarea name="esfilter" id="esfilter" rows="5" cols="60" style="width:600px;height:200px;"></textarea>
+	<div style="width:600px;">
+		<h4>Drill Tool</h4>
+		<div id="selectDim" style="width:600px;"></div>
+	</div>
+	<h4>Generated Query</h4>
+	<textarea id="cube" name="cube" style="width:600px;height:300px;"></textarea>
+	</form>
+	<div id="info"></div>
+	<div id="report"></div>
+</div>
+
+
+<script type="application/javascript">
+
+
+importScript([
+	'modevlib/main.js',
+	'modevlib/Dimension-Telemetry.js',
+	"modevlib/gui/PickDim.js"
+], function(){
+	$().ready(function(){
+		//STYLE AS LINED TEXT AREA
+		$("#cube").linedtextarea();
+	});
+
+
+	var PART_QUERY;
+
+	var pd=new PickDim("#selectDim", Mozilla.Telemetry, function(query){
+		PART_QUERY=query;
+		GUI.refresh();
+	});
+
+
+
+
+var CUTOFF=Duration.newInstance("3week");
+$("#description").html(
+		"Simple heat grid to compare the various simple measures.  Least-squares regression line added to get sense of relationship."+
+		"We still need to add a the regression distribution, and a plethora of filters"+
+		'<br><br>The Z coordinate is used to determine the series set (each a separate colour).'+
+		'<br><br><span class="warning">This page points to my server behind the firewall.  You must have Toronto VPN access (vpn.tor1.mozilla.com).</span>'+
+		'<br><br><span class="warning">Limited to nightly, WINNT</span>'
+);
+
+var thread;
+
+var createChart=function(){
+	if (thread!==undefined) thread.kill();
+	thread=Thread.run( __createChart());
+};
+
+
+var __createChart = function*(){
+	//REEMPTIVE LOAD SO THE EXPRESSION COMPILE WORKS
+	yield (ESQuery.loadColumns({"from": "raw_telemetry"}));
+	if (Mozilla.Telemetry.Instance.Addons.partitions instanceof Thread) yield (Thread.join(Mozilla.Telemetry.Instance.Addons.partitions));
+
+	var X=GUI.state.X.getSelectedParts()[0];
+	if (X===undefined) yield(null);	//NOT READY TO SHOW ANYTHING
+	if (X.partitions instanceof Thread) yield (Thread.join(X.partitions));
+
+	var Z=GUI.state.Z.getSelectedParts();
+	if (Z===undefined || Z.length==0) yield(null);	//NOT READY TO SHOW ANYTHING
+
+	var zSpecificParts=(Z[0].getDomain===undefined); //IF WE ARE SELECTING PARTICULAR PARTS OF DOMAIN
+
+
+	if (Z.length>0){
+		var zDomain=Z[0];
+
+		{//FIND THE DIMENSION
+			while(true){
+				if (zDomain.getDomain) break;
+				if (!zDomain.parent) break;
+				zDomain=zDomain.parent;
+			}//while
+		}
+
+		//PARTS DO NOT HAVE DOMAINS, SO JUST COUNT
+		if (Z.partitions instanceof Thread) yield (Thread.join(Z.partitions));
+		if (PART_QUERY===undefined) PART_QUERY={};
+
+		//LET Z REPLACE THE PART_QUERY EDGE
+		var edgeZ={
+			"name":"Z",
+			"value":zDomain.field,
+			"allowNulls":true,
+			"domain":zDomain.getDomain()
+		};
+
+		PART_QUERY.edges=[edgeZ];
+
+		//IF Z IS A PART(S), THEN ADD A FILTER TO LIMIT TO THOSE PARTS
+		var partNames=Z.select("name");
+		if (zSpecificParts){
+			edgeZ.domain.partitions=edgeZ.domain.partitions.filter(function(p){return partNames.contains(p.name);});
+		}//endif
+//		query.where=convert.Object2JSON(Z.map(function(p){return p.name;}))+".contains(Z.name)";
+
+	}else if (PART_QUERY===undefined){
+		yield (null);	//NOT ENOUGH DIMENSIONS TO CHART YET
+	}//endif
+
+	var query={
+		"from":X.index,
+		"select":{"name":"count", "value":"1", "aggregate":"count"},
+	};
+	Map.copy(PART_QUERY, query);
+	query.esfilter={"and":[
+		query.esfilter,
+		GUI.state.esfilter,
+		zSpecificParts ? {"or":Z.map(function(p){return p.esfilter;})} : undefined	//ADD ESFILTER FOR SPEED
+	].cleanCopy()};
+
+
+	var edgeX={
+		"name":"X",
+		"value":X.field,
+		"allowNulls":true,
+		"domain":X.getDomain()
+	};
+	query.edges.push(edgeX);
+
+	if (edgeX.domain.type=='numeric'){
+		edgeX.domain.min=0,
+		edgeX.domain.max=GUI.state.maxX;
+		edgeX.domain.interval=GUI.state.maxX/GUI.state.numX;
+	}//endif
+
+
+
+	$("#cube").val(convert.Object2JSON(query));
+
+
+	var a=Log.action("Request Data from ES", false);
+	var chart=yield (ESQuery.run(query));
+	Log.actionDone(a);
+
+	if (GUI.state.normalizeZ){
+		qb.normalizeByCohort(chart, 100);
+	}//endif
+	if (GUI.state.normalizeX){
+		qb.normalizeByX(chart, 100);
+	}//endif
+
+	edgeX.allowNulls=false;
+//	query.edges.forall(function(e){e.allowNulls=false;});  //DO NOT SHOW THE NULL VALUES (USUALLY VERY BIG)
+
+
+
+
+	aChart.show({
+		"id":"chart",
+		"cube":chart,
+		"stacked":GUI.state.normalizeX,		//THIS SHOULD BE A PART OF THE EDGE, AND USED INSIDE THE CHART API
+		"type":GUI.state.normalizeX ? "area" : undefined,
+		"titlePaddings":5,
+		"height":600,
+		"width":600
+	});
+
+	yield (null);
+
+};
+	//LIMITS THE HIERARCHY SELECTION TO ALL PARTS IN ONE DIMENSION
+	var callback=function(newDims, oldDims){
+		//PUT NEW SELECTION FIRST
+		newDims=new aQueue_usingArray(newDims.subtract(oldDims)).appendArray(newDims).array;
+
+		var selectedDim;
+		//REDUCE SELECTION TO ALL PARTS IN ONE DIMENSION
+		var output=newDims.map(function(v){
+			var d=v;
+			while(true){
+				if (d.getDomain){
+					selectedDim=coalesce(selectedDim, d);
+					if (d==selectedDim) return v;
+				}//endif
+				if (!d.parent) break;
+				d=d.parent;
+			}//while
+		});
+		return output;
+	};//method
+
+
+	$(document).ready(function(){
+		GUI.setup(
+			createChart,
+			[
+//				{"id":"measurey", "name":"Measure X", "type":"code", "default":"simpleMeasurements.start"},
+				{"id":"X", "type":PartitionFilter.newInstance({
+					"id":"X",
+					"name":"Measure X",
+					"dimension":Mozilla.Telemetry,
+					"onlyOne":false,
+					"expandDepth":2,
+					"callback":callback
+				})},
+				{"id":"Z", "type":PartitionFilter.newInstance({
+					"id":"Z",
+					"name":"Measure Z",
+					"dimension":Mozilla.Telemetry,
+					"onlyOne":false,
+					"expandDepth":2,
+					"callback":callback
+				})},
+				{"id":"normalizeZ", "name":"Normalize Z", "type":"boolean", "default":false},
+				{"id":"maxX", "name":"Max X", "type":"number", "default":"10000"},
+				{"id":"numX", "name":"Num X", "type":"number", "default":"20"},
+				{"id":"normalizeX", "name":"Normalize X", "type":"boolean", "default":false},
+				{"id":"maxY", "name":"Max Y", "type":"number", "default":"200"},
+				{"id":"esfilter", "name":"ES Filter", "type":"json", "default":{"and":[
+					{"term":{"appUpdateChannel":"nightly"}},
+					{"term":{"OS":"WINNT"}},
+					{"term":{"version":"6.1"}},
+					{"term":{"info.reason":"saved-session"}},
+					{"term":{"info.appVersion":"22.0a1"}},
+					{"term":{"simpleMeasurements.startupInterrupted":0}},
+					{"term":{"simpleMeasurements.debuggerAttached":0}},
+					{"script":{"script":"doc[\"simpleMeasurements.start\"].value <= doc[\"simpleMeasurements.main\"].value"}},
+					{"script":{"script":"doc[\"simpleMeasurements.main\"].value <= doc[\"simpleMeasurements.createTopLevelWindow\"].value"}},
+					{"script":{"script":"doc[\"simpleMeasurements.createTopLevelWindow\"].value <= doc[\"simpleMeasurements.firstPaint\"].value"}},
+					{"script":{"script":"doc[\"simpleMeasurements.firstPaint\"].value <= doc[\"simpleMeasurements.sessionRestored\"].value"}},
+					{"or":[
+						{"not":{"exists":{"field":"doc[\"simpleMeasurements.firstLoadURI\"].value"}}},
+						{"script":{"script":"doc[\"simpleMeasurements.firstPaint\"].value <= doc[\"simpleMeasurements.firstLoadURI\"].value"}},
+						{"script":{"script":"doc[\"simpleMeasurements.firstLoadURI\"].value <= doc[\"simpleMeasurements.sessionRestored\"].value"}}
+					]}
+				]}},
+			],
+			[
+//				"sampleMax=GUI.fixEndDate(Date.newInstance(sampleMin), Date.newInstance(sampleMax), Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')"
+			],
+			"raw_telemetry",
+			false
+		);
+	});
+});
+
+</script>
+
+
+</BODY>
+</HTML>
+

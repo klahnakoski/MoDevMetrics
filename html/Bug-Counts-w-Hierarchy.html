@@ -1,0 +1,240 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+<div id="sidebar" style="width:300px;">
+	<br>
+	<br>
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description">Bug counts over time based on dependency tree<br><br>
+	</div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3 id="title"></h3>
+	<div id="chartCount"  class="chart" style="float:none;width:800px;height:300px;"></div>
+	<br><br>
+	<div id="info"></div>
+	<div id="details"></div>
+</div>
+
+
+<script type="application/javascript">
+
+
+importScript('modevlib/main.js', function(){
+
+
+
+var thread;
+var createChart=function(){
+	if (thread!==undefined)
+		thread.kill();
+	thread=Thread.run( __createChart());
+};
+
+var __createChart = function*(){
+
+	var bug_ids = GUI.state.bugList.split(",").map(function(v){return convert.String2Integer(v.trim())});
+	var sampleMin=Date.newInstance(GUI.state.sampleMin);
+	var sampleMax=Date.newInstance(GUI.state.sampleMax).addDay(1);
+	var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
+
+	var mainFilter=GUI.getFilters("bugs");
+
+    Thread.run(function*(){
+        ///////////////////////////////////////////////////////////////////////
+        // SET TITLE TO THE TOP BUG DESCRIPTION
+        ///////////////////////////////////////////////////////////////////////
+        var r = yield(ESQuery.run({
+            "from":"public_bugs",
+            "select":"short_desc",
+            "esfilter":{"and":[
+                {"terms":{"bug_id": bug_ids}},
+                Mozilla.CurrentRecords.esfilter
+            ]}
+        }));
+
+        $("#title").html(r.list.join(", "));
+    });
+
+
+	Thread.run(function*(){
+        ///////////////////////////////////////////////////////////////////////
+        // SIMPLE OPEN BUG COUNT, OVER TIME
+        ///////////////////////////////////////////////////////////////////////
+
+        //STEP 1: GET ALL DEPENDENCIES FOR ALL TIME
+        var descendants = yield(ESQuery.run({
+            "from":"bug_hierarchy",
+            "select":[
+                "bug_id",
+                "descendants"
+            ],
+            "esfilter":{"terms":{"bug_id":bug_ids}}
+        }));
+        descendants=descendants.list[0].descendants;
+        descendants.appendArray(bug_ids);
+
+        //STEP 2: PULL DEPENDENCY DATA FROM ES
+        //THIS IS TO GET DAILY DEPENDENCY LISTS
+		var a= Log.action("Pull dependencies");
+        var raw_data=yield (ESQuery.run({
+			"name":"Open Bug Count",
+			"from":"bugs",
+			"select": [
+                "bug_id",
+                "dependson",
+                "modified_ts",
+              	"expires_on"
+            ],
+            "esfilter": {"and": [
+                {"terms": {"bug_id": descendants}},
+                {"range": {"modified_ts": {"lt": sampleMax.add(sampleInterval).getMilli()}}},
+                {"range": {"expires_on": {"gte": sampleMin.getMilli()}}}
+            ]}
+        }));
+		Log.actionDone(a);
+
+        //ORGANIZE INTO DATACUBE: (DAY x BUG_ID)
+        var data = yield (Q({
+            "from":raw_data,
+            "select": {"value":"dependson", "aggregate":"one"},
+            "edges":[
+                {"name":"date", "range":{"min":"modified_ts", "max":"expires_on"}, "domain":{
+                    "type":"time",
+                    "min":sampleMin,
+                    "max":sampleMax.add(sampleInterval),
+                    "interval":sampleInterval
+                }},
+                "bug_id"
+            ]
+        }));
+
+        //FOR EACH DAY, FIND ALL DEPENDANT BUGS
+        parts = [];
+        for (var day=0;day<data.cube.length;day++){
+            bug = data.cube[day];
+            day_part = data.edges[0].domain.partitions[day];
+            var top_bug = [];
+            var bug_map = {};
+            var bugs = bug.map(function(dependson, b){
+                var output = {
+                    "bug_id":data.edges[1].domain.partitions[b].value,
+                    "dependson": dependson
+                };
+                if (bug_ids.contains(output.bug_id)) top_bug.append(output);
+                bug_map[output.bug_id]=output;
+                return output;
+            });
+
+            yield (Hierarchy.addDescendants({
+                "from":bugs,
+                "id_field":"bug_id",
+                "fk_field":"dependson",
+                "descendants_field": "dependencies"
+            }));
+
+	        var allDescendantsForToday = new aSet();
+	        top_bug.forall(function(b){
+		        allDescendantsForToday.addArray(b.dependencies);
+	        });
+
+            //ADD TO THE LIST OF PARTITIONS, ONE FOR EACH DAY,
+            //FILTERING BY THE DEPENDENT BUGS OF THAT DAY
+            parts.append({
+                "name":day_part.value.format("NNN dd"),
+                "value":day_part.value,
+                "esfilter":{"and":[
+                    {"range":{"modified_ts":{"lte":day_part.min.getMilli()}}},
+                    {"range":{"expires_on":{"gt":day_part.min.getMilli()}}},
+                    {"terms":{"bug_id":allDescendantsForToday.getArray()}}
+                ]}
+            });
+        }//for
+
+        //STEP 3: NOW WE CAN ASK MORE ABOUT THIS BUG LIST BY DAY
+		var statusDomain=Mozilla.BugStatus.getDomain();
+		statusDomain.isFacet=true;
+
+		a= Log.action("Get Aggregates");
+        chart = yield (ESQuery.run({
+            "from":"bugs",
+            "select":{"name":"Num Bugs", "value":"bug_id", "aggregate":"count"},
+            "edges":[{
+                "name":"status",
+                "domain":statusDomain
+            },{
+                "name":"date",
+                "domain":{"type":"set", "partitions":parts, "isFacet":true}
+            }],
+            "esfilter":mainFilter
+        }));
+		Log.actionDone(a);
+
+		aChart.show({
+			"id":"chartCount",
+			"sheetDiv":"info",
+			"type":"line",
+			"stacked":false,
+			"cube":chart,
+			"height":"300",
+			xAxisSize: 50,
+			"width":800
+		});
+	});
+
+	yield (null);
+};
+
+
+
+
+
+	$(document).ready(function(){
+		GUI.setup(createChart, [
+			{"id":"bugList", "name":"Meta Bugs", "type":"text", "default":"879822"},
+			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
+			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today().ceilingWeek()},
+			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"week"}
+		],
+		[
+//			"if (Date.newInstance(sampleMax).subtract(Date.newInstance(sampleMin)).round(Duration.WEEK, 0)>=5) sampleInterval='week'",
+//			"if (Date.newInstance(sampleMax).subtract(Date.newInstance(sampleMin)).round(Duration.WEEK, 0)<=3) sampleInterval='day'",
+			"sampleMin=Date.newInstance(sampleMin).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
+			"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')"
+		],
+		"bugs",
+		true		//SHOW DEFAULT FILTERS?
+		);
+	});
+
+});
+
+</script>
+
+
+</BODY>
+</HTML>
+

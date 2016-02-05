@@ -1,0 +1,266 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="text/javascript" src="modevlib/Settings.js">
+	</script>
+</HEAD>
+<BODY>
+
+
+<link rel="stylesheet" type="text/css" href="lib/jqplot/jquery.jqplot.css"/>
+
+
+<script type="application/javascript" src="lib/webdetails/cdf/Base.js"></script>
+<script type="application/javascript" src="lib/jquery.js"></script>
+<script type="application/javascript" src="lib/jstree/jquery.jstree.js"></script>
+<script type="application/javascript" src="lib/webdetails/cdf/jquery.tooltip.js"></script>
+
+<script type="application/javascript" src="lib/webdetails/lib/protovis-d3.3.js"></script>
+<script type="application/javascript" src="lib/webdetails/lib/jquery.tipsy.js"></script>
+<script type="application/javascript" src="lib/webdetails/lib/tipsy.js"></script>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/lib/tipsy.css"/>
+
+<script type="application/javascript" src="lib/webdetails/pvc/pvc.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcPanel.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcLegend.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcTimeseriesAbstract.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcCategoricalAbstract.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcWaterfall.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcPie.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcBar.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcLine.js"></script>
+<script type="application/javascript" src="lib/webdetails/pvc/pvcData.js"></script>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/cdf/jquery.tooltip.css"/>
+<link type="text/css" rel="stylesheet" href="lib/webdetails/pvcComponent.css"/>
+
+<script type="application/javascript" src="lib/webdetails/pvcDocUtils.js"></script>
+
+<link type="text/css" rel="stylesheet" href="lib/jquery-ui/css/start/jquery-ui-1.10.2.custom.css"/>
+<script type="application/javascript" src="lib/jquery-ui/js/jquery-ui-1.10.2.custom.js"></script>
+<script type="application/javascript" src="lib/jquery.ba-bbq/jquery.ba-bbq.js"></script>
+
+<link type="text/css" rel="stylesheet" href="css/menu.css"/>
+
+
+<script type="text/javascript" src="modevlib/util/aUtil.js"></script>
+<script type="text/javascript" src="modevlib/collections/aArray.js"></script>
+<script type="text/javascript" src="modevlib/util/aString.js"></script>
+<script type="text/javascript" src="modevlib/math/aMath.js"></script>
+<script type="text/javascript" src="modevlib/util/convert.js"></script>
+<script type="text/javascript" src="modevlib/util/aUtil.js"></script>
+<script type="text/javascript" src="modevlib/collections/aArray.js"></script>
+<script type="text/javascript" src="modevlib/util/aString.js"></script>
+<script type="text/javascript" src="modevlib/math/aMath.js"></script>
+<script type="text/javascript" src="modevlib/util/aDate.js"></script>
+<script type="text/javascript" src="modevlib/util/aDuration.js"></script>
+
+<script type="text/javascript" src="modevlib/MozillaPrograms.js"></script>
+<script type="text/javascript" src="modevlib/Dimension.js"></script>
+<script type="text/javascript" src="modevlib/Dimension-Bugzilla.js"></script>
+<script type="text/javascript" src="modevlib/rest/BugzillaClient.js"></script>
+<script type="text/javascript" src="modevlib/Bugzilla.js"></script>
+
+<script type="text/javascript" src="modevlib/math/Stats.js"></script>
+<script type="text/javascript" src="modevlib/debug/aLog.js"></script>
+<script type="text/javascript" src="modevlib/qb/MVEL.js"></script>
+<script type="text/javascript" src="modevlib/qb/aCompiler.js"></script>
+<script type="text/javascript" src="modevlib/Hierarchy.js"></script>
+
+<script type="text/javascript" src="modevlib/threads/thread.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.analytic.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.aggregate.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.column.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.cube.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.domain.js"></script>
+<script type="text/javascript" src="modevlib/rest/Rest.js"></script>
+<script type="text/javascript" src="modevlib/qb/ESQuery.js"></script>
+<script type="text/javascript" src="modevlib/charts/aChart.js"></script>
+
+
+
+<script type="text/javascript" src="modevlib/rest/ElasticSearch.js"></script>
+
+
+
+
+<script type="text/javascript" src="modevlib/charts/DateRangeIterator.js"></script>
+
+<script type="text/javascript" src="modevlib/gui/Filter.js"></script>
+<script type="text/javascript" src="modevlib/gui/ComponentFilter.js"></script>
+<script type="text/javascript" src="modevlib/gui/TeamFilter.js"></script>
+<script type="text/javascript" src="modevlib/gui/ProductFilter.js"></script>
+
+<script type="text/javascript" src="modevlib/gui/ProgramFilter.js"></script>
+
+<script type="text/javascript" src="modevlib/gui/GUI.js"></script>
+<script type="text/javascript" src="modevlib/util/aTimer.js"></script>
+
+<table style="width: 100%;">
+<tr>
+	<td style="width: 320px;">
+		<div style="height: 30px; text-align: center;vertical-align:middle;">
+			<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+		</div>
+
+		<hr>
+		<div id="testMessage"></div>
+		<hr>
+		<div id="parameters" class="parameters">
+		</div>
+		<div id="filters" class="menu"></div>
+	</td>
+	<td>
+		<div style="float:right;display: inline;"><a href="http://people.mozilla.com/~klahnakoski/">HOME</a></div>
+		<div id="chart" style="position:relative;"></div>
+	</td>
+</tr>
+</table>
+<div id="info"></div>
+<div id="description"></div>
+<div id="report"></div>
+
+<script type="application/javascript">
+
+var createChart = function(){
+	var esQuery = {
+		"query":{"filtered":{
+			"query": {
+				"match_all":{}
+			},
+			"filter":{
+				"and":[
+					{"range":{"modified_ts":{"gte":Date.newInstance(GUI.state.sampleMin).getMilli()}}},
+					{"range":{"modified_ts":{"lt":Date.newInstance(GUI.state.sampleMax).getMilli()}}}
+				]
+			}
+		}},
+		"from" : 0,
+		"size" : 10,
+		"sort" : [],
+		"facets":{
+			"inReview": {
+				"terms":{
+					"script_field":
+							new MVEL().code({
+								"select" : [
+									{"name":"bug_id", "value":"bugs.bug_id"},
+									{"name":"modified_ts", "value":"bugs.modified_ts"},
+									{"name":"requestee", "value":"bugs.attachments.flags.requestee"},
+									{"name":"attach_id","value":"bugs.attachments.attach_id"}
+								],
+								"from":
+										"bugs.attachments.flags",
+								"where":
+								{"and" : [
+									{"terms":{"bugs.attachments.flags.request_status" : ["?"]}},
+									{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}},
+//										{"term":{"bugs.attachments.flags.requestee" : "roc@ocallahan.org"}},
+									{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}},
+									{"script":{"script":"bugs.attachments.flags.modified_ts==bugs.modified_ts"}}
+								]}
+							}),
+					"size": GUI.state.esSize
+				}
+			},
+			"doneReview":{
+				"terms":{
+					"script_field":
+							new MVEL().code({
+								"select" : [
+									{"name":"bug_id", "value":"bugs.bug_id"},
+									{"name":"modified_ts", "value":"bugs.modified_ts"},
+									{"name":"requestee", "value":"bugs.attachments.flags.requestee"},
+									{"name":"attach_id","value":"bugs.attachments.attach_id"}
+								],
+								"from":
+										"bugs.attachments.flags",
+								"where":
+								{"and" : [
+									{"or" : [
+										{ "and" : [
+											{"not": {"terms":{"bugs.attachments.flags.request_status" : ["?"]}}},
+											{"terms":{"bugs.attachments.flags.request_type" : ["review", "superreview"]}}
+										]}
+									]},
+									{"term":{"bugs.attachments[\"attachments.isobsolete\"]" : 0}}
+								]}
+							}),
+					"size": GUI.state.esSize
+				}
+			}
+		}
+	};
+
+
+	(GUI.injectFilters({"esQuery":esQuery}));
+
+
+	Log.action("Call ES");
+	Thread.run(function*(){
+		var data = ElasticSearch.search("bugs", esQuery);
+		Log.action("processing Data");
+		var inReview = MVEL.esFacet2List(data.facets.inReview);
+		var doneReview = MVEL.esFacet2List(data.facets.doneReview);
+
+		var durations = (yield(qb.calc2List({
+			"from":
+					inReview,
+			"select":[
+				{"name":"reviewTime", "value":"c.modified_ts-modified_ts", "aggregate":"minimum"}
+			],
+			"edges":[
+				{"name":"bug_id",
+					"test":"bug_id==c.bug_id && requestee==c.requestee && attach_id==c.attach_id && modified_ts<c.modified_ts",
+					"domain":{"type":"set", "name":"c", "key":[], "partitions":doneReview}},
+				{"name":"finished_time", "value":"modified_ts"},
+				{"name":"requestee", "value":"requestee"}
+			]
+		}))).list;
+
+		var time2res = Q({
+			"name": "Review Times",
+			"from": durations,
+			"select": {"name":"Count", "value":"1", "aggregate":"count"},
+			"edges":[
+				{"name":"Cohort", "value":"Date.newInstance(finished_time)",
+					"domain":{"type":"time", "min":Date.now().add("-2year"), "max":Date.now(), "interval":"6month", format:"NNN yyyy"}},
+				{"name":"Review Time",
+					"value":"Duration.newInstance(reviewTime)",
+					"allowNulls":true,
+					"domain":{"type":"duration", "min":GUI.state.minX, "max":GUI.state.maxX, "interval":GUI.state.intervalX}}
+			]
+		});
+
+		qb.normalizeByCohort(time2res);
+
+		aChart.show({
+			"id":"chart",
+			"sheetDiv":"info",
+			"type":"bar",
+			"cube":time2res
+		});
+
+	});
+};//createChart
+
+
+$(document).ready(function(){
+	GUI.setup(createChart, [
+		{"id":"minX", "name":"Min X-axis on Chart", "type":"duration", "default":Duration.newInstance("0")},
+		{"id":"maxX", "name":"Max X-axis on Chart", "type":"duration", "default":Duration.newInstance("3month")},
+		{"id":"intervalX", "name":"X-axis Interval", "type":"duration", "default":Duration.WEEK},
+		{"id":"sampleMin", "name":"Sample From", "type":"time", "default":Date.now().floor("month").add("-2year")},
+		{"id":"sampleMax", "name":"Sample To", "type":"time", "default":Date.today()},
+		{"id":"esSize", "name":"ES sample limit", "type":"integer", "default":100000}
+	]);
+});
+
+</script>
+
+
+</BODY>
+</HTML>

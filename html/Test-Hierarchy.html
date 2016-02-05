@@ -1,0 +1,290 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+
+<div id="sidebar" style="width:300px;">
+	<br>
+	<br>
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description"></div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+<div style="align:left;position:relative;float:left;width:800px;">
+
+
+	<h2 id="title">Test Hierarchy</h2>
+	<div id="list"></div>
+
+</div>
+
+
+<script type="application/javascript">
+
+importScript([
+	"modevlib/main.js",
+	"lib/jquery.numberformatter.js",
+	"modevlib/Dimension-Bugzilla.js"
+], function(){
+	var BUTTON_SIZE=20;
+	var ADD_BUTTON='<div id="{{BUG_ID}}expand" class="expandbutton" style="display: none;" title="Expand"><img src="'+Settings.imagePath+'/Plus.png"  style="height:'+BUTTON_SIZE+'px;width:'+BUTTON_SIZE+'px;"></div>';
+	var REMOVE_BUTTON='<div id="{{BUG_ID}}contract" class="expandbutton" style="display: none;" title="Collapse"><img src="'+Settings.imagePath+'/Minus.png"  style="height:'+BUTTON_SIZE+'px;width:'+BUTTON_SIZE+'px;"></div>';
+
+	$("#description").html("Demonstrates the hierarchy ETL.  The hierarchy-over-time is approximated by the ETL, "+
+			"and used here to summarize** all current dependencies.  This demonstration does NOT take full advantage "+
+			"of the historical hierarchy being used in the backend."+
+			"<br><br>** The important part is the summary - We can now summarize all the dependencies of a bug, "+
+			"including historical dependencies, as if it was any other program, product or component."
+	);
+
+var thread;
+
+var createChart=function(){
+	if (thread!==undefined) thread.kill();
+	thread=Thread.run( __createChart());
+};
+
+var __createChart = function*(){
+
+//	Thread.run(function*(){
+		var topBugs=GUI.state.bugs.split(",");
+
+		var template='<table>'+
+				'<tr><td style="width:20px">'+ADD_BUTTON+REMOVE_BUTTON+'</td><td><h3><a href="{{URL}}">{{BUG_ID}} - {{SUMMARY}}</a></h3></td></tr>'+
+				'<tr><td></td><td><div id="{{BUG_ID}}progress" class="progress"></div></td></tr>'+
+				'<tr><td></td><td id="{{BUG_ID}}children"></td></tr>'+
+				'</table>';
+
+		$("#list").html("");
+
+		//GET DEPENDENCIES
+		var dep=yield (ESQuery.run({
+			"from":"bug_hierarchy",
+			"select":[
+				"descendants",
+				"bug_id"
+			],
+			"esfilter":{"terms":{"bug_id":topBugs}}
+		}));
+
+		{//MAKE MAP FROM bug_id TO THE BUG OBJECT
+			var allBugs=new aSet(topBugs);
+			dep.list.forall(function(d, i){
+				allBugs.add(d.bug_id);
+				allBugs.addArray(d.descendants);
+			});
+			allBugs=allBugs.map;
+
+			Map.forall(allBugs, function(k){
+				allBugs[k]={"bug_id":k};
+			});
+		}
+
+
+		//GET SUMMARIES
+		var getBZ=Thread.run(function*(){
+			var bugList=Object.keys(allBugs);
+			var a=Log.action("Get "+bugList.length+" BZ Summaries", true);
+			var bugs=yield (Bugzilla.search(bugList, ["summary"]));
+
+			bugs.forall(function(b){
+				Map.copy(b, allBugs[b.id]);
+			});
+			Log.actionDone(a);
+
+			yield (null);
+		});
+
+
+		var depGraph;
+
+		//GET SPECIFIC DEPENDENCIES, STATUS AND SCRUMBUGS DATA
+		var getDetails=Thread.run(function*(){
+			var a=Log.action("Get Bug Details", true);
+
+			var details=yield(ESQuery.run({
+				"from":"bugs",
+				"select":[
+					"bug_id",
+					Mozilla.BugStatus.getSelect(),
+					"assigned_to",
+					{"name":"dependson", "value":"get(_source, \"dependson\")"},
+					"status_whiteboard",
+					"component"
+				],
+				"esfilter":{"and":[
+					Mozilla.CurrentRecords.esfilter,
+					{"terms":{"bug_id":Object.keys(allBugs)}}
+				]}
+			}));
+
+			Log.actionDone(a);
+			a=Log.action("Process Bug Details", true);
+
+			details.list.forEach(function(d){
+				d.scrum=ScrumBugs.parse(d["status_whiteboard"]);
+				Map.copy(d, allBugs[d.bug_id]);
+			});
+
+			var temp=Map.codomain(allBugs);
+
+			yield (Hierarchy.addDescendants({
+				"from":temp,
+				"id_field":"bug_id",
+				"fk_field":"dependson",
+				"descendants_field":"descendants"
+//				"DEBUG":true
+			}));
+
+			//ACCUMULATE THE SUMMARIES
+			for(var i=temp.length;i--;){
+				var bug=temp[i];
+				bug.num_open=coalesce(bug.num_open, 0);
+				bug.num_assigned=coalesce(bug.num_assigned, 0);
+				bug.num_closed=coalesce(bug.num_closed, 0);
+
+				var desc=bug.descendants;
+				for(var d=desc.length;d--;){
+					var d2=allBugs[""+desc[d]];
+					if (d2==undefined) continue;  //WHEN THE bug_hierarchy IS INCOMPLETE
+					bug.num_open       +=d2.BugStatus=='Open' && d2.assigned_to=='nobody@mozilla.com' ? 1 : 0;
+					bug.num_assigned   +=d2.BugStatus=='Open' && d2.assigned_to!='nobody@mozilla.com' ? 1 : 0;
+					bug.num_closed     +=d2.BugStatus!='Open' ? 1 : 0;
+				}//for
+			}//for
+
+//			var summary=yield(Q({
+//				"from":temp,
+//				"select":[
+//					{"name":"num_open", "value":"BugStatus=='Open' && assigned_to=='nobody@mozilla.com' ? 1 : 0", "aggregate":"sum", "default":"0" },
+//					{"name":"num_assigned", "value":"BugStatus=='Open' && assigned_to!='nobody@mozilla.com' ? 1 : 0", "aggregate":"sum", "default":"0" },
+//					{"name":"num_closed", "value":"BugStatus!='Open' ? 1 : 0", "aggregate":"sum", "default":"0"}
+//				],
+//				"edges":[
+//					{"name":"bug",
+//						"test":"master.descendants!=null && master.descendants.contains(\"\"+bug_id)",
+//						"allowNulls":false,
+//						"domain":{"name":"master", "type":"set", "partitions":temp, "key":"bug_id"}
+//					}
+//				]
+//			}));
+//
+//			//ADD THE SUMMARIES TO EACH BUG
+//			summary.cube.forall(function(v, i){
+//				Map.copy(v, summary.edges[0].domain.partitions[i]);
+//			});
+
+			Log.actionDone(a);
+			yield (null);
+		});
+
+		function appendBug(div, bug_id){
+			var bug=allBugs[bug_id];
+
+			div.append(template.replaceVars(bug).replaceVars({"URL":Bugzilla.searchBugsURL([].appendArray(bug.descendants).append(bug_id))}));
+
+
+			if (bug.descendants.length==0) return;
+
+			//ADD CLICK FUNCTION
+			$("#"+bug_id+"expand").css("display", "").click(function(e){
+				$("#"+bug_id+"contract").css("display", "");
+				$("#"+bug_id+"expand").css("display", "none");
+
+				$("#"+bug_id+"children").html("");
+				bug.dependson.forall(function(child, i){
+					appendBug($("#"+bug_id+"children"), child-0);
+				});
+			});
+
+			$("#"+bug_id+"contract").click(function(e){
+				$("#"+bug_id+"contract").css("display", "none");
+				$("#"+bug_id+"expand").css("display", "");
+				$("#"+bug_id+"children").html("");
+			});
+
+
+			//SHOW A PROGRESS BAR
+			Thread.run(function*(){
+				var progressBar=yield (Q({
+					"from":[bug],
+					"select":[
+						{"name":"Closed", "value":"num_closed", "style":{"color":"firebrick", "font-color":"white"}},
+						{"name":"Assigned", "value":"num_assigned", "style":{"color":"goldenrod"}},
+						{"name":"Open", "value":"num_open", "style":{"color":"gray"}}
+					],
+					"edges":[
+						"bug_id"
+					]
+				}));
+
+				aChart.showProgress({
+					"id":bug_id+"progress",
+					"cube":progressBar
+				});
+			});
+		}
+
+
+
+		yield (Thread.join(getBZ));
+		yield (Thread.join(getDetails));
+
+		//SHOW TOP LEVEL BUGS
+		topBugs.forall(function(bug_id, i){
+			appendBug($("#list"), bug_id);
+		});
+
+};
+
+
+
+
+
+
+
+
+
+	$(document).ready(function(){
+		GUI.setup(
+			createChart,
+			[
+				{"id":"bugs", "name":"CSV Bug List", "type":"text", "default":"831997"}
+			],
+			[
+			],
+			"bugs",
+			false
+		);
+	});
+
+
+
+});
+
+</script>
+
+
+</BODY>
+</HTML>
+

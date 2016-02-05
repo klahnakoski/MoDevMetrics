@@ -1,0 +1,30 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+<div style="height: 30px; text-align: center;vertical-align:middle;">
+	<span id="status" style="height:30px">Close Me</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+</div>
+<div id="results">No Results</div>
+
+
+<script type="application/javascript">
+	importScript("modevlib/main.js", function(){
+		function closeWindow() {
+			window.opener=window;
+			window.open('','_self','', true);
+			window.close();
+		}
+		closeWindow();
+	});
+</script>
+
+
+</BODY>
+</HTML>

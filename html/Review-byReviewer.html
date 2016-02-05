@@ -1,0 +1,268 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+<div id="sidebar" style="width:300px;">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description">
+		The objective of this dashboard is to help identify people that have too many reviews.
+		Each person in the team has three charts.  The first show the completed
+		reviews for the past 6 weeks.  The middle bar shows this week's
+		reviews, split by what's done and what's pending.  Finally, the pie
+		shows this week's reviews, split by the components they are found in.
+		The size of the pie is proportional to the number of reviews this week.<br><br>
+
+
+	</div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<h3>Incoming Reviews by Individual</h3>
+<table id="people" style="width:850px">
+</table>
+
+<script type="application/javascript">
+
+importScript([
+	"modevlib/main.js",
+	"modevlib/util/aTemplate.js",
+	"js/review.js"
+], function(){
+	var thread;
+	var createChart = function(){
+		if (thread !== undefined)
+			thread.kill();
+		thread = Thread.run(__createChart());
+	};
+
+	var __createChart = function*(){
+		$("#people").html("");
+		var scale=20;
+		var sampleMax = Date.now().floor(Duration.WEEK);
+		var sampleMin = sampleMax.subtract(Duration.newInstance("6week"));
+		var timeDomain = {"type":"time", "min" : sampleMin, "max" : sampleMax, "interval" : Duration.WEEK};
+
+		var ordered = yield(getReviewers(timeDomain, 100));
+
+		//FOR EACH PERSON
+		var scale=[];
+		ordered.edges[1].domain.partitions.forall(function(person, p){
+			var pi=p;
+			addPerson(person);
+
+			//SHOW PAST REVIEWS
+			var pastThread = Thread.run(function*(){
+				var response = yield (ESQuery.run({
+					"from" : "reviews",
+					"select" : {"name" : "count", "value" :"bug_id", "aggregate" : "count"},
+					"edges" : [
+						{"name" : "date",
+							value : "review_time",
+							"domain" : timeDomain
+						}
+					],
+					"esfilter" : {"and" : [
+//						{"terms" : {"review_result" : ["+", "-"]}},
+						{"range" : {"review_time" : {"gte" : timeDomain.min.getMilli(), "lt" : timeDomain.max.addWeek().getMilli()}}},
+						{"terms" : {"reviewer" : person.email}}
+					]}
+				}));
+
+				scale[pi] = aMath.max(aMath.niceCeiling(aMath.MAX(response.cube)), 20);
+
+				aChart.show({
+					"id" : person.id + "History",
+					"type" : "bar",
+					"cube" : response,
+					"height" : 3*scale[pi]+40,
+					"width" : 400,
+					"xAxisSize" : 40,
+					"orthoAxisFixedMax" : scale[pi],
+					"clickAction":function(series, x, d, elem){
+						Thread.run(function*(){
+							var bugs = yield (ESQuery.run({
+								"from" : "reviews",
+								"select" : "bug_id",
+								"esfilter" : {"and" : [
+									{"terms" : {"reviewer" : person.email}},
+									{"range" : {"review_time" : {"gte" : x.getMilli(), "lt" : x.addWeek(1).getMilli()}}}
+								]}
+							}));
+							Bugzilla.showBugs(new aSet(bugs.list).getArray());
+						});
+					}
+				});
+			});
+
+			//SHOW PENDING REVIEW COUNT
+			Thread.run(function*(){
+				var thisWeeksReviews = yield (ESQuery.run({
+					"from" : "reviews",
+					"select" : [
+						"bug_id",
+						"component",
+						"review_time"
+					],
+					"esfilter" : {"and" : [
+						{"or" : [
+							{"missing" : {"field" : "review_time"}},
+							{"range" : {"review_time" : {"gte" : timeDomain.max.getMilli(), "lt" : Date.eod().getMilli()}}}
+						]},
+						{"terms" : {"reviewer" : person.email}}
+					]}
+				}));
+
+				var typeDomain={"type":"set", "key":"name", "partitions":[
+					{"name":"pending", "style":aChart.DEFAULT_STYLES[1]},
+					{"name":"done", "style":aChart.DEFAULT_STYLES[0]}
+				]};
+
+				var thisWeekCount = yield(Q({
+					"from" : thisWeeksReviews,
+					"select" : {"name":"count", "value" : "bug_id", "aggregate" : "count", "default":0},
+					"edges" : [
+						{"name" : "status", "value" : "review_time==null ? 'pending' : 'done'", "domain":typeDomain},
+						{"name":"this week", "value":convert.String2Quote(timeDomain.max.format("MM/dd"))}
+					]
+				}));
+
+				pastThread.join();
+
+				if (aMath.SUM(thisWeekCount.cube.select(0))>0){
+					aChart.show({
+						"id" : person.id + "Current",
+						"type" : "bar",
+						"stacked" : true,
+						"cube" : thisWeekCount,
+						"height" : scale[pi]*3+40,
+						"width" : 100,
+						"xAxisSize" : 40,
+						"legend": false,
+						"orthoAxisFixedMax" : scale[pi],
+						"clickAction":function(series, x, d, elem){
+							Thread.run(function*(){
+								var bugs=[];
+								if (series=="done"){
+									bugs = yield (Q({
+										"from" : thisWeeksReviews,
+										"select" : "bug_id",
+										"where" : {"exists":"review_time"}
+									}));
+								}else{
+									bugs = yield (Q({
+										"from" : thisWeeksReviews,
+										"select" : "bug_id",
+										"where" : {"missing":"review_time"}
+									}));
+								}//endif
+
+								Bugzilla.showBugs(new aSet(bugs.list).getArray());
+							});
+						}
+					});
+				}//endif
+
+				//SHOW PENDING BY COMPONENT
+				var thisWeekComponents = yield(Q({
+					"from" : thisWeeksReviews,
+					"select" : {"value" : "bug_id", "aggregate" : "count", "default":0},
+					"edges" : [
+						"component"
+					]
+				}));
+				//WE DO NOT WANT THE COMPONENTS TO SHARE COLOR WITH THE COUNTS (BUMP BY 2)
+				thisWeekComponents.edges[0].domain.partitions.forall(function(p, i){
+					p.style = aChart.DEFAULT_STYLES[(i + 2) % aChart.DEFAULT_STYLES.length]
+				});
+
+
+				if (thisWeekComponents.edges[0].domain.partitions.length>0){
+					aChart.showPie({
+						"id" : person.id + "Components",
+						"cube" : thisWeekComponents,
+						"height" : Math.min(Math.sqrt(aMath.SUM(thisWeekComponents.cube))*30, 150),
+						"width": 300,
+						"minPercent":0.07,
+						"otherStyle":{"color":"lightgray"},
+						"legendPaddings":0,
+						"legendSize":100,
+						"clickAction":function(series, x, d, elem){
+							Thread.run(function*(){
+								var bugs = yield (Q({
+									"from" : thisWeeksReviews,
+									"select" : "bug_id",
+									"where":{"term":{"component":x}}
+								}));
+								Bugzilla.showBugs(new aSet(bugs.list).getArray());
+							});
+						}
+					});
+				}//endif
+
+
+
+			});
+
+
+		});
+
+	};//__createChart
+
+	function addPerson(person){
+		var template=
+			'<tr><td height="130px"><table>' +
+				'<tr >' +
+				'<td height="30px" colspan="2"><h3>{{name}}</h3></td>'+
+				'</tr>'+
+				'<tr >' +
+				'<td height="100px" id="{{id}}History"></td>' +
+				'<td height="100px" id="{{id}}Current"></td>' +
+				'</tr>'+
+			'</table></td>' +
+			'<td style="height:130px;position: relative;"><div style="position: bottom;" id="{{id}}Components"></div></td>' +
+			'</tr>'
+		;
+
+		var row = new Template(template).expand(person);
+		$("#people").append(row)
+	}
+
+
+	$(document).ready(function(){
+		GUI.setup(
+			createChart,
+			[
+				{"id":"emails", "name":"Bugzilla emails", "type":"text"},
+				{"id" : "teamFilter", "name" : "Team", "type" : TeamFilter.newInstance("reviewer")}
+			],
+			[
+			],
+			"reviews",
+			false);
+	});
+});
+
+
+</script>
+
+
+</BODY>
+</HTML>

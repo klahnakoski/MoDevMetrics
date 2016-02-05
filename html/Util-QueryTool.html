@@ -1,0 +1,164 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+
+<h3>MoDevMetrics Query Tool</h3>
+<div id="sidebar" style="width:300px;">
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Ready</span><span class="loading"><img src="es/images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description">
+		Converts Qbic queries to ElasticSearch queries. <ul>
+		<li><a href="https://github.com/klahnakoski/qb/blob/master/docs/Qb_Reference.md">Reference Documentation</a></li>
+		<li><a href="https://github.com/klahnakoski/qb/blob/master/docs/BZ_Tutorial.md">Tutorial</a></li>
+		</ul>
+	</div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="tools" class="parameters">
+		Override ES URL: <input id="index" name="Index" value=""><br>
+		<hr>
+		<b>Time Tools</b><br>
+		Current Time: <div id="currtime"></div>
+		MilliTimeStamp:<input id="long2date" name="long2date" value="">
+		<div id="long2dateResult"></div>
+		Datetime:<input id="date2long" name="date2long" value="">
+		<div id="date2longResult"></div>
+	</div>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div style="float:right;display: inline;">
+	<a id="execute" class="button">EXECUTE</a>
+</div>
+
+<div style="width:800px;float: left;">
+	<textarea name="cube" id="cube" style="width:800px;height:250px;"></textarea>
+	<textarea name="esquery" id="esquery" style="width:800px;height:250px;"></textarea>
+
+	<div id="result" style="overflow: scroll;width:800px;height:250px;"></div>
+</div>
+
+
+<script>
+
+
+	importScript([
+		"lib/jsonlint/jsl.parser.js",
+		"lib/jsonlint/jsl.format.js",
+		"modevlib/main.js"
+	], function(){
+
+		$().ready(function(){
+			//STYLE AS LINED TEXT AREA
+			$("#cube").linedtextarea();
+			$("#esquery").linedtextarea();
+		});
+
+		Thread.daemon(function*(){
+			while(true){
+				$("#currtime").html(""+ aMath.round(Date.now().getMilli(), -3));
+				yield (Thread.sleep(333));
+			}//while
+		});
+
+		$("#currtime").click(function(){
+			var value = $(this).html();
+			window.prompt("Copy to clipboard: Ctrl+C, Enter", value);
+		});
+
+		$("#long2date").change(function(){
+			var value = $(this).val();
+			$("#long2dateResult").html(Date.newInstance(convert.String2Integer(value)).format("dd-NNN-yyyy HH:mm:ss") + "<br>" +
+					Date.newInstance(convert.String2Integer(value)).toString());
+		});
+
+		$("#date2long").change(function(){
+			var value = $(this).val();
+			$("#date2longResult").html(convert.Date2milli(Date.newInstance(value)));
+		});
+
+
+		var executeCube = function*(event){ //THIS IS A GENERATOR
+			var index = $("#long2date").val();
+
+			//EVAL THE qb
+			var code = $("#cube").val();
+			if (code.trim().left(1) != "{") code = "{" + code;
+			if (code.trim().right(1) != "}") code = code + "}";
+
+			var backupCode = code;
+			var cubeQuery;
+			try{
+				//USE JSONLINT TO FORMAT AND TEST-COMPILE THE code
+				code = jsl.format.formatJson(code);
+				$("#cube").val(code);
+				jsl.parser.parse(code);
+
+				var query;
+				eval("query=" + code);
+				var url=$("#index").val();
+				if (url.trim()!=""){
+					query.url=joinPath(url, query.from);
+				}
+				yield(ESQuery.loadColumns(query));
+				cubeQuery = new ESQuery(query);
+				$("#esquery").val(convert.Object2JSON(cubeQuery.esQuery));
+
+				//TIGHTER PACKING IF JSON
+				$("#cube").val(convert.Object2JSON(convert.JSON2Object(backupCode)));
+			} catch(e){
+				$("#esquery").val(e.message);
+				yield(null);
+			}//try
+
+			var a = Log.action("Sending query", true);
+
+			try{
+				var data = yield(cubeQuery.run());
+
+				Log.action("Got result");
+
+				if (data.cube !== undefined){
+					data.list = qb.Cube2List(data);
+					$("#result").html("<div>" + data.list.length + " rows (up to 100 shown)</div>" + convert.List2HTMLTable(data.list, {"limit":3000}));
+				} else if (data.list !== undefined){
+					$("#result").html("<div>" + data.list.length + " rows (up to 100 shown)</div>" + convert.List2HTMLTable(data.list, {"limit":3000}));
+				} else{
+					$("#result").html(convert.String2HTML(convert.Object2JSON(data)));
+				}//endif
+			} catch(e){
+				Log.action(e.message);
+				if (e.data !== undefined) $("#result").html(e.data.response);
+			}//try
+
+			Log.actionDone(a);
+		};
+
+
+		$("#execute").click(function(event){
+			Thread.run(executeCube());
+		});//method
+	});
+</script>
+
+
+</BODY>
+</HTML>
