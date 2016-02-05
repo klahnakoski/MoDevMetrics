@@ -31,7 +31,6 @@ importScript("../aFormat.js");
 // * FORM VALUE - CURRENT VALUE SHOWN IN THE HTML FORM ELEMENTS
 // * GUI.state - VARIABLE VALUES IN THE GUI.state OBJECT
 
-GUI = {};
 (function () {
 	if (window.GUI === undefined) {
 		window.GUI = {};

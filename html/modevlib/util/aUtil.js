@@ -134,29 +134,6 @@ var Map = {};
 		return obj;
 	};//method
 
-	Map.codomain = function(map){
-		var output = [];
-		var keys = Object.keys(map);
-		for (var i = keys.length; i--;) {
-			var val = map[keys[i]];
-			if (val !== undefined) output.push(val);
-		}//for
-		return output;
-	};//method
-	Map.values = Map.codomain;
-
-	//RETURN KEYS
-	Map.domain = function(map){
-		var output = [];
-		var keys = Object.keys(map);
-		for (var i = keys.length; i--;) {
-			var key = keys[i];
-			var val = map[key];
-			if (val !== undefined) output.push(key);
-		}//for
-		return output;
-	};//method
-
 
 	//RETURN TRUE IF MAPS LOOK IDENTICAL
 	Map.equals = function(a, b){
@@ -236,16 +213,28 @@ var Map = {};
 		var output = [];
 		var keys = Object.keys(map);
 		for (var i = keys.length; i--;) {
-			var key = keys[i];
-			var val = map[key];
-			if (val !== undefined) {
-				output.push(val);
-			}//endif
+			var val = map[keys[i]];
+			if (val !== undefined) output.push(val);
 		}//for
 		return output;
 	};
+	Map.codomain = Map.getValues;
+	Map.values = Map.getValues;
 
-	Map.getKeys = Object.keys;
+
+	//RETURN KEYS
+	Map.domain = function(map){
+		var output = [];
+		var keys = Object.keys(map);
+		for (var i = keys.length; i--;) {
+			var key = keys[i];
+			var val = map[key];
+			if (val !== undefined) output.push(key);
+		}//for
+		return output;
+	};//method
+	Map.keys = Map.domain;
+	Map.getKeys = Map.domain;
 
 
 	Map.isObject = function (val) {
