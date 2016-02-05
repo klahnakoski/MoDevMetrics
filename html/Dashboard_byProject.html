@@ -155,12 +155,14 @@ importScript("modevlib/main.js", function(){
 		};
 
 		var a = Log.action("Get ES Data", true);
+		var data;
 		try{
-			var data = yield(ElasticSearch.search("bugs", query));
-		} catch(e){
-			Log.warning("Problem with ES request");
+			data = yield(ElasticSearch.search("bugs", query));
+		} catch(e) {
+			Log.error("Problem with ES request", e);
+		}finally {
+			Log.actionDone(a);
 		}//try
-		Log.actionDone(a);
 
 		if (GUI.state.programFilter.selected.length == 0){
 			$("#header").html("Project Status Dashboard");
