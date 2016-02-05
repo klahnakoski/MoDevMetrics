@@ -239,6 +239,9 @@ importScript(['modevlib/main.js', 'modevlib/Dimension-Bugzilla.js'], function(){
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [
+
+
+
 			{"id": "sampleMin", "name": "Start Date", "type": "time", "default": Date.eod().addMonth(-2)},
 			{"id": "sampleMax", "name": "End Date", "type": "time", "default": Date.eod()},
 			{"id": "sampleInterval", "name": "Interval", "type": "duration", "default": Duration.WEEK},

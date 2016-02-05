@@ -78,7 +78,7 @@ GUI = {};
 			parameters,    //LIST OF PARAMETERS (see GUI.AddParameters FOR DETAILS)
 			relations,     //SOME RULES TO APPLY TO PARAMETERS, IN CASE THE HUMAN MAKES SMALL MISTAKES
 			indexName,     //PERFORM CHECKS ON THIS INDEX
-			showDefaultFilters,  //SHOW THE Product/Compoentn/Team FILTERS
+			showDefaultFilters,  //SHOW THE Product/Component/Team FILTERS
 			performChecks,       //PERFORM SOME CONSISTENCY CHECKS TOO
 			checkLastUpdated     //SEND QUERY TO GET THE LAST DATA?
 		) {
