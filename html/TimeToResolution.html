@@ -93,7 +93,7 @@ importScript(['modevlib/main.js'], function(){
 
 
 		var stats = (yield(Q({
-			"from": (yield (Qb.Cube2List(durations))),
+			"from": qb.Cube2List(durations),
 			"select":[
 				{"name":"total", "value":"count", "aggregate":"sum"},
 				{"name":"num_open", "value":"bug_status=='Open' ? count : 0", "aggregate":"sum"},

@@ -79,7 +79,7 @@ var __createChart = function*(){
 	var sampleMin = Date.newInstance(GUI.state.sampleMin);
 	var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
 	var sampleMax = Date.newInstance(GUI.state.sampleMax).addDay();
-	var bug_ids = GUI.state.bugList.trim()=="" ? [] : GUI.state.bugList.split(",").map(function(v){return CNV.String2Integer(v.trim());});
+	var bug_ids = GUI.state.bugList.trim()=="" ? [] : GUI.state.bugList.split(",").map(function(v){return convert.String2Integer(v.trim());});
 
 	var timeDomain = null;
 
@@ -148,9 +148,9 @@ var __createChart = function*(){
 			}));
 
 			if (milestones.length>0){
-				$("#title").html(r.list.map(CNV.String2HTML).join("<br>")+"Milestone " + milestones.select("name").join(" and "));
+				$("#title").html(r.list.map(convert.String2HTML).join("<br>")+"Milestone " + milestones.select("name").join(" and "));
 			}else{
-				$("#title").html(r.list.map(CNV.String2HTML).join("<br>"));
+				$("#title").html(r.list.map(convert.String2HTML).join("<br>"));
 			}//endif
 		});
 
@@ -160,7 +160,7 @@ var __createChart = function*(){
 	}//endif
 
 	var currFeatureFilter = {"match_all": {}};
-	yield (getDailyDependencies(raw_data, nvl(milestoneFilter, {"match_all": {}}) ));
+	yield (getDailyDependencies(raw_data, coalesce(milestoneFilter, {"match_all": {}}) ));
 
 	//LAST DAY WILL BE CONSIDERED CURRENT FEATURE LIST
 	var currOpenBugs=raw_data.cube.last().filter({"and":[
@@ -200,7 +200,7 @@ function __reChart(){
 		milestoneFilter = {"or": milestones.select("esfilter")};
 	}//endif
 
-	yield (getDailyDependencies(raw_data, nvl(milestoneFilter, {"match_all": {}}) ));
+	yield (getDailyDependencies(raw_data, coalesce(milestoneFilter, {"match_all": {}}) ));
 
 	var currFeatureFilter = {"match_all": {}};
 
@@ -267,7 +267,7 @@ function restOfCharting(env){
 		////////////////////////////////////////////////////////////////////////////
 		var a = Log.action("Get buglist", true);
 		var bugs = yield (ESQuery.run({
-			"from":"bugs",
+			"from":"private_bugs",
 			"select":[
 				"bug_id",
 				"short_desc",
@@ -283,18 +283,18 @@ function restOfCharting(env){
 		}));
 		Log.actionDone(a);
 
-		var details = yield (Qb.calc2List({
+		var details = yield (qb.calc2List({
 			"from":bugs,
 			"select":[
-				{"name":"bug_id", "value":"new HTML(Bugzilla.linkToBug(bug_id))"},
+				{"name":"bug_id", "value":"Bugzilla.linkToBug(bug_id)"},
 				{"name":"Summary", "value":"short_desc"},
 				{"name":"Owner", "value":"assigned_to"},
 				{"name":"Status", "value":"bug_status + (resolution ? ' - '+resolution : '')"}
 			],
-			"sort":["Status", "bug_id"]
+			"sort":["Status"]
 		}));
 
-		$("#buglist").html(CNV.List2HTMLTable(details));
+		$("#buglist").html(convert.List2HTMLTable(details));
 	});
 
 	Thread.run(function*(){
@@ -469,7 +469,7 @@ $(document).ready(function(){
 				"sampleMin=Date.newInstance(sampleMin).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
 				"sampleMax=Date.newInstance(sampleMax).ceiling(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')"
 			],
-		"bugs",
+		"private_bugs",
 		false
 	);
 

@@ -47,18 +47,18 @@
 					}
 				}));
 
-				data=yield (Qb.calc2List({
+				data=yield (qb.calc2List({
 					"from":raw_bugs.hits.hits.select("fields"),
 					"analytic":[
 						{"name":"age", "value":"Math.max(previous_values.bug_status_change_away_ts, created_ts)- created_ts", "edges":[]},
-						{"name":"closed_ts", "value":"nvl(previous_values.bug_status_change_away_ts, modified_ts)", "edges":[]},
+						{"name":"closed_ts", "value":"coalesce(previous_values.bug_status_change_away_ts, modified_ts)", "edges":[]},
 						{"name":"previous_bug_status", "value":"previous_values.bug_status_value", "edges":[]}
 					]
 				}));
 
 				data.list.forall(function(v){v.previous_values=undefined;})
 
-				var htmlResults = CNV.List2HTMLTable(data);
+				var htmlResults = convert.List2HTMLTable(data);
 				$("#info").html(htmlResults);
 
 

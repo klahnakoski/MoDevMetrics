@@ -80,7 +80,7 @@ var __createChart = function*(){
 		"esfilter":mainFilter
 	}));
 
-//	var markup = yield(Qb.calc2List({
+//	var markup = yield(qb.calc2List({
 //		"from":requestTimes,
 //		"analytic":[
 //			{"name":"time_to_next", "value":"rows[rownum+1]===undefined ? null : rows[rownum+1].request_time-request_time", "sort":"request_time", "edges":["requester"]}
@@ -88,7 +88,7 @@ var __createChart = function*(){
 //	}));
 
 
-	var totals=yield (Qb.calc2List({
+	var totals=yield (qb.calc2List({
 		"from":{
 			"from":requestTimes,
 			"select":[
@@ -108,7 +108,7 @@ var __createChart = function*(){
 		"sort":["week", "request_time"]
 	}));
 
-	$("#data").html(CNV.List2HTMLTable(totals.list, {"columns":totals.columns}));
+	$("#data").html(convert.List2HTMLTable(totals.list, {"columns":totals.columns}));
 
 };
 

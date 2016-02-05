@@ -4,7 +4,7 @@
 
 importScript("../../modevlib/aLibrary.js");
 importScript("../../modevlib/qb/ESQuery.js");
-importScript("../../modevlib/qb/Qb.js");
+importScript("../../modevlib/qb/qb.js");
 
 
 ETL = {};
@@ -15,7 +15,7 @@ Thread.run("get bug columns", function*() {
 
 	if (ESQuery.INDEXES.bugs.columns === undefined) yield (null);
 
-	var temp = yield (Qb.calc2List({
+	var temp = yield (qb.calc2List({
 		"from": ESQuery.INDEXES.bugs.columns,
 		"edges": ["name"],
 		"where": "name.startsWith('cf_')"

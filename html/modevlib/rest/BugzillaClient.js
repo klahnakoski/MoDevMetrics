@@ -6,8 +6,8 @@ var BugzillaClient = function (options) {
 	this.password = options.password;
 	this.timeout = options.timeout || 0;
 	this.apiUrl = options.url ||
-		(options.test ? "https://api-dev.bugzilla.mozilla.org/test/latest"
-			: "https://api-dev.bugzilla.mozilla.org/latest");
+		(options.test ? "https://bugzilla.mozilla.org/bzapi"
+			: "https://bugzilla.mozilla.org/bzapi");
 	this.apiUrl = this.apiUrl.replace(/\/$/, "");
 }
 
@@ -108,7 +108,7 @@ BugzillaClient.prototype = {
 			req.open(method, url, true);
 			req.setRequestHeader("Accept", "application/json");
 			if (method.toUpperCase() !== "GET") {
-				req.setRequestHeader("Content-type", "application/json");
+				req.setRequestHeader("content-type", "application/json");
 			}
 			req.onreadystatechange = function (event) {
 				if (req.readyState == 4 && req.status != 0) {
@@ -131,7 +131,7 @@ BugzillaClient.prototype = {
 				uri: url,
 				method: method,
 				body: body,
-				headers: {'Content-type': 'application/json'}
+				headers: {'content-type': 'application/json'}
 			};
 			if (this.timeout > 0)
 				requestParams.timeout = this.timeout;

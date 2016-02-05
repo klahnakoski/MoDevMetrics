@@ -20,7 +20,7 @@ ElasticSearch.search=function*(index, esquery){
 
 	var output=yield (Rest.post({
 		url: url,
-		data: CNV.Object2JSON(esquery),
+		data: convert.value2json(esquery),
 		dataType: "json"
 	}));
 
@@ -32,7 +32,7 @@ ElasticSearch.setRefreshInterval=function*(destination, rate){
 		"url": joinPath(destination.host, destination.path, "_settings"),
 		"data":{"index":{"refresh_interval":"1s"}}
 	}));
-	Log.note("Refresh Interval to "+rate+": "+CNV.Object2JSON(data));
+	Log.note("Refresh Interval to "+rate+": "+convert.value2json(data));
 	yield (data);
 };//method
 
@@ -90,7 +90,7 @@ ElasticSearch.getMinMax=function*(esfilter){
 		if (u2.cube[i]==null) u2.cube[i]=undefined;		//NULL MEANS UNKNOWN, WHEREAS undefined MEANS NOT DEFINED
 	});
 
-	var u = Qb.merge([
+	var u = qb.merge([
 		{"from":u1, "edges":["bug_id"]},
 		{"from":u2, "edges":["bug_id"]}
 	]);

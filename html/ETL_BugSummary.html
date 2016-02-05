@@ -46,7 +46,7 @@ importScript([
 	$("#test").click(function(){
 		Thread.run(function*(){
 			var reviews=yield (BUG_SUMMARY.get([635852 , 718121, 790640, 563491], undefined));
-			$("#results").html(CNV.List2HTMLTable(reviews));
+			$("#results").html(convert.List2HTMLTable(reviews));
 		});
 	});
 

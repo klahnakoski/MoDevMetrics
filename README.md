@@ -1,19 +1,21 @@
 
-Mozilla Developer Metrics
-=========================
+Mozilla Development Metrics
+===========================
 
 Objective
 ---------
 
-This project is designed to optimize the creation of dashboards using ElasticSearch data.  Many tools already exist to
-make dashboards, for example: Cognos, MicroStrategy, Pentaho and Tableau.  Unlike these tools, MoDevMetrics is suited
-for programmers: Code, testability, and version control are important.
+This project is designed to optimize the creation of dashboards using 
+ElasticSearch data.   Dashboards are written as static HTML/Javascript; which 
+can make AjAX calls to the public cluster; and provide an interactive 
+experience with little effort.  
 
 Examples
 --------
 
-[My page of charts](http://people.mozilla.org/~klahnakoski/charts.html) hosts the master branch of this repo.  Please
-feel free to view and run them through your debugger.
+[My page of charts](http://people.mozilla.org/~klahnakoski/charts.html) hosts 
+the master branch of this repo.  Please feel free to view and run them 
+through your debugger.
 
 
 Benefits
@@ -27,6 +29,7 @@ Benefits
   * **Queries are JSON** - Queries are in JSON structures, which are easily transmitted or serialized, and are easily
   handled by both Javascript and Python.  The Qb query form provides an abstraction layer between the docstore/database
   holding the data and the charting/stats package performing the analysis.
+
 
 Drawbacks
 ---------
@@ -46,7 +49,7 @@ Access to one of the bug clusters is required:
   - Direct to private cluster (need VPN access)<br>```http://elasticsearch-private.bugs.scl3.mozilla.com:9200/private_bugs/bug_version```
 
 Due to restrictions on the public cluster, it is best to test it with the [the
-minimum viable example page](html/es/Tutorial01-Minimum.html).  The clusters
+minimum viable example page](html/Tutorial01-Minimum.html).  The clusters
 behind VPN can be tested normally with [ElasticSearch Head](https://github.com/mobz/elasticsearch-head).
 
 Install
@@ -62,15 +65,41 @@ Install
     Resolving deltas: 100% (4485/4485), done.
     Checking out files: 100% (437/437), done.
 
+Branches
+--------
+
+Multiple branches are in this repo:
+
+* **dev** - Default, active, mostly working, branch
+* **merge** - an attempt to upgrade the MoDevLibrary
+* **master** - deployed to at [http://people.mozilla.org/~klahnakoski/modevmetrics/](http://people.mozilla.org/~klahnakoski/modevmetrics/)
+* **ETL** - stable working version responsible for some additional ETL
+* **corruption fixer** - code that fixes some inconsistencies due to data extraction anomalies in the original ETL
+* **perfy** - working version of the Perfy performance dashboard (no longer in use)
+* **review** - for the review queue dashboards
+* **selenium_test** - attempt to bring in a testing framework
+* **talos** - for Talos performance tracking dashboard (no longer in use)
+
+
 Examples
 --------
 
 Code examples to demonstrate minimum functionality:
 
-  * [Test public connectivity](html/es/Tutorial01-Minimum.html)
-  * [Get comments](html/es/Tutorial02-Comments.html)
-  * [Simple Bug Count](html/es/Tutorial03-Bug-Count.html)
+  * [Test public connectivity](html/Tutorial01-Minimum.html)
+  * [Get comments](html/Tutorial02-Comments.html)
+  * [Simple Bug Count](html/Tutorial03-Bug-Count.html)
 
+Running Tests
+-------------
+
+Tests use Python and Selenium
+
+  * Install Python [instructions](https://github.com/klahnakoski/pyLibrary#windows-7-install-instructions-for-python)
+  * Install libraries required for testing:  ```pip install -r tests\requirements.txt```
+  * Run tests: ```py.test tests```
+
+They take a long time to run, and require you have access to one of the bug clusters.
 
 Tutorials
 ----------

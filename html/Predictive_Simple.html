@@ -176,8 +176,8 @@ var __createChart = function*(){
 	var stats = yield(Q({
 		"from":flat,
 		"select":[
-			{"name":"closed", value:"nvl(closed, 0)"},
-			{"name":"total", value:"nvl(total, 0)"}
+			{"name":"closed", value:"coalesce(closed, 0)"},
+			{"name":"total", value:"coalesce(total, 0)"}
 		],
 		"edges":[
 			{"name":"date", "value":"date",
@@ -232,7 +232,7 @@ var __createChart = function*(){
 						where="max && max.floorDay().getMilli()=="+x.getMilli();
 					}//endif
 
-					var buglist=(yield (Qb.calc2List({
+					var buglist=(yield (qb.calc2List({
 						"from":minMaxBugs,
 						"select":{"value":"bug_id"},
 						"where":where
@@ -244,7 +244,7 @@ var __createChart = function*(){
 		});
 		Log.actionDone(a);
 
-		var perDay = (yield(Qb.calc2List({
+		var perDay = (yield(qb.calc2List({
 			"from":diff,
 			"select":[
 				{"name":"opened", "value":"opened", "aggregate":"average"},

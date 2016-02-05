@@ -93,7 +93,7 @@ Stats.ageOverTime=function(data, timeEdge, sampleSize, statFunction){
 	newdata.sort(function(a, b){return a[0]-b[0]});
 
 
-	var start=0;  //SINCE i IS STRICTLY INCREASING, NO NEED TO REVISIT d<start 
+	var start=0;  //SINCE i IS STRICTLY INCREASING, NO NEED TO REVISIT d<start
 	var output=[];
 	for(var i=timeEdge.min;i.getMilli()<timeEdge.max.getMilli();i=i.add(timeEdge.interval)){
 		var min=i.subtract(sampleSize).getMilli();
@@ -197,18 +197,18 @@ Stats.query2regression=function(query){
 	}//endif
 
 	//CONVERT ALGEBRAIC DOMAINS TO doubles
-	var domainY=Qb.domain.algebraic2numeric(query.edges[0].domain);
-	var domainX=Qb.domain.algebraic2numeric(query.edges[1].domain);
+	var domainY=qb.domain.algebraic2numeric(query.edges[0].domain);
+	var domainX=qb.domain.algebraic2numeric(query.edges[1].domain);
 
 	//SEND TO REGRESSION CALC
-	var line=Stats.regression(Qb.cube.transpose(query, [query.edges[1], query.edges[0]], select).cube, domainX, domainY);
+	var line=Stats.regression(qb.cube.transpose(query, [query.edges[1], query.edges[0]], select).cube, domainX, domainY);
 
 	//CONVERT BACK TO DOMAIN (result REFERS TO
 	if (["time", "duration"].contains(domainX.type)) Log.error("Can not convert back to original domain, not implemented yet");
 	if (["time", "duration"].contains(domainY.type)) Log.error("Can not convert back to original domain, not implemented yet");
 
 
-	//BUILD NEW QUERY WITH NEW Qb
+	//BUILD NEW QUERY WITH NEW qb
 	var output=Map.copy(query);
 	output.select={"name":query.edges[0].name};
 	output.edges=[query.edges[1]];
@@ -223,10 +223,10 @@ Stats.query2regression=function(query){
 	return output;
 };
 
-//ASSUMES A Qb OF WEIGHT VALUES
-//RETURN THE REGRESSION LINE FOR THE GIVEN Qb
+//ASSUMES A qb OF WEIGHT VALUES
+//RETURN THE REGRESSION LINE FOR THE GIVEN qb
 Stats.regression=function(weights, domainX, domainY){
-	if (DEBUG) Log.note(CNV.Object2JSON([weights, {"min":domainX.min, "max":domainX.max, "interval":domainX.interval}, {"min":domainY.min, "max":domainY.max, "interval":domainY.interval}]));
+	if (DEBUG) Log.note(convert.value2json([weights, {"min":domainX.min, "max":domainX.max, "interval":domainX.interval}, {"min":domainY.min, "max":domainY.max, "interval":domainY.interval}]));
 
 	if (((domainX.max-domainX.min)/domainX.interval)<=1) Log.error("Can not do regression with only one value");
 	if (((domainY.max-domainY.min)/domainY.interval)<=1) Log.error("Can not do regression with only one value");

@@ -50,7 +50,7 @@ var OrgChart = {};
 			yield (Thread.yield());  //YIELD TO ALLOW FUNCTION TO BE ASSIGNED TO window
 
 			var url = PHONEBOOK_URL + "/search.php?format=jsonp&callback=" + JSONP_CALLBACK + "&query=*";
-			var html = $("<script type=\"application/javascript;version=1.9\" src=\"" + url + "\"></script>");
+			var html = $("<script type=\"application/javascript\" src=\"" + url + "\"></script>");
 			var body = $("body");
 			body.append(html);
 
@@ -60,13 +60,10 @@ var OrgChart = {};
 
 			//HERE WE JUST RETURN THE LOCAL COPY
 			people = OrgChart.people.map(function (v, i) {
-				var mails = Array.union(
-					Array.newInstance(v.bugzillaemail),
-					Array.newInstance(v.mail),
-					Array.newInstance(v.emailalias)
-				);
-
-				return {"id": v.dn, "name": v.cn, "manager": v.manager ? v.manager.dn : null, "email": mails};
+				var emails = Array.union(v.emailalias, [v.bugzillaemail], [v.mail]).map(function(v){
+					return v.split(" ")[0].lower();  //REMOVE STUFF AFTER SPACES
+				});
+				return {"id": v.dn, "name": v.cn, "manager": v.manager ? v.manager.dn : null, "email": emails};
 			});
 
 			Log.note(people.length + " people found")
@@ -102,7 +99,7 @@ var OrgChart = {};
 				"properties": {
 					"id": {"type": "string", "store": "yes", "index": "not_analyzed"},
 					"name": {"type": "string", "store": "yes", "index": "not_analyzed"},
-					"manager": {"type": "string", "store": "yes", "index": "not_analyzed", "null_value": "null"},
+					"manager": {"type": "string", "store": "yes", "index": "not_analyzed"},
 					"email": {"type": "string", "store": "yes", "index": "not_analyzed"}
 				}
 			}}
@@ -127,13 +124,15 @@ var OrgChart = {};
 		var uid = Util.GUID();
 		var insert = [];
 		people.forall(function (r, i) {
+			if (r.id===undefined)
+				return;
 			insert.push(JSON.stringify({ "create": { "_id": uid + "-" + i } }));
 			insert.push(JSON.stringify(r));
 		});
 
 		var a = Log.action("Push people to ES", true);
 		var results = yield (ElasticSearch.bulkInsert(OrgChart.destination, insert));
-		if (DEBUG) Log.note(CNV.Object2JSON(CNV.JSON2Object(results)));
+		if (DEBUG) Log.note(convert.Object2JSON(convert.JSON2Object(results)));
 
 		Log.actionDone(a);
 	};//method

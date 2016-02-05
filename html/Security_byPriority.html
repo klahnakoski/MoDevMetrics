@@ -51,72 +51,72 @@ importScript(["modevlib/main.js"], function(){
 	$("#description").html("<span class='warning'>This chart has already been filtered by the products important to the security team</span><br><br>"+
 		"");
 
-var thread;
-var createChart=function(){
-	if (thread!==undefined)
-		thread.kill();
-	thread=Thread.run( __createChart());
-};
+	var thread;
+	var createChart = function(){
+		if (thread !== undefined)
+			thread.kill();
+		thread = Thread.run(__createChart());
+	};
 
-var __createChart = function*(){
+	var __createChart = function*(){
 
-	var sampleMin=Date.newInstance(GUI.state.sampleMin);
-	var sampleMax=Date.newInstance(GUI.state.sampleMax).ceilingDay();
-	var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
+		var sampleMin = Date.newInstance(GUI.state.sampleMin);
+		var sampleMax = Date.newInstance(GUI.state.sampleMax).ceilingDay();
+		var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
 
-	$("#title").html("Open Bug Count");
+		$("#title").html("Open Bug Count");
 
-	var createTime="doc[\"create_time\"].value";
-	var idTime=GUI.state.programFilter.bugStatusMinimum_fromSource();
-	var testValue=GUI.state.programFilter.bugStatusMinimum_fromDoc();
-
-
-	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
+		var createTime = "doc[\"create_time\"].value";
+		var idTime = GUI.state.programFilter.bugStatusMinimum_fromSource();
+		var testValue = GUI.state.programFilter.bugStatusMinimum_fromDoc();
 
 
-	var priorityDomain=Mozilla.Security.Priority.getDomain();
-	priorityDomain.end=undefined;
-	priorityDomain.value="name";	//HAVE DOMAIN RETURN STRING VALUES FOR CHART
+		var closeTime = "minimum(" + sampleMax.getMilli() + ", coalesce(zero2null(close_time), " + sampleMax.getMilli() + "))";
 
 
-	var a=Log.action("Request Bugs", true);
-	var chart=yield (ESQuery.run({
-		"name":"Open Bug Count",
-		"from":"bugs",
-		"select":{"name":"total", "value":"bug_id", "aggregate":"count"},
-		"edges":[
-			{"name":"Priority", "domain":priorityDomain},
-			{"name":"date",
-				"range":{"min":"modified_ts", "max":"expires_on"},
-				"allowNulls":false,
-				"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
-			}
-		],
-		"esfilter":{"and":[
-			{"range":{"modified_ts":{"lt":sampleMax.getMilli()}}},
-			{"range":{"expires_on":{"gte":sampleMin.getMilli()}}},
+		var priorityDomain = Mozilla.Security.Priority.getDomain();
+		priorityDomain.end = undefined;
+		priorityDomain.value = "name";	//HAVE DOMAIN RETURN STRING VALUES FOR CHART
+
+
+		var a = Log.action("Request Bugs", true);
+		var chart = yield (ESQuery.run({
+			"name": "Open Bug Count",
+			"from": "bugs",
+			"select": {"name": "total", "value": "bug_id", "aggregate": "count"},
+			"edges": [
+				{"name": "Priority", "domain": priorityDomain},
+				{"name": "date",
+					"range": {"min": "modified_ts", "max": "expires_on"},
+					"allowNulls": false,
+					"domain": {"type": "time", "min": sampleMin, "max": sampleMax, "interval": sampleInterval}
+				}
+			],
+			"esfilter": {"and": [
+				{"range": {"modified_ts": {"lt": sampleMax.getMilli()}}},
+				{"range": {"expires_on": {"gte": sampleMin.getMilli()}}},
 //			{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-"+(sampleMin.getMilli()%sampleInterval.milli)+", "+sampleInterval.milli+")!=floorInterval(expires_on-"+(sampleMin.getMilli()%sampleInterval.milli)+", "+sampleInterval.milli+")", {"from":"bugs"})}},
-			Mozilla.BugStatus.Open.esfilter,
-			Mozilla.Security.Teams.esfilter,
-			GUI.getFilters("bugs")
-		]}
-	}));
+				Mozilla.BugStatus.Open.esfilter,
+				Mozilla.Security.Teams.esfilter,
+				GUI.getFilters("bugs")
+			]}
+		}));
 
-	Log.actionDone(a);
-
-
-	a=Log.action("Make chart", true);
-	aChart.show({
-		"id":"chart",
-		"sheetDiv":"info",
-		"type":"stacked",
-		"stacked":true,
-		"cube":chart
-	});
-	Log.actionDone(a);
+		Log.actionDone(a);
 
 
-};
+		a = Log.action("Make chart", true);
+		aChart.show({
+			"id": "chart",
+			"sheetDiv": "info",
+			"type": "stacked",
+			"stacked": true,
+			"cube": chart
+		});
+		Log.actionDone(a);
+
+
+	};
 
 
 

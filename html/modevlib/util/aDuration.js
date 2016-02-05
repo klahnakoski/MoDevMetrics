@@ -4,13 +4,16 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 importScript("aDate.js");
-importScript("CNV.js");
+importScript("aString.js");
+importScript("convert.js");
+importScript("../math/aMath.js");
 
 
 
 var Duration = function(){
 	this.milli = 0;	//INCLUDES THE MONTH VALUE AS MILLISECONDS
 	this.month = 0;
+	return this;
 };
 
 
@@ -62,7 +65,7 @@ Duration.String2Duration = function(text){
 
 	var output = new Duration();
 	var interval = text.rightBut(s);
-	var amount = (s == 0 ? 1 : CNV.String2Integer(text.left(s)));
+	var amount = (s == 0 ? 1 : convert.String2Integer(text.left(s)));
 
 	if (Duration.MILLI_VALUES[interval] === undefined)
 		Log.error(interval + " is not a recognized duration type (did you use the pural form by mistake?");
@@ -94,6 +97,31 @@ Duration.parse = function(value){
 };//method
 
 
+Duration.max = function(a, b){
+	if (a.month > b.month) {
+		return a;
+	} else if (b.month > a.month) {
+		return b;
+	} else if (a.milli > b.milli) {
+		return a;
+	} else {
+		return b;
+	}//endif
+};//method
+
+Duration.min = function(a, b){
+	if (a.month < b.month) {
+		return a;
+	} else if (b.month < a.month) {
+		return b;
+	} else if (a.milli < b.milli) {
+		return a;
+	} else {
+		return b;
+	}//endif
+};//method
+
+
 Duration.newInstance = function(obj){
 	if (obj === undefined) return undefined;
 	if (obj == null) return null;
@@ -110,7 +138,7 @@ Duration.newInstance = function(obj){
 	} else if (isNaN(obj)){
 		//return null;
 	} else{
-		Log.error("Do not know type of object (" + CNV.Object2JSON(obj) + ")of to make a Duration");
+		Log.error("Do not know type of object (" + convert.value2json(obj) + ")of to make a Duration");
 	}//endif
 	return output;
 };//method
@@ -123,12 +151,22 @@ Duration.prototype.add = function(duration){
 	return output;
 };//method
 
+Duration.prototype.addDay = function(numDay){
+	return this.add(Duration.DAY.multiply(numDay));
+};//method
+
+
+Duration.prototype.lt = function(val){
+	return this.milli < val.milli;
+};//method
+
+Duration.prototype.lte = function(val){
+	return this.milli <= val.milli;
+};//method
 
 Duration.prototype.multiply=function(amount){
 	var output=new Duration();
 	output.milli=this.milli*amount;
-//	if (output.milli==Duration.MILLI_VALUES.day*31)
-//		Log.error("problem");
 	output.month=this.month*amount;
 	return output;
 };//method
@@ -205,6 +243,11 @@ Duration.prototype.floor = function(interval){
 };//method
 
 
+Duration.prototype.mod = function(interval){
+	return this.subtract(this.floor(interval));
+};//method
+
+
 Duration.prototype.toString = function(){
 	if (this.milli == 0) return "zero";
 
@@ -272,9 +315,14 @@ Duration.prototype.toString = function(){
 };//method
 
 
-Duration.prototype.format=function(interval, rounding){
-	return this.round(Duration.newInstance(interval), rounding)+interval;
+
+Duration.prototype.format=function(format_){
+	return new Date(this.milli).format(format_);
 };//method
+
+//Duration.prototype.format=function(interval, rounding){
+//	return this.round(Duration.newInstance(interval), rounding)+interval;
+//};//method
 
 Duration.prototype.round=function(interval, rounding){
 	if (rounding===undefined) rounding=0;

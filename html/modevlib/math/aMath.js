@@ -5,16 +5,22 @@
 
 aMath = {};
 
-(function () {
+(function(){
 	aMath.PI = Math.PI;
 
 
-	aMath.isNumeric = function (n) {
+	aMath.isNumeric = function(n){
 		if (n == null) return null;
 		return !isNaN(parseFloat(n)) && isFinite(n);
 	};
 
-	aMath.isNaN = function (n) {
+	aMath.isInteger = function(n){
+		if (n == null) return null;
+		return !isNaN(parseInt(n)) && isFinite(n);
+	};
+
+
+	aMath.isNaN = function(n){
 		return typeof(n) == "number" && n != +n;
 	};
 
@@ -23,33 +29,48 @@ aMath = {};
 	if (aMath.isNaN("test")) Log.error();
 	if (aMath.isNaN(0)) Log.error();
 	if (aMath.isNaN(42)) Log.error();
-	if (aMath.isNaN({"hi": 42})) Log.error();
+	if (aMath.isNaN({"hi" : 42})) Log.error();
 
 
 	//THIS WILL RETURN ZERO IF value IS NOT A NUMBER
-	aMath.alpha2zero = function (value) {
+	aMath.alpha2zero = function(value){
 		return aMath.isNumeric(value) ? value - 0 : 0;
 	};
 
-	aMath.sign = function (n) {
+	aMath.sign = function(n){
 		if (n == null) return null;
 		return n > 0.0 ? 1.0 : (n < 0.0 ? -1.0 : 0.0);
 	};
 
-	aMath.abs = function (n) {
+	aMath.abs = function(n){
 		if (n == null) return null;
 		return Math.abs(n);
 	};
 
-
-	aMath.round = function (value, rounding) {
+	aMath.round = function(value, rounding){
 		if (rounding === undefined) return Math.round(value);
-		var d = Math.pow(10, rounding);
+		var d;
+		if (value===undefined || value==null){
+			return null;
+ 		} else if (value==0) {
+			return 0.0;
+		} else if (rounding.digits !== undefined) {
+			d = Math.pow(10, rounding.digits - aMath.ceiling(aMath.log10(value)));
+		} else {
+			d = Math.pow(10, rounding);
+		}//endif
 		return Math.round(value * d) / d;
 	};//method
 
+	aMath.roundMetric=function(value, rounding){
+		var order = aMath.floor(Math.log10(value)/3);
+		var prefix = aMath.round(value/Math.pow(10, order*3), rounding);
+		var units = ["nano", "micro", "milli", "", "kilo", "mega", "giga", "tera"][order+3];
 
-	function SUM(values) {
+		return prefix+units;
+	};//method
+
+	function SUM(values){
 		var sum = null;
 		for (var i = 0; i < values.length; i++) {
 			var v = values[i];
@@ -63,7 +84,7 @@ aMath = {};
 	}
 
 	aMath.SUM = SUM;
-	aMath.sum = function () {
+	aMath.sum = function(){
 		return SUM(arguments);
 	};//add
 
@@ -71,7 +92,7 @@ aMath = {};
 	aMath.add = aMath.sum;
 
 
-	aMath.mean = function () {
+	aMath.mean = function(){
 		var add = null;
 		var count = 0;
 		for (var i = 0; i < arguments.length; i++) {
@@ -87,7 +108,7 @@ aMath = {};
 		return add / count;
 	};//add
 
-	function MAX(values) {
+	function MAX(values){
 		var max = null;
 		for (var i = 0; i < values.length; i++) {
 			if (values[i] == null) continue;
@@ -97,12 +118,12 @@ aMath = {};
 	}
 
 	aMath.MAX = MAX;
-	aMath.max = function () {
+	aMath.max = function(){
 		return MAX(arguments);
 	};//method
 
 
-	function MIN(values) {
+	function MIN(values){
 		var min = null;
 		for (var i = 0; i < values.length; i++) {
 			if (values[i] == null) continue;
@@ -112,13 +133,16 @@ aMath = {};
 	}//method
 
 	aMath.MIN = MIN;
-	aMath.min = function () {
+	aMath.min = function(){
 		return MIN(arguments);
 	};//method
 
+	aMath.log10 = function(v){
+		return Math.log(v)/Math.log(10);
+	};//method
 
 	//
-	aMath.average = function (array) {
+	aMath.average = function(array){
 		var total = 0.0;
 		var count = 0;
 		for (var i = 0; i < array.length; i++) {
@@ -131,15 +155,56 @@ aMath = {};
 	};//method
 
 
-	aMath.floor = Math.floor;
-	aMath.ceil = Math.ceil;
-	aMath.ceiling = Math.ceil;
+	aMath.floor = function(value, mod){
+		if (value==null){
+			return null;
+		}else if (mod === undefined){
+			mod = 1;
+		}else if (mod==null){
+			return null;
+		}//endif
+		return value - (value % mod);
+	};//function
+
+	aMath.mod = function(value, mod){
+		if (value==null){
+			return null;
+		}else if (mod === undefined){
+			mod = 1;
+		}else if (mod==null){
+			return null;
+		}//endif
+		return value % mod;
+	};//function
+
+
+	aMath.ceiling = function(value, rounding){
+		if (value==null) {
+			return null;
+		}else if (rounding === undefined){
+			return Math.ceil(value);
+		}else if (rounding==null){
+			return null;
+		}else if (value == 0) {
+			return 0.0;
+		} else if (rounding.digits !== undefined) {
+			d = Math.pow(10, rounding.digits - aMath.ceiling(aMath.log10(value)));
+		} else {
+			d = Math.pow(10, rounding);
+		}//endif
+		return Math.ceil(value * d) / d;
+	};//method
+	aMath.ceil = aMath.ceiling;
+
+
+
+	//FOR EVENTUAL REPLACEMENT WITH null-SAFE VERSIONS
 	aMath.log = Math.log;
 	aMath.random = Math.random;
 
-	niceNumbers = [11, 12, 15, 20, 22, 24, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100];
+	var niceNumbers = [11, 12, 15, 20, 22, 24, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100];
 
-	aMath.niceCeiling = function (value) {
+	aMath.niceCeiling = function(value){
 		if (value == 0) return 0;
 		if (value < 0) Log.error("negative numbers not supported yet");
 		var sig = Math.floor(Math.log10(value)) - 1;
@@ -148,28 +213,28 @@ aMath = {};
 		for (var i = 0; i < niceNumbers.length; i++)
 			if (niceNumbers[i] >= value)
 				return niceNumbers[i] * d;
-		Log.error("bug");
+		throw Log.error("bug");
 	};
 
 })();
 
 
-(function () {
-	function Cart(x, y) {
+(function(){
+	function Cart(x, y){
 		this.x = x;
 		this.y = y;
 	}
 
 	aMath.Cart = Cart;
 
-	aMath.Cart.prototype.toPolar = function () {
+	aMath.Cart.prototype.toPolar = function(){
 		var r = Math.sqrt(this.x * this.x + this.y * this.y);
 		var t = Math.atan2(this.y, this.x);
 		return new Polar(r, t);
 	};
 
 
-	function Polar(r, t) {
+	function Polar(r, t){
 		this.r = r;
 		this.t = t;
 	}
@@ -179,20 +244,20 @@ aMath = {};
 	var D2R = Math.PI / 180;
 	var R2D = 1 / D2R;
 
-	aMath.Polar.prototype.toCart = function () {
+	aMath.Polar.prototype.toCart = function(){
 		var x = this.r * Math.sin(this.t);
 		var y = this.r * Math.cos(this.t);
 
 		return new Cart(x, y);
 	};
 
-	aMath.Polar.prototype.addRadians = function (rads) {
+	aMath.Polar.prototype.addRadians = function(rads){
 		var t = this.t + rads;
 		return new Polar(this.r, t);
 	};
 	aMath.Polar.prototype.rotate = aMath.Polar.prototype.addRadians;
 
-	aMath.Polar.prototype.addDegrees = function (degs) {
+	aMath.Polar.prototype.addDegrees = function(degs){
 		this.t += degs * D2R;
 	};
 

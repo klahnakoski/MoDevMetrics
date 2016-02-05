@@ -3,6 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
+importScript("../util/aString.js");
+
 PartitionFilter = function(){};
 
 
@@ -31,7 +33,7 @@ PartitionFilter.newInstance=function(param){
 
 	var self=new PartitionFilter();
 	Map.copy(param, self);
-	self.showAll=nvl(self.showAll, true);
+	self.showAll=coalesce(self.showAll, true);
 
 	if (self.dimension.partitions===undefined && self.dimension.edges===undefined) Log.error(self.dimension.name+" does not have a partition defined");
 
@@ -41,7 +43,7 @@ PartitionFilter.newInstance=function(param){
 	self.treeDone=false;
 	self.DIV_ID=self.id.replaceAll(" ", "_")+"_id";
 	self.DIV_LIST_ID=self.id.replaceAll(" ", "_")+"_list";
-	self.FIND_TREE="#"+CNV.String2JQuery(self.DIV_LIST_ID);
+	self.FIND_TREE="#"+convert.String2JQuery(self.DIV_LIST_ID);
 	self.disableUI=false;
 	self.numLater=0;
 
@@ -59,19 +61,26 @@ PartitionFilter.newInstance=function(param){
 
 function convertToTreeLater(self, treeNode, dimension){
 	self.numLater++;
+	var refreshNow = GUI.pleaseRefreshLater;
 	GUI.pleaseRefreshLater=true;
 	Thread.run(function*(){
 		//DO THIS ONE LATER
 //		treeNode.children = [];
-		if (dimension.partitions instanceof Thread){
-			var threadResult = yield (Thread.join(dimension.partitions));
-			if (threadResult.threadResponse instanceof Exception){
-				Log.error("Can not setup PartitionFilter", threadResult.threadResponse);
-			}//endif
-		}//while
+		if (dimension.partitions instanceof Thread) {
+			try {
+				yield (Thread.join(dimension.partitions));
+			} catch (e) {
+				Log.error("Can not setup PartitionFilter", e);
+			}finally{
+				GUI.pleaseRefreshLater = refreshNow;
+			}//try
+		}else{
+			GUI.pleaseRefreshLater = refreshNow;
+		}//endif
 		var pleaseUpdate = (treeNode.children==WAITING_FOR_RESULTS);
 		treeNode.children = dimension.partitions.map(function (v, i) {
-			if (i < nvl(dimension.limit, DEFAULT_CHILD_LIMIT)){
+			if (i < coalesce(dimension.limit, DEFAULT_CHILD_LIMIT)){
+				v.limit = coalesce(v.limit, dimension.limit, DEFAULT_CHILD_LIMIT);
 				return convertToTree(self, {}, 1, v);
 			}//endif
 		});
@@ -107,7 +116,8 @@ function convertToTree(self, parent, depth, dimension){
 		}else{
 			if (depth < self.treeDepth){
 				node.children=dimension.partitions.map(function(v,i){
-					if (i<nvl(dimension.limit, DEFAULT_CHILD_LIMIT))
+					if (i<coalesce(dimension.limit, DEFAULT_CHILD_LIMIT))
+						v.limit = coalesce(v.limit, dimension.limit, DEFAULT_CHILD_LIMIT);
 						return convertToTree(self, depth==0 ? {} : node, depth+1, v);
 				});
 				if (depth==0){
@@ -120,6 +130,7 @@ function convertToTree(self, parent, depth, dimension){
 	}//endif
 	if (dimension.edges){
 		node.children=dimension.edges.map(function(v,i){
+			v.limit = coalesce(v.limit, dimension.limit, DEFAULT_CHILD_LIMIT);
 			return convertToTree(self, node, 0, v);
 		});
 	}//endif
@@ -241,7 +252,7 @@ PartitionFilter.prototype.makeTree=function(){
 		if (checked["__all__"]){  //ULTIMATE PARENT
 			minCover =["__all__"];
 		}else{
-			minCover= mapAllKey(checked, function(id){
+			minCover= Map.map(checked, function(id){
 				if (checked[self.parents[id].id]) return;
 				return id;
 			});
@@ -293,8 +304,8 @@ PartitionFilter.prototype.makeTree=function(){
 
 
 PartitionFilter.prototype.makeHTML=function(){
-	return '<div id="'+CNV.String2HTML(this.DIV_LIST_ID)+'" style="300px">'+
-		'<div id="'+CNV.String2HTML(this.DIV_LIST_ID)+'"></div>'+
+	return '<div id="'+convert.String2HTML(this.DIV_LIST_ID)+'" style="300px">'+
+		'<div id="'+convert.String2HTML(this.DIV_LIST_ID)+'"></div>'+
 		'</div>';
 };
 
@@ -302,7 +313,7 @@ PartitionFilter.prototype.makeHTML=function(){
 //RETURN AN ES FILTER
 PartitionFilter.prototype.makeFilter = function(){
 	var selected = this.getSelectedParts();
-	if (selected.length == 0) return ESQuery.TrueFilter;
+	if (selected.length == 0) return true;
 	return {"or":selected.map(function(v){return v.esfilter;})};
 };//method
 
@@ -314,12 +325,12 @@ PartitionFilter.prototype.refresh = function(){
 	this.makeTree();
 	var selected=this.getSelectedNodes();
 
-	var f=$('#'+CNV.String2JQuery(this.DIV_LIST_ID));
+	var f=$('#'+convert.String2JQuery(this.DIV_LIST_ID));
 	f.jstree("deselect_all");
 	f.jstree("uncheck_all");
 	selected.forall(function(p){
-		f.jstree("select_node", ("#"+CNV.String2JQuery(p.id)));
-		f.jstree("check_node", ("#"+CNV.String2JQuery(p.id)));
+		f.jstree("select_node", ("#"+convert.String2JQuery(p.id)));
+		f.jstree("check_node", ("#"+convert.String2JQuery(p.id)));
 	});
 
 	this.disableUI=false;

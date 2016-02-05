@@ -6,22 +6,22 @@
 
 importScript("../MozillaPrograms.js");
 importScript("../debug/aLog.js");
-importScript("../util/CNV.js");
+importScript("../util/convert.js");
 
 
 ProgramFilter = function(indexName){
-	this.indexName=nvl(indexName, "bugs");
+	this.indexName=coalesce(indexName, "bugs");
 	this.name="Programs";
 	this.refresh();
 	this.selected=[];
 	this.isFilter=true;
 };
 
-ProgramFilter.allPrograms = CNV.Table2List(MozillaPrograms);
+ProgramFilter.allPrograms = convert.Table2List(MozillaPrograms);
 
 ProgramFilter.prototype.makeFilter = function(indexName, selectedPrograms){
-	indexName=nvl(indexName, this.indexName);
-	selectedPrograms=nvl(selectedPrograms, this.selected);
+	indexName=coalesce(indexName, this.indexName);
+	selectedPrograms=coalesce(selectedPrograms, this.selected);
 
 	if (selectedPrograms.length == 0) return ESQuery.TrueFilter;
 
@@ -66,7 +66,7 @@ ProgramFilter.makeQuery = function(filters){
 		}//endif
 
 		var project=program.projectName;
-		programCompares[project]=nvl(programCompares[project], []);
+		programCompares[project]=coalesce(programCompares[project], []);
 		programCompares[project].push(esfilter);
 	});
 
@@ -189,7 +189,7 @@ ProgramFilter.prototype.refresh = function(){
 
 		//CONVERT MULTIPLE EDGES INTO SINGLE LIST OF PROGRAMS
 		var programs=[];
-		forAllKey(data.facets, function(name, edge){
+		Map.forall(data.facets, function(name, edge){
 			if (name=="Programs") return;  //ALL PROGRAMS (NOT ACCURATE COUNTS)
 			programs.push({"term":name, "count":edge.total});
 		});

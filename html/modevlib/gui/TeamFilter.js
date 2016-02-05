@@ -23,16 +23,28 @@ TeamFilter.newInstance=function(field_name){
 	self.selectedEmails=[];
 
 	Thread.run("get people", function*(){
-		//GET ALL PEOPLE
-		var people=(yield (ESQuery.run({
-			"from":"org_chart",
-			"select":[
-				{"name":"id", "value":"id"},
-				{"name":"name", "value":"name"},
-				{"name":"email", "value":"email"},
-				{"name":"manager", "value":"manager"}
-			]
-		}))).list;
+		var people=null;
+		try {
+			//GET ALL PEOPLE
+			people = (yield (ESQuery.run({
+				"from": "org_chart",
+				"select": [
+					{"name": "id", "value": "id"},
+					{"name": "name", "value": "name"},
+					{"name": "email", "value": "email"},
+					{"name": "manager", "value": "manager"}
+				],
+				"esfilter": {
+					"and": [
+						{"exists": {"field": "id"}},
+					]
+				}
+			}))).list;
+		}catch(e){
+			//EXPECTED WHEN NO PRIVATE CLUSTER
+			Log.note("Can not get people");
+			people = [];
+		}
 
 		var others={
 			"email":"other@mozilla.com",
@@ -60,14 +72,14 @@ TeamFilter.newInstance=function(field_name){
 		people.forall(function(v, i){
 			v.id=v.id.between("mail=", ",");
 
-			if (v.manager==null){
+			if (v.manager==undefined || v.manager==null || v.manager=="null"){
 				if (!["other@mozilla.com", "nobody@mozilla.org", "community@mozilla.org"].contains(v.id)){
 					v.manager="other@mozilla.com";
 				}//endif
 			}else{
 				v.manager = v.manager.between("mail=", ",");
 			}//endif
-			
+
 			if (v.email==null) v.email=v.id;
 
 			if (self.managers[v.id])
@@ -96,16 +108,16 @@ TeamFilter.newInstance=function(field_name){
 				}//endif
 				return v;
 			});
-			others.children.subtract(hier);
+			others.children = others.children.filter({"not":{"terms":{"id": hier.select("id")}}});
 		}//endif
-		
+
 		self.injectHTML(hier);
 
 		//JSTREE WILL NOT BE LOADED YET
 		//HOPEFULLY IT WILL EXIST WHEN THE HEAD EXISTS
 //		'#' + myid.replace(/(:|\.)/g,'\\$1');
 
-		while($("#"+CNV.String2JQuery("other@mozilla.com")).length==0){
+		while($("#"+convert.String2JQuery("other@mozilla.com")).length==0){
 			yield (Thread.sleep(100));
 		}//while
 
@@ -148,6 +160,25 @@ TeamFilter.prototype.getSelectedPeople=function*(){
 	yield selected;
 };//method
 
+TeamFilter.prototype.getAllSelectedPeople = function*(){
+	var selected = yield(this.getSelectedPeople());
+	if (selected.length == 0){
+		yield [];
+		return
+	}//endif
+
+	//FIND BZ EMAILS THAT THE GIVEN LIST MAP TO
+	var output=[];
+	var getEmail=function(children){
+		children.forall(function(child, i){
+			output.append(child);
+			if (child.children)
+				getEmail(child.children);
+		});
+	};//method
+	getEmail(selected);
+	yield output;
+};//method
 
 
 //RETURN SOMETHING SIMPLE ENOUGH TO BE USED IN A URL
@@ -169,23 +200,23 @@ TeamFilter.prototype.setSimpleState=function(value){
 
 TeamFilter.prototype.makeFilter = function(field_name){
 	if (this.selectedEmails.length == 0) return ESQuery.TrueFilter;
-	field_name=nvl(field_name, this.field_name);
+	field_name=coalesce(field_name, this.field_name);
 	if (field_name==null) return ESQuery.TrueFilter;
 
 	var selected = Thread.runSynchronously(this.getSelectedPeople());
 	if (selected.length == 0) return ESQuery.TrueFilter;
 
 	//FIND BZ EMAILS THAT THE GIVEN LIST MAP TO
-	var getEmail=function(list, children){
+	var bzEmails=[];
+	var getEmail=function(children){
 		children.forall(function(child, i){
 			if (child.email)
-				list.push(child.email);
+				bzEmails.appendArray(Array.newInstance(child.email));
 			if (child.children)
-				getEmail(list, child.children);
+				getEmail(child.children);
 		});
 	};//method
-	var bzEmails=[];
-	getEmail(bzEmails, selected);
+	getEmail(selected);
 
 	if (bzEmails.length==0) return ESQuery.TrueFilter;
 
@@ -195,7 +226,7 @@ TeamFilter.prototype.makeFilter = function(field_name){
 		bzEmails.remove("community@mozilla.org");
 		var allEmails=this.people.map(function(v, i){return v.email;});
 		allEmails.push("nobody@mozilla.org");
-		
+
 		output.or.push({"not":{"terms":Map.newInstance(field_name, allEmails)}});
 	}//endif
 
@@ -214,8 +245,8 @@ TeamFilter.prototype.refresh = function*()
 	var f = $('#teamList');
 	f.jstree("deselect_all");
 	selected.forall(function(p){
-		f.jstree("select_node", "#" + CNV.String2JQuery(p.id));
-		f.jstree("check_node", "#" + CNV.String2JQuery(p.id));
+		f.jstree("select_node", "#" + convert.String2JQuery(p.id));
+		f.jstree("check_node", "#" + convert.String2JQuery(p.id));
 	});
 
 	this.disableUI = false;
@@ -243,7 +274,7 @@ TeamFilter.prototype.injectHTML = function(hier){
 		"plugins":[ "themes", "json_data", "ui", "checkbox" ]
 	}).bind("change_state.jstree", function (e, data){
 		if (self.disableUI) return;
-	
+
 		//WE NOW HAVE A RIDICULOUS NUMBER OF CHECKED ITEMS, REDUCE TO MINIMUM COVER
 		var minCover=[];
 
@@ -254,7 +285,7 @@ TeamFilter.prototype.injectHTML = function(hier){
 		});
 
 		//IF MANAGER IS CHECKED, THEN DO NOT INCLUDE
-		forAllKey(checked, function(id, v, m){
+		Map.forall(checked, function(id, v, m){
 			if (checked[self.managers[id]]) return;
 			minCover.push(id);
 		});

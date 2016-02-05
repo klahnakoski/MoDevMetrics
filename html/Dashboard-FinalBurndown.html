@@ -127,20 +127,20 @@ var __createChart = function*(){
 		});
 
 		//FORMAT THE BUGS FOR TABLE
-		var showBugs=yield(Qb.calc2List({
+		var showBugs=yield(qb.calc2List({
 			"from":historyBugs.cube,
 //			"analytic":{"name":"Order","value":"rownum+1", "sort":["Close Date", "ID"]},
 			"select":[
-				{"name":"ID", "value":"Bugzilla.linkToBug(nvl(id, bug_id))"},
+				{"name":"ID", "value":"Bugzilla.linkToBug(coalesce(id, bug_id))"},
 				{"name":"Close Date", "value":"(max==null) ? null : Date.newInstance(max).floorDay()"},
-				{"name":"Status", "value":"nvl(status, null)"},
-				{"name":"Resolution", "value":"nvl(resolution, null)"},
-				{"name":"Summary", "value":"nvl(summary, null)"}
+				{"name":"Status", "value":"coalesce(status, null)"},
+				{"name":"Resolution", "value":"coalesce(resolution, null)"},
+				{"name":"Summary", "value":"coalesce(summary, null)"}
 			],
 			"sort":["Close Date", "Status", "ID"]
 		}));
 
-		$("#info").html(CNV.List2HTMLTable(showBugs));
+		$("#info").html(convert.List2HTMLTable(showBugs));
 		Log.actionDone(a);
 	});
 
@@ -212,8 +212,8 @@ var __createChart = function*(){
 		var stats = yield(Q({
 			"from":flat,
 			"select":[
-				{"name":"closed", value:"nvl(closed, 0)"},
-				{"name":"total", value:"nvl(total, 0)"}
+				{"name":"closed", value:"coalesce(closed, 0)"},
+				{"name":"total", value:"coalesce(total, 0)"}
 			],
 			"edges":[
 				{"name":"date", "value":"date",
@@ -233,7 +233,7 @@ var __createChart = function*(){
 			};
 		});
 
-		var perDay = (yield(Qb.calc2List({
+		var perDay = (yield(qb.calc2List({
 			"from":diff,
 			"select":[
 				{"name":"avg_new", "value":"net_new", "aggregate":"average"},
@@ -277,7 +277,7 @@ var __createChart = function*(){
 
 
 	//REQUIRED
-	flat.list=yield(Qb.Cube2List(flat));	//FORCE flat.list TO EXIST
+	flat.list=qb.Cube2List(flat);	//FORCE flat.list TO EXIST
 
 	aChart.addPredictionLine({
 		"source":{

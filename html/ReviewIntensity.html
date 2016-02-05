@@ -11,14 +11,6 @@
 <BODY>
 
 
-<div style="float:right;display: inline;">
-	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
-</div>
-<!--<h3>Personal Review Queues</h3>-->
-
-
-
-
 <div id="sidebar" style="width:300px;">
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
@@ -37,7 +29,7 @@
 </div>
 
 <div style="align:left;position:relative;float:left;width:800px;">
-	<h3>Incoming Team Reviews</h3>
+	<h3>Incoming Reviews</h3>
 	<div id="chartResponse" style="width:400px;height:200px;float:left;display: inline;"></div>
 	<div id="chartProducts" style="width:400px;height:200px;float:left;display: inline;"></div>
 	<div id="chart" style="width:800px;height:400px;"></div>
@@ -50,8 +42,7 @@
 
 
 importScript([
-	"modevlib/main.js",
-	"js/etl/Reviews.js"
+	"modevlib/main.js"
 ], function(){
 
 	$("#description").html("Shows the number of incoming reviews and the number of reviews completed for each interval.  The latter is shown as a negative to increase clarity.  The &quot;Still Open&quot; (Green) shows the total number of reviews open more than 24 hours, which is the cumulative sum of the other two."+
@@ -72,8 +63,9 @@ importScript([
 		var sampleMax=sampleMin.add(Date.newInstance(GUI.state.sampleMax).add(sampleInterval).subtract(sampleMin, sampleInterval).floor(sampleInterval));
 
 		var mainFilter = {"and": [
-			{"range": {"request_time": {"gte": sampleMin.getMilli() - Duration.WEEK.milli * 18, "lt": sampleMax.getMilli()}}},
-			{"terms": {"request_type": ["review", "superreview"]}}
+//			{"range": {"request_time": {"gte": sampleMin.getMilli(), "lt": sampleMax.getMilli()}}},
+			{"terms": {"request_type": ["review", "superreview"]}},
+			GUI.getFilters("reviews")
 		]};
 
 		var requesteeList=ESQuery.TrueFilter;
@@ -81,7 +73,7 @@ importScript([
 			requesteeList={"terms":{"reviewer": GUI.state.requestee.split(",").map(String.trim)}};
 			mainFilter.and.push(requesteeList);
 		}//endif
-		GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
+//		GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
 
 		//CHART OF AGGREGATE RESPONSE TIMES
 		Thread.run(function*(){
@@ -96,7 +88,10 @@ importScript([
 						"domain":{"type":"duration", "min":0, "max":"10day", "interval":"day"}
 					}
 				],
-				"esfilter":mainFilter
+				"esfilter":{"and":[
+					mainFilter,
+					{"range":{"request_time":{"gte": sampleMin.getMilli(), "lt":sampleMax.getMilli()}}}
+				]}
 			}));
 
 			response.edges[0].domain.NULL.name="Over 10 days";
@@ -112,7 +107,7 @@ importScript([
 		});
 
 
-		//CHART OF AGGREGATE RESPONSE TIMES
+		//RESPONSE TIME STATS
 		Thread.run(function*(){
 			var a=Log.action("Grab Stats", true);
 
@@ -123,21 +118,23 @@ importScript([
 				"edges":[
 					{"name":"wait_time",
 						"allowNulls":true,
-						value:"(coalesce(zero2null(review_time), "+Date.eod().getMilli()+")-doc[\"request_time\"].value)",
+						value:"(coalesce(zero2null(review_time), "+Date.eod().getMilli()+")-request_time)",
 						"domain":{"type":"duration", "min":0, "max":"10day", "interval":"hour", "value":"value"}
 					}
 				],
-				"esfilter":mainFilter
+				"esfilter":{"and":[
+					mainFilter,
+					{"range":{"request_time":{"gte": sampleMin.getMilli(), "lt":sampleMax.getMilli()}}}
+				]}
 			})));
 			Log.actionDone(a);
 
 			a=Log.action("Calc Stats", true);
 			var percentile90=Stats.df.percentile(df.cube, 0.90)/24;  //INTERVALS ARE IN HOURS, CONVERT TO DAYS
 
-
 			var stats=(yield (Q({
 				"from":
-					(yield (Qb.Cube2List(df))),
+					qb.Cube2List(df),
 				"select": [
 					{"name":"total", "value":"count", "aggregate":"sum"},
 					{"name":"under_24_hours", "value":"(wait_time!=null && wait_time.milli<"+Duration.newInstance('24hour').milli+") ? count : 0", "aggregate":"sum"},
@@ -160,13 +157,17 @@ importScript([
 		//CHART PRODUCT BREAKDOWN
 		Thread.run(function*(){
 			var q=new ESQuery({
-				"name":"Product Breakdown",
+				"name":"Product::Component Breakdown",
 				"from":"reviews",
 				"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
 				"edges":[
-					{"name":"product", "value":"product"}
+					"product",
+					"component"
 				],
-				"esfilter":mainFilter
+				"esfilter":{"and":[
+					mainFilter,
+					{"range":{"request_time":{"gte": sampleMin.getMilli(), "lt":sampleMax.getMilli()}}}
+				]}
 			});
 
 			var response=yield (q.run());
@@ -175,7 +176,9 @@ importScript([
 				"id":"chartProducts",
 				"cube":response,
 				"height":200,
-				"width":400
+				"width":400,
+				"minPercent":0.07,
+				"legendSize": 150
 			});
 
 		});
@@ -208,50 +211,42 @@ importScript([
 
 
 		//SHOW AS NEGATIVE
-		reviewed.cube=reviewed.cube.map(function(v, i){return -v;});
-
+		reviewed.cube = reviewed.cube.map(function(v, i){
+			return -v;
+		});
 
 
 		//WE CAN NOT DO THIS DIRECTLY: WE WILL REQUIRE MULTIPLE COUNTS PER REVIEW
-		var q3=new ESQuery({
+		var longReviews = (yield (ESQuery.run({
 			"from":"reviews",
 			"select":[
-//				{"name":"bug_id", "value":"reviews.bug_id"},
-//				{"name":"attach_id", "value":"reviews.attach_id"},
-				{"name":"wait_time_over_day", "value":"(coalesce(review_time, "+Date.eod().getMilli()+")-request_time > "+Duration.MILLI_VALUES.day+") ? 1 : 0"},
-				{"name":"wait_time", "value":"coalesce(review_time, "+Date.eod().getMilli()+")-request_time"},
 				{"name":"request_time", "value":"request_time"},
-				{"name":"review_time", "value":"coalesce(review_time,"+Date.eod().getMilli()+")"}
+				{"name":"review_time", "value":"review_time"}
 			],
 			"esfilter": {"and": [
-				{"script": {"script":	//NO NEED TO CONSIDER THE MINI-REVIEWS
-					MVEL.compile.expression(
-						"(coalesce(review_time, " + Date.eod().getMilli() + ") - request_time > " + Duration.MILLI_VALUES.day + ") ? 1 : 0;",
-						{"from": "reviews"}
-					)
-				}},
-				requesteeList,
-
-				{"range": {"request_time":{"lt":sampleMax.getMilli()}}},
+//				{"script":{"script":	//ONLY CONSIDER THE REVIEWS LONGER THAN A DAY
+//					MVEL.compile.expression(
+//						"(coalesce(review_time, " + Date.eod().getMilli() + ") - request_time > " + Duration.MILLI_VALUES.day + ") ? 1 : 0;",
+//						{"from": "reviews"}
+//					)
+//				}},
+				mainFilter,
+				{"range":{"request_time":{"gte": sampleMin.getMilli()-Duration.WEEK.milli*18, "lt":sampleMax.getMilli()}}},
 				{"or":[
 					{"range":{"review_time":{"gte":sampleMin.getMilli()}}}, //REVIEWED AFTER THE min
 					{"missing":{"field":"review_time"}}						//...OR NEVER REVIEWED
 				]}
 			]}
-		});
-		GUI.injectFilters(q3);
-		var stillOpen = (yield (q3.run())).list;
-
+		}))).list;
 
 		var open=yield (Q({
-			"from":stillOpen,
+			"from":longReviews,
 			"select":{"name":"open_count", "value":"request_time", "aggregate":"count"},
 			"edges":[
 				{"name":"time", "value":"request_time",
-					"test":	"review_time-request_time > "+Duration.MILLI_VALUES.day+" && "+
-							"time.min < review_time && "+
-							"time.min < request_time+"+Duration.MILLI_VALUES.week*18+" && "+  //JUST IGNORE THE REALLY OLD reviews
-							"request_time+"+Duration.MILLI_VALUES.day+" < time.max",
+					"test":	"coalesce(review_time, time.min.getMilli())-request_time > "+Duration.MILLI_VALUES.day+" && "+
+							"request_time < time.min.getMilli() && time.min.getMilli() < coalesce(review_time, Date.eod().getMilli()) && "+
+							"time.min.getMilli() < request_time+"+Duration.MILLI_VALUES.week*18, //JUST IGNORE THE REALLY OLD reviews
 					"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
 
 				}
@@ -264,7 +259,7 @@ importScript([
 		//THE THREE ARE PARTS OF THE CATEGORY DIMENSION
 
 		//MERGE ALL RESULTS
-		var chart=Qb.merge([
+		var chart=qb.merge([
             {"from":requested, "edges":["time"]},
             {"from":reviewed, "edges":["time"]},
             {"from":open, "edges":["time"]}
@@ -275,7 +270,48 @@ importScript([
 			"sheetDiv":"info",
 			"type":"line",
 			"cube":chart,
-			"height":400
+			"height":400,
+			"clickAction":function(series, x, d, elem){
+				Thread.run(function*() {
+					if (series == "review_count") {
+						var reviewed=(yield (ESQuery.run({
+							"from": "reviews",
+							"select": "_source",
+							"esfilter": {"and": [
+								{"range": {"review_time": {"gte": x.getMilli(), "lt": x.add(sampleInterval).getMilli()}}},
+								mainFilter
+							]}
+						}))).list;
+						Bugzilla.showBugs(Q.sort(reviewed.select("bug_id")));
+
+					} else if (series == "open_count") {
+						var longReviews = (yield (ESQuery.run({
+							"from": "reviews",
+							"select": [
+								"bug_id",
+								"request_time",
+								"review_time"
+							],
+							"esfilter": {"and": [
+								{"script": {"script":	//ONLY CONSIDER THE REVIEWS LONGER THAN A DAY
+									MVEL.compile.expression(
+										"(coalesce(review_time, " + Date.eod().getMilli() + ") - request_time > " + Duration.MILLI_VALUES.day + ") ? 1 : 0;",
+										{"from": "reviews"}
+									)
+								}},
+								mainFilter,
+								{"range": {"request_time": {"gte": x.getMilli() - Duration.WEEK.milli * 18, "lt": x.getMilli()}}},
+								{"or": [
+									{"range": {"review_time": {"gte": x.getMilli()}}}, //REVIEWED AFTER THE min
+									{"missing": {"field": "review_time"}}						//...OR NEVER REVIEWED
+								]}
+							]}
+						}))).list;
+
+						Bugzilla.showBugs(longReviews.select("bug_id"));
+					}//endif
+				});
+			}
 		});
 
 
@@ -300,7 +336,6 @@ importScript([
 	});
 
 });
-
 </script>
 
 

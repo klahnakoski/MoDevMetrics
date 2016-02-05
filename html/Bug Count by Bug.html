@@ -42,10 +42,10 @@
 
 		Thread.run(function*(){
 			var data = ElasticSearch.search("bugs", query);
-			Log.note(CNV.Object2JSON(data));
+			Log.note(convert.Object2JSON(data));
 
-			var htmlSummary = CNV.ESResult2HTMLSummaries(data);
-			var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));
+			var htmlSummary = convert.ESResult2HTMLSummaries(data);
+			var htmlResults = convert.List2HTMLTable(convert.ESResult2List(data));
 
 			document.getElementById("info").innerHTML = htmlSummary + "<br><br>" + htmlResults;
 		});

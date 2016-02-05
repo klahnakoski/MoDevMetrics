@@ -56,7 +56,7 @@ var createChart=function(){
 
 var __createChart = function*(){
 
-	var bug_ids = GUI.state.bugList.split(",").map(function(v){return CNV.String2Integer(v.trim())});
+	var bug_ids = GUI.state.bugList.split(",").map(function(v){return convert.String2Integer(v.trim())});
 	var sampleMin=Date.newInstance(GUI.state.sampleMin);
 	var sampleMax=Date.newInstance(GUI.state.sampleMax).addDay(1);
 	var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);

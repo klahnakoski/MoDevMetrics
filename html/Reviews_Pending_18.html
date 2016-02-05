@@ -78,7 +78,7 @@ var __createChart = function*(){
 		var old=yield (q.run());
 
 		var a=Log.action("Get Old Reviews", true);
-		var oldRequests=(yield (Qb.calc2List({
+		var oldRequests=(yield (qb.calc2List({
 			"from":old.list,
 			"select":[
 				{"name":"avg_wait_time", "value":""+Date.today().getMilli()+"-request_time", "aggregate":"average"},
@@ -94,7 +94,7 @@ var __createChart = function*(){
 		}))).list;
 
 		//ADD LINK TO BUGS
-		var show=(yield (Qb.calc2List({
+		var show=(yield (qb.calc2List({
 			"from":oldRequests,
 			"select":[
 				{"name":"Reviewer", value:"reviewer"},
@@ -106,7 +106,7 @@ var __createChart = function*(){
 
 		Log.actionDone(a);
 
-		$("#oldReviews").html(CNV.List2HTMLTable(show));
+		$("#oldReviews").html(convert.List2HTMLTable(show));
 	});
 
 
@@ -137,7 +137,7 @@ var __createChart = function*(){
 		"edges":[
 			{"name":"dummy", "value":"\"Number of reviews\""},
 			{"name":"wait time", allowNulls:true,
-				"value":"Duration.newInstance(nvl(review_time, Date.eod())-request_time)",
+				"value":"Duration.newInstance(coalesce(review_time, Date.eod())-request_time)",
 				"domain":{"type":"duration", "min":0, "max":"10day", "interval":"6hour"}
 			}
 		]
@@ -162,9 +162,9 @@ var __createChart = function*(){
 
 	a=Log.action("Calc Stats", false);
 
-	var wait_times=(yield (Qb.calc2List({
+	var wait_times=(yield (qb.calc2List({
 		"from":reviews.list,
-		"select":[{"name":"wait_time", "value":"nvl(review_time, Date.eod())-request_time"}]
+		"select":[{"name":"wait_time", "value":"coalesce(review_time, Date.eod())-request_time"}]
 	}))).list;
 
 	var stats=(yield (Q({

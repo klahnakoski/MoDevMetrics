@@ -50,7 +50,7 @@ importScript(["modevlib/main.js"], function(){
 
 	var format = function*(event){ //THIS IS A GENERATOR
 
-		//EVAL THE Qb
+		//EVAL THE qb
 		var code = $("#json").val();
 
 		var backupCode = code;
@@ -61,7 +61,7 @@ importScript(["modevlib/main.js"], function(){
 			jsl.parser.parse(code);
 
 			//TIGHTER PACKING IF JSON
-			$("#json").val(CNV.Object2JSON(CNV.JSON2Object(backupCode)));
+			$("#json").val(convert.Object2JSON(convert.JSON2Object(backupCode)));
 		} catch(e){
 			$("#result").val(e.message);
 			yield(null);

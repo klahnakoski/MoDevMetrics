@@ -134,20 +134,20 @@ var esQuery = {
 				}));
 
 
-				Log.note(CNV.Object2JSON(data));
+				Log.note(convert.Object2JSON(data));
 
-				var htmlSummary = CNV.ESResult2HTMLSummaries(data);
-				var htmlResults = CNV.List2HTMLTable(CNV.ESResult2List(data));
+				var htmlSummary = convert.ESResult2HTMLSummaries(data);
+				var htmlResults = convert.List2HTMLTable(convert.ESResult2List(data));
 				$("#info").html(htmlSummary + "<br><br>" + htmlResults);
 
-//				$("#tab").html(CNV.String2HTMLTable(CNV.List2Tab(CNV.ESResult2List(data))));
+//				$("#tab").html(convert.String2HTMLTable(convert.List2Tab(convert.ESResult2List(data))));
 
 //		while(true){
 //			if (ETL.allFlags!==undefined) break;
 //			yield (Thread.sleep(200));
 //		}//while
 //		var reviews=yield (REVIEWS.get(674239, 674240));
-//		$("#info").append(CNV.List2HTMLTable(reviews));
+//		$("#info").append(convert.List2HTMLTable(reviews));
 //
 
 
