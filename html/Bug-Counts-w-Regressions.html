@@ -11,6 +11,7 @@
 <div id="sidebar" style="width:300px;">
 	<br>
 	<br>
+
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
 	</div>
@@ -35,9 +36,11 @@
 </div>
 <div style="align:left;position:relative;float:left;width:800px;">
 	<h3 id="title"></h3>
-	<div id="chartCount"  class="chart" style="float:none;width:800px;height:300px;"></div>
-	<div id="chartPercent"  class="chart" style="float:none;width:800px;height:300px;"></div>
+
+	<div id="chartCount" class="chart" style="float:none;width:800px;height:300px;"></div>
+	<div id="chartPercent" class="chart" style="float:none;width:800px;height:300px;"></div>
 	<br><br>
+
 	<div id="info"></div>
 	<div id="details"></div>
 </div>
@@ -49,147 +52,159 @@
 importScript('modevlib/main.js', function(){
 
 
+	var thread;
+	var createChart = function(){
+		if (thread !== undefined)
+			thread.kill();
+		thread = Thread.run(__createChart());
+	};
 
-var thread;
-var createChart=function(){
-	if (thread!==undefined)
-		thread.kill();
-	thread=Thread.run( __createChart());
-};
+	var __createChart = function * ()
+	{
 
-var __createChart = function*(){
+		var sampleMin = Date.newInstance(GUI.state.sampleMin);
+		var sampleMax = Date.newInstance(GUI.state.sampleMax).addDay(1);
+		var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
 
-	var sampleMin=Date.newInstance(GUI.state.sampleMin);
-	var sampleMax=Date.newInstance(GUI.state.sampleMax).addDay(1);
-	var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
-
-	var createTime="doc[\"create_time\"].value";
+		var createTime = "doc[\"create_time\"].value";
 //	var idTime=GUI.state.programFilter.bugStatusMinimum_fromSource();
 //	var testValue=GUI.state.programFilter.bugStatusMinimum_fromDoc();
 
 
-
 //	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
 
-	var mainFilter={"and":[
-		GUI.getFilters("bugs"),
-		Mozilla.BugStatus.Open.esfilter
-	]};
+		var mainFilter = {
+			"and": [
+				GUI.getFilters("bugs"),
+				Mozilla.BugStatus.Open.esfilter
+			]
+		};
 
-	//COMPLICATED TITLE LOGIC
-	if (GUI.state.programFilter.selected.length==0){
-		if (GUI.state.componentFilter.selected.length==0){
-			if (GUI.state.productFilter.selected.length==0){
-				$("#title").html("No Program, Product or Component Selected.");
-				yield (null)
-			}else{
-				$("#title").html("Programs: "+GUI.state.productFilter.selected.join(" & "));
+		//COMPLICATED TITLE LOGIC
+		if (GUI.state.programFilter.selected.length == 0) {
+			if (GUI.state.componentFilter.selected.length == 0) {
+				if (GUI.state.productFilter.selected.length == 0) {
+					$("#title").html("No Program, Product or Component Selected.");
+					yield (null)
+				} else {
+					$("#title").html("Programs: " + GUI.state.productFilter.selected.join(" & "));
+				}//endif
+			} else {
+				$("#title").html("Components: " + GUI.state.productFilter.selected.join(" & "));
 			}//endif
-		}else{
-			$("#title").html("Components: "+GUI.state.productFilter.selected.join(" & "));
-		}//endif
-	}else{
-		if (GUI.state.componentFilter.selected.length==0){
-			if (GUI.state.productFilter.selected.length==0){
-				$("#title").html(GUI.state.programFilter.selected.join(" and "));
-			}else{
-				$("#title").html(GUI.state.programFilter.selected.join(" and ")+" - "+GUI.state.productFilter.selected.join(" & "));
+		} else {
+			if (GUI.state.componentFilter.selected.length == 0) {
+				if (GUI.state.productFilter.selected.length == 0) {
+					$("#title").html(GUI.state.programFilter.selected.join(" and "));
+				} else {
+					$("#title").html(GUI.state.programFilter.selected.join(" and ") + " - " + GUI.state.productFilter.selected.join(" & "));
+				}//endif
+			} else {
+				$("#title").html(GUI.state.programFilter.selected.join(" and ") + " - " + GUI.state.componentFilter.selected.join(" & "));
 			}//endif
-		}else{
-			$("#title").html(GUI.state.programFilter.selected.join(" and ")+" - "+GUI.state.componentFilter.selected.join(" & "));
+
+
 		}//endif
 
 
-	}//endif
+		var dimension={};
+		Dimension.addEdges(dimension, {
+				"name": "blocker", "esfilter": ESQuery.TrueFilter, isFacet:true, "partitions": [
+					{"name": "bug", "esfilter": {"not": {"term": {"keywords": "regression"}}}},
+					{"name": "regression", "esfilter": {"term": {"keywords": "regression"}}}
+				]
+			}
+		);
 
-	Thread.run(function*(){
-        ///////////////////////////////////////////////////////////////////////
-        // SIMPLE OPEN BUG COUNT, OVER TIME
-        ///////////////////////////////////////////////////////////////////////
-
-		var chart=yield (ESQuery.run({
-			"name":"Open Bug Count",
-			"from":"bugs",
-			"select":{
-				"name":"num_bug",
-				"value":"bug_id",
-				"aggregate":"count"
-			},
-			"edges":[
-                {"name":"blocker", "esfilter":ESQuery.TrueFilter, "domain":{"isFacet":true, "partitions":[
-                    {"name":"bug", "value":"bug", "esfilter":{"not":{"term":{"keywords":"regression"}}}},
-                    {"name":"regression", "value":"regression", "esfilter":{"term":{"keywords":"regression"}}}
-                ]}},
-				{"name":"date",
-					"range":{
-						"min":"modified_ts",
-						"max":"expires_on"
+		Thread.run(function*(){
+			///////////////////////////////////////////////////////////////////////
+			// SIMPLE OPEN BUG COUNT, OVER TIME
+			/////////////////////////////////////////////////////////////////////
+			var a = Log.action("get all bugs", true);
+			try {
+				var chart = yield (ESQuery.run({
+					"name": "Open Bug Count",
+					"from": "bugs",
+					"select": {
+						"name": "num_bug",
+						"value": "bug_id",
+						"aggregate": "count"
 					},
-					"allowNulls":false,
-					"domain":{
-						"type":"time",
-						"min":sampleMin,
-						"max":sampleMax.add(sampleInterval),
-						"interval":sampleInterval
-					}
-				}
-            ],
-			"esfilter":mainFilter
-		}));
+					"edges": [
+						{
+							"name": "blocker", "domain": dimension.getDomain()
+						},
+						{
+							"name": "date",
+							"range": {
+								"min": "modified_ts",
+								"max": "expires_on"
+							},
+							"allowNulls": false,
+							"domain": {
+								"type": "time",
+								"min": sampleMin,
+								"max": sampleMax.add(sampleInterval),
+								"interval": sampleInterval
+							}
+						}
+					],
+					"esfilter": mainFilter
+				}));
+			} finally {
+				Log.actionDone(a)
+			}
 
-		aChart.show({
-			"id":"chartCount",
-			"sheetDiv":"info",
-			"type":"area",
-			"stacked":true,
-			"cube":chart,
-			"height":"300",
-			xAxisSize: 50,
-			"width":800
-		});
+			aChart.show({
+				"id": "chartCount",
+				"sheetDiv": "info",
+				"type": "area",
+				"stacked": true,
+				"cube": chart,
+				"height": "300",
+				xAxisSize: 50,
+				"width": 800
+			});
 
-        qb.normalizeByX(chart, 100);
+			qb.normalizeByX(chart, 100);
 
-        aChart.show({
-            "name":"Regressions as Percentage",
-            "id":"chartPercent",
-            "sheetDiv":"info",
-            "type":"bar",
-            "stacked":true,
-            "cube":chart,
-            "height":"300",
-            xAxisSize: 50,
-            "width":800
-        });
-
-
-
-	});
+			aChart.show({
+				"name": "Regressions as Percentage",
+				"id": "chartPercent",
+				"sheetDiv": "info",
+				"type": "bar",
+				"stacked": true,
+				"cube": chart,
+				"height": "300",
+				xAxisSize: 50,
+				"width": 800
+			});
 
 
+		}
+	)
+		;
 
 
-	yield (null);
-};
-
-
-
+		yield (null);
+	}
+	;
 
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [
-			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
-			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today().ceilingWeek()},
-			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"week"}
-		],
-		[
+				{"id": "sampleMin", "name": "Start Date", "type": "time", "default": Date.eod().add("-18week")},
+				{"id": "sampleMax", "name": "End Date", "type": "time", "default": Date.today().ceilingWeek()},
+				{"id": "sampleInterval", "name": "Interval", "type": "duration", "default": "week"}
+			],
+			[
 //			"if (Date.newInstance(sampleMax).subtract(Date.newInstance(sampleMin)).round(Duration.WEEK, 0)>=5) sampleInterval='week'",
 //			"if (Date.newInstance(sampleMax).subtract(Date.newInstance(sampleMin)).round(Duration.WEEK, 0)<=3) sampleInterval='day'",
-			"sampleMin=Date.newInstance(sampleMin).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
-			"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')"
-		],
-		"bugs",
-		true		//SHOW DEFAULT FILTERS?
+				"sampleMin=Date.newInstance(sampleMin).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
+				"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')"
+			],
+			"bugs",
+			true		//SHOW DEFAULT FILTERS?
 		);
 	});
 

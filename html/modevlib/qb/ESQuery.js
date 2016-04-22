@@ -695,6 +695,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 		if (edge.domain.isFacet) {
 			//MUST USE THIS' esFacet
 			var condition = coalesce(partition.esfilter, {"and": []});
+			if (!condition.and)	condition = {"and":[condition]};
 
 			if (qb.domain.ALGEBRAIC.contains(edge.domain.type)) {
 				condition.and.push({
