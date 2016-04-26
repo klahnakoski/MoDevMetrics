@@ -138,7 +138,7 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 			{
 				"name": "Firefox46",
 				"version": 46,
-				"releaseDate": "Apr 19, 2016",
+				"releaseDate": "Apr 26, 2016",
 				"esfilter": {"and": [
 					{"not": {"terms": {"cf_status_firefox46": SOLVED}}},
 					{"term": {"cf_tracking_firefox46": "+"}}
@@ -264,8 +264,7 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 							"name": "Security",
 							//"style":{"color":"#ff7f0e"},
 							"esfilter":{"or":[
-								{"term": {"keywords": "sec-critical"}},
-								{"term": {"keywords": "sec-high"}}
+								{"prefix": {"keywords": "sec-"}}
 							]}
 						},
 						{
@@ -277,14 +276,14 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 							]}
 						},
 						{
-							"name": "Regressions",
-							//"style": {"color": "#d62728"},
-							"esfilter": {"term": {"keywords": "regression"}}
-						},
-						{
 							"name": "e10s",
 							//"style": {"color": "#d62728"},
 							"esfilter": {"regexp": {"cf_tracking_e10s": ".*\\+"}}
+						},
+						{
+							"name": "Regressions",
+							//"style": {"color": "#d62728"},
+							"esfilter": {"term": {"keywords": "regression"}}
 						},
 						{   "name":"other",
 							"style": {"color": "#CCCCCC"},

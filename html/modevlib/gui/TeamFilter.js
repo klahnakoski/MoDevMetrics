@@ -115,7 +115,7 @@ TeamFilter.newInstance=function(field_name){
 
 		//JSTREE WILL NOT BE LOADED YET
 		//HOPEFULLY IT WILL EXIST WHEN THE HEAD EXISTS
-//		'#' + myid.replace(/(:|\.)/g,'\\$1');
+//    '#' + myid.replace(/(:|\.)/g,'\\$1');
 
 		while($("#"+convert.String2JQuery("other@mozilla.com")).length==0){
 			yield (Thread.sleep(100));
@@ -268,9 +268,9 @@ TeamFilter.prototype.injectHTML = function(hier){
 			"icons":false,
 			"dots":false
 		},
-//		"checkbox":{
-//			"two_state":true
-//		},
+//    "checkbox":{
+//      "two_state":true
+//    },
 		"plugins":[ "themes", "json_data", "ui", "checkbox" ]
 	}).bind("change_state.jstree", function (e, data){
 		if (self.disableUI) return;
