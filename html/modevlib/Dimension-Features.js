@@ -47,7 +47,7 @@ Sprints = [
 				]}},
 				{"name" : "Targeted", "esfilter" : {"and" : [
 					{"term" : {"target_milestone" : targets}},
-//				{"not": {"term": {"cf_blocking_loop": blocks}}}  // UNFORTUNATE REDUNDANCY
+//        {"not": {"term": {"cf_blocking_loop": blocks}}}  // UNFORTUNATE REDUNDANCY
 				]}}
 			]
 		};
@@ -85,7 +85,7 @@ Sprints = [
 					]}},
 					{"name" : "Targeted", "esfilter" : {"and" : [
 						{"term" : {"target_milestone" : targets}},
-//				{"not": {"term": {"cf_blocking_b2g": blocks}}}  // UNFORTUNATE REDUNDANCY
+//        {"not": {"term": {"cf_blocking_b2g": blocks}}}  // UNFORTUNATE REDUNDANCY
 					]}}
 				]
 			};
@@ -112,10 +112,10 @@ Dimension.addEdges(true, Mozilla, [
 		{"name" : "Loop MLP", "esfilter" : {"term" : {"bug_id" : 972866}}},
 		{"name" : "Loop Mobile MVP", "esfilter" : {"term" : {"bug_id" : 970426}}},
 		{"name" : "e10s on Nightly",
-			"needed_fields":["blocked_by"],
+			"needed_fields":["blocked"],
 			"esfilter" : {"or" : [
 				{"term" : {"bug_id" : 997462}},
-				{"term" : {"blocked_by" : 997462}}
+				{"term" : {"blocked" : 997462}}
 			]},
 			"dateMarks" : [
 				{"name" : "e10s Target", "date" : "Nov 9, 2014", "style" : {strokeStyle : "gray", verticalOffset : 20}}

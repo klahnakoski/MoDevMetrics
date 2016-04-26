@@ -7,6 +7,8 @@ importScript("../util/aUtil.js");
 
 
 
+
+
 (function(){
 	var DEBUG=true;
 
@@ -19,6 +21,7 @@ importScript("../util/aUtil.js");
 
 
 	Array.newRange=function(min, max, interval){
+		//RETURN AN ARRAY OF NUMBERS
 		if (interval===undefined) interval=1;
 		if (min>max) Log.error();
 
@@ -38,6 +41,22 @@ importScript("../util/aUtil.js");
 		return output;
 	};//method
 
+	Array.unwrap = function(value){
+		if (isArray(value)) return value.unwrap();
+		if (value==null) return null;
+		return value;
+	};//method
+
+	Array.prototype.unwrap = function(){
+		if (this.length==0) {
+			return undefined;
+		}else if (this.length==1){
+			return this[0];
+		}else{
+			return this;
+		}//endif
+	};//method
+
 
 	Array.prototype.copy = function(){
 		//http://jsperf.com/new-array-vs-splice-vs-slice/19
@@ -47,23 +66,30 @@ importScript("../util/aUtil.js");
 		return b;
 	};//method
 
+	Array.reverse = function(array){
+		var b = [];
+		var t = array.length - 1;
+		for (var i = t + 1; i--;) {
+			b[i] = array[t - i];
+		}//for
+		return b;
+	};//method
 
 	Array.prototype.forall=function(func){
 		for(var i=0;i<this.length;i++){
 			func(this[i], i, this);
 		}//for
+		return this;
 	};//method
 
 	Array.prototype.insert=function(index, value){
 		this.splice(index, 0, value);
 	};//method
 
-
-
 	Array.prototype.map=function(func){
 		var output=[];
 		for(var i=0;i<this.length;i++){
-			var v=func(this[i], i);
+			var v=func(this[i], i, this);
 			if (v===undefined || v==null) continue;
 			output.push(v);
 		}//for
@@ -71,19 +97,51 @@ importScript("../util/aUtil.js");
 	};//method
 
 
-	Array.prototype.select=function(attrName){
+	// func IS EXPECTED TO TAKE (group, values) WHERE
+	//     group IS THE GROUP VALUE (OR OBJECT)
+	//     values IS THE LIST IN THAT GROUP
+	// params CAN BE {"size": size} TO GROUP ARRAY BY SIZE
+	Array.prototype.groupBy = function(params, func){
+		if (params.size) {
+			var size = params.size;
+			if (func===undefined) {
+				var output = [];
+				for (var g = 0; g * size < this.length; g++) {
+					output.append({"group": g, "values": this.slice(g * size, g * size + size)})
+				}//for
+				return output;
+			}else {
+				for (var g = 0; g * size < this.length; g++) {
+					func(g, this.slice(g * size, g * size + size))
+				}//for
+			}//endif
+		} else if (params.keys) {
+			Log.error("Not implemented yet");
+		}else{
+			Log.error("Do not know how to handle");
+		}//endif
+		return this;
+	};//method
+
+
+	Array.prototype.select = function(attrName){
 		var output=[];
 		if (typeof(attrName)=="string"){
-			for(var i=0;i<this.length;i++)
-				output.push(this[i][attrName]);
+			if (attrName.indexOf(".")==-1){
+				for(var i=0;i<this.length;i++)
+					output.push(Map.get(this[i], attrName));
+			}else{
+				for(var i=0;i<this.length;i++)
+					output.push(Map.get(this[i], attrName));
+			}//endif
 		}else if (attrName instanceof Array){
 			//SELECT MANY VALUES INTO NEW OBJECT
 			for(var i=0;i<this.length;i++){
 				var v=this[i];
 				var o={};
-				for(var a=0;a<attrName.length;a++){
-					var n=attrName[a];
-					o[n]=v[n];
+				for (var a = 0; a < attrName.length; a++) {
+					var n = attrName[a];
+					Map.set(o, n, Map.get(v, n));
 				}//for
 				output.push(o);
 			}//for
@@ -107,26 +165,13 @@ importScript("../util/aUtil.js");
 	};
 
 
-	Array.prototype.groupBy=function(size){
-		if (size===undefined){
-			Log.error("Can only handle size parameter right now");
-		}//endif
-
-		var output=[];
-		for(var i=0;i<this.length;i+=size){
-			output.append({"group":i/size, "values":this.slice(i, i+size)})
-		}//for
-		return output;
-	};//method
-
-
 	//WE ASSUME func ACCEPTS (row, i, rows)
 	Array.prototype.filter=function(func){
 
 		if (typeof(func) == "function") {
 			//DO NOTHING
 		}else{
-			func = CNV.esFilter2function(func)
+			func = convert.esFilter2function(func)
 		}//endif
 
 		var output=[];
@@ -182,12 +227,12 @@ importScript("../util/aUtil.js");
 		return this[0];
 	};//method
 
-//	Array.prototype.indexOf=function(value){
-//		for(var i=0;i<this.length;i++){
-//			if (this[i]==value) return i;
-//		}//for
-//		return -1;
-//	};//method
+//  Array.prototype.indexOf=function(value){
+//    for(var i=0;i<this.length;i++){
+//      if (this[i]==value) return i;
+//    }//for
+//    return -1;
+//  };//method
 
 	Array.prototype.substring=Array.prototype.slice;
 
@@ -281,6 +326,15 @@ importScript("../util/aUtil.js");
 	}
 	Array.AND=AND;
 
+	function OR(values){
+		for(var i=values.length;i--;){
+			var v=values[i];
+			if (v==true) return true;
+		}//for
+		return false;
+	}
+	Array.OR=OR;
+
 
 	Array.extend=function extend(){
 		var arrays = (arguments.length==1  && arguments[0] instanceof Array) ? arguments[0] : arguments;
@@ -295,7 +349,7 @@ importScript("../util/aUtil.js");
 
 	Array.prototype.subtract=function(b){
 		var c=[];
-	A:	for(var x=0;x<this.length;x++){
+	A:  for(var x=0;x<this.length;x++){
 		var v=this[x];
 			if (v!==undefined){
 				for(var y=b.length;y--;) if (v==b[y]) continue A;
@@ -305,3 +359,8 @@ importScript("../util/aUtil.js");
 		return c;
 	};//method
 })();
+
+
+function isArray(value){
+	return value instanceof Array;
+}

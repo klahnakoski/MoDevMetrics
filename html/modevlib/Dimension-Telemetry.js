@@ -31,11 +31,11 @@ Dimension.addEdges(false, Mozilla, [
 	{"name":"Telemetry", "index":"raw_telemetry", "edges":[
 		{"name":"Date",
 			"field":"date",
-//			"type":"set",
-//			"path":function(v){return [{
-//				"name":Date.newInstance(v).format("dd MMM yyyy"),
-//				"esfilter":{"term":{"date":v}}
-//			}]},
+//      "type":"set",
+//      "path":function(v){return [{
+//        "name":Date.newInstance(v).format("dd MMM yyyy"),
+//        "esfilter":{"term":{"date":v}}
+//      }]},
 			"type":"time",
 			"min":Date.newInstance("10APR2013"), "max":Date.newInstance("16APR2013"), "interval":Duration.DAY
 		},
@@ -48,21 +48,21 @@ Dimension.addEdges(false, Mozilla, [
 			{"name":"First Paint", "field":"simpleMeasurements.firstPaint", "type":"numeric", "min":0, "max":2000, "interval":100, "default":{"aggregate":["median", "average"]}},
 			{"name":"First Load URI", "field":"simpleMeasurements.firstLoadURI", "type":"numeric", "default":{"aggregate":["median", "average"]}},
 
-//			{"name":"", "field":"simpleMeasurements.sessionRestoreInitialized", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+//      {"name":"", "field":"simpleMeasurements.sessionRestoreInitialized", "type":"numeric", "default":{"aggregate":["median", "average"]}},
 
-//			{"name":"", "field":"simpleMeasurements.startupCrashDetectionBegin", "type":"numeric", "default":{"aggregate":["median", "average"]}},
-//			{"name":"", "field":"simpleMeasurements.startupCrashDetectionEnd", "type":"numeric", "default":{"aggregate":["median", "average"]}},
-//			{"name":"", "field":"simpleMeasurements.delayedStartupStarted", "type":"numeric", "default":{"aggregate":["median", "average"]}},
-//			{"name":"", "field":"simpleMeasurements.delayedStartupFinished", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+//      {"name":"", "field":"simpleMeasurements.startupCrashDetectionBegin", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+//      {"name":"", "field":"simpleMeasurements.startupCrashDetectionEnd", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+//      {"name":"", "field":"simpleMeasurements.delayedStartupStarted", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+//      {"name":"", "field":"simpleMeasurements.delayedStartupFinished", "type":"numeric", "default":{"aggregate":["median", "average"]}},
 
 
-//			{"name":"", "field":"simpleMeasurements.startupSessionRestoreReadBytes", "type":"numeric", "default":{"aggregate":["median", "average"]}},
-//			{"name":"", "field":"simpleMeasurements.startupSessionRestoreWriteBytes", "type":"numeric", "default":{"aggregate":["median", "average"]}},
-//			{"name":"", "field":"simpleMeasurements.startupWindowVisibleReadBytes", "type":"numeric", "default":{"aggregate":["median", "average"]}},
-//			{"name":"", "field":"simpleMeasurements.startupWindowVisibleWriteBytes", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+//      {"name":"", "field":"simpleMeasurements.startupSessionRestoreReadBytes", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+//      {"name":"", "field":"simpleMeasurements.startupSessionRestoreWriteBytes", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+//      {"name":"", "field":"simpleMeasurements.startupWindowVisibleReadBytes", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+//      {"name":"", "field":"simpleMeasurements.startupWindowVisibleWriteBytes", "type":"numeric", "default":{"aggregate":["median", "average"]}},
 
-//			{"name":"", "field":"simpleMeasurements.uptime", "type":"numeric", "default":{"aggregate":["median", "average"]}},
-//			{"name":"", "field":"simpleMeasurements.shutdownDuration", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+//      {"name":"", "field":"simpleMeasurements.uptime", "type":"numeric", "default":{"aggregate":["median", "average"]}},
+//      {"name":"", "field":"simpleMeasurements.shutdownDuration", "type":"numeric", "default":{"aggregate":["median", "average"]}},
 			{"name":"Startup Interrupted", "field":"simpleMeasurements.startupInterrupted", "type":"boolean"},
 			{"name":"Debugger Attached", "field":"simpleMeasurements.debuggerAttached", "type":"boolean"}
 		]},
@@ -107,7 +107,7 @@ Dimension.addEdges(false, Mozilla, [
 				"path":function(v){
 					//MAP TO HUMANE NAMES, IF POSSIBLE
 					return [{
-						"name":nvl(Telemetry.addonGUID2Name[v.toLowerCase()], v.toLowerCase()),
+						"name":coalesce(Telemetry.addonGUID2Name[v.toLowerCase()], v.toLowerCase()),
 						"esfilter":{"prefix":{"info.addons.name":v}}
 					}];
 				}
@@ -130,7 +130,7 @@ Dimension.addEdges(false, Mozilla, [
 				"path":function(v){
 					v=""+v;
 					return [//DATA IN yyyyMMddHHmmss FORMAT
-						{"name":v.left(8), "esfilter":{"range":{"info.appBuildID":{"gte":CNV.String2Integer(v.left(8)+"000000"), 'lt':CNV.String2Integer(v.left(8)+"000000")+1000000}}}},
+						{"name":v.left(8), "esfilter":{"range":{"info.appBuildID":{"gte":convert.String2Integer(v.left(8)+"000000"), 'lt':convert.String2Integer(v.left(8)+"000000")+1000000}}}},
 						{"name":v.rightBut(8), "esfilter":{"term":{"info.appBuildID": v}}}
 					]
 				},

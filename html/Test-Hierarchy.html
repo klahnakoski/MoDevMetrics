@@ -159,9 +159,9 @@ var __createChart = function*(){
 			//ACCUMULATE THE SUMMARIES
 			for(var i=temp.length;i--;){
 				var bug=temp[i];
-				bug.num_open=nvl(bug.num_open, 0);
-				bug.num_assigned=nvl(bug.num_assigned, 0);
-				bug.num_closed=nvl(bug.num_closed, 0);
+				bug.num_open=coalesce(bug.num_open, 0);
+				bug.num_assigned=coalesce(bug.num_assigned, 0);
+				bug.num_closed=coalesce(bug.num_closed, 0);
 
 				var desc=bug.descendants;
 				for(var d=desc.length;d--;){

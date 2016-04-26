@@ -119,7 +119,7 @@ Telemetry.insert=function(people){
 	var a=Log.action("Push people to ES", true);
 	var destination = {"host": "", "path": joinPath(Telemetry.newIndexName, Telemetry.typeName)};
 	var results = yield (ElasticSearch.bulkInsert(destination, insert));
-	Log.note(CNV.Object2JSON(CNV.JSON2Object(results)));
+	Log.note(convert.Object2JSON(convert.JSON2Object(results)));
 
 	Log.actionDone(a);
 };//method

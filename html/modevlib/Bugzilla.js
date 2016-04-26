@@ -8,32 +8,35 @@ importScript("rest/BugzillaClient.js");
 
 
 Bugzilla={};
-Bugzilla.JSON_URL="https://api-dev.bugzilla.mozilla.org/latest";
 Bugzilla.URL="https://bugzilla.mozilla.org/buglist.cgi";
-//Bugzilla.JSONP_CALLBACK="bz_callback";
-//Bugzilla.numCallback=0;
 
-Bugzilla.showBugs=function(bugList){
-	var url=Bugzilla.searchBugsURL(bugList);
+Bugzilla.showBugs=function(bugList, columnList){
+	var url=Bugzilla.searchBugsURL(bugList, columnList);
 	window.open(url);
 };//method
 
 
-Bugzilla.searchBugsURL=function(bugList){
+Bugzilla.searchBugsURL=function(bugList, columnList){
+	var url = "";
 	if (bugList instanceof Array){
-		return Bugzilla.URL+"?quicksearch="+bugList.join('%2C');
-	}else if (typeof(buglist)=="string"){
-		return Bugzilla.URL+"?quicksearch="+bugList.replaceAll(", ", "%2C");
+		url += Bugzilla.URL+"?quicksearch="+bugList.join('%2C');
+	}else if (isString(bugList)){
+		url += Bugzilla.URL+"?quicksearch="+bugList.replaceAll(", ", "%2C");
 	}else{
-		return Bugzilla.URL+"?quicksearch="+bugList;
+		url += Bugzilla.URL+"?quicksearch="+bugList;
 	}//endif
+
+	if (columnList){
+		url += "&columnlist=" + Array.newInstance(columnList).join('%2C')
+	}//endif
+
+	return url;
 };//method
+
 
 Bugzilla.linkToBug=function(bugList){
 	return new HTML("<a href='"+Bugzilla.searchBugsURL(bugList)+"'>"+bugList+"</a>");
 };//method
-
-
 
 
 Bugzilla.search=function*(bugList, fields){
@@ -62,7 +65,7 @@ Bugzilla.search=function*(bugList, fields){
 				var b=data[r];
 				for(var c=fields.length;c--;){
 					var f=fields[c];
-					b[f]=nvl(b[f], null);
+					b[f]=coalesce(b[f], null);
 				}
 			}
 

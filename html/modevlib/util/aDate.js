@@ -12,7 +12,7 @@ if (Date.now) {
 }else{
 	Date.currentTimestamp = function currentTimestamp(){
 		new Date().getTime();
-	}//method
+	};//method
 }//endif
 
 Date.now = function(){
@@ -37,8 +37,11 @@ Date.newInstance = function(value){
 	}//endif
 	if (aMath.isNumeric(value)){
 		value=value-0;
-		if (value>9990000000000) return null;
-		return new Date(value)
+		if (value <= 9999999999) {  //TOO SMALL, MUST BE A UNIX TIMESTAMP
+			return new Date(value * 1000);
+		}else{
+			return new Date(value);
+		}//endif
 	}//endif
 
 	return new Date(value);
@@ -66,13 +69,15 @@ Date.max=function(){
 };//method
 
 
-
-
 Date.prototype.getMilli = Date.prototype.getTime;
-
+Date.prototype.milli = Date.prototype.getTime;
+Date.prototype.unix = function(){
+	// RETURN NUMBER OF SECONDS SINCE EPOCH
+	return this.milli()/1000.0;
+};//function
 
 Date.prototype.between=function(min, max){
-	if (min==null) return null;	//NULL MEANS UNKNOWN, SO between() IS UNKNOWN
+	if (min==null) return null;  //NULL MEANS UNKNOWN, SO between() IS UNKNOWN
 	if (max==null) return null;
 
 	//UNDEFINED MEANS DO-NOT-CARE
@@ -97,8 +102,6 @@ Date.prototype.add = function(interval){
 	var addMilli = i.milli - (Duration.MILLI_VALUES.month * i.month);
 	return this.addMonth(i.month).addMilli(addMilli);
 };//method
-
-
 
 Date.prototype.subtract=function(time, interval){
 	if (typeof(time)=="string") Log.error("expecting to subtract a Duration or Date object, not a string");
@@ -160,7 +163,7 @@ Date.diffWeekday=function(endTime, startTime){
 	var output=((startWeek.getMilli()-startTime.getMilli())+((endWeek.getMilli()-startWeek.getMilli())/7)*5+(endTime.getMilli()-endWeek.addDay(2).getMilli()))/Duration.DAY.milli;
 
 
-	if (out!=aMath.ceil(output))
+	if (out!=aMath.sign(output)*aMath.ceil(aMath.abs(output)))
 		Log.error("Weekday calculation failed internal test");
 
 
@@ -194,8 +197,8 @@ Date.diffMonth=function(endTime, startTime){
 	var output=new Duration();
 	output.month=numMonths;
 	output.milli=endTime.getMilli()-startTime.addMonth(numMonths).getMilli()+(numMonths*Duration.MILLI_VALUES.month);
-//	if (output.milli>=Duration.MILLI_VALUES.day*31)
-//		Log.error("problem");
+//  if (output.milli>=Duration.MILLI_VALUES.day*31)
+//    Log.error("problem");
 	return output;
 };//method
 
@@ -271,7 +274,7 @@ Date.prototype.addWeek = function(value){
 };//method
 
 Date.prototype.addMonth = function(value){
-	if (value==0) return this;	//WHOA! SETTING MONTH IS CRAZY EXPENSIVE!!
+	if (value==0) return this;  //WHOA! SETTING MONTH IS CRAZY EXPENSIVE!!
 	var output = new Date(this);
 	output.setUTCMonth(this.getUTCMonth() + value);
 	return output;
@@ -834,7 +837,7 @@ Date.getDateFromFormat=function(val, format, isPastDate){
 };//method
 
 // ------------------------------------------------------------------
-// parseDate( date_string [,isPastDate] [, prefer_euro_format] )
+// parseDate( date_string [,isPastDate])
 //
 // This function takes a date string and tries to match it to a
 // number of possible date formats to get the value. It will try to
@@ -842,9 +845,6 @@ Date.getDateFromFormat=function(val, format, isPastDate){
 // y-M-d   MMM d, y   MMM d,y   y-MMM-d   d-MMM-y  MMM d
 // M/d/y   M-d-y      M.d.y     MMM-d     M/d      M-d
 // d/M/y   d-M-y      d.M.y     d-MMM     d/M      d-M
-// A second argument may be passed to instruct the method to search
-// for formats like d/M/y (european format) before M/d/y (American).
-// Returns a Date object or null if no patterns match.
 // ------------------------------------------------------------------
 {
 	var generalFormats = ['EE MMM d, yyyy', 'EE MMM d, yyyy @ hh:mm a', 'y M d', 'y - M - d',  'yyyy - MM - dd HH : mm : ss', 'MMM d, y', 'MMM d y', 'MMM d', 'y - MMM - d', 'yyyyMMMd', 'd - MMM - y', 'd MMM y'];
@@ -861,7 +861,7 @@ Date.tryParse=function(val, isFutureDate){
 
 	var d = null;
 	for(var i = 0; i < Date.CheckList.length; i++){
-		d = Date.getDateFromFormat(val, Date.CheckList[i], !nvl(isFutureDate, false));
+		d = Date.getDateFromFormat(val, Date.CheckList[i], !coalesce(isFutureDate, false));
 		if (d != 0){
 			var temp=Date.CheckList[i];
 			Date.CheckList.splice(i, 1);

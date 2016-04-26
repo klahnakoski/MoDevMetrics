@@ -50,7 +50,7 @@ importScript(["modevlib/main.js"], function(){
 			]}
 		}));
 
-		var numBad = yield (Qb.calc2List({
+		var numBad = yield (qb.calc2List({
 			"from" : result,
 			"select" : [
 				{"name" : "bug ID", "value" : "bug_id"},
@@ -60,7 +60,7 @@ importScript(["modevlib/main.js"], function(){
 		}));
 
 		numBad.list = numBad.list.left(100);
-		$("#results").html(CNV.List2HTMLTable(numBad));
+		$("#results").html(convert.List2HTMLTable(numBad));
 		Log.actionDone(a);
 
 
@@ -79,7 +79,7 @@ importScript(["modevlib/main.js"], function(){
 		}));
 		Log.actionDone(a);
 
-		var times = yield(Qb.calc2List({
+		var times = yield(qb.calc2List({
 			"select" : [
 				{"value" : "_id"},
 				{"value" : "bug_id"},
@@ -94,7 +94,7 @@ importScript(["modevlib/main.js"], function(){
 			]
 		}));
 
-		var fixed = yield (Qb.calc2List({
+		var fixed = yield (qb.calc2List({
 			"from" : times,
 			"select" : [
 				{"value" : "_id"},
@@ -162,7 +162,7 @@ importScript(["modevlib/main.js"], function(){
 //			Log.actionDone(a);
 //		}//endif
 
-		$("#fixes").html(CNV.List2HTMLTable(fixed));
+		$("#fixes").html(convert.List2HTMLTable(fixed));
 
 
 	});

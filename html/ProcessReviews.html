@@ -54,7 +54,7 @@
 <script type="text/javascript" src="modevlib/collections/aArray.js"></script>
 <script type="text/javascript" src="modevlib/util/aString.js"></script>
 <script type="text/javascript" src="modevlib/math/aMath.js"></script>
-<script type="text/javascript" src="modevlib/util/CNV.js"></script>
+<script type="text/javascript" src="modevlib/util/convert.js"></script>
 <script type="text/javascript" src="modevlib/util/aUtil.js"></script>
 <script type="text/javascript" src="modevlib/collections/aArray.js"></script>
 <script type="text/javascript" src="modevlib/util/aString.js"></script>
@@ -75,12 +75,12 @@
 <script type="text/javascript" src="modevlib/qb/MVEL.js"></script>
 
 <script type="text/javascript" src="modevlib/threads/thread.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.analytic.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.aggregate.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.column.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.cube.js"></script>
-<script type="text/javascript" src="modevlib/qb/Qb.domain.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.analytic.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.aggregate.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.column.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.cube.js"></script>
+<script type="text/javascript" src="modevlib/qb/qb.domain.js"></script>
 <script type="text/javascript" src="modevlib/rest/Rest.js"></script>
 <script type="text/javascript" src="modevlib/qb/ESQuery.js"></script>
 <script type="text/javascript" src="modevlib/charts/aChart.js"></script>
@@ -219,19 +219,19 @@ var getReviews = function(minBug, maxBug){
 				Log.action("processing Data");
 
 
-//	Log.note(CNV.List2Tab(inReview.list));
-//	Log.note(CNV.List2Tab(doneReview.list));
-//	Log.note(CNV.List2Tab(switchedReview.list));
+//	Log.note(convert.List2Tab(inReview.list));
+//	Log.note(convert.List2Tab(doneReview.list));
+//	Log.note(convert.List2Tab(switchedReview.list));
 
 				doneReview.list.appendArray(switchedReview.list);
 
 
-				var reviewQueues = (yield(Qb.calc2List({
+				var reviewQueues = (yield(qb.calc2List({
 					"from":
 							inReview.list,
 					"select":[
 //				{"name":"close_record", "sort":["doneReview.end_time", ""]},
-						{"name":"review_time", "value":"Date.newInstance(nvl(doneReview.modified_ts, Date.now().getMilli()))", "aggregate":"minimum"}
+						{"name":"review_time", "value":"Date.newInstance(coalesce(doneReview.modified_ts, Date.now().getMilli()))", "aggregate":"minimum"}
 					],
 					"edges":[
 						{"name":"bug_id", "value":"bug_id"},

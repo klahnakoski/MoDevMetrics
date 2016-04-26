@@ -218,7 +218,7 @@ var __createChart = function*(){
 		}));
 
 
-		var title=nvl({
+		var title=coalesce({
 			"1day":"Daily",
 			"1week":"Weekly",
 			"1month":"Monthly"
@@ -250,7 +250,7 @@ var __createChart = function*(){
 			"timeSeries": true,
 			"clickAction":function(series, x, d){
 				Thread.run(function*(){
-					var buglist=(yield (Qb.calc2List({
+					var buglist=(yield (qb.calc2List({
 						"from":bugs,
 						"select":{"value":"bug_id"},
 						"where":series.toLowerCase()+"==1 && modified_ts.getMilli()=="+x.getMilli()
@@ -275,7 +275,7 @@ var __createChart = function*(){
 				{"name":"Accepted", "value":"accepted", "aggregate":"sum", "default":0, "style":{"color":"#76b41f"} },
 				{"name":"Rejected", "value":"rejected", "aggregate":"sum", "default":0, "style":{"color":"firebrick"}}
 			],
-			"where":"modified_ts.between("+CNV.Date2Code(statsMin)+", "+CNV.Date2Code(sampleMax)+")"
+			"where":"modified_ts.between("+convert.Date2Code(statsMin)+", "+convert.Date2Code(sampleMax)+")"
 		}));
 
 
@@ -318,20 +318,20 @@ var __createChart = function*(){
 		Log.actionDone(aa);
 
 		//FORMAT THE BUGS FOR TABLE
-		var showBugs=yield(Qb.calc2List({
+		var showBugs=yield(qb.calc2List({
 			"from":currentBugs,
 //			"analytic":{"name":"Order","value":"rownum+1", "sort":["Close Date", "ID"]},
 			"select":[
 				{"name":"ID", "value":"Bugzilla.linkToBug(id)"},
 //				{"name":"Close Date", "value":"(max==null) ? null : Date.newInstance(max).floorDay()"},
-				{"name":"Status", "value":"nvl(status, null)"},
-				{"name":"Resolution", "value":"nvl(resolution, null)"},
-				{"name":"Summary", "value":"nvl(summary, null)"}
+				{"name":"Status", "value":"coalesce(status, null)"},
+				{"name":"Resolution", "value":"coalesce(resolution, null)"},
+				{"name":"Summary", "value":"coalesce(summary, null)"}
 			],
 			"sort":["ID", "Status"]
 		}));
 
-		$("#report").html(CNV.List2HTMLTable(showBugs));
+		$("#report").html(convert.List2HTMLTable(showBugs));
 
 		Log.actionDone(a);
 

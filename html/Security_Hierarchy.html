@@ -79,7 +79,7 @@ var __createChart = function*(){
 	var sampleMin = Date.newInstance(GUI.state.sampleMin);
 	var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
 	var sampleMax = Date.newInstance(GUI.state.sampleMax).addDay();
-	var bug_ids = GUI.state.bugList.trim()=="" ? [] : GUI.state.bugList.split(",").map(function(v){return CNV.String2Integer(v.trim());});
+	var bug_ids = GUI.state.bugList.trim()=="" ? [] : GUI.state.bugList.split(",").map(function(v){return convert.String2Integer(v.trim());});
 
 	var timeDomain = null;
 
@@ -148,9 +148,9 @@ var __createChart = function*(){
 			}));
 
 			if (milestones.length>0){
-				$("#title").html(r.list.map(CNV.String2HTML).join("<br>")+"Milestone " + milestones.select("name").join(" and "));
+				$("#title").html(r.list.map(convert.String2HTML).join("<br>")+"Milestone " + milestones.select("name").join(" and "));
 			}else{
-				$("#title").html(r.list.map(CNV.String2HTML).join("<br>"));
+				$("#title").html(r.list.map(convert.String2HTML).join("<br>"));
 			}//endif
 		});
 
@@ -160,7 +160,7 @@ var __createChart = function*(){
 	}//endif
 
 	var currFeatureFilter = {"match_all": {}};
-	yield (getDailyDependencies(raw_data, nvl(milestoneFilter, {"match_all": {}}) ));
+	yield (getDailyDependencies(raw_data, coalesce(milestoneFilter, {"match_all": {}}) ));
 
 	//LAST DAY WILL BE CONSIDERED CURRENT FEATURE LIST
 	var currOpenBugs=raw_data.cube.last().filter({"and":[
@@ -200,7 +200,7 @@ function __reChart(){
 		milestoneFilter = {"or": milestones.select("esfilter")};
 	}//endif
 
-	yield (getDailyDependencies(raw_data, nvl(milestoneFilter, {"match_all": {}}) ));
+	yield (getDailyDependencies(raw_data, coalesce(milestoneFilter, {"match_all": {}}) ));
 
 	var currFeatureFilter = {"match_all": {}};
 
@@ -283,7 +283,7 @@ function restOfCharting(env){
 		}));
 		Log.actionDone(a);
 
-		var details = yield (Qb.calc2List({
+		var details = yield (qb.calc2List({
 			"from":bugs,
 			"select":[
 				{"name":"bug_id", "value":"Bugzilla.linkToBug(bug_id)"},
@@ -294,7 +294,7 @@ function restOfCharting(env){
 			"sort":["Status"]
 		}));
 
-		$("#buglist").html(CNV.List2HTMLTable(details));
+		$("#buglist").html(convert.List2HTMLTable(details));
 	});
 
 	Thread.run(function*(){

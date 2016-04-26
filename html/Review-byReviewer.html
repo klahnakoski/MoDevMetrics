@@ -141,7 +141,7 @@ importScript([
 					"select" : {"name":"count", "value" : "bug_id", "aggregate" : "count", "default":0},
 					"edges" : [
 						{"name" : "status", "value" : "review_time==null ? 'pending' : 'done'", "domain":typeDomain},
-						{"name":"this week", "value":CNV.String2Quote(timeDomain.max.format("MM/dd"))}
+						{"name":"this week", "value":convert.String2Quote(timeDomain.max.format("MM/dd"))}
 					]
 				}));
 				Log.actionDone(a);

@@ -83,14 +83,8 @@ importScript('modevlib/main.js', function(){
 		var sampleInterval = Duration.DAY;
 
 		var createTime = "doc[\"create_time\"].value";
-//	var idTime=GUI.state.programFilter.bugStatusMinimum_fromSource();
-//	var testValue=GUI.state.programFilter.bugStatusMinimum_fromDoc();
-
-
-//	var closeTime="minimum("+sampleMax.getMilli()+", coalesce(zero2null(close_time), "+sampleMax.getMilli()+"))";
 
 		var mainFilter = {"and":[
-//		{"range":{"date":{"gte":sampleMin.getMilli(), "lt":sampleMax.getMilli()}}},
 			Mozilla.BugStatus.Open.esfilter,
 			{"or":[
 				Mozilla.Security.Priority.High.esfilter,
@@ -98,7 +92,6 @@ importScript('modevlib/main.js', function(){
 			]},
 			Mozilla.Security.Teams.esfilter,
 			GUI.getFilters("private_bugs")
-//		{"term":{"bug_id":711043}}
 		]};
 
 
@@ -168,7 +161,7 @@ importScript('modevlib/main.js', function(){
 			details.columns.push({"name":"min"});
 			details.columns.push({"name":"max"});
 
-			details = yield(Qb.calc2List({
+			details = yield(qb.calc2List({
 				"from":details,
 				"select":[
 					{"name":"ID", "value":"Bugzilla.linkToBug(bug_id)"},
@@ -182,10 +175,7 @@ importScript('modevlib/main.js', function(){
 				"sort":["Age (Days)"]
 			}));
 
-
-			$("#details").html(CNV.List2HTMLTable(details));
-
-
+			$("#details").html(convert.List2HTMLTable(details));
 		});
 
 
@@ -265,10 +255,10 @@ importScript('modevlib/main.js', function(){
 					var field = {"New":"min", "Closed":"max"}[series];
 
 					Thread.run(function*(){
-						var buglist = (yield(Qb.calc2List({
+						var buglist = (yield(qb.calc2List({
 							"from":allBugs,
 							"select":{"value":"bug_id"},
-							"where":"" + field + "!==undefined && " + field + ".between(" + CNV.Date2Code(part.min) + ", " + CNV.Date2Code(part.max) + ")"
+							"where":"" + field + "!==undefined && " + field + ".between(" + convert.Date2Code(part.min) + ", " + convert.Date2Code(part.max) + ")"
 						})));
 
 						Bugzilla.showBugs(buglist.list);

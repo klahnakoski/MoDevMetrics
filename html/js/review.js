@@ -1,7 +1,7 @@
 //USES GUI.state TO PULL THE TEAMS
 
 function*getReviewers(timeDomain, maxReviewers){
-	maxReviewers = nvl(maxReviewers, 100);
+	maxReviewers = coalesce(maxReviewers, 100);
 
 	var persons = [];
 
@@ -72,7 +72,7 @@ function*getReviewers(timeDomain, maxReviewers){
 	//	"from":reviewers,
 	//	"sort":{"reviewer":{"value":"count", "sort":-1, "aggregate":"sum", "where":{"term":{"type":"done"}}}}
 	//}));
-	var ordered = Qb.sort(Qb.Cube2List(reviewers).filter({"term" : {"type.name" : "done"}}), {"value" : "count", "sort" : -1});
+	var ordered = qb.sort(qb.Cube2List(reviewers).filter({"term" : {"type.name" : "done"}}), {"value" : "count", "sort" : -1});
 	var old_parts = reviewers.edges[1].domain.partitions;
 	var new_parts = [];
 	var new_cube = reviewers.cube.map(function(){
@@ -160,7 +160,7 @@ function* getPendingPatches(mainFilter){
 					f.bug = b;
 					f.attachment = a;
 					f.reviewer = f.requestee;
-					f.request_time = nvl(f.modified_ts, a.modified_ts);
+					f.request_ticoalesce= nvl(f.modified_ts, a.modified_ts);
 					allPatches.append(f);
 				}//endif
 			});

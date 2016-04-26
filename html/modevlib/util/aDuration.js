@@ -4,13 +4,16 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 importScript("aDate.js");
-importScript("CNV.js");
+importScript("aString.js");
+importScript("convert.js");
+importScript("../math/aMath.js");
 
 
 
 var Duration = function(){
-	this.milli = 0;	//INCLUDES THE MONTH VALUE AS MILLISECONDS
+	this.milli = 0;  //INCLUDES THE MONTH VALUE AS MILLISECONDS
 	this.month = 0;
+	return this;
 };
 
 
@@ -25,9 +28,9 @@ Duration.DOMAIN={
 
 
 Duration.MILLI_VALUES = {
-	"year":52 * 7 * 24 * 60 * 60 * 1000,		//52weeks
-	"quarter":13 * 7 * 24 * 60 * 60 * 1000,	//13weeks
-	"month":28 * 24 * 60 * 60 * 1000,		//4weeks
+	"year":52 * 7 * 24 * 60 * 60 * 1000,    //52weeks
+	"quarter":13 * 7 * 24 * 60 * 60 * 1000,  //13weeks
+	"month":28 * 24 * 60 * 60 * 1000,    //4weeks
 	"week":7 * 24 * 60 * 60 * 1000,
 	"day":24 * 60 * 60 * 1000,
 	"hour":60 * 60 * 1000,
@@ -62,7 +65,7 @@ Duration.String2Duration = function(text){
 
 	var output = new Duration();
 	var interval = text.rightBut(s);
-	var amount = (s == 0 ? 1 : CNV.String2Integer(text.left(s)));
+	var amount = (s == 0 ? 1 : convert.String2Integer(text.left(s)));
 
 	if (Duration.MILLI_VALUES[interval] === undefined)
 		Log.error(interval + " is not a recognized duration type (did you use the pural form by mistake?");
@@ -106,6 +109,18 @@ Duration.max = function(a, b){
 	}//endif
 };//method
 
+Duration.min = function(a, b){
+	if (a.month < b.month) {
+		return a;
+	} else if (b.month < a.month) {
+		return b;
+	} else if (a.milli < b.milli) {
+		return a;
+	} else {
+		return b;
+	}//endif
+};//method
+
 
 Duration.newInstance = function(obj){
 	if (obj === undefined) return undefined;
@@ -123,7 +138,7 @@ Duration.newInstance = function(obj){
 	} else if (isNaN(obj)){
 		//return null;
 	} else{
-		Log.error("Do not know type of object (" + CNV.Object2JSON(obj) + ")of to make a Duration");
+		Log.error("Do not know type of object (" + convert.value2json(obj) + ")of to make a Duration");
 	}//endif
 	return output;
 };//method
@@ -205,15 +220,15 @@ Duration.prototype.floor = function(interval){
 	if (interval.month != 0){
 		if (this.month!=0){
 			output.month = aMath.floor(this.month/interval.month)*interval.month;
-//			var rest=(this.milli - (Duration.MILLI_VALUES.month * output.month));
-//			if (rest>Duration.MILLI_VALUES.day*31){	//WE HOPE THIS BIGGER VALUE WILL STILL CATCH POSSIBLE LOGIC PROBLEMS
-//				Log.error("This duration has more than a month's worth of millis, can not handle this rounding");
-//			}//endif
-//			while (rest<0){
-//				output.month-=interval.month;
-//				rest=(this.milli - (Duration.MILLI_VALUES.month * output.month));
-//			}//while
-////			if (rest>Duration.MILLI_VALUES.month){ //WHEN FLOORING xmonth-1day, THE rest CAN BE 4week+1day, OR MORE.
+//      var rest=(this.milli - (Duration.MILLI_VALUES.month * output.month));
+//      if (rest>Duration.MILLI_VALUES.day*31){  //WE HOPE THIS BIGGER VALUE WILL STILL CATCH POSSIBLE LOGIC PROBLEMS
+//        Log.error("This duration has more than a month's worth of millis, can not handle this rounding");
+//      }//endif
+//      while (rest<0){
+//        output.month-=interval.month;
+//        rest=(this.milli - (Duration.MILLI_VALUES.month * output.month));
+//      }//while
+////      if (rest>Duration.MILLI_VALUES.month){ //WHEN FLOORING xmonth-1day, THE rest CAN BE 4week+1day, OR MORE.
 			output.milli = output.month * Duration.MILLI_VALUES.month;
 			return output;
 		}//endif
@@ -225,6 +240,11 @@ Duration.prototype.floor = function(interval){
 		output.milli = aMath.floor(this.milli / (interval.milli)) * (interval.milli);
 	}//endif
 	return output;
+};//method
+
+
+Duration.prototype.mod = function(interval){
+	return this.subtract(this.floor(interval));
 };//method
 
 
@@ -295,9 +315,14 @@ Duration.prototype.toString = function(){
 };//method
 
 
-Duration.prototype.format=function(interval, rounding){
-	return this.round(Duration.newInstance(interval), rounding)+interval;
+
+Duration.prototype.format=function(format_){
+	return new Date(this.milli).format(format_);
 };//method
+
+//Duration.prototype.format=function(interval, rounding){
+//  return this.round(Duration.newInstance(interval), rounding)+interval;
+//};//method
 
 Duration.prototype.round=function(interval, rounding){
 	if (rounding===undefined) rounding=0;

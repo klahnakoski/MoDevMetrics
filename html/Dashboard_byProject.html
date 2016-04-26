@@ -155,12 +155,14 @@ importScript("modevlib/main.js", function(){
 		};
 
 		var a = Log.action("Get ES Data", true);
+		var data;
 		try{
-			var data = yield(ElasticSearch.search("bugs", query));
-		} catch(e){
-			Log.warning("Problem with ES request");
+			data = yield(ElasticSearch.search("bugs", query));
+		} catch(e) {
+			Log.error("Problem with ES request", e);
+		}finally {
+			Log.actionDone(a);
 		}//try
-		Log.actionDone(a);
 
 		if (GUI.state.programFilter.selected.length == 0){
 			$("#header").html("Project Status Dashboard");
@@ -176,7 +178,7 @@ importScript("modevlib/main.js", function(){
 		]);
 
 
-		var pendingReview = (yield(Qb.calc2List({
+		var pendingReview = (yield(qb.calc2List({
 			"from":
 					esResult,
 			"select":[
@@ -193,7 +195,7 @@ importScript("modevlib/main.js", function(){
 			var a = Log.action("Process Pending", true);
 
 
-			var result = (yield(Qb.calc2List({
+			var result = (yield(qb.calc2List({
 				"from":
 					//REQUESTEE AND BUG_ID CAN SHOW UP MORE THAN ONCE, CONDENSE
 						pendingReview,
@@ -211,7 +213,7 @@ importScript("modevlib/main.js", function(){
 			}))).list;
 
 			//ADD LINK TO BUGS
-			result = (yield(Qb.calc2List({
+			result = (yield(qb.calc2List({
 				"from":result,
 				"select":[
 					{"name":"requestee", "value":"requestee"},
@@ -222,7 +224,7 @@ importScript("modevlib/main.js", function(){
 			}))).list;
 
 
-			$("#pending").html("<h3>Pending Review (R?)</h3>" + CNV.List2HTMLTable(result));
+			$("#pending").html("<h3>Pending Review (R?)</h3>" + convert.List2HTMLTable(result));
 
 			Log.actionDone(a);
 		});
@@ -236,7 +238,7 @@ importScript("modevlib/main.js", function(){
 				{"name":"requestee", "value":"bugs.attachments.flags.requestee"}
 			]);
 
-			var doneReview = (yield(Qb.calc2List({
+			var doneReview = (yield(qb.calc2List({
 				"from":
 						esResult3,
 				"select":[
@@ -258,7 +260,7 @@ importScript("modevlib/main.js", function(){
 
 
 			//ADD LINK TO BUGS
-			var result3 = (yield(Qb.calc2List({
+			var result3 = (yield(qb.calc2List({
 				"from":doneReview,
 				"select":[
 					{"name":"Wait Time", value:"aMath.round(Duration.newInstance(wait_time).divideBy(Duration.DAY), 1)+'days'"},
@@ -266,7 +268,7 @@ importScript("modevlib/main.js", function(){
 				]
 			}))).list;
 
-			$("#complete").html("<h3>Review Completed (R+)</h3>" + CNV.List2HTMLTable(result3));
+			$("#complete").html("<h3>Review Completed (R+)</h3>" + convert.List2HTMLTable(result3));
 
 			Log.actionDone(a);
 		});
@@ -281,7 +283,7 @@ importScript("modevlib/main.js", function(){
 			]);
 
 
-			var result = (yield(Qb.calc2List({
+			var result = (yield(qb.calc2List({
 				"from":
 						assigned,
 				"select":[
@@ -297,7 +299,7 @@ importScript("modevlib/main.js", function(){
 			}))).list;
 
 			//ADD LINK TO BUGS
-			result = (yield(Qb.calc2List({
+			result = (yield(qb.calc2List({
 				"from":result,
 				"select":[
 					{"name":"assigned_to", value:"assigned_to"},
@@ -306,7 +308,7 @@ importScript("modevlib/main.js", function(){
 				]
 			}))).list;
 
-			$("#open").html("<h3>Assigned To</h3>" + CNV.List2HTMLTable(result));
+			$("#open").html("<h3>Assigned To</h3>" + convert.List2HTMLTable(result));
 
 			Log.actionDone(a);
 		});

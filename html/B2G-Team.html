@@ -210,7 +210,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js", "
 					var date = churn.edges[1].domain.getPartByKey(x);
 
 					Thread.run(function*() {
-						var buglist = (yield (Qb.calc2List({
+						var buglist = (yield (qb.calc2List({
 							"from": allBugs,
 							"select": {"value": "bug_id"},
 							"where": {"and": [
@@ -268,7 +268,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js", "
 				var data = blockers.cube;
 				allBlockers.list.forall(function (v) {
 					Map.copy({"min":null, "max":null}, v);  //DEFAULT VALUES
-					Map.copy(nvl(data[domain.getPartByKey(v.bug_id).dataIndex], {}), v);
+					Map.copy(coalesce(data[domain.getPartByKey(v.bug_id).dataIndex], {}), v);
 				});
 			}
 
@@ -280,7 +280,7 @@ importScript(['js/main.js', 'js/Dimension-Bugzilla.js', "js/Dimension-B2G.js", "
 				"name": "Average Age of "+teamName+" Blockers (Days)",
 				"from": allBlockers.list,
 				"select":
-					{"name": "Maximum", "value": "(aMath.min(max, time.min.getMilli())-nvl(min, time.min.getMilli()))/Duration.DAY.milli", "aggregate": "average", "default": 0, "style": {"color": "#00d6ff", "visibility": "hidden"}}
+					{"name": "Maximum", "value": "(aMath.min(max, time.min.getMilli())-coalesce(min, time.min.getMilli()))/Duration.DAY.milli", "aggregate": "average", "default": 0, "style": {"color": "#00d6ff", "visibility": "hidden"}}
 				,
 				"edges": [
 					{"name": "Project", "domain":projectDomain},
@@ -421,7 +421,7 @@ function teamSummary(team) {
 		yield (Thread.join(ageThread));
 		yield (Thread.join(uBlockerThread));
 
-		var both = Qb.merge([
+		var both = qb.merge([
 			{"from": counting, "edges": ["Component", "Project", "State"]},
 			{"from": ages, "edges": ["Component", "Project", "State"]},
 			{"from": uBlocker, "edges": ["Component", "Project", "State"]}
@@ -430,7 +430,7 @@ function teamSummary(team) {
 		//SHOW GRID
 		both.name = team.name;
 		if (["Performance", "All Others", "All Teams"].contains(team.name)){
-			Qb.removeZeroParts(both, 0);
+			qb.removeZeroParts(both, 0);
 		}//endif
 
 		var html = cube2grid({

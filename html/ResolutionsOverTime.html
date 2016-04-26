@@ -69,12 +69,12 @@ importScript([
 
 		(GUI.injectFilters(query));
 
-		Log.note(CNV.Object2JSON(query.esQuery));
+		Log.note(convert.Object2JSON(query.esQuery));
 
 		Log.action("Calling ES");
 		var chartCube = (yield(query.run()));
 
-		Qb.normalizeByX(chartCube, 100);
+		qb.normalizeByX(chartCube, 100);
 
 		var a = Log.action("Make chart", true);
 		aChart.show({

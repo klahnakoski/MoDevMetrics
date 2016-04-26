@@ -1,14 +1,19 @@
-from pyLibrary.cnv import CNV
-from pyLibrary.collections import OR
-from pyLibrary.env.files import File
-from pyLibrary.env.logs import Log
-from pyLibrary.structs.wraps import listwrap
-from pyLibrary.thread.threads import Thread
+# encoding: utf-8
+#
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Author: Kyle Lahnakoski (kyle@lahnakoski.com)
+#
+
+from __future__ import unicode_literals
 import pytest
 
 from selenium import webdriver
+from util import MoDevMetricsDriver, path2fullpath
 
-LOG_DIV = "test_logs"
 
 
 @pytest.mark.parametrize("path", [
@@ -22,59 +27,13 @@ LOG_DIV = "test_logs"
     "html/Reviews_Pending_18.html"
 ])
 def test_one_page(path):
-    fullpath = "file:///" + File(path).abspath.replace("\\", "/")
-    if fullpath.find("#") >= 0:
-        fullpath = fullpath.replace("#", "#log=" + LOG_DIV + "&")
-    else:
-        fullpath = fullpath + "#log=" + LOG_DIV
+    fullpath = path2fullpath(path)
 
-    driver = BetterDriver(webdriver.Firefox())
+    driver = MoDevMetricsDriver(webdriver.Firefox())
+
     driver.get(fullpath)
+    logs = driver.wait_for_logs()
+    driver.check_if_still_loading(path)# FIND ANY ERRORS IN THE LOGS
 
-    logs = wait_for_logs(driver)
+    driver.check_for_errors(logs, path)
 
-    # IF SPINNER STILL SHOWS, THEN WE GOT LOADING ISSUES
-    isLoading = OR([e.is_displayed() for e in driver.find(".loading")])
-    if isLoading:
-        Log.error("page still loading: {{page}}", {"page": path})
-
-    # FIND ANY ERRORS IN THE LOGS
-    try:
-        errors = [l for l in logs if l.type == "ERROR"]
-        if errors:
-            Log.error("Problem found in {{page}}:\n{{error|indent}}", {
-                "page": path,
-                "error": errors[0]
-            })
-    finally:
-        driver.close()
-
-
-def wait_for_logs(driver):
-    old_length = -1
-    elements = driver.find("#" + LOG_DIV + " p")
-    while len(elements) != old_length:
-        Thread.sleep(seconds=10)
-        old_length = len(elements)
-        elements = driver.find("#" + LOG_DIV + " p")
-
-    return [CNV.JSON2object(CNV.html2unicode(e.get_attribute('innerHTML'))) for e in elements]
-
-
-class BetterDriver(object):
-    def __init__(self, driver):
-        self.driver = driver
-
-    def find(self, selector):
-        try:
-            return self.driver.find_elements_by_css_selector(selector)
-        except Exception, e:
-            return []
-
-    def get(self, *args, **kwargs):
-        self.driver.get(*args, **kwargs)
-        return self
-
-    def close(self, *args, **kwargs):
-        self.driver.close(*args, **kwargs)
-        return self

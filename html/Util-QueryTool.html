@@ -19,8 +19,8 @@
 	<hr>
 	<div id="description">
 		Converts Qbic queries to ElasticSearch queries. <ul>
-		<li><a href="https://github.com/klahnakoski/Qb/blob/master/docs/Qb_Reference.md">Reference Documentation</a></li>
-		<li><a href="https://github.com/klahnakoski/Qb/blob/master/docs/BZ_Tutorial.md">Tutorial</a></li>
+		<li><a href="https://github.com/klahnakoski/qb/blob/master/docs/Qb_Reference.md">Reference Documentation</a></li>
+		<li><a href="https://github.com/klahnakoski/qb/blob/master/docs/BZ_Tutorial.md">Tutorial</a></li>
 		</ul>
 	</div>
 	<hr>
@@ -86,20 +86,20 @@
 
 		$("#long2date").change(function(){
 			var value = $(this).val();
-			$("#long2dateResult").html(Date.newInstance(CNV.String2Integer(value)).format("dd-NNN-yyyy HH:mm:ss") + "<br>" +
-					Date.newInstance(CNV.String2Integer(value)).toString());
+			$("#long2dateResult").html(Date.newInstance(convert.String2Integer(value)).format("dd-NNN-yyyy HH:mm:ss") + "<br>" +
+					Date.newInstance(convert.String2Integer(value)).toString());
 		});
 
 		$("#date2long").change(function(){
 			var value = $(this).val();
-			$("#date2longResult").html(CNV.Date2milli(Date.newInstance(value)));
+			$("#date2longResult").html(convert.Date2milli(Date.newInstance(value)));
 		});
 
 
 		var executeCube = function*(event){ //THIS IS A GENERATOR
 			var index = $("#long2date").val();
 
-			//EVAL THE Qb
+			//EVAL THE qb
 			var code = $("#cube").val();
 			if (code.trim().left(1) != "{") code = "{" + code;
 			if (code.trim().right(1) != "}") code = code + "}";
@@ -120,10 +120,10 @@
 				}
 				yield(ESQuery.loadColumns(query));
 				cubeQuery = new ESQuery(query);
-				$("#esquery").val(CNV.Object2JSON(cubeQuery.esQuery));
+				$("#esquery").val(convert.Object2JSON(cubeQuery.esQuery));
 
 				//TIGHTER PACKING IF JSON
-				$("#cube").val(CNV.Object2JSON(CNV.JSON2Object(backupCode)));
+				$("#cube").val(convert.Object2JSON(convert.JSON2Object(backupCode)));
 			} catch(e){
 				$("#esquery").val(e.message);
 				yield(null);
@@ -137,12 +137,12 @@
 				Log.action("Got result");
 
 				if (data.cube !== undefined){
-					data.list = Qb.Cube2List(data);
-					$("#result").html("<div>" + data.list.length + " rows (up to 100 shown)</div>" + CNV.List2HTMLTable(data.list, {"limit":3000}));
+					data.list = qb.Cube2List(data);
+					$("#result").html("<div>" + data.list.length + " rows (up to 100 shown)</div>" + convert.List2HTMLTable(data.list, {"limit":3000}));
 				} else if (data.list !== undefined){
-					$("#result").html("<div>" + data.list.length + " rows (up to 100 shown)</div>" + CNV.List2HTMLTable(data.list, {"limit":3000}));
+					$("#result").html("<div>" + data.list.length + " rows (up to 100 shown)</div>" + convert.List2HTMLTable(data.list, {"limit":3000}));
 				} else{
-					$("#result").html(CNV.String2HTML(CNV.Object2JSON(data)));
+					$("#result").html(convert.String2HTML(convert.Object2JSON(data)));
 				}//endif
 			} catch(e){
 				Log.action(e.message);
