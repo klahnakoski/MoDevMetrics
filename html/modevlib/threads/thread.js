@@ -493,8 +493,6 @@ build = function(){
 		var instance = func(param);
 		yield (new Suspend(instance));
 	};//method
-
-
 };
 
 
