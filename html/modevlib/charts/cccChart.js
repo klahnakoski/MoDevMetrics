@@ -865,7 +865,10 @@ function bugClicker(query, series, x){
 	//			var specific=qb.specificBugs(query, [series, x]);
 				var buglist=(yield (ESQuery.run(specific)));
 	//			buglist=buglist.list.map(function(b){return b.bug_id;});
-				if (buglist.cube===undefined) buglist.cube=buglist.list;
+				if (buglist.cube===undefined){
+					buglist.cube=buglist.list.select("bug_id");
+				}//endif
+
 
 
 				if (buglist.cube.length>BZ_SHOW_BUG_LIMIT){
