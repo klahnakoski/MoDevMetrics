@@ -20,7 +20,7 @@
 
 <script type="application/javascript">
 
-
+CHANGE_LIMIT = 500;
 USE_DOT = true;
 
 importScript(["modevlib/main.js"], function(){
@@ -33,7 +33,7 @@ importScript(["modevlib/main.js"], function(){
 			"from" : "public_bugs_backend",
 			"select" : {"name" : "count", "value" : "bug_id", "aggregate" : "count"},
 			"edges" : ["bug_id"],
-			"esfilter" : {"range" : {"modified_ts" : {"gte" : Date.now().addWeek(-2).getMilli()}}}
+			"esfilter" : {"range" : {"modified_ts" : {"gte" : Date.today().addDay(-1).getMilli()}}}
 		}));
 		bugs = bugs.edges[0].domain.partitions.select("value");
 
@@ -114,11 +114,26 @@ importScript(["modevlib/main.js"], function(){
 
 
 		//GET ALL THE SOURCES OF THE BAD RECORDS
-		var a = Log.action("Get bug _source json", true);
+		var a1 = Log.action("Get bug _source json", true);
 		var sources = [];
 
 		var host = ESQuery.INDEXES["public_bugs_backend"].host;
 		var path = ESQuery.INDEXES["public_bugs_backend"].path;
+
+		fixed.list = Qb.sort(fixed.list, "_id");
+
+		// CAP THE NUMBER OF FIXES FOR SANITY
+		var last_bug = null;
+		var limit = 0;
+		for(;limit<fixed.list.length;limit++){
+			v = fixed.list[limit];
+			var bug_id = v._id.split("_")[0];
+			if (last_bug!=bug_id) {
+				last_bug = bug_id;
+				if (limit > CHANGE_LIMIT) break
+			}//endif
+		}//for
+		fixed.list = fixed.list.substring(0, limit);
 
 		for (var i = fixed.list.length; i--;) {
 			try {
@@ -133,7 +148,7 @@ importScript(["modevlib/main.js"], function(){
 				Log.error("can not get json for {{id}}", {"id" : v._id}, e);
 			}//try
 		}
-		Log.actionDone(a);
+		Log.actionDone(a1);
 
 		//ASSIGN NEW expires_on
 		var fixer = {};

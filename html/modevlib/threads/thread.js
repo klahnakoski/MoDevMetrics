@@ -297,7 +297,8 @@ build = function(){
 			Log.error("Expecting thread " + convert.string2quote(self.name) + " to have dealt with kill() immediately");
 		}//endif
 		if (this.keepRunning){
-			Log.error("not expected");
+			this.cleanup();
+			Log.warning("not expected");
 		}//endif
 	};
 
@@ -359,7 +360,9 @@ build = function(){
 
 		if (Thread.isRunning.length == 0) {
 			Thread.hideWorking();
-		}else{
+		}//endif
+
+		if (DEBUG && Thread.isRunning.length > 0) {
 			Log.note("Threads running:\n"+Thread.isRunning.select("name").join(",\n").indent());
 		}//endif
 	};
@@ -406,7 +409,11 @@ build = function(){
 					Log.error("Expecting an object with kill() or abort() function");
 				} else {
 					request.kill = function(){
-						this.abort();
+						try {
+							this.abort();
+						}catch(e){
+							//DO NOTHING
+						}//try
 					};//function
 				}//endif
 			}//endif
