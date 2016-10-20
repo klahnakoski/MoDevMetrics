@@ -352,7 +352,7 @@ GUI = {};
 		///////////////////////////////////////////////////////////////////////////
 		GUI.AddParameters = function (parameters, relations) {
 			//KEEP SIMPLE PARAMETERS GUI.parameters AND REST IN customFilters
-			GUI.parameters = parameters.map(function (param) {
+			GUI.parameters = parameters.mapExists(function (param) {
 				if (param.type.isFilter) {
 					GUI.state[param.id] = param.type;
 					if (param.name) param.type.name = param.name;

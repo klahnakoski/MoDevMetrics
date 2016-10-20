@@ -337,7 +337,6 @@ function joinField(path){
 		}//for
 		if (DEBUG && numWhereFalse!=0) Log.note("Where clause rejected " + numWhereFalse + " rows");
 
-
 		yield query;
 	}
 
@@ -1086,18 +1085,18 @@ function joinField(path){
 		output.name = query.name;
 		output.from = query;
 		output.edges = [];
-		output.edges.appendArray(commonEdges);
+		output.edges.extend(commonEdges);
 		output.select = [];
 		output.columns = [];
-		output.columns.appendArray(commonEdges);
+		output.columns.extend(commonEdges);
 
 		output.cube = qb.cube.newInstance(output.edges, 0, []);
 		Map.copy(qb.query.prototype, output);
 
 		query.forall(function(item, index){
 			//COPY SELECT DEFINITIONS
-			output.select.appendArray(Array.newInstance(item.from.select));
-			output.columns.appendArray(Array.newInstance(item.from.select));
+			output.select.extend(Array.newInstance(item.from.select));
+			output.columns.extend(Array.newInstance(item.from.select));
 
 
 			//VERIFY DOMAINS ARE IDENTICAL, AND IN SAME ORDER
@@ -1193,11 +1192,17 @@ function joinField(path){
 	qb.sort.compile = function(sortOrder, columns, useNames){
 		var orderedColumns;
 		if (columns === undefined) {
-			orderedColumns = sortOrder.map(function(v){
+			orderedColumns = [];
+
+			sortOrder.forall(function(v){
 				if (v.value !== undefined && v.sort !== undefined) {
-					return {"name": v.value, "sortOrder": coalesce(v.sort, 1), "domain": qb.domain.value};
+					orderedColumns.append({"name": v.value, "sortOrder": coalesce(v.sort, 1), "domain": qb.domain.value});
+				} else if (Map.isMap(v) && Map.values(v).subtract([1, 0, -1, "desc", "asc"]).length == 0){
+					Map.items(v, function(k, s){
+						orderedColumns.append({"name": k, "sortOrder": {"1": 1, "0": 0, "-1": -1, "desc": -1, "asc": 1}[s], "domain": qb.domain.value});
+					});
 				} else {
-					return {"name": v, "sortOrder": 1, "domain": qb.domain.value};
+					orderedColumns.append({"name": v, "sortOrder": 1, "domain": qb.domain.value});
 				}//endif
 			});
 		} else {
@@ -1266,6 +1271,11 @@ function joinField(path){
 			Log.error("eval gone wrong", e)
 		}//try
 	};//method
+
+	qb.limit=function (data, limit){
+		return data.slice(0, limit);
+	};//method
+
 
   qb.groupby=function(data, columns){
     var sorted = qb.sort(data, columns);

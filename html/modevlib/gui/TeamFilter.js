@@ -211,7 +211,7 @@ TeamFilter.prototype.makeFilter = function(field_name){
 	var getEmail=function(children){
 		children.forall(function(child, i){
 			if (child.email)
-				bzEmails.appendArray(Array.newInstance(child.email));
+				bzEmails.extend(Array.newInstance(child.email));
 			if (child.children)
 				getEmail(child.children);
 		});

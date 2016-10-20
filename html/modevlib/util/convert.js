@@ -180,6 +180,7 @@ var convert = function(){
 		return $.param(value).replaceAll("%5B%5D=", "=");
 	};//method
 
+	convert.Map2URLParam = convert.Object2URL;
 
 	convert.URLParam2Object = function(param){
 		// CONVERT URL QUERY PARAMETERS INTO DICT
@@ -196,6 +197,9 @@ var convert = function(){
 					var d = convert.hex2bytes(v.substring(i + 1, i + 3));
 					output += d;
 					i += 3;
+				} else if (c == "+"){
+					output += " ";
+					i += 1;
 				} else {
 					output += c;
 					i += 1;
@@ -265,7 +269,7 @@ var convert = function(){
 							return k.escape(urlMap) + "=" + value2json(vv).escape(urlMap);
 						}//endif
 					}).join("&");
-				} else if (Map.isObject(v)) {
+				} else if (Map.isMap(v)) {
 					return k.escape(urlMap) + "=" + value2json(v).escape(urlMap);
 				} else {
 					return k.escape(urlMap) + "=" + ("" + v).escape(urlMap);
@@ -429,6 +433,7 @@ var convert = function(){
 		return value - 0;
 	};//method
 
+	convert.value2number=convert.String2Integer;
 
 	function unPipe(value){
 		var s = value.indexOf("\\", 1);

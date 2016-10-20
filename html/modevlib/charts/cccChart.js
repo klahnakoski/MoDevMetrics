@@ -516,7 +516,7 @@ var aChart = {};
 			//LOOK FOR DATES TO MARKUP
 
 			var dateMarks = [];
-			dateMarks.appendArray(findDateMarks(xaxis.domain));  //WE CAN PLUG SOME dateMarks RIGHT INTO TIME DOMAIN FOR DISPLAY
+			dateMarks.extend(findDateMarks(xaxis.domain));  //WE CAN PLUG SOME dateMarks RIGHT INTO TIME DOMAIN FOR DISPLAY
 			if (dateMarks.length > 0) {
 				chartParams.renderCallback = function(){
 					var self = this;
@@ -860,9 +860,9 @@ var aChart = {};
 			//LOOK FOR DATES TO MARKUP
 
 			var dateMarks = [];
-			dateMarks.appendArray(findDateMarks(xaxis.domain));  //WE CAN PLUG SOME dateMarks RIGHT INTO TIME DOMAIN FOR DISPLAY
+			dateMarks.extend(findDateMarks(xaxis.domain));  //WE CAN PLUG SOME dateMarks RIGHT INTO TIME DOMAIN FOR DISPLAY
 			categoryAxis.domain.partitions.forall(function(part){  //EACH CATEGORY CAN HAVE IT'S OWN dateMarks to SHOW
-				dateMarks.appendArray(findDateMarks(part))
+				dateMarks.extend(findDateMarks(part))
 			});
 			if (dateMarks.length > 0) {
 				defaultParam.renderCallback = function(){

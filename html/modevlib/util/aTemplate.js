@@ -22,7 +22,9 @@ var Template = function Template(template){
 		}//endif
 
 		function lower(v){
-			if (typeof(v) == "object" && !(v instanceof Array) && !(v instanceof Date)) {
+			if (v==null) {
+				return v;
+			}else if (typeof(v) == "object" && !(v instanceof Array) && !(v instanceof Date) && !(v instanceof Duration)) {
 				var newMap = {};
 				Map.forall(v, function(k, v){
 					newMap[k.toLowerCase()] = lower(v);
@@ -92,9 +94,36 @@ var Template = function Template(template){
 			return convert.value2json();
 		}
 	};
+	FUNC.unix = function(value){
+		return Date.newInstance(value).unix();
+	};
+	FUNC.camel = function(value){
+		if (isString(value)) {
+			var output = [];
+			var caps=true;
+			for(var i=0;i<value.length;i++){
+				var c= value.charAt(i);
+				if (c.deformat() == "") {
+					output.append(c);
+					caps = true;
+				} else if (caps) {
+					output.append(c.toUpperCase());
+					caps = false
+				} else {
+					output.append(c);
+					caps = false
+				}
+			}//for
+			return output.join("");
+		} else {
+			return convert.value2json();
+		}
+	};
 
 	function _expand(template, namespaces){
-		if (template instanceof Array) {
+		if (template == undefined){
+			return "";
+		}else if (template instanceof Array) {
 			return _expand_array(template, namespaces);
 		} else if (isString(template)) {
 			return _expand_text(template, namespaces);
@@ -103,7 +132,7 @@ var Template = function Template(template){
 		} else if (template.from) {
 			return _expand_loop(template, namespaces);
 		} else {
-			Log.error("Not recognized {{template}}", {"template": template})
+			Log.error("Not recognized {{template|json}}", {"template": template})
 		}//endif
 	}
 

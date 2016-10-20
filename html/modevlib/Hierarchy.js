@@ -53,7 +53,7 @@ Hierarchy.fromList = function(args){
 	deleteMe.forall(function(pair){
 		childList[pair[0]] = childList[pair[0]].filter({"not" : {"term" : {"id" : pair[1].id}}});
 	});
-	roots.appendArray(deleteMe.select("1"));
+	roots.extend(deleteMe.select("1"));
 
 
 	var heir = function(children){
@@ -212,7 +212,7 @@ Hierarchy.topologicalSort = function(args){
 						if (graph[v].__parent !== undefined) return v;
 					});
 					if (hasParent.length == 0) Log.error("Isolated cycle found");
-					queue.appendArray(hasParent);
+					queue.extend(hasParent);
 				}//endif
 			}//END OF HACK
 

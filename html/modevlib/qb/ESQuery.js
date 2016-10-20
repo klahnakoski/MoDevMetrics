@@ -77,7 +77,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 
 			if (property.properties !== undefined) {
 				var childColumns = ESQuery.parseColumns(indexName, fullName, property.properties);
-				columns.appendArray(childColumns);
+				columns.extend(childColumns);
 				return;
 			}//endif
 
@@ -463,7 +463,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 		if (smoothEdges.length == this.query.edges.length) {
 			this.termsEdges = [];
 			this.select = Array.newInstance(this.query.select).copy();
-			this.select.appendArray(smoothEdges)
+			this.select.extend(smoothEdges)
 		} else {
 			this.termsEdges = this.query.edges.copy();
 			this.select = Array.newInstance(this.query.select);
@@ -1706,7 +1706,7 @@ ESFilter.normalize = function(esfilter){
 				if (a.or && a.or.length == 1) a = a.or[0];
 
 				if (a.and) {										//AND.AND
-					output.and.appendArray(a.and);
+					output.and.extend(a.and);
 				} else if (a.script && a.script.script == "true") {
 					//DO NOTHING
 				} else {
@@ -1741,11 +1741,11 @@ ESFilter.normalize = function(esfilter){
 					for (var c = 0; c < child.or.length; c++) {
 						var temp = {"and": [], "isNormal": true};
 						if (and[d].or[i].and) {
-							temp.and.appendArray(and[d].or[i].and);
+							temp.and.extend(and[d].or[i].and);
 						} else {
 							temp.and.push(and[d].or[i]);
 						}//endif
-						temp.and.appendArray(child.or[c].and);
+						temp.and.extend(child.or[c].and);
 						or.push(temp);
 					}//for
 				}//for
@@ -1760,7 +1760,7 @@ ESFilter.normalize = function(esfilter){
 			esfilter.or.forall(function(o, i){
 				var k = ESFilter.normalize(o);
 				if (k.or) {
-					output.or.appendArray(k.or);
+					output.or.extend(k.or);
 				} else {
 					output.or.push(k);
 				}//endif

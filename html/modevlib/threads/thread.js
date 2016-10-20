@@ -297,7 +297,8 @@ build = function(){
 			Log.error("Expecting thread " + convert.string2quote(self.name) + " to have dealt with kill() immediately");
 		}//endif
 		if (this.keepRunning){
-			Log.error("not expected");
+			this.cleanup();
+			Log.warning("not expected");
 		}//endif
 	};
 
@@ -305,36 +306,44 @@ build = function(){
 		if (DEBUG) Log.note("Cleanup "+this.name);
 		if (!this.keepRunning) return;
 
-		if (DEBUG) Log.note("Join the child threads of "+this.name);
 		var children = this.children.slice(); //copy
-		var exitEarly=false;
+		var exitEarly = false;
+		var self = this;
+		if (DEBUG) {
+			if (children.length > 0) {
+				Log.note("Join the child threads of " + this.name);
+			} else {
+				Log.note("Join the child threads of " + this.name);
+			}//endif
+		}//endif
+
 		for (var c = 0; c < children.length; c++) {
 			var childThread = children[c];
 			if (!(childThread instanceof Thread)) continue;
 			if (childThread.keepRunning){
 				if (DEBUG) Log.note("Joining to "+childThread.name);
-				childThread.joined.push(this.cleanup);
+				childThread.joined.push(function(retval){
+					self.cleanup(retval)
+				});
 				exitEarly=true;
 			}//endif
 		}//for
+		if (DEBUG) Log.note("Done join of child threads of "+this.name);
 		if (exitEarly) return;
 		this.children=[];
-		if (DEBUG) Log.note("Done join of child threads of "+this.name);
 
 		this.threadResponse = retval;				//REMEMBER FOR THREAD THAT JOINS WITH THIS
 		this.keepRunning = false;
 		this.parentThread.children.remove(this);
 		Thread.isRunning.remove(this);
-		if (Thread.isRunning.length == 0) {
-			Thread.hideWorking();
-		}//endif
 
 		if (this.joined.length>0) {
 			if (DEBUG) Log.note(this.name+" has "+this.joined.length+" other items waiting to join, running them now.");
 			var joined = this.joined.slice();  //COPY
 			for (var f = 0; f < joined.length; f++) {
 				try {
-					joined[f](retval)
+					var fun = joined[f];
+					fun(retval);
 				} catch (e) {
 					Log.warning("not expected", e)
 				}//try
@@ -349,7 +358,13 @@ build = function(){
 			}//endif
 		}//endif
 
+		if (Thread.isRunning.length == 0) {
+			Thread.hideWorking();
+		}//endif
 
+		if (DEBUG && Thread.isRunning.length > 0) {
+			Log.note("Threads running:\n"+Thread.isRunning.select("name").join(",\n").indent());
+		}//endif
 	};
 
 	//PUT AT THE BEGINNING OF A GENERATOR TO ENSURE IT WILL ONLY BE CALLED USING yield()
@@ -394,7 +409,11 @@ build = function(){
 					Log.error("Expecting an object with kill() or abort() function");
 				} else {
 					request.kill = function(){
-						this.abort();
+						try {
+							this.abort();
+						}catch(e){
+							//DO NOTHING
+						}//try
 					};//function
 				}//endif
 			}//endif
@@ -466,7 +485,7 @@ build = function(){
 							}//endif
 							return retval;
 						};
-					})(otherThreads[i]);
+					})(otherThread);
 					otherThread.joined.push(resumeOnce);
 					if (DEBUG) Log.note("adding thread " + otherThread.name + " to joinAny()");
 				}//endif
@@ -519,6 +538,14 @@ if (window.Exception === undefined) {
 		}//while
 	};
 
+	String.prototype.indent = function(numTabs){
+		if (numTabs === undefined) numTabs = 1;
+		var indent = "\t\t\t\t\t\t".left(numTabs);
+		var str = this.toString();
+		var white = str.rightBut(str.rtrim().length); //REMAINING WHITE IS KEPT (CASE OF CR/LF ESPECIALLY)
+		return indent + str.rtrim().replaceAll("\n", "\n" + indent) + white;
+	};
+
 }
 
 if (!window.Log) {
@@ -535,4 +562,3 @@ if (!window.Log) {
 
 
 build();
-

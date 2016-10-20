@@ -8,7 +8,7 @@ importScript("../qb/Expressions.js");
 importScript("tools.js");
 
 (function(){
-	var DEBUG = true;
+	var DEBUG = false;
 	window.aChart = window.aChart || {};
 
 	////////////////////////////////////////////////////////////////////////////
@@ -205,9 +205,11 @@ importScript("tools.js");
 			})(new Template(xax_format));
 		}//endif
 
-	if (DEBUG) {
-      Log.note(convert.value2json(data));
-    }//endif		var chartParams = {
+		if (DEBUG) {
+			Log.note(convert.value2json(data));
+		}//endif
+
+		var chartParams = {
 			title: Map.get(params, "title.label"),
 			description: Map.get(params, "title.description"),
 			data: data,
@@ -244,11 +246,11 @@ importScript("tools.js");
 
 
 	/*
-	 RETURN A NICE MAX VALUE, THAT INCLUDES THE IMPORTANT CHART VALUES
+	 RETURN A NICE MAX VALUE, THAT EXCLUDES 10% OUTLIERS
 	 */
 	aChart.maxNice = function(values){
 		var sorted = qb.sort(values, ".");
-		var mostlyMax = sorted[aMath.ceiling(values.length * 0.90)];
+		var mostlyMax = sorted[aMath.ceiling((values.length - 1) * 0.90)];
 		var max = sorted.last();
 
 		if (max <= mostlyMax * 1.1) {

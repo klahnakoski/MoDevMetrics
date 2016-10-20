@@ -15,6 +15,33 @@ var DEFAULT_QUERY_LIMIT = 20;
 (function () {
 
 	Dimension.prototype = {
+
+		"getActiveDataDomain": function(){
+			var output = {
+				"type": this.type,
+				"name": this.name,
+				"min": this.min,
+				"max": this.max,
+				"interval": this.interval,
+				"value": (!this.value && this.partitions) ? "name" : this.value
+			};
+
+			if (this.partitions) {
+				output.partitions = this.partitions.map(function(v, i){
+					if (i >= coalesce(self.limit, DEFAULT_QUERY_LIMIT)) return undefined;
+					v.style = coalesce(v.style, {});
+					var output = clonePart(v);
+					output.where = coalesce(v.esfilter, v.where);
+					output.esfilter = undefined;
+					output.fullFilter = undefined;
+					return output;
+				})
+			}//endif
+
+			return output;
+		},
+
+
 		"getDomain": function (param){
 			//param.fullFilter  SET TO true TO HAVE FULL FILTER IN PARTITIONS
 			//param.depth IS MEANT TO REACH INTO SUB-PARTITIONS
@@ -132,9 +159,8 @@ var DEFAULT_QUERY_LIMIT = 20;
 	};
 
 
-
 	function clonePart(v){
-			var parent = v.parent;
+		var parent = v.parent;
 		var index = v.index;
 		v.parent = undefined;
 		v.index = undefined;
@@ -192,8 +218,8 @@ var DEFAULT_QUERY_LIMIT = 20;
 //        TOO EXPENSIVE FOR ES TO CALCULATE, NEED AN EQUATION SIMPLIFIER
 				part.fullFilter = {"and": [part.esfilter]};
 				if (siblingFilters !== undefined) {
-					part.fullFilter["and"].appendArray(siblingFilters.map(function (f) {
-						return {"not": f}
+					part.fullFilter["and"].extend(siblingFilters.map(function (f) {
+						return {"not": f};
 					}))
 				}//endif
 				if (lowerCaseOnly) part.esfilter = convert.json2value(convert.value2json(part.esfilter).toLowerCase());
