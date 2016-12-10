@@ -221,7 +221,7 @@ ESQuery.DEBUG = false;
 					info[depth] = currInfo;
 					schemas[depth] = null;
 					(function (ii, d) {
-						attempts[d] = Thread.run(function*() {
+						attempts[d] = Thread.run("attempt"+ii, function*() {
 							schemas[d] = yield (ESQuery.loadSchema(query, indexName, ii));
 						});
 					})(currInfo, depth);
@@ -359,9 +359,9 @@ ESQuery.DEBUG = false;
 					url: this.query.index.url,
 					data: CNV.Object2JSON(this.esQuery),
 					dataType: "json",
-					headers: {
-						"Accept-Encoding": "gzip,deflate"
-					},
+					//headers: {
+					//	"Accept-Encoding": "gzip,deflate"
+					//},
 					timeout: this.query.timeout
 				}));
 

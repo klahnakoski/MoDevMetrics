@@ -24,18 +24,29 @@ TeamFilter.newInstance=function(field_name){
 
 	Thread.run("get people", function*(){
 		//GET ALL PEOPLE
-		var people=(yield (ESQuery.run({
-			"from":"org_chart",
-			"select":[
-				{"name":"id", "value":"id"},
-				{"name":"name", "value":"name"},
-				{"name":"email", "value":"email"},
-				{"name":"manager", "value":"manager"}
-			],
-			"esfilter":{"and":[
-				{"exists":{"field":"id"}},
-			]}
-		}))).list;
+		var people;
+		try{
+			people=(yield (ESQuery.run({
+				"from":"org_chart",
+				"select":[
+					{"name":"id", "value":"id"},
+					{"name":"name", "value":"name"},
+					{"name":"email", "value":"email"},
+					{"name":"manager", "value":"manager"}
+				],
+				"esfilter":{"and":[
+					{"exists":{"field":"id"}}
+				]}
+			}))).list;
+		}catch(e) {
+			Log.warning("Did not get org chart", e);
+			self.people = [{
+				"email": "everybody@mozilla.com",
+				"name": "Everybody",
+				"id": "mail=everybody@mozilla.com,"
+			}];
+			yield null;
+		}//try
 
 		var others={
 			"email":"other@mozilla.com",

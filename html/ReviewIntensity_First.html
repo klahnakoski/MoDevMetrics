@@ -54,7 +54,7 @@ importScript([
 	var createChart = function(){
 		if (thread !== undefined)
 			thread.kill();
-		thread = Thread.run(__createChart());
+		thread = Thread.run("createchart", __createChart());
 	};
 
 	var __createChart = function*(){
@@ -63,200 +63,220 @@ importScript([
 		var sampleMin = Date.newInstance(GUI.state.sampleMin);//.floor(sampleInterval);
 		var sampleMax = sampleMin.add(Date.newInstance(GUI.state.sampleMax).add(sampleInterval).subtract(sampleMin, sampleInterval).floor(sampleInterval));
 
-		var mainFilter = {"and" : [
+		var mainFilter = {
+			"and": [
 //			{"range": {"request_time": {"gte": sampleMin.getMilli(), "lt": sampleMax.getMilli()}}},
-			{"terms" : {"request_type" : ["review", "superreview"]}},
-			{"term" : {"is_first" : true}},
-			GUI.getFilters("reviews")
-		]};
+				{"terms": {"request_type": ["review", "superreview"]}},
+				{"term": {"is_first": true}},
+				GUI.getFilters("reviews")
+			]
+		};
 
 		var requesteeList = ESQuery.TrueFilter;
 		if (GUI.state.requestee.trim().length > 0) {
-			requesteeList = {"terms" : {"reviewer" : GUI.state.requestee.split(",").map(String.trim)}};
+			requesteeList = {"terms": {"reviewer": GUI.state.requestee.split(",").map(String.trim)}};
 			mainFilter.and.push(requesteeList);
 		}//endif
 //		GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
 
 		//CHART OF AGGREGATE RESPONSE TIMES
-		Thread.run(function*(){
+		Thread.run("Response Time Breakdown", function*(){
 			var response = yield (ESQuery.run({
-				"name" : "Response Time Breakdown",
-				"from" : "reviews",
-				"select" : {"name" : "count", "value" : "bug_id", "aggregate" : "count"},
-				"edges" : [
-					{"name" : "wait_time",
-						value : "(coalesce(zero2null(doc[\"review_time\"].value), " + Date.eod().getMilli() + ")-doc[\"request_time\"].value)",
-						"allowNulls" : "true",
-						"domain" : {"type" : "duration", "min" : 0, "max" : "10day", "interval" : "day"}
+				"name": "Response Time Breakdown",
+				"from": "reviews",
+				"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
+				"edges": [
+					{
+						"name": "wait_time",
+						value: "(coalesce(zero2null(doc[\"review_time\"].value), " + Date.eod().getMilli() + ")-doc[\"request_time\"].value)",
+						"allowNulls": "true",
+						"domain": {"type": "duration", "min": 0, "max": "10day", "interval": "day"}
 					}
 				],
-				"esfilter" : {"and" : [
-					mainFilter,
-					{"range" : {"request_time" : {"gte" : sampleMin.getMilli(), "lt" : sampleMax.getMilli()}}}
-				]}
+				"esfilter": {
+					"and": [
+						mainFilter,
+						{"range": {"request_time": {"gte": sampleMin.getMilli(), "lt": sampleMax.getMilli()}}}
+					]
+				}
 			}));
 
 			response.edges[0].domain.NULL.name = "Over 10 days";
 
 			aChart.show({
-				"id" : "chartResponse",
-				"type" : "bar",
-				"cube" : response,
-				"height" : 200,
-				"width" : 400,
-				"xAxisSize" : 70
+				"id": "chartResponse",
+				"type": "bar",
+				"cube": response,
+				"height": 200,
+				"width": 400,
+				"xAxisSize": 70
 			});
 		});
 
 
 		//RESPONSE TIME STATS
-		Thread.run(function*(){
+
+		Thread.run("grab stats", function*(){
 			var a = Log.action("Grab Stats", true);
-
-			var df = (yield (ESQuery.run({
-				"name" : "DF",
-				"from" : "reviews",
-				"select" : {"name" : "count", "value" : "bug_id", "aggregate" : "count"},
-				"edges" : [
-					{"name" : "wait_time",
-						"allowNulls" : true,
-						value:"(coalesce(zero2null(review_time), "+Date.eod().getMilli()+")-request_time)",
-						"domain" : {"type" : "duration", "min" : 0, "max" : "10day", "interval" : "hour", "value" : "value"}
+			try {
+				var df = (yield (ESQuery.run({
+					"name": "DF",
+					"from": "reviews",
+					"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
+					"edges": [
+						{
+							"name": "wait_time",
+							"allowNulls": true,
+							value: "(coalesce(zero2null(review_time), " + Date.eod().getMilli() + ")-request_time)",
+							"domain": {"type": "duration", "min": 0, "max": "10day", "interval": "hour", "value": "value"}
+						}
+					],
+					"esfilter": {
+						"and": [
+							mainFilter,
+							{"range": {"request_time": {"gte": sampleMin.getMilli(), "lt": sampleMax.getMilli()}}}
+						]
 					}
-				],
-				"esfilter" : {"and" : [
-					mainFilter,
-					{"range" : {"request_time" : {"gte" : sampleMin.getMilli(), "lt" : sampleMax.getMilli()}}}
-				]}
-			})));
-			Log.actionDone(a);
+				})));
+				Log.actionDone(a);
 
-			a = Log.action("Calc Stats", true);
-			var percentile90 = Stats.df.percentile(df.cube, 0.90) / 24;  //INTERVALS ARE IN HOURS, CONVERT TO DAYS
+				a = Log.action("Calc Stats", true);
+				var percentile90 = Stats.df.percentile(df.cube, 0.90) / 24;  //INTERVALS ARE IN HOURS, CONVERT TO DAYS
 
 
-			var stats = (yield (Q({
-				"from":
-					Qb.Cube2List(df),
-				"select" : [
-					{"name" : "total", "value" : "count", "aggregate" : "sum"},
-					{"name" : "under_24_hours", "value" : "(wait_time!=null && wait_time.milli<" + Duration.newInstance('24hour').milli + ") ? count : 0", "aggregate" : "sum"},
-					{"name" : "over_10_days", "value" : "wait_time==null ? count : 0", "aggregate" : "sum"}
-				]
-			}))).cube;
+				var stats = (yield (Q({
+					"from": Qb.Cube2List(df),
+					"select": [
+						{"name": "total", "value": "count", "aggregate": "sum"},
+						{"name": "under_24_hours", "value": "(wait_time!=null && wait_time.milli<" + Duration.newInstance('24hour').milli + ") ? count : 0", "aggregate": "sum"},
+						{"name": "over_10_days", "value": "wait_time==null ? count : 0", "aggregate": "sum"}
+					]
+				}))).cube;
 
-			var numWeek = sampleMax.subtract(sampleMin).milli / Duration.MILLI_VALUES.week;
+				var numWeek = sampleMax.subtract(sampleMin).milli / Duration.MILLI_VALUES.week;
 
-			$("#stats").html(
-				'<span class="parameter_name">Total Reviews:</span><b>' + stats.total + '</b><br>' +
+				$("#stats").html(
+					'<span class="parameter_name">Total Reviews:</span><b>' + stats.total + '</b><br>' +
 					'<span class="parameter_name">Reviews per week:</span><b>' + aMath.round(stats.total / numWeek, 1) + '</b><br>' +
 					'<span class="parameter_name">% Under One Day:</span><b>' + aMath.round(stats.under_24_hours / stats.total * 100, 1) + '%</b><br>' +
 					'<span class="parameter_name">% Over 10days:</span><b>' + aMath.round(stats.over_10_days / stats.total * 100, 1) + '%</b><br>' +
 					'<span class="parameter_name">90th percentile:</span><b>' + aMath.round(percentile90, 1) + 'days</b><br>'
-			);
-			Log.actionDone(a);
+				);
+			}finally{
+				Log.actionDone(a);
+			}
 		});
 
 		//CHART PRODUCT BREAKDOWN
-		Thread.run(function*(){
+		Thread.run("prod/comp breakdown", function*(){
 			var q = new ESQuery({
-				"name" : "Product::Component Breakdown",
-				"from" : "reviews",
-				"select" : {"name" : "count", "value" : "bug_id", "aggregate" : "count"},
-				"edges" : [
+				"name": "Product::Component Breakdown",
+				"from": "reviews",
+				"select": {"name": "count", "value": "bug_id", "aggregate": "count"},
+				"edges": [
 					"product",
 					"component"
 				],
-				"esfilter" : {"and" : [
-					mainFilter,
-					{"range" : {"request_time" : {"gte" : sampleMin.getMilli(), "lt" : sampleMax.getMilli()}}}
-				]}
+				"esfilter": {
+					"and": [
+						mainFilter,
+						{"range": {"request_time": {"gte": sampleMin.getMilli(), "lt": sampleMax.getMilli()}}}
+					]
+				}
 			});
 
 			var response = yield (q.run());
 
 			aChart.showPie({
-				"id" : "chartProducts",
-				"cube" : response,
-				"height" : 200,
-				"width" : 400,
-				"minPercent" : 0.07,
-				"legendSize" : 150
+				"id": "chartProducts",
+				"cube": response,
+				"height": 200,
+				"width": 400,
+				"minPercent": 0.07,
+				"legendSize": 150
 			});
 
 		});
 
 
 		var a = Log.action("Get Review Data", true);
-
-		var q1 = new ESQuery({
-			"from" : "reviews",
-			"select" : [
-				{"name" : "request_count", "value" : "bug_id", "aggregate" : "count"}
-			],
-			"edges" : [
-				{"name" : "time", "value" : "request_time", "domain" : {"type" : "time", "min" : sampleMin, "max" : sampleMax, "interval" : sampleInterval}}
-			],
-			"esfilter" : mainFilter
-		});
-		var requested = yield (q1.run());
-
-
-		var q2 = new ESQuery({
-			"from" : "reviews",
-			"select" : {"name" : "review_count", "value" : "bug_id", "aggregate" : "count"},
-			"edges" : [
-				{"name" : "time", "value" : "review_time", "domain" : {"type" : "time", "min" : sampleMin, "max" : sampleMax, "interval" : sampleInterval}}
-			],
-			"esfilter" : mainFilter
-		});
-		var reviewed = yield (q2.run());
+		try {
+			var q1 = new ESQuery({
+				"from": "reviews",
+				"select": [
+					{"name": "request_count", "value": "bug_id", "aggregate": "count"}
+				],
+				"edges": [
+					{"name": "time", "value": "request_time", "domain": {"type": "time", "min": sampleMin, "max": sampleMax, "interval": sampleInterval}}
+				],
+				"esfilter": mainFilter
+			});
+			var requested = yield (q1.run());
 
 
-		//SHOW AS NEGATIVE
-		reviewed.cube = reviewed.cube.map(function(v, i){
-			return -v;
-		});
+			var q2 = new ESQuery({
+				"from": "reviews",
+				"select": {"name": "review_count", "value": "bug_id", "aggregate": "count"},
+				"edges": [
+					{"name": "time", "value": "review_time", "domain": {"type": "time", "min": sampleMin, "max": sampleMax, "interval": sampleInterval}}
+				],
+				"esfilter": mainFilter
+			});
+			var reviewed = yield (q2.run());
 
 
-		//WE CAN NOT DO THIS DIRECTLY: WE WILL REQUIRE MULTIPLE COUNTS PER REVIEW
-		var longReviews = (yield (ESQuery.run({
-			"from" : "reviews",
-			"select" : [
-				{"name" : "request_time", "value" : "request_time"},
-				{"name" : "review_time", "value" : "review_time"}
-			],
-			"esfilter" : {"and" : [
-//				{"script":{"script":	//ONLY CONSIDER THE REVIEWS LONGER THAN A DAY
-//					MVEL.compile.expression(
-//						"(coalesce(review_time, " + Date.eod().getMilli() + ") - request_time > " + Duration.MILLI_VALUES.day + ") ? 1 : 0;",
-//						{"from": "reviews"}
-//					)
-//				}},
-				mainFilter,
-				{"range" : {"request_time" : {"gte" : sampleMin.getMilli() - Duration.WEEK.milli * 18, "lt" : sampleMax.getMilli()}}},
-				{"or" : [
-					{"range" : {"review_time" : {"gte" : sampleMin.getMilli()}}}, //REVIEWED AFTER THE min
-					{"missing" : {"field" : "review_time"}}						//...OR NEVER REVIEWED
-				]}
-			]}
-		}))).list;
+			//SHOW AS NEGATIVE
+			reviewed.cube = reviewed.cube.map(function(v, i){
+				return -v;
+			});
 
-		var open = yield (Q({
-			"from" : longReviews,
-			"select" : {"name" : "open_count", "value" : "request_time", "aggregate" : "count"},
-			"edges" : [
-				{"name" : "time", "value" : "request_time",
-					"test":	"nvl(review_time, time.min.getMilli())-request_time > "+Duration.MILLI_VALUES.day+" && "+
-							"request_time < time.min.getMilli() && time.min.getMilli() < nvl(review_time, Date.eod().getMilli()) && "+
-						"time.min.getMilli() < request_time+" + Duration.MILLI_VALUES.week * 18, //JUST IGNORE THE REALLY OLD reviews
-					"domain" : {"type" : "time", "min" : sampleMin, "max" : sampleMax, "interval" : sampleInterval}
 
+			//WE CAN NOT DO THIS DIRECTLY: WE WILL REQUIRE MULTIPLE COUNTS PER REVIEW
+			var longReviews = (yield (ESQuery.run({
+				"from": "reviews",
+				"select": [
+					{"name": "request_time", "value": "request_time"},
+					{"name": "review_time", "value": "review_time"}
+				],
+				"esfilter": {
+					"and": [
+						//				{"script":{"script":	//ONLY CONSIDER THE REVIEWS LONGER THAN A DAY
+						//					MVEL.compile.expression(
+						//						"(coalesce(review_time, " + Date.eod().getMilli() + ") - request_time > " + Duration.MILLI_VALUES.day + ") ? 1 : 0;",
+						//						{"from": "reviews"}
+						//					)
+						//				}},
+						mainFilter,
+						{"range": {"request_time": {"gte": sampleMin.getMilli() - Duration.WEEK.milli * 18, "lt": sampleMax.getMilli()}}},
+						{
+							"or": [
+								{"range": {"review_time": {"gte": sampleMin.getMilli()}}}, //REVIEWED AFTER THE min
+								{"missing": {"field": "review_time"}}						//...OR NEVER REVIEWED
+							]
+						}
+					]
 				}
-			]
-		}));
-		Log.actionDone(a);
+			}))).list;
 
+			var open = yield (Q({
+				"from": longReviews,
+				"select": {"name": "open_count", "value": "request_time", "aggregate": "count"},
+				"edges": [
+					{
+						"name": "time", "value": "request_time",
+						"test": "nvl(review_time, time.min.getMilli())-request_time > " + Duration.MILLI_VALUES.day + " && " +
+						"request_time < time.min.getMilli() && time.min.getMilli() < nvl(review_time, Date.eod().getMilli()) && " +
+						"time.min.getMilli() < request_time+" + Duration.MILLI_VALUES.week * 18, //JUST IGNORE THE REALLY OLD reviews
+						"domain": {"type": "time", "min": sampleMin, "max": sampleMax, "interval": sampleInterval}
+
+					}
+				]
+			}));
+		}catch(e){
+
+		}finally{
+			Log.actionDone(a);
+		}//try
 
 		//WE HAVE THREE SERIES, ALL DEFINED OVER THE SAME DOMAIN, WHAT TO DO?
 		//THE THREE ARE PARTS OF THE CATEGORY DIMENSION
@@ -275,7 +295,7 @@ importScript([
 			"cube" : chart,
 			"height" : 400,
 			"clickAction" : function(series, x, d, elem){
-				Thread.run(function*(){
+				Thread.run("lookup", function*(){
 					if (series == "review_count") {
 						var reviewed = (yield (ESQuery.run({
 							"from" : "reviews",
