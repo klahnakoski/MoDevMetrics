@@ -42,8 +42,8 @@ Requirements
 Access to one of the bug clusters is required:
 
   - HTTPS proxy to public cluster<br> ```https://esfrontline.bugzilla.mozilla.org:443/public_bugs/bug_version```
-  - Non-encrypted proxy to public cluster<br>```http://esfrontline.bugzilla.mozilla.org:80/public_bugs/bug_version```
-  - Direct to private cluster (need VPN access)<br>```http://elasticsearch-private.bugs.scl3.mozilla.com:9200/private_bugs/bug_version```
+  - Non-encrypted proxy to public cluster<br>```http://esfrontline-public-vip.bugs.scl3.mozilla.com:80/public_bugs/bug_version```
+  - Direct to private cluster (need VPN access)<br>```http://esfrontline-private-vip.bugs.scl3.mozilla.com:9200/private_bugs/bug_version```
 
 Due to restrictions on the public cluster, it is best to test it with the [the
 minimum viable example page](html/es/Tutorial01-Minimum.html).  The clusters
