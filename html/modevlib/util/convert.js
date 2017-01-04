@@ -246,7 +246,7 @@ var convert = function(){
 
 
 	(function(){
-		var urlMap = {"%": "%25", "{": "%7B", "}": "%7D", "[": "%5B", "]": "%5D"};
+		var urlMap = {"&": "%26", "%": "%25", "{": "%7B", "}": "%7D", "[": "%5B", "]": "%5D"};
 		for(var i=0;i<33;i++) urlMap[String.fromCharCode(i)]="%"+int2hex(i, 2);
 		for(i=123;i<256;i++) urlMap[String.fromCharCode(i)]="%"+int2hex(i, 2);
 
