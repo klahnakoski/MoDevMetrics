@@ -8,16 +8,16 @@ The current branch is [dev](https://github.com/klahnakoski/MoDevMetrics/tree/dev
 Objective
 ---------
 
-This project is designed to optimize the creation of dashboards using 
-ElasticSearch data.   Dashboards are written as static HTML/Javascript; which 
-can make AjAX calls to the public cluster; and provide an interactive 
-experience with little effort.  
+This project is designed to optimize the creation of dashboards using
+ElasticSearch data.   Dashboards are written as static HTML/Javascript; which
+can make AjAX calls to the public cluster; and provide an interactive
+experience with little effort.
 
 Examples
 --------
 
-[My page of charts](http://people.mozilla.org/~klahnakoski/charts.html) hosts 
-the master branch of this repo.  Please feel free to view and run them 
+[My page of charts](http://people.mozilla.org/~klahnakoski/charts.html) hosts
+the master branch of this repo.  Please feel free to view and run them
 through your debugger.
 
 
@@ -49,7 +49,7 @@ Access to one of the bug clusters is required:
 
   - HTTPS proxy to public cluster<br> ```https://esfrontline.bugzilla.mozilla.org:443/public_bugs/bug_version```
   - Non-encrypted proxy to public cluster<br>```http://esfrontline.bugzilla.mozilla.org:80/public_bugs/bug_version```
-  - Direct to private cluster (need VPN access)<br>```http://elasticsearch-private.bugs.scl3.mozilla.com:9200/private_bugs/bug_version```
+  - Direct to private cluster (need VPN access)<br>```http://esfrontline-private-vip.bugs.scl3.mozilla.com:9200/private_bugs/bug_version```
 
 Due to restrictions on the public cluster, it is best to test it with the [the
 minimum viable example page](html/Tutorial01-Minimum.html).  The clusters
