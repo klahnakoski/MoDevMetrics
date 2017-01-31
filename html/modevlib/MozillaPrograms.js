@@ -7,6 +7,11 @@ var MozillaPrograms = {
 	"columns": ["projectName", "attributeName", "attributeValue", "esfilter"],
 
 	"rows": [
+
+		["MOC", null, null, {
+			"prefix":{"component":"moc:"}
+		}],
+
 		//* https://bugzilla.mozilla.org/buglist.cgi?keywords=regressionwindow-wanted%2C &keywords_type=allwords&list_id=12796403&resolution=---&query_based_on=all open regressionwindow-wanted bugs&query_format=advanced&product=Core&product=Firefox&product=Firefox Health Report&product=Hello  (Loop)&product=Plugins&product=Toolkit&known_name=all open regressionwindow-wanted bugs
 		["Platform - RegressionWindow Wanted", null, null, {
 			"and": [
