@@ -12,6 +12,7 @@ importScript("../util/aUtil.js");
 importScript("../debug/aLog.js");
 importScript("../collections/aMatrix.js");
 importScript("MVEL.js");
+importScript("Expressions.js");
 importScript("qb.aggregate.js");
 importScript("qb.column.js");
 importScript("qb.cube.js");
@@ -334,8 +335,7 @@ function joinField(path){
 			if (edges[g].outOfDomainCount > 0)
 				Log.warning(edges[g].name + " has " + edges[g].outOfDomainCount + " records outside domain " + edges[g].domain.name);
 		}//for
-		if (DEBUG) Log.note("Where clause rejected " + numWhereFalse + " rows");
-
+		if (DEBUG && numWhereFalse!=0) Log.note("Where clause rejected " + numWhereFalse + " rows");
 
 		yield query;
 	}
@@ -345,7 +345,7 @@ function joinField(path){
 
 	qb.calc2List = function*(query){
 		if (!qb.listAlert) {
-//		Log.alert("Please do not use qb.calc2List()");
+//    Log.alert("Please do not use qb.calc2List()");
 			qb.listAlert = true;
 		}//endif
 
@@ -460,6 +460,7 @@ function joinField(path){
 		});
 
 		//MAKE THE EMPTY DATA GRID
+		if (!query.select) Log.error("Expecting a select clause");
 		query.cube = qb.cube.newInstance(edges, 0, query.select);
 		Tree2Cube(query, query.cube, query.tree, 0);
 		qb.analytic.run(query);
@@ -949,7 +950,7 @@ function joinField(path){
 				Tree2List(output, tree[keys[k]], select, edges, coordinates, depth + 1)
 			}//for
 		}//endif
-//	yield (null);
+//  yield (null);
 	}//method
 
 
@@ -998,7 +999,7 @@ function joinField(path){
 
 	////ADD THE MISSING DOMAIN VALUES
 	//qb.nullToList=function(output, edges, depth){
-	//	if ()
+	//  if ()
 	//
 	//
 	//};//method
@@ -1012,7 +1013,7 @@ function joinField(path){
 			var sourceColumns;
 			if (query.from instanceof Array) {
 				sourceColumns = qb.getColumnsFromList(query.from);
-				query.from.list = query.from;	//NORMALIZE SO query.from.list ALWAYS POINTS TO AN OBJECT
+				query.from.list = query.from;  //NORMALIZE SO query.from.list ALWAYS POINTS TO AN OBJECT
 			} else if (query.from.list) {
 				sourceColumns = query.from.columns;
 			} else if (query.from.cube) {
@@ -1058,11 +1059,11 @@ function joinField(path){
 	// EXPECTING AN ARRAY OF CUBES, AND THE NAME OF THE EDGES TO MERGE
 	// THERE IS NO LOGICAL DIFFERENCE BETWEEN A SET OF CUBES, WITH IDENTICAL EDGES, EACH CELL A VALUE AND
 	// A SINGLE qb WITH EACH CELL BEING AN OBJECT: EACH ATTRIBUTE VALUE CORRESPONDING TO A qb IN THE SET
-	//	var chart=qb.merge([
-	//		{"from":requested, "edges":["time"]},
-	//		{"from":reviewed, "edges":["time"]},
-	//		{"from":open, "edges":["time"]}
-	//	]);
+	//  var chart=qb.merge([
+	//    {"from":requested, "edges":["time"]},
+	//    {"from":reviewed, "edges":["time"]},
+	//    {"from":open, "edges":["time"]}
+	//  ]);
 	qb.merge = function(query){
 		//MAP THE EDGE NAMES TO ACTUAL EDGES IN THE from QUERY
 		query.forall(function(item){
@@ -1084,18 +1085,18 @@ function joinField(path){
 		output.name = query.name;
 		output.from = query;
 		output.edges = [];
-		output.edges.appendArray(commonEdges);
+		output.edges.extend(commonEdges);
 		output.select = [];
 		output.columns = [];
-		output.columns.appendArray(commonEdges);
+		output.columns.extend(commonEdges);
 
 		output.cube = qb.cube.newInstance(output.edges, 0, []);
 		Map.copy(qb.query.prototype, output);
 
 		query.forall(function(item, index){
 			//COPY SELECT DEFINITIONS
-			output.select.appendArray(Array.newInstance(item.from.select));
-			output.columns.appendArray(Array.newInstance(item.from.select));
+			output.select.extend(Array.newInstance(item.from.select));
+			output.columns.extend(Array.newInstance(item.from.select));
 
 
 			//VERIFY DOMAINS ARE IDENTICAL, AND IN SAME ORDER
@@ -1191,11 +1192,17 @@ function joinField(path){
 	qb.sort.compile = function(sortOrder, columns, useNames){
 		var orderedColumns;
 		if (columns === undefined) {
-			orderedColumns = sortOrder.map(function(v){
+			orderedColumns = [];
+
+			sortOrder.forall(function(v){
 				if (v.value !== undefined && v.sort !== undefined) {
-					return {"name": v.value, "sortOrder": coalesce(v.sort, 1), "domain": qb.domain.value};
+					orderedColumns.append({"name": v.value, "sortOrder": coalesce(v.sort, 1), "domain": qb.domain.value});
+				} else if (Map.isMap(v) && Map.values(v).subtract([1, 0, -1, "desc", "asc"]).length == 0){
+					Map.items(v, function(k, s){
+						orderedColumns.append({"name": k, "sortOrder": {"1": 1, "0": 0, "-1": -1, "desc": -1, "asc": 1}[s], "domain": qb.domain.value});
+					});
 				} else {
-					return {"name": v, "sortOrder": 1, "domain": qb.domain.value};
+					orderedColumns.append({"name": v, "sortOrder": 1, "domain": qb.domain.value});
 				}//endif
 			});
 		} else {
@@ -1227,7 +1234,12 @@ function joinField(path){
 			}else if (col.name=="."){
 				index = "";
 			} else if (MVEL.isKeyword(col.name)) {
-				index = "["+splitField(col.name).map(convert.String2Quote).join("][")+"]";
+				var path = splitField(col.name);
+				if (path[path.length-1]=="length"){
+					index = "["+path.substring(0, path.length-1).map(convert.String2Quote).join("][")+"].length";
+				}else{
+					index = "["+path.map(convert.String2Quote).join("][")+"]";
+				}//endif
 			} else if (columns.select("name").contains(col.name)) {
 				index = "["+convert.String2Quote(col.name)+"]";
 			} else {
@@ -1260,11 +1272,38 @@ function joinField(path){
 		}//try
 	};//method
 
+	qb.limit=function (data, limit){
+		return data.slice(0, limit);
+	};//method
+
+
+  qb.groupby=function(data, columns){
+    var sorted = qb.sort(data, columns);
+    if (MVEL.isKeyword(columns)){
+      var extract=qb.get(columns);
+      var last=extract(sorted[0]);
+      var start=0;
+      var end=1;
+      var output=[];
+      while (end < sorted.length) {
+        var curr = extract(sorted[end]);
+        if (last != curr) {
+          output.append([last, sorted.substring(start, end)]);
+          start = end;
+          last = curr;
+        }//endif
+        end++;
+      }//while
+      output.append([last, sorted.substring(start, end)]);
+      return output;
+    }else{
+      Log.error("not handled yet")
+    }
+  };
 
 	//RETURN A NEW QUERY WITH ADDITIONAL FILTERS LIMITING VALUES
 	//TO series AND category SELECTION *AND* TRANSFORMING TO AN SET OPERATION
 	qb.specificBugs = function(query, filterParts){
-
 		var newQuery = qb.drill(query, filterParts);
 		newQuery.edges = [];
 
@@ -1281,7 +1320,7 @@ function joinField(path){
 		Map.copy(query, newQuery);
 		newQuery.cube = undefined;
 		newQuery.list = undefined;
-		newQuery.index = undefined;			//REMOVE, MAY CAUSE PROBLEMS
+		newQuery.index = undefined;      //REMOVE, MAY CAUSE PROBLEMS
 		if (query.esfilter) {
 			if (query.esfilter.and) {
 				newQuery.esfilter = {"and": query.esfilter.and.copy()};
