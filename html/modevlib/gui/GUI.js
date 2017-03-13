@@ -132,7 +132,7 @@ importScript("../aFormat.js");
 				GUI.pleaseRefreshLater=true;
 				//USE DEFAULT FILTERS
 				importScript(["ComponentFilter.js", "ProductFilter.js", "ProgramFilter.js"], function(){
-					GUI.state.programFilter = new ProgramFilter();
+					GUI.state.programFilter = new ProgramFilter("bugs", QuantumFlowBugs);
 					GUI.state.productFilter = new ProductFilter();
 					GUI.state.componentFilter = new ComponentFilter();
 
