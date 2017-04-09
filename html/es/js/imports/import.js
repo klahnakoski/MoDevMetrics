@@ -15,7 +15,7 @@ var importScript;
 	"use strict";
 
 	var METHOD_NAME = "importScript";
-	var FORCE_RELOAD = true;  //COMPENSATE FOR BUG https://bugzilla.mozilla.org/show_bug.cgi?id=991252
+	var FORCE_RELOAD = false;  //COMPENSATE FOR BUG https://bugzilla.mozilla.org/show_bug.cgi?id=991252
 	var DEBUG = false;
 
 	if (typeof(window.Log) == "undefined") {
@@ -111,7 +111,7 @@ var importScript;
 			}//endif
 
 			var s = src.indexOf("(", found);
-			var e = src.indexOf(")", s);  //HOPEFULLY THIS WILL CATCH THE PARAMETERS (FAILS WHEN COMMENTS EXIST)
+			var e = src.indexOf(")", s);	//HOPEFULLY THIS WILL CATCH THE PARAMETERS (FAILS WHEN COMMENTS EXIST)
 
 			var f = "addDependency(" + quote(parentPath) + ", " + src.substring(s + 1, e + 1);
 			try {
@@ -190,7 +190,7 @@ var importScript;
 			relativePath.indexOf("://") > 0 ||
 				relativePath.charAt(0) == '/'
 			) {
-			absPath = relativePath;  //NOT RELATIVE
+			absPath = relativePath;	//NOT RELATIVE
 		} else {
 			absPath = parentScriptPath + "/" + relativePath;
 		}//endif
@@ -413,7 +413,7 @@ var importScript;
 		//POPULATE STRUCTURES TO DO THE SORTING
 		var graph = {};
 		for (var i = 0; i < edges.length; i++) {
-//      if (DEBUG) Log.note(JSON.stringify(e));
+//			if (DEBUG) Log.note(JSON.stringify(e));
 			var e = edges[i];
 			addVertex(e.file);
 			addVertex(e.import);
