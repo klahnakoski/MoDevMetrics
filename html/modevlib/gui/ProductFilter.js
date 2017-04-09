@@ -122,7 +122,7 @@ ProductFilter.prototype.injectHTML = function(products){
 
 ProductFilter.prototype.refresh = function(){
 	var self=this;
-	Thread.run(function*(){
+	Thread.run("get products", function*(){
 
 		self.query = self.makeQuery();
 		var data = yield(ElasticSearch.search("bugs", self.query));

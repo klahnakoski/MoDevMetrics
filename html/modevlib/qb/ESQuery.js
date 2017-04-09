@@ -154,17 +154,13 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 					info[depth] = currInfo;
 					(function(currInfo, d){
 						attempts[d] = Thread.run("load " + currInfo.name, function*(){
-							try{
-								var schema = yield (ESQuery.loadSchema(query, indexName, currInfo));
-								if (schema) {
-									Log.note("got schema from " + currInfo.name);
-								}else{
-									Log.error("Could not get schema from " + currInfo.name);
-								}//endif
-								yield ([schema, currInfo]);
-							}catch(e){
-								Log.warning("failure loading " + currInfo.name, e)
-							}//try
+							var schema = yield (ESQuery.loadSchema(query, indexName, currInfo));
+							if (schema) {
+								Log.note("got schema from " + currInfo.name);
+							}else{
+								Log.error("Could not get schema from " + currInfo.name);
+							}//endif
+							yield ([schema, currInfo]);
 						});
 					})(currInfo, depth);
 					currInfo = currInfo.alternate;

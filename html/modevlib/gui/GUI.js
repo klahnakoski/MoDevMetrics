@@ -644,7 +644,7 @@ GUI = {};
 
 				var threads = [];
 				GUI.customFilters.forall(function (f, i) {
-					var t = Thread.run(function*() {
+					var t = Thread.run("refresh filter", function*() {
 						yield (f.refresh());
 					});
 					t.name = GUI.customFilters[i].name;

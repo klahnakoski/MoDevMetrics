@@ -496,7 +496,8 @@ build = function(){
 
 		if (immediateResponse === undefined) {
 			if (DEBUG) Log.note("pausing thread " + Thread.currentThread.name + " while joinAny()");
-			yield (Thread.suspend());
+			var delayedResponse = yield (Thread.suspend());
+			yield (delayedResponse);
 		} else {
 			yield (immediateResponse);
 		}//endif
