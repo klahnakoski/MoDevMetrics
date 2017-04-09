@@ -156,7 +156,11 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 						attempts[d] = Thread.run("load " + currInfo.name, function*(){
 							try{
 								var schema = yield (ESQuery.loadSchema(query, indexName, currInfo));
-								if (!schema) Log.error("Could not get schema from " + currInfo.name);
+								if (schema) {
+									Log.note("got schema from " + currInfo.name);
+								}else{
+									Log.error("Could not get schema from " + currInfo.name);
+								}//endif
 								yield ([schema, currInfo]);
 							}catch(e){
 								Log.warning("failure loading " + currInfo.name, e)
@@ -222,7 +226,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 		var path = parse.URL(URL).path.split("/").rightBut(1);
 		var pathLength = path.length - 1;  //ASSUME /indexname.../_mapping
 
-		var cluster_info = null;
+		var cluster_info = {"version": {"number": "0.9"}};
 		try {
 			cluster_info = yield(Rest.get({
 				"url": indexInfo.host,
@@ -246,8 +250,8 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 
 		if (pathLength == 1) {  //EG http://host/indexname/_mapping
 			//CHOOSE AN INDEX
-			prefix = URL.split("/")[3];
-			indices = Object.keys(schema);
+			var prefix = URL.split("/")[3];
+			var indices = Object.keys(schema);
 			if (indices.length == 1) {
 				schema = schema[indices[0]]
 			} else {
@@ -258,7 +262,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 		}//endif
 
 		if (pathLength <= 2) {//EG http://host/indexname/typename/_mapping
-			if (!cluster_info || cluster_info.version.number.startsWith("0.9")) {
+			if (cluster_info.version.number.startsWith("0.9")) {
 				//cluster_info==null MUST ASSUME THIS IS THE esFrontLine (IN FRONT OF 0.9x)
 				var types = Object.keys(schema);
 				if (types.length == 1) {

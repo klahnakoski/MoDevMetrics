@@ -40,7 +40,7 @@ build = function(){
 		currentTimestamp = Date.now;
 	}//endif
 
-	var DEBUG = false;
+	var DEBUG = true;
 	var POPUP_ON_ERROR = true;
 	var FIRST_BLOCK_TIME = 500;  //TIME UNTIL YIELD
 	var NEXT_BLOCK_TIME = 150;  //THE MAXMIMUM TIME (ms) A PIECE OF CODE SHOULD HOG THE MAIN THREAD

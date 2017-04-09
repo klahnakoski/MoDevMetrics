@@ -44,6 +44,7 @@ TeamFilter.newInstance=function(field_name){
 			//EXPECTED WHEN NO PRIVATE CLUSTER
 			Log.note("Can not get people");
 			people = [];
+			yield (null)
 		}
 
 		var others={
