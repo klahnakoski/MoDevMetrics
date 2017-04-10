@@ -27,7 +27,7 @@ var DEFAULT_QUERY_LIMIT = 20;
 			};
 
 			if (this.partitions) {
-				output.partitions = this.partitions.map(function(v, i){
+				output.partitions = this.partitions.mapExists(function(v, i){
 					if (i >= coalesce(self.limit, DEFAULT_QUERY_LIMIT)) return undefined;
 					v.style = coalesce(v.style, {});
 					var output = clonePart(v);
@@ -61,7 +61,7 @@ var DEFAULT_QUERY_LIMIT = 20;
 
 			if (!this.partitions && this.edges) {
 				//USE EACH EDGE AS A PARTITION, BUT isFacet==true SO IT ALLOWS THE OVERLAP
-				partitions = this.edges.map(function(v, i){
+				partitions = this.edges.mapExists(function(v, i){
 					if (i >= coalesce(self.limit, DEFAULT_QUERY_LIMIT))
 						return undefined;
 					if (v.esfilter === undefined) return;
@@ -72,7 +72,7 @@ var DEFAULT_QUERY_LIMIT = 20;
 				});
 				self.isFacet = true;
 			} else if (param.depth == 0) {
-				partitions = this.partitions.map(function(v, i){
+				partitions = this.partitions.mapExists(function(v, i){
 					if (i >= coalesce(self.limit, DEFAULT_QUERY_LIMIT)) return undefined;
 					v.style = coalesce(v.style, {});
 					var output = clonePart(v);
@@ -218,7 +218,7 @@ var DEFAULT_QUERY_LIMIT = 20;
 //        TOO EXPENSIVE FOR ES TO CALCULATE, NEED AN EQUATION SIMPLIFIER
 				part.fullFilter = {"and": [part.esfilter]};
 				if (siblingFilters !== undefined) {
-					part.fullFilter["and"].extend(siblingFilters.map(function (f) {
+					part.fullFilter["and"].extend(siblingFilters.mapExists(function (f) {
 						return {"not": f};
 					}))
 				}//endif
@@ -259,7 +259,7 @@ var DEFAULT_QUERY_LIMIT = 20;
 
 				dim.partitions = Thread.run(function*() {
 					//IF dim.field IS A NUMBER, THEN SET-WISE EDGES DO NOT WORK (CLASS CAST EXCEPTION)
-					var edges = dim.field.map(function (f) {
+					var edges = dim.field.mapExists(function (f) {
 						return {"name": f, "value": f}
 					});
 
@@ -310,7 +310,7 @@ var DEFAULT_QUERY_LIMIT = 20;
 						dim.value = "name";  //USE THE "name" ATTRIBUTE OF PARTS
 
 						//SIMPLE LIST OF PARTS RETURNED, BE SURE TO INTERRELATE THEM
-						dim.partitions = temp_domain.partitions.map(function (p, i) {
+						dim.partitions = temp_domain.partitions.mapExists(function (p, i) {
 							var part = {
 								"name": "" + p.name,  //CONVERT TO STRING
 								"value": temp_domain.end(p),
@@ -341,14 +341,14 @@ var DEFAULT_QUERY_LIMIT = 20;
 						var d2 = parts.edges[1].domain;
 
 						//SIMPLE LIST OF PARTS RETURNED, BE SURE TO INTERRELATE THEM
-						dim.partitions = parts.data.count.map(function (subcube, i) {
+						dim.partitions = parts.data.count.mapExists(function (subcube, i) {
 							var part = {
 								"name": "" + d.partitions[i].name,  //CONVERT TO STRING
 								"value": d.end(d.partitions[i]),
 								"esfilter": {"term": Map.newInstance(dim.field[0], d.partitions[i].value)},
 								"count": aMath.sum(subcube)
 							};
-							part.partitions = subcube.map(function (count2, j) {
+							part.partitions = subcube.mapExists(function (count2, j) {
 								if (count2 > 0) {  //ONLY INCLUDE PROPERTIES THAT EXIST
 									return {
 										"name": "" + d2.partitions[j].name,  //CONVERT TO STRING

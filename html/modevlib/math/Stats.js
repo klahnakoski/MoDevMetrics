@@ -48,7 +48,7 @@ epsilon=1/1000000;
 //DATA NEED NOT BE ORDERED
 //RETURNS {"time", "age"} FOR PERCENTILE REQUESTED
 Stats.percentileAgeOverTime=function(data, timeEdge, sampleSize, percentile){
-	var newdata=data.map(function(v, i){
+	var newdata=data.mapExists(function(v, i){
 		var d=[];
 		d[0]=v.birth.getMilli();
 		d[1]=v.death.getMilli();
@@ -84,7 +84,7 @@ Stats.percentileAgeOverTime=function(data, timeEdge, sampleSize, percentile){
 //DATA NEED NOT BE ORDERED
 //RETURNS {"time", "age"} FOR PERCENTILE REQUESTED
 Stats.ageOverTime=function(data, timeEdge, sampleSize, statFunction){
-	var newdata=data.map(function(v, i){
+	var newdata=data.mapExists(function(v, i){
 		var d=[];
 		d[0]=v.birth;
 		d[1]=v.death;

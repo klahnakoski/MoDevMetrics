@@ -132,7 +132,7 @@ PickDim.prototype.addPart=function(edge){
 	var row=$(
 		'<tr>'+
 			'<td><div class="dim-container"><div class="position">'+
-				parts.map(function(v, i){
+				parts.mapExists(function(v, i){
 					if (i>=coalesce(edge.limit, DEFAULT_CHILD_LIMIT)) return undefined;
 					return '<span class="dim-part" name="'+v.name+'">'+v.name+'</span>';
 				}).join("")+
@@ -305,7 +305,7 @@ PickDim.prototype.getQuery=function(){
 					"value":self.focus.edge.field,
 					"domain":{
 						"type":self.focus.edge.type,
-						"partitions":selectedParts.map(function(p,i){
+						"partitions":selectedParts.mapExists(function(p,i){
 							if (i>=coalesce(self.focus.edge.limit, DEFAULT_CHILD_LIMIT)) return undefined;
 							return {
 								"name":p.name,
@@ -332,7 +332,7 @@ PickDim.prototype.getQuery=function(){
 					"name":self.focus.edge.name,
 					"domain":{
 						"type":"set",
-						"partitions":selectedParts.map(function(p,i){
+						"partitions":selectedParts.mapExists(function(p,i){
 							if (i>=coalesce(self.focus.edge.limit, DEFAULT_CHILD_LIMIT)) return undefined;
 							return p;
 						}),
@@ -364,7 +364,7 @@ PickDim.prototype.getQuery=function(){
 				"value":s.field,
 				"domain":{
 					"type":s.type,
-					"partitions":s.partitions.map(function(p,i){
+					"partitions":s.partitions.mapExists(function(p,i){
 						return p.value;
 					}),
 					"isFacet":self.focus.edge.isFacet
@@ -378,7 +378,7 @@ PickDim.prototype.getQuery=function(){
 	}//endif
 
 	for(var i=0;i<self.filters.length;i++){
-		var esfilters=Map.map(self.filters[i].selected, function(k, v){
+		var esfilters=Map.mapExists(self.filters[i].selected, function(k, v){
 			return v.esfilter;
 		});
 		if (esfilters.length==0){

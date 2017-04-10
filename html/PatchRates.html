@@ -161,7 +161,7 @@ importScript([
 			"stacked":true,
 			"clickAction":function(series, x, d){
 				Thread.run(function*(){
-					var s=chart.select.map(function(v){ if (v.name==series) return v;})[0];
+					var s=chart.select.mapExists(function(v){ if (v.name==series) return v;})[0];
 
 					var buglist=(yield (qb.calc2List({
 						"from":patches,
@@ -202,7 +202,7 @@ importScript([
 			"type":"bar",
 			"clickAction":function(series, x, d){
 				Thread.run(function*(){
-					var s=chart.select.map(function(v){ if (v.name==series) return v;})[0];
+					var s=chart.select.mapExists(function(v){ if (v.name==series) return v;})[0];
 
 					var buglist=(yield (qb.calc2List({
 						"from":patches,

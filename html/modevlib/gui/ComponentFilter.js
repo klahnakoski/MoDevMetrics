@@ -36,7 +36,7 @@ ComponentFilter.prototype.refresh = function(){
 			}));
 
 			components = qb.Cube2List(components);
-			var terms = components.map(function(v, i){return v.term;});
+			var terms = components.mapExists(function(v, i){return v.term;});
 
 			self.selected = self.selected.intersect(terms);
 	//    var self=this;
@@ -95,7 +95,7 @@ ComponentFilter.prototype.setSimpleState=function(value){
 	if (!value || value==""){
 		this.selected=[];
 	}else{
-		this.selected=value.split(",").map(function(v){return v.trim();});
+		this.selected=value.split(",").mapExists(function(v){return v.trim();});
 	}//endif
 //  this.refresh();
 

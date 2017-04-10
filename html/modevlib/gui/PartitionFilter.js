@@ -252,7 +252,7 @@ PartitionFilter.prototype.makeTree=function(){
 		if (checked["__all__"]){  //ULTIMATE PARENT
 			minCover =["__all__"];
 		}else{
-			minCover= Map.map(checked, function(id){
+			minCover= Map.mapExists(checked, function(id){
 				if (checked[self.parents[id].id]) return;
 				return id;
 			});

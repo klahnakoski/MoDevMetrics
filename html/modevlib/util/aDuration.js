@@ -254,11 +254,11 @@ Duration.prototype.mod = function(interval){
 
 
 var milliSteps = [1, 2, 5, 10, 20, 50, 100, 200, 500]
-	.extend([1, 2, 5, 6, 10, 15, 30].map(function(v){return v*1000;}))  //SECONDS
-	.extend([1, 2, 5, 6, 10, 15, 30].map(function(v){return v*60*1000;}))  //MINUTES
-	.extend([1, 2, 3, 6, 12].map(function(v){return v*60*60*1000;}))  //HOURS
-	.extend([1].map(function(v){return v*24*60*60*1000;}))  //DAYS
-	.extend([1, 2].map(function(v){return v*7*24*60*60*1000;}))  //WEEKS
+	.extend([1, 2, 5, 6, 10, 15, 30].mapExists(function(v){return v*1000;}))  //SECONDS
+	.extend([1, 2, 5, 6, 10, 15, 30].mapExists(function(v){return v*60*1000;}))  //MINUTES
+	.extend([1, 2, 3, 6, 12].mapExists(function(v){return v*60*60*1000;}))  //HOURS
+	.extend([1].mapExists(function(v){return v*24*60*60*1000;}))  //DAYS
+	.extend([1, 2].mapExists(function(v){return v*7*24*60*60*1000;}))  //WEEKS
 	;
 
 var monthSteps = [1, 2, 6, 12, 24, 60, 120];

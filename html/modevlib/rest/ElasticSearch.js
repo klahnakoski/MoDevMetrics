@@ -113,7 +113,7 @@ ElasticSearch.getOpenMinMax=function*(esfilter, timeDomain, selects){
 		]}
 	}));
 
-	var allSelects = selects.map(function(s){
+	var allSelects = selects.mapExists(function(s){
 		return {"name":s, "value":'expires_on>Date.now().getMilli() ? '+s+' : null', "aggregate":"minimum"};  //aggregate===minimum due to es corruption
 	}).extend([
 		{"name":"min", "value":'["new", "assigned", "unconfirmed", "reopened"].contains(bug_status) ? modified_ts : null', "aggregate":"minimum"},

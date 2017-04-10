@@ -41,7 +41,7 @@ importScript("../collections/aArray.js");
 			return (function(self, name, params){
 				return self.each(function(d, i){
 					var acc = this.getAttribute("transform");
-					var value = name + "(" + params.map(function(f){
+					var value = name + "(" + params.mapExists(function(f){
 							return isFunction(f) ? f(d, i) : f;
 						}).join(",") + ")";
 					this.setAttribute("transform", value + " " + coalesce(acc, ""));

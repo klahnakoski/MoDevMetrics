@@ -133,7 +133,7 @@ ProgramFilter.prototype.setSimpleState=function(value){
 	if (!value || value==""){
 		this.selected=[];
 	}else{
-		this.selected=value.split(",").map(function(v){return v.trim();});
+		this.selected=value.split(",").mapExists(function(v){return v.trim();});
 	}//endif
 	this.refresh();
 };
@@ -225,7 +225,7 @@ ProgramFilter.prototype.bugStatusMinimum_fromDoc=function(){
 	if (this.selected.length==0){
 		idTime="doc[\"create_time\"].value";
 	}else{
-		idTime=ProgramFilter.minimum(this.selected.map(function(v, i){return "doc[\""+v+"_time\"].value"}));
+		idTime=ProgramFilter.minimum(this.selected.mapExists(function(v, i){return "doc[\""+v+"_time\"].value"}));
 	}//endif
 
 	return idTime;
@@ -237,7 +237,7 @@ ProgramFilter.prototype.bugStatusMinimum_fromSource=function(){
 	if (this.selected.length==0){
 		idTime="bug_summary.create_time";
 	}else{
-		idTime=ProgramFilter.minimum(this.selected.map(function(v, i){return "bug_summary[\""+v+"_time\"]"}));
+		idTime=ProgramFilter.minimum(this.selected.mapExists(function(v, i){return "bug_summary[\""+v+"_time\"]"}));
 	}//endif
 
 	return idTime;

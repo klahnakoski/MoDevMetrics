@@ -125,7 +125,7 @@ var createChart=function(){
 						]
 					}));
 
-					addToTable(col.name, JSON.stringify(result2.list.map(function(v){return v[col.name];})).left(3000));
+					addToTable(col.name, JSON.stringify(result2.list.mapExists(function(v){return v[col.name];})).left(3000));
 
 				}else if (["boolean", "integer", "date", "long"].contains(col.type)){
 					var result=yield (ElasticSearch.search("bugs", {

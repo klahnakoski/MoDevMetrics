@@ -136,7 +136,7 @@ var __createChart = function*(){
 		if (zSpecificParts){
 			edgeZ.domain.partitions=edgeZ.domain.partitions.filter(function(p){return partNames.contains(p.name);});
 		}//endif
-//		query.where=convert.Object2JSON(Z.map(function(p){return p.name;}))+".contains(Z.name)";
+//		query.where=convert.Object2JSON(Z.mapExists(function(p){return p.name;}))+".contains(Z.name)";
 
 	}else if (PART_QUERY===undefined){
 		yield (null);	//NOT ENOUGH DIMENSIONS TO CHART YET
@@ -150,7 +150,7 @@ var __createChart = function*(){
 	query.esfilter={"and":[
 		query.esfilter,
 		GUI.state.esfilter,
-		zSpecificParts ? {"or":Z.map(function(p){return p.esfilter;})} : undefined	//ADD ESFILTER FOR SPEED
+		zSpecificParts ? {"or":Z.mapExists(function(p){return p.esfilter;})} : undefined	//ADD ESFILTER FOR SPEED
 	].cleanCopy()};
 
 
@@ -210,7 +210,7 @@ var __createChart = function*(){
 
 		var selectedDim;
 		//REDUCE SELECTION TO ALL PARTS IN ONE DIMENSION
-		var output=newDims.map(function(v){
+		var output=newDims.mapExists(function(v){
 			var d=v;
 			while(true){
 				if (d.getDomain){

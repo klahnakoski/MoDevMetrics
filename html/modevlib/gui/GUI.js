@@ -271,7 +271,7 @@ GUI = {};
 			var simpleState = {};
 			Map.forall(GUI.state, function (k, v) {
 
-				var p = GUI.parameters.map(function (v, i) {
+				var p = GUI.parameters.mapExists(function (v, i) {
 					if (v.id == k) return v;
 				})[0];
 
@@ -305,7 +305,7 @@ GUI = {};
 			Map.forall(urlState, function (k, v) {
 				if (GUI.state[k] === undefined) return;
 
-				var p = GUI.parameters.map(function (v, i) {
+				var p = GUI.parameters.mapExists(function (v, i) {
 					if (v.id == k) return v;
 				})[0];
 
@@ -329,7 +329,7 @@ GUI = {};
 					if (v.trim()==""){
 						GUI.state[k]=[];
 					}else{
-						GUI.state[k] = v.split(",").map(String.trim).unwrap();
+						GUI.state[k] = v.split(",").mapExists(String.trim).unwrap();
 					}//endif
 				} else if (p && p.type == "code") {
 					v = v.escape(Map.inverse(GUI.urlMap));
@@ -542,7 +542,7 @@ GUI = {};
 					if (v.trim() == "") {
 						GUI.state[param.id]=[];
 					}else{
-						GUI.state[param.id]=v.split(",").map(String.trim);
+						GUI.state[param.id]=v.split(",").mapExists(String.trim);
 					}//endif
 				} else {
 					v = $("#" + param.id).val();

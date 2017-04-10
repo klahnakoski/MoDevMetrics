@@ -277,7 +277,7 @@ importScript("../util/aUtil.js");
 	};
 
 	Array.prototype.concatenate=function(separator){
-		return this.map(function(v){return v;}).join(separator);
+		return this.mapExists(function(v){return v;}).join(separator);
 	};
 
 	//RETURN TRUE IF VALUE IS FOUND IN ARRAY

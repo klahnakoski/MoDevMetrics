@@ -71,8 +71,8 @@ Bugzilla.search=function*(bugList, fields){
 
 			result.extend(data);
 			if (numCalls==0){
-				var missing=bugList.subtract(result.map(function(b){return b.id;}));
-				result.extend(missing.map(function(m){
+				var missing=bugList.subtract(result.mapExists(function(b){return b.id;}));
+				result.extend(missing.mapExists(function(m){
 					var output={};
 					for(var c=fields.length;c--;) output[fields[c]]=null;
 					output.id=m;

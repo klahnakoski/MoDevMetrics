@@ -20,8 +20,8 @@ Sprints = [
 	"36 Sprint 1- 10/27   10/14-10/27",
 	"36 Sprint 2- 11/10   10/28-11/10",
 	"36 Sprint 3- 11/24   11/11-11/24"
-].map(function(v){
-		var parts = v.split("-").map(function(v){
+].mapExists(function(v){
+		var parts = v.split("-").mapExists(function(v){
 			return v.trim();
 		});
 		var name = v.split("-")[0];
@@ -58,8 +58,8 @@ Sprints = [
 		"2.1 S4 (12sep)  8/30-9/12",
 		"2.1 S5 (26sep)  9/13-9/26",
 		"2.1 S6 (10oct)  9/27-10/10"
-	].map(function(v){
-			var parts = v.split("  ").map(function(v){
+	].mapExists(function(v){
+			var parts = v.split("  ").mapExists(function(v){
 				return v.trim();
 			});
 			var name = parts[0].left(6);

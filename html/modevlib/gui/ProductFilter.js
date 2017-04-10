@@ -80,7 +80,7 @@ ProductFilter.prototype.setSimpleState=function(value){
 	if (!value || value==""){
 		this.selected=[];
 	}else{
-		this.selected=value.split(",").map(function(v){return v.trim();});
+		this.selected=value.split(",").mapExists(function(v){return v.trim();});
 	}//endif
 	this.refresh();
 

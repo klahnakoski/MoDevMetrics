@@ -139,7 +139,7 @@ var Template = function Template(template){
 
 	function _expand_array(arr, namespaces){
 		//AN ARRAY OF TEMPLATES IS SIMPLY CONCATENATED
-		return arr.map(function(t){
+		return arr.mapExists(function(t){
 			return _expand(t, namespaces);
 		}).join("");
 	}
@@ -150,7 +150,7 @@ var Template = function Template(template){
 			Log.error("expecting from clause to be string");
 		}//endif
 
-		return Map.get(namespaces[0], loop.from).map(function(m){
+		return Map.get(namespaces[0], loop.from).mapExists(function(m){
 			var map = Map.copy(namespaces[0]);
 			map["."] = m;
 			if (m instanceof Object && !(m instanceof Array)) {
@@ -175,7 +175,7 @@ var Template = function Template(template){
 			Log.error("expecting `from_items` clause to be string");
 		}//endif
 
-		return Map.map(Map.get(namespaces[0], loop.from_items), function(name, value){
+		return Map.mapExists(Map.get(namespaces[0], loop.from_items), function(name, value){
 			var map = Map.copy(namespaces[0]);
 			map["name"] = name;
 			map["value"] = value;

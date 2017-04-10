@@ -69,7 +69,7 @@ var convert = function(){
 	 * @return {string} CSS style
 	 */
 	convert.Map2Style = function(map){
-		return Map.map(map, function(k, v){
+		return Map.mapExists(map, function(k, v){
 				return k + ":" + v;
 			}).join(";") + ";";
 	};
@@ -94,7 +94,7 @@ var convert = function(){
 				if (json.length == 0) return "[]";
 				if (json.length == 1) return "[" + _value2json(json[0], maxDepth - 1) + "]";
 
-				return "[\n" + json.map(function(v, i){
+				return "[\n" + json.mapExists(function(v, i){
 						if (v === undefined) return "undefined";
 						return _value2json(v, maxDepth - 1).indent(1);
 					}).join(",\n") + "\n]";
@@ -147,30 +147,30 @@ var convert = function(){
 		});
 
 		if (depth == 2) {
-			return Map.map(value, function(selector, css){
+			return Map.mapExists(value, function(selector, css){
 				return selector + " {" +
-					Map.map(css, function(name, value){
+					Map.mapExists(css, function(name, value){
 						return name + ":" + value;
 					}).join(";") + "}";
 			}).join("\n\n");
 		} else {
-			return Map.map(value, function(name, value){
+			return Map.mapExists(value, function(name, value){
 				return name + ":" + value;
 			}).join(";")
 		}//endif
 	};//method
 
 	convert.style2Object = function(value){
-		return Map.zip(value.split(";").map(function(attr){
+		return Map.zip(value.split(";").mapExists(function(attr){
 			if (attr.trim() == "") return undefined;
-			return attr.split(":").map(function(v){
+			return attr.split(":").mapExists(function(v){
 				return v.trim();
 			});
 		}));
 	};//method
 
 	convert.Object2style = function(style){
-		return Map.map(style, function(name, value){
+		return Map.mapExists(style, function(name, value){
 			return name + ":" + value;
 		}).join(";");
 	};//method
@@ -260,9 +260,9 @@ var convert = function(){
 		for (i = 123; i < 256; i++) urlMap[String.fromCharCode(i)] = "%" + int2hex(i, 2);
 
 		convert.Object2URLParam = function(value){
-			return Map.map(value, function(k, v){
+			return Map.mapExists(value, function(k, v){
 				if (v instanceof Array) {
-					return v.map(function(vv){
+					return v.mapExists(function(vv){
 						if (isString(vv)) {
 							return k.escape(urlMap) + "=" + vv.escape(urlMap);
 						} else {
@@ -476,7 +476,7 @@ var convert = function(){
 		var output = unPipe(value);
 		if (type == 's') return output;
 
-		return output.split("|").map(function(v, i){
+		return output.split("|").mapExists(function(v, i){
 			return convert.Pipe2Value(v);
 		});
 	};//method
@@ -505,14 +505,14 @@ var convert = function(){
 			header += "<td>" + convert.String2HTML(e.name) + "</td>";
 
 			if (query.select instanceof Array) {
-				header += query.select.map(function(s){
+				header += query.select.mapExists(function(s){
 					return wrapWithHtmlTag("td", s.name);
 				}).join("");
 
-				content = e.domain.partitions.map(function(v, i){
+				content = e.domain.partitions.mapExists(function(v, i){
 					return "<tr>" +
 						wrapWithHtmlTag("th", e.domain.end(v)) +
-						query.select.map(function(s){
+						query.select.mapExists(function(s){
 							return wrapWithHtmlTag("td", query.cube[i][s.name])
 						}).join("") +
 						"</tr>";
@@ -520,7 +520,7 @@ var convert = function(){
 			} else {
 				header += wrapWithHtmlTag("th", query.select.name);
 
-				content = e.domain.partitions.map(function(p, i){
+				content = e.domain.partitions.mapExists(function(p, i){
 					return "<tr>" + wrapWithHtmlTag("th", e.domain.end(p)) + wrapWithHtmlTag("td", query.cube[i]) + "</tr>";
 				}).join("\n");
 			}//endif
@@ -566,10 +566,10 @@ var convert = function(){
 //        header += "<td>" + convert.String2HTML(v.name) + "</td>";
 //      });
 //
-//      content=query.cube.map(function(r, i){
+//      content=query.cube.mapExists(function(r, i){
 //        return "<tr>"+
 //          wrapWithHtmlTag(e.domain.partitions[i].name, "th")+
-//          r.map(function(c, j){
+//          r.mapExists(function(c, j){
 //            return wrapWithHtmlTag(c);
 //          }).join("")+
 //          "</tr>";
@@ -650,10 +650,10 @@ var convert = function(){
 	function wrapWithHtmlTag(tagName, value){
 		if (tagName === undefined) tagName = "td";
 		tagName = Array.newInstance(tagName);
-		var prefix = tagName.map(function(t){
+		var prefix = tagName.mapExists(function(t){
 			return "<" + t + ">"
 		}).join("");
-		var suffix = qb.reverse(tagName).map(function(t){
+		var suffix = qb.reverse(tagName).mapExists(function(t){
 			return "</" + t + ">"
 		}).join("");
 
@@ -852,7 +852,7 @@ var convert = function(){
 			var output = [];
 			rows.forall(function(r){
 				var crows = Array.newInstance(Map.get(r, path[0]));
-				var cresult = select(path.rightBut(1), crows).map(function(cr){
+				var cresult = select(path.rightBut(1), crows).mapExists(function(cr){
 					return Map.newInstance(path[0], cr);
 				});
 				output.extend(cresult);
@@ -870,7 +870,7 @@ var convert = function(){
 			if (list.length == 0) return TRUE_FILTER;
 			if (list.length == 1) return convert.esFilter2function(list[0]);
 
-			var tests = list.map(convert.esFilter2function);
+			var tests = list.mapExists(convert.esFilter2function);
 			return function(row, i, rows){
 				for (var t = 0; t < tests.length; t++) {
 					if (!tests[t](row, i, rows)) return false;
@@ -882,7 +882,7 @@ var convert = function(){
 			if (list.length == 0) return FALSE_FILTER;
 			if (list.length == 1) return convert.esFilter2function(list[0]);
 
-			var tests = list.map(convert.esFilter2function);
+			var tests = list.mapExists(convert.esFilter2function);
 			return function(row, i, rows){
 				for (var t = 0; t < tests.length; t++) {
 					if (tests[t](row, i, rows)) return true;
@@ -1090,7 +1090,7 @@ var convert = function(){
 		} else if (op == "not") {
 			return "!(" + convert.esFilter2Expression(esFilter[op]) + ")";
 		} else if (op == "term") {
-			return Map.map(esFilter[op], function(variableName, value){
+			return Map.mapExists(esFilter[op], function(variableName, value){
 				if (value instanceof Array) {
 					Log.error("Do not use term filter with array of values (" + convert.value2json(esFilter) + ")");
 				}//endif
@@ -1103,7 +1103,7 @@ var convert = function(){
 			if (valueList.length == 0)
 				Log.error("Expecting something in 'terms' array");
 			if (valueList.length == 1) return (variableName) + "==" + convert.Value2Quote(valueList[0]);
-			output += "[" + valueList.map(convert.String2Quote).join(", ") + "].intersect(Array.newInstance(" + variableName + ")).length > 0";  //ARRAY BASED FOR MULTIVALUED VARIABLES
+			output += "[" + valueList.mapExists(convert.String2Quote).join(", ") + "].intersect(Array.newInstance(" + variableName + ")).length > 0";  //ARRAY BASED FOR MULTIVALUED VARIABLES
 			return output;
 		} else if (op == "exists") {
 			var variableName = esFilter[op].field;
@@ -1154,7 +1154,7 @@ var convert = function(){
 			var pair = esFilter[op];
 			var variableName = Object.keys(pair)[0];
 			var value = pair[variableName];
-			return 'Array.OR(Array.newInstance('+variableName+').map(function(v){\n'+
+			return 'Array.OR(Array.newInstance('+variableName+').mapExists(function(v){\n'+
 			'  return typeof(v)=="string" && v.startsWith(' + convert.Value2Quote(value) + ')\n'+
 			'}))\n';
 		} else if (op == "match_all") {

@@ -363,13 +363,13 @@ function COALESCE(values){
  * @returns {Array} - TRANSPOSE, WITH LENGTH OF THE LONGEST ARRAY
  */
 function ZIP(arrays){
-	var temp=arrays.map(Array.newInstance);
-	var max = aMath.MAX(temp.map(function(v){
+	var temp=arrays.mapExists(Array.newInstance);
+	var max = aMath.MAX(temp.mapExists(function(v){
 		return v.length;
 	}));
 	var output = [];
 	for (var i = max; i--;) {
-		output[i] = temp.map(function(vv){
+		output[i] = temp.mapExists(function(vv){
 			return vv[i];
 		});
 	}//for
@@ -413,7 +413,7 @@ Util.GUID = function(){
 
 function splitField(fieldname){
 	try {
-		return fieldname.replaceAll("\\.", "\b").split(".").map(function(v){
+		return fieldname.replaceAll("\\.", "\b").split(".").mapExists(function(v){
 			return v.replaceAll("\b", ".");
 		});
 	} catch (e) {

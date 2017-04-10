@@ -111,7 +111,7 @@ var __createChart = function*(){
 		//   "edges":[{"name":"bug_id", "value":"id"}]
 		//}
 		//CURRENT STATUS
-		var bugs=historyBugs.edges[0].domain.partitions.map(function(v){return v.value;});
+		var bugs=historyBugs.edges[0].domain.partitions.mapExists(function(v){return v.value;});
 		if (bugs.length>0){
 			var aa=Log.action("Pull "+bugs.length+" bugs from BZ", true);
 			var currentBugs=yield (Bugzilla.search(bugs, ["id", "summary", "assignee", "status", "resolution" ]));
@@ -225,7 +225,7 @@ var __createChart = function*(){
 
 		//DIFF TOTAL==NET NEW BUGS
 		//DIFF CLOSED==NET CLOSED BUGS
-		var diff = stats.cube.map(function(v, i){
+		var diff = stats.cube.mapExists(function(v, i){
 			if (i == stats.cube.length-1) return undefined;
 			return {
 				"net_new":stats.cube[i + 1].total-v.total,

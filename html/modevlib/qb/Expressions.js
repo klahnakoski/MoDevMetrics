@@ -68,7 +68,7 @@
 	expressions.sub = function(expr){
 		var output;
 		if (isArray(expr.sub)) {
-			var exprs = expr.sub.map(qb2function);
+			var exprs = expr.sub.mapExists(qb2function);
 			output = function(value){
 				return exprs[0](value) - exprs[1](value);
 			};
@@ -87,13 +87,13 @@
 	expressions.eq = function(expr){
 		var output;
 		if (isArray(expr.eq)) {
-			var exprs = expr.eq.map(qb2function);
+			var exprs = expr.eq.mapExists(qb2function);
 			output = function(value){
 				return exprs[0](value) == exprs[1](value);
 			};
 		} else {
 			output = function(value){
-				return Array.AND(Map.map(expr.eq, function(k, v){
+				return Array.AND(Map.mapExists(expr.eq, function(k, v){
 					return Map.get(value, k) == v;
 				}));
 			};
@@ -171,7 +171,7 @@
 	expressions.gt = function(expr){
 		var output;
 		if (isArray(expr.gt)) {
-			var exprs = expr.gt.map(qb2function);
+			var exprs = expr.gt.mapExists(qb2function);
 			output = function(value){
 				return exprs[0](value) > exprs[1](value);
 			};
@@ -190,7 +190,7 @@
 	expressions.add = function(expr){
 		var output;
 		if (isArray(expr.add)) {
-			var exprs = expr.add.map(qb2function);
+			var exprs = expr.add.mapExists(qb2function);
 			output = function(value){
 				return exprs[0](value) + exprs[1](value);
 			};
