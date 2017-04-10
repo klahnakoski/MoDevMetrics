@@ -633,7 +633,7 @@ var convert = function(){
 		for (var i = 0; i < data.length; i++) {
 			var row = "";
 			for (var c = 0; c < columns.length; c++) {
-				var value = data[i][coalesce(columns[c].value, columns[c].name)];
+				var value = data[i][coalesce(columns[c].name, columns[c].value)];
 				row += wrapWithHtmlTag(["td", "div"], value);
 			}//for
 			output += "<tr>" + row + "</tr>\n";
