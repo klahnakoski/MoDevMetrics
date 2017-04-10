@@ -69,7 +69,7 @@ var convert = function(){
 	 * @return {string} CSS style
 	 */
 	convert.Map2Style = function(map){
-		return Map.mapExists(map, function(k, v){
+		return Map.map(map, function(k, v){
 				return k + ":" + v;
 			}).join(";") + ";";
 	};
@@ -147,14 +147,14 @@ var convert = function(){
 		});
 
 		if (depth == 2) {
-			return Map.mapExists(value, function(selector, css){
+			return Map.map(value, function(selector, css){
 				return selector + " {" +
-					Map.mapExists(css, function(name, value){
+					Map.map(css, function(name, value){
 						return name + ":" + value;
 					}).join(";") + "}";
 			}).join("\n\n");
 		} else {
-			return Map.mapExists(value, function(name, value){
+			return Map.map(value, function(name, value){
 				return name + ":" + value;
 			}).join(";")
 		}//endif
@@ -170,7 +170,7 @@ var convert = function(){
 	};//method
 
 	convert.Object2style = function(style){
-		return Map.mapExists(style, function(name, value){
+		return Map.map(style, function(name, value){
 			return name + ":" + value;
 		}).join(";");
 	};//method
@@ -260,7 +260,7 @@ var convert = function(){
 		for (i = 123; i < 256; i++) urlMap[String.fromCharCode(i)] = "%" + int2hex(i, 2);
 
 		convert.Object2URLParam = function(value){
-			return Map.mapExists(value, function(k, v){
+			return Map.map(value, function(k, v){
 				if (v instanceof Array) {
 					return v.mapExists(function(vv){
 						if (isString(vv)) {
@@ -1090,7 +1090,7 @@ var convert = function(){
 		} else if (op == "not") {
 			return "!(" + convert.esFilter2Expression(esFilter[op]) + ")";
 		} else if (op == "term") {
-			return Map.mapExists(esFilter[op], function(variableName, value){
+			return Map.map(esFilter[op], function(variableName, value){
 				if (value instanceof Array) {
 					Log.error("Do not use term filter with array of values (" + convert.value2json(esFilter) + ")");
 				}//endif

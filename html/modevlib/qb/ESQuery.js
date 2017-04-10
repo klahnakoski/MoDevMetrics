@@ -251,7 +251,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 			if (indices.length == 1) {
 				schema = schema[indices[0]]
 			} else {
-				schema = Map.mapExists(function(k, v){
+				schema = Map.map(function(k, v){
 					if (k.startsWith(prefix)) return v;
 				})[0]
 			}//endif
@@ -270,7 +270,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 				}//endif
 			}else if (cluster_info.version.number.startsWith("1.4")){
 				//FULL INDEX/TYPE STRUCTURE IS RETURNED
-				index = Map.mapExists(schema, function(k, v){
+				index = Map.map(schema, function(k, v){
 					if (k.startsWith(path[0])) return v;
 				})[0];
 				schema = index.mappings[path[1]];

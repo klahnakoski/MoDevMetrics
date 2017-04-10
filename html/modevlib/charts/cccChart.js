@@ -654,7 +654,7 @@ var aChart = {};
 				cube = Map.zip(Array.newInstance(chartCube.select).mapExists(function(s){
 					return [
 						s.name,
-						m.mapExists(function(v){
+						m.map(function(v){
 							return v[s.name];
 						})
 					];

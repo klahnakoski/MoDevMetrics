@@ -175,7 +175,7 @@ var Template = function Template(template){
 			Log.error("expecting `from_items` clause to be string");
 		}//endif
 
-		return Map.mapExists(Map.get(namespaces[0], loop.from_items), function(name, value){
+		return Map.map(Map.get(namespaces[0], loop.from_items), function(name, value){
 			var map = Map.copy(namespaces[0]);
 			map["name"] = name;
 			map["value"] = value;

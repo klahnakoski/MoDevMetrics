@@ -9,7 +9,7 @@
 <BODY>
 
 
-<div id="sidebar" style="width:300px;">
+<div id="sidebar" style="width:320px;">
 	<br><br>
 	<div style="height: 30px; text-align: center;vertical-align:middle;">
 		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
@@ -115,7 +115,7 @@ importScript([
 				"select": {"name": "num_bug", "value": "bug_id", "aggregate": "count"},
 				"edges": [
 					{
-						"name": "status", "value": '(bug.bug_status=="resolved" || bug.bug_status=="verified" || bug.bug_status=="closed") ? "closed" : "open"',
+						"name": "status", "value": '(bug_status=="resolved" || bug_status=="verified" || bug_status=="closed") ? "closed" : "open"',
 						"domain": {"type": "set", "partitions": ["open", "closed"]}
 					},
 					{
@@ -165,12 +165,10 @@ importScript([
 			" If you use the filters, please be aware that a bug moving from one team to the" +
 			" next will show as &quot;closed&quot; for one and &quot;opened&quot; for the" +
 			" next respectively.  Adding up the individual team's open/close rates will result" +
-			" in something greater than the total shown with no filters active.   This effect" +
-			" can be seen by setting Team=Nobody; which shows all bugs being assigned to Nobody" +
-			" and  showing the bugs being &quot;closed&quot; as they are assigned to people.<br><br>" +
+			" in something greater than the total shown with no filters active.<br><br>" +
 			(
 				(MAX_CHART_DATE > Date.now().floorDay())
-					? "<span class=\"warning\">Estimates are generated from a " + statsMax.subtract(statsMin).toString() + " sample from " + statsMin.format("EE MMM dd") + " to " + statsMax.addDay(-1).format("EE MMM dd") + "</span>"
+					? "<span class=\"warning\">Estimates are generated from a " + statsMax.subtract(statsMin).toString() + " sample from " + statsMin.format("E MMM dd") + " to " + statsMax.addDay(-1).format("E MMM dd") + "</span>"
 					: "<span class=\"warning\">NO ESTIMATES GENERATED BECAUSE DUE DATE IS IN THE PAST</span>"
 			)
 		);
@@ -195,14 +193,19 @@ importScript([
 		// DAILY CHANGE
 		////////////////////////////////////////////////////////////////////////////
 
-		var minMaxBugs = yield(ElasticSearch.getMinMax({
-			"and": [
-				Mozilla.BugStatus.Open.esfilter,
-				{"range": {"modified_ts": {"lt": sampleMax.getMilli()}}},
-				{"range": {"expires_on": {"gte": sampleMin.getMilli()}}},
-				GUI.getFilters("bugs")
-			]
-		}));
+		a = Log.action("Get daily churn", true);
+		try {
+			var minMaxBugs = yield(ElasticSearch.getMinMax({
+				"and": [
+					Mozilla.BugStatus.Open.esfilter,
+					{"range": {"modified_ts": {"lt": sampleMax.getMilli()}}},
+					{"range": {"expires_on": {"gte": sampleMin.getMilli()}}},
+					GUI.getFilters("bugs")
+				]
+			}));
+		} finally {
+			Log.actionDone(a)
+		}//try
 
 
 		var diff = yield(Q({

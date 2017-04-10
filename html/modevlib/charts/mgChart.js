@@ -93,7 +93,7 @@ importScript("tools.js");
 					v["_colorIndex"] = v[edge0.name].dataIndex;
 				});
 			} else {
-				var cube = Map.zip(Map.mapExists(chartCube.data, function(k, v){
+				var cube = Map.zip(Map.map(chartCube.data, function(k, v){
 					return [k, new Matrix({"data": v})];
 				}));
 				var canonical = Map.values(cube)[0];

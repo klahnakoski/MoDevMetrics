@@ -93,7 +93,7 @@
 			};
 		} else {
 			output = function(value){
-				return Array.AND(Map.mapExists(expr.eq, function(k, v){
+				return Array.AND(Map.map(expr.eq, function(k, v){
 					return Map.get(value, k) == v;
 				}));
 			};
