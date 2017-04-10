@@ -79,7 +79,7 @@ var __createChart = function*(){
 	var sampleMin = Date.newInstance(GUI.state.sampleMin);
 	var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
 	var sampleMax = Date.newInstance(GUI.state.sampleMax).addDay();
-	var bug_ids = GUI.state.bugList.trim()=="" ? [] : GUI.state.bugList.split(",").map(function(v){return convert.String2Integer(v.trim());});
+	var bug_ids = GUI.state.bugList.trim()=="" ? [] : GUI.state.bugList.split(",").mapExists(function(v){return convert.String2Integer(v.trim());});
 
 	var timeDomain = null;
 
@@ -93,11 +93,11 @@ var __createChart = function*(){
 		//FIND REAL TIME RANGE
 		sampleMin = aMath.min(TODAY.addDay(-14), aMath.min.apply(
 			undefined,
-			milestones.select("start_date").map(Date.newInstance)
+			milestones.select("start_date").mapExists(Date.newInstance)
 		));
 		sampleMax = aMath.max.apply(
 			undefined,
-			milestones.select("targetDate").map(Date.newInstance)
+			milestones.select("targetDate").mapExists(Date.newInstance)
 		).addDay(2);
 
 		milestoneFilter = {"or": milestones.select("esfilter")};
@@ -148,9 +148,9 @@ var __createChart = function*(){
 			}));
 
 			if (milestones.length>0){
-				$("#title").html(r.list.map(convert.String2HTML).join("<br>")+"Milestone " + milestones.select("name").join(" and "));
+				$("#title").html(r.list.mapExists(convert.String2HTML).join("<br>")+"Milestone " + milestones.select("name").join(" and "));
 			}else{
-				$("#title").html(r.list.map(convert.String2HTML).join("<br>"));
+				$("#title").html(r.list.mapExists(convert.String2HTML).join("<br>"));
 			}//endif
 		});
 

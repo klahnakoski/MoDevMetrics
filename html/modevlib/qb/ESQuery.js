@@ -77,7 +77,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 
 			if (property.properties !== undefined) {
 				var childColumns = ESQuery.parseColumns(indexName, fullName, property.properties);
-				columns.appendArray(childColumns);
+				columns.extend(childColumns);
 				return;
 			}//endif
 
@@ -143,56 +143,65 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 
 		//WE MANAGE ALL THE REQUESTS FOR THE SAME SCHEMA, DELAYING THEM IF THEY COME IN TOO FAST
 		if (indexInfo.fetcher === undefined) {
-			indexInfo.fetcher = Thread.run(function*(){
+			indexInfo.fetcher = Thread.run("fetch columns", function*(){
 				var currInfo = indexInfo;
 				var depth = 0;
 				var attempts = [];
-				var schemas = [];
 				var info = [];
 
 				//TRY ALL HOSTS AND PATHS
 				while (currInfo !== undefined) {
 					info[depth] = currInfo;
-					schemas[depth] = null;
-					(function(ii, d){
-						attempts[d] = Thread.run(function*(){
-							schemas[d] = yield (ESQuery.loadSchema(query, indexName, ii));
+					(function(currInfo, d){
+						attempts[d] = Thread.run("load " + currInfo.name, function*(){
+							var schema = yield (ESQuery.loadSchema(query, indexName, currInfo));
+							if (schema) {
+								Log.note("got schema from " + currInfo.name);
+							}else{
+								Log.error("Could not get schema from " + currInfo.name);
+							}//endif
+							yield ([schema, currInfo]);
 						});
 					})(currInfo, depth);
 					currInfo = currInfo.alternate;
 					depth++;
 				}//while
 
-				//FIND THE FIRST TO RESPOND
+				//HOPEFULLY THE FIRST CLUSTER WILL RESPOND
 				var schema = null;
-				while (schema == null) {
-					var hope = false;
-					try {
-						for (var s = 0; s < schemas.length; s++) {
-							if (attempts[s].keepRunning || schemas[s] != null) {
-								hope = true;
-								yield (attempts[s].join(900));  //WE WILL ONLY WAIT FOR THE FIRST
-							}//endif
-						}//for
-					} catch (e) {
-						//DO NOTHING
-					}//try
-					if (!hope) {
-						yield (Exception("Can not locate any cluster"));
+				try {
+					var pair = yield (Thread.join(attempts[0], 900));
+					if (pair && isArray(pair)) {
+						[schema, currInfo] = pair;
 					}//endif
+				} catch (e) {
+					Log.warning("problem with join", e)
+				}//try
 
-					for (var s = 0; s < schemas.length; s++) {
-						if (schemas[s] != null) {
-							currInfo = info[s];
-							schema = schemas[s];
-							break;
-						}//endif
-					}//for
-				}//while
+				//WE WILL ACCEPT ANY CLUSTER RESPONSE NOW
+				if (!schema) {
+					try {
+						[schema, currInfo] = yield (Thread.joinAny(attempts));
+					} catch (e) {
+						Log.error("Can not locate any cluster", e);
+					}//try
+				}//endif
+
+				//GOT ONE, KILL THE REST
+				Log.note("killing other requests");
+				attempts.forall(function(a){
+					try {
+						a.kill()
+					} catch (e) {
+						Log.warning("failed to kill", e)
+					}//try
+				});
+				Log.note("done killing");
 
 				Map.copy(currInfo, indexInfo);
 				var properties = schema.properties;
 				indexInfo.columns = ESQuery.parseColumns(indexName, undefined, properties);
+				Log.note("done parse properties");
 				yield(null);
 			});
 		}//endif
@@ -213,7 +222,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 		var path = parse.URL(URL).path.split("/").rightBut(1);
 		var pathLength = path.length - 1;  //ASSUME /indexname.../_mapping
 
-		var cluster_info = null;
+		var cluster_info = {"version": {"number": "0.9"}};
 		try {
 			cluster_info = yield(Rest.get({
 				"url": indexInfo.host,
@@ -237,8 +246,8 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 
 		if (pathLength == 1) {  //EG http://host/indexname/_mapping
 			//CHOOSE AN INDEX
-			prefix = URL.split("/")[3];
-			indices = Object.keys(schema);
+			var prefix = URL.split("/")[3];
+			var indices = Object.keys(schema);
 			if (indices.length == 1) {
 				schema = schema[indices[0]]
 			} else {
@@ -249,7 +258,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 		}//endif
 
 		if (pathLength <= 2) {//EG http://host/indexname/typename/_mapping
-			if (!cluster_info || cluster_info.version.number.startsWith("0.9")) {
+			if (cluster_info.version.number.startsWith("0.9")) {
 				//cluster_info==null MUST ASSUME THIS IS THE esFrontLine (IN FRONT OF 0.9x)
 				var types = Object.keys(schema);
 				if (types.length == 1) {
@@ -299,7 +308,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 			query.edges[0].domain = {
 				"type": "set",
 				"isFacet": true,
-				"partitions": first.cube.map(function(v, i){
+				"partitions": first.cube.mapExists(function(v, i){
 					var part = first.edges[0].domain.partitions[i];
 					return {
 						"name": part.name,
@@ -437,7 +446,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 		var esFacets;
 
 		var smoothEdges = [];
-		if (Array.AND(Array.newInstance(this.query.select).map(function(s){return s.aggregate=="none";}))){
+		if (Array.AND(Array.newInstance(this.query.select).mapExists(function(s){return s.aggregate=="none";}))){
 			//NO AGGREGATION IMPLIES SIMPLE GROUP BY, USE SETOP TO COLLECT DATA
 			this.query.edges.forall(function(e){
 				smoothEdges.append({"name": e.name, "value": e.value, "domain": e.domain});
@@ -454,7 +463,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 		if (smoothEdges.length == this.query.edges.length) {
 			this.termsEdges = [];
 			this.select = Array.newInstance(this.query.select).copy();
-			this.select.appendArray(smoothEdges)
+			this.select.extend(smoothEdges)
 		} else {
 			this.termsEdges = this.query.edges.copy();
 			this.select = Array.newInstance(this.query.select);
@@ -695,11 +704,15 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 		if (edge.domain.isFacet) {
 			//MUST USE THIS' esFacet
 			var condition = coalesce(partition.esfilter, {"and": []});
+			if (!condition.and)	condition = {"and":[condition]};
 
 			if (qb.domain.ALGEBRAIC.contains(edge.domain.type)) {
 				condition.and.push({
 					"range": Map.newInstance(edge.value, {"gte": MVEL.Value2Query(partition.min), "lt": MVEL.Value2Query(partition.max)})
 				});
+			} else if (edge.value === undefined) {
+				//MUST USE THIS' esFacet, AND NOT(ALL THOSE ABOVE)
+				return ESFilter.simplify(partition.esfilter);
 			} else if (edge.domain.type == "set") {
 				condition.and.push({
 					"term": Map.newInstance(edge.value, edge.domain.getKey(partition))
@@ -1193,7 +1206,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 		if (data.facets === undefined || data.facets.length == 0) {
 			//SIMPLE ES QUERY
 			if (this.query.select instanceof Array) {
-				this.query.cube = Map.zip(this.select.map(function(s){
+				this.query.cube = Map.zip(this.select.mapExists(function(s){
 					if (s.aggregate == "count") {
 						return [s.name, data.hits.total];
 					} else {
@@ -1258,7 +1271,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 			if (this.termsEdges.length == 0) {
 				//EXPECTING ZERO TERMS, JUST facet.total
 				//MAKE THE INSERT LIST
-				parts = this.facetEdges.map(function(f, i){
+				parts = this.facetEdges.mapExists(function(f, i){
 					return f.domain.partitions[coord[i]];
 				});
 
@@ -1338,10 +1351,10 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 
 		//A BETTER FORM IS COLUMNAR
 		if (select instanceof Array){
-			this.query.data = Map.zip(select.map(function(s){
+			this.query.data = Map.zip(select.mapExists(function(s){
 				return [
 					s.name,
-					cube.map(function(d, i){
+					cube.mapExists(function(d, i){
 						return d[s.name];
 					})
 				]
@@ -1354,7 +1367,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 	//PROCESS RESULTS FROM THE ES STATISTICAL FACETS
 	ESQuery.prototype.statisticalResults = function(data){
 		var cube;
-		var agg = this.select.map(function(s){
+		var agg = this.select.mapExists(function(s){
 			return agg2es[s.aggregate];
 		});
 		var agg0 = agg[0];
@@ -1483,7 +1496,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 		this.esMode = isDeep ? "setop" : "fields";
 
 		//LIST ALL PRIMITIVE FIELDS
-		var leafNodes = ESQuery.getColumns(this.query.from).map(function(c){
+		var leafNodes = ESQuery.getColumns(this.query.from).mapExists(function(c){
 			if (["object"].contains(c.type)) return undefined;
 			if (!["long", "double", "integer", "string", "boolean"].contains(c.type)) {
 				Log.error("do not know how to handle type {{type}}", {"type": c.type});
@@ -1505,7 +1518,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 			if (select[0].value != "_source") {
 				this.esQuery.fields = select.select("value");
 			}//endif
-		} else if (!isDeep && Array.AND(select.map(function(s){
+		} else if (!isDeep && Array.AND(select.mapExists(function(s){
 			return MVEL.isKeyword(s.value);
 		}))) {
 			this.esQuery.facets.mvel = {
@@ -1590,7 +1603,7 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 		select = this.query.select;
 		if (select instanceof Array) return;
 		//SELECT AS NO ARRAY (AND NO EDGES) MEANS A SIMPLE ARRAY OF VALUES, NOT AN ARRAY OF OBJECTS
-		this.query.list = this.query.list.map(function(v, i){
+		this.query.list = this.query.list.mapExists(function(v, i){
 			return v[select.name];
 		});
 	};//method
@@ -1632,13 +1645,13 @@ ESFilter.removeOr = function(esfilter){
 	if (esfilter.not) return {"not": ESFilter.removeOr(esfilter.not)};
 
 	if (esfilter.and) {
-		return {"and": esfilter.and.map(function(v, i){
+		return {"and": esfilter.and.mapExists(function(v, i){
 			return ESFilter.removeOr(v);
 		})};
 	}//endif
 
 	if (esfilter.or) {  //CONVERT OR TO NOT.AND.NOT
-		return {"not": {"and": esfilter.or.map(function(v, i){
+		return {"not": {"and": esfilter.or.mapExists(function(v, i){
 			return {"not": ESFilter.removeOr(v)};
 		})}};
 	}//endif
@@ -1662,19 +1675,19 @@ ESFilter.normalize = function(esfilter){
 		if (esfilter.terms) {									//TERMS -> OR.TERM
 			var fieldname = Object.keys(esfilter.terms)[0];
 			output = {};
-			output.or = esfilter.terms[fieldname].map(function(t, i){
+			output.or = esfilter.terms[fieldname].mapExists(function(t, i){
 				return {"and": [
 					{"term": Map.newInstance(fieldname, t)}
 				], "isNormal": true};
 			});
 		} else if (esfilter.not && esfilter.not.or) {				//NOT.OR -> AND.NOT
 			output = {};
-			output.and = esfilter.not.or.map(function(e, i){
+			output.and = esfilter.not.or.mapExists(function(e, i){
 				return ESFilter.normalize({"not": e});
 			});
 		} else if (esfilter.not && esfilter.not.and) {			//NOT.AND
 			output = {};
-			output.or = esfilter.not.and.map(function(e, i){
+			output.or = esfilter.not.and.mapExists(function(e, i){
 				return ESFilter.normalize({"not": e});
 			});
 		} else if (esfilter.not && esfilter.not.not) {			//NOT.NOT
@@ -1693,7 +1706,7 @@ ESFilter.normalize = function(esfilter){
 				if (a.or && a.or.length == 1) a = a.or[0];
 
 				if (a.and) {										//AND.AND
-					output.and.appendArray(a.and);
+					output.and.extend(a.and);
 				} else if (a.script && a.script.script == "true") {
 					//DO NOTHING
 				} else {
@@ -1728,11 +1741,11 @@ ESFilter.normalize = function(esfilter){
 					for (var c = 0; c < child.or.length; c++) {
 						var temp = {"and": [], "isNormal": true};
 						if (and[d].or[i].and) {
-							temp.and.appendArray(and[d].or[i].and);
+							temp.and.extend(and[d].or[i].and);
 						} else {
 							temp.and.push(and[d].or[i]);
 						}//endif
-						temp.and.appendArray(child.or[c].and);
+						temp.and.extend(child.or[c].and);
 						or.push(temp);
 					}//for
 				}//for
@@ -1747,7 +1760,7 @@ ESFilter.normalize = function(esfilter){
 			esfilter.or.forall(function(o, i){
 				var k = ESFilter.normalize(o);
 				if (k.or) {
-					output.or.appendArray(k.or);
+					output.or.extend(k.or);
 				} else {
 					output.or.push(k);
 				}//endif
@@ -1767,44 +1780,48 @@ ESFilter.normalize = function(esfilter){
 //RETURN undefined FOR true
 //RETURN False FOR NO MATCH POSSIBLE
 ESFilter.fastAndDirtyNormalize = function(esfilter){
-	if (esfilter===undefined){
+	if (esfilter === undefined) {
 		return undefined;
-	}else if (esfilter==true){
+	} else if (esfilter == true) {
 		return undefined;
-	}else if (esfilter.match_all){
+	} else if (esfilter.match_all) {
 		return undefined;
-	}else if (esfilter.not){
-		if (esfilter.not.or && esfilter.not.or.length==0) {
+	} else if (esfilter.not) {
+		if (esfilter.not.or && esfilter.not.or.length == 0) {
 			return undefined;  //UNLIKELY TO EVER HAPPEN, BUT JUST IN CASE
-		}else{
+		} else {
 			var inverse = ESFilter.fastAndDirtyNormalize(esfilter.not);
-			if (inverse===undefined){
+			if (inverse === undefined) {
 				return false;
-			}else if (inverse===false){
+			} else if (inverse === false) {
 				return undefined;
 			}//endif
 			return {"not": inverse};
 		}//endif
-	} else if (esfilter.and){
-		var conditions = esfilter.and.map(ESFilter.fastAndDirtyNormalize);
-		if (conditions.length==0) {
+	} else if (esfilter.and) {
+		let conditions = esfilter.and.mapExists(ESFilter.fastAndDirtyNormalize);
+		if (conditions.length == 0) {
 			return undefined;
-		}else if (conditions.filter(function(v){return v===false;}).length>0){
+		} else if (conditions.filter(function(v){
+				return v === false;
+			}).length > 0) {
 			return false;
-		}else if (conditions.length==1){
+		} else if (conditions.length == 1) {
 			return conditions[0];
-		}else{
+		} else {
 			return {"and": conditions}
 		}//endif
-	} else if (esfilter.or){
-		var conditions = esfilter.or.map(ESFilter.fastAndDirtyNormalize);
-		if (conditions.length==0) {
+	} else if (esfilter.or) {
+		let conditions = esfilter.or.mapExists(ESFilter.fastAndDirtyNormalize);
+		if (conditions.length == 0) {
 			return false;
-		}else if (conditions.filter(function(v){return v===undefined;}).length>0){
+		} else if (conditions.filter(function(v){
+				return v === undefined;
+			}).length > 0) {
 			return undefined;
-		}else if (conditions.length==1){
+		} else if (conditions.length == 1) {
 			return conditions[0];
-		}else{
+		} else {
 			return {"or": conditions}
 		}//endif
 	}//endif

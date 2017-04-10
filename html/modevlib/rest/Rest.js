@@ -30,7 +30,7 @@ Rest.send=function*(ajaxParam){
 	if (ajaxParam.query!==undefined) Log.error("Do not set the query parameter, use 'data'");
 	if (ajaxParam.success!==undefined) Log.error("This function will return data, it does not accept the success function");
 
-	var callback=yield (Thread.Resume);	//RESUME THREAD ON RETURN
+	var callback=yield (Thread.Resume);  //RESUME THREAD ON RETURN
 
 	//FILL IN THE OPTIONAL VALUES
 	if (ajaxParam.type===undefined) ajaxParam.type="POST";
@@ -85,7 +85,12 @@ Rest.send=function*(ajaxParam){
 			if ([200, 201].contains(request.status)){
 				var response = request.responseText;
 				if (ajaxParam.dataType == 'json'){
-					response = convert.json2value(response);
+					try{
+						response = convert.json2value(response);
+					}catch(e){
+						ajaxParam.error(e);
+						return
+					}//try
 				}//endif
 				if (response === undefined){
 					Log.warning("Appears to have no response!!")
@@ -107,20 +112,20 @@ Rest.send=function*(ajaxParam){
 			//RESPONSE IS ARRIVING, DISABLE TIMEOUT
 			request.timeoutFunction=function(){}
 		} else{
-//			Log.note(convert.value2json(request));
-//			Log.note(request.getAllResponseHeaders());
+//      Log.note(convert.value2json(request));
+//      Log.note(request.getAllResponseHeaders());
 		}//endif
 	};
 
-//	if (Rest.progressListener){
-//		request.addEventListener("progress",Rest.progress(Rest.progressListener),false);
-//		request.upload.addEventListener("progress",Rest.progress(Rest.progressListener),false);
-//	}//endif
+//  if (Rest.progressListener){
+//    request.addEventListener("progress",Rest.progress(Rest.progressListener),false);
+//    request.upload.addEventListener("progress",Rest.progress(Rest.progressListener),false);
+//  }//endif
 //
-//	if (ajaxParam.progress){
-//		request.addEventListener("progress",Rest.progress(ajaxParam.progress),false);
-//		request.upload.addEventListener("progress",Rest.progress(ajaxParam.progress),false);
-//	}//endif
+//  if (ajaxParam.progress){
+//    request.addEventListener("progress",Rest.progress(ajaxParam.progress),false);
+//    request.upload.addEventListener("progress",Rest.progress(ajaxParam.progress),false);
+//  }//endif
 
 	request.kill=function(){
 		if (request.readyState==4) return;  //TOO LATE

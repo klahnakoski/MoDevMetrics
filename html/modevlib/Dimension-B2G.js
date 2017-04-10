@@ -23,25 +23,25 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 	//ADD PROJECTS AND MILESTONES HERE
 	//BUT REMEMBER TO ADD DETAILED ENTRIES (AT BOTTOM)
 	var PROJECTS = ["1.3", "1.3t", "1.4", "2.0", "2.1", "2.2"];
-	var NOM_PROJECTS = PROJECTS.map(function(p){
+	var NOM_PROJECTS = PROJECTS.mapExists(function(p){
 		return p + "?";
 	});
-	var BLOCKER_PROJECTS = PROJECTS.map(function(p){
+	var BLOCKER_PROJECTS = PROJECTS.mapExists(function(p){
 		return p + "+";
 	});
 
 	var MILESTONES = ["fx30", "fx31", "fx32", "fx33", "fx34", "fx35", "fx36"];
-	var NOM_MILESTONES = MILESTONES.map(function(p){
+	var NOM_MILESTONES = MILESTONES.mapExists(function(p){
 		return p + "?";
 	});
-	var BLOCKER_MILESTONE = MILESTONES.map(function(p){
+	var BLOCKER_MILESTONE = MILESTONES.mapExists(function(p){
 		return p + "+";
 	});
 
 
 	Dimension.addEdges(true, Mozilla, [
 		{"name": "B2G",
-//				{"term": {"target_milestone": "mozilla31"}},
+//        {"term": {"target_milestone": "mozilla31"}},
 			"esfilter": {"or": [
 				{"terms": {"cf_blocking_b2g": NOM_PROJECTS.union(BLOCKER_PROJECTS)}},
 				{"terms": {"cf_blocking_loop": NOM_MILESTONES.union(BLOCKER_MILESTONE)}},
@@ -336,16 +336,16 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 				{"name": "Project", "index": "bugs", "isFacet": true,
 					"partitions": [
 						//https://wiki.mozilla.org/Release_Management/B2G_Landing
-//						{"name": "1.3",
-//							"dateMarks": [
-//								{"name": "FL", "date": "Dec 9, 2013", "style": {strokeStyle: "black", verticalOffset: 10}},
-//								{"name": "FC", "date": "Mar 17, 2014", "style": {strokeStyle: "black", verticalOffset: 10}}
-//							],
-//							"style": {"color": "#d62728"},
-//							"esfilter": {"or": [
-//								{"terms": {"cf_blocking_b2g": ["1.3+", "1.3?"]}}
-//							]}
-//						},
+//            {"name": "1.3",
+//              "dateMarks": [
+//                {"name": "FL", "date": "Dec 9, 2013", "style": {strokeStyle: "black", verticalOffset: 10}},
+//                {"name": "FC", "date": "Mar 17, 2014", "style": {strokeStyle: "black", verticalOffset: 10}}
+//              ],
+//              "style": {"color": "#d62728"},
+//              "esfilter": {"or": [
+//                {"terms": {"cf_blocking_b2g": ["1.3+", "1.3?"]}}
+//              ]}
+//            },
 						{"name": "1.3T",
 							"start_date": "Dec 9, 2013",
 							"targetDate": "Apr 28, 2014",
@@ -469,14 +469,14 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 
 				{"name": "FinalState", "index": "bugs", "isFacet": true,
 					"partitions": [
-//						{"name": "1.3",
-//							"dateMarks": [
-//								{"name": "FL", "date": "Dec 9, 2013", "style": {strokeStyle: "black", verticalOffset: 10}},
-//								{"name": "FC", "date": "Mar 17, 2014", "style": {strokeStyle: "black", verticalOffset: 10}}
-//							],
-//							"style": {"color": "#d62728"},
-//							"esfilter": {"term": {"cf_blocking_b2g": "1.3+"}}
-//						},
+//            {"name": "1.3",
+//              "dateMarks": [
+//                {"name": "FL", "date": "Dec 9, 2013", "style": {strokeStyle: "black", verticalOffset: 10}},
+//                {"name": "FC", "date": "Mar 17, 2014", "style": {strokeStyle: "black", verticalOffset: 10}}
+//              ],
+//              "style": {"color": "#d62728"},
+//              "esfilter": {"term": {"cf_blocking_b2g": "1.3+"}}
+//            },
 						{"name": "1.3T",
 							"start_date": "Dec 9, 2013",
 							"targetDate": "Apr 28, 2014",

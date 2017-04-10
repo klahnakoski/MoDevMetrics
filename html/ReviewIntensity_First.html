@@ -72,7 +72,7 @@ importScript([
 
 		var requesteeList = ESQuery.TrueFilter;
 		if (GUI.state.requestee.trim().length > 0) {
-			requesteeList = {"terms" : {"reviewer" : GUI.state.requestee.split(",").map(String.trim)}};
+			requesteeList = {"terms" : {"reviewer" : GUI.state.requestee.split(",").mapExists(String.trim)}};
 			mainFilter.and.push(requesteeList);
 		}//endif
 //		GUI.injectFilters({"esQuery":{"filter":mainFilter, "query":{}}});
@@ -214,7 +214,7 @@ importScript([
 
 
 		//SHOW AS NEGATIVE
-		reviewed.cube = reviewed.cube.map(function(v, i){
+		reviewed.cube = reviewed.cube.mapExists(function(v, i){
 			return -v;
 		});
 

@@ -1,0 +1,172 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+<h1>Open the debugger (F12) to see network activity and console output</h1>
+<script type="application/javascript">
+
+
+importScript(["modevlib/main.js"], function(){
+	var sampleMin = Date.today().subtract(Duration.newInstance("18week"));
+	var stale = Date.today().subtract(Duration.newInstance("2week"));
+	var user = "klahnakoski@mozilla.com";
+
+	Thread.run("_", function*(){
+		var a = Thread.run(function*(){
+			yield (ESQuery.loadColumns({"from": "bugs"}));
+			yield (null);
+		});
+		var b = Thread.run(function*(){
+			yield (ESQuery.loadColumns({"from": "reviews"}));
+			yield (null);
+		});
+		var c = Thread.run(function*(){
+			yield (ESQuery.loadColumns({"from": "public_comments"}));
+			yield (null);
+		});
+
+		yield (Thread.join(a));
+		yield (Thread.join(b));
+		yield (Thread.join(c));
+
+		//NEW BUGS
+		Thread.run(function*(){
+			var q = new ESQuery({
+				"from": "bugs",
+				"select": "bug_id",
+				"esfilter": {
+					"and": [
+						{"term": {"bug_version_num": 1}}, //THE FIRST SNAPSHOT
+						{"range": {"modified_ts": {"gte": sampleMin.getMilli()}}},
+						{"term": {"created_by": user}}
+					]
+				}
+			});
+
+			var response = yield (q.run());
+			Log.note("CREATED: ("+response.list.length+")\n" + convert.value2json(response.list));
+		});
+
+		//COMMENTS
+		Thread.run(function*(){
+			var q = new ESQuery({
+				"from": "public_comments",
+				"select": "_source",
+				"esfilter": {
+					"and": [
+						{"range": {"modified_ts": {"gte": sampleMin.getMilli()}}},
+						{"term": {"modified_by": user}}
+					]
+				}
+			});
+
+			var response = yield (q.run());
+			Log.note("COMMENTS: ("+response.list.length+")\n" + convert.value2json(response.list));
+		});
+
+		//CLOSED BUGS (IF SOMEONE ELSE CLOSES THIS, THEN TOO BAD)
+		//MIGHT HAVE DUPLICATES
+		Thread.run(function*(){
+			var q = new ESQuery({
+				"from": "bugs",
+				"select": "bug_id",
+				"esfilter": {
+					"and": [
+						{"range": {"modified_ts": {"gte": sampleMin.getMilli()}}},
+						{"term": {"modified_by": user}},
+						{
+							"nested": {
+								"path": "changes",
+								"query": {
+									"filtered": {
+										"query": {"match_all": {}},
+										"filter": {
+											"and": [
+												{"term": {"changes.field_name": "bug_status"}},
+												{"term": {"changes.new_value": "resolved"}}
+											]
+										}
+									}
+								}
+							}
+						}
+					]
+				}
+			});
+
+			var response = yield (q.run());
+			Log.note("CLOSED: ("+response.list.length+")\n" + convert.value2json(response.list));
+		});
+
+		//ASSIGNED
+		Thread.run(function*(){
+			var q = new ESQuery({
+				"from": "bugs",
+				"select": ["bug_id", "short_desc"],
+				"esfilter": {
+					"and": [
+						{"not": {"term": {"bug_status": "resolved"}}},
+						{"range": {"expires_on": {"gt": Date.now().getMilli()}}},  //CURRENT BUG SNAPSHOT
+						{"term": {"assigned_to": user}}
+					]
+				}
+			});
+
+			var response = yield (q.run());
+			Log.note("ASSIGNED: ("+response.list.length+"):\n" + convert.value2json(response.list));
+		});
+
+
+		//STALE BUGS
+		Thread.run(function*(){
+			var q = new ESQuery({
+				"from": "bugs",
+				"select": "bug_id",
+				"esfilter": {
+					"and": [
+						{"not": {"term": {"bug_status": "resolved"}}},
+						{"range": {"expires_on": {"gt": Date.now().getMilli()}}},  //CURRENT BUG SNAPSHOT
+						{"term": {"assigned_to": user}},
+						{"range": {"modified_ts": {"lt": stale.getMilli()}}}
+					]
+				}
+			});
+
+			var response = yield (q.run());
+			Log.note("STALE: ("+response.list.length+")\n" + convert.value2json(response.list));
+		});
+
+
+		//COMPLETED REVIEWS
+		Thread.run(function*(){
+			var q = new ESQuery({
+				"from": "reviews",
+				"select": ["created_by", "bug_id", "review_result"],
+				"esfilter": {
+					"and": [
+						{"range": {"review_time": {"gt": sampleMin.getMilli()}}},  //CURRENT BUG SNAPSHOT
+						{"term": {"reviewer": user}}
+					]
+				}
+			});
+
+			var response = yield (q.run());
+			Log.note("COMPLETED REVIEWS ("+response.list.length+"):\n" + convert.value2json(response.list));
+		});
+
+	});
+
+
+});
+
+</script>
+
+
+</BODY>
+</HTML>
+

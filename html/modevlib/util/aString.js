@@ -11,6 +11,10 @@ String.prototype.trim = function(values){
 	return this.substring(s, Math.max(s, e + 1));
 };
 
+String.toLowerCase = function(value){
+	return value.toLowerCase()
+};
+
 String.join = function(list, seperator){
 	var output = "";
 	for (var i = 0; i < list.length; i++) {
@@ -24,6 +28,11 @@ String.trim = function(v){
 	return v.trim();
 };
 
+String.percent = function(value, places){
+	var output = aMath.round({"digits":places});
+	return output+"%";
+};
+
 if (String.prototype.includes) {
 	String.prototype.contains = String.prototype.includes;
 } else if (!String.prototype.contains) {
@@ -31,8 +40,6 @@ if (String.prototype.includes) {
 		return this.indexOf(substring) != -1;
 	};
 }//endif
-
-
 
 
 //RETURN THE STRING BETWEEN THE start AND end

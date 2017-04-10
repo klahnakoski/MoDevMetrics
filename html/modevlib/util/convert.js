@@ -70,11 +70,18 @@ var convert = function(){
 	 */
 	convert.Map2Style = function(map){
 		return Map.map(map, function(k, v){
-					return k + ":" + v;
-				}).join(";") + ";";
+				return k + ":" + v;
+			}).join(";") + ";";
+	};
+
+	convert.value2json = function(json){
+		return _value2json(json, 30);
 	};//method
 
-	function value2json(json){
+	function _value2json(json, maxDepth){
+		if (maxDepth < 0) {
+			Log.error("json is too deep")
+		}//endif
 		try {
 			if (json instanceof Array) {
 				try {
@@ -85,12 +92,12 @@ var convert = function(){
 				}//try
 
 				if (json.length == 0) return "[]";
-				if (json.length == 1) return "[" + convert.value2json(json[0]) + "]";
+				if (json.length == 1) return "[" + _value2json(json[0], maxDepth - 1) + "]";
 
-				return "[\n" + json.map(function(v){
-							if (v === undefined) return "undefined";
-							return convert.value2json(v).indent(1);
-						}).join(",\n") + "\n]";
+				return "[\n" + json.mapExists(function(v, i){
+						if (v === undefined) return "undefined";
+						return _value2json(v, maxDepth - 1).indent(1);
+					}).join(",\n") + "\n]";
 			} else if (typeof(json) == "function") {
 				return "undefined";
 			} else if (json instanceof Duration) {
@@ -107,7 +114,7 @@ var convert = function(){
 
 				var keys = Object.keys(json);
 				if (keys.length == 0) return "{}";
-				if (keys.length == 1) return "{\"" + keys[0] + "\":" + convert.value2json(json[keys[0]]).trim() + "}";
+				if (keys.length == 1) return "{\"" + keys[0] + "\":" + _value2json(json[keys[0]], maxDepth - 1).trim() + "}";
 
 				var output = "{\n\t";
 				for (var k in json) {  //NATURAL ORDER
@@ -115,7 +122,7 @@ var convert = function(){
 						var v = json[k];
 						if (v !== undefined) {
 							if (output.length > 3) output += ",\n\t";
-							output += "\"" + k + "\":" + convert.value2json(v).indent(1).trim();
+							output += "\"" + k + "\":" + _value2json(v, maxDepth - 1).indent(1).trim();
 						}//endif
 					}//endif
 
@@ -124,11 +131,10 @@ var convert = function(){
 			} else {
 				return JSON.stringify(json);
 			}//endif
-		} catch(e){
+		} catch (e) {
 			Log.error("Problem with jsonification", e);
 		}//try
 	}//function
-	convert.value2json = value2json;
 
 
 	convert.Object2CSS = function(value){
@@ -155,9 +161,9 @@ var convert = function(){
 	};//method
 
 	convert.style2Object = function(value){
-		return Map.zip(value.split(";").map(function(attr){
+		return Map.zip(value.split(";").mapExists(function(attr){
 			if (attr.trim() == "") return undefined;
-			return attr.split(":").map(function(v){
+			return attr.split(":").mapExists(function(v){
 				return v.trim();
 			});
 		}));
@@ -174,6 +180,7 @@ var convert = function(){
 		return $.param(value).replaceAll("%5B%5D=", "=");
 	};//method
 
+	convert.Map2URLParam = convert.Object2URL;
 
 	convert.URLParam2Object = function(param){
 		// CONVERT URL QUERY PARAMETERS INTO DICT
@@ -190,6 +197,9 @@ var convert = function(){
 					var d = convert.hex2bytes(v.substring(i + 1, i + 3));
 					output += d;
 					i += 3;
+				} else if (c == "+"){
+					output += " ";
+					i += 1;
 				} else {
 					output += c;
 					i += 1;
@@ -244,26 +254,25 @@ var convert = function(){
 	convert.number2hex = convert.int2hex;
 
 
-
 	(function(){
 		var urlMap = {"&": "%26", "%": "%25", "{": "%7B", "}": "%7D", "[": "%5B", "]": "%5D"};
-		for(var i=0;i<33;i++) urlMap[String.fromCharCode(i)]="%"+int2hex(i, 2);
-		for(i=123;i<256;i++) urlMap[String.fromCharCode(i)]="%"+int2hex(i, 2);
+		for (var i = 0; i < 33; i++) urlMap[String.fromCharCode(i)] = "%" + int2hex(i, 2);
+		for (i = 123; i < 256; i++) urlMap[String.fromCharCode(i)] = "%" + int2hex(i, 2);
 
 		convert.Object2URLParam = function(value){
-			return Map.map(value, function(k,v){
-				if (v instanceof Array){
-					return v.map(function(vv){
-						if (isString(vv)){
-							return k.escape(urlMap)+"="+vv.escape(urlMap);
-						}else{
-							return k.escape(urlMap)+"="+value2json(vv).escape(urlMap);
+			return Map.map(value, function(k, v){
+				if (v instanceof Array) {
+					return v.mapExists(function(vv){
+						if (isString(vv)) {
+							return k.escape(urlMap) + "=" + vv.escape(urlMap);
+						} else {
+							return k.escape(urlMap) + "=" + value2json(vv).escape(urlMap);
 						}//endif
 					}).join("&");
-				}else if (Map.isObject(v)){
-					return k.escape(urlMap)+"="+value2json(v).escape(urlMap);
-				}else{
-					return k.escape(urlMap)+"="+(""+v).escape(urlMap);
+				} else if (Map.isMap(v)) {
+					return k.escape(urlMap) + "=" + value2json(v).escape(urlMap);
+				} else {
+					return k.escape(urlMap) + "=" + ("" + v).escape(urlMap);
 				}//endif
 			}).join("&");
 		};//function
@@ -272,7 +281,7 @@ var convert = function(){
 
 	(function(){
 		var entityMap = {
-			//" ": "&nbsp;",
+			" ": "&nbsp;",
 			"&": "&amp;",
 			"<": "&lt;",
 			">": "&gt;",
@@ -384,8 +393,8 @@ var convert = function(){
 			}//endif
 		}//endif
 
-		var json = JSON.stringify(value);
-		return json;
+		var json = convert.value2json(value);
+		return convert.String2Quote(json);
 	};//method
 
 
@@ -424,6 +433,7 @@ var convert = function(){
 		return value - 0;
 	};//method
 
+	convert.value2number=convert.String2Integer;
 
 	function unPipe(value){
 		var s = value.indexOf("\\", 1);
@@ -466,7 +476,7 @@ var convert = function(){
 		var output = unPipe(value);
 		if (type == 's') return output;
 
-		return output.split("|").map(function(v, i){
+		return output.split("|").mapExists(function(v, i){
 			return convert.Pipe2Value(v);
 		});
 	};//method
@@ -495,14 +505,14 @@ var convert = function(){
 			header += "<td>" + convert.String2HTML(e.name) + "</td>";
 
 			if (query.select instanceof Array) {
-				header += query.select.map(function(s){
+				header += query.select.mapExists(function(s){
 					return wrapWithHtmlTag("td", s.name);
 				}).join("");
 
-				content = e.domain.partitions.map(function(v, i){
+				content = e.domain.partitions.mapExists(function(v, i){
 					return "<tr>" +
 						wrapWithHtmlTag("th", e.domain.end(v)) +
-						query.select.map(function(s){
+						query.select.mapExists(function(s){
 							return wrapWithHtmlTag("td", query.cube[i][s.name])
 						}).join("") +
 						"</tr>";
@@ -510,7 +520,7 @@ var convert = function(){
 			} else {
 				header += wrapWithHtmlTag("th", query.select.name);
 
-				content = e.domain.partitions.map(function(p, i){
+				content = e.domain.partitions.mapExists(function(p, i){
 					return "<tr>" + wrapWithHtmlTag("th", e.domain.end(p)) + wrapWithHtmlTag("td", query.cube[i]) + "</tr>";
 				}).join("\n");
 			}//endif
@@ -519,7 +529,7 @@ var convert = function(){
 				Log.error("Can not display cube: select clause can not be array, or there can be only one edge");
 			} else {
 
-				header += wrapWithHtmlTag("td", query.edges[1].name);	//COLUMN FOR SECOND EDGE
+				header += wrapWithHtmlTag("td", query.edges[1].name);  //COLUMN FOR SECOND EDGE
 				e.domain.partitions.forall(function(p){
 					var name = e.domain.end(p);
 					if (name == p && typeof(name) != "string") name = p.name;
@@ -532,8 +542,8 @@ var convert = function(){
 				query.edges[1].domain.partitions.forall(function(p, r){
 					var name = query.edges[1].domain.label(p);
 					if (name == p && typeof(name) != "string") name = p.name;
-//				if (p.name!==undefined && p.name!=name)
-//					Log.error("make sure part.name matches the end(part)=="+name+" codomain");
+//        if (p.name!==undefined && p.name!=name)
+//          Log.error("make sure part.name matches the end(part)=="+name+" codomain");
 					content += "<tr>" + wrapWithHtmlTag("th", name);
 					for (var c = 0; c < query.cube.length; c++) {
 						content += wrapWithHtmlTag("td", query.cube[c][r]);
@@ -551,19 +561,19 @@ var convert = function(){
 
 
 				//SHOW FIRST EDGE AS ROWS, SECOND AS COLUMNS
-//			header+=wrapWithHtmlTag(e.name);	//COLUMN FOR FIRST EDGE
-//			query.edges[1].domain.partitions.forall(function(v, i){
-//				header += "<td>" + convert.String2HTML(v.name) + "</td>";
-//			});
+//      header+=wrapWithHtmlTag(e.name);  //COLUMN FOR FIRST EDGE
+//      query.edges[1].domain.partitions.forall(function(v, i){
+//        header += "<td>" + convert.String2HTML(v.name) + "</td>";
+//      });
 //
-//			content=query.cube.map(function(r, i){
-//				return "<tr>"+
-//					wrapWithHtmlTag(e.domain.partitions[i].name, "th")+
-//					r.map(function(c, j){
-//						return wrapWithHtmlTag(c);
-//					}).join("")+
-//					"</tr>";
-//			}).join("");
+//      content=query.cube.mapExists(function(r, i){
+//        return "<tr>"+
+//          wrapWithHtmlTag(e.domain.partitions[i].name, "th")+
+//          r.mapExists(function(c, j){
+//            return wrapWithHtmlTag(c);
+//          }).join("")+
+//          "</tr>";
+//      }).join("");
 			}//endif
 		} else {
 			Log.error("Actual cubes not supported !!")
@@ -593,6 +603,7 @@ var convert = function(){
 			data = data.data;
 		}//endif
 
+
 		if (data.length == 0) {
 			return "<table class='table'><tbody><tr><td>no records to show</td></tr></tbody></table>";
 		}//endif
@@ -610,6 +621,7 @@ var convert = function(){
 		});
 		header = "<thead><tr><div>" + header + "</div></tr></thead>";
 
+
 		var output = "";
 		var numRows = data.length;
 		if (options !== undefined) {
@@ -617,13 +629,11 @@ var convert = function(){
 				numRows = options.limit;
 			}//endif
 		}//endif
-
-
 		//WRITE DATA
 		for (var i = 0; i < data.length; i++) {
 			var row = "";
 			for (var c = 0; c < columns.length; c++) {
-				var value = data[i][columns[c].name];
+				var value = data[i][coalesce(columns[c].value, columns[c].name)];
 				row += wrapWithHtmlTag(["td", "div"], value);
 			}//for
 			output += "<tr>" + row + "</tr>\n";
@@ -640,19 +650,19 @@ var convert = function(){
 	function wrapWithHtmlTag(tagName, value){
 		if (tagName === undefined) tagName = "td";
 		tagName = Array.newInstance(tagName);
-		var prefix = tagName.map(function(t){
+		var prefix = tagName.mapExists(function(t){
 			return "<" + t + ">"
 		}).join("");
-		var suffix = qb.reverse(tagName).map(function(t){
+		var suffix = qb.reverse(tagName).mapExists(function(t){
 			return "</" + t + ">"
 		}).join("");
 
 
 		if (value === undefined) {
-//		return "<"+tagName+">&lt;undefined&gt;</"+tagName+">";
+//    return "<"+tagName+">&lt;undefined&gt;</"+tagName+">";
 			return prefix + suffix;
 		} else if (value == null) {
-//		return "<"+tagName+">&lt;null&gt;</"+tagName+">";
+//    return "<"+tagName+">&lt;null&gt;</"+tagName+">";
 			return prefix + suffix;
 		} else if (value instanceof HTML) {
 			return prefix + value + suffix;
@@ -786,7 +796,6 @@ var convert = function(){
 	};//method
 
 
-
 	convert.char2ASCII = function(char){
 		return char.charCodeAt(0);
 	};
@@ -843,7 +852,7 @@ var convert = function(){
 			var output = [];
 			rows.forall(function(r){
 				var crows = Array.newInstance(Map.get(r, path[0]));
-				var cresult = select(path.rightBut(1), crows).map(function(cr){
+				var cresult = select(path.rightBut(1), crows).mapExists(function(cr){
 					return Map.newInstance(path[0], cr);
 				});
 				output.extend(cresult);
@@ -861,7 +870,7 @@ var convert = function(){
 			if (list.length == 0) return TRUE_FILTER;
 			if (list.length == 1) return convert.esFilter2function(list[0]);
 
-			var tests = list.map(convert.esFilter2function);
+			var tests = list.mapExists(convert.esFilter2function);
 			return function(row, i, rows){
 				for (var t = 0; t < tests.length; t++) {
 					if (!tests[t](row, i, rows)) return false;
@@ -873,7 +882,7 @@ var convert = function(){
 			if (list.length == 0) return FALSE_FILTER;
 			if (list.length == 1) return convert.esFilter2function(list[0]);
 
-			var tests = list.map(convert.esFilter2function);
+			var tests = list.mapExists(convert.esFilter2function);
 			return function(row, i, rows){
 				for (var t = 0; t < tests.length; t++) {
 					if (tests[t](row, i, rows)) return true;
@@ -1094,7 +1103,7 @@ var convert = function(){
 			if (valueList.length == 0)
 				Log.error("Expecting something in 'terms' array");
 			if (valueList.length == 1) return (variableName) + "==" + convert.Value2Quote(valueList[0]);
-			output += "[" + valueList.map(convert.String2Quote).join(", ") + "].intersect(Array.newInstance(" + variableName + ")).length > 0";  //ARRAY BASED FOR MULTIVALUED VARIABLES
+			output += "[" + valueList.mapExists(convert.String2Quote).join(", ") + "].intersect(Array.newInstance(" + variableName + ")).length > 0";  //ARRAY BASED FOR MULTIVALUED VARIABLES
 			return output;
 		} else if (op == "exists") {
 			var variableName = esFilter[op].field;
@@ -1145,8 +1154,8 @@ var convert = function(){
 			var pair = esFilter[op];
 			var variableName = Object.keys(pair)[0];
 			var value = pair[variableName];
-			return 'Array.OR(Array.newInstance('+variableName+').map(function(v){\n'+
-			'	return typeof(v)=="string" && v.startsWith(' + convert.Value2Quote(value) + ')\n'+
+			return 'Array.OR(Array.newInstance('+variableName+').mapExists(function(v){\n'+
+			'  return typeof(v)=="string" && v.startsWith(' + convert.Value2Quote(value) + ')\n'+
 			'}))\n';
 		} else if (op == "match_all") {
 			return "true"
@@ -1161,5 +1170,10 @@ var convert = function(){
 		return "";
 
 
+	};//method
+
+	convert.String2RegExp=function(value){
+		//SNAGGED FROM http://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
+		return value.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 	};//method
 })();

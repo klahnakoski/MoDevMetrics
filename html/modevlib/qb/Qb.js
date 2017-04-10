@@ -26,7 +26,7 @@ var Q;   //=Q
 
 function splitField(fieldname){
 	try {
-		return fieldname.replaceAll("\\.", "\b").split(".").map(function(v){
+		return fieldname.replaceAll("\\.", "\b").split(".").mapExists(function(v){
 			return v.replaceAll("\b", ".");
 		});
 	} catch (e) {
@@ -35,7 +35,7 @@ function splitField(fieldname){
 }//method
 
 function joinField(path){
-	return path.map(function(v){
+	return path.mapExists(function(v){
 		return v.replaceAll(".", "\\.");
 	}).join(".");
 }//method
@@ -186,10 +186,10 @@ function joinField(path){
 		var select = Array.newInstance(query.select);
 
 
-		var shape = edges.map(function(e){
+		var shape = edges.mapExists(function(e){
 			return e.domain.partitions.length + (e.allowNulls === false ? 0 : 1);
 		});
-		var data = Map.zip(select.map(function(s){
+		var data = Map.zip(select.mapExists(function(s){
 			qb.aggregate[s.aggregate](s);  //ANNOTATE select COLUMN
 			return [s.name, new Matrix({"dim": shape, "constructor": s.defaultValue})];
 		}));
@@ -204,7 +204,7 @@ function joinField(path){
 			var row = from[f];
 			if (!where(row, f, from)) continue;
 
-			var coord = edges.map(function(e){
+			var coord = edges.mapExists(function(e){
 				var v = e.calc(row);
 
 				//STANDARD 1-1 MATCH VALUE TO DOMAIN
@@ -225,11 +225,11 @@ function joinField(path){
 		}//for
 
 
-		var doneData = Map.zip(select.map(function(s, i){
+		var doneData = Map.zip(select.mapExists(function(s, i){
 			var m = data[s.name];
 			return [
 				s.name,
-				m.map(function(v){
+				m.mapExists(function(v){
 					return s.domain.end(v);
 				})
 			];
@@ -627,7 +627,7 @@ function joinField(path){
 			qb.analytic.run(query);
 		} else {
 			//REDUCE TO ARRAY
-			query.list = output.map(function(v, i){
+			query.list = output.mapExists(function(v, i){
 				return v[select[0].name];
 			});
 		}//endif
@@ -689,7 +689,7 @@ function joinField(path){
 		//PRECOMPUTE THE EDGES
 		var edges = Array.newInstance(query.edges);
 		var domains = edges.select("domain");
-		var parts = domains.map(function(d, i){
+		var parts = domains.mapExists(function(d, i){
 			if (d.type == "rownum") {
 				return Array.newRange(d.min, d.max);
 			} else {
@@ -698,7 +698,7 @@ function joinField(path){
 		});
 		var edge_names = edges.select("name");
 
-		endFunction = edges.map(function(e){
+		endFunction = edges.mapExists(function(e){
 			if (e.domain.key === undefined) {
 				return function(part){
 					return part;
@@ -740,7 +740,7 @@ function joinField(path){
 		var select_names = select.select("name");
 
 		//DO NOT SHOW THE FIELDS WHICH ARE A PREFIX OF ANOTHER
-		select_names = select_names.map(function(v){
+		select_names = select_names.mapExists(function(v){
 			var is_prefix = v;
 			select_names.forall(function(u){
 				if (u.startsWith(v + ".")) is_prefix = undefined;
@@ -785,7 +785,7 @@ function joinField(path){
 		var domains = edges.select("domain");
 		var endFunction = domains.select("end");
 		if (options.useStruct) {
-			endFunction = edges.map(function(e){
+			endFunction = edges.mapExists(function(e){
 				return function(v){
 					return v;
 				};
@@ -882,7 +882,7 @@ function joinField(path){
 		m.forall(edgeIndex, function(v, i){
 			totals[i] = coalesce(totals[i], 0) + aMath.abs(v);
 		});
-		m.map(query.edges.length, function(v, i){
+		m.mapExists(query.edges.length, function(v, i){
 			if (totals[i] != 0) {
 				return v / totals[i];
 			} else {
@@ -898,7 +898,7 @@ function joinField(path){
 		if (selectValue === undefined) Log.error("method now requires third parameter");
 
 		var domain = query.edges[edgeIndex].domain;
-		var zeros = domain.partitions.map(function(){
+		var zeros = domain.partitions.mapExists(function(){
 			return true;
 		});
 
@@ -916,7 +916,7 @@ function joinField(path){
 
 		//REMOVE ZERO PARTS FROM EDGE
 		var j = 0;
-		domain.partitions = domain.partitions.map(function(part, i){
+		domain.partitions = domain.partitions.mapExists(function(part, i){
 			if (zeros[i]) return undefined;
 			var output = Map.copy(part);
 			output.dataIndex = j;
@@ -1024,8 +1024,8 @@ function joinField(path){
 				sourceColumns = yield (qb.getColumnsFromQuery(query));
 			} else if (query.select !== undefined && query.edges !== undefined) {
 				var output = [];
-				output.extend(query.edges.map(qb.column.normalize));
-				output.extend(query.select.map(qb.column.normalize));
+				output.extend(query.edges.mapExists(qb.column.normalize));
+				output.extend(query.select.mapExists(qb.column.normalize));
 				return output;
 			} else {
 				Log.error("Do not know how to handle this");
@@ -1125,7 +1125,7 @@ function joinField(path){
 			var depth = output.edges.length;
 			for (var d = 0; d < depth; d++) {
 				domain = item.edges[d].domain;
-				parts[d] = output.edges[d].domain.partitions.map(function(newpart, i){
+				parts[d] = output.edges[d].domain.partitions.mapExists(function(newpart, i){
 					var oldpart = domain.getPartByKey(domain.getKey(newpart));  //OLD PARTS IN NEW ORDER
 					if (oldpart.dataIndex != newpart.dataIndex) {
 						Log.error("partitions have different orders, check this code works");
@@ -1206,7 +1206,7 @@ function joinField(path){
 				}//endif
 			});
 		} else {
-			orderedColumns = sortOrder.map(function(v){
+			orderedColumns = sortOrder.mapExists(function(v){
 				if (v.value !== undefined) {
 					for (var i = columns.length; i--;) {
 						if (columns[i].name == v.value && !(columns[i].sortOrder == 0)) return {"name": v.value, "sortOrder": coalesce(v.sort, 1), "domain": qb.domain.value};
@@ -1236,9 +1236,9 @@ function joinField(path){
 			} else if (MVEL.isKeyword(col.name)) {
 				var path = splitField(col.name);
 				if (path[path.length-1]=="length"){
-					index = "["+path.substring(0, path.length-1).map(convert.String2Quote).join("][")+"].length";
+					index = "["+path.substring(0, path.length-1).mapExists(convert.String2Quote).join("][")+"].length";
 				}else{
-					index = "["+path.map(convert.String2Quote).join("][")+"]";
+					index = "["+path.mapExists(convert.String2Quote).join("][")+"]";
 				}//endif
 			} else if (columns.select("name").contains(col.name)) {
 				index = "["+convert.String2Quote(col.name)+"]";
@@ -1384,7 +1384,7 @@ function joinField(path){
 
 		function stackSelect(arr){
 			if (arr instanceof Array) {
-				return arr.map(stackSelect);
+				return arr.mapExists(stackSelect);
 			}//endif
 
 			//CONVERT OBJECT INTO ARRAY
@@ -1443,7 +1443,7 @@ function joinField(path){
 		if (min.percent) {
 			Log.error("can not handle percent yet");
 		} else if (min.count) {
-			output = m.mapN(m.dim.map(function(d, i){ if (i!=edgeIndex) return i;}), function(values){
+			output = m.mapN(m.dim.mapExists(function(d, i){ if (i!=edgeIndex) return i;}), function(values){
 				var rank = qb.sort(values);
 				var minValue = Math.max(rank[min.count-1], 2);
 				values.forall(function(v, i){
@@ -1461,7 +1461,7 @@ function joinField(path){
 		} else if (min.value) {
 			var minValue = null;
 			minValue = min.value;
-			output = m.mapN(m.dim.map(function(d, i){ if (i!=edgeIndex) return i;}), function(values){
+			output = m.mapN(m.dim.mapExists(function(d, i){ if (i!=edgeIndex) return i;}), function(values){
 				values.forall(function(v, i){
 					if (i==otherIndex){
 						//skip
@@ -1482,13 +1482,13 @@ function joinField(path){
 
 		//SLICE THE DATA
 		var slicer = [];
-		slicer[edgeIndex] = hasData.map(function(v, i){if (v) return i;});
+		slicer[edgeIndex] = hasData.mapExists(function(v, i){if (v) return i;});
 		queryResult.data = Map.newInstance(value, output.slice(slicer).data);
 		queryResult.cube = undefined;
 
 		//SLICE THE PARTITIONS
 		queryResult.edges = deepCopy(queryResult.edges);
-		queryResult.edges[edgeIndex].domain.partitions = edge.domain.partitions.map(function(p, i){
+		queryResult.edges[edgeIndex].domain.partitions = edge.domain.partitions.mapExists(function(p, i){
 			if (hasData[i]) return p;
 		});
 		queryResult.edges[edgeIndex].domain.partitions.forall(function(p, i){
@@ -1508,7 +1508,7 @@ function joinField(path){
 		if (parts) {
 			var rf = requiredFields(esfilter.esfilter);
 			//A DIMENSION! - USE IT ANYWAY
-			return Array.union(parts.map(requiredFields).append(rf));
+			return Array.union(parts.mapExists(requiredFields).append(rf));
 		}//endif
 
 		if (esfilter.esfilter) {
@@ -1568,7 +1568,7 @@ function joinField(path){
 	};
 
 	qb.query.prototype.getEdge = function(name){
-		return this.edges.map(function(e, i){
+		return this.edges.mapExists(function(e, i){
 			if (e.name == name) return e;
 		})[0];
 	};

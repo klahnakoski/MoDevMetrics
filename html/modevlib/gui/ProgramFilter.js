@@ -37,7 +37,7 @@ ProgramFilter.prototype.makeFilter = function(indexName, selectedPrograms){
 				var value = this.programs[j].attributeValue;
 
 				if (indexName!="bugs"){//ONLY THE ORIGINAL bugs INDEX HAS BOTH whiteboard AND keyword
-					if (name.startsWith("cf_")) value=name+value;		//FLAGS ARE CONCATENATION OF NAME AND VALUE
+					if (name.startsWith("cf_")) value=name+value;    //FLAGS ARE CONCATENATION OF NAME AND VALUE
 					name="keywords";
 				}//endif
 
@@ -133,7 +133,7 @@ ProgramFilter.prototype.setSimpleState=function(value){
 	if (!value || value==""){
 		this.selected=[];
 	}else{
-		this.selected=value.split(",").map(function(v){return v.trim();});
+		this.selected=value.split(",").mapExists(function(v){return v.trim();});
 	}//endif
 	this.refresh();
 };
@@ -180,10 +180,8 @@ ProgramFilter.prototype.injectHTML = function(programs){
 
 ProgramFilter.prototype.refresh = function(){
 	var self = this;
-	Thread.run(function*(){
+	Thread.run("find programs", function*(){
 		self.query = self.makeQuery([]);
-
-
 		var data = yield (ElasticSearch.search("bugs", self.query));
 
 		//CONVERT MULTIPLE EDGES INTO SINGLE LIST OF PROGRAMS
@@ -227,7 +225,7 @@ ProgramFilter.prototype.bugStatusMinimum_fromDoc=function(){
 	if (this.selected.length==0){
 		idTime="doc[\"create_time\"].value";
 	}else{
-		idTime=ProgramFilter.minimum(this.selected.map(function(v, i){return "doc[\""+v+"_time\"].value"}));
+		idTime=ProgramFilter.minimum(this.selected.mapExists(function(v, i){return "doc[\""+v+"_time\"].value"}));
 	}//endif
 
 	return idTime;
@@ -239,7 +237,7 @@ ProgramFilter.prototype.bugStatusMinimum_fromSource=function(){
 	if (this.selected.length==0){
 		idTime="bug_summary.create_time";
 	}else{
-		idTime=ProgramFilter.minimum(this.selected.map(function(v, i){return "bug_summary[\""+v+"_time\"]"}));
+		idTime=ProgramFilter.minimum(this.selected.mapExists(function(v, i){return "bug_summary[\""+v+"_time\"]"}));
 	}//endif
 
 	return idTime;

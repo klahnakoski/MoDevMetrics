@@ -31,6 +31,7 @@ importScript("../aFormat.js");
 // * FORM VALUE - CURRENT VALUE SHOWN IN THE HTML FORM ELEMENTS
 // * GUI.state - VARIABLE VALUES IN THE GUI.state OBJECT
 
+GUI = {};
 (function () {
 	if (window.GUI === undefined) {
 		window.GUI = {};
@@ -108,15 +109,15 @@ importScript("../aFormat.js");
 			function post_filter_functions(){
 				GUI.showLastUpdated(indexName);
 				GUI.AddParameters(parameters, relations); //ADD PARAM AND SET DEFAULTS
-				GUI.Parameter2State();			//UPDATE STATE OBJECT WITH THOSE DEFAULTS
+				GUI.Parameter2State();      //UPDATE STATE OBJECT WITH THOSE DEFAULTS
 
 				GUI.makeSelectionPanel();
 
 				GUI.relations = coalesce(relations, []);
 				GUI.FixState();
 
-				GUI.URL2State();				//OVERWRITE WITH URL PARAM
-				GUI.State2URL.isEnabled = true;	//DO NOT ALLOW URL TO UPDATE UNTIL WE HAVE GRABBED IT
+				GUI.URL2State();        //OVERWRITE WITH URL PARAM
+				GUI.State2URL.isEnabled = true;  //DO NOT ALLOW URL TO UPDATE UNTIL WE HAVE GRABBED IT
 
 				GUI.FixState();
 				GUI.State2URL();
@@ -169,14 +170,14 @@ importScript("../aFormat.js");
 					tm.html(new Template("<div style={{style|style}}>{{name}}</div>").expand(result.index));
 					tm.append("<br>ES Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 				} else if (indexName == "reviews") {
-                    var result = yield (ESQuery.run({
-                        "from": "reviews",
-                        "select": [
-                            {"name": "last_request", "value": "request_time", "aggregate": "maximum"}
-                        ]
-                    }));
-                    time = Date.newInstance(result.cube.last_request);
-                    $("#testMessage").html("Reviews Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
+										var result = yield (ESQuery.run({
+												"from": "reviews",
+												"select": [
+														{"name": "last_request", "value": "request_time", "aggregate": "maximum"}
+												]
+										}));
+										time = Date.newInstance(result.cube.last_request);
+										$("#testMessage").html("Reviews Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 				} else if (indexName == "bug_tags") {
 					esHasErrorInIndex = false;
 					time = yield (BUG_TAGS.getLastUpdated());
@@ -270,7 +271,7 @@ importScript("../aFormat.js");
 			var simpleState = {};
 			Map.forall(GUI.state, function (k, v) {
 
-				var p = GUI.parameters.map(function (v, i) {
+				var p = GUI.parameters.mapExists(function (v, i) {
 					if (v.id == k) return v;
 				})[0];
 
@@ -299,18 +300,17 @@ importScript("../aFormat.js");
 
 		GUI.State2URL.isEnabled = false;
 
-
 		GUI.URL2State = function () {
 			var urlState = Session.URL.getFragment();
 			Map.forall(urlState, function (k, v) {
 				if (GUI.state[k] === undefined) return;
 
-				var p = GUI.parameters.map(function (v, i) {
+				var p = GUI.parameters.mapExists(function (v, i) {
 					if (v.id == k) return v;
 				})[0];
 
 				if (p && qb.domain.ALGEBRAIC.contains(p.type)) {
-					v = v.escape(Map.inverse(GUI.urlMap));
+					//v = v.escape(Map.inverse(GUI.urlMap));
 					GUI.state[k] = v;
 				} else if (p && p.type == "json") {
 					try {
@@ -329,7 +329,7 @@ importScript("../aFormat.js");
 					if (v.trim()==""){
 						GUI.state[k]=[];
 					}else{
-						GUI.state[k] = v.split(",").map(String.trim);
+						GUI.state[k] = v.split(",").mapExists(String.trim).unwrap();
 					}//endif
 				} else if (p && p.type == "code") {
 					v = v.escape(Map.inverse(GUI.urlMap));
@@ -337,12 +337,10 @@ importScript("../aFormat.js");
 				} else if (GUI.state[k].isFilter) {
 					GUI.state[k].setSimpleState(v);
 				} else {
-					GUI.state[k] = v.split(",");
+					GUI.state[k] = v.split(",").unwrap();
 				}//endif
 			});
 		};
-
-
 
 		///////////////////////////////////////////////////////////////////////////
 		// ADD INTERACTIVE PARAMETERS TO THE PAGE
@@ -354,7 +352,7 @@ importScript("../aFormat.js");
 		///////////////////////////////////////////////////////////////////////////
 		GUI.AddParameters = function (parameters, relations) {
 			//KEEP SIMPLE PARAMETERS GUI.parameters AND REST IN customFilters
-			GUI.parameters = parameters.map(function (param) {
+			GUI.parameters = parameters.mapExists(function (param) {
 				if (param.type.isFilter) {
 					GUI.state[param.id] = param.type;
 					if (param.name) param.type.name = param.name;
@@ -426,7 +424,7 @@ importScript("../aFormat.js");
 							GUI.refreshChart();
 						}
 					});
-					defaultValue = defaultValue.format("yyyy-MM-dd");
+					defaultValue = Date.newInstance(defaultValue).format("yyyy-MM-dd");
 					$("#" + param.id).val(defaultValue);
 					////////////////////////////////////////////////////////////////////////
 					// DURATION
@@ -465,7 +463,7 @@ importScript("../aFormat.js");
 						if (this.isChanging) return;
 						this.isChanging = true;
 						try {
-							codeDiv = $("#" + param.id);	//JUST TO BE SURE WE GOT THE RIGHT ONE
+							codeDiv = $("#" + param.id);  //JUST TO BE SURE WE GOT THE RIGHT ONE
 							//USE JSONLINT TO FORMAT AND TEST-COMPILE THE code
 							var code = jsl.format.formatJson(codeDiv.val());
 							codeDiv.val(code);
@@ -517,7 +515,6 @@ importScript("../aFormat.js");
 		//RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
 		GUI.State2Parameter = function () {
 			GUI.parameters.forEach(function (param) {
-
 				if (param.type == "json") {
 					$("#" + param.id).val(convert.value2json(GUI.state[param.id]));
 				} else if (param.type == "boolean") {
@@ -525,14 +522,13 @@ importScript("../aFormat.js");
 				} else if (param.type == "datetime") {
 					$("#" + param.id).val(Date.newInstance(GUI.state[param.id]).format("yyyy-MM-dd HH:mm:ss"))
 				} else if (param.type == "set") {
-					$("#" + param.id).val(GUI.state[param.id].join(","))
+					$("#" + param.id).val(Array.newInstance(GUI.state[param.id]).join(","))
 				} else {
 				//if (param.type.getSimpleState) return;  //param.type===GUI.state[param.id] NO ACTION REQUIRED
 					$("#" + param.id).val(GUI.state[param.id]);
 				}//endif
 			});
 		};
-
 
 		//RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
 		GUI.Parameter2State = function () {
@@ -546,7 +542,7 @@ importScript("../aFormat.js");
 					if (v.trim() == "") {
 						GUI.state[param.id]=[];
 					}else{
-						GUI.state[param.id]=v.split(",").map(String.trim);
+						GUI.state[param.id]=v.split(",").mapExists(String.trim);
 					}//endif
 				} else {
 					v = $("#" + param.id).val();
@@ -635,7 +631,7 @@ importScript("../aFormat.js");
 			$("#summary").html(html);
 		};
 
-		GUI.refreshInProgress = false;	//TRY TO AGGREGATE MULTIPLE refresh() REQUESTS INTO ONE
+		GUI.refreshInProgress = false;  //TRY TO AGGREGATE MULTIPLE refresh() REQUESTS INTO ONE
 
 		GUI.refresh = function (refresh) {
 			if (GUI.refreshInProgress) return;
@@ -648,7 +644,7 @@ importScript("../aFormat.js");
 
 				var threads = [];
 				GUI.customFilters.forall(function (f, i) {
-					var t = Thread.run(function*() {
+					var t = Thread.run("refresh filter", function*() {
 						yield (f.refresh());
 					});
 					t.name = GUI.customFilters[i].name;

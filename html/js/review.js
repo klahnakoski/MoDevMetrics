@@ -5,7 +5,7 @@ function*getReviewers(timeDomain, maxReviewers){
 
 	var persons = [];
 
-	var allEmails = GUI.state.emails.split(",").map(String.trim);
+	var allEmails = GUI.state.emails.split(",").map(String.trim).filter(function(e){return e!="";});
 	var allSelected = (yield(GUI.state.teamFilter.getAllSelectedPeople()));
 
 	if (allSelected.length == 0 && allEmails.length == 0) {
@@ -18,6 +18,7 @@ function*getReviewers(timeDomain, maxReviewers){
 		p = Map.copy(p);
 		p.id = p.id.deformat();
 		p.email = Array.newInstance(p.email);
+		p.email = Array.union(p.email, p.email.map(String.toLowerCase));
 		p.esfilter = {"terms" : {"reviewer" : p.email}};
 		persons.append(p);
 
@@ -30,6 +31,7 @@ function*getReviewers(timeDomain, maxReviewers){
 			"email" : Array.newInstance(e),
 			"esfilter" : {"term" : {"reviewer" : e}}
 		};
+		p.email = Array.union(p.email, p.email.map(String.toLowerCase));
 		persons.append(p);
 	});
 

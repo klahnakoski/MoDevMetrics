@@ -37,7 +37,8 @@ var MozillaPrograms = {
 		}],
 
 
-		["e10s Blockers", "cf_tracking_e10s", "+"],
+		["e10s Blockers", "cf_tracking_e10s", "+"],  //REMOVE ME, MISLEADING NAME
+		["Tracking e10s", "cf_tracking_e10s", "+"],
 		["e10s (M2)", "cf_tracking_e10s", "m2+"],
 		["e10s (M3)", "cf_tracking_e10s", "m3+"],
 		["e10s (M4)", "cf_tracking_e10s", "m4+"],
