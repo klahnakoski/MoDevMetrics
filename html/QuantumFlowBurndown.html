@@ -69,6 +69,7 @@ importScript([
 	var __createChart = function*(){
 
 		var sampleMin = Date.newInstance(GUI.state.sampleMin);
+		Log.note("mindate starts at "+sampleMin);
 		var sampleMax = Date.eod().addDay(1);
 		var title = GUI.state.titleName;
 
