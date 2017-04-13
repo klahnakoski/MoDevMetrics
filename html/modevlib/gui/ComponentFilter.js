@@ -2,8 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-ComponentFilter = function(indexName){
+ComponentFilter = function(indexName, productFilter){
 	this.indexName=coalesce(indexName, "bugs");
+	this.productFilter = productFilter;
 	this.name="Components";
 	this.isFilter=true;
 	this.selected=[];
@@ -32,7 +33,7 @@ ComponentFilter.prototype.refresh = function(){
 				"esfilter":{"and":[
 					Mozilla.CurrentRecords.esfilter,
 					Mozilla.BugStatus.Open.esfilter,
-					GUI.state.productFilter.makeFilter()   //PULL DATA FROM THE productFilter
+					self.productFilter.makeFilter()   //PULL DATA FROM THE productFilter
 				]}
 			}));
 

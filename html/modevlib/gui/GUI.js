@@ -135,7 +135,7 @@ GUI = {};
 				importScript(["ComponentFilter.js", "ProductFilter.js", "ProgramFilter.js"], function(){
 					GUI.state.programFilter = new ProgramFilter(indexName, QuantumFlowBugs);
 					GUI.state.productFilter = new ProductFilter(indexName);
-					GUI.state.componentFilter = new ComponentFilter(indexName);
+					GUI.state.componentFilter = new ComponentFilter(indexName, GUI.state.productFilter);
 
 					GUI.customFilters.push(GUI.state.programFilter);
 					GUI.customFilters.push(GUI.state.productFilter);
