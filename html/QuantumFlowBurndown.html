@@ -104,7 +104,7 @@ importScript([
 				},
 //		{"script":{"script":MVEL.compile.expression("floorInterval(modified_ts-" + sampleMin.getMilli() + ", " + sampleInterval.milli + ")!=floorInterval(expires_on-" + sampleMin.getMilli() + ", " + sampleInterval.milli + ")", {"from":"bugs"})}},
 
-				GUI.getFilters("bugs")
+				GUI.getFilters("private_bugs")
 			]
 		};
 
@@ -112,7 +112,7 @@ importScript([
 		var a = Log.action("Request Bugs", true);
 		try {
 			var chart = yield(ESQuery.run({
-				"from": "bugs",
+				"from": "private_bugs",
 				"select": {"name": "num_bug", "value": "bug_id", "aggregate": "count"},
 				"edges": [
 					{
@@ -284,7 +284,7 @@ importScript([
 			requiredNetCloseRatePerDay = stillOpen / daysLeft;
 		}
 
-		$("#stats").append('<span class="parameter_name">Required Closed/Day:</span>' + aMath.round(requiredNetCloseRatePerDay + perDay.opened, 1) + '<br>');
+		$("#stats").append('<span class="parameter_name">Req\'d Closed/Day:</span>' + aMath.round(requiredNetCloseRatePerDay + perDay.opened, 1) + '<br>');
 
 
 		//
@@ -299,9 +299,9 @@ importScript([
 
 //	$("#stats").append('<span class="parameter_name">DUE Date:</span>' + DUE_DATE.format("dd MMM yyyy") + '<br>');
 		if (netCloseRatePerDay <= 0) {
-			$("#stats").append('<br><span class="parameter_name">Expected End:</span>NEVER<br>');
+			$("#stats").append('<span class="parameter_name">Expected End:</span>NEVER<br>');
 		} else {
-			$("#stats").append('<br><span class="parameter_name">Expected End:</span>' + expectedEndDate.format("dd MMM yyyy") + '<br>');
+			$("#stats").append('<span class="parameter_name">Expected End:</span>' + expectedEndDate.format("dd MMM yyyy") + '<br>');
 		}//endif
 
 
@@ -423,7 +423,7 @@ importScript([
 //		{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
 			],
 			[],
-			"bugs",
+			"private_bugs",
 			true
 		);
 

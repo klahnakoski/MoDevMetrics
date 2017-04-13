@@ -133,9 +133,9 @@ GUI = {};
 				GUI.pleaseRefreshLater=true;
 				//USE DEFAULT FILTERS
 				importScript(["ComponentFilter.js", "ProductFilter.js", "ProgramFilter.js"], function(){
-					GUI.state.programFilter = new ProgramFilter("bugs", QuantumFlowBugs);
-					GUI.state.productFilter = new ProductFilter();
-					GUI.state.componentFilter = new ComponentFilter();
+					GUI.state.programFilter = new ProgramFilter(indexName, QuantumFlowBugs);
+					GUI.state.productFilter = new ProductFilter(indexName);
+					GUI.state.componentFilter = new ComponentFilter(indexName);
 
 					GUI.customFilters.push(GUI.state.programFilter);
 					GUI.customFilters.push(GUI.state.productFilter);
@@ -158,9 +158,10 @@ GUI = {};
 			Thread.run("show last updated timestamp", function*() {
 				var time;
 
-				if (indexName === undefined || indexName == null || indexName == "bugs") {
+				if (indexName === undefined || indexName == null || indexName == "bugs" || indexName == "private_bugs") {
+					indexName = coalesce(indexName, "bugs");
 					var result = yield (ESQuery.run({
-						"from": "bugs",
+						"from": indexName,
 						"select": {"name": "max_date", "value": "modified_ts", "aggregate": "maximum"},
 						"esfilter": {"range": {"modified_ts": {"gte": Date.eod().addMonth(-1).getMilli()}}}
 					}));
@@ -697,7 +698,7 @@ GUI = {};
 			var output = {"and": []};
 			GUI.customFilters.forall(function (f, i) {
 				if (f.makeFilter){
-					output.and.push(f.makeFilter());
+					output.and.push(f.makeFilter(indexName));
 				}//endif
 			});
 			return output;

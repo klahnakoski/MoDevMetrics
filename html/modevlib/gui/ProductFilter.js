@@ -6,7 +6,8 @@ importScript("../Dimension-Bugzilla.js");
 
 
 
-ProductFilter = function(){
+ProductFilter = function(indexName){
+	this.indexName=coalesce(indexName, "bugs");
 	this.name="Products";
 	this.isFilter=true;
 	this.selected=[];
@@ -125,7 +126,7 @@ ProductFilter.prototype.refresh = function(){
 	Thread.run("get products", function*(){
 
 		self.query = self.makeQuery();
-		var data = yield(ElasticSearch.search("bugs", self.query));
+		var data = yield(ElasticSearch.search(self.indexName, self.query));
 
 		var products = data.facets.Products.terms;
 

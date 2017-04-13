@@ -36,7 +36,7 @@ ProgramFilter.prototype.makeFilter = function(indexName, selectedPrograms){
 				var name = this.programs[j].attributeName;
 				var value = this.programs[j].attributeValue;
 
-				if (indexName!="bugs"){//ONLY THE ORIGINAL bugs INDEX HAS BOTH whiteboard AND keyword
+				if (!["bugs", "private_bugs"].contains(indexName)){//ONLY THE ORIGINAL bugs INDEX HAS BOTH whiteboard AND keyword
 					if (name.startsWith("cf_")) value=name+value;    //FLAGS ARE CONCATENATION OF NAME AND VALUE
 					name="keywords";
 				}//endif
@@ -182,7 +182,7 @@ ProgramFilter.prototype.refresh = function(){
 	var self = this;
 	Thread.run("find programs", function*(){
 		self.query = self.makeQuery([]);
-		var data = yield (ElasticSearch.search("bugs", self.query));
+		var data = yield (ElasticSearch.search(self.indexName, self.query));
 
 		//CONVERT MULTIPLE EDGES INTO SINGLE LIST OF PROGRAMS
 		var programs=[];

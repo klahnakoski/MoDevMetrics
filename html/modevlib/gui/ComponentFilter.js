@@ -2,7 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-ComponentFilter = function(){
+ComponentFilter = function(indexName){
+	this.indexName=coalesce(indexName, "bugs");
 	this.name="Components";
 	this.isFilter=true;
 	this.selected=[];
@@ -23,7 +24,7 @@ ComponentFilter.prototype.refresh = function(){
 	this.refreshThread=Thread.run("get components", function*(){
 		try{
 			var components=yield (ESQuery.run({
-				"from":"bugs",
+				"from":self.indexName,
 				"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
 				"edges":[
 					{"name":"term", "value":"component"}
