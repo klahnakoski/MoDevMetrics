@@ -102,6 +102,15 @@
 		return output;
 	};
 
+	expressions.term = function(expr){
+		var output;
+		let vars = Map.keys(expr.term)[0];
+		let vals = Map.values(expr.term)[0];
+		output = function(value){
+			return vals == value[vars];
+		};
+		return output;
+	};
 
 	expressions.literal = function(expr){
 		var output;
@@ -167,6 +176,16 @@
 		return output;
 	};
 
+	expressions.not = function(expr){
+		var output;
+		var test = qb2function(expr.not);
+
+		output = function(value){
+			return !test(value);
+		};
+		if (DEBUG) output.expression = convert.value2json(expr);
+		return output;
+	};
 
 	expressions.gt = function(expr){
 		var output;
@@ -184,6 +203,17 @@
 			};//function
 		}//endif
 		if (DEBUG) output.expression = convert.value2json(expr);
+		return output;
+	};
+
+	expressions.terms = function(expr){
+		var output;
+		let vars = Map.keys(expr.terms)[0];
+		let vals = Map.values(expr.terms)[0];
+		if (!isArray(vals))	Log.error("Expecting terms to have an array");
+		output = function(value){
+			return vals.contains(value[vars]);
+		};
 		return output;
 	};
 

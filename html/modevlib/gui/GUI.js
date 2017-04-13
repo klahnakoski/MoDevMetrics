@@ -133,7 +133,8 @@ GUI = {};
 				GUI.pleaseRefreshLater=true;
 				//USE DEFAULT FILTERS
 				importScript(["ComponentFilter.js", "ProductFilter.js", "ProgramFilter.js"], function(){
-					GUI.state.programFilter = new ProgramFilter(indexName, QuantumFlowBugs);
+					let programs = coalesce(showDefaultFilters.programs, MozillaPrograms);
+					GUI.state.programFilter = new ProgramFilter(indexName, programs);
 					GUI.state.productFilter = new ProductFilter(indexName);
 					GUI.state.componentFilter = new ComponentFilter(indexName, GUI.state.productFilter);
 
