@@ -77,10 +77,19 @@ importScript('modevlib/main.js', function(){
 
 		}
 
-
 		var sampleMin = Date.newInstance(GUI.state.sampleMin);
 		var sampleMax = Date.newInstance(GUI.state.sampleMax).addDay(1);
-		var sampleInterval = Duration.DAY;
+
+		var interval;
+		if (sampleMax.subtract(sampleMin).round(Duration.WEEK, 0) > 26) {
+		    //HALF A YEAR, USE MONTHLY INTERVAL
+			interval = Duration.MONTH;
+		}else if (sampleMax.subtract(sampleMin).round(Duration.WEEK, 0) <= 3){
+			//THREE WEEKS, USE DAILY INTERVAL
+			interval = Duration.DAY;
+		} else{
+			interval = Duration.WEEK;
+		}//endif
 
 		var createTime = "doc[\"create_time\"].value";
 
@@ -114,7 +123,7 @@ importScript('modevlib/main.js', function(){
 					{"name":"date",
 						"range":{"min":"min", "max":"max"},
 						"allowNulls":false,
-						domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+						domain:{"type":"time", "min":sampleMin, "max":sampleMax, "interval":interval}
 					}
 				]
 			}));
@@ -189,7 +198,7 @@ importScript('modevlib/main.js', function(){
 					{"name":"date",
 						"range":{"min":"modified_ts", "max":"expires_on"},
 						"allowNulls":false,
-						"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":sampleInterval}
+						"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":interval}
 					}
 				],
 				"esfilter":mainFilter
@@ -217,14 +226,6 @@ importScript('modevlib/main.js', function(){
 		Thread.run(function*(){
 
 			yield(Thread.join(allBugsThread));
-
-			//SHOW BARS FOR EVERY DAY, IF LESS THAN A 3WEEKS
-			var interval;
-			if (sampleMax.subtract(sampleMin).round(Duration.WEEK, 0) <= 3){
-				interval = Duration.DAY;
-			} else{
-				interval = Duration.WEEK;
-			}//endif
 
 			var churn = yield(Q({
 				"from":allBugs,
