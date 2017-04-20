@@ -966,7 +966,6 @@ var aChart = {};
 		//ADD BUTTON TO SHOW SHEET
 		if (params.sheetDiv) {
 
-
 			var sheetButtonID = divName + "-showSheet";
 			var html = '<div id=' + convert.String2Quote(sheetButtonID) + ' class="toolbutton" style="right:3;bottom:3" title="Show Table"><img src="' + Settings.imagePath + '/Spreadsheet.png"></div>';
 

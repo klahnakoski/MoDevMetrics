@@ -58,17 +58,18 @@ importScript('modevlib/main.js', function(){
 	);
 
 
-	var thread;
-	var createChart = function(){
+	let thread;
+	let createChart = function(){
 		if (thread !== undefined)
 			thread.kill();
 		thread = Thread.run(__createChart());
 	};
 
-	var __createChart = function*(){
+	let __createChart = function*(){
+		const DEBUG = false;
 
 		{
-			var parts = GUI.state.teamFilter.getSelectedParts();
+			let parts = GUI.state.teamFilter.getSelectedParts();
 			if (parts.length == 0){
 				$("#title").html("Security - All");
 			} else{
@@ -77,10 +78,9 @@ importScript('modevlib/main.js', function(){
 
 		}
 
-		var sampleMin = Date.newInstance(GUI.state.sampleMin);
-		var sampleMax = Date.newInstance(GUI.state.sampleMax).addDay(1);
-
-		var interval;
+		let sampleMin = Date.newInstance(GUI.state.sampleMin);
+		let sampleMax = Date.newInstance(GUI.state.sampleMax).addDay(1);
+		let interval;
 		if (sampleMax.subtract(sampleMin).round(Duration.WEEK, 0) > 26) {
 		    //HALF A YEAR, USE MONTHLY INTERVAL
 			interval = Duration.MONTH;
@@ -91,9 +91,9 @@ importScript('modevlib/main.js', function(){
 			interval = Duration.WEEK;
 		}//endif
 
-		var createTime = "doc[\"create_time\"].value";
+		let createTime = "doc[\"create_time\"].value";
 
-		var mainFilter = {"and":[
+		let mainFilter = {"and":[
 			Mozilla.BugStatus.Open.esfilter,
 			{"or":[
 				Mozilla.Security.Priority.High.esfilter,
@@ -104,13 +104,13 @@ importScript('modevlib/main.js', function(){
 		]};
 
 
-		var allBugs;
-		var allBugsThread = Thread.run(function*(){
+		let allBugs;
+		let allBugsThread = Thread.run(function*(){
 			Log.action("Request Bugs");
 
 			allBugs = yield(ElasticSearch.getMinMax(mainFilter));
 
-			var chart = yield(Q({
+			let chart = yield(Q({
 				"name":"Age (Days)",
 				"from":allBugs,
 				"select":[
@@ -128,8 +128,9 @@ importScript('modevlib/main.js', function(){
 				]
 			}));
 
+			if (DEBUG) $("body").append(convert.Cube2HTMLTable(chart));
 
-			var a = Log.action("Make chart", true);
+			let a = Log.action("Make chart", true);
 			aChart.show({
 				"id":"chart",
 				"sheetDiv":"info",
@@ -144,7 +145,7 @@ importScript('modevlib/main.js', function(){
 
 
 		Thread.run(function*(){
-			var details = yield(ESQuery.run({
+			let details = yield(ESQuery.run({
 				"from":"private_bugs",
 				"select":[
 					"bug_id",
@@ -163,7 +164,7 @@ importScript('modevlib/main.js', function(){
 			yield(Thread.join(allBugsThread));
 			//INSERT allBugs MIN/MAX VALUES INTO details
 			details.list.forall(function(v, i){
-				var mm = allBugs.get("bug_id", v.bug_id);
+				let mm = allBugs.get("bug_id", v.bug_id);
 				v.max = mm.max;
 				v.min = mm.min;
 			});
@@ -189,35 +190,44 @@ importScript('modevlib/main.js', function(){
 
 
 		Thread.run(function*(){
-			var a = Log.action("Request Bugs", true);
-			var chart = yield(ESQuery.run({
-				"name":"Open Bug Count",
-				"from":"private_bugs",
-				"select":{"name":"num_bug", "value":"bug_id", "aggregate":"count"},
-				"edges":[
-					{"name":"date",
-						"range":{"min":"modified_ts", "max":"expires_on"},
-						"allowNulls":false,
-						"domain":{"type":"time", "min":sampleMin, "max":sampleMax, "interval":interval}
-					}
-				],
-				"esfilter":mainFilter
-			}));
-			Log.actionDone(a);
+			let a = Log.action("Request Bugs", true);
+			let chart = null;
+			try{
+				chart = yield(ESQuery.run({
+					"name": "Open Bug Count",
+					"from": "private_bugs",
+					"select": {"name": "num_bug", "value": "bug_id", "aggregate": "count"},
+					"edges": [
+						{
+							"name": "date",
+							"range": {"min": "modified_ts", "max": "expires_on"},
+							"allowNulls": false,
+							"domain": {"type": "time", "min": sampleMin, "max": sampleMax, "interval": interval}
+						}
+					],
+					"esfilter": mainFilter
+				}));
+			} finally {
+				Log.actionDone(a);
+			}//try
 
+			if (DEBUG) $("body").append(convert.Cube2HTMLTable(chart));
 
-			var a = Log.action("Make chart", true);
-			aChart.show({
-				"id":"chartCount",
-				"sheetDiv":"info",
-				"type":"line",
-				"stacked":false,
-				"cube":chart,
-				"height":"300",
-				xAxisSize: 50,
-				"width":800
-			});
-			Log.actionDone(a);
+			a = Log.action("Make chart", true);
+			try{
+				aChart.show({
+					"id":"chartCount",
+					"sheetDiv":"info",
+					"type":"line",
+					"stacked":false,
+					"cube":chart,
+					"height":"300",
+					xAxisSize: 50,
+					"width":800
+				});
+			} finally {
+				Log.actionDone(a);
+			}//try
 
 
 		});
@@ -227,7 +237,7 @@ importScript('modevlib/main.js', function(){
 
 			yield(Thread.join(allBugsThread));
 
-			var churn = yield(Q({
+			let churn = yield(Q({
 				"from":allBugs,
 				"name":"New and Closed Bugs",
 				"select":[
@@ -242,7 +252,9 @@ importScript('modevlib/main.js', function(){
 				]
 			}));
 
-			var chart = aChart.show({
+			if (DEBUG) $("body").append(convert.Cube2HTMLTable(churn));
+
+			aChart.show({
 				"id":"chartChurn",
 				"sheetDiv":"info",
 				"type":"bar",
@@ -252,11 +264,11 @@ importScript('modevlib/main.js', function(){
 				xAxisSize: 50,
 				"width":800,
 				"clickAction":function(series, x, d){
-					var part = churn.edges[0].domain.getPartByKey(x);
-					var field = {"New":"min", "Closed":"max"}[series];
+					let part = churn.edges[0].domain.getPartByKey(x);
+					let field = {"New":"min", "Closed":"max"}[series];
 
 					Thread.run(function*(){
-						var buglist = (yield(qb.calc2List({
+						let buglist = (yield(qb.calc2List({
 							"from":allBugs,
 							"select":{"value":"bug_id"},
 							"where":"" + field + "!==undefined && " + field + ".between(" + convert.Date2Code(part.min) + ", " + convert.Date2Code(part.max) + ")"
@@ -275,21 +287,25 @@ importScript('modevlib/main.js', function(){
 
 	$(document).ready(function(){
 		GUI.setup(createChart, [
-			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
-			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today().ceilingWeek()},
-			{"id":"teamFilter", "name":"All Teams", "type":PartitionFilter.newInstance({
-				"id":"Teams",
-				"name":"All Teams",
-				"dimension":Mozilla.Security.Teams,
-				"onlyOne":true,
-				"expandAll":true
-			})}
-		],
-				[
-					"sampleMin=Date.newInstance(sampleMin).floorWeek().format('yyyy-MM-dd')",
-					"sampleMax=Date.newInstance(sampleMax).addDay(1).floorWeek().addDay(-1).format('yyyy-MM-dd')"
-				],
-				"private_bugs");
+				{"id": "sampleMin", "name": "Start Date", "type": "time", "default": Date.eod().add("-18week")},
+				{"id": "sampleMax", "name": "End Date", "type": "time", "default": Date.today().ceilingWeek()},
+				{"id": "sampleInterval", "name": "Interval", "type": "duration", "default": "week"},
+				{
+					"id": "teamFilter", "name": "All Teams", "type": PartitionFilter.newInstance({
+					"id": "Teams",
+					"name": "All Teams",
+					"dimension": Mozilla.Security.Teams,
+					"onlyOne": true,
+					"expandAll": true
+				})
+				}
+			],
+			[
+				"sampleMin=Date.newInstance(sampleMin).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
+				"sampleMax=Date.newInstance(sampleMax).addDay(1).floor(Duration.newInstance(sampleInterval)).addDay(-1).format('yyyy-MM-dd')"
+			],
+			"private_bugs"
+		);
 	});
 
 });
