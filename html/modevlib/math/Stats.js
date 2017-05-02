@@ -164,7 +164,7 @@ Stats.middle=function(values, percentile){
 
 Stats.median=function(values){
 	if (values.length==0) return null;
-	if (values.length==1) return {"min":values[0], "max":values[0]};
+	if (values.length==1) return values[0];
 
 	var i=Math.floor(values.length/2);
 	if (values.length %2==0){
