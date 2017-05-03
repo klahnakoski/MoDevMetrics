@@ -3,6 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 
+importScript("util/aDate.js");
+
 var MozillaPrograms = {
 	"columns": ["projectName", "attributeName", "attributeValue", "esfilter"],
 
@@ -28,7 +30,7 @@ var MozillaPrograms = {
 				{"not": {"term": {"bug_status": "resolved"}}},
 				{"terms": {"product": ["core", "firefox", "firefox for android", "firefox for ios", "toolkit"]}},
 				// {"term": {"assigned_to": "nobody@mozilla.org"}},
-				{"range":{"created_ts":{"gte": new Date("2016-06-01").getMilliseconds()}}},
+				{"range":{"created_ts":{"gte": Date.newInstance("2016-06-01").getMilli()}}},
 				{
 					"or": [
 						{"not": {"terms": {"priority": ["p1", "p2", "p3", "p4", "p5"]}}},
@@ -61,7 +63,7 @@ var MozillaPrograms = {
 				{"not": {"term": {"bug_status": "resolved"}}},
 				{"term": {"product": "core"}},
 				// {"term": {"assigned_to": "nobody@mozilla.org"}},
-				{"range":{"created_ts":{"gte": new Date("2016-06-01").getMilliseconds()}}},
+				{"range":{"created_ts":{"gte": Date.newInstance("2016-06-01").getMilli()}}},
 				{
 					"or": [
 						{"not": {"terms": {"priority": ["p1", "p2", "p3", "p4", "p5"]}}},
@@ -94,7 +96,7 @@ var MozillaPrograms = {
 				{"not": {"term": {"bug_status": "resolved"}}},
 				{"term": {"product": "firefox"}},
 				// {"term": {"assigned_to": "nobody@mozilla.org"}},
-				{"range":{"created_ts":{"gte": new Date("2016-06-01").getMilliseconds()}}},
+				{"range":{"created_ts":{"gte": Date.newInstance("2016-06-01").getMilli()}}},
 				{
 					"or": [
 						{"not": {"terms": {"priority": ["p1", "p2", "p3", "p4", "p5"]}}},
@@ -127,7 +129,7 @@ var MozillaPrograms = {
 				{"term": {"bug_status": "new"}},
 				{"terms": {"product": ["core", "firefox", "firefox for android", "firefox for ios", "toolkit"]}},
 				// {"term": {"assigned_to": "nobody@mozilla.org"}},
-				{"range":{"created_ts":{"gte": new Date("2016-06-01").getMilliseconds()}}},
+				{"range":{"created_ts":{"gte": Date.newInstance("2016-06-01").getMilli()}}},
 				{
 					"and": [
 						{"terms": {"priority": ["p1", "p2", "p3", "p4", "p5"]}},
@@ -160,7 +162,7 @@ var MozillaPrograms = {
 				{"term": {"bug_status": "new"}},
 				{"terms": {"product": ["core", "firefox", "firefox for android", "firefox for ios", "toolkit"]}},
 				// {"term": {"assigned_to": "nobody@mozilla.org"}},
-				{"range":{"created_ts":{"gte": new Date("2016-06-01").getMilliseconds()}}},
+				{"range":{"created_ts":{"gte": Date.newInstance("2016-06-01").getMilli()}}},
 				{
 					"and": [
 						{"term": {"priority": "p1"}},
