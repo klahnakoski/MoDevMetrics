@@ -23,12 +23,12 @@ var MozillaPrograms = {
 		// https://bugzilla.mozilla.org/rest/bug?include_fields=id,priority,product,component&chfield=[Bug%20creation]&product=Core&product=Firefox&product=Firefox%20for%20Android&product=Firefox%20for%20iOS&product=Toolkit&chfieldfrom=2016-06-01&chfieldto=NOW&f1=flagtypes.name&o1=notequals&resolution=---&v1=needinfo%3F&email1=intermittent-bug-filer%40mozilla.bugs&emailtype1=notequals&emailreporter1=1&o4=greaterthan&f4=bug_id&limit=10000&v4=0
 
 
-		["Firefox Triage", null, null, {
+		["Firefox Un-Triaged", null, null, {
 			"and": [
-				{"term": {"bug_status": "new"}},
+				{"not": {"term": {"bug_status": "resolved"}}},
 				{"terms": {"product": ["core", "firefox", "firefox for android", "firefox for ios", "toolkit"]}},
-				{"term": {"assigned_to": "nobody@mozilla.org"}},
-				{"range":{"created_ts":{"gte":Date.newInstance("2016-06-01").getMilli()}}},
+				// {"term": {"assigned_to": "nobody@mozilla.org"}},
+				{"range":{"created_ts":{"gte": new Date("2016-06-01").getMilliseconds()}}},
 				{
 					"or": [
 						{"not": {"terms": {"priority": ["p1", "p2", "p3", "p4", "p5"]}}},
@@ -56,6 +56,137 @@ var MozillaPrograms = {
 			]
 		}],
 
+		["Firefox Un-Triaged Core", null, null, {
+			"and": [
+				{"not": {"term": {"bug_status": "resolved"}}},
+				{"term": {"product": "core"}},
+				// {"term": {"assigned_to": "nobody@mozilla.org"}},
+				{"range":{"created_ts":{"gte": new Date("2016-06-01").getMilliseconds()}}},
+				{
+					"or": [
+						{"not": {"terms": {"priority": ["p1", "p2", "p3", "p4", "p5"]}}},
+						{"terms": {"component": ["general", "untriaged"]}},
+					]
+				},
+				{"not": {
+					"nested": {
+						"path": "flags",
+						"query": {
+							"filtered": {
+								"query": {
+									"match_all": {}
+								},
+								"filter": {
+									"and": [
+										{"term": {"flags.request_type": "needinfo"}},
+										{"term": {"flags.request_status": "?"}}
+									]
+								}
+							}
+						}
+					}
+				}}
+			]
+		}],
+
+		["Firefox Un-Triaged Firefox", null, null, {
+			"and": [
+				{"not": {"term": {"bug_status": "resolved"}}},
+				{"term": {"product": "firefox"}},
+				// {"term": {"assigned_to": "nobody@mozilla.org"}},
+				{"range":{"created_ts":{"gte": new Date("2016-06-01").getMilliseconds()}}},
+				{
+					"or": [
+						{"not": {"terms": {"priority": ["p1", "p2", "p3", "p4", "p5"]}}},
+						{"terms": {"component": ["general", "untriaged"]}},
+					]
+				},
+				{"not": {
+					"nested": {
+						"path": "flags",
+						"query": {
+							"filtered": {
+								"query": {
+									"match_all": {}
+								},
+								"filter": {
+									"and": [
+										{"term": {"flags.request_type": "needinfo"}},
+										{"term": {"flags.request_status": "?"}}
+									]
+								}
+							}
+						}
+					}
+				}}
+			]
+		}],
+
+		["Firefox Triaged", null, null, {
+			"and": [
+				{"term": {"bug_status": "new"}},
+				{"terms": {"product": ["core", "firefox", "firefox for android", "firefox for ios", "toolkit"]}},
+				// {"term": {"assigned_to": "nobody@mozilla.org"}},
+				{"range":{"created_ts":{"gte": new Date("2016-06-01").getMilliseconds()}}},
+				{
+					"and": [
+						{"terms": {"priority": ["p1", "p2", "p3", "p4", "p5"]}},
+						{"not": {"terms": {"component": ["general", "untriaged"]}}},
+					]
+				},
+				{"not": {
+					"nested": {
+						"path": "flags",
+						"query": {
+							"filtered": {
+								"query": {
+									"match_all": {}
+								},
+								"filter": {
+									"and": [
+										{"term": {"flags.request_type": "needinfo"}},
+										{"term": {"flags.request_status": "?"}}
+									]
+								}
+							}
+						}
+					}
+				}}
+			]
+		}],
+
+		["Firefox Triaged P1", null, null, {
+			"and": [
+				{"term": {"bug_status": "new"}},
+				{"terms": {"product": ["core", "firefox", "firefox for android", "firefox for ios", "toolkit"]}},
+				// {"term": {"assigned_to": "nobody@mozilla.org"}},
+				{"range":{"created_ts":{"gte": new Date("2016-06-01").getMilliseconds()}}},
+				{
+					"and": [
+						{"term": {"priority": "p1"}},
+						{"not": {"terms": {"component": ["general", "untriaged"]}}},
+					]
+				},
+				{"not": {
+					"nested": {
+						"path": "flags",
+						"query": {
+							"filtered": {
+								"query": {
+									"match_all": {}
+								},
+								"filter": {
+									"and": [
+										{"term": {"flags.request_type": "needinfo"}},
+										{"term": {"flags.request_status": "?"}}
+									]
+								}
+							}
+						}
+					}
+				}}
+			]
+		}],
 
 		//* https://bugzilla.mozilla.org/buglist.cgi?keywords=regressionwindow-wanted%2C &keywords_type=allwords&list_id=12796403&resolution=---&query_based_on=all open regressionwindow-wanted bugs&query_format=advanced&product=Core&product=Firefox&product=Firefox Health Report&product=Hello  (Loop)&product=Plugins&product=Toolkit&known_name=all open regressionwindow-wanted bugs
 		["Platform - RegressionWindow Wanted", null, null, {
