@@ -25,10 +25,76 @@ var MozillaPrograms = {
 
 		["Firefox Un-Triaged", null, null, {
 			"and": [
-				{"term": {"bug_status": "new", "unconfirmed"}},
+				{"not": {"term": {"bug_status": "resolved"}}},
 				{"terms": {"product": ["core", "firefox", "firefox for android", "firefox for ios", "toolkit"]}},
 				// {"term": {"assigned_to": "nobody@mozilla.org"}},
-				{"range":{"created_ts":{"gte":Date.newInstance("2016-06-01").getMilli()}}},
+				{"range":{"created_ts":{"gte": new Date("2016-06-01").getMilliseconds()}}},
+				{
+					"or": [
+						{"not": {"terms": {"priority": ["p1", "p2", "p3", "p4", "p5"]}}},
+						{"terms": {"component": ["general", "untriaged"]}},
+					]
+				},
+				{"not": {
+					"nested": {
+						"path": "flags",
+						"query": {
+							"filtered": {
+								"query": {
+									"match_all": {}
+								},
+								"filter": {
+									"and": [
+										{"term": {"flags.request_type": "needinfo"}},
+										{"term": {"flags.request_status": "?"}}
+									]
+								}
+							}
+						}
+					}
+				}}
+			]
+		}],
+
+		["Firefox Un-Triaged Core", null, null, {
+			"and": [
+				{"not": {"term": {"bug_status": "resolved"}}},
+				{"term": {"product": "core"}},
+				// {"term": {"assigned_to": "nobody@mozilla.org"}},
+				{"range":{"created_ts":{"gte": new Date("2016-06-01").getMilliseconds()}}},
+				{
+					"or": [
+						{"not": {"terms": {"priority": ["p1", "p2", "p3", "p4", "p5"]}}},
+						{"terms": {"component": ["general", "untriaged"]}},
+					]
+				},
+				{"not": {
+					"nested": {
+						"path": "flags",
+						"query": {
+							"filtered": {
+								"query": {
+									"match_all": {}
+								},
+								"filter": {
+									"and": [
+										{"term": {"flags.request_type": "needinfo"}},
+										{"term": {"flags.request_status": "?"}}
+									]
+								}
+							}
+						}
+					}
+				}}
+			]
+		}],
+
+		["Firefox Un-Triaged Firefox", null, null, {
+			"and": [
+				{"not": {"term": {"bug_status": "resolved"}}},
+				{"term": {"product": "firefox"}},
+				// {"term": {"assigned_to": "nobody@mozilla.org"}},
+				{"range":{"created_ts":{"gte": new Date("2016-06-01").getMilliseconds()}}},
 				{
 					"or": [
 						{"not": {"terms": {"priority": ["p1", "p2", "p3", "p4", "p5"]}}},
@@ -58,12 +124,12 @@ var MozillaPrograms = {
 
 		["Firefox Triaged", null, null, {
 			"and": [
-				{"term": {"bug_status": ["new", "unconfirmed"]}},
+				{"term": {"bug_status": "new"}},
 				{"terms": {"product": ["core", "firefox", "firefox for android", "firefox for ios", "toolkit"]}},
 				// {"term": {"assigned_to": "nobody@mozilla.org"}},
-				{"range":{"created_ts":{"gte":Date.newInstance("2016-06-01").getMilli()}}},
+				{"range":{"created_ts":{"gte": new Date("2016-06-01").getMilliseconds()}}},
 				{
-					"or": [
+					"and": [
 						{"terms": {"priority": ["p1", "p2", "p3", "p4", "p5"]}},
 						{"not": {"terms": {"component": ["general", "untriaged"]}}},
 					]
@@ -88,7 +154,40 @@ var MozillaPrograms = {
 				}}
 			]
 		}],
-		
+
+		["Firefox Triaged P1", null, null, {
+			"and": [
+				{"term": {"bug_status": "new"}},
+				{"terms": {"product": ["core", "firefox", "firefox for android", "firefox for ios", "toolkit"]}},
+				// {"term": {"assigned_to": "nobody@mozilla.org"}},
+				{"range":{"created_ts":{"gte": new Date("2016-06-01").getMilliseconds()}}},
+				{
+					"and": [
+						{"term": {"priority": "p1"}},
+						{"not": {"terms": {"component": ["general", "untriaged"]}}},
+					]
+				},
+				{"not": {
+					"nested": {
+						"path": "flags",
+						"query": {
+							"filtered": {
+								"query": {
+									"match_all": {}
+								},
+								"filter": {
+									"and": [
+										{"term": {"flags.request_type": "needinfo"}},
+										{"term": {"flags.request_status": "?"}}
+									]
+								}
+							}
+						}
+					}
+				}}
+			]
+		}],
+
 		//* https://bugzilla.mozilla.org/buglist.cgi?keywords=regressionwindow-wanted%2C &keywords_type=allwords&list_id=12796403&resolution=---&query_based_on=all open regressionwindow-wanted bugs&query_format=advanced&product=Core&product=Firefox&product=Firefox Health Report&product=Hello  (Loop)&product=Plugins&product=Toolkit&known_name=all open regressionwindow-wanted bugs
 		["Platform - RegressionWindow Wanted", null, null, {
 			"and": [
