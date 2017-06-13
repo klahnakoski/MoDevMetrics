@@ -43,13 +43,17 @@ if (String.prototype.includes) {
 
 
 //RETURN THE STRING BETWEEN THE start AND end
-//IF end IS UNDEFINED, THEN GRABS TO END OF STRING
+//IF start IS undefined, THEN USE START OF STRING
+//IF end IS undefined,, THEN GRABS TO END OF STRING
 String.prototype.between = function(start, end){
-	var s = this.indexOf(start);
-	if (s == -1) return null;
-	s += start.length;
-	if (end === undefined) return this.substring(s);
+	let s=0;
+	if (start !== undefined) {
+		s = this.indexOf(start);
+		if (s == -1) return null;
+		s += start.length;
+	}//endif
 
+	if (end === undefined) return this.substring(s);
 	var e = this.indexOf(end, s);
 	if (e == -1) return null;
 	return this.substring(s, e);

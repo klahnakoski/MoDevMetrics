@@ -1,0 +1,160 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<title>Stockwell Summary</title>
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+<div id="sidebar" style="width:300px;">
+	<br>
+	<br>
+
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px">Page Loading...</span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+
+	<hr>
+	<div id="description">
+		Cross-reference Bugzilla and Orange Factor to produce a list of most
+		active intermittent failures with no comments for the past week,
+		not include comments from today.
+	</div>
+	<hr>
+	<div id="testMessage"></div>
+	<hr>
+	<div id="stats"></div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h1 id="title">Stockwell Summary</h1>
+	<br>
+	<div id="content" style="width:800px;"></div>
+</div>
+
+
+<script type="application/javascript">
+
+importScript(
+	[
+		'modevlib/main.js'
+	], function(){
+		let thread;
+		let createChart = function(){
+			if (thread !== undefined)
+				thread.kill();
+			thread = Thread.run(__createChart());
+		};
+
+		let __createChart = function*(){
+			let bugs=null;
+
+			let CATEGORIES = [
+				"stockwell needswork",
+				"stockwell unknown",
+				"stockwell infra",
+				"stockwell disabled",
+				"stockwell fixed"
+			];
+			let ALT="other";
+
+			let getDetails = Thread.run(function*(){
+				let ba = Log.action("get bugs", true);
+				try {
+					let response = yield ESQuery.run({
+						"from": "public_bugs",
+						"select": ["status_whiteboard", "short_desc", "bug_id"],
+						"esfilter": {
+							"and": [
+								{"regexp": {"status_whiteboard.tokenized": "stockwel.*"}},
+								{"range": {"expires_on": {"gte": Date.now().milli()}}}
+							]
+						},
+						"limit": 10000
+					});
+
+					let cats = Map.newInstance(ALT, []);
+
+					response.list.forall(function(b, i){
+					    let found=false;
+						b.status_whiteboard.split("[").mapExists(function(w){
+							return w.between(undefined, "]");
+						}).forall(function(token){
+							if (token == null) return;
+							CATEGORIES.forall(function(c){
+								if (token.startsWith(c)) {
+								  found=true;
+									if (!cats[c]) cats[c]=[];
+									cats[c].append(b);
+								}//endif
+							});
+						});
+						if (!found) cats[ALT].append(b);
+					});
+
+
+					var html = new Template([
+						'<table class="table"><thead><tr>',
+						'<td style="text-align:center">Bug ID</td>',
+						'<td style="text-align:center">Whiteboard</td>',
+						'<td>Description</td>',
+						'</tr></thead><tbody>',
+						{
+							"from":".",
+							"template":[
+								'<tr class="hoverable" onclick="Bugzilla.showBugs([{{bug_id}}])">',
+								'<td><div>{{bug_id}}</div></td>',
+								'<td><div style="width:200px;text-align:center">{{status_whiteboard}}</div></td>',
+								'<td><div style="width:400px;text-wrap: normal;">{{short_desc}}</div></td>',
+								'</tr>'
+							]
+						},
+						'</tbody></table>'
+					]);
+
+					let content=$("#content").html("");
+					CATEGORIES.forall(function(c){
+					  let bs=cats[c];
+						content.append("<h2>"+c+" ("+bs.length+")</h2>"+html.expand(bs));
+					});
+					let bs=cats[ALT];
+					content.append("<h2>"+ALT+" ("+bs.length+")</h2>"+html.expand(bs));
+
+				} catch (e) {
+					Log.warning("problem", e);
+				}finally{
+					Log.actionDone(ba)
+				}//try
+			});
+
+			yield Thread.join(getDetails);
+		};
+
+
+		$(document).ready(function(){
+			GUI.setup(
+				createChart,
+				[
+				],
+				[
+				],
+				"bugs",
+				false		//SHOW DEFAULT FILTERS?
+			);
+		});
+
+	});
+
+</script>
+
+
+</BODY>
+</HTML>
+
