@@ -138,7 +138,7 @@ var __createChart = function*(){
 			{"id":"sampleMin", "name":"Start Date", "type":"time", "default":Date.eod().add("-18week")},
 			{"id":"sampleMax", "name":"End Date", "type":"time", "default":Date.today()},
 			{"id":"sampleInterval", "name":"Interval", "type":"duration", "default":"week"},
-			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
+//			{"id":"teamFilter", "name":"Team", "type":TeamFilter.newInstance("assigned_to")}
 		],
 		[
 			"sampleMin=Date.newInstance(sampleMin).addDay(1).floor(Duration.newInstance(sampleInterval)).format('yyyy-MM-dd')",
