@@ -10,6 +10,28 @@ var MozillaPrograms = {
 
 	"rows": [
 
+		["Quantum P1 for 61", null, null, {
+			"and": [
+				{"term": {"status_whiteboard.tokenized": "qf:p1"}},
+				{"term": {"status_whiteboard.tokenized": "qf:61"}}
+			],
+		}],
+		["Quantum P1 for 61 needs-analysis", null, null, {
+			"and": [
+				{"term": {"status_whiteboard.tokenized": "qf:p1"}},
+				{"term": {"status_whiteboard.tokenized": "qf:61"}},
+				{"term": {"status_whiteboard.tokenized": "qf:needs-analysis"}},
+			],
+		}],
+		["Quantum P1 for 61 analyzed", null, null, {
+			"and": [
+				{"term": {"status_whiteboard.tokenized": "qf:p1"}},
+				{"term": {"status_whiteboard.tokenized": "qf:61"}},
+				{"term": {"status_whiteboard.tokenized": "qf:analyzed"}},
+			],
+		}],
+
+
 		["MOC", null, null, {
 			"prefix":{"component":"moc:"}
 		}],
@@ -227,63 +249,7 @@ var MozillaPrograms = {
 		["e10s Noms", "cf_tracking_e10s", "?"],
 		["e10s Later", "cf_tracking_e10s", "later"],
 
-		["B2G 2.6", "cf_blocking_b2g", "2.6+"],
-		["B2G 2.5", "cf_blocking_b2g", "2.5+"],
-		["B2G 2.2", "cf_blocking_b2g", "2.2+"],
-		["B2G 2.1", "cf_blocking_b2g", "2.1+"],
-		["B2G 2.0", "cf_blocking_b2g", ["2.0+", "1.5+"]],
-		["B2G 1.4", "cf_blocking_b2g", "1.4+"],
-		["B2G 1.3", "cf_blocking_b2g", "1.3+"],
-		["B2G 1.3t", "cf_blocking_b2g", "1.3t+"],
-		["B2G 1.4 Noms", "cf_blocking_b2g", "1.4?"],
-		["B2G 1.3 Noms", "cf_blocking_b2g", "1.3?"],
-		["B2G 1.3t Noms", "cf_blocking_b2g", "1.3t?"],
 
-		["B2G 1.2.0 (Koi)", "cf_blocking_b2g", "koi+"],
-		["B2G 1.1.0 (Koi)", "cf_blocking_b2g", "leo+"],
-		["B2G 1.1.0 (Leo)", "cf_blocking_b2g", "leo+"],  //WAS CALLED Leo, BUT MERGED WITH Koi
-		["B2G 1.0.1 (TEF)", "cf_blocking_b2g", "tef+"],
-		["B2G 1.0.1 (TEF -NPOTB -POVB)", null, null, {
-			"and": [
-				{"term": {"cf_blocking_b2g": "tef+"}},
-				{"not": {"terms": {"status_whiteboard.tokenized": ["npotb", "povb"]}}}
-			]
-		}
-		],
-		["Koi Triage (koi?)", "cf_blocking_b2g", "koi?"],
-		["Leo Triage (leo?)", "cf_blocking_b2g", "leo?"],
-		["TEF Triage (tef?)", "cf_blocking_b2g", "tef?"],
-
-		["WebRTC", "status_whiteboard.tokenized", "webrtc"],
-
-		["WebRTC Components", null, null, {
-			"or": [ //WebRTC COMPONENTS
-				{
-					"and": [
-						{"term": {"product": "loop"}},
-						{"term": {"component": "general"}}
-					]
-				},
-				{
-					"and": [
-						{"term": {"product": "loop"}},
-						{"term": {"component": "client"}}
-					]
-				},
-				{
-					"and": [
-						{"term": {"product": "loop"}},
-						{"term": {"component": "server"}}
-					]
-				},
-				{
-					"and": [
-						{"term": {"product": "core"}},
-						{"prefix": {"component": "webrtc"}}
-					]
-				}
-			]
-		}],
 
 		["Build Duty", "status_whiteboard.tokenized", "buildduty"],
 		["Boot2Gecko (B2G)", "cf_blocking_basecamp", "+"],
