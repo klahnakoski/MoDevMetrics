@@ -1,0 +1,98 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<HTML>
+<HEAD>
+	<!--DYNAMICALLY LOAD ALL JAVASCRIPT (SLOW, BUT PROGRAMMER FRIENDLY)-->
+	<script type="text/javascript" src="modevlib/imports/import.js"></script>
+</HEAD>
+<BODY>
+
+<div id="sidebar" style="width:300px;">
+	<br>
+	<br>
+
+	<div style="height: 30px; text-align: center;vertical-align:middle;">
+		<span id="status" style="height:30px"></span><span class="loading"><img src="images/spinner.gif" alt=""></span>
+	</div>
+	<hr>
+	<div id="description">Simple page to show bug data<br><br>
+		Open your debugger to inspect the Elasticsearch queries and responses.
+	</div>
+	<hr>
+	<div id="parameters" class="parameters">
+	</div>
+	<div id="filters" class="menu"></div>
+</div>
+
+<div style="float:right;display: inline;">
+	<a href="http://people.mozilla.com/~klahnakoski/" class="button">HOME</a>
+</div>
+<div style="align:left;position:relative;float:left;width:800px;">
+	<h3 id="title">QF Bug Details</h3>
+	<div id="data"></div>
+</div>
+
+
+<script type="application/javascript">
+	importScript('modevlib/main.js', function () {
+		Thread.run("query ES", function* () {
+			yield ESQuery.loadColumns("bugs");
+
+			let start = Date.today();
+			let end = Date.today().subtract(Duration.MONTH);
+
+			var results = {};
+			var threads = {};
+			for (let date = start; date.getMilli() >= end.getMilli(); date = date.subtract(Duration.DAY)){
+				(function (date) {
+					let sampleTime=date.getMilli();
+					threads[sampleTime] = Thread.run("query ES", function* () {
+
+						let mainFilter = {
+							"and": [
+								{"term": {"status_whiteboard.tokenized": "qf:p1"}},
+								{"range": {"modified_ts": {"lte": sampleTime}}},
+								{"range": {"expires_on": {"gt": sampleTime}}},
+								{"term": {"status_whiteboard.tokenized": "qf:61"}},
+								// {
+								// 	"or": [
+								// 		{"term": {"status_whiteboard.tokenized": "qf:analyzed"}},
+								// 		{"term": {"status_whiteboard.tokenized": "qf:needs-analysis"}},
+								// 	],
+								// },
+							],
+						};
+
+						result = yield (ESQuery.run({
+							"from": "bugs",
+							"select": [
+								"bug_id",
+								"bug_status",
+								"status_whiteboard",
+								"modified_ts",
+								"assigned_to",
+							],
+							"esfilter": mainFilter,
+						}));
+
+						results[sampleTime] = result.list;
+						yield;
+					});
+
+				})(date);
+			}//for
+
+			for (let date in threads) if (threads.hasOwnProperty(date)) yield Thread.join(threads[date]);
+
+			$("#data").html(convert.String2HTML(convert.value2json(results)))
+
+		});
+	});
+</script>
+
+
+</BODY>
+</HTML>
+
