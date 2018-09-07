@@ -175,7 +175,8 @@ ESQuery.NOT_SUPPORTED = "From clause not supported \n{{from}}";
 						[schema, currInfo] = pair;
 					}//endif
 				} catch (e) {
-					Log.warning("problem with join", e)
+					//EXPECTED IF LOADING FAILS
+					Log.warning("Thread failure", e)
 				}//try
 
 				//WE WILL ACCEPT ANY CLUSTER RESPONSE NOW

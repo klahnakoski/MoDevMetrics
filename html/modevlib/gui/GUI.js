@@ -161,57 +161,20 @@ GUI = {};
 
 				if (indexName === undefined || indexName == null || indexName == "bugs" || indexName == "private_bugs") {
 					indexName = coalesce(indexName, "bugs");
-					var result = yield (ESQuery.run({
+					let result = yield (ActiveDataQuery.run({
 						"from": indexName,
 						"select": {"name": "max_date", "value": "modified_ts", "aggregate": "maximum"},
-						"esfilter": {"range": {"modified_ts": {"gte": Date.eod().addMonth(-1).getMilli()}}}
+						"where": {"range": {"modified_ts": {"gte": Date.eod().addMonth(-1).getMilli()}}}
 					}));
 
-					time = new Date(result.cube.max_date);
+					time = new Date(result.data.max_date);
 					var tm = $("#testMessage");
 					tm.html(new Template("<div style={{style|style}}>{{name}}</div>").expand(result.index));
 					tm.append("<br>ES Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
-				} else if (indexName == "reviews") {
-										var result = yield (ESQuery.run({
-												"from": "reviews",
-												"select": [
-														{"name": "last_request", "value": "request_time", "aggregate": "maximum"}
-												]
-										}));
-										time = Date.newInstance(result.cube.last_request);
-										$("#testMessage").html("Reviews Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 				} else if (indexName == "bug_tags") {
 					esHasErrorInIndex = false;
 					time = yield (BUG_TAGS.getLastUpdated());
 					$("#testMessage").html("Bugs Last Updated " + time.addTimezone().format("NNN dd"));
-				} else if (indexName == "bug_summary") {
-					esHasErrorInIndex = false;
-					time = new Date((yield(ESQuery.run({
-						"from": "bug_summary",
-						"select": {"name": "max_date", "value": "modified_time", "aggregate": "maximum"}
-					}))).cube.max_date);
-					$("#testMessage").html("Bug Summaries Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
-				} else if (indexName == "datazilla") {
-					esHasErrorInIndex = false;
-					time = new Date((yield(ESQuery.run({
-						"from": "talos",
-						"select": {"name": "max_date", "value": "testrun.date", "aggregate": "maximum"}
-					}))).cube.max_date);
-					$("#testMessage").html("Datazilla Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
-				} else if (indexName == "perfy") {
-					esHasErrorInIndex = false;
-					time = new Date((yield(ESQuery.run({
-						"from": "perfy",
-						"select": {"name": "max_date", "value": "info.started", "aggregate": "maximum"}
-					}))).cube.max_date);
-					$("#testMessage").html("Builds Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
-				}else if (indexName == "talos"){
-					esHasErrorInIndex = false;
-					time = new Date((yield(ESQuery.run({
-						"from":"talos",
-						"select":{"name": "max_date", "value":"testrun.date","aggregate":"maximum"}
-					}))).cube.max_date);
-					$("#testMessage").html("Latest Push " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 				} else {
 					return;
 				}//endif

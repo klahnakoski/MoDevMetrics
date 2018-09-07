@@ -5,7 +5,7 @@ importScript("Settings.js");
 importScript("MozillaPrograms.js");
 importScript("rest/BugzillaClient.js");
 importScript("rest/ElasticSearch.js");
-importScript("qb/ESQuery.js");
+importScript("qb/ActiveDataQuery.js");
 importScript("Bugzilla.js");
 importScript("charts/cccChart.js");
 importScript("charts/aColor.js");
