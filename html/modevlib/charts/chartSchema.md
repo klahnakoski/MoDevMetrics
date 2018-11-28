@@ -1,7 +1,7 @@
-#A Standard Chart Schema
+# A Standard Chart Schema
 chart definition
 
-##`area` Property
+## `area` Property
 details regarding the plot area, but nothing about the series.  Multiple areas are allowed, and may share axis.
 
   * `area.y` - *string* The axis used for the vertical dimension. (default = y)
@@ -18,7 +18,7 @@ details regarding the plot area, but nothing about the series.  Multiple areas a
     * `area.style.font` - *string* css font
     * `area.style.border` - *string* css border
   * `area.target` - *string* for when this area is not in the chart target div
-##`axis` Property
+## `axis` Property
 list of axis, property names not limited to 'x' and 'y'
 
   * `axis.y` - *object* details on a visual axis
@@ -51,12 +51,12 @@ list of axis, property names not limited to 'x' and 'y'
     * `axis.x.normalized` - *boolean* Convert to % of total
     * `axis.x.position` - *string* where to place the axis, relative to plot area (top/right/bottom/left), default=bottom
     * `axis.x.unit` - *string* the measurement unit, using multiply (`*`) and divide (`/`) operators
-##`click` (function)
+## `click` (function)
 function to run when a data element is clicked
-##`data` Property
+## `data` Property
 an array of objects
 
-##`legend` Property
+## `legend` Property
 more configuration for legend
 
   * `legend.position` - *string* position of legend relative to plot area (top/left/bottom/right)
@@ -72,7 +72,7 @@ more configuration for legend
     * `legend.style.font` - *string* css font
     * `legend.style.border` - *string* css border
   * `legend.label` - *string* name the legend
-##`series` Property
+## `series` Property
 what is plotted 
 
   * `series.style` - *object*
@@ -177,9 +177,9 @@ what is plotted
     * `series.select.value` - *string* expression to extract from data and chart
     * `series.select.axis` - *string* name of the axis to apply against: can be any #chart.axis property name.  Use tuple if plotting more than one dimension.
   * `series.axis` - *string* a shortcut for `select.axis`
-##`target` (string)
+## `target` (string)
 name of dom elements to insert chart
-##`tip` Property
+## `tip` Property
 Tooltip to show over chart values
 
   * `tip.style` - *object* styling for the tooltip box
@@ -194,7 +194,7 @@ Tooltip to show over chart values
     * `tip.style.font` - *string* css font
     * `tip.style.border` - *string* css border
   * `tip.format` - *string* html template to show
-##`title` Property
+## `title` Property
 details regarding the title.  Can also be a simple string.
 
   * `title.position` - *string* location of title relative to area (default=top)
