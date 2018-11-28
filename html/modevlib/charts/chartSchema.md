@@ -34,13 +34,12 @@ details regarding the plot area, but nothing about the series.  Multiple areas a
 list of axis, property names not limited to 'x' and 'y'
 
   * `axis.y` - *object* details on a visual axis
-    * `axis.y.domain` - *object*
-      * `axis.y.domain.range` - *object* define the range of values on axis
-        * `axis.y.domain.range.max` - *number* maximum axis value shown
-        * `axis.y.domain.range.reversed` - *boolean* show the range reversed, greater positive numbers going down (or positive numbers counting leftward)
-        * `axis.y.domain.range.min` - *number* minimum axis value shown
-        * `axis.y.domain.range.showZero` - *boolean* show zero coordinate, even if calculated range would not
-        * `axis.y.domain.range.partitions` - *string* categorical dimensions require an explict list of strings
+    * `axis.y.domain` - *object* define the range of values on axis
+      * `axis.y.domain.max` - *number* maximum axis value shown
+      * `axis.y.domain.reversed` - *boolean* show the range reversed, greater positive numbers going down (or positive counting goes leftward)
+      * `axis.y.domain.min` - *number* minimum axis value shown
+      * `axis.y.domain.showZero` - *boolean* show zero coordinate, even if calculated range would not
+      * `axis.y.domain.partitions` - *string* categorical dimensions require an explict list of strings
     * `axis.y.missing` - *object* information on behaviour when outside the domain or range.  Has no meaning when using the default domain.
     * `axis.y.format` - *string* format of the reference values on the axis
     * `axis.y.rug` - *boolean* show projection as a series of ticks along the axis
@@ -54,13 +53,12 @@ list of axis, property names not limited to 'x' and 'y'
     * `axis.y.unit` - *string* the measurement unit, using multiply (`*`) and divide (`/`) operators
     * `axis.y.showZero` - *boolean* show zero coordinate, even if calculated range would not
   * `axis.x` - *object* details on a visual axis
-    * `axis.x.domain` - *object*
-      * `axis.x.domain.range` - *object* define the range of values on axis
-        * `axis.x.domain.range.max` - *number* maximum axis value shown
-        * `axis.x.domain.range.reversed` - *boolean* show the range reversed, greater positive numbers going down (or positive numbers counting leftward)
-        * `axis.x.domain.range.min` - *number* minimum axis value shown
-        * `axis.x.domain.range.showZero` - *boolean* show zero coordinate, even if calculated range would not
-        * `axis.x.domain.range.partitions` - *string* categorical dimensions require an explict list of strings
+    * `axis.x.domain` - *object* define the range of values on axis
+      * `axis.x.domain.max` - *number* maximum axis value shown
+      * `axis.x.domain.reversed` - *boolean* show the range reversed, greater positive numbers going down (or positive counting goes leftward)
+      * `axis.x.domain.min` - *number* minimum axis value shown
+      * `axis.x.domain.showZero` - *boolean* show zero coordinate, even if calculated range would not
+      * `axis.x.domain.partitions` - *string* categorical dimensions require an explict list of strings
     * `axis.x.missing` - *object* information on behaviour when outside the domain or range.  Has no meaning when using the default domain.
     * `axis.x.format` - *string* format of the reference values on the axis
     * `axis.x.rug` - *boolean* show projection as a series of ticks along the axis
