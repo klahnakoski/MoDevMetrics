@@ -41,7 +41,7 @@
 					"type": "string"
 				},
 				"style": {
-					"$ref": "#definitions.object_style"
+					"$ref": "#definitions.style"
 				}
 			}
 		},
@@ -63,7 +63,7 @@
 				}
 			},
 			"style": {
-				"$ref": "#definitions.object_style"
+				"$ref": "#definitions.style"
 			}
 		},
 		"legend": {
@@ -79,7 +79,7 @@
 					"type": "string"
 				},
 				"style": {
-					"$ref": "#definitions.object_style"
+					"$ref": "#definitions.style"
 				}
 			}
 		},
@@ -93,7 +93,7 @@
 				},
 				"style": {
 					"description": "styling for the tooltip box",
-					"$ref": "#definitions.object_style"
+					"$ref": "#definitions.style"
 				}
 			}
 		},
@@ -208,12 +208,12 @@
 						},
 						"style": {
 							"description": "styling for the tooltip box",
-							"$ref": "#definitions.object_style"
+							"$ref": "#definitions.style"
 						}
 					}
 				},
 				"click": {
-					"description": "override he general click, for this series only",
+					"description": "override the general click, for this series only",
 					"type": "function"
 				}
 			}
@@ -261,24 +261,6 @@
 					"properties": {
 						"style": {
 							"$ref": "#defiinitions.style"
-						}
-					}
-				},
-				"showZero": {
-					"description": "show zero coordinate, even if calculated range would not",
-					"type": "boolean"
-				},
-				"range": {
-					"description": "optional, instead of a formal `domain`; define the range of values on axis",
-					"type": "object",
-					"properties": {
-						"min": {
-							"description": "minimum axis value shown",
-							"type": "number"
-						},
-						"max": {
-							"description": "maximum axis value shown",
-							"type": "number"
 						}
 					}
 				}

@@ -15,18 +15,6 @@ details regarding the plot area, but nothing about the series.  Multiple areas a
     * `area.style.padding` - *string* css padding
     * `area.style.width` - *number* css width
     * `area.style.z-index` - *number* css z-depth
-    * `area.style.bar-spacing` - *string* spacing between bars, either as pixels, or a percent of bar width.
-    * `area.style.line` - *object*
-      * `area.style.line.style` - *string* css line style descriptions
-      * `area.style.line.format` - *string* text format string
-      * `area.style.line.color` - *string* css color
-      * `area.style.line.visibility` - *string* initial visibility
-      * `area.style.line.height` - *number* css height
-      * `area.style.line.padding` - *string* css padding
-      * `area.style.line.width` - *number* css width
-      * `area.style.line.z-index` - *number* css z-depth
-      * `area.style.line.font` - *string* css font
-      * `area.style.line.border` - *string* css border
     * `area.style.font` - *string* css font
     * `area.style.border` - *string* css border
   * `area.target` - *string* for when this area is not in the chart target div
@@ -45,13 +33,9 @@ list of axis, property names not limited to 'x' and 'y'
     * `axis.y.rug` - *boolean* show projection as a series of ticks along the axis
     * `axis.y.value` - *string* common expression to evaluate, or name of the property
     * `axis.y.label` - *string* name of axis
-    * `axis.y.range` - *object* optional, instead of a formal `domain`; define the range of values on axis
-      * `axis.y.range.max` - *number* maximum axis value shown
-      * `axis.y.range.min` - *number* minimum axis value shown
     * `axis.y.normalized` - *boolean* Convert to % of total
     * `axis.y.position` - *string* where to place the axis, relative to plot area (top/right/bottom/left), default=bottom
     * `axis.y.unit` - *string* the measurement unit, using multiply (`*`) and divide (`/`) operators
-    * `axis.y.showZero` - *boolean* show zero coordinate, even if calculated range would not
   * `axis.x` - *object* details on a visual axis
     * `axis.x.domain` - *object* define the range of values on axis
       * `axis.x.domain.max` - *number* maximum axis value shown
@@ -64,13 +48,9 @@ list of axis, property names not limited to 'x' and 'y'
     * `axis.x.rug` - *boolean* show projection as a series of ticks along the axis
     * `axis.x.value` - *string* common expression to evaluate, or name of the property
     * `axis.x.label` - *string* name of axis
-    * `axis.x.range` - *object* optional, instead of a formal `domain`; define the range of values on axis
-      * `axis.x.range.max` - *number* maximum axis value shown
-      * `axis.x.range.min` - *number* minimum axis value shown
     * `axis.x.normalized` - *boolean* Convert to % of total
     * `axis.x.position` - *string* where to place the axis, relative to plot area (top/right/bottom/left), default=bottom
     * `axis.x.unit` - *string* the measurement unit, using multiply (`*`) and divide (`/`) operators
-    * `axis.x.showZero` - *boolean* show zero coordinate, even if calculated range would not
 ##`click` (function)
 function to run when a data element is clicked
 ##`data` Property
@@ -89,18 +69,6 @@ more configuration for legend
     * `legend.style.padding` - *string* css padding
     * `legend.style.width` - *number* css width
     * `legend.style.z-index` - *number* css z-depth
-    * `legend.style.bar-spacing` - *string* spacing between bars, either as pixels, or a percent of bar width.
-    * `legend.style.line` - *object*
-      * `legend.style.line.style` - *string* css line style descriptions
-      * `legend.style.line.format` - *string* text format string
-      * `legend.style.line.color` - *string* css color
-      * `legend.style.line.visibility` - *string* initial visibility
-      * `legend.style.line.height` - *number* css height
-      * `legend.style.line.padding` - *string* css padding
-      * `legend.style.line.width` - *number* css width
-      * `legend.style.line.z-index` - *number* css z-depth
-      * `legend.style.line.font` - *string* css font
-      * `legend.style.line.border` - *string* css border
     * `legend.style.font` - *string* css font
     * `legend.style.border` - *string* css border
   * `legend.label` - *string* name the legend
@@ -168,18 +136,6 @@ what is plotted
       * `series.tip.style.padding` - *string* css padding
       * `series.tip.style.width` - *number* css width
       * `series.tip.style.z-index` - *number* css z-depth
-      * `series.tip.style.bar-spacing` - *string* spacing between bars, either as pixels, or a percent of bar width.
-      * `series.tip.style.line` - *object*
-        * `series.tip.style.line.style` - *string* css line style descriptions
-        * `series.tip.style.line.format` - *string* text format string
-        * `series.tip.style.line.color` - *string* css color
-        * `series.tip.style.line.visibility` - *string* initial visibility
-        * `series.tip.style.line.height` - *number* css height
-        * `series.tip.style.line.padding` - *string* css padding
-        * `series.tip.style.line.width` - *number* css width
-        * `series.tip.style.line.z-index` - *number* css z-depth
-        * `series.tip.style.line.font` - *string* css font
-        * `series.tip.style.line.border` - *string* css border
       * `series.tip.style.font` - *string* css font
       * `series.tip.style.border` - *string* css border
     * `series.tip.format` - *string* html template to show
@@ -212,7 +168,7 @@ what is plotted
       * `series.marker.style.border` - *string* css border
     * `series.marker.size` - *number* size of the datapoint
   * `series.type` - *string* the chart type to show as (bar/line/dot)
-  * `series.click` - *function* override he general click, for this series only
+  * `series.click` - *function* override the general click, for this series only
   * `series.select` - *nested* selector(s) for this series.  Use an array of selectors to plot multiple dimensions
     * `series.select.range` - *object* use for range-of-values display, like whisker charts, or gantt charts.  Can not use with `series.select.value`.  Makes no sense with `dot` charts
       * `series.select.range.max` - *number* maximum value of the range, if any
@@ -235,18 +191,6 @@ Tooltip to show over chart values
     * `tip.style.padding` - *string* css padding
     * `tip.style.width` - *number* css width
     * `tip.style.z-index` - *number* css z-depth
-    * `tip.style.bar-spacing` - *string* spacing between bars, either as pixels, or a percent of bar width.
-    * `tip.style.line` - *object*
-      * `tip.style.line.style` - *string* css line style descriptions
-      * `tip.style.line.format` - *string* text format string
-      * `tip.style.line.color` - *string* css color
-      * `tip.style.line.visibility` - *string* initial visibility
-      * `tip.style.line.height` - *number* css height
-      * `tip.style.line.padding` - *string* css padding
-      * `tip.style.line.width` - *number* css width
-      * `tip.style.line.z-index` - *number* css z-depth
-      * `tip.style.line.font` - *string* css font
-      * `tip.style.line.border` - *string* css border
     * `tip.style.font` - *string* css font
     * `tip.style.border` - *string* css border
   * `tip.format` - *string* html template to show
