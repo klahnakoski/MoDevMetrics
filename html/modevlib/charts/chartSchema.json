@@ -33,10 +33,12 @@
 					"type":"string"
 				},
 				"x":{
-					"description": "The axis used for the horizontal dimension. (default = x)"
+					"description": "The axis used for the horizontal dimension. (default = x)",
+					"type":"string"
 				},
 				"y":{
-					"description": "The axis used for the vertical dimension. (default = y)"
+					"description": "The axis used for the vertical dimension. (default = y)",
+					"type":"string"
 				},
 				"style": {
 					"$ref": "#definitions.object_style"
@@ -360,32 +362,35 @@
 			}
 		},
 		"domain":{
-
-			"domain":{"$ref": "#definitions.domain"},
-			"range": {
-				"description": "define the range of values on axis",
-				"type": "object",
-				"properties": {
-					"min": {
-						"description": "minimum axis value shown",
-						"type": "number"
-					},
-					"max": {
-						"description": "maximum axis value shown",
-						"type": "number"
-					},
-					"showZero": {
-						"description": "show zero coordinate, even if calculated range would not",
-						"type": "boolean"
-					},
-					"partitions": {
-						"description": "categorical dimensions require an explict list of strings",
-						"type": "string"
+			"type": "object",
+			"properties": {
+				"range": {
+					"description": "define the range of values on axis",
+					"type": "object",
+					"properties": {
+						"min": {
+							"description": "minimum axis value shown",
+							"type": "number"
+						},
+						"max": {
+							"description": "maximum axis value shown",
+							"type": "number"
+						},
+						"showZero": {
+							"description": "show zero coordinate, even if calculated range would not",
+							"type": "boolean"
+						},
+						"partitions": {
+							"description": "categorical dimensions require an explict list of strings",
+							"type": "string"
+						},
+						"reversed": {
+							"description": "show the range reversed, greater positive numbers going down (or positive numbers counting leftward)",
+							"type": "boolean"
+						}
 					}
 				}
 			}
-
-
 		},
 		"object_style": {
 			"type": "object",

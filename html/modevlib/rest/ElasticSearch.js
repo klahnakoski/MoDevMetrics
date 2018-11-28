@@ -12,44 +12,6 @@ ElasticSearch={};
 ElasticSearch.pushURL="http://klahnakoski-es.corp.tor1.mozilla.com:9200";
 
 
-ElasticSearch.search=function*(index, esquery){
-	yield (ESQuery.loadColumns(index));
-	var meta = ESQuery.INDEXES[index];
-	if (meta.host===undefined) Log.error("must have host defined");
-	var url = meta.host+meta.path+"/_search";
-
-	var output=yield (Rest.post({
-		url: url,
-		data: convert.value2json(esquery),
-		dataType: "json"
-	}));
-
-	yield (output);
-};
-
-ElasticSearch.setRefreshInterval=function*(destination, rate){
-	var data=yield (Rest.put({
-		"url": joinPath(destination.host, destination.path, "_settings"),
-		"data":{"index":{"refresh_interval":"1s"}}
-	}));
-	Log.note("Refresh Interval to "+rate+": "+convert.value2json(data));
-	yield (data);
-};//method
-
-
-//EXPECTING THE DATA ARRAY TO ALREADY HAVE ODD ENTRIES STARTING WITH { "create":{ "_id" : ID } }
-ElasticSearch.bulkInsert=function*(destination, dataArray){
-//  try{
-		yield (Rest.post({
-			"url":joinPath(destination.host, destination.path, "_bulk"),
-			"data":dataArray.join("\n")+"\n",
-			dataType: "text"
-		}));
-//  } catch(e){
-//    Log.warning("problem with _bulk", e)
-//  }//try
-};
-
 //ONLY BECAUSE I AM TOO LAZY TO ENHANCE THE ESQuery WITH MORE FACETS (A BATTERY OF FACETS PER SELECT COLUMN)
 //RETURN ALL BUGS THAT MATCH FILTER ALONG WITH THE TIME RANGE THEY MATCH
 //EXPECTING esfilter

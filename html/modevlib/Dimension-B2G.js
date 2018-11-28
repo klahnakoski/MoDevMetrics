@@ -39,7 +39,7 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 	});
 
 
-	Dimension.addEdges(true, Mozilla, [
+	Dimension.addEdges(false, Mozilla, [
 		{"name": "B2G",
 //        {"term": {"target_milestone": "mozilla31"}},
 			"esfilter": {"or": [

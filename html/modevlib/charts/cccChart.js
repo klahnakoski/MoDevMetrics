@@ -1091,7 +1091,7 @@ var aChart = {};
 						specific = qb.specificBugs(query, [x]);
 					}//endif
 
-					var buglist = (yield (ESQuery.run(specific)));
+					var buglist = (yield (ActiveDataQuery.run(specific)));
 					if (buglist.cube===undefined){
 						buglist.cube=buglist.list.select("bug_id");
 					}//endif

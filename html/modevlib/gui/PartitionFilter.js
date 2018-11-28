@@ -313,7 +313,7 @@ PartitionFilter.prototype.makeHTML=function(){
 //RETURN AN ES FILTER
 PartitionFilter.prototype.makeFilter = function(){
 	var selected = this.getSelectedParts();
-	if (selected.length == 0) return true;
+	if (selected.length == 0) return ESQuery.TrueFilter;
 	return {"or":selected.mapExists(function(v){return v.esfilter;})};
 };//method
 

@@ -19,7 +19,7 @@ importScript("charts/aColor.js");
 		"indexes" : {
 
 			// BUGZILLA TABLES (ElasticSearch Indexes)
-			"bugs" : {"name" : "private bugs cluster", "style" : {"color" : "black", "background-color" : green}, "host" : "https://activedata-public.devsvcprod.mozaws.net", "path":"/query", "index":"public_bugs", "host_type":"ActiveData"},
+			"bugs" : {"name" : "public bugs cluster", "style" : {"color" : "black", "background-color" : green}, "host" : "https://activedata-public.devsvcprod.mozaws.net", "path":"/query", "index":"public_bugs", "host_type":"ActiveData"},
 			"public_bugs" : {"name" : "Mozilla public bugs cluster", "style" : {"color" : "white", "background-color" : green}, "host" : "https://activedata-public.devsvcprod.mozaws.net", "path":"/query", "host_type":"ActiveData"},
 			"public_comments" : {"style" : {"color" : "black", "background-color" : yellow}, "host" : "https://activedata-public.devsvcprod.mozaws.net", "path":"/query", "host_type":"ActiveData"},
 			"private_bugs" : {"style" : {"color" : "black", "background-color" : yellow}, "host" : "https://activedata-private.devsvcprod.mozaws.net", "path":"/query", "host_type":"ActiveData"},
@@ -37,11 +37,8 @@ importScript("charts/aColor.js");
 		},
 
 		//REGISTER GENERATORS THAT HANDLE qb QUERIES
-		"host_types":{
-
-
+		"host_types": {
 		}
-
 	};
 
 
@@ -50,10 +47,4 @@ importScript("charts/aColor.js");
 		v._id=k;
 		v.name=coalesce(v.name, k);
 	});
-
-	//TRY PRIVATE CLUSTER FIRST, THEN FALL BACK TO PUBLIC
-	// Settings.indexes.bugs.alternate = Settings.indexes.public_bugs;
-
-
-
 })();

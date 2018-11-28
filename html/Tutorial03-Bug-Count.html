@@ -41,19 +41,19 @@
         //WHEN IMPORTS ARE COMPLETE, THIS FUNCTION IS RUN
 
         //WE WILL PASS createChart TO THE GUI.setup() BELOW
-        var createChart = function () {
+        let createChart = function () {
             //THE GUI.state HAS THE CURRENT ATTRIBUTE VALUES SET BY USER
-            var sampleMin = Date.newInstance(GUI.state.sampleMin);
-            var sampleMax = Date.newInstance(GUI.state.sampleMax).addDay(1);
-            var sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
+            let sampleMin = Date.newInstance(GUI.state.sampleMin);
+            let sampleMax = Date.newInstance(GUI.state.sampleMax).addDay(1);
+            let sampleInterval = Duration.newInstance(GUI.state.sampleInterval);
 
-            var mainFilter = {"and": [
+            let mainFilter = {"and": [
                 GUI.getFilters("bugs"),
                 Mozilla.BugStatus.Open.esfilter   //SEE Dimension-Bugzilla TO SEE MORE COMPLICATED DEFINITIONS
             ]};
 
             Thread.run(function*(){  //jsThreads ARE GREAT BECAUSE WE DO NOT NEED CALLBACKS
-                var chart = yield (ESQuery.run({
+                let chart = yield (ActiveDataQuery.run({
                     "name": "Open Bug Count",  //HUMANE NAME FOR THIS DATASET
                     "from": "bugs",  //ESQuery.INDEXES MAPS NAMES TO ES CONNECTION INFO
                     "select": {  // JUST LIKE SQL: SELECT COUNT(bug_id) AS num_bug

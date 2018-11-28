@@ -24,7 +24,7 @@ ComponentFilter.prototype.refresh = function(){
 	var self=this;
 	this.refreshThread=Thread.run("get components", function*(){
 		try{
-			var components=yield (ESQuery.run({
+			var components=yield (ActiveDataQuery.run({
 				"from":self.indexName,
 				"select":{"name":"count", "value":"bug_id", "aggregate":"count"},
 				"edges":[
@@ -34,11 +34,12 @@ ComponentFilter.prototype.refresh = function(){
 					Mozilla.CurrentRecords.esfilter,
 					Mozilla.BugStatus.Open.esfilter,
 					self.productFilter.makeFilter()   //PULL DATA FROM THE productFilter
-				]}
+				]},
+				"limit":10000,
+				"format":"list"
 			}));
 
-			components = qb.Cube2List(components);
-			var terms = components.mapExists(function(v, i){return v.term;});
+			var terms = components.data.mapExists(function(v, i){return v.term;});
 
 			self.selected = self.selected.intersect(terms);
 	//    var self=this;

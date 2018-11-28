@@ -13,6 +13,7 @@ importScript([
 	"../../lib/jsonlint/jsl.format.js"
 ]);
 
+importScript("../qb/ActiveDataQuery.js");
 importScript("../util/State.js");
 importScript("PartitionFilter.js");
 importScript("TeamFilter.js");
@@ -199,16 +200,18 @@ GUI = {};
 
 			var t = aTimer.start("Corruption Check");
 
-			var result = yield (ESQuery.run({
+			var result = yield (ActiveDataQuery.run({
 				"from": "bugs",
-				"select": {"name": "num_null", "value": "expires_on>" + Date.eod().getMilli() + " ? 1 : 0", "aggregate": "add"},
+				"select": {"name": "num_null", "value": {"when":{"gt":{"expires_on": Date.eod().getMilli()}}, "then":1, "else":0}, "aggregate": "add"},
 				"edges": ["bug_id"],
-				"esfilter": {"range": {"modified_ts": {"gte": Date.now().addMonth(-3).getMilli()}}}
+				"esfilter": {"range": {"modified_ts": {"gte": Date.now().addMonth(-3).getMilli()}}},
+				"limit":10000,
+				"format":"list"
 			}));
 
 			var is_error = yield (Q({
 				"from": {
-					"from": result,
+					"from": result.data,
 					"select": [
 						{"value": "bug_id"}
 					],

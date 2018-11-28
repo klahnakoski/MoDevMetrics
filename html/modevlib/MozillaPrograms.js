@@ -37,24 +37,14 @@ var MozillaPrograms = {
 						{"terms": {"component": ["general", "untriaged"]}},
 					]
 				},
-				{"not": {
-					"nested": {
-						"path": "flags",
-						"query": {
-							"filtered": {
-								"query": {
-									"match_all": {}
-								},
-								"filter": {
-									"and": [
-										{"term": {"flags.request_type": "needinfo"}},
-										{"term": {"flags.request_status": "?"}}
-									]
-								}
-							}
-						}
-					}
-				}}
+				{
+					"not": {
+						"and": [
+							{"eq": {"flags.request_type": "needinfo"}},
+							{"eq": {"flags.request_status": "?"}},
+						],
+					},
+				},
 			]
 		}],
 
@@ -70,24 +60,14 @@ var MozillaPrograms = {
 						{"terms": {"component": ["general", "untriaged"]}},
 					]
 				},
-				{"not": {
-					"nested": {
-						"path": "flags",
-						"query": {
-							"filtered": {
-								"query": {
-									"match_all": {}
-								},
-								"filter": {
-									"and": [
-										{"term": {"flags.request_type": "needinfo"}},
-										{"term": {"flags.request_status": "?"}}
-									]
-								}
-							}
-						}
-					}
-				}}
+				{
+					"not": {
+						"and": [
+							{"eq": {"flags.request_type": "needinfo"}},
+							{"eq": {"flags.request_status": "?"}},
+						],
+					},
+				},
 			]
 		}],
 
@@ -103,24 +83,14 @@ var MozillaPrograms = {
 						{"terms": {"component": ["general", "untriaged"]}},
 					]
 				},
-				{"not": {
-					"nested": {
-						"path": "flags",
-						"query": {
-							"filtered": {
-								"query": {
-									"match_all": {}
-								},
-								"filter": {
-									"and": [
-										{"term": {"flags.request_type": "needinfo"}},
-										{"term": {"flags.request_status": "?"}}
-									]
-								}
-							}
-						}
-					}
-				}}
+				{
+					"not": {
+						"and": [
+							{"eq": {"flags.request_type": "needinfo"}},
+							{"eq": {"flags.request_status": "?"}},
+						],
+					},
+				},
 			]
 		}],
 
@@ -136,24 +106,14 @@ var MozillaPrograms = {
 						{"not": {"terms": {"component": ["general", "untriaged"]}}},
 					]
 				},
-				{"not": {
-					"nested": {
-						"path": "flags",
-						"query": {
-							"filtered": {
-								"query": {
-									"match_all": {}
-								},
-								"filter": {
-									"and": [
-										{"term": {"flags.request_type": "needinfo"}},
-										{"term": {"flags.request_status": "?"}}
-									]
-								}
-							}
-						}
-					}
-				}}
+				{
+					"not": {
+						"and": [
+							{"eq": {"flags.request_type": "needinfo"}},
+							{"eq": {"flags.request_status": "?"}},
+						],
+					},
+				},
 			]
 		}],
 
@@ -169,24 +129,14 @@ var MozillaPrograms = {
 						{"not": {"terms": {"component": ["general", "untriaged"]}}},
 					]
 				},
-				{"not": {
-					"nested": {
-						"path": "flags",
-						"query": {
-							"filtered": {
-								"query": {
-									"match_all": {}
-								},
-								"filter": {
-									"and": [
-										{"term": {"flags.request_type": "needinfo"}},
-										{"term": {"flags.request_status": "?"}}
-									]
-								}
-							}
-						}
-					}
-				}}
+				{
+					"not": {
+						"and": [
+							{"eq": {"flags.request_type": "needinfo"}},
+							{"eq": {"flags.request_status": "?"}},
+						],
+					},
+				},
 			]
 		}],
 

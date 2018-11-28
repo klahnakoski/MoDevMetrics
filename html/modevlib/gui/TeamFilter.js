@@ -26,7 +26,7 @@ TeamFilter.newInstance=function(field_name){
 		var people=null;
 		try {
 			//GET ALL PEOPLE
-			people = (yield (ESQuery.run({
+			people = (yield (ActiveDataQuery.run({
 				"from": "org_chart",
 				"select": [
 					{"name": "id", "value": "id"},
@@ -38,8 +38,10 @@ TeamFilter.newInstance=function(field_name){
 					"and": [
 						{"exists": {"field": "id"}},
 					]
-				}
-			}))).list;
+				},
+				"format":"list",
+				"limit":10000
+			}))).data;
 		}catch(e){
 			//EXPECTED WHEN NO PRIVATE CLUSTER
 			Log.note("Can not get people");

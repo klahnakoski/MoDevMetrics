@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 importScript("Dimension.js");
-importScript("qb/ESQuery.js");
 importScript("qb/qb.js");
 
 if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
@@ -326,7 +325,7 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 	});
 
 
-	Dimension.addEdges(true, Mozilla, [
+	Dimension.addEdges(false, Mozilla, [
 		{"name": "Platform", "index": "bugs",
 			"esfilter": {"or": [
 				{"term": {"product": "core"}}

@@ -121,18 +121,29 @@ ProductFilter.prototype.injectHTML = function(products){
 	$("#products").html(html);
 };
 
-ProductFilter.prototype.refresh = function(){
-	var self=this;
-	Thread.run("get products", function*(){
+ProductFilter.prototype.refresh = function () {
+	var self = this;
+	Thread.run("get products", function* () {
 
 		self.query = self.makeQuery();
-		var data = yield(ElasticSearch.search(self.indexName, self.query));
+		let result = yield(ActiveDataQuery.run({
+			"from": self.indexName,
+			"edges": {"name": "term", "value": "product"},
+			"where": {
+				"and": [
+					Mozilla.CurrentRecords.esfilter,
+					Mozilla.BugStatus.Open.esfilter,
+					ProductFilter.esfilter,
+				],
+			},
+			"format": "list",
+			"limit": 1000,
+		}));
 
-		var products = data.facets.Products.terms;
+		let products = result.data;
 
 		//REMOVE ANY FILTERS THAT DO NOT APPLY ANYMORE (WILL START ACCUMULATING RESULTING IN NO MATCHES)
-		var terms = [];
-		for(var i = 0; i < products.length; i++) terms.push(products[i].term);
+		let terms = products.mapExists(function(p){return p.term});
 		self.selected = self.selected.intersect(terms);
 
 
@@ -140,7 +151,7 @@ ProductFilter.prototype.refresh = function(){
 
 		$("#productsList").selectable({
 			selected: function(event, ui){
-				var didChange = false;
+				let didChange = false;
 				if (ui.selected.id == "product_ALL"){
 					if (self.selected.length > 0) didChange = true;
 					self.selected = [];
@@ -154,7 +165,7 @@ ProductFilter.prototype.refresh = function(){
 				if (didChange)GUI.refresh();
 			},
 			unselected: function(event, ui){
-				var i = self.selected.indexOf(ui.unselected.id.rightBut("product_".length));
+				let i = self.selected.indexOf(ui.unselected.id.rightBut("product_".length));
 				if (i != -1){
 					self.selected.splice(i, 1);
 					GUI.refresh();

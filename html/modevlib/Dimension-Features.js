@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 importScript("Dimension.js");
-importScript("qb/ESQuery.js");
 
 if (!Mozilla) var Mozilla = {"name" : "Mozilla", "edges" : []};
 
@@ -94,7 +93,7 @@ Sprints = [
 		}));
 
 
-Dimension.addEdges(true, Mozilla, [
+Dimension.addEdges(false, Mozilla, [
 
 	{"name" : "Feature", "index" : "bugs", "needed_fields" : ["cf_feature_b2g", "status_whiteboard"], "esfilter" : {"match_all" : {}}, "edges" : [
 		{"name" : "UCID 2.0", "esfilter" : {"and" : [

@@ -774,7 +774,6 @@ def
             .top(o.verticalAnchor == "top" ? o.verticalOffset : (h - o.verticalOffset))
             .add(pv.Label)
             .text(label)
-            .font(o["font-size"]+' sans-serif')
             .textStyle(o.textStyle)
             .visible(function(){
                 return !this.index;

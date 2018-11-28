@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 importScript("aLibrary.js");
-importScript("qb/ESQuery.js");
+importScript("qb/ActiveDataQuery.js");
 
 
 var Dimension = {};
@@ -267,7 +267,7 @@ var DEFAULT_QUERY_LIMIT = 20;
 						var a = Log.action("Get parts of " + dim.name, true);
 						var parts = yield (dim.index.source({
 							"from": dim.index._id,
-							"select": {"name": "count", "value": "1", "aggregate": "count"},
+							"select": {"aggregate": "count"},
 							"edges": edges,
 							"esfilter": dim.esfilter,
 							"limit": dim.limit
@@ -296,7 +296,7 @@ var DEFAULT_QUERY_LIMIT = 20;
 						try{
 							var parts = yield (dim.index.source({
 								"from": dim.index._id,
-								"select": {"name": "count", "value": "1", "aggregate": "count"},
+								"select": {"aggregate": "count"},
 								"edges": edges,
 								"esfilter": dim.esfilter,
 								"limit": dim.limit
@@ -313,7 +313,7 @@ var DEFAULT_QUERY_LIMIT = 20;
 						dim.partitions = temp_domain.partitions.mapExists(function (p, i) {
 							var part = {
 								"name": "" + p.name,  //CONVERT TO STRING
-								"value": temp_domain.end(p),
+								"value": p.value,
 								"esfilter": {"term": Map.newInstance(dim.field[0], p.value)},
 								"count": parts.data.count[i]
 							};
@@ -327,7 +327,7 @@ var DEFAULT_QUERY_LIMIT = 20;
 						try{
 							var parts = yield (dim.index.source({
 								"from": dim.index._id,
-								"select": {"name": "count", "value": "1", "aggregate": "count"},
+								"select": {"aggregate": "count"},
 								"edges": edges,
 								"esfilter": dim.esfilter,
 								"limit": dim.limit

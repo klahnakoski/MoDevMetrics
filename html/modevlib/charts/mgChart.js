@@ -61,7 +61,7 @@ importScript("tools.js");
 				}//endif
 			});
 		} else if (params.data.meta) {
-			//ASSUME Qb QUERY RESULT
+			//ASSUME qb QUERY RESULT
 			var chartCube = params.data;
 			if (!(chartCube.select instanceof Array) || chartCube.select.length != 2) {
 				Log.error("Expecting `select` clause to have two columns");

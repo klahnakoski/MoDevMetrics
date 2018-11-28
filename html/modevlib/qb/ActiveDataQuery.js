@@ -68,5 +68,9 @@ ActiveDataQuery.INDEXES = window.Settings.indexes;
 
 	};//method
 
+	Settings.host_types["undefined"]=ActiveDataQuery.run;
+	Settings.host_types["null"]=ActiveDataQuery.run;
+	Settings.host_types["ActiveData"]=ActiveDataQuery.run;
+
 	return 0;
 })();

@@ -12,7 +12,11 @@ String.prototype.trim = function(values){
 };
 
 String.toLowerCase = function(value){
-	return value.toLowerCase()
+	if (isString(value)){
+		return value.toLowerCase();
+	}else{
+		return value;
+	}
 };
 
 String.join = function(list, seperator){

@@ -7,32 +7,32 @@ importScript("qb/ESQuery.js");
 
 if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 
-Dimension.addEdges(true,  Mozilla, [
+Dimension.addEdges(false,  Mozilla, [
 	{"name":"CurrentRecords", esfilter:{"range":{"expires_on":{"gt" :Date.now().addDay(1).getMilli()}}}},
 
 	{"name":"BugStatus", "index":"bugs", "isFacet":true, "partitions":[
 		{"name":"Open", "partitions":[
-			{"name":"New", "esfilter":{"term":{"bug_status":"new"}}},
-			{"name":"Assigned", "esfilter":{"term":{"bug_status":"assigned"}}},
-			{"name":"Unconfirmed", "esfilter":{"term":{"bug_status":"unconfirmed"}}},
-			{"name":"Reopened", "esfilter":{"term":{"bug_status":"reopened"}}},
-			{"name":"Other", "esfilter":{"not":{"terms":{"bug_status":["resolved", "verified", "closed"]}}}}
+			{"name":"New", "esfilter":{"term":{"bug_status":"NEW"}}},
+			{"name":"Assigned", "esfilter":{"term":{"bug_status":"ASSIGNED"}}},
+			{"name":"Unconfirmed", "esfilter":{"term":{"bug_status":"UNCONFIRMED"}}},
+			{"name":"Reopened", "esfilter":{"term":{"bug_status":"REPOENED"}}},
+			{"name":"Other", "esfilter":{"not":{"terms":{"bug_status":["RESOLVED", "VERIFIED", "CLOSED"]}}}}
 		]},
 		{"name":"Closed", "partitions":[
 			{"name":"Resolved",
-				"esfilter":{"term":{"bug_status":"resolved"}},
+				"esfilter":{"term":{"bug_status":"RESOLVED"}},
 				"field":"resolution", "partitions":[
-					{"name":"Fixed", "value":"fixed", "style":{}, "esfilter":{"term":{"resolution":"fixed"}}},
-					{"name":"Duplicate", "value":"duplicate", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"duplicate"}}},
-					{"name":"Invalid", "value":"invalid", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"invalid"}}},
-					{"name":"Won't Fix", "value":"wontfix", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"wontfix"}}},
-					{"name":"WorksForMe", "value":"worksforme", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"worksforme"}}}
+					{"name":"Fixed", "value":"fixed", "style":{}, "esfilter":{"term":{"resolution":"FIXED"}}},
+					{"name":"Duplicate", "value":"duplicate", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"DUPLICATE"}}},
+					{"name":"Invalid", "value":"invalid", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"INVALID"}}},
+					{"name":"Won't Fix", "value":"wontfix", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"WONTFIX"}}},
+					{"name":"WorksForMe", "value":"worksforme", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"WORKSFORME"}}}
 				],
 				"key":"value",
 				"value":"name"
 			},
-			{"name":"Verified", "esfilter":{"term":{"bug_status":"verified"}}},
-			{"name":"Closed", "esfilter":{"term":{"bug_status":"closed"}}}
+			{"name":"Verified", "esfilter":{"term":{"bug_status":"VERIFIED"}}},
+			{"name":"Closed", "esfilter":{"term":{"bug_status":"CLOSED"}}}
 		]}
 	]},
 
