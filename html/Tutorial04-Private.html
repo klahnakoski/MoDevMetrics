@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <script type="application/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <title></title>
+</head>
+<body>
+    <h3>Minimum required to contact ActiveData's public Bugzilla bug snapshots</h3>
+    <pre id="result"/>
+    <script type="text/javascript">
+
+        $.ajax({
+            "type":"POST",
+            "dataType":"json",
+            "url":"https://activedata-private.devsvcprod.mozaws.net/query",
+            "data":'{"from":"public_bugs", "where":{"eq":{"bug_id":879822}}, "sort":"bug_version_num", "limit":1000, "format":"list"}',
+            "success":function(result){
+                let json = JSON.stringify(result, undefined, 4);
+                $("#result").html(json);
+            }
+        });
+    </script>
+</body>
+</html>
