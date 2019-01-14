@@ -274,7 +274,7 @@ if (allBugs==null) Log.error("Please wait for data collection");
 Thread.run(function*(){
 
 //SOME BUGS HAVE NEGATIVE AGE!!
-allBugs.list=allBugs.list.map(function(v, i){
+allBugs.list=allBugs.list.mapExists(function(v, i){
 if (v.birth
 <v.death
 ) return v

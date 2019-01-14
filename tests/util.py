@@ -9,7 +9,7 @@
 #
 
 from __future__ import unicode_literals
-from pyLibrary.cnv import CNV
+from pyLibrary.cnv import convert
 from pyLibrary.collections import OR
 from pyLibrary.env.files import File
 from pyLibrary.env.logs import Log
@@ -62,7 +62,7 @@ class MoDevMetricsDriver(object):
             old_length = len(elements)
             elements = self.find("#" + LOG_DIV + " p")
 
-        return [CNV.JSON2object(CNV.html2unicode(e.get_attribute('innerHTML'))) for e in elements]
+        return [convert.JSON2object(convert.html2unicode(e.get_attribute('innerHTML'))) for e in elements]
 
     def check_for_errors(self, logs, path):
         try:

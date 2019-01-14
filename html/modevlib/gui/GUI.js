@@ -13,6 +13,7 @@ importScript([
 	"../../lib/jsonlint/jsl.format.js"
 ]);
 
+importScript("../qb/ActiveDataQuery.js");
 importScript("../util/State.js");
 importScript("PartitionFilter.js");
 importScript("TeamFilter.js");
@@ -31,6 +32,7 @@ importScript("../aFormat.js");
 // * FORM VALUE - CURRENT VALUE SHOWN IN THE HTML FORM ELEMENTS
 // * GUI.state - VARIABLE VALUES IN THE GUI.state OBJECT
 
+GUI = {};
 (function () {
 	if (window.GUI === undefined) {
 		window.GUI = {};
@@ -108,15 +110,15 @@ importScript("../aFormat.js");
 			function post_filter_functions(){
 				GUI.showLastUpdated(indexName);
 				GUI.AddParameters(parameters, relations); //ADD PARAM AND SET DEFAULTS
-				GUI.Parameter2State();			//UPDATE STATE OBJECT WITH THOSE DEFAULTS
+				GUI.Parameter2State();      //UPDATE STATE OBJECT WITH THOSE DEFAULTS
 
 				GUI.makeSelectionPanel();
 
 				GUI.relations = coalesce(relations, []);
 				GUI.FixState();
 
-				GUI.URL2State();				//OVERWRITE WITH URL PARAM
-				GUI.State2URL.isEnabled = true;	//DO NOT ALLOW URL TO UPDATE UNTIL WE HAVE GRABBED IT
+				GUI.URL2State();        //OVERWRITE WITH URL PARAM
+				GUI.State2URL.isEnabled = true;  //DO NOT ALLOW URL TO UPDATE UNTIL WE HAVE GRABBED IT
 
 				GUI.FixState();
 				GUI.State2URL();
@@ -132,9 +134,10 @@ importScript("../aFormat.js");
 				GUI.pleaseRefreshLater=true;
 				//USE DEFAULT FILTERS
 				importScript(["ComponentFilter.js", "ProductFilter.js", "ProgramFilter.js"], function(){
-					GUI.state.programFilter = new ProgramFilter();
-					GUI.state.productFilter = new ProductFilter();
-					GUI.state.componentFilter = new ComponentFilter();
+					let programs = coalesce(showDefaultFilters.programs, MozillaPrograms);
+					GUI.state.programFilter = new ProgramFilter(indexName, programs);
+					GUI.state.productFilter = new ProductFilter(indexName);
+					GUI.state.componentFilter = new ComponentFilter(indexName, GUI.state.productFilter);
 
 					GUI.customFilters.push(GUI.state.programFilter);
 					GUI.customFilters.push(GUI.state.productFilter);
@@ -157,58 +160,22 @@ importScript("../aFormat.js");
 			Thread.run("show last updated timestamp", function*() {
 				var time;
 
-				if (indexName === undefined || indexName == null || indexName == "bugs") {
-					var result = yield (ESQuery.run({
-						"from": "bugs",
+				if (indexName === undefined || indexName == null || indexName == "bugs" || indexName == "private_bugs") {
+					indexName = coalesce(indexName, "bugs");
+					let result = yield (ActiveDataQuery.run({
+						"from": indexName,
 						"select": {"name": "max_date", "value": "modified_ts", "aggregate": "maximum"},
-						"esfilter": {"range": {"modified_ts": {"gte": Date.eod().addMonth(-1).getMilli()}}}
+						"where": {"range": {"modified_ts": {"gte": Date.eod().addMonth(-1).getMilli()}}}
 					}));
 
-					time = new Date(result.cube.max_date);
+					time = new Date(result.data.max_date);
 					var tm = $("#testMessage");
 					tm.html(new Template("<div style={{style|style}}>{{name}}</div>").expand(result.index));
 					tm.append("<br>ES Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
-				} else if (indexName == "reviews") {
-                    var result = yield (ESQuery.run({
-                        "from": "reviews",
-                        "select": [
-                            {"name": "last_request", "value": "request_time", "aggregate": "maximum"}
-                        ]
-                    }));
-                    time = Date.newInstance(result.cube.last_request);
-                    $("#testMessage").html("Reviews Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 				} else if (indexName == "bug_tags") {
 					esHasErrorInIndex = false;
 					time = yield (BUG_TAGS.getLastUpdated());
 					$("#testMessage").html("Bugs Last Updated " + time.addTimezone().format("NNN dd"));
-				} else if (indexName == "bug_summary") {
-					esHasErrorInIndex = false;
-					time = new Date((yield(ESQuery.run({
-						"from": "bug_summary",
-						"select": {"name": "max_date", "value": "modified_time", "aggregate": "maximum"}
-					}))).cube.max_date);
-					$("#testMessage").html("Bug Summaries Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
-				} else if (indexName == "datazilla") {
-					esHasErrorInIndex = false;
-					time = new Date((yield(ESQuery.run({
-						"from": "talos",
-						"select": {"name": "max_date", "value": "testrun.date", "aggregate": "maximum"}
-					}))).cube.max_date);
-					$("#testMessage").html("Datazilla Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
-				} else if (indexName == "perfy") {
-					esHasErrorInIndex = false;
-					time = new Date((yield(ESQuery.run({
-						"from": "perfy",
-						"select": {"name": "max_date", "value": "info.started", "aggregate": "maximum"}
-					}))).cube.max_date);
-					$("#testMessage").html("Builds Last Updated " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
-				}else if (indexName == "talos"){
-					esHasErrorInIndex = false;
-					time = new Date((yield(ESQuery.run({
-						"from":"talos",
-						"select":{"name": "max_date", "value":"testrun.date","aggregate":"maximum"}
-					}))).cube.max_date);
-					$("#testMessage").html("Latest Push " + time.addTimezone().format("NNN dd @ HH:mm") + Date.getTimezone());
 				} else {
 					return;
 				}//endif
@@ -233,16 +200,18 @@ importScript("../aFormat.js");
 
 			var t = aTimer.start("Corruption Check");
 
-			var result = yield (ESQuery.run({
+			var result = yield (ActiveDataQuery.run({
 				"from": "bugs",
-				"select": {"name": "num_null", "value": "expires_on>" + Date.eod().getMilli() + " ? 1 : 0", "aggregate": "add"},
+				"select": {"name": "num_null", "value": {"when":{"gt":{"expires_on": Date.eod().getMilli()}}, "then":1, "else":0}, "aggregate": "add"},
 				"edges": ["bug_id"],
-				"esfilter": {"range": {"modified_ts": {"gte": Date.now().addMonth(-3).getMilli()}}}
+				"esfilter": {"range": {"modified_ts": {"gte": Date.now().addMonth(-3).getMilli()}}},
+				"limit":10000,
+				"format":"list"
 			}));
 
 			var is_error = yield (Q({
 				"from": {
-					"from": result,
+					"from": result.data,
 					"select": [
 						{"value": "bug_id"}
 					],
@@ -270,7 +239,7 @@ importScript("../aFormat.js");
 			var simpleState = {};
 			Map.forall(GUI.state, function (k, v) {
 
-				var p = GUI.parameters.map(function (v, i) {
+				var p = GUI.parameters.mapExists(function (v, i) {
 					if (v.id == k) return v;
 				})[0];
 
@@ -299,18 +268,17 @@ importScript("../aFormat.js");
 
 		GUI.State2URL.isEnabled = false;
 
-
 		GUI.URL2State = function () {
 			var urlState = Session.URL.getFragment();
 			Map.forall(urlState, function (k, v) {
 				if (GUI.state[k] === undefined) return;
 
-				var p = GUI.parameters.map(function (v, i) {
+				var p = GUI.parameters.mapExists(function (v, i) {
 					if (v.id == k) return v;
 				})[0];
 
 				if (p && qb.domain.ALGEBRAIC.contains(p.type)) {
-					v = v.escape(Map.inverse(GUI.urlMap));
+					//v = v.escape(Map.inverse(GUI.urlMap));
 					GUI.state[k] = v;
 				} else if (p && p.type == "json") {
 					try {
@@ -329,7 +297,7 @@ importScript("../aFormat.js");
 					if (v.trim()==""){
 						GUI.state[k]=[];
 					}else{
-						GUI.state[k] = v.split(",").map(String.trim);
+						GUI.state[k] = v.split(",").mapExists(String.trim).unwrap();
 					}//endif
 				} else if (p && p.type == "code") {
 					v = v.escape(Map.inverse(GUI.urlMap));
@@ -337,12 +305,10 @@ importScript("../aFormat.js");
 				} else if (GUI.state[k].isFilter) {
 					GUI.state[k].setSimpleState(v);
 				} else {
-					GUI.state[k] = v.split(",");
+					GUI.state[k] = v.split(",").unwrap();
 				}//endif
 			});
 		};
-
-
 
 		///////////////////////////////////////////////////////////////////////////
 		// ADD INTERACTIVE PARAMETERS TO THE PAGE
@@ -354,7 +320,7 @@ importScript("../aFormat.js");
 		///////////////////////////////////////////////////////////////////////////
 		GUI.AddParameters = function (parameters, relations) {
 			//KEEP SIMPLE PARAMETERS GUI.parameters AND REST IN customFilters
-			GUI.parameters = parameters.map(function (param) {
+			GUI.parameters = parameters.mapExists(function (param) {
 				if (param.type.isFilter) {
 					GUI.state[param.id] = param.type;
 					if (param.name) param.type.name = param.name;
@@ -426,7 +392,7 @@ importScript("../aFormat.js");
 							GUI.refreshChart();
 						}
 					});
-					defaultValue = defaultValue.format("yyyy-MM-dd");
+					defaultValue = Date.newInstance(defaultValue).format("yyyy-MM-dd");
 					$("#" + param.id).val(defaultValue);
 					////////////////////////////////////////////////////////////////////////
 					// DURATION
@@ -465,7 +431,7 @@ importScript("../aFormat.js");
 						if (this.isChanging) return;
 						this.isChanging = true;
 						try {
-							codeDiv = $("#" + param.id);	//JUST TO BE SURE WE GOT THE RIGHT ONE
+							codeDiv = $("#" + param.id);  //JUST TO BE SURE WE GOT THE RIGHT ONE
 							//USE JSONLINT TO FORMAT AND TEST-COMPILE THE code
 							var code = jsl.format.formatJson(codeDiv.val());
 							codeDiv.val(code);
@@ -517,7 +483,6 @@ importScript("../aFormat.js");
 		//RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
 		GUI.State2Parameter = function () {
 			GUI.parameters.forEach(function (param) {
-
 				if (param.type == "json") {
 					$("#" + param.id).val(convert.value2json(GUI.state[param.id]));
 				} else if (param.type == "boolean") {
@@ -525,14 +490,13 @@ importScript("../aFormat.js");
 				} else if (param.type == "datetime") {
 					$("#" + param.id).val(Date.newInstance(GUI.state[param.id]).format("yyyy-MM-dd HH:mm:ss"))
 				} else if (param.type == "set") {
-					$("#" + param.id).val(GUI.state[param.id].join(","))
+					$("#" + param.id).val(Array.newInstance(GUI.state[param.id]).join(","))
 				} else {
 				//if (param.type.getSimpleState) return;  //param.type===GUI.state[param.id] NO ACTION REQUIRED
 					$("#" + param.id).val(GUI.state[param.id]);
 				}//endif
 			});
 		};
-
 
 		//RETURN TRUE IF ANY CHANGES HAVE BEEN MADE
 		GUI.Parameter2State = function () {
@@ -546,7 +510,7 @@ importScript("../aFormat.js");
 					if (v.trim() == "") {
 						GUI.state[param.id]=[];
 					}else{
-						GUI.state[param.id]=v.split(",").map(String.trim);
+						GUI.state[param.id]=v.split(",").mapExists(String.trim);
 					}//endif
 				} else {
 					v = $("#" + param.id).val();
@@ -635,7 +599,7 @@ importScript("../aFormat.js");
 			$("#summary").html(html);
 		};
 
-		GUI.refreshInProgress = false;	//TRY TO AGGREGATE MULTIPLE refresh() REQUESTS INTO ONE
+		GUI.refreshInProgress = false;  //TRY TO AGGREGATE MULTIPLE refresh() REQUESTS INTO ONE
 
 		GUI.refresh = function (refresh) {
 			if (GUI.refreshInProgress) return;
@@ -648,7 +612,7 @@ importScript("../aFormat.js");
 
 				var threads = [];
 				GUI.customFilters.forall(function (f, i) {
-					var t = Thread.run(function*() {
+					var t = Thread.run("refresh filter", function*() {
 						yield (f.refresh());
 					});
 					t.name = GUI.customFilters[i].name;
@@ -701,7 +665,7 @@ importScript("../aFormat.js");
 			var output = {"and": []};
 			GUI.customFilters.forall(function (f, i) {
 				if (f.makeFilter){
-					output.and.push(f.makeFilter());
+					output.and.push(f.makeFilter(indexName));
 				}//endif
 			});
 			return output;

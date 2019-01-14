@@ -3,18 +3,17 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 importScript("Dimension.js");
-importScript("qb/ESQuery.js");
 
 if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 
-Dimension.addEdges(true, Mozilla, [
+Dimension.addEdges(false, Mozilla, [
 	{"name": "QA", "edges": [
 		{
 			"name": "Partners",
 			"esfilter": {"and": [
 				{"term": {"component": "preinstalled b2g apps"}},
 				{"terms": {"blocked": [868100,1009908,922475,889951,871656,871661,916312,976821,869192,871238,837298,904129,951752,869212,1009918,871236,869205,977321,869240,1009904,871910]}},
-//				{"not": {"regexp": {"short_desc": ".*\\[tracking\\].*"}}}
+//        {"not": {"regexp": {"short_desc": ".*\\[tracking\\].*"}}}
 			]},
 			"partitions": [
 			{"name": "Accuweather", "index": "bugs", "esfilter": {"term": {"blocked": 868100}}},

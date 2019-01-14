@@ -84,7 +84,12 @@ importScript([
 		$("#date_range").html(" from "+sampleMin.format("NNN dd")+" to "+sampleMax.addDay(-1).format("NNN dd"));
 		var timeDomain = {"type" : "time", "min" : sampleMin, "max" : sampleMax, "interval" : Duration.WEEK};
 
-		var reviewers = yield(getReviewers(timeDomain, MAX_REVIEWERS));
+		try {
+			var reviewers = yield(getReviewers(timeDomain, MAX_REVIEWERS));
+		}catch(e){
+			$("#status").html("");
+			yield null;
+		}//endf
 
 		Thread.run(function*(){
 			///////////////////////////////////////////////////////////////////

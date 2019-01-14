@@ -7,32 +7,32 @@ importScript("qb/ESQuery.js");
 
 if (!Mozilla) var Mozilla={"name":"Mozilla", "edges":[]};
 
-Dimension.addEdges(true,  Mozilla, [
+Dimension.addEdges(false,  Mozilla, [
 	{"name":"CurrentRecords", esfilter:{"range":{"expires_on":{"gt" :Date.now().addDay(1).getMilli()}}}},
 
 	{"name":"BugStatus", "index":"bugs", "isFacet":true, "partitions":[
 		{"name":"Open", "partitions":[
-			{"name":"New", "esfilter":{"term":{"bug_status":"new"}}},
-			{"name":"Assigned", "esfilter":{"term":{"bug_status":"assigned"}}},
-			{"name":"Unconfirmed", "esfilter":{"term":{"bug_status":"unconfirmed"}}},
-			{"name":"Reopened", "esfilter":{"term":{"bug_status":"reopened"}}},
-			{"name":"Other", "esfilter":{"not":{"terms":{"bug_status":["resolved", "verified", "closed"]}}}}
+			{"name":"New", "esfilter":{"term":{"bug_status":"NEW"}}},
+			{"name":"Assigned", "esfilter":{"term":{"bug_status":"ASSIGNED"}}},
+			{"name":"Unconfirmed", "esfilter":{"term":{"bug_status":"UNCONFIRMED"}}},
+			{"name":"Reopened", "esfilter":{"term":{"bug_status":"REPOENED"}}},
+			{"name":"Other", "esfilter":{"not":{"terms":{"bug_status":["RESOLVED", "VERIFIED", "CLOSED"]}}}}
 		]},
 		{"name":"Closed", "partitions":[
 			{"name":"Resolved",
-				"esfilter":{"term":{"bug_status":"resolved"}},
+				"esfilter":{"term":{"bug_status":"RESOLVED"}},
 				"field":"resolution", "partitions":[
-					{"name":"Fixed", "value":"fixed", "style":{}, "esfilter":{"term":{"resolution":"fixed"}}},
-					{"name":"Duplicate", "value":"duplicate", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"duplicate"}}},
-					{"name":"Invalid", "value":"invalid", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"invalid"}}},
-					{"name":"Won't Fix", "value":"wontfix", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"wontfix"}}},
-					{"name":"WorksForMe", "value":"worksforme", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"worksforme"}}}
+					{"name":"Fixed", "value":"fixed", "style":{}, "esfilter":{"term":{"resolution":"FIXED"}}},
+					{"name":"Duplicate", "value":"duplicate", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"DUPLICATE"}}},
+					{"name":"Invalid", "value":"invalid", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"INVALID"}}},
+					{"name":"Won't Fix", "value":"wontfix", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"WONTFIX"}}},
+					{"name":"WorksForMe", "value":"worksforme", "style":{"visibility":"hidden"}, "esfilter":{"term":{"resolution":"WORKSFORME"}}}
 				],
 				"key":"value",
 				"value":"name"
 			},
-			{"name":"Verified", "esfilter":{"term":{"bug_status":"verified"}}},
-			{"name":"Closed", "esfilter":{"term":{"bug_status":"closed"}}}
+			{"name":"Verified", "esfilter":{"term":{"bug_status":"VERIFIED"}}},
+			{"name":"Closed", "esfilter":{"term":{"bug_status":"CLOSED"}}}
 		]}
 	]},
 
@@ -102,7 +102,7 @@ Dimension.addEdges(true,  Mozilla, [
 		},
 
 		{"name": "B2G 1.0.1 (TEF -NPOTB -POVB)",  "description": "TEF, excluding partner bugs and excluding build bugs",
-			"esfilter":	{"and":[
+			"esfilter":  {"and":[
 				{"term":{"cf_blocking_b2g":"tef+"}},
 				{"not":{"terms":{"status_whiteboard.tokenized":["npotb","povb"]}}}
 			]}
@@ -197,21 +197,21 @@ Dimension.addEdges(true,  Mozilla, [
 			{"name": "28", "esfilter":{"term":{"cf_status_firefox28": "+"}}},
 			{"name": "27", "esfilter":{"term":{"cf_status_firefox27": "+"}}},
 			{"name": "26", "esfilter":{"term":{"cf_status_firefox26": "+"}}}
-//			{"name": "25", "esfilter":{"term":{"cf_status_firefox25": "+"}}},
-//			{"name": "24", "esfilter":{"term":{"cf_status_firefox24": "+"}}},
-//			{"name": "23", "esfilter":{"term":{"cf_status_firefox23": "+"}}},
-//			{"name": "22", "esfilter":{"term":{"cf_status_firefox22": "+"}}},
-//			{"name": "21", "esfilter":{"term":{"cf_status_firefox21": "+"}}},
-//			{"name": "20", "esfilter":{"term":{"cf_status_firefox20": "+"}}},
-//			{"name": "19", "esfilter":{"term":{"cf_status_firefox19": "+"}}},
-//			{"name": "18", "esfilter":{"term":{"cf_status_firefox18": "+"}}},
-//			{"name": "17", "esfilter":{"term":{"cf_status_firefox17": "+"}}},
-//			{"name": "16", "esfilter":{"term":{"cf_status_firefox16": "+"}}},
-//			{"name": "15", "esfilter":{"term":{"cf_status_firefox15": "+"}}},
-//			{"name": "14", "esfilter":{"term":{"cf_status_firefox14": "+"}}},
-//			{"name": "13", "esfilter":{"term":{"cf_status_firefox13": "+"}}},
-//			{"name": "12", "esfilter":{"term":{"cf_status_firefox12": "+"}}},
-//			{"name": "11", "esfilter":{"term":{"cf_status_firefox11": "+"}}}
+//      {"name": "25", "esfilter":{"term":{"cf_status_firefox25": "+"}}},
+//      {"name": "24", "esfilter":{"term":{"cf_status_firefox24": "+"}}},
+//      {"name": "23", "esfilter":{"term":{"cf_status_firefox23": "+"}}},
+//      {"name": "22", "esfilter":{"term":{"cf_status_firefox22": "+"}}},
+//      {"name": "21", "esfilter":{"term":{"cf_status_firefox21": "+"}}},
+//      {"name": "20", "esfilter":{"term":{"cf_status_firefox20": "+"}}},
+//      {"name": "19", "esfilter":{"term":{"cf_status_firefox19": "+"}}},
+//      {"name": "18", "esfilter":{"term":{"cf_status_firefox18": "+"}}},
+//      {"name": "17", "esfilter":{"term":{"cf_status_firefox17": "+"}}},
+//      {"name": "16", "esfilter":{"term":{"cf_status_firefox16": "+"}}},
+//      {"name": "15", "esfilter":{"term":{"cf_status_firefox15": "+"}}},
+//      {"name": "14", "esfilter":{"term":{"cf_status_firefox14": "+"}}},
+//      {"name": "13", "esfilter":{"term":{"cf_status_firefox13": "+"}}},
+//      {"name": "12", "esfilter":{"term":{"cf_status_firefox12": "+"}}},
+//      {"name": "11", "esfilter":{"term":{"cf_status_firefox11": "+"}}}
 		]}
 	]},
 
@@ -363,10 +363,6 @@ Dimension.addEdges(true,  Mozilla, [
 					]}
 				]}
 			}
-
-
-//			{"name" : "Other", "esfilter" : {"terms" : {"product" : ["firefox", "thunderbird", "firefox for android", "firefox for metro", "boot2gecko", "core", "nspr", "jss", "nss", "toolkit"]}}
-//				}
 		]}
 	]}
 ]);

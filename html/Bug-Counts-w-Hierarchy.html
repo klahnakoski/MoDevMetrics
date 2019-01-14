@@ -56,7 +56,7 @@ var createChart=function(){
 
 var __createChart = function*(){
 
-	var bug_ids = GUI.state.bugList.split(",").map(function(v){return convert.String2Integer(v.trim())});
+	var bug_ids = GUI.state.bugList.split(",").mapExists(function(v){return convert.String2Integer(v.trim())});
 	var sampleMin=Date.newInstance(GUI.state.sampleMin);
 	var sampleMax=Date.newInstance(GUI.state.sampleMax).addDay(1);
 	var sampleInterval=Duration.newInstance(GUI.state.sampleInterval);
@@ -139,7 +139,7 @@ var __createChart = function*(){
             day_part = data.edges[0].domain.partitions[day];
             var top_bug = [];
             var bug_map = {};
-            var bugs = bug.map(function(dependson, b){
+            var bugs = bug.mapExists(function(dependson, b){
                 var output = {
                     "bug_id":data.edges[1].domain.partitions[b].value,
                     "dependson": dependson

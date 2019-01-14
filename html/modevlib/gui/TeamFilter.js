@@ -26,7 +26,7 @@ TeamFilter.newInstance=function(field_name){
 		var people=null;
 		try {
 			//GET ALL PEOPLE
-			people = (yield (ESQuery.run({
+			people = (yield (ActiveDataQuery.run({
 				"from": "org_chart",
 				"select": [
 					{"name": "id", "value": "id"},
@@ -38,12 +38,15 @@ TeamFilter.newInstance=function(field_name){
 					"and": [
 						{"exists": {"field": "id"}},
 					]
-				}
-			}))).list;
+				},
+				"format":"list",
+				"limit":10000
+			}))).data;
 		}catch(e){
 			//EXPECTED WHEN NO PRIVATE CLUSTER
 			Log.note("Can not get people");
 			people = [];
+			yield (null)
 		}
 
 		var others={
@@ -99,7 +102,7 @@ TeamFilter.newInstance=function(field_name){
 		});
 
 		if (others.children){
-			others.children.map(function(v, i){
+			others.children.mapExists(function(v, i){
 				//PULL OUT THE TOP LEVEL 'PEOPLE' WITH CHILDREN
 				if (v.children && v.manager=="other@mozilla.com"){
 					v.manager=null;
@@ -115,7 +118,7 @@ TeamFilter.newInstance=function(field_name){
 
 		//JSTREE WILL NOT BE LOADED YET
 		//HOPEFULLY IT WILL EXIST WHEN THE HEAD EXISTS
-//		'#' + myid.replace(/(:|\.)/g,'\\$1');
+//    '#' + myid.replace(/(:|\.)/g,'\\$1');
 
 		while($("#"+convert.String2JQuery("other@mozilla.com")).length==0){
 			yield (Thread.sleep(100));
@@ -138,7 +141,7 @@ TeamFilter.prototype.getSummary=function(){
 	if (teams.length == 0){
 		html += "All";
 	} else{
-		html +=teams.map(function(p, i){return p.name;}).join(", ");
+		html +=teams.mapExists(function(p, i){return p.name;}).join(", ");
 	}//endif
 	return html;
 };//method
@@ -152,7 +155,7 @@ TeamFilter.prototype.getSelectedPeople=function*(){
 	}//while
 
 	//CONVERT SELECTED LIST INTO PERSONS
-	var selected = this.selectedEmails.map(function(email){
+	var selected = this.selectedEmails.mapExists(function(email){
 		for(var i = self.people.length; i--;){
 			if (self.people[i].id==email) return self.people[i];
 		}//for
@@ -211,7 +214,7 @@ TeamFilter.prototype.makeFilter = function(field_name){
 	var getEmail=function(children){
 		children.forall(function(child, i){
 			if (child.email)
-				bzEmails.appendArray(Array.newInstance(child.email));
+				bzEmails.extend(Array.newInstance(child.email));
 			if (child.children)
 				getEmail(child.children);
 		});
@@ -224,7 +227,7 @@ TeamFilter.prototype.makeFilter = function(field_name){
 
 	if (bzEmails.contains("community@mozilla.org")){
 		bzEmails.remove("community@mozilla.org");
-		var allEmails=this.people.map(function(v, i){return v.email;});
+		var allEmails=this.people.mapExists(function(v, i){return v.email;});
 		allEmails.push("nobody@mozilla.org");
 
 		output.or.push({"not":{"terms":Map.newInstance(field_name, allEmails)}});
@@ -268,9 +271,9 @@ TeamFilter.prototype.injectHTML = function(hier){
 			"icons":false,
 			"dots":false
 		},
-//		"checkbox":{
-//			"two_state":true
-//		},
+//    "checkbox":{
+//      "two_state":true
+//    },
 		"plugins":[ "themes", "json_data", "ui", "checkbox" ]
 	}).bind("change_state.jstree", function (e, data){
 		if (self.disableUI) return;

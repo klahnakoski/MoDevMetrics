@@ -52,7 +52,7 @@ aMath = {};
 		var d;
 		if (value===undefined || value==null){
 			return null;
- 		} else if (value==0) {
+		 } else if (value==0) {
 			return 0.0;
 		} else if (rounding.digits !== undefined) {
 			d = Math.pow(10, rounding.digits - aMath.ceiling(aMath.log10(value)));
@@ -215,6 +215,18 @@ aMath = {};
 				return niceNumbers[i] * d;
 		throw Log.error("bug");
 	};
+
+	aMath.niceFloor = function(value){
+		if (value == 0) return 0;
+		if (value < 0) Log.error("negative numbers not supported yet");
+		var sig = Math.floor(Math.log10(value)) - 1;
+		var d = Math.pow(10, sig);
+		value /= d;
+		for (var i = niceNumbers.length; i--;)
+			if (niceNumbers[i] < value)
+				return niceNumbers[i] * d;
+		throw Log.error("bug");
+	}
 
 })();
 

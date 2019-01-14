@@ -272,7 +272,7 @@ Thread.run(function*(){
 	})));
 
 	//FILTER OUT review?
-	doneReview = doneReview.list.map(function(v, i){
+	doneReview = doneReview.list.mapExists(function(v, i){
 		for(var p = 0; p < pendingReview.list.length; p++){
 			if (pendingReview.list[p].bug_id == v.bug_id) return undefined;
 		}//for

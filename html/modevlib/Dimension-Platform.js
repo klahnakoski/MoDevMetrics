@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 importScript("Dimension.js");
-importScript("qb/ESQuery.js");
 importScript("qb/qb.js");
 
 if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
@@ -138,7 +137,7 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 			{
 				"name": "Firefox46",
 				"version": 46,
-				"releaseDate": "Apr 19, 2016",
+				"releaseDate": "Apr 26, 2016",
 				"esfilter": {"and": [
 					{"not": {"terms": {"cf_status_firefox46": SOLVED}}},
 					{"term": {"cf_tracking_firefox46": "+"}}
@@ -147,7 +146,7 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 			{
 				"name": "Firefox47",
 				"version": 47,
-				"releaseDate": "May 31, 2016",
+				"releaseDate": "June 7, 2016",
 				"esfilter": {"and": [
 					{"not": {"terms": {"cf_status_firefox47": SOLVED}}},
 					{"term": {"cf_tracking_firefox47": "+"}}
@@ -156,7 +155,7 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 			{
 				"name": "Firefox48",
 				"version": 48,
-				"releaseDate": "Jul 12, 2016",
+				"releaseDate": "Aug 2, 2016",
 				"esfilter": {"and": [
 					{"not": {"terms": {"cf_status_firefox48": SOLVED}}},
 					{"term": {"cf_tracking_firefox48": "+"}}
@@ -165,16 +164,96 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 			{//SOURCE https://wiki.mozilla.org/RapidRelease/Calendar
 				"name": "Firefox49",
 				"version": 49,
-				"releaseDate": "Aug 23, 2016",
+				"releaseDate": "Sep 20, 2016",
 				"esfilter": {"and": [
 					{"not": {"terms": {"cf_status_firefox49": SOLVED}}},
 					{"term": {"cf_tracking_firefox49": "+"}}
 				]}
+			},
+			{
+				"name": "Firefox50",
+				"version": 50,
+				"releaseDate": "Nov 15, 2016",
+				"esfilter": {"and": [
+					{"not": {"terms": {"cf_status_firefox50": SOLVED}}},
+					{"term": {"cf_tracking_firefox50": "+"}}
+				]}
+			},
+			{
+				"name": "Firefox51",
+				"version": 51,
+				"releaseDate": "Jan 24, 2017",
+				"esfilter": {"and": [
+					{"not": {"terms": {"cf_status_firefox51": SOLVED}}},
+					{"term": {"cf_tracking_firefox51": "+"}}
+				]}
+			},
+			{
+				"name": "Firefox52",
+				"version": 52,
+				"releaseDate": "Mar 03, 2017",
+				"esfilter": {"and": [
+					{"not": {"terms": {"cf_status_firefox52": SOLVED}}},
+					{"term": {"cf_tracking_firefox52": "+"}}
+				]}
+			},
+			{
+				"name": "Firefox53",
+				"version": 53,
+				"releaseDate": "Apr 19, 2017",
+				"esfilter": {"and": [
+					{"not": {"terms": {"cf_status_firefox53": SOLVED}}},
+					{"term": {"cf_tracking_firefox53": "+"}}
+				]}
+			},
+			{
+				"name": "Firefox54",
+				"version": 54,
+				"releaseDate": "Jun 13, 2017",
+				"esfilter": {"and": [
+					{"not": {"terms": {"cf_status_firefox54": SOLVED}}},
+					{"term": {"cf_tracking_firefox54": "+"}}
+				]}
+			},
+			{
+				"name": "Firefox55",
+				"version": 55,
+				"releaseDate": "Aug 8, 2017",
+				"esfilter": {"and": [
+					{"not": {"terms": {"cf_status_firefox55": SOLVED}}},
+					{"term": {"cf_tracking_firefox55": "+"}}
+				]}
+			},
+			{
+				"name": "Firefox56",
+				"version": 56,
+				"releaseDate": "Sep 26, 2017",
+				"esfilter": {"and": [
+					{"not": {"terms": {"cf_status_firefox56": SOLVED}}},
+					{"term": {"cf_tracking_firefox56": "+"}}
+				]}
+			},
+			{
+				"name": "Firefox57",
+				"version": 57,
+				"releaseDate": "Nov 14, 2017",
+				"esfilter": {"and": [
+					{"not": {"terms": {"cf_status_firefox57": SOLVED}}},
+					{"term": {"cf_tracking_firefox57": "+"}}
+				]}
+			},
+			{
+				"name": "Firefox58",
+				"version": 58,
+				"releaseDate": "Jan 16, 2018",
+				"esfilter": {"and": [
+					{"not": {"terms": {"cf_status_firefox58": SOLVED}}},
+					{"term": {"cf_tracking_firefox58": "+"}}
+				]}
 			}
-
 		]
 	};
-	releaseTracking.requiredFields = Array.union(releaseTracking.edges.select("esfilter").map(qb.requiredFields));
+	releaseTracking.requiredFields = Array.union(releaseTracking.edges.select("esfilter").mapExists(qb.requiredFields));
 
 	{//FIND CURRENT RELEASE, AND ENSURE WE HAVE ENOUGH RELEASES!
 		var currentRelease = undefined;
@@ -190,7 +269,7 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 	}
 
 	//NOT IN ANY OF THE THREE TRAINS
-	var otherFilter = {"or": releaseTracking.edges.map(function(r, i){
+	var otherFilter = {"or": releaseTracking.edges.mapExists(function(r, i){
 		if (currentRelease.version <= r.version && r.version <= currentRelease.version + 2) return undefined;
 		return r.esfilter;
 	})};
@@ -198,23 +277,22 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 	var trains = [
 		{"name": "Release", "columnName": "release", "style": {"color": "#E66000"}},
 		{"name": "Beta", "columnName": "beta", "style": {"color": "#FF9500"}},
-		{"name": "Aurora", "columnName": "aurora", "style": {"color": "#0095DD"}},
-		{"name": "Nightly", "columnName": "nightly", "style": {"color": "#002147"}}
+		{"name": "Nightly", "columnName": "nightly", "style": {"color": "#002147"}},
+		{"name": "Older", "columnName": "older", "style": {"color": "#DDDDDD"}}
 	];
-
 
 	var trainTrackingAbs = {
 		"name": "Release Tracking - Desktop",
 		"esFacet": true,
 		"requiredFields": releaseTracking.requiredFields,
-		"edges": trains.leftBut(1).map(function(t, track){
+		"edges": trains.leftBut(1).mapExists(function(t, track){
 			var release = releaseTracking.edges[currentRelease.dataIndex + track];
 			return Map.setDefault({}, t, release);
 		})
 	};
 	trainTrackingAbs.edges.append({
 		"name": trains.last().name,
-		"columnName": "nightly",
+		"columnName": "nolder",
 		"version": trains.last().version,
 		"style": trains.last().style,
 		"esfilter": otherFilter
@@ -226,7 +304,7 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 		"columnName": "train",
 		"isFacet": true,
 		"requiredFields": releaseTracking.requiredFields,
-		"partitions": trains.leftBut(1).map(function(t, track){
+		"partitions": trains.leftBut(1).mapExists(function(t, track){
 			var release = releaseTracking.edges[currentRelease.dataIndex + track];
 			var output = Map.setDefault({}, t, release);
 			return output;
@@ -247,7 +325,7 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 	});
 
 
-	Dimension.addEdges(true, Mozilla, [
+	Dimension.addEdges(false, Mozilla, [
 		{"name": "Platform", "index": "bugs",
 			"esfilter": {"or": [
 				{"term": {"product": "core"}}
@@ -264,8 +342,7 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 							"name": "Security",
 							//"style":{"color":"#ff7f0e"},
 							"esfilter":{"or":[
-								{"term": {"keywords": "sec-critical"}},
-								{"term": {"keywords": "sec-high"}}
+								{"prefix": {"keywords": "sec-"}}
 							]}
 						},
 						{
@@ -277,14 +354,14 @@ if (!Mozilla) var Mozilla = {"name": "Mozilla", "edges": []};
 							]}
 						},
 						{
-							"name": "Regressions",
-							//"style": {"color": "#d62728"},
-							"esfilter": {"term": {"keywords": "regression"}}
-						},
-						{
 							"name": "e10s",
 							//"style": {"color": "#d62728"},
 							"esfilter": {"regexp": {"cf_tracking_e10s": ".*\\+"}}
+						},
+						{
+							"name": "Regressions",
+							//"style": {"color": "#d62728"},
+							"esfilter": {"term": {"keywords": "regression"}}
 						},
 						{   "name":"other",
 							"style": {"color": "#CCCCCC"},

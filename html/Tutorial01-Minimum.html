@@ -6,17 +6,17 @@
     <title></title>
 </head>
 <body>
-    <h3>Minimum required to contact the public ElasticSearch Bugzilla cluster</h3>
+    <h3>Minimum required to contact ActiveData's public Bugzilla bug snapshots</h3>
     <pre id="result"/>
     <script type="text/javascript">
 
         $.ajax({
             "type":"POST",
             "dataType":"json",
-            "url":"https://esfrontline.bugzilla.mozilla.org:443/public_bugs/bug_version/_search",
-            "data":'{"query":{"filtered":{"query":{"match_all":{}},"filter":{"term":{"bug_id":879822}}}},"from":0,"size":2000,"sort":["bug_version_num"]}',
+            "url":"https://activedata-public.devsvcprod.mozaws.net/query",
+            "data":'{"from":"public_bugs", "where":{"eq":{"bug_id":879822}}, "sort":"bug_version_num", "limit":1000, "format":"list"}',
             "success":function(result){
-                var json = JSON.stringify(result, undefined, 4);
+                let json = JSON.stringify(result, undefined, 4);
                 $("#result").html(json);
             }
         });

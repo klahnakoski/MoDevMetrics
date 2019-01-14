@@ -16,6 +16,9 @@ var Map = {};
 ////////////////////////////////////////////////////////////////////////////////
 (function(){
 	Map.newInstance = function(key, value){
+		if (key==null){
+			Log.error("expecting a string key")
+		}//endif
 		var output = {};
 		output[key] = value;
 		return output;
@@ -46,25 +49,52 @@ var Map = {};
 		var keys = Object.keys(from);
 		for (var k = 0; k < keys.length; k++) {
 			var v = from[keys[k]];
-			if (v === undefined) continue;	//DO NOT ADD KEYS WITH NO VALUE
+			if (v === undefined) continue;  //DO NOT ADD KEYS WITH NO VALUE
 			to[keys[k]] = v;
 		}//for
 		return to;
 	};
 
-
+	/**
+	 * IF dest[k]==undefined THEN ASSIGN arguments[i][k]
+	 * @param dest
+	 * @returns {*}
+   */
 	Map.setDefault = function(dest){
-	//IF dest[k]==undefined THEN ASSIGN source[k]
-		for (var s = 1; s < arguments.length; s++) {
-			var source = arguments[s];
-			if (source === undefined) continue;
+		function _setDefault(dest, source, path){
 			var keys = Object.keys(source);
 			for (var k = 0; k < keys.length; k++) {
 				var key = keys[k];
-				if (dest[key] === undefined) {
+				var value = dest[key];
+				if (value == null) {
 					dest[key] = source[key];
+				}else if (!Map.isMap(value)){
+					//DO NOTHING
+				}else if (path.indexOf(value)!=-1){
+					//DO NOTHING
+				}else{
+					dest[key] = _setDefault(value, source[key], path.concat([value]));
 				}//endif
 			}//for
+			return dest;
+		}//function
+
+		for (var i = 1; i < arguments.length; i++) {
+			var source = arguments[i];
+			if (source === undefined) {
+				continue;
+			}else if (dest == null){
+				if (Map.isMap(source)) {
+					return _setDefault({}, source, []);
+				}else{
+					dest = source;
+					break;
+				}//endif
+			}else if (Map.isMap(dest)) {
+				return _setDefault(dest, source, []);
+			}else{
+				break;
+			}//endif
 		}//for
 		return dest;
 	};
@@ -105,7 +135,13 @@ var Map = {};
 		for (var i = 0; i < pathArray.length; i++) {
 			var step = pathArray[i];
 			if (step == "length") {
-				obj = eval("obj.length");
+				obj = obj.length
+			}else if (aMath.isInteger(step)){
+				obj = obj[step];
+			}else if (isArray(obj)){
+				var temp = [];
+				for (var j = obj.length; j--;) temp[j] = obj[j][step];
+				obj = temp;
 			} else {
 				obj = obj[step];
 			}//endif
@@ -178,7 +214,7 @@ var Map = {};
 	};
 
 
-	Map.map=function mapAllKey(map, func){
+	function mapAllKey(map, func){
 		//func MUST ACCEPT key, value, index PARAMETERS
 		var output = [];
 		var keys = Object.keys(map);
@@ -193,6 +229,7 @@ var Map = {};
 		return output;
 	};
 
+	Map.map=mapAllKey;
 
 	//RETURN ARRAY OF {"key":key, "value":val} PAIRS
 	Map.getItems = function getItems(map){
@@ -236,13 +273,40 @@ var Map = {};
 	Map.keys = Map.domain;
 	Map.getKeys = Map.domain;
 
+	//RETURN LEAVES
+	Map.leafItems = function(map){
+		function _leaves(map, prefix){
+			var output = [];
+			var keys = Object.keys(map);
+			for (var i = keys.length; i--;) {
+				var key = keys[i];
+				var val = map[key];
+
+				var fullname = key.replaceAll(".", "\\.");
+				if (prefix) fullname=prefix+"."+fullname;
+
+				if (val==null){
+					//do nothing
+				}else if (Map.isObject(val)){
+					output.extend(_leaves(val, fullname))
+				}else{
+					output.append([fullname, val])
+				}//endif
+			}//for
+			return output;
+		}
+		return _leaves(map, null);
+	};//method
+	Map.getLeafItems = Map.leafItems;
 
 	Map.isObject = function (val) {
-	    if (val === null) { return false;}
-	    return ( (typeof val === 'function') || (typeof val === 'object') );
+			if (val === null) { return false;}
+			return ( (typeof val == 'function') || (typeof val == 'object') );
 	};
-	Map.isMap = Map.isObject;
-
+	Map.isMap = function(val){
+		if (val === null) { return false;}
+		return (typeof val == 'object')
+	};
 
 })();
 
@@ -264,7 +328,7 @@ var reverseMap = function(map, codomain){
 function coalesce(){
 	var args = arguments;
 	if (args instanceof Array && args.length == 1) {
-		if (arguments[0] == undefined) {
+		if (arguments[0] == null) {
 			return null;
 		} else {
 			args = arguments[0]; //ASSUME IT IS AN ARRAY
@@ -278,6 +342,45 @@ function coalesce(){
 	}//for
 	return null;
 }//method
+
+/**
+ * COALESCE SET OPERATION
+ * @param arrays - AN ARRAY OF ARRAYS,
+ * @returns {Array} - zipped
+ */
+function COALESCE(values){
+	var a;
+	for (var i = 0; i < values.length; i++) {
+		a = values[i];
+		if (a !== undefined && a != null) return a;
+	}//for
+	return null;
+}//method
+
+/**
+ * ZIP SET OPERATION
+ * @param arrays - AN ARRAY OF ARRAYS,
+ * @returns {Array} - TRANSPOSE, WITH LENGTH OF THE LONGEST ARRAY
+ */
+function ZIP(arrays){
+	var temp=arrays.mapExists(Array.newInstance);
+	var max = aMath.MAX(temp.mapExists(function(v){
+		return v.length;
+	}));
+	var output = [];
+	for (var i = max; i--;) {
+		output[i] = temp.mapExists(function(vv){
+			return vv[i];
+		});
+	}//for
+	return output;
+}//function
+
+function zip(){
+	return ZIP(arguments);
+}
+
+
 
 
 var Util = {};
@@ -310,7 +413,7 @@ Util.GUID = function(){
 
 function splitField(fieldname){
 	try {
-		return fieldname.replaceAll("\\.", "\b").split(".").map(function(v){
+		return fieldname.replaceAll("\\.", "\b").split(".").mapExists(function(v){
 			return v.replaceAll("\b", ".");
 		});
 	} catch (e) {
@@ -318,24 +421,28 @@ function splitField(fieldname){
 	}//try
 }//method
 
+function literalField(fieldname){
+	return fieldname.replaceAll(".", "\\.")
+}//method
+
 
 
 deepCopy = function(value) {
-    if (typeof value !== "object" || !value)
-        return value;
+		if (typeof value !== "object" || !value)
+				return value;
 
 	var copy;
 	var k;
-    if (Array.isArray(value)){
-        copy = [];
-        for (k=value.length;k--;) copy[k] = deepCopy(value[k]);
-        return copy;
-    }//endif
+		if (Array.isArray(value)){
+				copy = [];
+				for (k=value.length;k--;) copy[k] = deepCopy(value[k]);
+				return copy;
+		}//endif
 
-    var cons = value.constructor;
-    if (cons === RegExp || cons === Date) return value;
+		var cons = value.constructor;
+		if (cons === RegExp || cons === Date) return value;
 
-    copy = cons();
+		copy = cons();
 	Map.forall(value, function(k, v){copy[k]=deepCopy(v);});
 	return copy;
 };

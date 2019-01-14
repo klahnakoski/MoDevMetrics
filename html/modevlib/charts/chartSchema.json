@@ -13,7 +13,7 @@
 			"type": "string"
 		},
 		"axis": {
-			"description": "list of axis, property names not limited to 'x' and 'y', ",
+			"description": "list of axis, property names not limited to 'x' and 'y'",
 			"type": "object",
 			"properties": {
 				"x": {
@@ -25,11 +25,23 @@
 			}
 		},
 		"area": {
-			"description": "details regarding the plot area, but nothing about the series",
+			"description": "details regarding the plot area, but nothing about the series.  Multiple areas are allowed, and may share axis.",
 			"type": "object",
 			"properties": {
+				"target": {
+					"description": "for when this area is not in the chart target div",
+					"type": "string"
+				},
+				"x": {
+					"description": "The axis used for the horizontal dimension. (default = x)",
+					"type": "string"
+				},
+				"y": {
+					"description": "The axis used for the vertical dimension. (default = y)",
+					"type": "string"
+				},
 				"style": {
-					"$ref": "#definitions.object_style"
+					"$ref": "#definitions.style"
 				}
 			}
 		},
@@ -51,7 +63,7 @@
 				}
 			},
 			"style": {
-				"$ref": "#definitions.object_style"
+				"$ref": "#definitions.style"
 			}
 		},
 		"legend": {
@@ -67,7 +79,7 @@
 					"type": "string"
 				},
 				"style": {
-					"$ref": "#definitions.object_style"
+					"$ref": "#definitions.style"
 				}
 			}
 		},
@@ -81,20 +93,60 @@
 				},
 				"style": {
 					"description": "styling for the tooltip box",
-					"$ref": "#definitions.object_style"
+					"$ref": "#definitions.style"
 				}
 			}
 		},
+		"click": {
+			"description": "function to run when a data element is clicked",
+			"type": "function"
+		},
 		"series": {
-			"description": "what is ploted ",
+			"description": "what is plotted ",
 			"type": "object",
 			"properties": {
+				"select": {
+					"description": "selector(s) for this series.  Use an array of selectors to plot multiple dimensions",
+					"type": "nested",
+					"properties": {
+						"value": {
+							"description": "expression to extract from data and chart",
+							"type": "string"
+						},
+						"range": {
+							"description": "use for range-of-values display, like whisker charts, or gantt charts.  Can not use with `series.select.value`.  Makes no sense with `dot` charts",
+							"type": "object",
+							"properties": {
+								"min": {
+									"description": "minimum value of the range, if any",
+									"type": "number"
+								},
+								"max": {
+									"description": "maximum value of the range, if any",
+									"type": "number"
+								}
+							}
+						},
+						"axis": {
+							"description": "name of the axis to apply against: can be any #chart.axis property name.  Use tuple if plotting more than one dimension.",
+							"type": "string"
+						},
+						"name": {
+							"description": "same as `axis` but standard with JSON query expressions",
+							"type": "string"
+						}
+					}
+				},
 				"value": {
-					"description": "expression to extract from data and chart, use tuple if plotting more than one dimension",
+					"description": "a shortcut for `select.value`",
 					"type": "string"
 				},
 				"axis": {
-					"description": "name of the axis to apply against: can be any #chart.axis property name.  Use tuple if plotting more than one dimension.",
+					"description": "a shortcut for `select.axis`",
+					"type": "string"
+				},
+				"area": {
+					"description": "in the event this chart has multiple draw areas, this is the name of area this series will show in",
 					"type": "string"
 				},
 				"type": {
@@ -102,12 +154,16 @@
 					"type": "string"
 				},
 				"label": {
+					"description": "template for the each element's name",
+					"type": "string"
+				},
+				"name": {
 					"description": "name of the series",
 					"type": "string"
 				},
 				"marker": {
-					"description":"single-value mark on one axis only",
-					"type":"object",
+					"description": "single-value mark on one axis only",
+					"type": "object",
 					"properties": {
 						"size": {
 							"description": "size of the datapoint",
@@ -121,6 +177,9 @@
 							"$ref": "#definitions.object_style"
 						}
 					}
+				},
+				"style": {
+					"$ref": "#definitions.object_style"
 				},
 				"hoverStyle": {
 					"description": "for when hovering over datapoint",
@@ -139,7 +198,7 @@
 						}
 					}
 				},
-				"tip":{
+				"tip": {
 					"description": "override the general tip, for this series only",
 					"type": "object",
 					"properties": {
@@ -149,9 +208,13 @@
 						},
 						"style": {
 							"description": "styling for the tooltip box",
-							"$ref": "#definitions.object_style"
+							"$ref": "#definitions.style"
 						}
 					}
+				},
+				"click": {
+					"description": "override the general click, for this series only",
+					"type": "function"
 				}
 			}
 		}
@@ -162,7 +225,7 @@
 			"type": "object",
 			"properties": {
 				"position": {
-					"description": "where to place the axis, relative to plot area (top/right/bottom/left)",
+					"description": "where to place the axis, relative to plot area (top/right/bottom/left), default=bottom",
 					"type": "string"
 				},
 				"rug": {
@@ -175,7 +238,7 @@
 					"type": "string"
 				},
 				"value": {
-					"description": "expression to evaluate, or name of the property",
+					"description": "common expression to evaluate, or name of the property",
 					"type": "string"
 				},
 				"unit": {
@@ -191,31 +254,13 @@
 					"type": "boolean",
 					"default": true
 				},
-				"domain":{"$ref": "#definitions.domain"},
+				"domain": {"$ref": "#definitions.domain"},
 				"missing": {
 					"description": "information on behaviour when outside the domain or range.  Has no meaning when using the default domain.",
 					"type": "object",
 					"properties": {
 						"style": {
 							"$ref": "#defiinitions.style"
-						}
-					}
-				},
-				"showZero": {
-					"description": "show zero coordinate, even if calculated range would not",
-					"type": "boolean"
-				},
-				"range": {
-					"description": "optional, instead of a formal `domain`; define the range of values on axis",
-					"type": "object",
-					"properties": {
-						"min": {
-							"description": "minimum axis value shown",
-							"type": "number"
-						},
-						"max": {
-							"description": "maximum axis value shown",
-							"type": "number"
 						}
 					}
 				}
@@ -256,7 +301,7 @@
 						"type": "string"
 					},
 					"id": {
-						"description": "id for programatic reference",
+						"description": "id for programmatic reference",
 						"type": "string"
 					},
 					"min": {
@@ -291,44 +336,50 @@
 					"style": {
 						"$ref": "#definitions.style"
 					}
-
 				}
 			},
 			"style": {
 				"$ref": "#definitions.object_style"
 			}
 		},
-		"domain":{
-
-			"domain":{"$ref": "#definitions.domain"},
-			"range": {
-				"description": "define the range of values on axis",
-				"type": "object",
-				"properties": {
-					"min": {
-						"description": "minimum axis value shown",
-						"type": "number"
-					},
-					"max": {
-						"description": "maximum axis value shown",
-						"type": "number"
-					},
-					"showZero": {
-						"description": "show zero coordinate, even if calculated range would not",
-						"type": "bolean"
-					}
+		"domain": {
+			"description": "define the range of values on axis",
+			"type": "object",
+			"properties": {
+				"min": {
+					"description": "minimum axis value shown",
+					"type": "number"
+				},
+				"max": {
+					"description": "maximum axis value shown",
+					"type": "number"
+				},
+				"showZero": {
+					"description": "show zero coordinate, even if calculated range would not",
+					"type": "boolean"
+				},
+				"partitions": {
+					"description": "categorical dimensions require an explict list of strings",
+					"type": "string"
+				},
+				"reversed": {
+					"description": "show the range reversed, greater positive numbers going down (or positive counting goes leftward)",
+					"type": "boolean"
 				}
 			}
-
-
 		},
 		"object_style": {
 			"type": "object",
 			"properties": {
-				"$ref":"#definitions.style.properties",
 				"line": {
 					"$ref": "#definitions.style"
-				}
+				},
+				"bar-spacing": {
+					"description": "spacing between bars, either as pixels, or a percent of bar width.",
+					"type": "string",
+					"default": "10%"
+				},
+				"$ref": "#definitions.style.properties"
 			}
 		},
 		"style": {

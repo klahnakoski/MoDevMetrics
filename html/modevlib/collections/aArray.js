@@ -7,8 +7,6 @@ importScript("../util/aUtil.js");
 
 
 
-
-
 (function(){
 	var DEBUG=true;
 
@@ -86,16 +84,30 @@ importScript("../util/aUtil.js");
 		this.splice(index, 0, value);
 	};//method
 
-	Array.prototype.map=function(func){
+	/**
+	 * INTERPRET undefined AS OUT-IN-CONTEXT
+	 * @param func - RETURN undefined TO BE REMOVED FROM RESULT
+	 * @returns {Array}
+     */
+	Array.prototype.mapExists=function(func){
 		var output=[];
 		for(var i=0;i<this.length;i++){
 			var v=func(this[i], i, this);
-			if (v===undefined || v==null) continue;
+			if (v===undefined) continue;
 			output.push(v);
 		}//for
 		return output;
 	};//method
 
+	//Array.prototype.map=function(func){
+	//	var output=[];
+	//	for(var i=0;i<this.length;i++){
+	//		var v=func(this[i], i, this);
+	//		if (v===undefined) continue;
+	//		output.push(v);
+	//	}//for
+	//	return output;
+	//};//method
 
 	// func IS EXPECTED TO TAKE (group, values) WHERE
 	//     group IS THE GROUP VALUE (OR OBJECT)
@@ -129,7 +141,7 @@ importScript("../util/aUtil.js");
 		if (typeof(attrName)=="string"){
 			if (attrName.indexOf(".")==-1){
 				for(var i=0;i<this.length;i++)
-					output.push(this[i][attrName]);
+					output.push(Map.get(this[i], attrName));
 			}else{
 				for(var i=0;i<this.length;i++)
 					output.push(Map.get(this[i], attrName));
@@ -168,11 +180,7 @@ importScript("../util/aUtil.js");
 	//WE ASSUME func ACCEPTS (row, i, rows)
 	Array.prototype.filter=function(func){
 
-		if (typeof(func) == "function") {
-			//DO NOTHING
-		}else{
-			func = convert.esFilter2function(func)
-		}//endif
+		if (typeof(func) != "function") func = qb.get(func);
 
 		var output=[];
 		for(var i=0;i<this.length;i++){
@@ -190,24 +198,26 @@ importScript("../util/aUtil.js");
 		return temp.substring(0, num).map(function(v){return v.value;});
 	};
 
+	Array.prototype.orderBy=function(sort){
+		return qb.sort(this, sort);
+	};//method
+
 	Array.prototype.append=function(v){
 		this.push(v);
 		return this;
 	};//method
 
-	function appendArray(arr){
+	function extend(arr){
 		for(var i=0;i<arr.length;i++){
 			this.push(arr[i]);
 		}//for
 		return this;
 	}//method
-	Array.prototype.appendArray=appendArray;
-	Array.prototype.appendList=appendArray;
-	Array.prototype.extend=appendArray;
+	Array.prototype.extend=extend;
 
 
 	if (DEBUG){
-		var temp=[0,1,2].appendArray([3,4,5]);
+		var temp=[0,1,2].extend([3,4,5]);
 		for(var i=0;i<6;i++) if (temp[i]!=i)
 			Log.error();
 	}//endif
@@ -227,12 +237,12 @@ importScript("../util/aUtil.js");
 		return this[0];
 	};//method
 
-//	Array.prototype.indexOf=function(value){
-//		for(var i=0;i<this.length;i++){
-//			if (this[i]==value) return i;
-//		}//for
-//		return -1;
-//	};//method
+//  Array.prototype.indexOf=function(value){
+//    for(var i=0;i<this.length;i++){
+//      if (this[i]==value) return i;
+//    }//for
+//    return -1;
+//  };//method
 
 	Array.prototype.substring=Array.prototype.slice;
 
@@ -266,9 +276,8 @@ importScript("../util/aUtil.js");
 		}//while
 	};
 
-
 	Array.prototype.concatenate=function(separator){
-		return this.map(function(v){return v;}).join(separator);
+		return this.mapExists(function(v){return v;}).join(separator);
 	};
 
 	//RETURN TRUE IF VALUE IS FOUND IN ARRAY
@@ -296,16 +305,22 @@ importScript("../util/aUtil.js");
 	//ASSUMES THAT THE COORCED STRING VALUE IS UNIQUE
 	//EXPECTING EACH ARGUMENT TO BE AN ARRAY THAT REPRESENTS A SET
 	Array.prototype.union = function(){
-		return Array.union.apply(undefined, [].appendArray(arguments).append(this));
+		return Array.union.apply(undefined, [].extend(arguments).append(this));
 	};//method
 
 	//RETURN UNION OF UNIQUE VALUES
 	//ASSUMES THAT THE COORCED STRING VALUE IS UNIQUE
 	//EXPECTING ONE ARGUMENT, WHICH IS A LIST OF AN ARRAYS, EACH REPRESENTING A SET
 	Array.union = function union(){
-		var arrays = (arguments.length==1  && arguments[0] instanceof Array) ? arguments[0] : arguments;
+		var arrays = (arguments.length == 1 && arguments[0] instanceof Array) ? arguments[0] : arguments;
+		return Array.UNION(arrays);
+	};
 
-		var output={};
+	Array.UNION = function(arrays){
+		/*
+		 * EXPECTING A LIST OF ARRAYS TO union
+		 */
+		var output = {};
 		for (var j = arrays.length; j--;) {
 			var a = Array.newInstance(arrays[j]);
 			for (var i = a.length; i--;) {
@@ -335,13 +350,21 @@ importScript("../util/aUtil.js");
 	}
 	Array.OR=OR;
 
+	Array.range = function range(min, max, step){
+		if (step===undefined) step=1;
+		var output = [];
+		for (var i = min; i < max; i += step) {
+			output.append(i);
+		}//for
+		return output;
+	};//function
 
 	Array.extend=function extend(){
 		var arrays = (arguments.length==1  && arguments[0] instanceof Array) ? arguments[0] : arguments;
 		var output=[];
 		for(var i=0;i<arrays.length;i++){
 			var a = Array.newInstance(arrays[i]);
-			output.appendArray(a);
+			output.extend(a);
 		}//for
 		return output;
 	};
@@ -349,7 +372,7 @@ importScript("../util/aUtil.js");
 
 	Array.prototype.subtract=function(b){
 		var c=[];
-	A:	for(var x=0;x<this.length;x++){
+	A:  for(var x=0;x<this.length;x++){
 		var v=this[x];
 			if (v!==undefined){
 				for(var y=b.length;y--;) if (v==b[y]) continue A;

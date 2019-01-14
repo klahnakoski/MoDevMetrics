@@ -111,7 +111,7 @@ var importScript;
 			}//endif
 
 			var s = src.indexOf("(", found);
-			var e = src.indexOf(")", s);	//HOPEFULLY THIS WILL CATCH THE PARAMETERS (FAILS WHEN COMMENTS EXIST)
+			var e = src.indexOf(")", s);  //HOPEFULLY THIS WILL CATCH THE PARAMETERS (FAILS WHEN COMMENTS EXIST)
 
 			var f = "addDependency(" + quote(parentPath) + ", " + src.substring(s + 1, e + 1);
 			try {
@@ -190,7 +190,7 @@ var importScript;
 			relativePath.indexOf("://") > 0 ||
 				relativePath.charAt(0) == '/'
 			) {
-			absPath = relativePath;	//NOT RELATIVE
+			absPath = relativePath;  //NOT RELATIVE
 		} else {
 			absPath = parentScriptPath + "/" + relativePath;
 		}//endif
@@ -250,8 +250,12 @@ var importScript;
 
 		function onLoadCallback() {
 			var path;
-			if (this.src.startsWith(window.location.origin)) {
-				path = this.src.slice(window.location.origin.length).split("?")[0].split("#")[0];
+			var origin = window.location.origin;
+			if (origin == "null") { // for file:, origin is the string "null"
+				origin = window.location.protocol + "//";
+			}
+			if (this.src.startsWith(origin)) {
+				path = this.src.slice(origin.length).split("?")[0].split("#")[0];
 			}else{
 				path = this.src.split("?")[0].split("#")[0];
 			}//endif
@@ -413,7 +417,7 @@ var importScript;
 		//POPULATE STRUCTURES TO DO THE SORTING
 		var graph = {};
 		for (var i = 0; i < edges.length; i++) {
-//			if (DEBUG) Log.note(JSON.stringify(e));
+//      if (DEBUG) Log.note(JSON.stringify(e));
 			var e = edges[i];
 			addVertex(e.file);
 			addVertex(e.import);
