@@ -55,7 +55,7 @@
             Thread.run(function*(){  //jsThreads ARE GREAT BECAUSE WE DO NOT NEED CALLBACKS
                 let chart = yield (ActiveDataQuery.run({
                     "name": "Open Bug Count",  //HUMANE NAME FOR THIS DATASET
-                    "from": "bugs",  //ESQuery.INDEXES MAPS NAMES TO ES CONNECTION INFO
+                    "from": "private_bugs",  //ESQuery.INDEXES MAPS NAMES TO ES CONNECTION INFO
                     "select": {  // JUST LIKE SQL: SELECT COUNT(bug_id) AS num_bug
                         "name": "num_bug",
                         "value": "bug_id",
